@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="itemAttachment">
+	<typeAlias alias="ItemAttachment" type="com.tianque.approval.domain.ItemAttachment" />
+	<resultMap class="ItemAttachment" id="itemAttachmentResult">
+		<result property="id" column="id" />
+		<result property="item.id" column="itemId" />
+		<result property="fileName" column="fileName" />
+		<result property="fileActualUrl" column="fileActualUrl" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<insert id="addItemAttachment" parameterClass="ItemAttachment">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_ITEMATTACHMENTS.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into itemAttachments(id,itemId,fileName,fileActualUrl,createUser,createDate)
+		values (#id#,#item.id#,#fileName#,#fileActualUrl#,#createUser#,#createDate#)
+	</insert>
+	
+	<select id="getItemAttachmentById" parameterClass="java.lang.Long" resultMap="itemAttachmentResult">
+		<![CDATA[select * from itemAttachments where id=#value#]]>
+	</select>
+	
+	<select id="findItemAttachmentByItemId" parameterClass="java.lang.Long" resultMap="itemAttachmentResult">
+		<![CDATA[select * from itemAttachments where itemId=#value#]]>
+	</select>
+
+	<delete id="deleteItemAttachmentByItemId" parameterClass="java.lang.Long">
+		delete from itemAttachments where itemId = #value#
+	</delete>
+	
+	<delete id="deleteItemAttachmentById" parameterClass="java.lang.Long">
+		delete from itemAttachments where id = #value#
+	</delete>
+	
+</sqlMap>

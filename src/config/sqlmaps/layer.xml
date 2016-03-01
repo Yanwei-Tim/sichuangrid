@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="layer">
+	<typeAlias alias="Layer" type="com.tianque.domain.Layer" />
+	<resultMap id="layerResult" class="Layer">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="minX"  column="minX"/>
+		<result property="minY"  column="minY"/>
+		<result property="maxX"  column="maxX"/>
+		<result property="maxY"  column="maxY"/>
+		<result property="centerX" column="centerX" />
+		<result property="centerY"  column="centerY"/>
+		<result property="remark"  column="remark"/>
+		<result property="points" column="points"/>
+		<result property="zoom" column="zoom" />
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+	
+	<insert id="addLayer" parameterClass="Layer">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[select s_layers.NEXTVAL as id from dual]]>
+		</selectKey>
+		insert into layers (id,name,orgId,orgInternalCode,minX,minY,maxX,maxY,centerX,centerY,remark,points,zoom,createUser,createDate)
+			values (#id#,#name#,#organization.id#,#orgInternalCode#,#minX#,#minY#,#maxX#,#maxY#,#centerX#,#centerY#,#remark#,#points#,#zoom#,#createUser#,#createDate#)
+	</insert>
+	
+	<update id="updateLayerByOrgId" parameterClass="Layer">
+		update layers set 
+			id = #id#
+			<isNotNull prepend="," property="updateUser">
+				updateUser = #updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate = #updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="minX">
+				minX=#minX#
+			</isNotNull>
+			<isNotNull prepend="," property="minY">
+				minY=#minY#
+			</isNotNull>
+			<isNotNull prepend="," property="maxX">
+				maxX=#maxX#
+			</isNotNull>
+			<isNotNull prepend="," property="maxY">
+				maxY=#maxY#
+			</isNotNull>
+			<isNotNull prepend="," property="remark">
+				remark=#remark#
+			</isNotNull>
+			<isNotNull prepend="," property="centerX">
+				centerX=#centerX#
+			</isNotNull>
+			<isNotNull prepend="," property="centerY">
+				centerY=#centerY#
+			</isNotNull>
+			<isNotNull prepend="," property="points">
+				points=#points#
+			</isNotNull>
+			<isNotNull prepend="," property="zoom">
+				zoom=#zoom#
+			</isNotNull>
+				where orgId=#organization.id#
+	</update>
+	
+	<select id="getLayerById" parameterClass="java.lang.Long" resultMap="layerResult">
+		select * from layers where id=#value#
+	</select>
+	
+	<select id="getLayerByOrganizationId" parameterClass="java.lang.Long" resultMap="layerResult">
+		select * from layers where orgId = #orgId#
+	</select>
+	
+	<select id="getLayerByOrganizationIds" parameterClass="map" resultMap="layerResult">
+		select * from layers where orgId in 
+		<iterate open="(" close=")" property="ids" conjunction=",">
+		#ids[]#
+		</iterate>
+	</select>
+	
+	<delete id="deleteLayer" parameterClass="java.lang.Long">
+		delete from layers where id = #value#
+	</delete>
+	
+	<delete id="deleteLayerByOrganizationId" parameterClass="java.lang.Long">
+		delete from layers where orgId = #orgId#
+	</delete>
+	
+	<select id="getSuperiorPointsByOrgId" parameterClass="java.lang.Long" resultMap="layerResult">
+		select * from layers where orgId = #parOrgId#
+	</select>
+	
+	<select id="getAllDistrictLayerByOrgCode" parameterClass="map" resultMap="layerResult">
+		select l.* from  layers l where 1=1
+		<iterate prepend=" and "  property="orgIdsList" conjunction="or" open="(" close=")">
+			l.orgid in ($orgIdsList[]$)
+		</iterate>
+	</select>
+	
+</sqlMap>

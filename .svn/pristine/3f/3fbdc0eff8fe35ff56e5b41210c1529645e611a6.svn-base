@@ -1,0 +1,56 @@
+package com.tianque.plugin.taskList.dao;
+
+import java.util.List;
+
+import com.tianque.plugin.taskList.domain.BaseTaskVisit;
+import com.tianque.plugin.taskList.domain.FloatingPopulationTask;
+import com.tianque.plugin.taskList.domain.HiddenDangerTask;
+import com.tianque.plugin.taskList.domain.Receipt;
+
+/**
+ * 任务清单签收
+ * 
+ * @author lanhaifeng
+ * 
+ */
+public interface ReceiptDao {
+	/**
+	 * 
+	 * @param receipt
+	 *            签收信息
+	 */
+	public void updateReceiptStatus(Receipt receipt, String signType);
+
+	/**
+	 * 任务清单报表数据
+	 * @param orgType
+	 * @param orgId
+	 * @return
+	 */
+	public List<BaseTaskVisit> getTaskSumAndVisitByParentOrgId(Long orgType, Long orgId);
+
+	/**
+	 * 流动人口报表数据
+	 * @param orgType
+	 * @param orgId
+	 * @return
+	 */
+	public List<FloatingPopulationTask> getFloatingPopulationVisitByParentOrgId(Long orgType,
+			Long orgId);
+
+	/**
+	 * 发现治安隐患报表数据
+	 * @param orgType
+	 * @param orgId
+	 * @return
+	 */
+	public List<HiddenDangerTask> getHiddenDangerVisitByParentOrgId(Long orgType, Long orgId);
+
+	/**
+	 * 特殊人群统计报表数据获取
+	 * @param orgType 组织层级类型
+	 * @param orgId 组织层级id
+	 * @return
+	 */
+	public List<BaseTaskVisit> getSpecialGroupSumAndVisitList(Long orgType, Long orgId);
+}

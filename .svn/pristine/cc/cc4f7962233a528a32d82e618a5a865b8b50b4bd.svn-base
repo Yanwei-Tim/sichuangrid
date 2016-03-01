@@ -1,0 +1,49 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags" %>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib" %>
+<jsp:include page="/includes/baseInclude.jsp" />
+
+<div class="content" style="">
+	<div id="businessManageTab">
+	<ul> 
+		<li><a href="#tabs-0" id="businessManageContent">政策法规宣传信息</a></li> 
+		<li><a href="#tabs-1" id="replyInfos">回复列表</a></li>
+	</ul> 
+		<div id="tabs-0"></div> 
+		<div id="tabs-1"></div>
+	</div>
+	<input type="hidden" id="businessManageId" value="${businessManage.id }"> 
+</div>
+
+<script type="text/javascript">
+var sc=new Array(5);
+$(document).ready(function() {
+	$("#businessManageTab").tabs();
+	loadCompanyInfoContent();	
+});
+
+function loadCompanyInfoContent() {
+	var businessManageId = $("#businessManageId").val();
+	if (businessManageId == null || businessManageId == '') {
+		return;
+	}
+	//基本信息
+	$.ajax({
+		data : {mode : 'view', 'businessManage.id': businessManageId},
+		url:"${path}/serviceList/businessManageManage/dispatchOperate.action",
+		success : function(data) {
+			$("#tabs-0").html("");
+			$("#tabs-0").html(data);
+		}
+	});
+	//回复记录
+	$.ajax({
+		data : {mode : 'viewReplyList', 'businessManage.id': businessManageId},
+		url:"${path}/serviceList/businessManageManage/dispatchOperate.action",
+		success : function(data) {
+			$("#tabs-1").html("");
+			$("#tabs-1").html(data);
+		}
+	});
+}
+</script>

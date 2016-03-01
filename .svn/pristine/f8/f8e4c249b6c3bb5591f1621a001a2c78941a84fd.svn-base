@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="rectificativePerson">
+
+	<typeAlias alias="RectificativePerson"
+		type="com.tianque.baseInfo.rectificativePerson.domain.RectificativePerson" />
+		<typeAlias alias="SearchRectificativePersonVo" type="com.tianque.domain.vo.SearchRectificativePersonVo" />
+	<resultMap id="rectificativePersonResult" class="RectificativePerson"
+		extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResult">
+		<result column="penaltyTerm" property="penaltyTerm" />
+		<result column="rectifyStartDate" property="rectifyStartDate" />
+		<result column="rectifyEndDate" property="rectifyEndDate" />
+		<result column="recentSituation" property="recentSituation" />
+		<result column="bussinessRemark" property="bussinessRemark" />
+		<result column="executeType" property="executeType.id" />
+		<result property="accusation" column="accusation"/>	
+		<result property="isRemind" column="isRemind"/>
+	</resultMap>
+	<!-- 这两个resultMap内容一致，继承关系不一样 -->
+	<resultMap id="rectificativePersonResultForList" class="RectificativePerson"
+		extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+		<result column="penaltyTerm" property="penaltyTerm" />
+		<result column="rectifyStartDate" property="rectifyStartDate" />
+		<result column="rectifyEndDate" property="rectifyEndDate" />
+		<result column="recentSituation" property="recentSituation" />
+		<result column="bussinessRemark" property="bussinessRemark" />
+		<result column="executeType" property="executeType.id" />
+		<result property="accusation" column="accusation"/>	
+		<result property="isRemind" column="isRemind"/>
+	</resultMap>
+	
+	<resultMap id="rectificativePersonResultForDefaultList" class="RectificativePerson" 
+		extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForDefaultList">
+		<result column="penaltyTerm" property="penaltyTerm" />
+		<result column="rectifyStartDate" property="rectifyStartDate" />
+		<result column="rectifyEndDate" property="rectifyEndDate" />
+		<result column="recentSituation" property="recentSituation" />
+		<result column="bussinessRemark" property="bussinessRemark" />
+		<result column="executeType" property="executeType.id" />
+		<result property="isRemind" column="isRemind"/>
+		<result property="accusation" column="accusation"/>	
+	</resultMap>
+	
+	<resultMap id="mobileRectificativePersonMap" class="RectificativePerson" extends="rectificativePersonResultForList">
+         <!-- 用于手机接口返回走访数量 -->
+     <result property="interviewCount" column="interviewCount" />
+    </resultMap>
+
+	
+	<sql id="fields">
+		uni.id,uni.baseinfoid,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.executeType,uni.penaltyTerm,uni.rectifyStartDate,uni.rectifyEndDate,
+		uni.recentSituation,uni.sourcesState,uni.attentionExtent,uni.createUser,uni.updateUser,uni.createDate,uni.updateDate,
+		uni.isEmphasis,uni.isEmphasisReason,uni.isEmphasisDate,uni.bussinessRemark,uni.accusation,uni.isRemind
+	</sql>
+	
+	<insert id="addRectificativePerson" parameterClass="RectificativePerson">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_rectificativepersons.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO rectificativePersons
+		(
+		<include refid="populationBaseInfo.addBaseInfoFields" />
+		,penaltyTerm,
+		rectifyStartDate,
+		rectifyEndDate,
+		recentSituation,
+		bussinessRemark,
+		executeType,
+		attentionExtent,
+		sourcesState,
+		accusation,
+		isEmphasis
+		)
+		VALUES
+		(
+		<include refid="populationBaseInfo.addBaseInfoData" />
+		,#penaltyTerm#,
+		#rectifyStartDate#,
+		#rectifyEndDate#,
+		#recentSituation#,
+		#bussinessRemark#,
+		#executeType.id#,
+		#attentionExtent.id#,
+		#sourcesState#,
+		#accusation#,
+		#isEmphasis#
+		)
+	</insert>
+
+	<select id="getRectificativePersonById" parameterClass="java.lang.Long"
+		resultMap="rectificativePersonResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		FROM rectificativePersons uni left join baseinfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		WHERE uni.id=#value#
+	</select>
+	<select id="getByOrgIdAndIdCardNo"
+		parameterClass="java.util.Map" resultMap="rectificativePersonResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		FROM rectificativePersons uni left join baseinfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		WHERE uni.orgId=#orgId# and upper(idCardNo)=upper(#idCardNo#)
+	</select>
+
+	<sql id="updateBusinessSql">
+		<include refid="populationBaseInfo.updateBaseInfoSql" />,
+		penaltyTerm=#penaltyTerm#,
+		rectifyStartDate=#rectifyStartDate#,
+		rectifyEndDate=#rectifyEndDate#,
+		recentSituation=#recentSituation#,
+		bussinessRemark=#bussinessRemark#,
+		executeType=#executeType.id#,
+		attentionExtent=#attentionExtent.id#,
+		<isPropertyAvailable property="isRemind">
+			<isNotNull property="isRemind">
+				isRemind=#isRemind#,
+			</isNotNull>
+		</isPropertyAvailable>
+		accusation=#accusation#
+<!-- 		 <isNotNull  prepend=","  property="nativePoliceStation"> -->
+<!-- 		  nativePoliceStation=#nativePoliceStation# -->
+<!-- 		</isNotNull> -->
+	</sql>
+
+	<update id="updateRectificativePerson" parameterClass="RectificativePerson">
+		UPDATE rectificativePersons SET
+		<isNotEmpty property="isEmphasis">
+				isEmphasis = #isEmphasis#,
+		</isNotEmpty>
+		<include refid="updateBusinessSql" />
+		WHERE id=#id#
+	</update>
+	<update id="updateBaseInfo" parameterClass="RectificativePerson">
+		UPDATE rectificativePersons SET
+		<include refid="populationBaseInfo.updateBaseInfoSql" />
+		<include refid="populationBaseInfo.updateBussLogoutDetail"/>
+		WHERE id=#id#
+	</update>
+	<update id="updateBusiness" parameterClass="RectificativePerson">
+		UPDATE rectificativePersons SET
+		<include refid="updateBusinessSql" />
+		<isNotEmpty property="isEmphasis">
+				,isEmphasis = #isEmphasis#
+		</isNotEmpty>
+		WHERE id=#id#
+	</update>
+	<delete id="deleteRectificativePersonById" parameterClass="java.lang.Long">
+		DELETE FROM rectificativePersons WHERE id=#value#
+	</delete>
+	<select id="countRectificativePersonsForPage" parameterClass="RectificativePerson"
+		resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM rectificativePersons WHERE orgInternalCode LIKE
+		'$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<sql id="default_sql_where">
+	  from rectificativePersons uni 
+	  <dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findRectificativePersonDefaultList" resultMap="rectificativePersonResultForDefaultList" parameterClass="map">
+	  select <include refid="fields"/> 
+	  <include refid="default_sql_where" />
+	  ORDER BY ID DESC
+	</select>
+	
+	<select id="countRectificativePersonDefaultList" resultClass="java.lang.Integer" parameterClass="map">
+		<![CDATA[select count(uni.id)]]>
+		<include refid="default_sql_where" />
+	</select>
+
+	<select id="findRectificativePersonsForPage" parameterClass="RectificativePerson" resultMap="rectificativePersonResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType 
+		FROM rectificativePersons uni left join baseinfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/>  
+		WHERE uni.orgInternalCode LIKE '$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="ORDER BY">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countRectificativePersonsBySearchVo" parameterClass="SearchRectificativePersonVo"
+		resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM rectificativePersons WHERE orgInternalCode LIKE
+		'$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findRectificativePersonsBySearchVo" parameterClass="SearchRectificativePersonVo" resultMap="rectificativePersonResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType 
+		FROM rectificativePersons uni left join baseinfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/>  
+		WHERE uni.orgInternalCode LIKE '$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="ORDER BY">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="getByIdCard" parameterClass="map" resultMap="rectificativePersonResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		FROM rectificativePersons uni left join baseinfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/>
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" AND ">
+					orgId = $orgId$
+				</isNotNull>
+			</isPropertyAvailable>
+			AND (
+			<iterate property="idCardNoList" conjunction="OR">
+				upper(idCardNo) = upper(#idCardNoList[]#)
+			</iterate>
+			)
+		</dynamic>
+	</select>
+	<update id="updateEmphasiseById" parameterClass="map">
+		UPDATE
+		rectificativePersons SET
+		isEmphasis = #isEmphasis#
+		where id=#id#
+	</update>
+	<update id="updateDeathAndLogoutStateById" parameterClass="map">
+		update rectificativePersons set
+		<isNotEmpty property="death">
+			isdeath = #death#
+		</isNotEmpty>
+		<isNotEmpty property="isEmphasis" prepend=",">
+			isEmphasis=#isEmphasis#
+		</isNotEmpty>
+		where id=#id#
+	</update>
+
+	<select id="findRectificativePersonByRectifyDate" resultMap="rectificativePersonResultForList">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		FROM rectificativePersons uni left join baseinfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		WHERE (sysDate - rectifyEndDate) >=0 and isEmphasis = 0  and isRemind != 1
+	</select>
+	
+	<select id="findRectificativePersonByIsRemind" resultMap="rectificativePersonResultForList">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		FROM rectificativePersons uni left join baseinfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		WHERE (sysDate + #remindTime#)>rectifyEndDate and isEmphasis = 0  and isRemind != 1
+	</select>
+	
+	 <!-- 提醒矫正日期快到 -->
+	<update id="updateIsRemindByid" parameterClass="map" >
+		update rectificativePersons set isRemind=1 where id=#id#
+	</update>
+	
+	
+	<!-- 移动数据需要的sql -->
+	<update id="updateDataMoveRectificativePersonToOrg" parameterClass="java.util.Map">
+		update rectificativePersons set orgId = #orgId# , orgInternalCode = #orgInternalCode# where id = #id#
+	</update>
+	
+	<select id="getIdByBaseinfoIdAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		SELECT id from rectificativePersons  
+		where baseinfoid=#baseInfoId# and orgId=#orgId#
+	</select>
+</sqlMap>

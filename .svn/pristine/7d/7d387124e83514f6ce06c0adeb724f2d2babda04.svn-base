@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="statisticsBaseInfoNew">
+	<select id="getCountByOrgInternalCodeAndTableNameAndMap" parameterClass="java.util.Map" resultClass="int">
+		select count(*) from $tableName$ d where orgInternalCode like '$orgInternalCode$%'
+		<isPropertyAvailable property="startDate">
+			<isNotNull property="startDate" prepend=" and ">
+				d.createDate<![CDATA[>=]]>#startDate#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="endDate">
+			<isNotNull property="endDate" prepend=" and ">
+				d.createDate<![CDATA[<]]>#endDate#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="isEmphasis">
+			<isNotEmpty property="isEmphasis" prepend=" and ">
+				d.isEmphasis = 0
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isNotNull property="help" prepend="and">
+		  exists (select id  from serviceMemberHasObject where objectType = #type# and objectId=d.id and onDuty=1 )
+		</isNotNull>
+		
+		<isPropertyAvailable property="keyType">
+			<isNotEmpty property="keyType" prepend=" and ">
+				keyType = #keyType#
+			</isNotEmpty>
+		</isPropertyAvailable>
+	</select>
+	
+	<select id="getCountFromHistory" parameterClass="java.util.Map" resultClass="int">
+		select nvl(sum(b.total),0) total from baseinfostattype_$year$_$month$ b
+		 where b.orginternalcode like '$orgInternalCode$%'
+		 <isPropertyAvailable property="baseinfotype">
+			<isNotEmpty property="baseinfotype" prepend=" and ">
+				b.baseinfotype = #baseinfotype#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="year">
+			<isNotEmpty property="year" prepend=" and ">
+				b.year = #year#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="month">
+			<isNotEmpty property="month" prepend=" and ">
+				b.month = #month#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="typeName">
+			<isNotEmpty property="typeName" prepend=" and ">
+				b.typeName = #typeName#
+			</isNotEmpty>
+		</isPropertyAvailable>
+	</select>
+	
+		<select id="getIsHelpFromHistory" parameterClass="java.util.Map" resultClass="int">
+		select nvl(sum(b.ishelp),0) ishelp from baseinfostattype_$year$_$month$ b
+		 where b.orginternalcode like '$orgInternalCode$%'
+		 <isPropertyAvailable property="baseinfotype">
+			<isNotEmpty property="baseinfotype" prepend=" and ">
+				b.baseinfotype = #baseinfotype#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="year">
+			<isNotEmpty property="year" prepend=" and ">
+				b.year = #year#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="month">
+			<isNotEmpty property="month" prepend=" and ">
+				b.month = #month#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="typeName">
+			<isNotEmpty property="typeName" prepend=" and ">
+				b.typeName = #typeName#
+			</isNotEmpty>
+		</isPropertyAvailable>
+	</select>
+	
+		<select id="getNoHelpFromHistory" parameterClass="java.util.Map" resultClass="int">
+		select nvl(sum(b.nohelp),0) nohelp from baseinfostattype_$year$_$month$ b
+		 where b.orginternalcode like '$orgInternalCode$%'
+		 <isPropertyAvailable property="baseinfotype">
+			<isNotEmpty property="baseinfotype" prepend=" and ">
+				b.baseinfotype = #baseinfotype#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="year">
+			<isNotEmpty property="year" prepend=" and ">
+				b.year = #year#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="month">
+			<isNotEmpty property="month" prepend=" and ">
+				b.month = #month#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="typeName">
+			<isNotEmpty property="typeName" prepend=" and ">
+				b.typeName = #typeName#
+			</isNotEmpty>
+		</isPropertyAvailable>
+	</select>
+	
+	<select id="getIsHelpCountFromHistory" parameterClass="java.util.Map" resultClass="java.util.HashMap" remapResults="true">
+		select max(mo.orgname) orgName,
+       max(mo.id) orgId,
+       nvl(sum(co.ishelp), 0) ishelp,
+       nvl(sum(co.nohelp), 0) nohelp
+		  from organizations mo
+		  left join (select  sum(d.ishelp) ishelp,sum(d.nohelp) nohelp,
+		                    d.orginternalcode
+		               from baseinfostattype_$year$_$month$ d
+		              where d.year = #year# and d.month = #month#
+		              <isPropertyAvailable property="baseinfotype">
+						<isNotEmpty property="baseinfotype" prepend=" and ">
+							d.baseinfotype = #baseinfotype#
+						</isNotEmpty>
+					</isPropertyAvailable>
+                   <isPropertyAvailable property="typeName">
+						<isNotEmpty property="typeName" prepend=" and ">
+							d.typeName = #typeName#
+						</isNotEmpty>
+					</isPropertyAvailable>
+		              group by d.orginternalcode) co
+		    on co.orginternalcode like mo.orginternalcode || '%'
+		 where mo.parentid =#orgId#
+		 and mo.orgtype=(select id from propertydicts where
+						propertydomainid=(select id from propertydomains where
+						domainname='网格类型') and internalid=0)
+		 group by mo.id, mo.seq
+		 order by mo.seq
+	</select>
+</sqlMap>

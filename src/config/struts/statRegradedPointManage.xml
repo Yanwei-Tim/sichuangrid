@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+    <constant name="struts.objectFactory" value="spring" />
+    <package name="statAnalyse" extends="default" namespace="/statAnalyse/statRegradedPointManage">
+        <default-class-ref class="statRegradedPointsController"></default-class-ref>
+        <action name="dispatch" method="dispatch">
+            <result name="success">
+                /statAnalyse/statRegradedPoints/statRegradedPoints.jsp
+            </result>
+        </action>
+        <action name="statRegradedPoints" method="statRegradedPoints">
+            <result name="success" type="json">
+                <param name="root">gridPage</param>
+                <param name="ignoreHierarchy">false</param>
+            </result>
+        </action>
+        <action name="createRegradedPointStatTable" method="createRegradedPointStatTable">
+        	<result name="success"  type="json">
+				<param name="root">true</param>
+			</result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+        <action name="auditStatRegradedPoints" method="auditStatRegradedPoints">
+            <result type="json">
+                <param name="root">statRegradedPoint</param>
+                <param name="ignoreHierarchy">false</param>
+            </result>
+        </action>
+        
+        <action name="nextOrgLevelNameByOrgId" method="nextOrgLevelNameByOrgId">
+        	<result type="json">
+                <param name="root">nextOrgLevelName</param>
+                <param name="ignoreHierarchy">false</param>
+            </result>
+        </action>
+        
+        <action name="getMonthTypeList" method="getMonthTypeList">
+        	<result type="json">
+        		<param name="root">monthType</param>
+        		<param name="ignoreHierarchy">false</param>
+        	</result>
+        </action>
+        
+        <action name="getLastMonthTypeList" method="getLastMonthTypeList">
+        	<result type="json">
+        		<param name="root">monthType</param>
+        		<param name="ignoreHierarchy">false</param>
+        	</result>
+        </action>
+        
+        <action name="downloadRegradedPoints" method="downloadRegradedPoints">
+        	<result name="success" type="stream">
+                <param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>
+                <param name="inputName">inputStream</param>
+                <param name="contentDisposition">attachment;filename="${downloadFileName}"</param>
+                <param name="bufferSize">4096</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+        </action>
+        
+        <action name="downloadRegradedPointsAll" method="downloadExcelExportAll">
+        	<result type="json">
+        		<param name="root">gridPage</param>
+        		<param name="ignoreHierarchy">false</param>
+        	</result>
+        </action>
+    </package>
+</struts>

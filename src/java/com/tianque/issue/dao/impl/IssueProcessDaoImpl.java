@@ -1,0 +1,285 @@
+package com.tianque.issue.dao.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.core.vo.AutoCompleteData;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.PropertyDict;
+import com.tianque.issue.constants.IssueIsStayStepType;
+import com.tianque.issue.dao.IssueProcessDao;
+import com.tianque.issue.domain.IssueMap;
+import com.tianque.issue.domain.IssueStep;
+import com.tianque.issue.state.IssueStepGroup;
+
+@Repository("issueProcessDao")
+public class IssueProcessDaoImpl extends AbstractBaseDao implements
+		IssueProcessDao {
+
+	@Override
+	public IssueStep addIssueStep(IssueStep step) {
+		if(step.getIsStayStep() == null){
+			step.setIsStayStep(IssueIsStayStepType.IS_NOT_STAYSTEP);
+		}
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"issueStep.addIssueStep", step);
+		updateTableUpdateDateById("issues", step.getIssue().getId());
+		return getSimpleIssueStepById(id);
+	}
+
+	@Override
+	public boolean deleteIssueStepsByIssueId(Long issueId) {
+		getSqlMapClientTemplate().delete("issueStep.deleteIssueStepsByIssueId",
+				issueId);
+		return true;
+	}
+
+	@Override
+	public IssueStep getSimpleIssueStepById(Long id) {
+		return (IssueStep) getSqlMapClientTemplate().queryForObject(
+				"issueStep.loadSimpleStep", id);
+	}
+
+	@Override
+	public IssueStep updateIssueStepExceptOrg(IssueStep step) {
+		getSqlMapClientTemplate().update("issueStep.updateIssueStepExceptOrg",
+				step);
+		updateTableUpdateDateById("issues", step.getIssue().getId());
+		return getSimpleIssueStepById(step.getId());
+	}
+
+	@Override
+	public PageInfo<AutoCompleteData> findChildOrgsByOrgcodeAndNameAndType(
+			PropertyDict orgType, String orgCode, String tag, Long[] exceptIds,
+			int pageSize, int pageIndex) {
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("orgCode", orgCode);
+		params.put("tag", tag);
+		if (!isEmptyLongArray(exceptIds)) {
+			params.put("exceptIds", exceptIds);
+		}
+		if (orgType != null) {
+			params.put("orgType", orgType);
+		}
+		Integer totalCount = (Integer) getSqlMapClientTemplate()
+				.queryForObject("issueStep.countChildOrgs", params);
+		PageInfo<AutoCompleteData> result = createAutoCompleteDataPageInfoInstance(
+				totalCount, needPageResult(pageSize, pageIndex) ? pageSize
+						: totalCount,
+				needPageResult(pageSize, pageIndex) ? pageIndex : 1);
+		if (needPageResult(pageSize, pageIndex)) {
+			result.setResult(getSqlMapClientTemplate().queryForList(
+					"issueStep.findChildOrgs", params,
+					(pageIndex - 1) * pageSize, pageSize));
+		} else {
+			result.setResult(getSqlMapClientTemplate().queryForList(
+					"issueStep.findChildOrgs", params));
+		}
+		return result;
+	}
+
+	@Override
+	public PageInfo<AutoCompleteData> findChildFunOrgsByParentFunIdAndName(
+			Long parentId, String tag, Long[] exceptIds) {
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("parentId", parentId);
+		params.put("tag", tag);
+		if (!isEmptyLongArray(exceptIds)) {
+			params.put("exceptIds", exceptIds);
+		}
+		List<AutoCompleteData> datas = getSqlMapClientTemplate().queryForList(
+				"issueStep.findChildFunOrgsByParentFunIdAndName", params);
+		PageInfo<AutoCompleteData> result = createAutoCompleteDataPageInfoInstance(
+				datas.size(), datas.size(), 1);
+		result.setResult(datas);
+		return result;
+	}
+
+	@Override
+	public PageInfo<AutoCompleteData> findChildOrgsByParentIdAndName(
+			PropertyDict orgType, Long parentId, String tag, Long[] exceptIds,
+			int page, int rows) {
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("parentId", parentId);
+		params.put("tag", tag);
+		if (!isEmptyLongArray(exceptIds)) {
+			params.put("exceptIds", exceptIds);
+		}
+		if (orgType != null) {
+			params.put("orgType", orgType);
+		}
+		Integer totalCount = (Integer) getSqlMapClientTemplate()
+				.queryForObject(
+						"issueStep.countfindChildOrgsByParentIdAndNameAndType",
+						params);
+		List<AutoCompleteData> datas = getSqlMapClientTemplate().queryForList(
+				"issueStep.findChildOrgsByParentIdAndNameAndType", params,
+				(page - 1) * rows, rows);
+		PageInfo<AutoCompleteData> result = createAutoCompleteDataPageInfoInstance(
+				totalCount, page, rows);
+		result.setResult(datas);
+		return result;
+	}
+
+	@Override
+	public PageInfo<AutoCompleteData> findParentFunOrgsByIdAndName(Long id,
+			String tag, Long[] exceptIds) {
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("id", id);
+		params.put("tag", tag);
+		if (!isEmptyLongArray(exceptIds)) {
+			params.put("exceptIds", exceptIds);
+		}
+		List<AutoCompleteData> datas = getSqlMapClientTemplate().queryForList(
+				"issueStep.findParentFunOrgsByIdAndName", params);
+		PageInfo<AutoCompleteData> result = createAutoCompleteDataPageInfoInstance(
+				datas.size(), datas.size(), 1);
+		result.setResult(datas);
+		return result;
+	}
+
+	private boolean needPageResult(int pageSize, int pageIndex) {
+		return pageSize > 0 & pageIndex > 0;
+	}
+
+	private boolean isEmptyLongArray(Long[] array) {
+		return array == null || array.length == 0;
+	}
+
+	private PageInfo<AutoCompleteData> createAutoCompleteDataPageInfoInstance(
+			int totalRecord, int pageSize, int pageIndex) {
+		PageInfo<AutoCompleteData> result = new PageInfo<AutoCompleteData>();
+		result.setTotalRowSize(totalRecord);
+		result.setCurrentPage(pageSize);
+		result.setPerPageSize(pageIndex == 0 ? 1 : pageIndex);
+		return result;
+	}
+
+	@Override
+	public boolean updateGroupId(IssueStep step) {
+		getSqlMapClientTemplate().update("issueStep.updateGroupIdAndKeyStep",
+				step);
+		return true;
+	}
+
+	@Override
+	public IssueStepGroup addIssueStepGroup(IssueStepGroup issueStepGroup) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"issueStep.addIssueStepGroup", issueStepGroup);
+		return getSimpleIssueStepGroupById(id);
+	}
+
+	@Override
+	public IssueStepGroup getSimpleIssueStepGroupById(Long id) {
+		return (IssueStepGroup) getSqlMapClientTemplate().queryForObject(
+				"issueStep.loadSimpleStepGroup", id);
+	}
+
+	@Override
+	public List<IssueStepGroup> getIssueStepGroupByIssueId(Long id) {
+		return getSqlMapClientTemplate().queryForList(
+				"issueStep.getIssueStepGroupByIssueId", id);
+	}
+
+	@Override
+	public boolean updateOutLog(IssueStepGroup issueStepGroup) {
+		getSqlMapClientTemplate().update("issueStep.updateOutLog",
+				issueStepGroup);
+		return true;
+	}
+
+	@Override
+	public IssueMap getIssueMapByStepGroup(IssueStepGroup issueStepGroup) {
+		return (IssueMap) getSqlMapClientTemplate().queryForObject(
+				"issueStep.getIssueMapByStepGroup", issueStepGroup);
+	}
+
+	@Override
+	public List<IssueStep> findIssueStepListByIssueState(int[] issueStates,
+			Long sourceKindId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("issueStates", issueStates);
+		map.put("sourceKindId", sourceKindId);
+		return getSqlMapClientTemplate().queryForList(
+				"issueStep.findIssueStepListByIssueState", map);
+	}
+
+	@Deprecated
+	@Override
+	public void updateDelayStateOrLastEndDateById(Long id, Integer delayState,
+			Date lastEndDate) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("id", id);
+
+		if (delayState != null) {
+			map.put("delayState", delayState);
+		}
+
+		if (lastEndDate != null) {
+			map.put("lastEndDate", lastEndDate);
+		}
+
+		getSqlMapClientTemplate().update(
+				"issueStep.updateDelayStateOrLastEndDateById", map);
+	}
+
+	@Override
+	public void updateDelayStateOrDelayDateByIssueStepId(Long issueStepId,
+			Integer delayState, Integer delayWorkday) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("id", issueStepId);
+		if (delayState != null) {
+			map.put("delayState", delayState);
+		}
+		if (delayWorkday != null) {
+			map.put("delayWorkday", delayWorkday);
+		}
+		getSqlMapClientTemplate().update(
+				"issueStep.updateDelayStateOrDelayDateByIssueStepId", map);
+	}
+
+	@Override
+	public void updateEmergencylevelByIssueStepId(IssueStep issueStep) {
+		getSqlMapClientTemplate().update(
+				"issueStep.updateEmergencylevelByIssueStepId", issueStep);
+	}
+
+	@Override
+	public Integer getIssueStepCountByIssueId(Long issueId) {
+
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"issueStep.getIssueStepCountByIssueId", issueId);
+	}
+
+	@Override
+	public List<IssueStep> findIssueStepsByIssueId(Long issueId) {
+
+		return getSqlMapClientTemplate().queryForList(
+				"issueStep.findIssueStepsByIssueId", issueId);
+	}
+	
+	@Override
+	public List<IssueStep> findIssueStepsHistoryByIssueId(Long issueId) {
+
+		return getSqlMapClientTemplate().queryForList(
+				"issueStep.findIssueStepsHistoryByIssueId", issueId);
+	}
+	
+	@Override
+	public List<IssueStep> findIsNotStayStepByIssueStep(IssueStep issueStep) {
+		return getSqlMapClientTemplate().queryForList(
+				"issueStep.findIsNotStayStepByIssueStep", issueStep);
+	}
+	
+	@Override
+	public void updateIsNotStayStepByIssueStepId(Long issueStepId) {
+		getSqlMapClientTemplate().update(
+				"issueStep.updateIsNotStayStepByIssueStepId", issueStepId);
+	}
+	
+}

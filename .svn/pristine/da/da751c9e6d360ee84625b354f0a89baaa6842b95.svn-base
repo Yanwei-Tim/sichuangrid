@@ -1,0 +1,281 @@
+package com.tianque.statAnalyse.issueManage.listManage.service.impl;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.tianque.domain.Organization;
+import com.tianque.domain.property.OrganizationLevel;
+import com.tianque.issue.constants.IssueTypes;
+import com.tianque.issueAbutmentJoint.constants.IssueJointOrganization;
+import com.tianque.issueAbutmentJoint.domain.IssueDataColumnVo;
+import com.tianque.issueAbutmentJoint.service.IssueDataColumnVoService;
+import com.tianque.statAnalyse.issueManage.listManage.constant.QueryType;
+import com.tianque.statAnalyse.issueManage.listManage.dao.IssueAreaStatDao;
+import com.tianque.statAnalyse.issueManage.listManage.domain.IssueAreaStat;
+import com.tianque.statAnalyse.issueManage.listManage.helper.IssueReportStatHelper;
+import com.tianque.statAnalyse.issueManage.listManage.service.IssueAreaStatService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+@Service("issueAreaStatService")
+public class IssueAreaStatServiceImpl implements IssueAreaStatService {
+	@Autowired
+	private IssueAreaStatDao issueAreaStatDao;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private IssueDataColumnVoService issueDataColumnVoService;
+
+	@Override
+	public List<IssueAreaStat> findIssueAreaStatsByYearAndMonthAndParentOrgId(
+			Date startDate, Date endDate, Long parentOrgId, Integer queryType) {
+		return findIssueAreaStatsByYearAndMonth(startDate, endDate,
+				parentOrgId, queryType, !IssueReportStatHelper.ISDATEOVER);
+	}
+
+	@Override
+	public List<IssueAreaStat> findHistoryIssueAreaStatsByYearAndMonthAndParentOrgId(
+			Date startDate, Date endDate, Long parentOrgId, Integer queryType) {
+		return findIssueAreaStatsByYearAndMonth(startDate, endDate,
+				parentOrgId, queryType, IssueReportStatHelper.ISDATEOVER);
+	}
+
+	private List<IssueAreaStat> findIssueAreaStatsByYearAndMonth(
+			Date startDate, Date endDate, Long parentOrgId, Integer queryType,
+			boolean isDateOver) {
+		List<Organization> organizations = organizationDubboService
+				.findOrganizationsByParentId(parentOrgId);
+		List<IssueAreaStat> issueAreaStats = new ArrayList<IssueAreaStat>();
+		for (Organization organization : organizations) {
+			IssueAreaStat issueAreaStat = getIssueAreaStatsByYearAndMonthAndOrgCode(
+					startDate, endDate, organization, queryType, isDateOver);
+			// 草堂街道办事处数据统计进来
+			if (queryType == QueryType.AREA_DEAL_HISTORY) {
+				if (checkOrganization(organization)) {
+					IssueDataColumnVo issueDataColumnVo = issueDataColumnVoService
+							.findIssueHandleStatsToCTJD(organization,
+									startDate, endDate);
+					// 新增事件
+					int jointIssueSum = issueDataColumnVo.getIssueSum();
+					issueAreaStat.setAddIssueSum(issueAreaStat.getAddIssueSum()
+							+ jointIssueSum);
+					// 已验证事件
+					issueAreaStat.setDoneIssueSum(issueAreaStat
+							.getDoneIssueSum() + jointIssueSum);
+					// 事件总和
+					issueAreaStat.setIssueSum(issueAreaStat.getIssueSum()
+							+ jointIssueSum);
+				}
+			} else if (queryType == QueryType.AREA_CLASSIFICATION_HISTORY) {
+				if (checkOrganization(organization)) {
+					List<IssueDataColumnVo> issueDataColumnVos = issueDataColumnVoService
+							.findIssueClassIficationStatToCTJD(organization,
+									startDate, endDate);
+					for (IssueDataColumnVo issueDataColumnVo : issueDataColumnVos) {
+						if (IssueTypes.PEOPLELIVE_SERVICE
+								.equals(issueDataColumnVo.getIssueType()
+										.getPropertyDomain().getDomainName())) {// 民生服务
+							issueAreaStat.setContradictionSum(issueAreaStat
+									.getContradictionSum()
+									+ issueDataColumnVo.getIssueSum());
+						} else if (IssueTypes.RESOLVETHECONTRADICTIONS
+								.equals(issueDataColumnVo.getIssueType()
+										.getPropertyDomain().getDomainName())) {// 矛盾劝解
+							issueAreaStat
+									.setResolveTheContradictionSum(issueAreaStat
+											.getResolveTheContradictionSum()
+											+ issueDataColumnVo.getIssueSum());
+						} else if (IssueTypes.SECURITYPRECAUTIONS
+								.equals(issueDataColumnVo.getIssueType()
+										.getPropertyDomain().getDomainName())) {// 参与治安防控
+							issueAreaStat
+									.setSecurityPrecautionSum(issueAreaStat
+											.getSecurityPrecautionSum()
+											+ issueDataColumnVo.getIssueSum());
+						} else if (IssueTypes.SPECIALPOPULATIONS
+								.equals(issueDataColumnVo.getIssueType()
+										.getPropertyDomain().getDomainName())) {// 参与特殊人群服务管理
+							issueAreaStat.setSpecialPopulationSum(issueAreaStat
+									.getSpecialPopulationSum()
+									+ issueDataColumnVo.getIssueSum());
+						} else if (IssueTypes.SOCIALCONDITIONS
+								.equals(issueDataColumnVo.getIssueType()
+										.getPropertyDomain().getDomainName())) {// 社情民意收集
+							issueAreaStat.setSocialConditionSum(issueAreaStat
+									.getSocialConditionSum()
+									+ issueDataColumnVo.getIssueSum());
+						} else if (IssueTypes.POLICIESANDLAWS
+								.equals(issueDataColumnVo.getIssueType()
+										.getPropertyDomain().getDomainName())) {// 政策法规宣传
+							issueAreaStat.setPoliciesAndLawSum(issueAreaStat
+									.getPoliciesAndLawSum()
+									+ issueDataColumnVo.getIssueSum());
+						} else if (IssueTypes.EMERGENCIES
+								.equals(issueDataColumnVo.getIssueType()
+										.getPropertyDomain().getDomainName())) {// 突发事件报告
+							issueAreaStat.setEmergencieSum(issueAreaStat
+									.getEmergencieSum()
+									+ issueDataColumnVo.getIssueSum());
+						} else if (IssueTypes.OTHERMANAGE
+								.equals(issueDataColumnVo.getIssueType()
+										.getPropertyDomain().getDomainName())) {// 其它
+							issueAreaStat.setOtherManageSum(issueAreaStat
+									.getOtherManageSum()
+									+ issueDataColumnVo.getIssueSum());
+						}
+					}
+				}
+			} else if (queryType == QueryType.STEP_HISTORY) {
+				if (checkOrganization(organization)) {
+					List<IssueDataColumnVo> issueDataColumnVos = issueDataColumnVoService
+							.findIssueClassIficationStatToCTJD(organization,
+									startDate, endDate);
+					for (IssueDataColumnVo issueDataColumnVo : issueDataColumnVos) {
+						if (IssueTypes.RESOLVETHECONTRADICTIONS
+								.equals(issueDataColumnVo.getIssueType()
+										.getPropertyDomain().getDomainName())) {// 矛盾劝解--普通
+							issueAreaStat.setResolveGeneralSum(issueAreaStat
+									.getResolveGeneralSum()
+									+ issueDataColumnVo.getIssueSum());
+						} else if (IssueTypes.SECURITYPRECAUTIONS
+								.equals(issueDataColumnVo.getIssueType()
+										.getPropertyDomain().getDomainName())) {// 参与治安防控--普通
+							issueAreaStat.setSecurityGeneralSum(issueAreaStat
+									.getSecurityGeneralSum()
+									+ issueDataColumnVo.getIssueSum());
+						} else if (IssueTypes.EMERGENCIES
+								.equals(issueDataColumnVo.getIssueType()
+										.getPropertyDomain().getDomainName())) {// 突发事件报告--普通
+							issueAreaStat.setEmergencieGeneralSum(issueAreaStat
+									.getEmergencieGeneralSum()
+									+ issueDataColumnVo.getIssueSum());
+						} else if (IssueTypes.OTHERMANAGE
+								.equals(issueDataColumnVo.getIssueType()
+										.getPropertyDomain().getDomainName())) {// 其它--普通
+							issueAreaStat
+									.setOtherManageGeneralSum(issueAreaStat
+											.getOtherManageGeneralSum()
+											+ issueDataColumnVo.getIssueSum());
+						}
+					}
+				}
+			}
+			autoFillIssueAreaStat(startDate, endDate, parentOrgId,
+					organization, issueAreaStat, queryType);
+			issueAreaStats.add(issueAreaStat);
+		}
+
+		return issueAreaStats;
+	}
+
+	@Override
+	public List<IssueAreaStat> findHistoryIssueAreaStatsByYearAndMonthAndParentOrgIdNew(
+			Date startDate, Date endDate, Long parentOrgId, Integer queryType) {
+		return findIssueAreaStatsByYearAndMonthNew(startDate, endDate,
+				parentOrgId, queryType, IssueReportStatHelper.ISDATEOVER);
+	}
+
+	private List<IssueAreaStat> findIssueAreaStatsByYearAndMonthNew(
+			Date startDate, Date endDate, Long parentOrgId, Integer queryType,
+			boolean isDateOver) {
+		List<Organization> organizations = organizationDubboService
+				.findOrganizationsByParentId(parentOrgId);
+		List<IssueAreaStat> issueAreaStats = new ArrayList<IssueAreaStat>();
+		for (Organization organization : organizations) {
+			IssueAreaStat issueAreaStat = getIssueAreaStatsByYearAndMonthAndOrgCodeNew(
+					startDate, endDate, organization, queryType, isDateOver);
+			autoFillIssueAreaStatNew(startDate, endDate, parentOrgId,
+					organization, issueAreaStat, queryType);
+			issueAreaStats.add(issueAreaStat);
+		}
+
+		return issueAreaStats;
+	}
+
+	private void autoFillIssueAreaStatNew(Date startDate, Date endDate,
+			Long parentOrgId, Organization organization,
+			IssueAreaStat issueAreaStat, Integer queryType) {
+		issueAreaStat.setOrganization(organization);
+		issueAreaStat.setParentOrgId(parentOrgId);
+		issueAreaStat.setIssueSum(issueAreaStat.getAddIssueSum());
+		IssueReportStatHelper.autoFillCompletionRate(issueAreaStat);
+	}
+
+	private void autoFillIssueAreaStat(Date startDate, Date endDate,
+			Long parentOrgId, Organization organization,
+			IssueAreaStat issueAreaStat, Integer queryType) {
+		issueAreaStat.setOrganization(organization);
+		issueAreaStat.setParentOrgId(parentOrgId);
+		Calendar cld = Calendar.getInstance();
+		cld.setTime(startDate);
+		issueAreaStat.setYear(cld.get(Calendar.YEAR));
+		issueAreaStat.setMonth(cld.get(Calendar.MONTH)+1);
+
+		if (queryType.intValue() == QueryType.YEAR_ON_YEAR
+				|| queryType.intValue() == QueryType.MONTH_ON_MONTH) {
+			IssueReportStatHelper
+					.autoFillIssueProportionStatRate(issueAreaStat);
+		}
+
+		if (QueryType.SCALE.contains(queryType)) {
+			IssueReportStatHelper.autoFillCompletionRate(issueAreaStat);
+			IssueReportStatHelper.autoFillExtendedRate(issueAreaStat);
+		}
+	}
+
+	private IssueAreaStat getIssueAreaStatsByYearAndMonthAndOrgCode(
+			Date startDate, Date endDate, Organization organization,
+			Integer queryType, boolean isDateOver) {
+		if (isDateOver) {
+			return issueAreaStatDao
+					.getHistoryIssueAreaStatsByYearAndMonthAndOrgCode(
+							startDate, endDate,
+							organization.getOrgInternalCode(), queryType);
+		} else {
+			return issueAreaStatDao.getIssueAreaStatsByYearAndMonthAndOrgCode(
+					startDate, endDate, organization, queryType);
+		}
+	}
+
+	private IssueAreaStat getIssueAreaStatsByYearAndMonthAndOrgCodeNew(
+			Date startDate, Date endDate, Organization organization,
+			Integer queryType, boolean isDateOver) {
+		return issueAreaStatDao
+				.getHistoryIssueAreaStatsByYearAndMonthAndOrgCodeNew(startDate,
+						endDate, organization.getOrgInternalCode(), queryType);
+
+	}
+
+	private boolean checkOrganization(Organization organization) {
+		try {
+			// 取得草堂街道的ORG
+			Organization ctjdOrg = issueDataColumnVoService.findOrg(
+					IssueJointOrganization.CTJD_ORGNAME,
+					IssueJointOrganization.CTJD_FULL_ORG_NAME,
+					OrganizationLevel.TOWN);
+			// 取得攀枝花市的ORG
+			Organization pzhsOrg = issueDataColumnVoService.findOrg(
+					IssueJointOrganization.PZHS_ORGNAME,
+					IssueJointOrganization.PZHS_FULL_ORG_NAME,
+					OrganizationLevel.CITY);
+			// 取得攀枝花市东区的ORG
+			Organization pzhsDqOrg = issueDataColumnVoService.findOrg(
+					IssueJointOrganization.PZHS_DQ_ORGNAME,
+					IssueJointOrganization.PZHS_DQ_FULL_ORG_NAME,
+					OrganizationLevel.DISTRICT);
+			if (ctjdOrg.getId().equals(organization.getId())
+					|| pzhsOrg.getId().equals(organization.getId())
+					|| pzhsDqOrg.getId().equals(organization.getId())) {
+				return true;
+			} else {
+				return false;
+			}
+		} catch (Exception e) {
+			return false;
+		}
+	}
+}

@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="idleYouth">
+	<typeAlias alias="IdleYouth" type="com.tianque.baseInfo.idleYouth.domain.IdleYouth" />
+	<typeAlias alias="SearchIdleYouthVo" type="com.tianque.domain.vo.SearchIdleYouthVo" />
+	<resultMap id="idleYouthResultForJob" class="IdleYouth">
+		<result column="id" property="id" />
+		<result column="name" property="name" />
+		<result column="gender" property="gender.id" />
+		<result column="idCardNo" property="idCardNo" />
+		<result property="staffType" column="id" select="idleYouth.loadStaffType"/>
+		<result column="orgId" property="organization.id" />
+		<result column="currentAddress" property="currentAddress" />
+	</resultMap>
+	<resultMap class="IdleYouth" id="idleYouthResult" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResult">
+		<result property="staffType" column="id" select="idleYouth.loadStaffType"/>
+		<result property="workCondition" column="workCondition"/>
+		<result property="isStayInSchool" column="isStayInSchool"/>
+		<result property="schoolName" column="schoolName"/>
+		<result column="guardianName" property="guardianName" />
+		<result column="guardianTelephone" property="guardianTelephone" />
+		<result column="helpingSituation" property="helpingSituation.id" />
+	</resultMap>
+	<!-- 这两个resultMap内容一致，继承关系不一样 -->
+	<resultMap class="IdleYouth" id="idleYouthResultForList" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+	    <result property="staffType" column="id" select="idleYouth.loadStaffType"/>
+		<result property="workCondition" column="workCondition"/>
+		<result property="isStayInSchool" column="isStayInSchool"/>
+		<result property="schoolName" column="schoolName"/>
+		<result column="guardianName" property="guardianName" />
+		<result column="guardianTelephone" property="guardianTelephone" />
+		<result column="helpingSituation" property="helpingSituation.id" />
+	</resultMap>
+	<resultMap id="propertyDictResult" class="com.tianque.domain.PropertyDict">
+		<result property="id" column="id"/>
+		<result property="displayName" column="displayName"/>
+	</resultMap>
+	
+   <resultMap id="fullIdleYouthResult" extends="idleYouthResult" class="IdleYouth">
+		<result property="staffType" column="id" select="idleYouth.loadStaffType"/>
+	</resultMap>
+
+	<sql id="fields">
+		uni.id,uni.baseinfoid,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.attentionExtent,uni.workCondition,uni.isStayInSchool,
+		uni.schoolName,uni.isEmphasis,uni.isEmphasisReason,uni.isEmphasisDate,uni.sourcesState,uni.createUser,
+		uni.updateUser,uni.createDate,uni.updateDate,uni.guardianName,uni.guardianTelephone,uni.helpingSituation 
+	</sql>
+
+	
+	<select id="loadStaffType" resultMap="propertyDictResult">
+		<![CDATA[select p.* from idleYouthsHasPropertyDicts  hDicts
+		left join propertyDicts p on p.id=hDicts.propertyDictId where hDicts.idleYouthsId=#value#]]>
+	</select>
+	
+	<select id="getStaffTypeIdsByIdleYouthId" resultClass="long" parameterClass="long">
+		<![CDATA[select hDicts.propertydictid from idleYouthsHasPropertyDicts  hDicts where hDicts.idleYouthsId=#value#]]>
+	</select>
+
+	<select id="getFullIdleYouthById" parameterClass="java.lang.Long" resultMap="fullIdleYouthResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from idleYouths uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.id=#value#
+	</select>
+
+	<insert id="addIdleYouth" parameterClass="IdleYouth">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_idleYouths.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into idleYouths
+		(
+			<include refid="populationBaseInfo.addBaseInfoFields"/>,
+			attentionExtent,workCondition,isStayInSchool,schoolName,isEmphasis,isEmphasisReason,isEmphasisDate,sourcesState,guardianName,guardianTelephone,helpingSituation
+		)
+		values (
+			<include refid="populationBaseInfo.addBaseInfoData"/>,
+			#attentionExtent.id#,#workCondition#,#isStayInSchool#,#schoolName#,#isEmphasis#,#logoutDetail.logoutReason#,#logoutDetail.logoutDate#,#sourcesState#,#guardianName#,#guardianTelephone#,#helpingSituation.id#
+		)</insert>
+
+   <insert id="addStaffType" parameterClass="java.util.Map">
+		INSERT INTO idleYouthsHasPropertyDicts (propertyDictId,idleYouthsId)
+		VALUES(#propertyDictId#,#idleYouthId#)
+	</insert>
+
+	<select id="getIdleYouthById" parameterClass="java.lang.Long" resultMap="idleYouthResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		FROM idleYouths uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.id = #value#
+	</select>
+
+	<delete id="deleteIdleYouthById" parameterClass="java.lang.Long">
+		delete from idleYouths where id = #value#
+	</delete>
+	<delete id="deleteStaffTypeByIdleYouthId" parameterClass="java.lang.Long">
+		delete from idleYouthsHasPropertyDicts where idleYouthsId=#idleYouthId#
+	</delete>
+
+    <update id="updateEmphasiseById" parameterClass="map">
+		update idleYouths set isEmphasis=#isEmphasis# where id=#id#
+	</update>
+
+	<sql id="sql_where">
+		from idleYouths uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="countIdleYouthsBySearchVo" parameterClass="SearchIdleYouthVo" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="findIdleYouthsBySearchVo" parameterClass="SearchIdleYouthVo" resultMap="idleYouthResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+
+
+	<select id="countIdleYouths" parameterClass="IdleYouth" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="findIdleYouths" parameterClass="IdleYouth" resultMap="idleYouthResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+    <select id="findIdleYouthsByBIRTHDAY"  resultMap="fullIdleYouthResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from idleYouths uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where (sysdate - add_months(BIRTHDAY,12*35))>=0 and isEmphasis=0 
+	</select>
+	
+	<select id="countIdleYouthsByBirthdayForMark" resultClass="java.lang.Integer" parameterClass="java.util.Map">
+		SELECT count(uni.id)  
+	    	from idleYouths uni left join baseinfo b on uni.baseInfoId=b.id 
+	    	<![CDATA[ where #whenExpireDate# >= b.birthday ]]>
+	    	and uni.isEmphasis=0
+	</select>
+	
+	<select id="findIdleYouthsByBirthdayForMark"  parameterClass="java.util.Map" resultMap="idleYouthResultForJob" >
+		<include refid="common.sql_page_start"/>
+		SELECT uni.id,b.name,b.gender,b.idcardno,uni.staffType,uni.orgId,adds.currentAddress
+	    	from idleYouths uni 
+	    	left join baseinfo b on uni.baseInfoId=b.id 
+	    	left join addressInfo adds on uni.addressInfoId = adds.id  
+	    	<![CDATA[ where #whenExpireDate# >= b.birthday ]]>
+	    	and uni.isEmphasis=0
+	    <include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="getIdleYouthByIdCardNoAndOrganizationId" parameterClass="java.util.Map" resultMap="fullIdleYouthResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		FROM idleYouths uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where (upper(idCardNo) = upper(#idCardNo15#) or upper(idCardNo) like upper(#idCardNo18#))
+		and orgId = #organizationId#
+	</select>
+	<select id="countExsistedIdCard" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from idleYouths uni left join baseinfo b on uni.baseInfoId=b.id where uni.orgId=$organizationId$
+		<isNotNull property="id" prepend=" and ">
+			<![CDATA[
+				id!=$id$
+			]]>
+		</isNotNull>
+		and (
+		<iterate property="idCardNoList" conjunction="or">
+			upper(idCardNo) like upper(#idCardNoList[]#)
+		</iterate>
+		)
+	</select>
+
+
+	<select id="getByOrgIdAndIdCardNo" parameterClass="map" resultMap="idleYouthResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from idleYouths uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgId=#orgId# and upper(idCardNo)=upper(#idCardNo#)
+	</select>
+
+	<update id="updateDeathAndLogoutStateById" parameterClass="map">
+		update idleYouths set
+		<isNotEmpty property="death">
+			isdeath = #death#
+		</isNotEmpty>
+		<isNotEmpty property="isEmphasis" prepend=",">
+			isEmphasis=#isEmphasis#
+		</isNotEmpty>
+		where id=#id#
+	</update>
+	
+	
+	<update id="updateBaseInfo" parameterClass="IdleYouth">
+		update idleYouths set
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>
+		<include refid="populationBaseInfo.updateBussLogoutDetail"/>
+
+		where id = #id#
+	</update>
+
+	<sql id="updateBusinessSql">
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>,
+		attentionExtent=#attentionExtent.id#
+	</sql>
+	<update id="updateBusiness" parameterClass="IdleYouth">
+		update idleYouths set
+		<include refid="updateBusinessSql"/>
+		<dynamic>	
+	        <isPropertyAvailable prepend="," property="workCondition">
+				workCondition=#workCondition#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotEmpty property="isEmphasis" prepend=",">
+					isEmphasis=#isEmphasis#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isStayInSchool" prepend=",">
+				isStayInSchool=#isStayInSchool#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isStayInSchool">
+				<isEqual property="isStayInSchool" compareValue="true" prepend=",">
+					schoolName=#schoolName#
+				</isEqual>
+				<isNotEqual property="isStayInSchool" compareValue="true" prepend=",">
+					schoolName=''
+				</isNotEqual>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="guardianName" prepend=",">
+				guardianName=#guardianName#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isStayInSchool" prepend=",">
+				guardianTelephone=#guardianTelephone#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="helpingSituation" prepend=",">
+				helpingSituation=#helpingSituation.id#
+			</isPropertyAvailable>
+		</dynamic>
+		where id = #id#
+	</update>
+
+
+<!-- 移动数据需要的sql -->
+	<update id="updateDataMoveIdleYouthToOrg" parameterClass="java.util.Map">
+		update idleYouths set orgId = #orgId# , orgInternalCode = #orgInternalCode# where id = #id#
+	</update>
+	
+	<select id="getIdByBaseinfoIdAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		SELECT id from idleYouths  
+		where baseinfoid=#baseInfoId# and orgId=#orgId#
+	</select>
+	
+	<resultMap id="idleYouthResultForDefaultList" class="IdleYouth" 
+		extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForDefaultList">
+		<result property="staffType" column="id" select="idleYouth.loadStaffType"/>
+		<result property="workCondition" column="workCondition"/>
+		<result property="isStayInSchool" column="isStayInSchool"/>
+		<result property="schoolName" column="schoolName"/>
+	</resultMap>
+	<sql id="default_sql_where">
+	  from idleYouths uni 
+	  <dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findIdleYouthDefaultList" resultMap="idleYouthResultForDefaultList" parameterClass="map">
+	  select <include refid="fields"/>
+	  <include refid="default_sql_where" />
+	  ORDER BY ID DESC
+	</select>
+	
+	<select id="countIdleYouthDefaultList" resultClass="java.lang.Integer" parameterClass="map">
+		<![CDATA[select count(uni.id)]]>
+		<include refid="default_sql_where" />
+	</select>
+
+</sqlMap>

@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="unemployedPeopleTemp">
+    <typeAlias alias="UnemployedPeopleTemp" type="com.tianque.plugin.dataManage.population.unemployedPeopleTemp.domain.UnemployedPeopleTemp" />
+   	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+    <resultMap id="unemployedPeopleTempResultForBase" class="UnemployedPeopleTemp" extends="attentionPopulationTempBaseInfo.attentionPopulationBaseInfoResult">
+		<result property="unemployedPeopleType.id" column="unemployedpeopletemptype" />
+		<result property="registerNumber" column="registerNumber" />
+		<result property="upEnterWorkDate" column="enterWorkDate" />
+		<result property="originalWorkUnit" column="originalWorkUnit" />
+		<result property="originalWorkUnitType" column="originalWorkUnitType" />
+		<result property="title" column="title" />
+		<result property="specialtySkills" column="specialtySkills" />
+		<result property="unemploymentDate" column="unemploymentDate" />
+		<result property="unemploymentReason.id" column="unemploymentReason" />
+		<result property="technologyLevel.id" column="technologyLevel" />
+		<result property="participatedPrograms" column="participatedPrograms" />
+	</resultMap>
+    <resultMap id="unemployedPeopleTempResultForList" class="UnemployedPeopleTemp" extends="unemployedPeopleTemp.unemployedPeopleTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	<resultMap id="propertyDictResult" class="com.tianque.domain.PropertyDict">
+		<result property="id" column="id"/>
+		<result property="displayName" column="displayName"/>
+	</resultMap>
+	<sql id="updateBusinessSql">
+			registerNumber=#registerNumber#
+			,enterWorkDate=#upEnterWorkDate#
+			,originalWorkUnit=#originalWorkUnit#
+			,originalWorkUnitType=#originalWorkUnitType#
+			,title=#title#
+			,unemploymentDate=#unemploymentDate#
+			,technologyLevel=#technologyLevel.id#
+			,unemploymentReason=#unemploymentReason.id#
+			,participatedPrograms=#participatedPrograms#
+			,unemployedPeopleTempType=#unemployedPeopleType.id#
+			,specialtySkills=#specialtySkills#
+			,attentionExtent=#attentionExtent.id#
+	</sql>
+	<sql id="claim_sql_where">
+		from DM_unemployedPeople_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+
+	<select id="findTempPageList" resultMap="unemployedPeopleTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countTempList" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	
+	<insert id="addUnemployedPeopleTemp" parameterClass="UnemployedPeopleTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_unemployedPeople_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_unemployedPeople_Temp (
+		<include refid="populationTempBaseInfo.addBaseInfoFields"/>,
+		<include refid="dataManage.addDataManage"/>,
+		isEmphasis,registerNumber,specialtySkills,unemployedpeopletemptype,enterWorkDate,title,originalWorkUnit,originalWorkUnitType,unemploymentDate,technologyLevel,unemploymentReason,participatedPrograms,actualPopulationType,attentionExtent
+		)
+		values (
+		<include refid="populationTempBaseInfo.addBaseInfoData"/>,
+		<include refid="dataManage.addValueDataManage"/>,
+		#isEmphasis#,#registerNumber#,#specialtySkills#,#unemployedPeopleType.id#,#upEnterWorkDate#,#title#,#originalWorkUnit#,#originalWorkUnitType#,#unemploymentDate#,#technologyLevel.id#,#unemploymentReason.id#,#participatedPrograms#,#actualPopulationType#,#attentionExtent.id#
+		)
+    </insert>
+    <select id="getUnemployedPeopleTempById" parameterClass="Long"
+		resultMap="unemployedPeopleTempResultForList">
+	  <![CDATA[
+	  	select * from DM_unemployedPeople_Temp where id = #value#
+	  ]]>
+	</select>
+	<delete id="deleteUnemployedPeopleTempById" parameterClass="Long">
+	   delete DM_unemployedPeople_Temp where id = #value#
+	</delete>
+	<select id="findUnemployedPeopleTempsByIdcardAndOrgInternalCode" resultMap="unemployedPeopleTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_unemployedPeople_Temp where  1=1 and 
+			(orgInternalCode like #orgInternalCode#||'%' or 
+						#orgInternalCode# like orgInternalCode||'%')
+				and(
+				<iterate property="idCardNo" conjunction="or">
+						upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+	</select>
+	<update id="updateUnemployedPeopleTempInIdByIdCardAndIdList"  parameterClass="java.util.Map">
+		update DM_unemployedPeople_Temp set inid = #id# where idcardno = #idCardNo# and
+			(orgInternalCode like #orgInternalCode#||'%' or 
+						#orgInternalCode# like orgInternalCode||'%') and
+		 (claimstate = 1 or claimstate is null or 
+			<iterate property="idList" conjunction="or">
+						id = #idList[]#
+			</iterate>
+		 )
+	</update>
+	<select id="getUnemployedPeopleTempByInId" parameterClass="Long"
+		resultMap="unemployedPeopleTempResultForList">
+	  <![CDATA[
+	  	select * from DM_unemployedPeople_Temp where inid = #value#
+	  ]]>
+	</select>
+	<update id="updateUnemployedPeopleTemp" parameterClass="UnemployedPeopleTemp">
+		update DM_unemployedPeople_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		   <include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="unemployedPeopleTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<update id="updateRepeatState" parameterClass="UnemployedPeopleTemp">
+		update DM_unemployedPeople_Temp d set repeatState = 0
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_unemployedPeople_Temp t group by t.idCardNo having count(*)>1) 
+	</update>
+	<update id="updateRepeatStateForDelete" parameterClass="UnemployedPeopleTemp">
+		update DM_unemployedPeople_Temp d set repeatState = 1
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_unemployedPeople_Temp t group by t.idCardNo having count(*)=1) 
+	</update>
+	<update id="updateUnemployedPeopleTempByOrgId" parameterClass="java.util.Map">
+		update DM_unemployedPeople_Temp set repeatState=#claimDetail.repeatState#  where id=#id#
+	</update>
+	<select id="findUnemployedPeopleTempsByIdcardAndImportOrgId" resultMap="unemployedPeopleTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_unemployedPeople_Temp where  1=1
+		<dynamic>
+			<isPropertyAvailable property="importDepartmentId">
+				<isNotNull property="importDepartmentId" prepend=" and ">
+					importDepartmentId=#claimDetail.importDepartmentId#
+				</isNotNull>
+			</isPropertyAvailable>
+				and(
+				<iterate property="idCardNo" conjunction="or">
+						upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+		</dynamic>
+	</select>
+	
+	
+	<!-- 添加拟就业意向employmentIntention关系表的数据库操作 -->
+	<insert id="addEmployment" parameterClass="java.util.Map">
+		insert into DM_uPeopleHasEIntention_TEMP(UNEMPLOYEDPEOPLETEMPID,PROPERTYDICTID)
+		values(#id#,#employmentId#)
+	</insert>
+	<delete id="deleteEmployment" parameterClass="Long">
+		delete DM_uPeopleHasEIntention_TEMP where UNEMPLOYEDPEOPLETEMPID = #value#
+	</delete>
+		<select id="loadEmploymentIntention" parameterClass="java.lang.Long" resultMap="propertyDictResult">
+		<![CDATA[select p.* from DM_uPeopleHasEIntention_TEMP  hDicts
+		left join propertyDicts p on p.id=hDicts.propertyDictId where hDicts.unemployedPeopleTempId=#value#]]>
+	</select>
+
+	<select id="loadTrainingIntention"  parameterClass="java.lang.Long" resultMap="propertyDictResult">
+		<![CDATA[select p.* from dm_uPeopleHasTIntention_Temp  hDicts
+		left join propertyDicts p on p.id=hDicts.propertyDictId where hDicts.unemployedPeopleTempId=#value#]]>
+	</select>
+	<!-- 添加拟参加培训意向trainingIntention关系表的数据库操作-->
+	<insert id="addTraining" parameterClass="java.util.Map">
+		insert into dm_uPeopleHasTIntention_Temp(UNEMPLOYEDPEOPLETEMPID,PROPERTYDICTID)
+		values(#id#,#trainingId#)
+	</insert>
+	<delete id="deleteTraining" parameterClass="Long">
+		delete dm_uPeopleHasTIntention_Temp where UNEMPLOYEDPEOPLETEMPID = #value# 
+	</delete>
+	
+	<select id="getEmploymentIntentionTempIdsByEmploymentId" parameterClass="java.lang.Long" resultClass="long">
+		<![CDATA[select hDicts.propertyDictId from DM_uPeopleHasEIntention_TEMP hDicts where hDicts.UNEMPLOYEDPEOPLETEMPID=#value#]]>
+	</select>
+
+	<select id="getTrainingIntentionTempIdsByEmploymentId"  parameterClass="java.lang.Long" resultClass="long">
+		<![CDATA[select hDicts.propertyDictId from dm_uPeopleHasTIntention_Temp hDicts where hDicts.UNEMPLOYEDPEOPLETEMPID=#value#]]>
+	</select>
+	
+	<!-- 新写内容 -->
+	<select id="countFindTemps" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	<select id="findTemps" resultMap="unemployedPeopleTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<update id="updateUnemployedPeopleTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_unemployedPeople_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	<update id="updateUnemployedPeopleTempBase" parameterClass="UnemployedPeopleTemp">
+		update DM_unemployedPeople_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updateUnemployedPeopleTempBusiness" parameterClass="UnemployedPeopleTemp">
+		update DM_unemployedPeople_Temp set
+		<include refid="unemployedPeopleTemp.updateBusinessSql" />
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+</sqlMap>

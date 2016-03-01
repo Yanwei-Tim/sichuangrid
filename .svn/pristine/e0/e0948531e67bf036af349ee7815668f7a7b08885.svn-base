@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="partyConstructionFiles">
+	<!-- 注释说明 -->
+	<typeAlias alias="partyConstructionFiles" type="com.tianque.domain.PartyConstructionFiles" />
+	<typeAlias alias="ClobStringTypeHandler"
+		type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+	<resultMap class="partyConstructionFiles" id="partyConstructionFilesResult">
+		<result property="id" column="id" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+				
+				
+		<result property="title" column="title" />		
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="describe" column="describe" />
+		<result property="url" column="url" />	
+		<result property="fileName" column="fileName" />
+		<result property="fileSize" column="fileSize" />
+		<result property="categories.id" column="categories" />		
+		<result property="smallClass.id" column="smallClass" />	
+		<result property="dalei" column="dalei" />	
+		<result property="xiaolei" column="xiaolei" />	
+		<result property="createUserRealName" column="createUserRealName" />	
+		<result property="author" column="author" />	
+		<result property="content" column="content" />	
+	</resultMap>
+
+	<insert id="addPartyConstructionFiles" parameterClass="partyConstructionFiles">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_partyConstructionFiles.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into partyConstructionFiles (id,title,orgId,describe,fullPinyin,simplePinyin,orgInternalCode,createUser,createDate,updateUser,updateDate,url,categories,smallClass,fileName,fileSize,dalei,xiaolei,createUserRealName,author,content)
+		values (#id#,#title#,#organization.id#,#describe#,#fullPinyin#,#simplePinyin#,#orgInternalCode#,#createUser#,#createDate#,#updateUser#,#updateDate#,#url#,#categories#,#smallClass#,#fileName#,#fileSize#,#dalei#,#xiaolei#,#createUserRealName#,#author#,#content,handler=ClobStringTypeHandler#)
+	</insert>
+	<select id="getPartyConstructionFilesById" parameterClass="java.lang.Long" resultMap="partyConstructionFilesResult">
+	<![CDATA[SELECT * FROM partyConstructionFiles where id = #value#]]>
+	</select>
+
+	<select id="searchPartyConstructionFilesByTitleAndOrgId" parameterClass="java.util.Map" resultMap="partyConstructionFilesResult">
+	  SELECT * FROM partyConstructionFiles
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId" prepend=" and ">
+				<isNotNull property="orgId">
+				orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="title" prepend=" and ">
+				<isNotNull property="title">
+				title like '$title$%'
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="getPartyConstructionFilesByTitleAndOrgId" parameterClass="java.util.Map" resultMap="partyConstructionFilesResult">
+	  SELECT * FROM partyConstructionFiles
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId" prepend=" and ">
+				<isNotNull property="orgId">
+				orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="title" prepend=" and ">
+				<isNotNull property="title">
+				title = #title#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		
+	</select>
+
+
+
+
+
+	<select id="countPartyConstructionFiles" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		from partyConstructionFiles
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgId" prepend=" and ">
+				<isNotNull property="orgId">
+				orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dalei" prepend=" and ">
+				<isNotNull property="dalei">
+				dalei = #dalei#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findPartyConstructionFiles" parameterClass="java.util.Map"
+		resultMap="partyConstructionFilesResult">
+	      SELECT * FROM partyConstructionFiles
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId" prepend=" and ">
+				<isNotNull property="orgId">
+				orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dalei" prepend=" and ">
+				<isNotNull property="dalei">
+				dalei = #dalei#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<update id="updatePartyConstructionFiles" parameterClass="partyConstructionFiles">
+		update partyConstructionFiles set
+		<dynamic>
+			 updateUser = #updateUser#
+			,updateDate = #updateDate#
+			,title = #title#
+			,orgId = #organization.id#
+			,orgInternalCode = #orgInternalCode#
+			,fullPinyin = #fullPinyin#
+			,simplePinyin = #simplePinyin#
+			,describe = #describe#
+			,url = #url#
+			,fileName =#fileName#
+			,fileSize =#fileSize#
+			,categories=#categories.id#
+			,smallClass=#smallClass.id#
+			,dalei=#dalei#
+			,xiaolei=#xiaolei#
+			,author=#author#
+			,content=#content,handler=ClobStringTypeHandler#
+			where id = #id#
+		</dynamic>
+	</update>
+	<update id="updatePartyConstructionFilesBaseInfo" parameterClass="partyConstructionFiles">
+		update partyConstructionFiles set
+		<dynamic>
+			 updateUser = #updateUser#
+			,updateDate = #updateDate#
+			,title = #title#
+			,orgId = #organization.id#
+			,orgInternalCode = #orgInternalCode#
+			,fullPinyin = #fullPinyin#
+			,simplePinyin = #simplePinyin#
+			,describe = #describe#
+			,categories=#categories.id#
+			,smallClass=#smallClass.id#
+			,dalei=#dalei#
+			,xiaolei=#xiaolei#
+			,author=#author#
+			,content=#content,handler=ClobStringTypeHandler#
+			where id = #id#
+		</dynamic>
+	</update>
+
+	<update id="updatePartyConstructionFilesFileInfo" parameterClass="partyConstructionFiles">
+		update partyConstructionFiles set
+		<dynamic>
+			 updateUser = #updateUser#
+			,updateDate = #updateDate#
+			,url = #url#
+			,fileName =#fileName#
+			,fileSize =#fileSize#
+			where id = #id#
+		</dynamic>
+	</update>
+
+	<delete id="deletePartyConstructionFiles" parameterClass="java.lang.Long">
+		delete from partyConstructionFiles where id = #value#
+	</delete>
+
+	
+</sqlMap>
+
+

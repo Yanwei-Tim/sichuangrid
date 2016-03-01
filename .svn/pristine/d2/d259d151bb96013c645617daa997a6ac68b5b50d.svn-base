@@ -1,0 +1,227 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<title>地图</title>
+<jsp:include page="/includes/baseInclude.jsp" />
+<jsp:include page="/includes/jsInclude.jsp" />
+<jsp:include page="/openLayersMap/includes/cssInclude.jsp" />
+<jsp:include page="/openLayersMap/includes/jsInclude.jsp" />
+
+    <head>  
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>  
+   
+        <title>openlayers 加载天地图地图</title>  
+        <script type="text/javascript" src="OpenLayers.js"></script>  
+    </head>  
+   
+    <body>  
+    <input type="button" value="标点" onclick="addMarker()">  
+        <input type="button" value="标线" onclick="addLine()">  
+        <input type="button" value="标面" onclick="addPolygon()">  
+        <input type="button" value="清除" onclick="clearFeature()">点击地图可获取鼠标点击位置屏幕坐标及经纬度  
+        <div id="map" style="width:100%;height:100%;"></div>  
+   
+        <script type="text/javascript">  
+            get_my_url = function(bounds) {  
+                var res = this.map.getResolution();  
+                var x = Math.round ((bounds.left - this.maxExtent.left) / (res * this.tileSize.w));  
+                var y = Math.round ((this.maxExtent.top - bounds.top) / (res * this.tileSize.h));  
+                var z = this.map.getZoom();  
+                var path = "DataServer?T="+this.type+"&x="+x+"&y="+y+"&l="+z;  
+                var url = this.url;  
+                if (url instanceof Array) {  
+                    url = this.selectUrl(path, url);  
+                }  
+                return url + path;  
+            }  
+   
+            var resolutions =  [  
+            156543.034,  
+            78271.517,  
+            39135.7585,  
+            19567.87925,  
+            9783.939625,  
+            4891.9698125,  
+            2445.98490625,  
+            1222.992453125,  
+            611.4962265625,  
+            305.74811328125,  
+            152.874056640625,  
+            76.4370283203125,  
+            38.21851416015625,  
+            19.10925708007813,  
+            9.554628540039063,  
+            4.777314270019532,  
+            2.388657135009766,  
+            1.194328567504883,  
+            0.5971642837524414  
+            ];  
+                var vectorGroup =  
+                    [  
+                    new OpenLayers.Layer.TMS(  
+                         "影像地图1-18级",  
+                         [  
+                              "http://t0.tianditu.com/"  
+                         ],  
+                         {  
+                            type : "img_w",  
+                            getURL : get_my_url,  
+                            isBaseLayer : true,  
+                            maxExtent : new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),  
+                            resolutions :  resolutions,  
+                            wrapDateLine : true,  
+                            displayOutsideMaxExtent : true,  
+                            buffer : 1  
+                         }  
+                    ),  
+                    new OpenLayers.Layer.TMS(  
+                         "影像注记1-18级",  
+                         [  
+                              "http://t0.tianditu.com/"  
+                         ],  
+                         {  
+                            type : "cia_w",  
+                            getURL : get_my_url,  
+                            isBaseLayer : false,  
+                            maxExtent : new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),  
+                            resolutions :  resolutions,  
+                            wrapDateLine : true,  
+                            displayOutsideMaxExtent : true,  
+                            buffer : 1  
+                         }  
+                    )  
+                       
+                ];  
+   
+   
+            var map = new OpenLayers.Map("map", {  
+                maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),  
+                resolutions : resolutions,  
+                units:'m',  
+                projection: new OpenLayers.Projection("EPSG:900913"),  
+                displayProjection: new OpenLayers.Projection("EPSG:4326"),  
+                controls:[],  
+                theme:null  
+            });  
+            map.addLayers(vectorGroup);  
+            var pointLayer = new OpenLayers.Layer.Markers("markers");//实例化的Layer.Vector对象，用来画点（Point）。当然，如果可以根据你的业务需要，把点、线、面都画在一个Layer.Vector对象上面。  
+            var lineLayer = new OpenLayers.Layer.Vector("Line Layer");//实例化的Layer.Vector对象，用来线（Line）当然。如果可以根据你的业务需要，把点、线、面都画在一个Layer.Vector对象上面。  
+            var polygonLayer = new OpenLayers.Layer.Vector("Polygon Layer");//实例化的Layer.Vector对象，用来多边形（Polygon）。当然，如果可以根据你的业务需要，把点、线、面都画在一个Layer.Vector对象上面。  
+            map.addLayers([lineLayer,polygonLayer,pointLayer]);  
+               
+   
+            //定位中心点  
+            center = new OpenLayers.LonLat(114.034428, 22.535805);  
+            center.transform(new OpenLayers.Projection("EPSG:4326"),new OpenLayers.Projection("EPSG:900913"));  
+            zoom = 5;  
+            map.setCenter(center, zoom);  
+   
+            map.addControl(new OpenLayers.Control.Navigation({  
+                dragPanOptions: {  
+                    enableKinetic: true,  
+                    documentDrag: true  
+                },  
+                zoomBoxEnabled: true,  
+                zoomWheelEnabled: true,  
+                zoomBoxKeyMask: OpenLayers.Handler.MOD_SHIFT  
+            }));  
+            map.events.register('click',  map,  function (e) {  
+                 // 显示地图屏幕坐标  
+                var str = "[Screen]:" + e.xy.x + "," + e.xy.y+"\n";  
+                // 屏幕坐标向地图坐标的转换  
+                var lonlat = map.getLonLatFromViewPortPx(e.xy);  
+                str += "[Map]:" + lonlat.lat + "," + lonlat.lon;  
+                alert(str);  
+            });  
+   
+            function addMarker(){  
+                //创建Marker 位置  
+                var pos = new OpenLayers.LonLat(114.034428, 22.535805);  
+                pos.transform(new OpenLayers.Projection("EPSG:4326"),new OpenLayers.Projection("EPSG:900913"));  
+                //创建Marker对象  
+                var marker = new OpenLayers.Marker ( pos );  
+                //注册鼠标事件  
+                marker.events.register( 'mousedown',  marker, popup);  
+                //添加marker到marker layer  
+                pointLayer.addMarker(marker);  
+            }  
+            function popup(e){  
+                 // 显示地图屏幕坐标  
+                alert(0);  
+            }  
+            function addLine(){  
+                var style_green = {  
+                strokeColor: "red",  
+                strokeWidth: 5,  
+                strokeDashstyle: "dashdot",  
+                pointRadius: 6,  
+                pointerEvents: "visiblePainted"  
+                };   
+                var pointList = [];  
+                   
+                newPoint = new OpenLayers.Geometry.Point(114.034428, 22.535805);  
+                newPoint.transform(new OpenLayers.Projection("EPSG:4326"),new OpenLayers.Projection("EPSG:900913"));  
+                pointList.push(newPoint);  
+                newPoint = new OpenLayers.Geometry.Point(114.044428, 22.535805);  
+                newPoint.transform(new OpenLayers.Projection("EPSG:4326"),new OpenLayers.Projection("EPSG:900913"));  
+                pointList.push(newPoint);  
+                newPoint = new OpenLayers.Geometry.Point(114.044428, 22.537805);  
+                newPoint.transform(new OpenLayers.Projection("EPSG:4326"),new OpenLayers.Projection("EPSG:900913"));  
+                pointList.push(newPoint);  
+                newPoint = new OpenLayers.Geometry.Point(114.034428, 22.537805);  
+                newPoint.transform(new OpenLayers.Projection("EPSG:4326"),new OpenLayers.Projection("EPSG:900913"));  
+                pointList.push(newPoint);  
+                   
+                lineFeature = new OpenLayers.Feature.Vector(new OpenLayers.Geometry.LineString(pointList),null,style_green);  
+                lineLayer.addFeatures([lineFeature]);  
+                   
+            }  
+            function addPolygon(){  
+                var style_green = {  
+                strokeColor: "red",  
+                strokeWidth: 5,  
+                strokeDashstyle: "dashdot",  
+                pointRadius: 6,  
+                pointerEvents: "visiblePainted"  
+                };   
+                var pointList = [];  
+                   
+                newPoint = new OpenLayers.Geometry.Point(114.034428, 22.535805);  
+                newPoint.transform(new OpenLayers.Projection("EPSG:4326"),new OpenLayers.Projection("EPSG:900913"));  
+                pointList.push(newPoint);  
+                newPoint = new OpenLayers.Geometry.Point(114.044428, 22.535805);  
+                newPoint.transform(new OpenLayers.Projection("EPSG:4326"),new OpenLayers.Projection("EPSG:900913"));  
+                pointList.push(newPoint);  
+                newPoint = new OpenLayers.Geometry.Point(114.044428, 22.537805);  
+                newPoint.transform(new OpenLayers.Projection("EPSG:4326"),new OpenLayers.Projection("EPSG:900913"));  
+                pointList.push(newPoint);  
+                newPoint = new OpenLayers.Geometry.Point(114.034428, 22.537805);  
+                newPoint.transform(new OpenLayers.Projection("EPSG:4326"),new OpenLayers.Projection("EPSG:900913"));  
+                pointList.push(newPoint);  
+                   
+                //lineFeature = new OpenLayers.Feature.Vector(new OpenLayers.Geometry.LineString(pointList),null,style_green);  
+                //lineLayer.addFeatures([lineFeature]);  
+                var linearRing = new OpenLayers.Geometry.LinearRing(pointList);  
+                var polygon = new OpenLayers.Geometry.Polygon([linearRing]);  
+                var style_polygon = {  
+                    strokeWidth: 2,  
+                    strokeOpacity: 0.8,  
+                    fillOpacity: 0.8  
+                };  
+                polygonFeature = new OpenLayers.Feature.Vector(polygon,null,style_polygon);  
+                   
+                polygonLayer.addFeatures([polygonFeature]);  
+                   
+            }  
+            function clearFeature(){  
+                pointLayer.clearMarkers();  
+                lineLayer.removeAllFeatures();  
+                polygonLayer.removeAllFeatures();  
+            }  
+               
+        </script>  
+           
+    </body>  
+
+
+

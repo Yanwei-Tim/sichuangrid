@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="capitalInvested">
+	<typeAlias alias="CapitalInvested" type="com.tianque.newVillage.domain.CapitalInvested" />
+
+	<resultMap id="capitalInvestedResult" class="CapitalInvested" >
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgInternalCode" />
+		<result property="newVillageBasic.id" column="basicInfoID" />
+		
+		<result property="allInvestmentCount" column="allInvestmentCount" />
+		<result property="capitalInvestmentCount" column="capitalInvestmentCount" />
+		<result property="sociologyInvested" column="sociologyInvested" />
+		<result property="otherInvested" column="otherInvested" />
+		
+		<result property="centralProvinceInvested" column="centralProvinceInvested" />
+		<result property="municipalityInvested" column="municipalityInvested" />
+		<result column="countyInvested" property="countyInvested" />
+		<result property="financialInvested" column="financialInvested" />
+		<result column="industryAndCommerceInvested" property="industryAndCommerceInvested" />
+		<result column="farmerInvested" property="farmerInvested" />
+
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+
+	<insert id="addCapitalInvested" parameterClass="CapitalInvested">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_CAPITALINVESTED.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		INSERT INTO CAPITALINVESTED (ID, ORGID, ORGINTERNALCODE, BASICINFOID, CENTRALPROVINCEINVESTED, MUNICIPALITYINVESTED,
+		COUNTYINVESTED,FINANCIALINVESTED,INDUSTRYANDCOMMERCEINVESTED,FARMERINVESTED,allInvestmentCount,capitalInvestmentCount,sociologyInvested,otherInvested,
+		CREATEUSER,CREATEDATE, UPDATEDATE, UPDATEUSER)VALUES(
+		#id#,#organization.id#,#organization.orgInternalCode#,#newVillageBasic.id#, #centralProvinceInvested#, #municipalityInvested#, 
+		#countyInvested#,#financialInvested#,#industryAndCommerceInvested#,#farmerInvested#,
+		#allInvestmentCount#,#capitalInvestmentCount#,#sociologyInvested#,#otherInvested#,
+		#createUser#, #createDate#, #updateDate#, #updateUser#)	
+	</insert>
+	<update id="updateCapitalInvested" parameterClass="CapitalInvested">
+		UPDATE CAPITALINVESTED SET UPDATEDATE = #updateDate#
+		<isNotNull prepend="," property="updateUser">
+			updateUser = #updateUser#,
+		</isNotNull>
+			centralProvinceInvested=#centralProvinceInvested#,
+			municipalityInvested=#municipalityInvested#,
+			countyInvested=#countyInvested#,
+			financialInvested=#financialInvested#,
+			industryAndCommerceInvested=#industryAndCommerceInvested#,
+			farmerInvested=#farmerInvested#,
+			allInvestmentCount=#allInvestmentCount#,
+			capitalInvestmentCount=#capitalInvestmentCount#,
+			sociologyInvested=#sociologyInvested#,
+			otherInvested=#otherInvested#
+		WHERE ID=#id#
+	</update>
+	
+	<delete id="deleteCapitalInvested">
+		delete from CAPITALINVESTED where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	<select id="getCapitalInvested" parameterClass="java.lang.Long" resultMap="capitalInvestedResult">
+		<![CDATA[SELECT * FROM CAPITALINVESTED WHERE ID = #value#]]>
+	</select>
+	
+	<select id="getCapitalInvestedByBasicId" parameterClass="java.util.Map" resultMap="capitalInvestedResult">
+		select * from CAPITALINVESTED where BASICINFOID=#basicId#
+	</select>
+		
+</sqlMap>

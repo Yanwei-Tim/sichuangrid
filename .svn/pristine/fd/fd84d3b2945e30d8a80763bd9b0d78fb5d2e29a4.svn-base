@@ -1,0 +1,254 @@
+package com.tianque.issue.controller;
+
+import java.text.ParseException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.property.OrganizationType;
+import com.tianque.issue.domain.AdministrativeOrgTimeLimitStandard;
+import com.tianque.issue.domain.IssueStandardForFunOrg;
+import com.tianque.issue.domain.IssueStep;
+import com.tianque.issue.service.AdministrativeOrgTimeLimitStandardService;
+import com.tianque.issue.service.IssueService;
+import com.tianque.issue.service.IssueStandardForFunOrgService;
+import com.tianque.issue.state.IssueState;
+import com.tianque.issue.vo.IssueViewObject;
+import com.tianque.service.IssueTypeService;
+import com.tianque.service.WorkCalendarService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+
+@Component("issueOvertimeHelper")
+public class IssueOvertimeHelper {
+	private static Logger logger = LoggerFactory
+			.getLogger(IssueOvertimeHelper.class);
+	@Autowired
+	private WorkCalendarService workCalendarService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private PropertyDictService propertyDictService;
+	@Autowired
+	private IssueStandardForFunOrgService standardForFunOrgService;
+	@Autowired
+	private AdministrativeOrgTimeLimitStandardService administrativeOrgTimeLimitStandardService;
+	@Autowired
+	@Qualifier("defaultIssueService")
+	private IssueService issueService;
+	@Autowired
+	private IssueTypeService issueTypeService;
+	private final static Double DEFAULT_PERCENTAGE = 0.7D;
+	private final static int YELLOW_TYPE = 1;// 黄灯
+	private final static int GREEN_TYPE = 0;// 绿灯
+
+	public void fillEaringWarnField(IssueViewObject issueViewObject) {
+		try {
+			Map<String, Integer> workDay = new HashMap<String, Integer>();
+			switch (issueViewObject.getDealState().intValue()) {
+			case IssueState.UNCONCEPTED_CODE:// 待审核
+				workDay = getSuperviseAcceptedLimitTime(issueViewObject);
+				break;
+			case IssueState.NEWISSUE_CODE:
+				;
+			case IssueState.DEALING_CODE:// 办理中
+				workDay = getSuperviseHandleLimitTime(issueViewObject);
+				break;
+			case IssueState.ISSUEVERIFICATION_CODE:// 待验证
+				workDay = getSuperviseVerifyLimitTime(issueViewObject);
+				break;
+			default:
+				break;
+			}
+			if (workDay.size() > 0) {
+				autoFillEaringWarnField(issueViewObject, workDay);
+			}
+		} catch (Exception e) {
+			logger.error("IssueOvertimeHelper出现异常：", e);
+		}
+	}
+
+	private boolean isAdministrativeOrg(Long orgId) {
+		Organization org = organizationDubboService.getFullOrgById(orgId);
+		PropertyDict orgType = propertyDictService.getPropertyDictById(org
+				.getOrgType().getId());
+		return orgType.getInternalId() == OrganizationType.ADMINISTRATIVE_REGION;
+	}
+
+	/**
+	 * 获取未受理超期时限
+	 * 
+	 * @param step
+	 */
+	private Map<String, Integer> getSuperviseAcceptedLimitTime(
+			IssueViewObject issueViewObject) {
+		Map<String, Integer> workDay = new HashMap<String, Integer>();
+		if (isAdministrativeOrg(issueViewObject.getTargeOrg().getId())) {
+			AdministrativeOrgTimeLimitStandard limitStandard = getAdministrativeOrgTimeLimitStandard(issueViewObject);
+			workDay.put("redWorkDay", limitStandard.getRedLimitAccept());
+			workDay.put("yellowWorkDay", limitStandard.getYellowLimitAccept());
+		} else {
+			IssueStandardForFunOrg standardForFunOrg = getStandardForFunOrg(issueViewObject);
+			workDay.put("redWorkDay", standardForFunOrg.getRedLimitAccept());
+			workDay.put("yellowWorkDay",
+					standardForFunOrg.getYellowLimitAccept());
+
+		}
+		return workDay;
+	}
+
+	/**
+	 * 获取未处理超期时限
+	 * 
+	 * @param step
+	 */
+	private Map<String, Integer> getSuperviseHandleLimitTime(
+			IssueViewObject issueViewObject) {
+		Map<String, Integer> workDay = new HashMap<String, Integer>();
+		if (isAdministrativeOrg(issueViewObject.getTargeOrg().getId())) {
+			AdministrativeOrgTimeLimitStandard limitStandard = getAdministrativeOrgTimeLimitStandard(issueViewObject);
+			workDay.put("redWorkDay", limitStandard.getRedLimitHandle());
+			workDay.put("yellowWorkDay", limitStandard.getYellowLimitHandle());
+		} else {
+			IssueStandardForFunOrg standardForFunOrg = getStandardForFunOrg(issueViewObject);
+			workDay.put("redWorkDay", standardForFunOrg.getRedLimitHandle());
+			workDay.put("yellowWorkDay",
+					standardForFunOrg.getYellowLimitHandle());
+		}
+		return workDay;
+	}
+
+	/**
+	 * 获取未验证超期时限
+	 * 
+	 * @param step
+	 */
+	private Map<String, Integer> getSuperviseVerifyLimitTime(
+			IssueViewObject issueViewObject) {
+		Map<String, Integer> workDay = new HashMap<String, Integer>();
+		if (isAdministrativeOrg(issueViewObject.getTargeOrg().getId())) {
+			AdministrativeOrgTimeLimitStandard limitStandard = getAdministrativeOrgTimeLimitStandard(issueViewObject);
+			if (limitStandard.getRedLimitVerify() != null
+					&& limitStandard.getYellowLimitVerify() != null) {
+				workDay.put("redWorkDay", limitStandard.getRedLimitVerify());
+				workDay.put("yellowWorkDay",
+						limitStandard.getYellowLimitVerify());
+			}
+		} else {
+			IssueStandardForFunOrg standardForFunOrg = getStandardForFunOrg(issueViewObject);
+			if (standardForFunOrg.getRedLimitVerify() != null
+					&& standardForFunOrg.getYellowLimitVerify() != null) {
+				workDay.put("redWorkDay", standardForFunOrg.getRedLimitVerify());
+				workDay.put("yellowWorkDay",
+						standardForFunOrg.getYellowLimitVerify());
+			}
+		}
+		return workDay;
+	}
+
+	private void autoFillEaringWarnField(IssueViewObject issueViewObject,
+			Map<String, Integer> workDay) throws ParseException {
+		Integer redWorkDay = workDay.get("redWorkDay");
+		Integer yellowWorkDay = workDay.get("yellowWorkDay");
+		if (issueViewObject.getSupervisionState() != IssueState.YELLOW_CARD_SUPERVISE
+				&& issueViewObject.getSupervisionState() != IssueState.RED_CARD_SUPERVISE) {
+			issueViewObject.setEaringWarn(intervalTime(issueViewObject,
+					yellowWorkDay));
+			issueViewObject.setEaringWarnType(warmType(issueViewObject,
+					yellowWorkDay));
+		} else if (issueViewObject.getSupervisionState() == IssueState.YELLOW_CARD_SUPERVISE
+				&& issueViewObject.getSupervisionState() != IssueState.RED_CARD_SUPERVISE) {
+			issueViewObject.setEaringWarn(intervalTime(issueViewObject,
+					redWorkDay));
+			issueViewObject.setEaringWarnType(warmType(issueViewObject,
+					redWorkDay));
+		}
+	}
+
+	private int intervalTime(IssueViewObject issueViewObject, Integer workDays)
+			throws ParseException {
+		if (null == workDays) {
+			return 0;
+		}
+		IssueStep step = issueService.getIssueStepById(issueViewObject
+				.getIssueStepId());
+		int delayDays = issueService
+				.getIssueStepDelayWorkDaysById(issueViewObject.getIssueStepId()); // 申请延迟的工作天数
+		// int usedWorkDays = workCalendarService
+		// .getWorkDaysFromStartTimeToEndTime(step.getLastDealDate(),
+		// new Date()).intValue(); // 计算用掉的工作天数
+		int usedWorkDays = workCalendarService
+				.getWorkDaysFromStartTimeToEndTimeByFeature(
+						step.getLastDealDate(), new Date(),
+						issueViewObject.getTargeOrg().getId()).intValue(); // 调用特色日历计算用掉的工作天数
+		return warm(workDays, delayDays, usedWorkDays);
+	}
+
+	private int warm(int workDays, int delayDays, int usedWorkDays) {
+		int remaining = workDays + delayDays - usedWorkDays;
+		return remaining > 0 ? remaining : 0;
+	}
+
+	private Integer warmType(IssueViewObject issueViewObject, Integer workDays) {
+		IssueStep step = issueService.getIssueStepById(issueViewObject
+				.getIssueStepId());
+		int delayDays = issueService
+				.getIssueStepDelayWorkDaysById(issueViewObject.getIssueStepId()); // 申请延迟的工作天数
+		int usedWorkDays = workCalendarService
+				.getWorkDaysFromStartTimeToEndTime(step.getEntryDate(),
+						new Date()).intValue(); // 计算用掉的工作天数
+		int warmDays = (int) Math.floor((workDays + delayDays)
+				* DEFAULT_PERCENTAGE); // 警告的工作天数
+		if (usedWorkDays - warmDays >= 0) {
+			return YELLOW_TYPE;
+		} else {
+			return GREEN_TYPE;
+		}
+	}
+
+	private IssueStandardForFunOrg getStandardForFunOrg(
+			IssueViewObject issueViewObject) {
+		IssueStandardForFunOrg standardForFunOrg = null;
+		IssueStep step = issueService.getIssueStepById(issueViewObject
+				.getIssueStepId());
+		if (step.getItemTypeId() != null) {
+			standardForFunOrg = standardForFunOrgService
+					.getIssueStandardForFunOrgByOrgIdAndItemId(issueViewObject
+							.getTargeOrg().getId(), step.getItemTypeId());
+
+		}
+		if (standardForFunOrg == null
+				|| standardForFunOrg.getYellowLimitAccept() == null
+				|| standardForFunOrg.getYellowLimitHandle() == null
+				|| standardForFunOrg.getYellowLimitVerify() == null
+				|| standardForFunOrg.getRedLimitAccept() == null
+				|| standardForFunOrg.getRedLimitHandle() == null
+				|| standardForFunOrg.getRedLimitVerify() == null) {
+			standardForFunOrg = standardForFunOrgService
+					.getIssueStandardForFunOrgByOrgIdAndItemId(null, null);
+		}
+		return standardForFunOrg;
+	}
+
+	private AdministrativeOrgTimeLimitStandard getAdministrativeOrgTimeLimitStandard(
+			IssueViewObject issueViewObject) {
+
+		Organization organization = organizationDubboService
+				.getFullOrgById(issueViewObject.getTargeOrg().getId());
+		PropertyDict orgLevel = propertyDictService
+				.getPropertyDictById(organization.getOrgLevel().getId());
+		AdministrativeOrgTimeLimitStandard administrativeOrgTimeLimitStandard = administrativeOrgTimeLimitStandardService
+				.getAdminOrgTimeLimitStandardByOrgLevelIdAndIssueTypeId(
+						orgLevel.getId(), issueViewObject.getIssueType()
+								.getId(), organization.getParentOrg());
+		return administrativeOrgTimeLimitStandard;
+	}
+}

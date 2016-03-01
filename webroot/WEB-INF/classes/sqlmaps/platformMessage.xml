@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="platformMessage">
+
+	<typeAlias alias="platformMessage" type="com.tianque.platformMessage.domain.PlatformMessage" />
+	
+	<resultMap class="platformMessage" id="platformMessageResult">
+		<result property="id" column="id" />
+		<result property="title" column="title" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="content" column="content" />
+		<result property="historyMessage" column="historyMessage" />
+		<result property="messageType" column="messageType" />
+		<result property="url" column="url" />
+		<result property="roleOrgId" column="roleOrgId" />
+		<result property="sender.id" column="senderId" />
+		<result property="sendDate" column="sendDate" />
+		<result property="isDraft" column="isDraft" />
+		<result property="sendType" column="sendType" />
+		<result property="receiverType" column="receiverType" />
+		<result property="receiverId" column="receiverId" />
+		<result property="receiverNames" column="receiverNames" />
+		<result property="originatorsName" column="originatorsName" />
+		<result property="originatorsDate" column="originatorsDate" />
+		<result property="recipientInfo" column="recipientInfo" />
+		<result property="fileInfoIds" column="fileInfoIds" />
+	</resultMap>
+	
+	<resultMap class="platformMessage" id="platformMessageResults">
+		<result property="id" column="id" />
+		<result property="title" column="title" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="content" column="content" />
+		<result property="historyMessage" column="historyMessage" />
+		<result property="messageType" column="messageType" />
+		<result property="url" column="url" />
+		<result property="roleOrgId" column="roleOrgId" />
+		<result property="sender.id" column="senderId" />
+		<result property="sendDate" column="sendDate" />
+		<result property="sendType" column="sendType" />
+		<result property="receiverType" column="receiverType" />
+		<result property="receiverId" column="receiverId" />
+		<result property="receiverNames" column="receiverNames" />
+		<result property="originatorsName" column="originatorsName" />
+		<result property="originatorsDate" column="originatorsDate" />
+		
+		<result property="fileInfoIds" column="fileInfoIds" />
+	</resultMap>
+	
+	<!-- 发件箱 -->
+	<resultMap class="platformMessage" id="outboxPlatformMessageResult" extends="platformMessageResult">
+	
+	</resultMap>
+	<!-- 收件箱 -->
+	<resultMap class="platformMessage" id="inboxPlatformMessageResult" extends="platformMessageResults">
+		<result property="readState" column="readState" />
+		<result property="readDate" column="readDate" />
+	</resultMap>
+	
+	<!-- 发件箱新增消息 -->
+	<insert id="addPlatformMesssgeToOutbox" parameterClass="platformMessage">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_outboxPlatformMessages.NEXTVAL AS id FROM DUAL]]>
+		</selectKey>
+		insert into outboxPlatformMessages
+			(id, title,simplePinyin,fullPinyin,content,historyMessage,messageType,url,roleOrgId,senderId,
+			 sendType,sendDate,receiverType,receiverId,receiverNames,isDraft,originatorsName,originatorsDate,recipientInfo,fileInfoIds)
+		values
+			(#id#, #title#,#simplePinyin#,#fullPinyin#,#content#,#historyMessage# ,#messageType#,#url#,
+			 #roleOrgId#,#sender.id#,#sendType#,#sendDate#,#receiverType#,#receiverId#,#receiverNames#,#isDraft#,#originatorsName#,#originatorsDate#,#recipientInfo#,#fileInfoIds#)
+	</insert>
+	
+	<!-- 根据id获取发件箱消息 -->
+	<select id="getPlatformMesssgeFromOutboxById" parameterClass="java.lang.Long" resultMap="platformMessageResult">
+		select * from outboxPlatformMessages where  id = #id#	
+	</select>
+	
+	<!-- 发件箱消息数量 -->
+	<select id="countOutboxPlatformMessageBySenderId" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from outboxPlatformMessages where  senderId = #senderId# and isDraft=#isDraft#	
+	</select>
+	
+	<!-- 发件箱消息列表 -->
+	<select id="findOutboxPlatformMessageBySenderId" parameterClass="java.util.Map" resultMap="platformMessageResult">
+		select * from outboxPlatformMessages where  senderId = #senderId# and isDraft=#isDraft#
+		<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotEmpty property="sortField">$sortField$</isNotEmpty>
+					<isNotEmpty property="order">$order$</isNotEmpty>
+				</isPropertyAvailable>
+		 </dynamic>		
+	</select>
+	
+	<!-- 根据ID删除发件箱消息 -->
+	<delete id="deletePlatformMessageFromOutboxById" parameterClass="java.lang.Long" >
+		delete from outboxPlatformMessages where id = #pmId#
+	</delete>
+	
+	
+	<!-- 收件箱新增消息 -->
+	<insert id="addPlatformMessageToInbox" parameterClass="platformMessage">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_inboxPlatformMessages.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into 
+			inboxPlatformMessages
+			(id,title,simplePinyin,fullPinyin, content,historyMessage, messageType, url, roleOrgId,senderId,
+			 sendDate,sendType,receiverType,receiverId,readState,originatorsName,originatorsDate,fileInfoIds	
+			 )
+		values
+			(#id#,#title#,#simplePinyin#,#fullPinyin#, #content#,#historyMessage#, #messageType#, #url#,
+			#roleOrgId#,  #sender.id#, #sendDate#,#sendType#, #receiverType#,#receiverId#,#readState#,#originatorsName#,#originatorsDate#,#fileInfoIds#
+			)
+	</insert>
+
+	<!-- 根据id获取收件箱消息 -->
+	<select id="getPlatformMesssgeFromInboxById" parameterClass="java.lang.Long" resultMap="inboxPlatformMessageResult">
+		select * from inboxPlatformMessages where  id = #id#	
+	</select>
+	
+	<!-- 未读消息过滤条件 -->
+	<sql id="unReadCondition">
+		id not in (select pmId from userhasplatformmessages where userId = #userId# 
+		and ( readState = 1 or deleteState = 1))
+	</sql> 
+	
+	<!-- 标记收件箱里收件人为user类型的消息为已读状态 -->
+	<update id="markUserInboxPlatgformMessageRead" parameterClass="platformMessage">
+		update inboxPlatformMessages set readState = 1 , readDate = #readDate# where id = #id# and receiverType = 'user'
+	</update>
+	
+
+	<!--删除收件箱里收件人为user类型的消息-->
+	<delete id="deleteUserPlatformMessageFromInbox" parameterClass="platformMessage">
+		delete from inboxPlatformMessages where id = #id# and receiverType = 'user'
+	</delete>
+	
+	<!-- 获取收件箱里收件人类型为org和role的消息的阅读状态 -->
+	<select id="getUserHasPlatformMessageReadState" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select distinct(readState) from userhasplatformmessages where userId = #userId# and pmId = #pmId#
+	</select>
+	
+	
+	<!--发给部门和岗位时  保存用户和收件箱消息关联关系-->
+	<insert id="addkUserHasPlatformMessage" parameterClass="java.util.Map">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_userhasPlatformMessages.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into 
+			userhasPlatformMessages
+			(
+			id,pmId,userId,readState,readDate,deleteState,messageType,senderId,createDate
+			 )
+		values
+			(
+			#id#,#pmId#,#userId#,#readState#,#readDate#,#deleteState#,#messageType#,#senderId#,#createDate#
+			)
+	</insert>
+	
+	<!--  -->
+	<select id="getUserHasPlatformMessageId" resultClass="Long">
+		select max(id) from userhasplatformmessages  where pmId = #pmId# and userId = #userId# and deleteState =0
+	</select>
+	
+	<!-- 标记删除 -->
+	<update id="markUserHasPlatformMessageDelete" parameterClass="java.util.Map">
+		update 	userhasPlatformMessages set deleteState = 1 where pmid = #pmId#  and userId = #userId# 
+	</update>
+	
+
+	<!--清除收件箱关联表过期数据  系统信息默认是以id为1的用户  -->
+	<delete id="cleanUserHasPlatformmessages" parameterClass="java.util.Map">
+		delete from userhasplatformmessages u 
+			where exists
+			(select 1 
+				from inboxplatformmessages ipfm
+ 					where
+ 					 <![CDATA[ 
+ 					 	u.pmid=ipfm.id 
+ 					 	and ((ipfm.receivertype = 'user' and 
+       						ipfm.senderid <> 1 and ipfm.senddate<= #twoMonth# )
+    						or (ipfm.senderid = 1 and ipfm.senddate<= #oneMonth#)
+    						or (ipfm.receivertype <> 'user' and 
+        					ipfm.senderid <> 1 and ipfm.senddate<= #oneMonth#)))
+        ]]>
+	</delete>
+	
+	<!-- 清除过期的收件箱 -->
+	<delete id="cleanInBoxplatformMessage" parameterClass="java.util.Map">
+		delete from inboxplatformmessages ipfm
+ 		where <![CDATA[(ipfm.receivertype = 'user' and 
+       	ipfm.senderid <> 1 and ipfm.senddate<= #twoMonth# )
+    	or (ipfm.senderid = 1 and ipfm.senddate<= #oneMonth#)
+    	or (ipfm.receivertype <> 'user' and 
+        ipfm.senderid <> 1 and ipfm.senddate<= #oneMonth#)]]>
+	</delete>
+	
+	<!-- 清除过期的发件箱 -->
+	<delete id="cleanOutBoxplatformMessage" parameterClass="java.util.Map">
+		delete from outboxplatformmessages opfm
+ 		where opfm.isdraft=0 and <![CDATA[((opfm.receivertype = 'user' and 
+       	opfm.senderid <> 1 and opfm.senddate<= #twoMonth# )
+    	or (opfm.senderid = 1 and opfm.senddate<= #oneMonth#)
+    	or (opfm.receivertype <> 'user' and 
+        opfm.senderid <> 1 and opfm.senddate<= #oneMonth#))]]>
+	</delete>
+</sqlMap>

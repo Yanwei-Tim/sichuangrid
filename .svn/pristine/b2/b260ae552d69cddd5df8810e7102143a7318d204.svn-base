@@ -1,0 +1,265 @@
+package com.tianque.plugin.taskList.serviceImpl;
+
+import java.io.File;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.systemLog.util.ModuleConstants;
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.util.DialogMode;
+import com.tianque.core.util.FileUtil;
+import com.tianque.core.util.GridProperties;
+import com.tianque.core.util.StoredFile;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.User;
+import com.tianque.domain.property.OrganizationType;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.plugin.taskList.constants.Constants;
+import com.tianque.plugin.taskList.dao.ExceptionalSituationRecordDao;
+import com.tianque.plugin.taskList.domain.ExceptionalSituationRecord;
+import com.tianque.plugin.taskList.domain.ExceptionalSituationRecordVo;
+import com.tianque.plugin.taskList.domain.TaskListAttachFile;
+import com.tianque.plugin.taskList.service.ExceptionalSituationRecordService;
+import com.tianque.plugin.taskList.service.GridConfigTaskService;
+import com.tianque.plugin.taskList.service.TaskListAttachFileService;
+import com.tianque.plugin.taskList.validate.ExceptionalSituationRecordValidatorImpl;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+
+@Transactional
+@Service("exceptionalSituationRecordService")
+public class ExceptionalSituationRecordServiceImpl implements ExceptionalSituationRecordService {
+	@Autowired
+	private ExceptionalSituationRecordDao exceptionalSituationRecordDao;
+	@Autowired
+	private ExceptionalSituationRecordValidatorImpl exceptionalSituationRecordValidator;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+
+	@Autowired
+	private TaskListAttachFileService taskListAttachFileService;
+	
+	@Autowired
+	private PropertyDictService propertyDictService;
+
+	@Autowired
+	private GridConfigTaskService configTaskService;
+	
+	@Override
+	public void addExceptionalSituationRecord(
+			ExceptionalSituationRecord exceptionalSituationRecord, String[] attachFile,
+			String[] attachFiles, String[] attachFileNames) {
+		if (exceptionalSituationRecord == null) {
+			throw new BusinessValidationException("异常情况报告记录信息为空，新增记录失败！");
+		}
+		exceptionalSituationRecordValidator(exceptionalSituationRecord);
+		try {
+			fillExceptionalSituationRecord(exceptionalSituationRecord, DialogMode.ADD_MODE);
+			exceptionalSituationRecordDao.addExceptionalSituationRecord(exceptionalSituationRecord);
+			if (attachFile != null && attachFile.length != 0) {
+				String[] strTmp = attachFile[0].split(",");
+
+				iterableAttachFilesForMobile(strTmp, exceptionalSituationRecord);
+			}
+			if (attachFiles != null && attachFiles.length != 0) {
+				String[] strTmpForSingle = attachFiles[0].split(",");
+
+				iterableAttachFilesForMobile(strTmpForSingle, exceptionalSituationRecord);
+			}
+			//,A ,AA ,AAA格式
+			if (attachFileNames != null && attachFileNames.length != 0) {
+				String[] strTmpForPcTemp = new String[attachFileNames.length];
+				for (int i = 0; i < attachFileNames.length; i++) {
+					String[] strTmpForPc = attachFileNames[i].split(",");
+
+					strTmpForPcTemp[i] = strTmpForPc[1];
+
+				}
+
+				iterableAttachFilesForMobile(strTmpForPcTemp, exceptionalSituationRecord);
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类ExceptionalSituationRecordServiceImpl的addExceptionalSituationRecord方法出现异常，原因：",
+					"异常情况报告记录信息新增出现错误", e);
+		}
+	}
+
+	@Override
+	public ExceptionalSituationRecord getExceptionalSituationRecordById(Long id) {
+		if (id == null) {
+			throw new BusinessValidationException("参数为空，获取异常情况报告记录信息失败！");
+		}
+		try {
+			ExceptionalSituationRecord exceptionalSituationRecord = exceptionalSituationRecordDao
+					.getExceptionalSituationRecordById(id);
+			fillExceptionalSituationRecord(exceptionalSituationRecord, DialogMode.VIEW_MODE);
+			List<TaskListAttachFile> hiddenDangerAnnexFiles = taskListAttachFileService
+					.queryTaskListAttachFilesByBusinessId(id, Constants.EXCEPTIONSITUATION_KEY);
+			exceptionalSituationRecord.setExceptionalSituationAnnexFiles(hiddenDangerAnnexFiles);
+
+			return exceptionalSituationRecord;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类ExceptionalSituationRecordServiceImpl的getExceptionalSituationRecordById方法出现异常，原因：",
+					"获取异常情况报告记录信息出现错误", e);
+		}
+	}
+
+	@Override
+	public PageInfo<ExceptionalSituationRecord> findExceptionalSituationRecords(
+			ExceptionalSituationRecordVo exceptionalSituationRecordVo, Integer pageNum,
+			Integer pageSize, String sidx, String sord) {
+		if (exceptionalSituationRecordVo == null || pageNum == null || pageSize == null
+				|| exceptionalSituationRecordVo.getOrganization() == null
+				|| exceptionalSituationRecordVo.getOrganization().getId() == null) {
+			throw new BusinessValidationException("参数为空，获取异常情况报告记录信息失败！");
+		}
+		try {
+			
+			PropertyDict orgTypeDict = propertyDictService
+					.findPropertyDictByDomainNameAndDictDisplayName(
+							PropertyTypes.ORGANIZATION_TYPE,
+							OrganizationType.FUNCTION_KEY);
+		Organization org=organizationDubboService.getFullOrgById(exceptionalSituationRecordVo.getOrganization()
+				.getId());
+		if(isGridConfigTaskSearch(exceptionalSituationRecordVo)){
+			if(StringUtil.isStringAvaliable(exceptionalSituationRecordVo.getMode())&&
+					"true".equals(exceptionalSituationRecordVo.getMode())){
+				exceptionalSituationRecordVo.setFunOrgId(org.getId());
+				exceptionalSituationRecordVo.setMode("gridConfigTask");
+			}
+			exceptionalSituationRecordVo.setMode("gridConfigTask");
+			exceptionalSituationRecordVo.setOrgCode(null);
+		}else if(orgTypeDict.getId().equals(org.getOrgType().getId())){
+			exceptionalSituationRecordVo.setOrgCode(organizationDubboService
+						.getOrgInternalCodeById(org.getParentOrg().getId()));
+		}else{
+			exceptionalSituationRecordVo.setOrgCode(org.getOrgInternalCode());
+		}
+		return exceptionalSituationRecordDao
+				.findExceptionalSituationRecords(exceptionalSituationRecordVo, pageNum, pageSize, sidx, sord);
+			
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类ExceptionalSituationRecordServiceImpl的findExceptionalSituationRecords方法出现异常，原因：",
+					"获取异常情况报告记录信息出现错误", e);
+		}
+	}
+
+	//判断是否为网格配置后的查询
+	private boolean isGridConfigTaskSearch(ExceptionalSituationRecordVo exceptionalSituationRecordVo){
+		Long funId=exceptionalSituationRecordVo.getOrganization().getId();
+		if(exceptionalSituationRecordVo.getMode()==null){
+			return false;
+		}
+		if(exceptionalSituationRecordVo.getMode().equals("gridConfigTask")&&
+				funId.equals(ThreadVariable.getOrganization().getId())){
+			return true;
+		}
+		if(exceptionalSituationRecordVo.getMode().equals("true")&&configTaskService.isHasGridTaskList(funId,Constants.TASKLIST_KEY)){
+			return true;
+		}
+		return false;
+	}
+	
+	@Override
+	public ExceptionalSituationRecord updateExceptionalSituationRecord(
+			ExceptionalSituationRecord exceptionalSituationRecord) {
+		if (exceptionalSituationRecord == null) {
+			throw new BusinessValidationException("参数为空，获取异常情况报告记录信息失败！");
+		}
+		exceptionalSituationRecordValidator(exceptionalSituationRecord);
+		try {
+			return exceptionalSituationRecordDao
+					.updateExceptionalSituationRecord(exceptionalSituationRecord);
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类ExceptionalSituationRecordServiceImpl的updateExceptionalSituationRecord方法出现异常，原因：",
+					"更新异常情况报告记录信息出现错误", e);
+		}
+	}
+
+	@Override
+	public Integer deleteExceptionalSituationRecords(List<Long> ids) {
+		if (ids == null || ids.size() < 1) {
+			throw new BusinessValidationException("参数为空，获取异常情况报告记录信息失败！");
+		}
+		try {
+			return exceptionalSituationRecordDao.deleteExceptionalSituationRecords(ids);
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类ExceptionalSituationRecordServiceImpl的deleteExceptionalSituationRecord方法出现异常，原因：",
+					"删除异常情况报告记录信息出现错误", e);
+		}
+	}
+
+	private void exceptionalSituationRecordValidator(
+			ExceptionalSituationRecord exceptionalSituationRecord) {
+		ValidateResult dataValidateResult = exceptionalSituationRecordValidator
+				.validate(exceptionalSituationRecord);
+		if (dataValidateResult.hasError()) {
+			throw new BusinessValidationException(dataValidateResult.getErrorMessages());
+		}
+	}
+
+	private void fillSearchArgs(ExceptionalSituationRecordVo exceptionalSituationRecordVo) {
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(exceptionalSituationRecordVo.getOrganization().getId());
+		exceptionalSituationRecordVo.setOrganization(organization);
+	}
+
+	private void fillExceptionalSituationRecord(
+			ExceptionalSituationRecord exceptionalSituationRecord, String type) {
+		Organization organization = organizationDubboService
+				.getFullOrgById(exceptionalSituationRecord.getOrganization().getId());
+		String fullOrgName = "";
+		if (organization != null) {
+			fullOrgName = organization.getFullOrgName();
+		}
+		String[] strs = fullOrgName.split(ModuleConstants.SEPARATOR);
+		if (strs.length > 2) {
+			fullOrgName = strs[strs.length - 2] + ModuleConstants.SEPARATOR + strs[strs.length - 1];
+		}
+		organization.setFullOrgName(fullOrgName);
+		exceptionalSituationRecord.setOrganization(organization);
+		User user = ThreadVariable.getUser();
+		if (user != null && DialogMode.ADD_MODE.equals(type)) {
+			exceptionalSituationRecord.setGridMemberPhone(user.getMobile());
+		}
+		//exceptionalSituationRecord.setSignDate(CalendarUtil.now());
+	}
+
+	private void iterableAttachFilesForMobile(String[] files,
+			ExceptionalSituationRecord exceptionalSituationRecord) throws Exception {
+		if (files != null && files.length > 0) {
+			for (String attachFileName : files) {
+				addAttachFileForMobile(attachFileName, exceptionalSituationRecord);
+			}
+		}
+	}
+
+	private void addAttachFileForMobile(String attachFileName,
+			ExceptionalSituationRecord exceptionalSituationRecord) throws Exception {
+		TaskListAttachFile exceptionalSituationRecordAnnex = new TaskListAttachFile();
+		exceptionalSituationRecordAnnex.setBusinessId(exceptionalSituationRecord.getId());
+		StoredFile storeFile = FileUtil.copyTmpFileToStoredFile(attachFileName,
+				GridProperties.ExceptionSituation_PATH);
+		exceptionalSituationRecordAnnex.setPhysicsFullFileName(storeFile.getStoredFilePath()
+				+ File.separator + storeFile.getStoredFileName());
+		exceptionalSituationRecordAnnex.setFileName(attachFileName);
+		exceptionalSituationRecordAnnex.setModuleKey(Constants.EXCEPTIONSITUATION_KEY);
+		taskListAttachFileService.addTaskListAttachFile(exceptionalSituationRecordAnnex);
+	}
+
+}

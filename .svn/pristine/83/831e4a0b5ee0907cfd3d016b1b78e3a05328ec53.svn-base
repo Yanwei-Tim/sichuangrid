@@ -1,0 +1,309 @@
+package com.tianque.statAnalyse.issueManage.listManage.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.util.CollectionUtil;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.property.OrganizationLevel;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.domain.property.ReportDateType;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.statAnalyse.issueManage.listManage.constant.QueryType;
+import com.tianque.statAnalyse.issueManage.listManage.dao.IssueReportStatDao;
+import com.tianque.statAnalyse.issueManage.listManage.domain.IssueAreaStat;
+import com.tianque.statAnalyse.issueManage.listManage.domain.IssueLevelStat;
+import com.tianque.statAnalyse.issueManage.listManage.domain.IssueTypeStat;
+import com.tianque.statAnalyse.issueManage.listManage.service.IssueAreaStatService;
+import com.tianque.statAnalyse.issueManage.listManage.service.IssueLevelStatService;
+import com.tianque.statAnalyse.issueManage.listManage.service.IssueReportService;
+import com.tianque.statRegrad.util.RegradedPointUtil;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+
+@Service("issueReportService")
+public class IssueReportServiceImpl implements IssueReportService {
+
+	@Autowired
+	private IssueReportStatDao issueReportStatDao;
+	@Autowired
+	private IssueAreaStatService issueAreaStatService;
+	@Autowired
+	private IssueLevelStatService issueLevelStatService;
+	@Autowired
+	private PropertyDictService propertyDictService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+
+	@Override
+	public void statIssueReport() {
+		List<Organization> organizations = findAllOrganizationExcludeGrid();
+		List<String> errorMessages = new ArrayList<String>();
+		Map<String, Date> date = RegradedPointUtil.getStartDateAndEndDate(
+				CalendarUtil.getNowYear(), CalendarUtil.getNowMonth(),
+				ReportDateType.GROUPBYMONTH_KEY);
+		for (Organization organization : organizations) {
+			try {
+				addIssueHandleStats(date, organization.getId(),null);
+			} catch (Exception e) {
+				errorMessages.add("生成办理情况报表出错");
+			}
+			try {
+				addIssueClassificationStats(date, organization.getId(),null);
+			} catch (Exception e) {
+				errorMessages.add("生成分类统计报表出错");
+			}
+			try {
+				addIssueStepStats(date, organization.getId(),null);
+			} catch (Exception e) {
+				errorMessages.add("生成流程统计报表出错");
+			}
+		}
+		if (CollectionUtil.isAvaliable(errorMessages)) {
+			throw new BusinessValidationException(errorMessages.toString());
+		}
+	}
+	
+	@Override
+	public void statIssueReport(int year,int month,String type) {
+		List<Organization> organizations = findAllOrganizationExcludeGrid();
+		List<String> errorMessages = new ArrayList<String>();
+		Map<String, Date> date = RegradedPointUtil.getStartDateAndEndDate(
+				year, month,
+				ReportDateType.GROUPBYMONTH_KEY);
+		for (Organization organization : organizations) {
+			try {
+				addIssueHandleStats(date, organization.getId(),type);
+			} catch (Exception e) {
+				errorMessages.add("生成办理情况报表出错");
+			}
+			try {
+				addIssueClassificationStats(date, organization.getId(),type);
+			} catch (Exception e) {
+				errorMessages.add("生成分类统计报表出错");
+			}
+			try {
+				addIssueStepStats(date, organization.getId(),type);
+			} catch (Exception e) {
+				errorMessages.add("生成流程统计报表出错");
+			}
+		}
+		if (CollectionUtil.isAvaliable(errorMessages)) {
+			throw new BusinessValidationException(errorMessages.toString());
+		}
+	}
+
+	@Transactional
+	public void addIssueHandleStats(Map<String, Date> date, Long orgId,String type) {
+		List<IssueAreaStat> handleStats = issueAreaStatService
+				.findIssueAreaStatsByYearAndMonthAndParentOrgId(
+						date.get(RegradedPointUtil.START_DATE),
+						date.get(RegradedPointUtil.END_TDATE), orgId,
+						QueryType.AREA_DEAL_HISTORY,type);
+		issueReportStatDao.addIssueHandleStats(handleStats);
+	}
+
+	@Transactional
+	public void addIssueClassificationStats(Map<String, Date> date, Long orgId,String type) {
+		List<IssueAreaStat> classificationStats = issueAreaStatService
+				.findIssueAreaStatsByYearAndMonthAndParentOrgId(
+						date.get(RegradedPointUtil.START_DATE),
+						date.get(RegradedPointUtil.END_TDATE), orgId,
+						QueryType.AREA_CLASSIFICATION_HISTORY,type);
+		issueReportStatDao.addIssueClassificationStats(classificationStats);
+	}
+
+	@Transactional
+	public void addIssueStepStats(Map<String, Date> date, Long orgId,String type) {
+		List<IssueAreaStat> stepStats = issueAreaStatService
+				.findIssueAreaStatsByYearAndMonthAndParentOrgId(
+						date.get(RegradedPointUtil.START_DATE),
+						date.get(RegradedPointUtil.END_TDATE), orgId,
+						QueryType.STEP_HISTORY,type);
+		issueReportStatDao.addIssueStepStats(stepStats);
+	}
+
+	private List<Organization> findAllOrganizationExcludeGrid() {
+		List<PropertyDict> orgLevels = propertyDictService
+				.findPropertyDictByDomainName(PropertyTypes.ORGANIZATION_LEVEL);
+		List<Organization> organizations = new ArrayList<Organization>();
+		for (PropertyDict orgLevel : orgLevels) {
+			if (orgLevel.getInternalId() != OrganizationLevel.GRID) {
+				organizations.addAll(organizationDubboService
+						.fingOrganizationforLevel(orgLevel.getId()));
+			}
+		}
+		return organizations;
+	}
+
+	@Override
+	public List<IssueAreaStat> findIssueAreaStatsByYearAndMonthAndParentOrgId(
+			Integer year, Integer month, Long parentOrgId, Integer queryType,
+			PropertyDict reportDateType) {
+		Map<String, Date> date = null;
+		reportDateType = propertyDictService.getPropertyDictById(reportDateType
+				.getId());
+		if (reportDateType.getInternalId() == ReportDateType.GROUPBYMONTH) {
+			date = RegradedPointUtil.getStartDateAndEndDate(year, month,
+					ReportDateType.GROUPBYMONTH_KEY);
+//			if (StatAnalyseHelper.isNowYear(year)
+//					&& StatAnalyseHelper.isNowMonth(month)) {
+//				return issueAreaStatService
+//						.findIssueAreaStatsByYearAndMonthAndParentOrgId(
+//								date.get(RegradedPointUtil.START_DATE),
+//								date.get(RegradedPointUtil.END_TDATE),
+//								parentOrgId, queryType);
+//			}
+		} else if (reportDateType.getInternalId() == ReportDateType.GROUPBYQUARTER) {
+			date = RegradedPointUtil.getStartDateAndEndDate(year, month,
+					ReportDateType.GROUPBYQUARTER_KEY);
+//			if (StatAnalyseHelper.isNowYear(year)
+//					&& StatAnalyseHelper.isNowQuarter(month)) {
+//				return issueAreaStatService
+//						.findIssueAreaStatsByYearAndMonthAndParentOrgId(
+//								date.get(RegradedPointUtil.START_DATE),
+//								date.get(RegradedPointUtil.END_TDATE),
+//								parentOrgId, queryType);
+//			}
+		} else {
+			date = RegradedPointUtil.getStartDateAndEndDate(year, month,
+					ReportDateType.GROUPBYYEAR_KEY);
+//			if (StatAnalyseHelper.isNowYear(year)) {
+//				return issueAreaStatService
+//						.findIssueAreaStatsByYearAndMonthAndParentOrgId(
+//								date.get(RegradedPointUtil.START_DATE),
+//								date.get(RegradedPointUtil.END_TDATE),
+//								parentOrgId, queryType);
+//			}
+		}
+		return issueAreaStatService
+				.findHistoryIssueAreaStatsByYearAndMonthAndParentOrgId(
+						date.get(RegradedPointUtil.START_DATE),
+						date.get(RegradedPointUtil.END_TDATE), parentOrgId,
+						queryType,null);
+	}
+
+	@Override
+	public List<IssueTypeStat> findIssueLevelStatsByYearAndMonthAndParentOrgId(
+			Integer year, Integer month, Long parentOrgId, Integer queryType,
+			PropertyDict reportDateType) {
+		Map<String, Date> date = null;
+		reportDateType = propertyDictService.getPropertyDictById(reportDateType
+				.getId());
+		if (reportDateType.getInternalId() == ReportDateType.GROUPBYMONTH) {
+			date = RegradedPointUtil.getStartDateAndEndDate(year, month,
+					ReportDateType.GROUPBYMONTH_KEY);
+//			if (StatAnalyseHelper.isNowYear(year)
+//					&& StatAnalyseHelper.isNowMonth(month)) {
+//				return issueLevelStatService
+//						.findIssueLevelStatsByYearAndMonthAndParentOrgId(
+//								date.get(RegradedPointUtil.START_DATE),
+//								date.get(RegradedPointUtil.END_TDATE),
+//								parentOrgId, queryType);
+//			}
+		} else if (reportDateType.getInternalId() == ReportDateType.GROUPBYQUARTER) {
+			date = RegradedPointUtil.getStartDateAndEndDate(year, month,
+					ReportDateType.GROUPBYQUARTER_KEY);
+//			if (StatAnalyseHelper.isNowYear(year)
+//					&& StatAnalyseHelper.isNowQuarter(month)) {
+//				return issueLevelStatService
+//						.findIssueLevelStatsByYearAndMonthAndParentOrgId(
+//								date.get(RegradedPointUtil.START_DATE),
+//								date.get(RegradedPointUtil.END_TDATE),
+//								parentOrgId, queryType);
+//			}
+		} else {
+			date = RegradedPointUtil.getStartDateAndEndDate(year, month,
+					ReportDateType.GROUPBYYEAR_KEY);
+//			if (StatAnalyseHelper.isNowYear(year)) {
+//				return issueLevelStatService
+//						.findIssueLevelStatsByYearAndMonthAndParentOrgId(
+//								date.get(RegradedPointUtil.START_DATE),
+//								date.get(RegradedPointUtil.END_TDATE),
+//								parentOrgId, queryType);
+//			}
+		}
+		return issueLevelStatService
+				.findHistoryIssueLevelStatsByYearAndMonthAndParentOrgId(
+						date.get(RegradedPointUtil.START_DATE),
+						date.get(RegradedPointUtil.END_TDATE), parentOrgId,
+						queryType);
+	}
+
+	// add by bing 2014年11月12日 下午6:00:55 // 取机构 for tbschedule
+	@Override
+	public List<Long> findOrgByCondition(int taskItemNum, List<Long> idModList,
+			int fetchNum, int year, int month, String targetIssueTable) {
+		List<PropertyDict> orgLevels = propertyDictService
+				.findPropertyDictByDomainName(PropertyTypes.ORGANIZATION_LEVEL);
+		Long orgLevelGridId = null;
+		for (PropertyDict orgLevel : orgLevels) {
+			if (orgLevel.getInternalId() == OrganizationLevel.GRID) {
+				orgLevelGridId = orgLevel.getId();
+				break;
+			}
+		}
+		return organizationDubboService.findOrganIdForLevelExcludeGrid(
+				orgLevelGridId, taskItemNum, idModList, fetchNum, year, month,
+				targetIssueTable);
+	}
+
+	// add by bing 2014年11月12日 下午6:00:59
+
+	@Override
+	public List<IssueLevelStat> findIssueLevelStatsByYearAndMonthAndParentOrgIdNew(
+			Integer year, Integer month, Long parentOrgId, Integer queryType,
+			PropertyDict reportDateType) {
+		Map<String, Date> date = null;
+		reportDateType = propertyDictService.getPropertyDictById(reportDateType
+				.getId());
+		if (reportDateType.getInternalId() == ReportDateType.GROUPBYMONTH) {
+			date = RegradedPointUtil.getStartDateAndEndDate(year, month,
+					ReportDateType.GROUPBYMONTH_KEY);
+		} else if (reportDateType.getInternalId() == ReportDateType.GROUPBYQUARTER) {
+			date = RegradedPointUtil.getStartDateAndEndDate(year, month,
+					ReportDateType.GROUPBYQUARTER_KEY);
+		} else {
+			date = RegradedPointUtil.getStartDateAndEndDate(year, month,
+					ReportDateType.GROUPBYYEAR_KEY);
+		}
+		return issueLevelStatService
+				.findHistoryIssueLevelStatsByYearAndMonthAndParentOrgIdNew(
+						date.get(RegradedPointUtil.START_DATE),
+						date.get(RegradedPointUtil.END_TDATE), parentOrgId,
+						queryType);
+	}
+
+	@Override
+	public List<IssueAreaStat> findIssueAreaStatsByYearAndMonthAndParentOrgIdNew(
+			Integer year, Integer month, Long parentOrgId, Integer queryType,
+			PropertyDict reportDateType) {
+		Map<String, Date> date = null;
+		reportDateType = propertyDictService.getPropertyDictById(reportDateType
+				.getId());
+		if (reportDateType.getInternalId() == ReportDateType.GROUPBYMONTH) {
+			date = RegradedPointUtil.getStartDateAndEndDate(year, month,
+					ReportDateType.GROUPBYMONTH_KEY);
+		} else if (reportDateType.getInternalId() == ReportDateType.GROUPBYQUARTER) {
+			date = RegradedPointUtil.getStartDateAndEndDate(year, month,
+					ReportDateType.GROUPBYQUARTER_KEY);
+		} else {
+			date = RegradedPointUtil.getStartDateAndEndDate(year, month,
+					ReportDateType.GROUPBYYEAR_KEY);
+		}
+		return issueAreaStatService
+				.findHistoryIssueAreaStatsByYearAndMonthAndParentOrgIdNew(
+						date.get(RegradedPointUtil.START_DATE),
+						date.get(RegradedPointUtil.END_TDATE), parentOrgId,
+						queryType);
+	}
+
+}

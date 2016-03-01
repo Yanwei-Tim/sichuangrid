@@ -1,0 +1,142 @@
+package com.tianque.baseInfo.primaryOrg.service.impl;
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.primaryOrg.dao.RedCuffTeamDao;
+import com.tianque.baseInfo.primaryOrg.domain.RedCuffTeam;
+import com.tianque.baseInfo.primaryOrg.service.RedCuffTeamService;
+import com.tianque.core.datatransfer.ExcelImportHelper;
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.validate.DomainValidator;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+@Service("redCuffTeamService")
+@Transactional
+public class RedCuffTeamServiceImpl implements RedCuffTeamService {
+	private static final Integer IS_CERTIFICATION = 1;
+	private static final Integer IS_NOT_CERTIFICATION = 0;
+	@Autowired
+	private OrganizationDubboService organziationDubboService;
+	@Autowired
+	private RedCuffTeamDao redCuffTeamDao;
+	@Qualifier("redCuffTeamValidator")
+	@Autowired
+	private DomainValidator<RedCuffTeam> validator;
+	@Override
+	public PageInfo<RedCuffTeam> findRedCuffTeamForList(
+			RedCuffTeam redCuffTeam, Integer page, Integer rows, String sidx,
+			String sord) {
+		if(redCuffTeam==null || redCuffTeam.getOrganization()==null || redCuffTeam.getOrganization().getId()==null){
+			throw new BusinessValidationException("列表查询失败，未获得组织机构参数");
+		}
+		Organization organization = organziationDubboService.getSimpleOrgById(redCuffTeam.getOrganization().getId());
+		redCuffTeam.setOrganization(organization);
+		return redCuffTeamDao.findRedCuffTeamForList(redCuffTeam, page, rows, sidx, sord);
+	}
+
+	@Override
+	public RedCuffTeam addRedCuffTeam(RedCuffTeam redCuffTeam) {
+		//参数校验
+		if(!ExcelImportHelper.isImport.get()){
+			ValidateResult result = validator.validate(redCuffTeam);
+			if(result.hasError()){
+				throw new BusinessValidationException(result.getErrorMessages());
+			}
+		}
+		try{
+			return redCuffTeamDao.addRedCuffTeam(redCuffTeam);
+		}catch(Exception e){
+			throw new ServiceValidationException("新增数据失败",e);
+		}
+	}
+
+	@Override
+	public RedCuffTeam updateRedCuffTeam(RedCuffTeam redCuffTeam) {
+		//参数校验
+		ValidateResult result = validator.validate(redCuffTeam);
+		if(result.hasError()){
+			throw new BusinessValidationException(result.getErrorMessages());
+		}
+		try{
+			return redCuffTeamDao.updateRedCuffTeam(redCuffTeam);
+		}catch(Exception e){
+			throw new ServiceValidationException("修改数据失败",e);
+		}
+	}
+
+	@Override
+	public void deleteRedCuffTeamByIds(String[] ids) {
+		if(ids==null || ids.length==0){
+			throw new BusinessValidationException("数据删除失败，未获得需要删除的数据");
+		}
+		try{
+			redCuffTeamDao.deleteRedCuffTeamByIds(ids);
+		}catch(Exception e){
+			throw new ServiceValidationException("数据删除失败",e);
+		}
+	}
+
+	@Override
+	public RedCuffTeam getRedCuffTeamById(Long id) {
+		if(id==null){
+			throw new BusinessValidationException("数据查询失败，未获得关键参数");
+		}
+		return redCuffTeamDao.getRedCuffTeamById(id);
+	}
+
+	@Override
+	public RedCuffTeam getRedCuffTeamByPhoneAndName(String phoneNumber,
+			String name) {
+		if(!StringUtil.isStringAvaliable(phoneNumber) || !StringUtil.isStringAvaliable(name)){
+			throw new BusinessValidationException("查询失败，未获得关键参数");
+		}
+		return redCuffTeamDao.getRedCuffTeamByPhoneAndName(phoneNumber, name);
+	}
+
+	@Override
+	public RedCuffTeam getRedCuffTeamByWechatno(String wechatNo) {
+		if(!StringUtil.isStringAvaliable(wechatNo)){
+			//查询失败返回一个空对象
+			RedCuffTeam redCuffTeam = new RedCuffTeam();
+			return redCuffTeam;
+		}
+		return redCuffTeamDao.getRedCuffTeamByWechatno(wechatNo);
+	}
+
+	@Override
+	public Integer weChatBindingRedCuffTeam(String wechatNo, Long id) {
+		if(!StringUtil.isStringAvaliable(wechatNo) || id==null){
+			throw new BusinessValidationException("操作失败，参数未获得");
+		}
+		return redCuffTeamDao.weChatBindingRedCuffTeam(IS_CERTIFICATION, wechatNo, CalendarUtil.now(), id);
+	}
+
+	@Override
+	public void bindingRedCuffTeamCoordinate(String latitudeX,
+			String longitudeY, String precision,
+			String wechatNo) {
+		if(!StringUtil.isStringAvaliable(wechatNo)){
+			throw new BusinessValidationException("操作失败，参数未获得");
+		}
+		redCuffTeamDao.bindingRedCuffTeamCoordinate(latitudeX, longitudeY, precision, CalendarUtil.now(), wechatNo);
+	}
+
+	@Override
+	public RedCuffTeam getRedCuffTeamByPhoneNumber(String phoneNumber) {
+		if(phoneNumber==null){
+			throw new BusinessValidationException("数据查询失败，未获得关键参数");
+		}
+		return redCuffTeamDao.getRedCuffTeamByPhoneNumber(phoneNumber);
+	}
+
+}

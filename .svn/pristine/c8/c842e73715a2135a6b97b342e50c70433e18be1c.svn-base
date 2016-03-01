@@ -1,0 +1,225 @@
+<%@	page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib"%>
+<%@ include file="/includes/baseInclude.jsp"%>
+
+
+
+<div class="content">
+	<div class="ui-corner-all" id="nav">
+		 <a id="search" href="javascript:void(0)"><span>查询</span></a> 
+		 <a id="view"  href="javascript:void(0)"><span>查看</span></a>
+		 <a id="refresh" href="javascript:void(0)"><span>刷新</span></a> 
+		  <select onchange="convert()" id="convertType" class="form-txt"
+	                style="width: 200px;">
+	            <option value="" selected="selected">请选择</option>
+	         	<option value="/threeRecords/water/dispatch.action" >水利信息</option>
+	         	<option value="/threeRecords/traffic/dispatch.action" >交通信息</option>
+	         	<option value="/threeRecords/energy/dispatch.action" >能源信息</option>
+	         	<option value="/threeRecords/education/dispatch.action" >教育信息</option>
+	         	<option value="/threeRecords/science/dispatch.action" >科技文体信息</option>
+	         	<option value="/threeRecords/medical/dispatch.action" >医疗卫生信息</option>
+	         	<option value="/threeRecords/labor/dispatch.action" >劳动和社会保障信息</option>
+	         	<option value="/threeRecords/environment/dispatch.action" >环境保护信息</option>
+	         	<option value="/threeRecords/town/dispatch.action" >城乡规划建设管理信息</option>
+	         	<option value="/threeRecords/agriculture/dispatch.action" >农业信息</option>
+	         	<option value="/threeRecords/other/dispatch.action" >其他信息</option>
+	         	<option value="/threeRecordsIssue/ledgerPoorPeopleManage/dispatchOperate.action" >困难群众信息</option>
+	         	<option value="/threeRecordsIssue/ledgerSteadyWorkManage/dispatchOperate.action" >稳定信息</option>
+	    	</select>
+		 
+		 <a id="convert"  href="javascript:void(0)"><span>转换</span></a>
+	 </div>
+	<div style="clear: both;"></div>
+	<div style="width: 100%;">
+		<table id="ledgerConvertList">
+		</table>
+		<div id="ledgerConvertListPager"></div>
+	</div>
+	<div id="ledgerConvertDialog"></div>
+	<div id="noticeDialog"></div>
+</div>
+
+
+<script type="text/javascript">
+var dialogWidth=580;
+var dialogHeight=540;
+var currentOrgId="<s:property value="@com.tianque.core.util.ThreadVariable@getOrganization().getId()"/>";
+$(document).ready(function(){
+	jQuery("#ledgerConvertList").jqGridFunction({
+		url:"${path}/threeRecords/ledgerConvert/findLedgerConverts.action?searchVo.createOrg.id="+currentOrgId,
+		datatype: "json",
+	   	colModel:[
+			{name:'id',frozen:true,hidden:true, index:'id',sortable:false},
+			{name:'issueId',frozen:true,hidden:true, index:'issueId',sortable:false},
+	   		{name:'issueName', label:'事件名称', sortable:false},
+	   		{name:'serialNumber', label:'事件编号', sortable:false},
+	   		{name:'name', label:'当事人', sortable:false},
+	   		{name:'mobile', label:'当事人电话', sortable:false},
+	   		{name:'status', label:'转换状态', sortable:false,
+	   			formatter:function(el,options,rowData){
+	   			if(rowData.status==1)return"已转"; 
+	   			else return "未转";
+	   		}},
+	   		{name:'occurDate', label:'发生时间', sortable:false},
+	   		{name:'ledgerSerialNumber',hidden:true, label:'新台账编号', sortable:false},
+	   		{name:'ledgerType',hidden:true, label:'新台账类型', sortable:false,
+	   			formatter:function(el,options,rowData){
+	   			if(rowData.ledgerType==11)return"水利信息"; 
+	   			else if(rowData.ledgerType==15)return"农业信息";
+	   			else if(rowData.ledgerType==12)return"交通信息";
+	   			else if(rowData.ledgerType==16)return"能源信息";
+	   			else if(rowData.ledgerType==13)return"教育信息";
+	   			else if(rowData.ledgerType==110)return"科技文体信息";
+	   			else if(rowData.ledgerType==14)return"医疗卫生信息";
+	   			else if(rowData.ledgerType==17)return"劳动和社会保障信息";
+	   			else if(rowData.ledgerType==18)return"环境保护信息";
+	   			else if(rowData.ledgerType==19)return"城乡规划建设管理信息";
+	   			else if(rowData.ledgerType==111)return"其他信息";
+	   			else if(rowData.ledgerType==2)return"困难群众信息";
+	   			else if(rowData.ledgerType==3)return"稳定信息";
+	   			else return "";
+	   		}},
+	   		{name:'occurOrg.orgName',label:'发生网格',index:'occurOrg',sortable:true},
+	   		{name:'description', label:'描述',sortable:true,width:400}
+	   	],
+	   	shrinkToFit:true,
+	   	showColModelButton:true,
+	   	onSelectRow:function(id,option){},
+	   	ondblClickRow:viewLedgerConvert,
+	   	multiselect:false
+	});
+
+	$("#search").click(function(event){
+		var status = '';
+		$("#ledgerConvertDialog").createDialog({
+			width: 500,
+			height: 300,
+			title: "事件转台账查询-请输入查询条件",
+			url: "${path}/account/ledgerConvert/searchLedgerConvert.jsp",
+			buttons: {
+		   		"查询" : function(event){
+		   			if($("#searchForm").valid()){
+		   				searchLedgerConvert();
+			        	$(this).dialog("close");
+		   			}
+	   			},
+		   		"关闭" : function(){
+		        	$(this).dialog("close");
+		   		}
+			}
+		});
+	});
+	$("#convert").click(function(event){
+		convert();
+	});
+	
+	$("#view").click(function(){
+		viewLedgerConvert(); });
+});
+
+
+function viewLedgerConvert(){
+	var selectedId = $("#ledgerConvertList").jqGrid("getGridParam", "selrow");
+	if(selectedId==null){
+		$.messageBox({level:'warn',message:"没有可查看的数据！"});
+		return ;
+	}
+	$("#ledgerConvertDialog").createDialog({
+		width: 880,
+		height: 350,
+		title: "查看事件转入信息",
+		url: "${path}/threeRecords/ledgerConvert/dispatch.action?mode=view&id="+selectedId,
+		buttons: {
+	   		"关闭" : function(){
+	        	$(this).dialog("close");
+	   		}
+		}
+	});
+}
+
+function convert(){
+
+	var selectedId = $("#ledgerConvertList").jqGrid("getGridParam", "selrow");
+	if(selectedId==null){
+		$.messageBox({level:'warn',message:"没有可转入的数据！"});
+		return ;
+	}
+	var convertType =$("#convertType").val();
+	if(convertType==""){
+		$.messageBox({level:'warn',message:"选择要转换成的台账类型！"});
+		return ;
+	}
+	var current = $("#ledgerConvertList").getRowData(selectedId);
+	
+	$.ajax({
+		url:"${path}/threeRecords/ledgerConvert/canConvert.action",
+		data:{
+			"id":selectedId
+		},
+		success:function(responseData){
+			
+			if (responseData.ledgerId!=null){
+				$.messageBox({level:'warn',message:"已经转换，请刷新页面!"});
+			}else{
+				
+				$("#ledgerConvertDialog").createDialog({
+					width:840,
+					height:570,
+					title:'事件转'+$("#convertType").find("option:selected").text(),
+					url:'${path}'+convertType+'?mode=add&type=convert&keyId='+selectedId+'&oldIssueId='+current.issueId,
+					buttons: {
+						"上一步": function (event) {
+				        	$(".ui-dialog-buttonset  button").eq(0).hide();
+				        	$('#tabs-option').tabs('select',0);
+				        	$(".ui-dialog-buttonset  .ui-button-text").eq(1).text('下一步'); 
+			        	},
+				   		"下一步" : function(event){
+							if(convertType.indexOf('ledgerPoorPeopleManage')>-1||convertType.indexOf('ledgerSteadyWorkManage')>-1){
+								$("#maintainForm").submit();
+							}else{
+								submit();
+							}
+				   		},
+						"关闭" : function(){
+				        	$(this).dialog("close");
+				        	$("#ledgerConvertList").trigger("reloadGrid");
+				   		}
+					},
+					open:function(){
+						$(".ui-dialog-buttonset  button").eq(0).hide();
+						if(convertType.indexOf('ledgerPoorPeopleManage')>-1||convertType.indexOf('ledgerSteadyWorkManage')>-1){
+							$(".ui-dialog-buttonset  .ui-button-text").eq(1).text('保存');
+						}else{
+							$(".ui-dialog-buttonset  .ui-button-text").eq(1).text('下一步');
+						}
+					}
+				});
+				
+			}
+		}
+	});
+	
+	
+
+
+	
+}
+
+
+function searchLedgerConvert(){
+	var data=$("#searchForm").serializeArray();
+	$("#ledgerConvertList").setGridParam({
+		url:"${path}/threeRecords/ledgerConvert/findLedgerConverts.action?searchVo.createOrg.id="+currentOrgId,
+		datatype: "json",
+		page : 1
+	});
+	$("#ledgerConvertList").setPostData(data);
+	$("#ledgerConvertList").trigger("reloadGrid");
+}
+$("#refresh").click(function(){
+	searchLedgerConvert();
+});
+</script>

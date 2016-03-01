@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="serviceTeam">
+	<typeAlias alias="ServiceTeam"  type="com.tianque.plugin.serviceTeam.serviceTeamManage.domain.ServiceTeam" />
+	<typeAlias alias="ServiceTeamVo"  type="com.tianque.plugin.serviceTeam.serviceTeamManage.vo.ServiceTeamVo" />
+		
+	<resultMap class="ServiceTeamVo" id="serviceTeamResult">
+		<result property="id" column="id" />
+		<result property="teamType.id" column="teamType" />
+		<result property="org.id" column="orgId" />
+		<result property="org.orgInternalCode" column="orgCode" />
+		<result property="teamName" column="name" />
+		<result property="buildDate" column="buildDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="remark" column="remark" />
+		<result property="logOut" column="logOut" />
+		<result property="logOutReason" column="logOutReason" />
+		<result property="logOutTime" column="logOutTime" />
+		<result property="teamMembers" column="teamMembers" />
+		<result property="orgCode" column="orgCode" />
+	</resultMap>
+	
+	<sql id="sql_select_forMember">
+		select serviceteams.*,(select count(*) from serviceteammemberdetails where TEAMID = #value# and onDuty = 1) as teamMembers
+	</sql>
+	
+	<sql id="sql_select_forMemberList">
+		select serviceteams.*,(select count(*) from serviceteammemberdetails where TEAMID = serviceteams.id and onDuty = 1) as teamMembers
+	</sql>
+	
+	<sql id="sql_where">
+		from serviceTeams
+		<dynamic prepend="WHERE">
+			<isNotEmpty  property="displayLevel" prepend=" ">
+				<isEqual property="displayLevel" compareValue="sameGrade">
+					 orgCode = #org.orgInternalCode# 	
+				</isEqual>	
+				<isEqual property="displayLevel" compareValue="allJurisdiction">
+					 orgCode like #org.orgInternalCode#||'%' 	
+				</isEqual>
+				<isEqual property="displayLevel" compareValue="directJurisdiction">
+					 orgCode like #org.orgInternalCode#||'__' 	
+				</isEqual>		
+			</isNotEmpty>
+			<isNotEmpty property="teamCountMin" prepend="and">
+				(select count(*) from serviceteammemberdetails where TEAMID = serviceteams.id and onDuty=1) <![CDATA[ >= ]]>#teamCountMin#
+			</isNotEmpty>
+			<isNotEmpty property="teamCountMax" prepend="and">
+				(select count(*) from serviceteammemberdetails where TEAMID = serviceteams.id and onDuty=1) <![CDATA[ <= ]]>#teamCountMax#
+			</isNotEmpty>
+			<isNotEmpty property="teamName" prepend="and">
+				(name like '%'||#teamName#||'%' or fullPinyin like '%'||#teamName#||'%' or simplePinyin like '%'||#teamName#||'%')
+			</isNotEmpty>
+			<isNotEmpty property="buildDateStart" prepend="and">
+				<![CDATA[buildDate >= #buildDateStart#]]>
+			</isNotEmpty>
+			<isNotEmpty property="buildDateEnd" prepend="and">
+				<![CDATA[buildDate <= #buildDateEnd#]]>
+			</isNotEmpty>
+			<isNotNull property="teamType.id" prepend="and">
+				<isNotEqual property="teamType.id" compareValue="0">
+						teamType = #teamType.id#
+				</isNotEqual>
+			</isNotNull>
+			<isNotNull property="logOut" prepend="and ">
+				<isEqual property="logOut" compareValue="-1">
+					<![CDATA[logOut > #logOut#]]>
+				</isEqual>
+				<isNotEqual property="logOut" compareValue="-1">
+					logOut = #logOut#
+				</isNotEqual>
+			</isNotNull>
+		</dynamic>
+	</sql>
+	
+	<insert id="addServiceTeam" parameterClass="ServiceTeam">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+    	<![CDATA[ SELECT s_serviceTeams.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		<![CDATA[ insert into ServiceTeams
+		(id,teamType,orgId,orgCode,name,simplePinyin,fullPinyin,
+		buildDate,createUser,createDate,updateUser,updateDate,remark)
+		values
+		(#id#,#teamType.id#,#org.id#,#orgCode#,#teamName#,
+		#simplePinyin#,#fullPinyin#,#buildDate#,#createUser#,#createDate#,#updateUser#,#updateDate#,#remark#) ]]>
+	</insert>
+	
+	<select id="getServiceTeamById" parameterClass="java.lang.Long"
+		resultMap="serviceTeamResult">
+		<include refid="sql_select_forMember" />
+		  from serviceTeams where id=#value#
+	</select>
+	
+	<select id="countFindServiceTeams" parameterClass="ServiceTeamVo"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="findServiceTeams" parameterClass="ServiceTeamVo"
+		resultMap="serviceTeamResult">
+		<include refid="sql_select_forMemberList" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<update id="updateServiceTeam" parameterClass="ServiceTeam">
+		update ServiceTeams set
+			name=#teamName#,
+			buildDate=#buildDate#,
+			teamType=#teamType.id#,
+			simplePinyin=#simplePinyin#,
+			fullPinyin=#fullPinyin#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#,
+			remark=#remark# 
+		where id=#id#
+	</update>
+	
+	<update id="logOutServiceTeam" parameterClass="ServiceTeam">
+		update ServiceTeams set logOut=1
+		<isNotEmpty property="logOutReason" prepend=", ">logOutReason=#logOutReason#</isNotEmpty>
+		<isNotEmpty property="logOutTime" prepend=", ">logOutTime=#logOutTime#</isNotEmpty>
+		where id=#id#
+	</update>
+	
+	<delete id="deleteServiceTeam" parameterClass="java.lang.Long">
+    	delete from ServiceTeams where id=#id#
+    </delete>
+    
+    <delete id="deleteServiceTeamByIds">
+    	delete from  ServiceTeams where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+    </delete>
+</sqlMap>
+

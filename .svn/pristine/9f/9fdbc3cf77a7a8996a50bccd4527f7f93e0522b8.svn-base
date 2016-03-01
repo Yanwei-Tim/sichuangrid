@@ -1,0 +1,413 @@
+package com.tianque.plugin.judgmentAnalysis.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.analysis.api.BusinessModelRealDataDubboService;
+import com.tianque.analysis.api.DimensionCombinationCycleDubboService;
+import com.tianque.analysis.api.HistoryCycleDubboService;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.exception.ServiceException;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.domain.Organization;
+import com.tianque.plugin.judgmentAnalysis.domain.DimensionCombinationCycle;
+import com.tianque.plugin.judgmentAnalysis.domain.HistoryCycle;
+import com.tianque.plugin.judgmentAnalysis.vo.EmphasisIsHelpHistoryVo;
+import com.tianque.plugin.judgmentAnalysis.vo.HistoryCycleSummaryVo;
+import com.tianque.plugin.judgmentAnalysis.vo.PopulationSummaryVo;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+@Scope("prototype")
+@Namespace("/judgmentAnalysis/BusinessModelRealDataManage")
+@Controller("businessModelRealDataController")
+public class BusinessModelRealDataController extends BaseAction {
+
+	@Autowired
+	private BusinessModelRealDataDubboService businessModelRealDataDubboService;
+
+	private Long orgId;
+	private String PopulationType;
+	private PopulationSummaryVo psummary;
+	private List<PopulationSummaryVo> psummaryList;
+
+	@Autowired
+	private HistoryCycleDubboService historyCycleDubboService;
+	private List<HistoryCycleSummaryVo> historyCycleList;
+	private List<EmphasisIsHelpHistoryVo> emphasisIsHelpList;
+	private List<HistoryCycle> historyCycleOrderList;
+	private boolean compared;
+	private Long parentOrgId;
+	private int year;
+	private int month;
+
+	@Autowired
+	private DimensionCombinationCycleDubboService dimensionCombinationCycleDubboService;
+	private List<DimensionCombinationCycle> dimensionList;
+	private String dimension1;
+	private String dimension2;
+	private String dimensionName1;
+	private String dimensionName2;
+	private String modelKeyName;
+	private String dimensionKeyName;
+
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	private List<Organization> organizations;
+
+	public List<PopulationSummaryVo> getPsummaryList() {
+		return psummaryList;
+	}
+
+	public void setPsummaryList(List<PopulationSummaryVo> psummaryList) {
+		this.psummaryList = psummaryList;
+	}
+
+	@Action(value = "getPopulationSummaryByorgId", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"psummaryList", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String getPopulationSummaryByorgId() {
+
+		orgId = ThreadVariable.getOrganization().getId();
+		try {
+
+			if (PopulationType == null || PopulationType.equals("house")) {
+				psummary = businessModelRealDataDubboService
+						.getPopulationSummaryByorgId(orgId);
+			} else if (PopulationType.equals("emphasis")) {
+				psummary = businessModelRealDataDubboService
+						.getEmphasisSummaryByorgId(orgId);
+			} else {
+				psummary = businessModelRealDataDubboService
+						.getConcernSummaryByorgId(orgId);
+			}
+			psummaryList = new ArrayList<PopulationSummaryVo>();
+			if(psummary==null){
+				psummary=new PopulationSummaryVo();
+			}
+			psummaryList.add(psummary);
+
+		} catch (Exception e) {
+			errorMessage = (e instanceof ServiceException) ? e.getMessage()
+					: "查询失败!";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "findPopulationSummaryByParentOrgId", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"psummaryList", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findPopulationSummaryByParentOrgId() {
+		if (orgId == null || orgId == 0) {
+			errorMessage = "请选择组织机构";
+			return ERROR;
+		}
+		try {
+			if (PopulationType == null || PopulationType.equals("house")) {
+				psummaryList = businessModelRealDataDubboService
+						.findPopulationSummaryByParentOrgId(orgId);
+
+			} else if (PopulationType.equals("emphasis")) {
+				psummaryList = businessModelRealDataDubboService
+						.findEmphasisSummaryByParentOrgId(orgId);
+			} else {
+				psummaryList = businessModelRealDataDubboService
+						.findConcernSummaryByParentOrgId(orgId);
+			}
+
+		} catch (Exception e) {
+			errorMessage = (e instanceof ServiceException) ? e.getMessage()
+					: "查询失败!";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "findEmphasisHistorySummary", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"historyCycleList", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findEmphasisHistorySummary() {
+		if (parentOrgId == null || parentOrgId == 0) {
+			errorMessage = "请选择组织机构";
+			return ERROR;
+		}
+		try {
+			historyCycleList = historyCycleDubboService
+					.findEmphasisHistorySummary(compared, parentOrgId, year,
+							month);
+		} catch (Exception e) {
+			errorMessage = (e instanceof ServiceException) ? e.getMessage()
+					: "查询失败!";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "findEmphasisIsHelpHistorySummary", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"emphasisIsHelpList", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findEmphasisIsHelpHistorySummary() {
+		if (parentOrgId == null || parentOrgId == 0) {
+			errorMessage = "请选择组织机构";
+			return ERROR;
+		}
+		try {
+			emphasisIsHelpList = historyCycleDubboService
+					.findEmphasisIsHelpHistorySummary(parentOrgId, year, month);
+		} catch (Exception e) {
+			errorMessage = (e instanceof ServiceException) ? e.getMessage()
+					: "查询失败!";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "findEmphasisHistoryDescSummary", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"historyCycleOrderList", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findEmphasisHistoryDescSummary() {
+		if (parentOrgId == null || parentOrgId == 0) {
+			errorMessage = "请选择组织机构";
+			return ERROR;
+		}
+		try {
+			historyCycleOrderList = historyCycleDubboService
+					.findEmphasisHistoryDescSummary(parentOrgId, year, month);
+		} catch (Exception e) {
+			errorMessage = (e instanceof ServiceException) ? e.getMessage()
+					: "查询失败!";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "findEmphasisSingleDimension", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"dimensionList", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findEmphasisSingleDimension() {
+		if (orgId == null || orgId == 0) {
+			errorMessage = "请选择组织机构";
+			return ERROR;
+		}
+		try {
+
+			dimensionList = dimensionCombinationCycleDubboService
+					.findEmphasisSingleDimension(orgId, modelKeyName,
+							dimension1, year, month);
+		} catch (Exception e) {
+			errorMessage = (e instanceof ServiceException) ? e.getMessage()
+					: "查询失败!";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "findEmphasisMoreDimension", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"dimensionList", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findEmphasisMoreDimension() {
+		if (orgId == null || orgId == 0) {
+			errorMessage = "请选择组织机构";
+			return ERROR;
+		}
+		try {
+
+			dimensionList = dimensionCombinationCycleDubboService
+					.findEmphasisMoreDimension(orgId, dimension1, dimension2,
+							dimensionName1, modelKeyName, dimensionKeyName,
+							year, month);
+		} catch (Exception e) {
+			errorMessage = (e instanceof ServiceException) ? e.getMessage()
+					: "查询失败!";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "findAllProvincesOrg", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"organizations", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findAllProvincesOrg() {
+
+		try {
+			organizations = organizationDubboService
+					.findAdminOrgsByParentId(organizationDubboService
+							.getRootOrganization().getId());
+		} catch (Exception e) {
+			errorMessage = (e instanceof ServiceException) ? e.getMessage()
+					: "获取全国省份失败!";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+	public PopulationSummaryVo getPsummary() {
+		return psummary;
+	}
+
+	public void setPsummary(PopulationSummaryVo psummary) {
+		this.psummary = psummary;
+	}
+
+	public List<HistoryCycleSummaryVo> getHistoryCycleList() {
+		return historyCycleList;
+	}
+
+	public void setHistoryCycleList(List<HistoryCycleSummaryVo> historyCycleList) {
+		this.historyCycleList = historyCycleList;
+	}
+
+	public boolean isCompared() {
+		return compared;
+	}
+
+	public void setCompared(boolean compared) {
+		this.compared = compared;
+	}
+
+	public Long getParentOrgId() {
+		return parentOrgId;
+	}
+
+	public void setParentOrgId(Long parentOrgId) {
+		this.parentOrgId = parentOrgId;
+	}
+
+	public int getYear() {
+		return year;
+	}
+
+	public void setYear(int year) {
+		this.year = year;
+	}
+
+	public int getMonth() {
+		return month;
+	}
+
+	public void setMonth(int month) {
+		this.month = month;
+	}
+
+	public List<EmphasisIsHelpHistoryVo> getEmphasisIsHelpList() {
+		return emphasisIsHelpList;
+	}
+
+	public void setEmphasisIsHelpList(
+			List<EmphasisIsHelpHistoryVo> emphasisIsHelpList) {
+		this.emphasisIsHelpList = emphasisIsHelpList;
+	}
+
+	public List<HistoryCycle> getHistoryCycleOrderList() {
+		return historyCycleOrderList;
+	}
+
+	public void setHistoryCycleOrderList(
+			List<HistoryCycle> historyCycleOrderList) {
+		this.historyCycleOrderList = historyCycleOrderList;
+	}
+
+	public List<DimensionCombinationCycle> getDimensionList() {
+		return dimensionList;
+	}
+
+	public void setDimensionList(List<DimensionCombinationCycle> dimensionList) {
+		this.dimensionList = dimensionList;
+	}
+
+	public String getDimension1() {
+		return dimension1;
+	}
+
+	public void setDimension1(String dimension1) {
+		this.dimension1 = dimension1;
+	}
+
+	public String getDimension2() {
+		return dimension2;
+	}
+
+	public void setDimension2(String dimension2) {
+		this.dimension2 = dimension2;
+	}
+
+	public String getDimensionName1() {
+		return dimensionName1;
+	}
+
+	public void setDimensionName1(String dimensionName1) {
+		this.dimensionName1 = dimensionName1;
+	}
+
+	public String getDimensionName2() {
+		return dimensionName2;
+	}
+
+	public void setDimensionName2(String dimensionName2) {
+		this.dimensionName2 = dimensionName2;
+	}
+
+	public String getModelKeyName() {
+		return modelKeyName;
+	}
+
+	public void setModelKeyName(String modelKeyName) {
+		this.modelKeyName = modelKeyName;
+	}
+
+	public String getDimensionKeyName() {
+		return dimensionKeyName;
+	}
+
+	public void setDimensionKeyName(String dimensionKeyName) {
+		this.dimensionKeyName = dimensionKeyName;
+	}
+
+	public String getPopulationType() {
+		return PopulationType;
+	}
+
+	public void setPopulationType(String populationType) {
+		PopulationType = populationType;
+	}
+
+	public List<Organization> getOrganizations() {
+		return organizations;
+	}
+
+	public void setOrganizations(List<Organization> organizations) {
+		this.organizations = organizations;
+	}
+
+}

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchGoodSamaritan">
+	<typeAlias alias="SearchGoodSamaritanVo" type="com.tianque.baseInfo.goodSamaritan.domain.SearchGoodSamaritanVo"/>
+	<sql id="query_condition_where">
+		from goodSamaritan uni left join baseInfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isNotEmpty property="fastSearchKeyWords" prepend=" and ">
+				(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+			</isNotEmpty>
+			<isNotEmpty property="name" prepend=" and ">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+			</isNotEmpty>
+			
+			<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+			</isNotEmpty>
+		  
+			<isNotEmpty property="workUnit" prepend=" and ">
+					workunit like #workUnit#||'%' 
+			</isNotEmpty>
+			
+			<isNotNull property="gender.id" prepend=" and ">
+					gender = $gender.id$
+			</isNotNull>
+			
+			 <isNotNull property="startBirthday" prepend=" and ">
+					birthday &gt;= #startBirthday#
+			</isNotNull>
+		
+			<isNotNull property="endBirthday" prepend=" and ">
+					birthday &lt;= #endBirthday#
+			</isNotNull>
+			
+			<isNotNull property="career.id" prepend=" and ">
+					career = $career.id$
+			</isNotNull>
+			
+			<isNotEmpty property="province" prepend=" and ">
+					province = #province#
+			</isNotEmpty>
+			
+			<isNotEmpty property="city" prepend=" and ">
+					city = #city#
+			</isNotEmpty>
+			
+			<isNotEmpty property="district" prepend=" and ">
+					district = #district#
+			</isNotEmpty>
+			
+			<isNotEmpty property="nativePlaceAddress" prepend=" and ">
+					nativePlaceAddress like #nativePlaceAddress#||'%'
+			</isNotEmpty>
+			
+			<isNotEmpty property="currentAddress" prepend=" and ">
+					currentAddress like #currentAddress#||'%'
+			</isNotEmpty>
+			
+			<isNotNull property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+					isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+					isEmphasis = #isEmphasis# 
+				</isEqual>
+			</isNotNull>
+			<isNotNull property="isDeath" prepend=" and ">
+				<isEqual property="isDeath" compareValue="1">
+					isDeath = #isDeath#
+				</isEqual>
+				<isEqual property="isDeath" compareValue="0">
+					(isDeath = #isDeath# or isDeath is null)
+				</isEqual>
+			</isNotNull>
+			
+			<isNotNull property="disableGradeType.id" prepend=" and ">
+					disableGradeType = $disableGradeType.id$
+			</isNotNull>
+			<isNotNull property="sacrificeType.id" prepend=" and ">
+					sacrificeType = $sacrificeType.id$
+			</isNotNull>
+			<isNotNull property="insureSituationType.id" prepend=" and ">
+					insureSituationType = $insureSituationType.id$
+			</isNotNull>
+			<isNotNull property="insureSituationSmallType.id" prepend=" and ">
+					insureSituationSmallType = $insureSituationSmallType.id$
+			</isNotNull>
+			<isNotNull property="awardType.id" prepend=" and ">
+					awardType = $awardType.id$
+			</isNotNull>
+			<isNotNull property="difficultType.id" prepend=" and ">
+					difficultType = $difficultType.id$
+			</isNotNull>
+			<isNotEmpty property="actOccurred" prepend=" and ">
+					actOccurred like #actOccurred#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="confirmUnit" prepend=" and ">
+					confirmUnit like #confirmUnit#||'%'
+			</isNotEmpty>
+			<isNotNull property="awardYear" prepend=" and ">
+					awardYear = $awardYear$
+			</isNotNull>
+			<isNotEmpty property="heroicDeeds" prepend=" and ">
+					heroicDeeds like #heroicDeeds#||'%'
+			</isNotEmpty>
+			<include refid="attentionPopulationBaseInfo.serviceTeamInfoForSearch"/>
+		</dynamic>
+	</sql>
+	
+	<sql id="fields">
+		uni.id,uni.baseinfoid,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.createUser,uni.updateUser,uni.createDate,uni.updateDate,uni.sourcesState,
+		uni.attentionExtent,uni.isEmphasis, uni.isEmphasisReason,uni.isEmphasisDate,uni.disableGradeType,uni.sacrificeType,uni.insureSituationType,uni.insureSituationSmallType,uni.actOccurred,
+		uni.awardYear,uni.awardType,uni.difficultType,uni.confirmUnit,uni.heroicDeeds
+	</sql>
+	             
+	<select id="countSearchGoodSamaritan" parameterClass="SearchGoodSamaritanVo" resultClass="int">
+		select count(*) 
+		<include refid="query_condition_where"/>
+	</select>
+
+	<select id="searchGoodSamaritans" parameterClass="SearchGoodSamaritanVo" resultMap="goodSamaritan.goodSamaritanResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="query_condition_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findGoodSamaritansNameAndPinyinAndOrgInternalCode" parameterClass="java.util.Map" resultMap="goodSamaritan.goodSamaritanResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		from goodSamaritan uni left join baseInfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where (name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%' ) and orgInternalCode like #orgInternalCode#||'%' order by id
+	</select>
+	
+	<select id="getCountGoodSamaritanByOrgInternalCodeAndMap" parameterClass="java.util.Map" resultClass="int">
+		select count(id) from goodSamaritan uni where uni.orgInternalCode like #orgInternalCode#||'%' and uni.isEmphasis =0
+		<dynamic>
+			<isPropertyAvailable property="isHelped">
+				<isNotNull property="isHelped" prepend=" and ">
+					<isEqual property="isHelped" compareValue="1">
+						uni.id in (select personId from helpPersonnels where personType = 'goodSamaritan')
+					</isEqual>
+					<isEqual property="isHelped" compareValue="0">
+						uni.id not in (select personId from helpPersonnels where personType = 'goodSamaritan')
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+</sqlMap>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="assessmentUserManage" extends="default"
+		namespace="/sysadmin/assessmentUserManage">
+		<default-class-ref class="assessmentUserController"></default-class-ref>
+		<action name="assessmentUserList"
+			method="assessmentUserList">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="assessmentUser" method="assessmentUser">
+		    <result type="json">
+		        <param name="root">assessmentUserVo</param>
+                <param name="ignoreHierarchy">false</param>
+		    </result>
+		</action>
+		<action name="doNotAssessmentUser" method="doNotAssessmentUser">
+		    <result type="json">
+		        <param name="root">assessmentUserVo</param>
+                <param name="ignoreHierarchy">false</param>
+		    </result>
+		</action>
+	</package>
+</struts>

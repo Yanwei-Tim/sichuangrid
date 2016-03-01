@@ -1,0 +1,64 @@
+package com.tianque.plugin.orgchange.constant;
+
+import com.tianque.issue.state.IssueState;
+
+public class IssuesStat {
+	/***
+	 * 是否有数据
+	 */
+	public static final Integer HASDATA = 0;
+	public static final Integer NODATA = 1;
+
+	/** 事件统计查询 */
+	public static final String SELECT_COUNT_SQL = "SELECT COUNT(*) FROM (";
+	// 1，当前还在办理的事件,考虑是否有回退，查看回退到哪个部门
+	public static final String SELECT_STEPSID_NEEDDO_LIST_SQL = "SELECT ISTEPS.ID AS RESULT FROM ISSUESTEPS ISTEPS, ISSUES IU "
+			+ " WHERE IU.ID = ISTEPS.ISSUE "
+			+ " AND ISTEPS.TARGET = #OLDORGID# "
+			+ " AND ISTEPS.STATECODE < "
+			+ IssueState.STEPCOMPLETE_CODE + " AND IU.HISTORIC = 0";
+	// 事件有过上报 或者交办的 事件
+	public static final String SELECT_STEPSID_SKIP_LIST_SQL = "SELECT ISTEPS.ID AS RESULT FROM ISSUESTEPS ISTEPS, ISSUES IU "
+			+ " WHERE IU.ID = ISTEPS.ISSUE "
+			+ " AND ISTEPS.SOURCE = #OLDORGID# "
+			+ " AND ISTEPS.TARGET <> #OLDORGID# "
+			+ " AND ISTEPS.STATECODE < "
+			+ IssueState.STEPCOMPLETE_CODE + " AND IU.HISTORIC = 0";
+
+	// 2，当前待验证的事件，有回退，回退
+	public static final String SELECT_STEPSID_VERIFICATION_LIST_SQL = "SELECT ISTEPS.ID AS RESULT FROM ISSUESTEPS ISTEPS, ISSUES IU "
+			+ " WHERE IU.ID = ISTEPS.ISSUE "
+			+ " AND ISTEPS.TARGET = #OLDORGID# "
+			+ " AND ISTEPS.STATECODE > "
+			+ IssueState.STEPCOMPLETE_CODE
+			+ " AND ISTEPS.STATECODE < "
+			+ IssueState.ISSUEUNVERIFICATION_CODE + " AND IU.HISTORIC = 0";
+	// 3,查询所有的未完结的事件，如果是被合并的则回退清空
+	public static final String SELECT_UNCOMPLETE_LIST_SQL = "SELECT ISTEPS.ID AS RESULT FROM ISSUESTEPS ISTEPS, ISSUES IU "
+			+ " WHERE IU.ID = ISTEPS.ISSUE "
+			+ " AND ISTEPS.BACKTO IS NOT NULL "
+			+ " AND (ISTEPS.STATECODE < "
+			+ IssueState.STEPCOMPLETE_CODE
+			+ " OR ISTEPS.STATECODE = "
+			+ IssueState.ISSUEVERIFICATION_CODE
+			+ " ) "
+			+ " AND IU.HISTORIC = 0 GROUP BY ISTEPS.ID";
+
+	// 4,统计非合并的
+	public static final String SELECT_TARGET_ID_SQL = "SELECT ID AS RESULT FROM #TABLENAME# WHERE TARGET = #OLDORGID#";
+	public static final String SELECT_SOURCE_ID_SQL = "SELECT ID AS RESULT FROM #TABLENAME# WHERE SOURCE = #OLDORGID# ";
+	// 5，更新
+	public static final String UPDATE_TARGET_SQL = "UPDATE ISSUESTEPS SET TARGET = #NEWORGID# ,TARGETINTERNALCODE = #NEWORGCODE# ";
+	public static final String UPDATE_SOURCE_SQL = "UPDATE ISSUESTEPS SET SOURCE = #NEWORGID# ,SOURCEINTERNALCODE = #NEWORGCODE# ";
+	public static final String UPDATE_ISSUES_HEAD_SQL = "UPDATE ISSUES ";
+	public static final String UPDATE_ISSUES_CREATE_SQL = " ,OCCURORG = #NEWORGID#,OCCURORGINTERNALCODE = #NEWORGCODE#";
+	public static final String UPDATE_ISSUES_OCCURORG_SQL = " ,CREATEORG=#NEWORGID#,CREATEORGINTERNALCODE = #NEWORGCODE#";
+	public static final String UPDATE_ISSUES_LASTORG_SQL = " ,LASTORG = #NEWORGID#,LASTORGINTERNALCODE = #NEWORGCODE#";
+	// 6, 更新符合要求的BackTo
+	public static final String UPDATE_ISSUESTEP_BACK_SQL = "UPDATE #TABLENAME# SET BACKTO = NULL WHERE ID = #STEPID#";
+	// 7，查询平安和谐的所有年份
+	public final static String SELECT_YEAR_SQL = "SELECT YEAR AS RESULT FROM #TABLENAME# GROUP BY YEAR";
+	// 8,同步申请延期数据
+	public final static String UPDATE_AUDITORG_ID_SQL = "UPDATE ISSUEAPPLYDELAY SET AUDITORG = #AUDITORG# WHERE ID = #ID#";
+
+}

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchSmsSendBox">
+	<sql id="sql_where">
+		from smsSendBoxs
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="receiver">
+				<isNotEmpty property="receiver" prepend=" and ">
+					receiver like '$receiver$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startCreateTime">
+				<isNotNull property="startCreateTime" prepend=" and ">
+					createDate <![CDATA[>=]]>
+					#startCreateTime#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endCreateTime">
+				<isNotNull property="endCreateTime" prepend=" and ">
+					createDate <![CDATA[<=]]>
+					#endCreateTime#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="userId">
+				<isNotNull property="userId" prepend=" and ">
+					senderId = #userId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_where_date">
+		from smsSendBoxs_$date$
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="receiver">
+				<isNotEmpty property="receiver" prepend=" and ">
+					receiver like '$receiver$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startCreateTime">
+				<isNotNull property="startCreateTime" prepend=" and ">
+					createDate <![CDATA[>=]]>
+					#startCreateTime#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endCreateTime">
+				<isNotNull property="endCreateTime" prepend=" and ">
+					createDate <![CDATA[<=]]>
+					#endCreateTime#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="userId">
+				<isNotNull property="userId" prepend=" and ">
+					senderId = #userId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="searchSmsSendBoxs" parameterClass="java.util.Map" 
+		resultMap="smsSendBox.smsSendBoxResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countSearchSmsSendBoxs" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	
+	<select id="searchSmsSendBoxsByDate" parameterClass="java.util.Map" 
+		resultMap="smsSendBox.smsSendBoxResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where_date" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countSearchSmsSendBoxsByDate" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where_date" />
+	</select>
+
+
+</sqlMap>
+	

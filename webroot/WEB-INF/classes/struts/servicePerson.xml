@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="servicePerson" extends="default" namespace="/baseinfo/servicePerson">
+		<default-class-ref class="servicePersonController"></default-class-ref>
+		<action name="servicePersonList" method="servicePersonList">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="addServicePerson" method="addServicePerson">
+			<result name="success" type="json">
+				<param name="root">servicePerson</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateServicePerson" method="updateServicePerson">
+			<result name="success" type="json">
+				<param name="root">servicePerson</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="deleteServicePerson" method="deleteServicePerson">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/baseinfo/villageProfile/servicePerson/maintainServicePersonDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

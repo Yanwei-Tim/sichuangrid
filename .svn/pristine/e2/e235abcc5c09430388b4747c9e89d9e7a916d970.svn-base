@@ -1,0 +1,2 @@
+insert into PERMISSIONS (ID, CNAME, ENAME, PERMISSIONTYPE, MODULENAME, ENABLE, PARENTID, DESCRIPTION, NORMALURL, LEADERURL, INDEXID)
+values (s_permissions.NEXTVAL, '签收', 'signWorkingSituation', 0, '民警带领下开展工作情况', 1, (select id from permissions where ename='workByPoliceManagement'), null, null, null, 5);

@@ -1,0 +1,28 @@
+package com.tianque.account.job;
+
+import java.io.Serializable;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.tianque.account.api.ThreeRecordsJobDubboService;
+import com.tianque.job.JobHelper;
+
+@Component("threeRecordsMonthReportJob")
+public class ThreeRecordsMonthReportJob implements Serializable {
+	private static Logger logger = LoggerFactory.getLogger(ThreeRecordsMonthReportJob.class);
+	@Autowired
+	private ThreeRecordsJobDubboService jobDubboService;
+	
+	public void initMonthReport(){
+		logger.error("三本台账月报表job开始执行");
+		try {
+			JobHelper.createMockAdminSession();
+			jobDubboService.initMonthReportData();;
+		} catch (Exception e) {
+			logger.error("三本台账月报表job执行错误：", e);
+		}
+	}
+}

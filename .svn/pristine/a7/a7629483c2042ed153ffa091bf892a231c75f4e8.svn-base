@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchInternetBar">
+<typeAlias alias="InternetBarVo" type="com.tianque.domain.vo.SearchInternetBarVo"/>
+	<sql id="sql_where">
+		from internetBar where orgInternalCode like #orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="placeName">
+				<isNotEmpty property="placeName" prepend=" and ">
+					(placeName like #placeName#||'%' or fullPinyin like #placeName#||'%' or simplePinyin like #placeName#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="unitName">
+				<isNotEmpty property="unitName" prepend=" and ">
+					(placeName like #unitName#||'%' or fullPinyin like #unitName#||'%' or simplePinyin like #unitName#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="placeAddress">
+				<isNotEmpty property="placeAddress" prepend=" and ">
+					placeAddress like #placeAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="manager">
+				<isNotEmpty property="manager" prepend=" and ">
+					manager like #manager#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="tempNetCardNumStart">
+				<isNotNull property="tempNetCardNumStart" prepend=" and ">
+					tempNetCardNum <![CDATA[>=]]>
+					#tempNetCardNumStart#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="tempNetCardNumEnd">
+				<isNotNull property="tempNetCardNumEnd" prepend=" and ">
+					tempNetCardNum <![CDATA[<=]]>
+					#tempNetCardNumEnd#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="totalComputerNumStart">
+				<isNotNull property="totalComputerNumStart" prepend=" and ">
+					totalComputerNum <![CDATA[>=]]>
+					#totalComputerNumStart#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="totalComputerNumEnd">
+				<isNotNull property="totalComputerNumEnd" prepend=" and ">
+					totalComputerNum <![CDATA[<=]]>
+					#totalComputerNumEnd#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobile">
+				<isNotEmpty property="mobile" prepend=" and ">
+					mobile like #mobile#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="netCultureLicenceNo">
+				<isNotEmpty property="netCultureLicenceNo" prepend=" and ">
+					netCultureLicenceNo like #netCultureLicenceNo#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="netAccessProviders">
+				<isNotEmpty property="netAccessProviders" prepend=" and ">
+					netAccessProviders like #netAccessProviders#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="internetAccessType">
+				<isNotEmpty property="internetAccessType" prepend=" and ">
+					internetAccessType like #internetAccessType#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="netSecurityAuditNo">
+				<isNotEmpty property="netSecurityAuditNo" prepend=" and ">
+					netSecurityAuditNo like #netSecurityAuditNo#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fireAuditDocumentNo">
+				<isNotEmpty property="fireAuditDocumentNo" prepend=" and ">
+					fireAuditDocumentNo like #fireAuditDocumentNo#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="barCode">
+				<isNotEmpty property="barCode" prepend=" and ">
+					barCode = #barCode#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="operationAreaStart">
+				<isNotNull property="operationAreaStart" prepend=" and ">
+					operationArea <![CDATA[>=]]>
+					#operationAreaStart#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="operationAreaEnd">
+				<isNotNull property="operationAreaEnd" prepend=" and ">
+					operationArea <![CDATA[<=]]>
+					#operationAreaEnd#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="useIP">
+				<isNotEmpty property="useIP" prepend=" and ">
+					useIP like '%'||#useIP#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="stationPolice">
+				<isNotEmpty property="stationPolice" prepend=" and ">
+					stationPolice like #stationPolice#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="true">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="false">
+						isEmphasis = #isEmphasis# 
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logOutReason">
+				<isNotEmpty property="logOutReason" prepend=" and ">
+					logOutReason like #logOutReason#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logOutTimeStart">
+				<isNotNull property="logOutTimeStart" prepend=" and ">
+					logOutTime <![CDATA[>=]]>
+					#logOutTimeStart#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logOutTimeEnd">
+				<isNotNull property="logOutTimeEnd" prepend=" and ">
+					logOutTime <![CDATA[<=]]>
+					#logOutTimeEnd#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="attentionExtentId" >
+				<isNotEmpty property="attentionExtentId" prepend=" and ">
+					attentionExtentId = #attentionExtentId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isNotEmpty property="hasServiceTeamMember" prepend=" and ">
+				<isEqual property="hasServiceTeamMember" compareValue="0">
+					id in (select objectId from serviceMemberHasObject where objectType='INTERNETBAR')
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="1">
+					id not in (select objectId from serviceMemberHasObject where objectType='INTERNETBAR')	 
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="-1">
+					1=1	 
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="hasServiceRecord" prepend=" and ">
+				<isEqual property="hasServiceRecord" compareValue="0">
+					 id in (select objectId from serviceRecordRelyObject where objectType='INTERNETBAR')
+				</isEqual>
+				<isEqual property="hasServiceRecord" compareValue="1">
+					 id not in (select objectId from serviceRecordRelyObject where objectType='INTERNETBAR')	 
+				</isEqual>
+				<isEqual property="hasServiceRecord" compareValue="-1">
+					1=1	 
+				</isEqual>
+			</isNotEmpty>	
+		</dynamic>
+	</sql>
+	
+	<select id="countInternetBar" parameterClass="InternetBarVo" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="searchInternetBar" parameterClass="InternetBarVo" resultMap="internetBar.internetBarResultForList">
+			select internetBar.*,'$importantLocationType$' as locationType
+			<include refid="sql_where" />
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+	</select>
+</sqlMap>

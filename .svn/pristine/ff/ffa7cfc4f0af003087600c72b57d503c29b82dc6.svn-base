@@ -1,0 +1,630 @@
+package com.tianque.plugin.transfer.test;
+
+import java.util.Date;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.tianque.baseInfo.actualCompany.domain.ActualCompany;
+import com.tianque.baseInfo.actualCompany.service.ActualCompanyService;
+import com.tianque.baseInfo.actualHouse.service.ActualHouseService;
+import com.tianque.baseInfo.base.domain.ActualPopulation;
+import com.tianque.baseInfo.druggy.domain.Druggy;
+import com.tianque.baseInfo.druggy.service.DruggyService;
+import com.tianque.baseInfo.floatingPopulation.domain.FloatingPopulation;
+import com.tianque.baseInfo.floatingPopulation.service.FloatingPopulationService;
+import com.tianque.baseInfo.householdStaff.domain.HouseholdStaff;
+import com.tianque.baseInfo.householdStaff.service.HouseholdStaffService;
+import com.tianque.baseInfo.rentalHouse.domain.RentalHouse;
+import com.tianque.baseInfo.rentalHouse.service.RentalHouseService;
+import com.tianque.core.datatransfer.ExcelImportHelper;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.User;
+import com.tianque.plugin.transfer.handler.SelfHandler;
+import com.tianque.plugin.transfer.util.Constants;
+import com.tianque.plugin.transfer.util.Context;
+import com.tianque.service.ActualPopulationProcessorService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = { "classpath:applicationContext.xml",
+		"classpath:applicationContext-development.xml" })
+public class SelfTests {
+
+	@Autowired
+	SelfHandler selfHandler;
+
+	@Autowired
+	public HouseholdStaffService householdStaffService;
+
+	@Autowired
+	protected ActualPopulationProcessorService actualPopulationProcessorService;
+	@Autowired
+	public FloatingPopulationService floatingPopulationService;
+	// 原来的dubboService包下的
+	@Autowired
+	public OrganizationDubboService organizationDubboService;
+
+	@Autowired
+	public ActualHouseService actualHouseService;
+
+	@Autowired
+	public RentalHouseService houseService;
+
+	String idCardNo = "421022199101201234";
+	Long orgIdLong = 7L;
+	Long toOrgId = 421L;// 要转移的网格id
+
+	public static ThreadLocal<Boolean> istesThreadLocal = new ThreadLocal<Boolean>();
+
+	@Before
+	public void setup() {
+		istesThreadLocal.set(true);
+		ExcelImportHelper.isImport.set(true);
+		// 添加流动人口 轨迹的时候 需要设置 用户
+		User user = new User();
+		user.setId(1L);
+		ThreadVariable.setUser(user);
+
+		// 清空相应的表
+		// delete from druggys;
+		// delete from actualcompany;
+		// delete from householdstaffs;
+		// delete from floatingpopulations;
+		// delete from houseinfo;
+		// delete from RentalHouse;
+		// delete from populationtypes ;
+		// select * from populationtypes ;
+	}
+
+	// 户籍人口 在目标网格新增操作 ok
+	@Test
+	public void invokAddHouseHoldTest() {
+		// 新增测试数据
+		addHouseHold();
+		// 删除目标网格的测试数据
+		deleteHouseHold();
+		// '太和村网格'; --7 'test'; --421
+		String type = "householdStaff";
+		ActualPopulation actualPopulation = householdStaffService
+				.getHouseholdStaffByIdCardNo(idCardNo, orgIdLong);
+		Long id = actualPopulation.getId();
+		System.out.println("invokAddHouseHoldTest--方法开始调用");
+		Context context = new Context();
+		selfHandler.invoke(type, id, toOrgId, context);
+
+		boolean exists = householdStaffService.hasDuplicateHouseholdStaff(
+				idCardNo, toOrgId, null);
+		Assert.assertEquals(true, exists);
+
+	}
+
+	// 该测试依赖上一次测试数据 ---- 户籍人口 在目标网格新增update 操作 ok
+	@Test
+	public void invokUpdateHouseHoldTest() {
+		// '太和村网格'; --7 'test'; --421
+		// idcardno --421022199101201234
+		// String type = "householdStaff";
+		// HouseholdStaff householdStaff0 = householdStaffService
+		// .getHouseholdStaffByIdCardNo(idCardNo, orgIdLong);
+		//
+		// Long id = householdStaff0.getId();
+		// // 更新idCardNo 的姓名
+		// householdStaff0.setName("newFateson");
+		// householdStaffService.updateHouseholdStaff(householdStaff0);
+		//
+		// System.out.println("invokUpdateHouseHoldTest--方法开始调用");
+		// Context context = new Context();
+		// selfHandler.invoke(type, id, toOrgId, context);
+		//
+		// HouseholdStaff householdStaff1 = householdStaffService
+		// .getHouseholdStaffByIdCardNo(idCardNo, toOrgId);
+		// String newName = householdStaff1.getName();
+		// Assert.assertEquals("newFateson", newName);
+
+	}
+
+	// 流动转户籍操作 ， 目标网格中存在该人员 为流动人员 ok
+	@Test
+	public void invokFloatingConvertHouseHoldTest() {
+		// // 本地网格新增户籍
+		// addHouseHold();
+		// // 目标网格新增流动
+		// addFloatingPopulation();
+		//
+		// String type = Constants.HOUSEHOLDSTAFF_KEY;
+		//
+		// HouseholdStaff householdStaff0 = householdStaffService
+		// .getHouseholdStaffByIdCardNo(idCardNo, orgIdLong);
+		// Long id = householdStaff0.getId();
+		// Context context = new Context();
+		// selfHandler.invoke(type, id, toOrgId, context);
+		//
+		// HouseholdStaff householdStaff1 = householdStaffService
+		// .getHouseholdStaffByIdCardNo(idCardNo, toOrgId);
+		// Assert.assertNotNull(householdStaff1);
+
+	}
+
+	// 测试业务人员----------------测试吸毒人员-----------目标网格中新增 吸毒人员 no
+	@Test
+	public void invokActualPopulationTest() {
+		// 本网格新增吸毒人员
+		addDruggy(orgIdLong, "fateson吸毒");
+		// 删除目标网格中的吸毒人员
+		deleteDurggy();
+		String type = Constants.DRUGGY_KEY;
+		Druggy druggy = druggyService.getDruggyByIdCardNo(idCardNo, orgIdLong);
+		Long id = druggy.getId();
+		selfHandler.invoke(type, id, toOrgId, null);
+
+		Druggy targetDruggy = druggyService.getDruggyByIdCardNo(idCardNo,
+				toOrgId);
+		Assert.assertNotNull(targetDruggy);
+	}
+
+	// 吸毒人员更新 操作 ok
+	@Test
+	public void invokupdateActualPopulationTest() {
+		// // 本网格新增吸毒人员
+		// addDruggy(orgIdLong, "fateson吸毒");
+		// // 目标网格更新吸毒人员操作
+		// addDruggy(toOrgId, "目标网格fateson吸毒");
+		// String type = Constants.DRUGGY_KEY;
+		// Druggy druggy = druggyService.getDruggyByIdCardNo(idCardNo,
+		// orgIdLong);
+		// Long id = druggy.getId();
+		// selfHandler.invoke(type, id, toOrgId, null);
+		//
+		// Druggy targetDruggy = druggyService.getDruggyByIdCardNo(idCardNo,
+		// toOrgId);
+		// Assert.assertNotNull(targetDruggy);
+		// Assert.assertEquals("fateson吸毒", targetDruggy.getName());
+	}
+
+	private void deleteDurggy() {
+		Druggy druggy = druggyService.getDruggyByIdCardNo(idCardNo, toOrgId);
+		if (druggy != null) {
+			druggyService.deleteDruggyByIds(new Long[] { druggy.getId() });
+		}
+
+	}
+
+	@Autowired
+	DruggyService druggyService;
+
+	public void addDruggy(Long orgIdLong, String name) {
+		deleteHouseHold();
+		Druggy druggy = druggyService.hasDuplicateDruggy(orgIdLong, idCardNo);
+		String type = Constants.HOUSEHOLDSTAFF_KEY;
+		String atypeString = Constants.DRUGGY_KEY;
+		if (druggy == null) {
+			Druggy druggy1 = new Druggy();
+			druggy1.setActualPopulationType(type);
+			druggy1.setAttentionPopulationType(atypeString);
+
+			druggy1.setName("fateson吸毒");
+			druggy1.setIdCardNo(idCardNo);
+			druggy1.setActualPopulationType(BaseInfoTables.HOUSEHOLDSTAFF_KEY);
+			druggy1.setGender(gender());
+			Organization organization = organizationDubboService
+					.getSimpleOrgById(orgIdLong);
+			druggy1.setOrganization(organization);
+			druggy1.setOrgInternalCode(organization.getOrgInternalCode());
+			druggy1.setCreateUser("1111");
+			druggy1.setCreateDate(new Date());
+			druggy1.setIsEmphasis(0L);
+			druggy1.setDetoxicateCase(detoxicateCase());
+			Druggy druggy2 = druggyService.addDruggy(druggy1);
+			System.out.println("新增吸毒人员id=" + druggy2.getId());
+		}
+
+	}
+
+	@Autowired
+	ActualCompanyService actualCompanyService;
+
+	// 测试场所----实有单位为例------目标网格新增测试 ok
+	@Test
+	public void invokaddLocaleTest() {
+		String companyName = "实有单位名称测试";
+		addactualCompany(companyName);
+		String type = Constants.ACTUALCOMPANY_KEY;
+		ActualCompany actualCompany = actualCompanyService
+				.getActualCompanyByCompanyName(companyName, orgIdLong);
+		Long id = actualCompany.getId();
+		selfHandler.invoke(type, id, toOrgId, null);
+		ActualCompany actualCompany1 = actualCompanyService
+				.getActualCompanyByCompanyName(companyName, toOrgId);
+		Assert.assertNotNull(actualCompany1);
+
+	}
+
+	// 测试场所----------目标网格更新测试 ok
+	@Test
+	public void invokUpdatgeLocaleTest() {
+		// String companyName = "实有单位名称测试";
+		// String newCompanyName = "实有单位名称测试new";
+		// addactualCompany(companyName);
+		// addactualCompany(newCompanyName);
+		// String type = Constants.ACTUALCOMPANY_KEY;
+		// ActualCompany actualCompany = actualCompanyService
+		// .getActualCompanyByCompanyName(companyName, orgIdLong);
+		// Long id = actualCompany.getId();
+		// selfHandler.invoke(type, id, toOrgId, null);
+		// ActualCompany actualCompany1 = actualCompanyService
+		// .getActualCompanyByCompanyName(companyName, toOrgId);
+		// Assert.assertNotNull(actualCompany1);
+		// Assert.assertEquals(companyName, actualCompany1.getCompanyName());
+
+	}
+
+	private void addactualCompany(String companyName) {
+		ActualCompany actualCompany = actualCompanyService
+				.getActualCompanyByCompanyName(companyName, orgIdLong);
+		if (actualCompany == null) {
+			ActualCompany actualCompany1 = new ActualCompany();
+
+			Organization organization = organizationDubboService
+					.getSimpleOrgById(orgIdLong);
+			actualCompany1.setOrganization(organization);
+			actualCompany1
+					.setOrgInternalCode(organization.getOrgInternalCode());
+			actualCompany1.setCompanyName(companyName);
+			actualCompany1.setCompanyAddress("单位地址测试");
+			actualCompany1.setBusinessLicenseNo("167483829222111");
+
+			actualCompany1.setOrgCode("dfafdfafsfs");
+			actualCompanyService.addActualCompany(actualCompany1);
+		}
+
+	}
+
+	// 测试新增房屋信息 房屋信息为出租房 ok
+	@Test
+	public void invokAddRoomTest() {
+		addActualRoom();
+		RentalHouse rentalHouse = houseService.getHouseInfoByHouseCodeAndOrgId(
+				"fateson001", orgIdLong);
+		String type = Constants.RENTALHOUSE_KEY;
+		Long id = rentalHouse.getId();
+		selfHandler.invoke(type, id, toOrgId, null);
+		RentalHouse rentalHouse1 = houseService
+				.getHouseInfoByHouseCodeAndOrgId("fateson001", toOrgId);
+		Assert.assertNotNull(rentalHouse1);
+
+	}
+
+	private void addActualRoom() {
+		RentalHouse rentalHouse = houseService.getHouseInfoByHouseCodeAndOrgId(
+				"fateson001", orgIdLong);
+		if (rentalHouse == null) {
+			RentalHouse houseInfo = new RentalHouse();
+			houseInfo.setAddressType(addressType());
+			houseInfo.setBlock("123");
+			houseInfo.setUnit("11");
+			houseInfo.setRoom("134");
+			houseInfo.setHouseCode("fateson001");
+			Organization organization = organizationDubboService
+					.getSimpleOrgById(orgIdLong);
+			houseInfo.setOrganization(organization);
+			houseInfo.setOrgInternalCode(organization.getOrgInternalCode());
+			houseInfo.setIsRentalHouse(true);
+			houseInfo.setRentalPerson("fateson");
+			houseInfo.setRentalType(rentalType());
+			houseInfo.setHiddenDangerLevel(hiddenDangerLevel());
+			houseService.addRentalHouse(houseInfo);
+		}
+
+	}
+
+	private PropertyDict hiddenDangerLevel() {
+		PropertyDict propertyDict = new PropertyDict();
+		propertyDict.setId(357L);
+		propertyDict.setDisplayName("严重");
+		propertyDict.setInternalId(1);
+		return propertyDict;
+	}
+
+	private PropertyDict rentalType() {
+		PropertyDict propertyDict = new PropertyDict();
+		propertyDict.setId(334L);
+		propertyDict.setDisplayName("套房");
+		propertyDict.setInternalId(1);
+		return propertyDict;
+	}
+
+	private PropertyDict addressType() {
+		PropertyDict propertyDict = new PropertyDict();
+		propertyDict.setId(835L);
+		propertyDict.setDisplayName("商品房");
+		propertyDict.setInternalId(1);
+		return propertyDict;
+	}
+
+	// 新增 户籍人口数据
+	public void addHouseHold() {
+		ActualPopulation actualPopulation = householdStaffService
+				.getHouseholdStaffByIdCardNo(idCardNo, orgIdLong);
+
+		if (actualPopulation == null) {
+			Organization organization = organizationDubboService
+					.getSimpleOrgById(orgIdLong);
+			HouseholdStaff householdStaff = new HouseholdStaff();
+			householdStaff.setAccountNumber(null);
+			householdStaff.setName("fateson");
+			householdStaff.setIdCardNo(idCardNo);
+			householdStaff
+					.setActualPopulationType(BaseInfoTables.HOUSEHOLDSTAFF_KEY);
+			householdStaff.setGender(gender());
+			householdStaff.setOrganization(organization);
+			householdStaff
+					.setOrgInternalCode(organization.getOrgInternalCode());
+			householdStaff.setCreateUser("1111");
+			householdStaff.setCreateDate(new Date());
+			householdStaff.setLogOut(0L);
+			householdStaffService.addHouseholdStaff(householdStaff);
+
+		}
+	}
+
+	private PropertyDict gender() {
+		PropertyDict picDict = new PropertyDict();
+		picDict.setId(87L);
+		picDict.setDisplayName("男");
+		picDict.setInternalId(1);
+		return picDict;
+	}
+
+	private PropertyDict detoxicateCase() {
+		PropertyDict propertyDict = new PropertyDict();
+		propertyDict.setId(326L);
+		propertyDict.setDisplayName("强制戒毒");
+		return propertyDict;
+	}
+
+	// 删除目标网格中的测试数据
+	public void deleteHouseHold() {
+		ActualPopulation actualPopulation = actualPopulationProcessorService
+				.getActualPopulationbyOrgIdAndIdCardNo(toOrgId, idCardNo);
+
+		if (actualPopulation != null) {
+			String actualType = actualPopulation.getActualPopulationType();
+			Long id = actualPopulation.getId();
+			if (BaseInfoTables.HOUSEHOLDSTAFF_KEY.equals(actualType)) {
+				// 删户籍
+				householdStaffService.deleteHouseholdStaffById(id);
+			} else {
+				floatingPopulationService.deleteFloatingPopulationById(id);
+			}
+
+		}
+
+	}
+
+	@Test
+	public void addFloatingPopulation() {
+		ActualPopulation actualPopulation = floatingPopulationService
+				.getFloatingPopulationByIdCardNoAndOrgId(toOrgId, idCardNo);
+		if (actualPopulation == null) {
+			System.out.println("新增流动人口");
+			Organization organization = organizationDubboService
+					.getSimpleOrgById(toOrgId);
+			FloatingPopulation householdStaff = new FloatingPopulation();
+			householdStaff.setName("fatesonfloation");
+			householdStaff.setIdCardNo(idCardNo);
+			householdStaff
+					.setActualPopulationType(BaseInfoTables.FLOATINGPOPULATION_KEY);
+			householdStaff.setGender(gender());
+			householdStaff.setOrganization(organization);
+			householdStaff
+					.setOrgInternalCode(organization.getOrgInternalCode());
+			householdStaff.setCreateUser("1111");
+			householdStaff.setCreateDate(new Date());
+			householdStaff.setLogOut(0L);
+			householdStaff.setProvince("湖北省");
+			householdStaff.setCity("荆州市");
+			householdStaff.setDistrict("公安县");
+
+			householdStaff.setCareer(getCareer());
+			householdStaff.setMaritalState(maritalState());
+			householdStaff.setNation(nation());
+			householdStaff.setSchooling(schooling());
+			householdStaff.setPoliticalBackground(politicalBackground());
+
+			householdStaff.setInflowingReason(inflowingReason());
+
+			householdStaff.setInflowingDate(new Date(
+					((new Date()).getTime() - 1000 * 60 * 24 * 30)));
+			householdStaff.setExpectedDatedue(new Date(
+					((new Date()).getTime() - 1000 * 60 * 24 * 10)));
+
+			householdStaff.setStayLocationType(stayLocationType());
+			ActualPopulation floatingPopulation = floatingPopulationService
+					.addFloatingPopulation(householdStaff);
+			System.out.println("流动人口新增成功id=" + floatingPopulation.getId());
+		}
+
+	}
+
+	private PropertyDict stayLocationType() {
+		PropertyDict propertyDict = new PropertyDict();
+		propertyDict.setId(927L);
+		propertyDict.setDisplayName("租赁房屋");
+		return propertyDict;
+	}
+
+	private PropertyDict inflowingReason() {
+		PropertyDict propertyDict = new PropertyDict();
+		propertyDict.setId(818L);
+		propertyDict.setDisplayName("务工经商");
+		return propertyDict;
+	}
+
+	private PropertyDict politicalBackground() {
+		PropertyDict propertyDict = new PropertyDict();
+		propertyDict.setId(135L);
+		propertyDict.setDisplayName("中国共产党党员");
+		return propertyDict;
+	}
+
+	private PropertyDict schooling() {
+		PropertyDict propertyDict = new PropertyDict();
+		propertyDict.setId(187L);
+		propertyDict.setDisplayName("博士");
+		return propertyDict;
+	}
+
+	private PropertyDict nation() {
+		PropertyDict propertyDict = new PropertyDict();
+		propertyDict.setId(206L);
+		propertyDict.setDisplayName("汉族");
+		return propertyDict;
+	}
+
+	private PropertyDict maritalState() {
+		PropertyDict propertyDict = new PropertyDict();
+		propertyDict.setId(130L);
+		propertyDict.setDisplayName("未婚");
+		return propertyDict;
+	}
+
+	private PropertyDict getCareer() {
+		PropertyDict propertyDict = new PropertyDict();
+		propertyDict.setId(265L);
+		propertyDict.setDisplayName("工业");
+		return propertyDict;
+	}
+
+	public Boolean getIstesThreadLocal() {
+		return istesThreadLocal.get();
+	}
+
+	public void setIstesThreadLocal(Boolean istesThreadLocal1) {
+		istesThreadLocal.set(istesThreadLocal1);
+	}
+
+	@Test
+	public void testAll() {
+		// 1: 实有单位 ok
+		// String type = Constants.ACTUALCOMPANY_KEY;
+		// Long id = 61L;
+		// 2:安全生产重点 ok
+		// String type = Constants.SAFETYPRODUCTIONKEY_KEY;
+		// Long id = 1L;
+		// 3:消防安全重点
+		// String type = Constants.FIRESAFETYKEY_KEY;
+		// Long id = 2L;
+		// 4治安重点
+		// String type = Constants.SECURITYKEY_KEY;
+		// Long id = 3L;
+		// 5学校 ok
+		// String type = Constants.SCHOOL_KEY;
+		// Long id = 1L;
+		// 6危险化学品单位
+		// String type = Constants.DANGEROUSCHEMICALSUNIT_KEY;
+		// Long id = 1L;
+		// 7网吧
+		// String type = Constants.INTERNETBAR_KEY;
+		// Long id = 1L;
+		// 8公共场所ok
+		// String type = Constants.PUBLICPLACE_KEY;
+		// Long id = 1L;
+		// 9其他场所
+		// String type = Constants.OTHERLOCALE_KEY;
+		// Long id = 1L;
+		// 10社会组织
+		// String type = Constants.NEWSOCIETYORGANIZATIONS_KEY;
+		// Long id = 1L;
+		// 11新经济组织
+		// String type = Constants.NEWECONOMICORGANIZATIONS_KEY;
+		// Long id = 1L;
+		// 12规上企业
+		// String type = Constants.ENTERPRISEKEY_KEY;
+		// Long id = 4L;
+		// 规下企业
+		// String type = Constants.ENTERPRISEDOWNKEY_KEY;
+		// Long id = 5L;
+
+		// 户籍人口
+		// String type = Constants.HOUSEHOLDSTAFF_KEY;
+		// Long id = 121L;
+
+		// 流动人口
+		// String type = Constants.FLOATINGPOPULATION_KEY;
+		// Long id = 41L;
+		// TODO 未落户
+		String type = Constants.UNSETTLEDPOPULATION_KEY;
+		Long id = 2L;
+		// 境外人员
+		// String type = Constants.OVERSEAPERSONNEL_KEY;
+		// Long id = 2L;
+
+		// 刑释人员
+		// String type = Constants.POSITIVEINFO_KEY;
+		// Long id = 1L;
+
+		// 社区矫正人员ok 需要验证 刑释解教 互斥
+		// String type = Constants.RECTIFICATIVEPERSON_KEY;
+		// Long id = 1L;
+		// 严重精神障碍患者
+		// String type = Constants.MENTALPATIENT_KEY;
+		// Long id = 1L;
+		// 吸毒人员
+		// String type = Constants.DRUGGY_KEY;
+		// Long id = 81L;
+		// 重点青少年
+		// String type = Constants.IDLEYOUTH_KEY;
+		// Long id = 1L;
+		// 重点上访人员
+		// String type = Constants.SUPERIORVISIT_KEY;
+		// Long id = 2L;
+		// 危险品从业人员
+		// String type = Constants.DANGEROUSGOODSPRACTITIONER_KEY;
+		// Long id = 1L;
+		// 其他人员
+		// String type = Constants.OTHERATTENTIONPERSONNEL_KEY;
+		// Long id = 21L;
+		// 关怀对象
+
+		// 老年人
+		// String type = Constants.ELDERLYPEOPLE_KEY;
+		// Long id = 1L;
+
+		// 残疾人
+		// String type = Constants.HANDICAPPED_KEY;
+		// Long id = 1L;
+		// 优抚对象
+		// String type = Constants.OPTIMALOBJECT_KEY;
+		// Long id = 1L;
+		// 需救助人员
+		// String type = Constants.AIDNEEDPOPULATION_KEY;
+		// Long id = 1L;
+		// 失业人员
+		// String type = Constants.UNEMPLOYEDPEOPLE_KEY;
+		// Long id = 2L;
+		// 育龄妇女
+		// String type = Constants.NURTURESWOMEN_KEY;
+		// Long id = 1L;
+
+		// 实有房
+		// String type = Constants.ACTUALHOUSE_KEY;
+		// Long id = 71L;
+		// 出租房
+		// String type = Constants.RENTALHOUSE_KEY;
+		// Long id = 71L;
+		Context context = new Context();
+		selfHandler.invoke(type, id, toOrgId, context);
+		// 这里不是用断言 ，肉眼观察数据库
+
+	}
+
+}

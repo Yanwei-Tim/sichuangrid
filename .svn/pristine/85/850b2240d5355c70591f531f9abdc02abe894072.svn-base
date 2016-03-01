@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="issueAreaStat">
+	<typeAlias alias="IssueAreaStat" type="com.tianque.statAnalyse.issueManage.listManage.domain.IssueAreaStat"/>
+	<resultMap class="IssueAreaStat" id="issueAreaStatPromptlyMap">
+		<result property="addIssueSum" column="addIssueSum"/>
+		<result property="submitIssueSum" column="submitIssueSum"/>
+		<result property="assignIssueSum" column="assignIssueSum"/>
+		<result property="doingIssueSum" column="doingIssueSum"/>
+		<result property="doneIssueSum" column="doneIssueSum"/>
+		<result property="issueSum" column="issueSum"/>
+		<result property="extendedDoingSum" column="extendedDoingSum"/>
+		<result property="extendedDoneSum" column="extendedDoneSum"/>
+	</resultMap>
+	
+	<resultMap class="IssueAreaStat" id="issueAreaStatTypeMap">
+		<result property="contradictionSum" column="contradictionSum"/>
+		<result property="resolveTheContradictionSum" column="resolveTheContradictionSum"/>
+		<result property="securityPrecautionSum" column="securityPrecautionSum"/>
+		<result property="specialPopulationSum" column="specialPopulationSum"/>
+		<result property="socialConditionSum" column="socialConditionSum"/>
+		<result property="policiesAndLawSum" column="policiesAndLawSum"/>
+		<result property="emergencieSum" column="emergencieSum"/>
+		<result property="otherManageSum" column="otherManageSum"/>
+	</resultMap>
+	
+	<resultMap class="IssueAreaStat" id="issueStepStatMap">
+		<result property="resolveGeneralSum" column="resolveGeneralSum"/>
+		<result property="resolveSkipSum" column="resolveSkipSum"/>
+		<result property="securityGeneralSum" column="securityGeneralSum"/>
+		<result property="securitySkipSum" column="securitySkipSum"/>
+		<result property="emergencieGeneralSum" column="emergencieGeneralSum"/>
+		<result property="emergencieSkipSum" column="emergencieSkipSum"/>
+		<result property="otherManageGeneralSum" column="otherManageGeneralSum"/>
+		<result property="otherManageSkipSum" column="otherManageSkipSum"/>
+	</resultMap>
+	
+	<resultMap class="IssueAreaStat" id="issueProportionStatMap">
+		<result property="historySum" column="historySum"/>
+		<result property="nowSum" column="nowSum"/>
+	</resultMap>
+	
+	<!-- 各区域办理 -->
+	<select id="getIssueAreaStatsByYearAndMonthAndOrgCode" parameterClass="map" resultMap="issueAreaStatPromptlyMap">
+		select * from
+		(select count(1) as addIssueSum from issuesteps ip where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%' and ip.entrydate=ip.createdate),
+		(select count(1) as doingIssueSum from issuesteps ip where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%' and ip.statecode<![CDATA[<]]>500),
+		(select count(1) as submitIssueSum from issuesteps ip where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%' and ip.submit=1),
+		(select count(1) as assignIssueSum from issuesteps ip where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%' and ip.assign=1),
+		(select count(1) as doneIssueSum from issuesteps ip where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%' and ip.statecode>=1000),
+		(select count(1) as issueSum from issuesteps ip where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%'),
+		(select count(1) as extendedDoingSum from issuesteps ip where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%' and ip.statecode<![CDATA[<]]>500 and ip.superviselevel>-1),
+		(select count(1) as extendedDoneSum from issuesteps ip where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%' and ip.target<![CDATA[<>]]>#orgId# and ip.statecode>=1000 and ip.isextended=1)		
+	</select>
+	<!-- 各区域办理-历史job -->
+	<select id="getIssueAreaStatsByYearAndMonthAndOrgId" parameterClass="map" resultMap="issueAreaStatPromptlyMap">
+		select * from
+		(select count(1) as addIssueSum from issuesteps ip where to_char(ip.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and ip.target=#orgId# and ip.entrydate=ip.createdate),
+		(select count(1) as doingIssueSum from issuesteps ip where to_char(ip.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and ip.target=#orgId# and ip.statecode<![CDATA[<]]>500),
+		(select count(1) as submitIssueSum from issuesteps ip where to_char(ip.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and ip.target=#orgId# and ip.submit=1),
+		(select count(1) as assignIssueSum from issuesteps ip where to_char(ip.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and ip.target=#orgId# and ip.assign=1),
+		(select count(1) as doneIssueSum from issuesteps ip where to_char(ip.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and ip.target=#orgId# and ip.statecode>=1000),
+		(select count(1) as issueSum from issuesteps ip where to_char(ip.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and ip.target=#orgId#),
+		(select count(1) as extendedDoingSum from issuesteps ip where to_char(ip.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and ip.target=#orgId# and ip.statecode<![CDATA[<]]>500 and ip.superviselevel>-1),
+		(select count(1) as extendedDoneSum from issuesteps ip where to_char(ip.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and ip.target=#orgId# and ip.target<![CDATA[<>]]>#orgId# and ip.statecode>=1000 and ip.isextended=1)		
+	</select>
+	<!-- 各层级办理 -->
+	<select id="getIssueLevelStatsByYearAndMonthAndOrgCode" parameterClass="map" resultMap="issueAreaStatPromptlyMap">
+		select * from
+		(select count(1) as addIssueSum from issuesteps ip,organizations os where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%' and ip.target<![CDATA[<>]]>#orgId# and ip.entrydate=ip.createdate and ip.target=os.id and os.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select count(1) as doingIssueSum from issuesteps ip,organizations os where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%' and ip.target<![CDATA[<>]]>#orgId# and ip.statecode<![CDATA[<]]>500 and ip.target=os.id and os.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select count(1) as submitIssueSum from issuesteps ip,organizations os where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%' and ip.target<![CDATA[<>]]>#orgId# and ip.submit=1 and ip.target=os.id and os.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select count(1) as assignIssueSum from issuesteps ip,organizations os where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%' and ip.target<![CDATA[<>]]>#orgId# and ip.assign=1 and ip.target=os.id and os.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select count(1) as doneIssueSum from issuesteps ip,organizations os where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%' and ip.target<![CDATA[<>]]>#orgId# and ip.statecode>=1000 and ip.target=os.id and os.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select count(1) as issueSum from issuesteps ip,organizations os where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%' and ip.target<![CDATA[<>]]>#orgId# and ip.target=os.id and os.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select count(1) as extendedDoingSum from issuesteps ip,organizations os where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%' and ip.target<![CDATA[<>]]>#orgId# and ip.statecode<![CDATA[<]]>500 and ip.superviselevel>-1 and ip.target=os.id and os.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select count(1) as extendedDoneSum from issuesteps ip,organizations os where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%' and ip.target<![CDATA[<>]]>#orgId# and ip.statecode>=1000 and ip.isextended=1 and ip.target=os.id and os.$fieldName$=#orgLevelIdOrFunOrgType#)
+	</select>
+	<!-- 各区域分类 -->
+	<select id="getIssueAreaTypeStatsByYearAndMonthAndOrgCode" parameterClass="map" resultMap="issueAreaStatTypeMap">
+		select * from
+		(select count(1) as contradictionSum from issues iu,issuetypedomains im where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%'  and iu.issuetypedomainid=im.id and im.domainname=#contradiction#),
+		(select count(1) as resolveTheContradictionSum from issues iu,issuetypedomains im where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%'  and iu.issuetypedomainid=im.id and im.domainname=#resolveTheContradiction#),
+		(select count(1) as securityPrecautionSum from issues iu,issuetypedomains im where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%' and iu.issuetypedomainid=im.id and im.domainname=#securityPrecaution#),
+		(select count(1) as specialPopulationSum from issues iu,issuetypedomains im where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%'  and iu.issuetypedomainid=im.id and im.domainname=#specialPopulation#),
+		(select count(1) as socialConditionSum from issues iu,issuetypedomains im where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%' and iu.issuetypedomainid=im.id and im.domainname=#socialCondition#),
+		(select count(1) as policiesAndLawSum from issues iu,issuetypedomains im where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%'  and iu.issuetypedomainid=im.id and im.domainname=#policiesAndLaw#),
+		(select count(1) as emergencieSum from issues iu,issuetypedomains im where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%'  and iu.issuetypedomainid=im.id and im.domainname=#emergencie#),
+		(select count(1) as otherManageSum from issues iu,issuetypedomains im where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%' and iu.issuetypedomainid=im.id and im.domainname=#otherManage#)
+	</select>
+	<!-- 各区域分类-历史job -->
+	<select id="getIssueAreaTypeStatsByYearAndMonthAndOrgId" parameterClass="map" resultMap="issueAreaStatTypeMap">
+		select * from
+		(select count(1) as contradictionSum from issues iu,issuetypedomains im where to_char(iu.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and iu.createorg=#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#contradiction#),
+		(select count(1) as resolveTheContradictionSum from issues iu,issuetypedomains im where to_char(iu.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.issuetypedomainid=im.id and im.domainname=#resolveTheContradiction#),
+		(select count(1) as securityPrecautionSum from issues iu,issuetypedomains im where to_char(iu.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and iu.createorg=#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#securityPrecaution#),
+		(select count(1) as specialPopulationSum from issues iu,issuetypedomains im where to_char(iu.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and iu.createorg=#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#specialPopulation#),
+		(select count(1) as socialConditionSum from issues iu,issuetypedomains im where to_char(iu.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and iu.createorg=#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#socialCondition#),
+		(select count(1) as policiesAndLawSum from issues iu,issuetypedomains im where to_char(iu.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and iu.createorg=#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#policiesAndLaw#),
+		(select count(1) as emergencieSum from issues iu,issuetypedomains im where to_char(iu.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and iu.createorg=#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#emergencie#),
+		(select count(1) as otherManageSum from issues iu,issuetypedomains im where to_char(iu.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and iu.createorg=#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#otherManage#)
+	</select>
+	<!-- 各层级分类 -->
+	<select id="getIssueLevelTypeStatsByYearAndMonthAndOrgCode" parameterClass="map" resultMap="issueAreaStatTypeMap">
+		select * from
+		(select count(1) as contradictionSum from issues iu,issuetypedomains im,organizations os where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%' and iu.createorg<![CDATA[<>]]>#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#contradiction# and iu.createorg=os.id and os.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select count(1) as resolveTheContradictionSum from issues iu,issuetypedomains im,organizations os where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%' and iu.createorg<![CDATA[<>]]>#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#resolveTheContradiction# and iu.createorg=os.id and os.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select count(1) as securityPrecautionSum from issues iu,issuetypedomains im,organizations os where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%' and iu.createorg<![CDATA[<>]]>#orgId# and  iu.issuetypedomainid=im.id and im.domainname=#securityPrecaution# and iu.createorg=os.id and os.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select count(1) as specialPopulationSum from issues iu,issuetypedomains im,organizations os where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%' and iu.createorg<![CDATA[<>]]>#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#specialPopulation# and iu.createorg=os.id and os.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select count(1) as socialConditionSum from issues iu,issuetypedomains im,organizations os where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%' and iu.createorg<![CDATA[<>]]>#orgId# and iu.issuetypedomainid=im.id and im.domainname=#socialCondition# and iu.createorg=os.id and os.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select count(1) as policiesAndLawSum from issues iu,issuetypedomains im,organizations os where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%' and iu.createorg<![CDATA[<>]]>#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#policiesAndLaw# and iu.createorg=os.id and os.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select count(1) as emergencieSum from issues iu,issuetypedomains im,organizations os where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%' and iu.createorg<![CDATA[<>]]>#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#emergencie# and iu.createorg=os.id and os.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select count(1) as otherManageSum from issues iu,issuetypedomains im,organizations os where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%' and iu.createorg<![CDATA[<>]]>#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#otherManage# and iu.createorg=os.id and os.$fieldName$=#orgLevelIdOrFunOrgType#)
+	</select>
+	<!-- 按流程统计 -->
+	<select id="getIssueStepStatsByYearAndMonthAndOrgCode" parameterClass="map" resultMap="issueStepStatMap">
+		select * from
+		(select count(1) as resolveGeneralSum from issues iu,issuetypedomains im,issuesteps step where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%'  and iu.issuetypedomainid=im.id and im.domainname=#resolveTheContradiction# and  step.issue=iu.id and step.targetinternalcode like #orgInternalCode#||'%'  and step.emergencylevel is null),
+		(select count(1) as resolveSkipSum from issues iu,issuetypedomains im ,issuesteps step where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%'  and iu.issuetypedomainid=im.id and im.domainname=#resolveTheContradiction# and step.issue=iu.id and step.targetinternalcode like #orgInternalCode#||'%' and step.emergencylevel is not null),
+		(select count(1) as securityGeneralSum from issues iu,issuetypedomains im,issuesteps step where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%' and iu.issuetypedomainid=im.id and im.domainname=#securityPrecaution# and step.issue=iu.id and step.targetinternalcode like #orgInternalCode#||'%' and step.emergencylevel is null),
+		(select count(1) as securitySkipSum from issues iu,issuetypedomains im,issuesteps step where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%' and iu.issuetypedomainid=im.id and im.domainname=#securityPrecaution# and step.issue=iu.id and step.targetinternalcode like #orgInternalCode#||'%' and step.emergencylevel is not null),
+		(select count(1) as emergencieGeneralSum from issues iu,issuetypedomains im,issuesteps step where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%' and iu.issuetypedomainid=im.id and im.domainname=#emergencie# and step.issue=iu.id and step.targetinternalcode like #orgInternalCode#||'%' and step.emergencylevel is null),
+		(select count(1) as emergencieSkipSum from issues iu,issuetypedomains im ,issuesteps step where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%'  and iu.issuetypedomainid=im.id and im.domainname=#emergencie# and step.issue=iu.id and step.targetinternalcode like #orgInternalCode#||'%' and step.emergencylevel is not null),
+		(select count(1) as otherManageGeneralSum from issues iu,issuetypedomains im,issuesteps step where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%'  and iu.issuetypedomainid=im.id and im.domainname=#otherManage# and step.issue=iu.id and step.targetinternalcode like #orgInternalCode#||'%' and step.emergencylevel is null),
+		(select count(1) as otherManageSkipSum from issues iu,issuetypedomains im ,issuesteps step where iu.createdate<![CDATA[>=]]>#startDate# and iu.createdate<![CDATA[<]]>#endDate# and iu.createorginternalcode like #orgInternalCode#||'%'  and iu.issuetypedomainid=im.id and im.domainname=#otherManage# and step.issue=iu.id and step.targetinternalcode like #orgInternalCode#||'%' and step.emergencylevel is not null)
+	</select>
+	<!-- 按流程统计-历史job -->
+	<select id="getIssueStepStatsByYearAndMonthAndOrgId" parameterClass="map" resultMap="issueStepStatMap">
+		select * from
+		(select count(1) as resolveGeneralSum from issues iu,issuetypedomains im,issuesteps step where to_char(iu.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and iu.createorg=#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#resolveTheContradiction# and step.issue=iu.id and step.target=#orgId# and step.emergencylevel is null),
+		(select count(1) as resolveSkipSum from issues iu,issuetypedomains im,issuesteps step where to_char(iu.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and iu.createorg=#orgId# and  iu.issuetypedomainid=im.id and im.domainname=#resolveTheContradiction# and step.issue=iu.id and step.target=#orgId# and step.emergencylevel is not null),
+		(select count(1) as securityGeneralSum from issues iu,issuetypedomains im ,issuesteps step where to_char(iu.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and iu.createorg=#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#securityPrecaution# and step.issue=iu.id and step.target=#orgId# and step.emergencylevel is null),
+		(select count(1) as securitySkipSum from issues iu,issuetypedomains im,issuesteps step where to_char(iu.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and iu.createorg=#orgId# and  iu.issuetypedomainid=im.id and im.domainname=#securityPrecaution# and step.issue=iu.id and step.target=#orgId# and step.emergencylevel is not null),
+		(select count(1) as emergencieGeneralSum from issues iu,issuetypedomains im,issuesteps step where to_char(iu.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and iu.createorg=#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#emergencie# and step.issue=iu.id and step.target=#orgId# and step.emergencylevel is null),
+		(select count(1) as emergencieSkipSum from issues iu,issuetypedomains im,issuesteps step where to_char(iu.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and iu.createorg=#orgId# and  iu.issuetypedomainid=im.id and im.domainname=#emergencie# and step.issue=iu.id and step.target=#orgId# and step.emergencylevel is not null),
+		(select count(1) as otherManageGeneralSum from issues iu,issuetypedomains im,issuesteps step where to_char(iu.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and iu.createorg=#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#otherManage# and step.issue=iu.id and step.target=#orgId# and step.emergencylevel is null),
+		(select count(1) as otherManageSkipSum from issues iu,issuetypedomains im,issuesteps step where to_char(iu.createdate,'yyyy-mm')=to_char(#startDate#,'yyyy-mm') and iu.createorg=#orgId#  and iu.issuetypedomainid=im.id and im.domainname=#otherManage# and step.issue=iu.id and step.target=#orgId# and step.emergencylevel is not null)
+	</select>
+	
+	<!-- 历史数据查询 -->
+	<!-- 各区域办理 -->
+	<select id="getIssueAreaStatsByYearAndMonthAndOrgCodeHistory" parameterClass="map" resultMap="issueAreaStatPromptlyMap">
+		select * from
+		(select sum(ih.addissuesum) as addissuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.submitissuesum) as submitissuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.assignissuesum) as assignissuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.doingissuesum) as doingissuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.doneissuesum) as doneissuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.issuesum) as issuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.extendeddoingsum) as extendeddoingsum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.extendeddonesum) as extendeddonesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%')
+	</select>
+	<!-- 各层级办理 -->
+	<select id="getIssueLevelStatsByYearAndMonthAndOrgCodeHistory" parameterClass="map" resultMap="issueAreaStatPromptlyMap">
+		select * from
+		(select sum(ih.addissuesum) as addissuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select sum(ih.submitissuesum) as submitissuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select sum(ih.assignissuesum) as assignissuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select sum(ih.doingissuesum) as doingissuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select sum(ih.doneissuesum) as doneissuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select sum(ih.issuesum) as issuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select sum(ih.extendeddoingsum) as extendeddoingsum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select sum(ih.extendeddonesum) as extendeddonesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType#)
+	</select>
+	
+	<!-- 各层级行政部门办理 -->
+	<select id="getIssueLevelStatsByYearAndMonthAndOrgCodeForAdminHistory" parameterClass="map" resultMap="issueAreaStatPromptlyMap">
+		select * from
+		(select sum(ih.addissuesum) as addissuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType# and ih.funorgtype is null),
+		(select sum(ih.submitissuesum) as submitissuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType# and ih.funorgtype is null),
+		(select sum(ih.assignissuesum) as assignissuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType# and ih.funorgtype is null),
+		(select sum(ih.doingissuesum) as doingissuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType# and ih.funorgtype is null),
+		(select sum(ih.doneissuesum) as doneissuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType# and ih.funorgtype is null),
+		(select sum(ih.issuesum) as issuesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType# and ih.funorgtype is null),
+		(select sum(ih.extendeddoingsum) as extendeddoingsum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType# and ih.funorgtype is null),
+		(select sum(ih.extendeddonesum) as extendeddonesum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType# and ih.funorgtype is null)
+	</select>
+	
+	<!-- 各区域分类 -->
+	<select id="getIssueAreaTypeStatsByYearAndMonthAndOrgCodeHistory" parameterClass="map" resultMap="issueAreaStatTypeMap">
+		select * from
+		(select sum(ih.contradictionsum) as contradictionsum from issueclassificationstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.resolvethecontradictionsum) as resolvethecontradictionsum from issueclassificationstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.securityprecautionsum) as securityprecautionsum from issueclassificationstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.specialpopulationsum) as specialpopulationsum from issueclassificationstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.socialconditionsum) as socialconditionsum from issueclassificationstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.policiesandlawsum) as policiesandlawsum from issueclassificationstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.emergenciesum) as emergenciesum from issueclassificationstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.othermanagesum) as othermanagesum from issueclassificationstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%')
+	</select>
+	<!-- 各层级分类 -->
+	<select id="getIssueLevelTypeStatsByYearAndMonthAndOrgCodeHistory" parameterClass="map" resultMap="issueAreaStatTypeMap">
+		select * from
+		(select sum(ih.contradictionsum) as contradictionsum from issueclassificationstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select sum(ih.resolvethecontradictionsum) as resolvethecontradictionsum from issueclassificationstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select sum(ih.securityprecautionsum) as securityprecautionsum from issueclassificationstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select sum(ih.specialpopulationsum) as specialpopulationsum from issueclassificationstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select sum(ih.socialconditionsum) as socialconditionsum from issueclassificationstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select sum(ih.policiesandlawsum) as policiesandlawsum from issueclassificationstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select sum(ih.emergenciesum) as emergenciesum from issueclassificationstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType#),
+		(select sum(ih.othermanagesum) as othermanagesum from issueclassificationstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%' and ih.orgid<![CDATA[<>]]>#orgId# and ih.$fieldName$=#orgLevelIdOrFunOrgType#)
+	</select>
+	<!-- 按流程统计 -->
+	<select id="getIssueStepStatsByYearAndMonthAndOrgCodeHistory" parameterClass="map" resultMap="issueStepStatMap">
+		select * from
+		(select sum(ih.resolvegeneralsum) as resolvegeneralsum from issuestepstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.resolveskipsum) as resolveskipsum from issuestepstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.securitygeneralsum) as securitygeneralsum from issuestepstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.securityskipsum) as securityskipsum from issuestepstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.emergenciegeneralsum) as emergenciegeneralsum from issuestepstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.emergencieskipsum) as emergencieskipsum from issuestepstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.othermanagegeneralsum) as othermanagegeneralsum from issuestepstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.othermanageskipsum) as othermanageskipsum from issuestepstat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%')
+	</select>
+	<!-- 同比 -->
+	<select id="getIssueYoyStatsByYearAndMonthAndOrgCode" parameterClass="map" resultMap="issueProportionStatMap">
+		select * from
+		(select count(1) as nowSum from issuesteps ip where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%'),
+		(select sum(ih.issuesum) as historySum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>add_months(#startDate#,-12) and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>add_months(#endDate#,-12) and ih.orgInternalCode like #orgInternalCode#||'%')
+	</select>
+	<!-- 同比历史 -->
+	<select id="getIssueYoyStatsByYearAndMonthAndOrgCodeHistory" parameterClass="map" resultMap="issueProportionStatMap">
+		select * from
+		(select sum(ih.issuesum) as nowSum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.issuesum) as historySum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>add_months(#startDate#,-12) and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>add_months(#endDate#,-12) and ih.orgInternalCode like #orgInternalCode#||'%')
+	</select>
+	<!-- 环比 -->
+	<select id="getIssueMomStatsByYearAndMonthAndOrgCode" parameterClass="map" resultMap="issueProportionStatMap">
+		select * from
+		(select count(1) as nowSum from issuesteps ip where ip.createdate<![CDATA[>=]]>#startDate# and ip.createdate<![CDATA[<]]>#endDate# and ip.targetinternalcode like #orgInternalCode#||'%'),
+		(select sum(ih.issuesum) as historySum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>add_months(#startDate#,-1) and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>add_months(#endDate#,-1) and ih.orgInternalCode like #orgInternalCode#||'%')
+	</select>
+	<!-- 环比历史 -->
+	<select id="getIssueMomStatsByYearAndMonthAndOrgCodeHistory" parameterClass="map" resultMap="issueProportionStatMap">
+		select * from
+		(select sum(ih.issuesum) as nowSum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>#startDate# and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>#endDate# and ih.orgInternalCode like #orgInternalCode#||'%'),
+		(select sum(ih.issuesum) as historySum from issuehandlestat ih where to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[>=]]>add_months(#startDate#,-1) and to_date(ih.year || '-' || ih.month || '-1','yyyy-mm-dd')<![CDATA[<]]>add_months(#endDate#,-1) and ih.orgInternalCode like #orgInternalCode#||'%')
+	</select>
+</sqlMap>

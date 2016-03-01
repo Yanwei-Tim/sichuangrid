@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="positiveInfoTemp">
+    <typeAlias alias="PositiveInfoTemp" type="com.tianque.plugin.dataManage.population.positiveInfoTemp.domain.PositiveInfoTemp" />
+   	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+    
+    <resultMap id="positiveInfoTempResultForBase" class="PositiveInfoTemp" extends="attentionPopulationTempBaseInfo.attentionPopulationBaseInfoResult">
+		<result property="positiveInfoType.id" column="positiveInfoType" />
+		<result property="isRepeat" column="isRepeat" />
+		<result property="releaseOrBackDate" column="releaseOrBackDate" />
+		<result property="resettlementDate" column="resettlementDate" />
+		<result property="laborEduAddress" column="laborEduAddress" />
+		<result property="imprisonmentDate" column="imprisonmentDate" />
+		<result property="caseReason" column="caseReason" />
+		<result property="agoProfession.id" column="agoProfession" />
+		<result property="noResettlementReason" column="noResettlementReason" />
+		<result property="isCrime" column="isCrime" />
+		<result property="crimeDate" column="crimeDate" />
+		<result property="criminalBehavior" column="criminalBehavior" />
+	</resultMap>
+    <resultMap id="positiveInfoTempResultForList" class="PositiveInfoTemp" extends="positiveInfoTemp.positiveInfoTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<sql id="claim_sql_where">
+		from DM_positiveInfos_TEMP where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	
+	<sql id="updateBusinessSql">
+		imprisonmentDate = #imprisonmentDate#
+		,isRepeat = #isRepeat#
+		,releaseOrBackDate = #releaseOrBackDate#
+		,resettlementDate = #resettlementDate#
+		,caseReason = #caseReason#
+		,laborEduAddress = #laborEduAddress#
+		,noResettlementReason = #noResettlementReason#
+		,agoProfession = #agoProfession.id#
+		,nativePoliceStation=#nativePoliceStation#
+		,positiveInfoType=#positiveInfoType.id#
+		,attentionExtent=#attentionExtent.id#
+		,isCrime=#isCrime#
+		,criminalBehavior=#criminalBehavior#
+		,crimeDate=#crimeDate#
+	</sql>
+	
+	<select id="findTempPageList" resultMap="positiveInfoTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countTempList" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	
+	<insert id="addPositiveInfoTemp" parameterClass="PositiveInfoTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_positiveInfos_TEMP.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_positiveInfos_TEMP
+		(
+		<include refid="populationTempBaseInfo.addBaseInfoFields"/>
+		,positiveInfoType,caseReason,imprisonmentDate,laborEduAddress,releaseOrBackDate,isRepeat,criminalBehavior
+		,agoProfession,isCrime,resettlementDate,crimeDate,noResettlementReason,attentionExtent,actualPopulationType,
+		<include refid="dataManage.addDataManage"/>
+		)
+		values
+		(
+		<include refid="populationTempBaseInfo.addBaseInfoData"/>
+		,#positiveInfoType.id#,#caseReason#,#imprisonmentDate#,#laborEduAddress#,#releaseOrBackDate#,#isRepeat#,#criminalBehavior#
+		,#agoProfession.id#,#isCrime#,#resettlementDate#,#crimeDate#,#noResettlementReason#,#attentionExtent.id#,#actualPopulationType#,
+		<include refid="dataManage.addValueDataManage"/>
+		)
+    </insert>
+    
+    <update id="updatePositiveInfoTemp" parameterClass="PositiveInfoTemp">
+		update DM_positiveInfos_TEMP set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+			,
+			positiveInfoType=#positiveInfoType.id#,
+			caseReason=#caseReason#,
+			imprisonmentDate=#imprisonmentDate#,
+			laborEduAddress=#laborEduAddress#,
+			releaseOrBackDate=#releaseOrBackDate#,
+			isRepeat=#isRepeat#,
+			criminalBehavior=#criminalBehavior#,
+			agoProfession=#agoProfession.id#,
+			isCrime=#isCrime#,
+			resettlementDate=#resettlementDate#,
+			crimeDate=#crimeDate#,
+			noResettlementReason=#noResettlementReason#,
+			attentionExtent=#attentionExtent.id#
+		where id=#id#
+	</update>
+    
+	<select id="getPositiveInfoTempById" parameterClass="Long"
+		resultMap="positiveInfoTempResultForList">
+	  <![CDATA[
+	  	select * from DM_positiveInfos_TEMP where id = #value#
+	  ]]>
+	</select>
+	<delete id="deletePositiveInfoTempById" parameterClass="Long">
+	   delete DM_positiveInfos_TEMP where id = #value#
+	</delete>
+	<update id="updatePositiveInfoTempSateById" parameterClass="java.util.Map">
+		update DM_positiveInfos_TEMP set repeatState=#claimDetail.repeatState#  where id=#id#
+	</update>
+	<update id="updatePositiveInfoTempInIdByIdCardNoAndIdListAndOrgInternalCode"  parameterClass="java.util.Map">
+		update DM_positiveInfos_TEMP set InId = #id# where idCardNo = #idCardNo# and
+			(orgInternalCode like #orgInternalCode#||'%' or 
+				#orgInternalCode# like orgInternalCode||'%') and
+		 	(claimState = 1 or claimState is null or 
+			<iterate property="idList" conjunction="or">
+				id = #idList[]#
+			</iterate>
+		 )
+	</update>
+	<update id="updateRepeatState" parameterClass="PositiveInfoTemp">
+		update DM_positiveInfos_TEMP d set repeatState = 0
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_positiveInfos_TEMP t group by t.idCardNo having count(*)>1) 
+	</update>
+	<update id="updateRepeatStateForDelete" parameterClass="PositiveInfoTemp">
+		update DM_positiveInfos_TEMP d set repeatState = 1
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_positiveInfos_TEMP t group by t.idCardNo having count(*)=1) 
+	</update>
+	<update id="updatePositiveInfoTempInIdById"  parameterClass="java.util.Map">
+		update DM_positiveInfos_TEMP set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<select id="getPositiveInfoTempByInId" parameterClass="Long" resultMap="positiveInfoTempResultForList">
+	  <![CDATA[
+	  	select * from DM_positiveInfos_TEMP where inid = #value#
+	  ]]>
+	</select>
+	<select id="findPositiveInfoTempsByIdCardNoAndOrgInternalCode" resultMap="positiveInfoTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_positiveInfos_TEMP where  1=1 and 
+			(orgInternalCode like #orgInternalCode#||'%' or 
+				#orgInternalCode# like orgInternalCode||'%')
+			and(
+			<iterate property="idCardNo" conjunction="or">
+				upper(idCardNo) like upper(#idCardNo[]#)
+			</iterate>
+			)
+	</select>
+	<select id="findPositiveInfoTempsByIdCardNoAndImportOrgId" resultMap="positiveInfoTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_positiveInfos_TEMP where  1=1
+		<dynamic>
+			<isPropertyAvailable property="importDepartmentId">
+				<isNotNull property="importDepartmentId" prepend=" and ">
+					importDepartmentId=#claimDetail.importDepartmentId#
+				</isNotNull>
+			</isPropertyAvailable>
+				and(
+				<iterate property="idCardNo" conjunction="or">
+					upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+		</dynamic>
+	</select>
+	
+	<!-- 新写内容 -->
+	<select id="countFindTemps" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	<select id="findTemps" resultMap="positiveInfoTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<update id="updatePositiveInfoTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_positiveInfos_TEMP set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	<update id="updatePositiveInfoTempBase" parameterClass="PositiveInfoTemp">
+		update DM_positiveInfos_TEMP set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updatePositiveInfoTempBusiness" parameterClass="PositiveInfoTemp">
+		update DM_positiveInfos_TEMP set
+		<include refid="positiveInfoTemp.updateBusinessSql" />
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	
+</sqlMap>

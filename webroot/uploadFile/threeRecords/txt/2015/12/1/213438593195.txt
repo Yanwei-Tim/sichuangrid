@@ -1,0 +1,244 @@
+select cstep.ledgerid from platformAccountSteps cstep,ledgersteadywork lsw where lsw.id=cstep.ledgerId and cstep.ledgertype = 3 and cstep.stateCode < 500 
+and cstep.isSupported=0 and cstep.lastdealdate >=to_date('2015/10/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and cstep.lastdealdate < to_date('2015/10/31 23:59:59','yyyy/mm/dd,hh24:mi:ss')
+union all
+select id from ledgersteadywork where createDate>=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and createDate <  to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss')
+上月办理中和本月新建
+
+
+monthDoing--上月办理中：1
+createTableType--建表类型：2
+dealType--村级--处理类型：3（转接和本级收集）
+submit--村级--呈报数：4（包含转接和本级收集）
+
+turnSubmit--乡镇累计--累计收集--村级呈报数--其中上年接转数--------接转上年呈报总数：5      y:18
+currentYearSubmitAll--乡镇累计--累计收集--村级呈报数--小计------------今年呈报数总数：6        y:17
+turnSelfCreate--乡镇累计--累计收集--乡镇建账数--其中上年接转数-------------接转上年本级建账总数：7    y:20
+submitComplete--乡镇本月--本月办结--村级呈报件办结数------------8      y:43
+villageSubmitToJg--乡镇本月--本月办结--其中--村级呈报件呈报县台账办数-----------------------9     y:48
+townDealType--镇级--处理类型：10（只包含本级直接收集的）   y:44
+townSubmit--镇级--呈报数：11（只包含本级直接收集的）    y:47
+currentColFromSubmit--本月收集--呈报上来数量:12    y:35
+
+jsColTurn--台账办累计收集--乡镇呈报数：13        y:2
+jgTurnOut--台账办累计办结--转办县级部门数：14    y:6
+lastMonthTurnDoing--台账办本月--上月办理中--上月转办件办理中：15     y:12          
+currentMonthTurnDoing--台账办本月--本月办理中--本月转办件办理中：16     y:24  
+
+currentMonthDoing--本月办理中：17
+
+turnLastYearTurn--职能部门接转上年台账办转办数:18           y:2
+currentMonthTurn--职能部门，当月台账办转办数：19       y:20
+currentMonthDealTurn--本月办结--台账办转接的：20       y:28
+funDeclare--职能部门申报数:21              y:32,33
+
+ ##全县报表
+lastYearTurn--上年接转数：22
+
+
+
+completeCode:31
+periodCode:92
+turnDone：50
+
+lxOrgId:265);
+xwOrgId:264);
+
+
+
+'2015/11/01 00:00:00'   currentMonthBeginDate
+'2015/11/30 23:59:59'   currentMonthEndDate
+
+'2015/10/01 00:00:00'   lastMonthBeginDate
+'2015/10/31 23:59:59'   lastMonthEndDate
+
+'2014/12/31 23:59:59'   lastYearEndDate
+'2014/01/01 00:00:00'   lastYearBeginDate
+
+'2015/01/01 00:00:00'   currentYearBeginDate
+
+<!--民生建表-->
+ select 11 as month,orgId,to_char(ledgerType) as ledgertype,createTableType as countType,count(id) as num, 2 as dataType from ledgerPeopleAspirations where 
+createDate>=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and createDate <  to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss') group by orgId,ledgerType,createTableType
+
+<!--困难建表-->
+select 11 as month,orgid,poorType as ledgertype,countType,sum(num) as num, dataType from (
+
+select orgid,ledgertype,counttype,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype,datatype from 
+(select orgid,ledgertype,counttype,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt,datatype from  
+
+(select orgId,ledgerType,createTableType as countType,count(id) as num,poorType as poorType,null as steadyWorkType, 2 as dataType from ledgerpoorpeople where 
+createDate>=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and createDate <  to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss') group by orgId,ledgerType,createTableType,poorType)
+
+) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  
+  ) group by orgid,ledgertype,counttype,poortype,datatype
+  
+<!--稳定建表-->
+ select 11 as month, orgId,to_char(steadyWorkType) as ledgerType,createTableType as countType,count(*) as num,2 as dataType from ledgersteadywork where 
+createDate>=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and createDate <  to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss') group by orgId,ledgerType,createTableType,steadyWorkType
+
+
+
+
+
+
+
+
+<!--民生本月办结（本级收集、上月办理中、本月新建）-->
+  select 11 as month, lg.dealOrgid as orgid,to_char(lg.ledgertype) as ledgerType,lg.dealType as countType,count(ledgerid) as num,3 as dataType from (
+select dealOrgId,ledgerType,dealType,ledgerId,row_number() over(partition by dealOrgId,ledgerType,ledgerId order by id desc) rn from platformaccountlogs where 
+dealTime >=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime< to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss')
+and ledgerid not in
+
+(select ledgerid from(
+ select dealTime, dealType, ledgerId, row_number() over(partition by ledgerType,ledgerId order by id desc) rn from platformaccountlogs where ledgerType not in (2,3)
+ ) where rn=1 and dealTime >=to_date('2015/10/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime< to_date('2015/10/31 23:59:59','yyyy/mm/dd,hh24:mi:ss') and dealType is not null and dealType <> 1)
+ 
+)lg,ledgerpeopleaspirations lpp where lg.dealOrgid=lpp.orgid and lpp.id=lg.ledgerid and rn = 1 and dealType is not null and dealType <> 1 group by lg.dealOrgid,lg.ledgertype,lg.dealType
+				
+<!--困难本月办结（本级收集、上月办理中、本月收集）-->
+select 11 as month, orgid,poorType as ledgertype,countType,sum(num) as num, dataType from (
+
+select orgid,counttype,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype,datatype from (
+
+select orgid,counttype,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt,datatype from(
+
+select lg.dealOrgId as orgId,lg.dealType as countType,count(*) as num,lpp.poortype as poorType,3 as dataType from 
+(select dealOrgId,ledgerType,dealType,ledgerId from(select pl.dealTime,pl.dealOrgId,pl.ledgerType,pl.dealType,pl.ledgerId,row_number() over(partition by pl.dealOrgId,pl.ledgerType,pl.ledgerId order by pl.id desc) rn from 
+platformaccountlogs pl where pl.dealTime >=to_date('2013/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and 
+pl.dealTime< to_date('2013/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss') and pl.ledgerid not in(select ledgerid from(
+ select dealTime, dealType, ledgerId, row_number() over(partition by ledgerType,ledgerId order by id desc) rn from platformaccountlogs where ledgerType = 2
+ ) where rn=1 and dealTime >=to_date('2015/10/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime< to_date('2015/10/31 23:59:59','yyyy/mm/dd,hh24:mi:ss') and dealType is not null and dealType <> 1)) t1 where rn=1 and t1.dealType is not null and t1.dealtype != 1) lg, 
+                ledgerpoorpeople lpp where lg.ledgerid=lpp.id and lg.dealorgid = lpp.orgid and lg.ledgertype = 2
+            group by lg.dealOrgId,lg.ledgerType,lg.dealType,lpp.poortype            
+            
+            )) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  
+) group by orgid,counttype,poortype,datatype
+
+<!--稳定本月办结（本级收集、上月办理中、本月收集）-->
+select 11 as month, lg.dealOrgId as orgId,to_char(lpp.steadyWorkType) as ledgerType,lg.dealType as countType,count(lg.ledgerid) as num,3 as dataType from(          
+select dealTime,id,dealOrgId,ledgerType,dealType,ledgerId,row_number() over(partition by dealOrgId,ledgerType,ledgerId order by id desc) rn from 
+platformaccountlogs where dealTime >=to_date('2013/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime< to_date('2013/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss')
+and ledgerid not in(select ledgerid from(
+ select dealTime, dealType, ledgerId, row_number() over(partition by ledgerType,ledgerId order by id desc) rn from platformaccountlogs where ledgerType = 3
+ ) where rn=1 and dealTime >=to_date('2015/10/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime< to_date('2015/10/31 23:59:59','yyyy/mm/dd,hh24:mi:ss') and dealType is not null and dealType <> 1)
+)lg,ledgersteadywork lpp where lg.ledgerid = lpp.id and lg.dealOrgId = lpp.orgid and lpp.steadyWorkType is not null and rn = 1 and dealType is not null and dealtype != 1 group by lg.dealOrgId,lpp.steadyWorkType,lg.dealType
+
+
+
+
+
+
+<!--民生上月办理中（本级收集）-->
+select 11 as month,t1.dealOrgId as orgId,to_char(t1.ledgertype) as ledgerType,decode(t1.dealType,1,-1,null,-1) as countType, count(t1.ledgerId) as num,1 as dataType from(
+select dealTime, dealOrgId, ledgerType, dealType, ledgerId, row_number() over(partition by dealOrgId,ledgerType,ledgerId order by id desc) rn from platformaccountlogs
+ )t1,ledgerpeopleaspirations lpp where t1.ledgerId=lpp.id and t1.dealOrgId=lpp.orgId and t1.rn=1 and (t1.dealType=1 or t1.dealType is null) and t1.dealTime >=to_date('2015/10/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') 
+ and t1.dealTime  < to_date('2015/10/31 23:59:59','yyyy/mm/dd,hh24:mi:ss')
+ group by t1.dealOrgId,t1.ledgerType,t1.dealType
+ 
+<!--困难上月办理中（本级收集）-->
+ select 11 as month, orgid,poorType as ledgertype,countType,sum(num) as num, dataType from (
+
+select orgid,counttype,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype,datatype from 
+(select orgid,counttype,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt,datatype from (
+
+select t1.dealOrgId as orgId,decode(t1.dealType,1,-1,null,-1) as countType,count(t1.id) as num,lpp.poorType as poorType,1 as dataType from
+(select dealTime, id, dealOrgId, ledgerType, dealType, ledgerId, row_number() over(partition by dealOrgId,ledgerType,ledgerId order by id desc) rn from platformaccountlogs)t1,ledgerpoorpeople lpp
+ where t1.ledgerId = lpp.id and t1.dealOrgId=lpp.orgId and rn=1 and t1.dealTime >=to_date('2015/10/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and t1.dealTime < to_date('2015/10/31 23:59:59','yyyy/mm/dd,hh24:mi:ss') 
+ and (t1.dealType = 1 or t1.dealType is null) group by t1.dealOrgId,t1.ledgerType,lpp.poorType,t1.dealType
+ 
+ )) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  
+) group by orgid,counttype,poortype,datatype
+
+<!--稳定上月办理中（本级收集）-->
+select 11 as month, t1.dealOrgId as orgId,to_char(lpp.steadyWorkType) as ledgerType,decode(t1.dealType,1,-1,null,-1) as countType,count(t1.ledgerId) as num,1 as dataType from(
+select dealTime, id, dealOrgId, ledgerType, dealType, ledgerId, row_number() over(partition by dealOrgId, ledgerType, ledgerId order by id desc) rn from platformaccountlogs) t1,ledgersteadywork lpp
+where rn=1 and t1.ledgerId = lpp.id and t1.dealOrgId = lpp.orgId and t1.dealTime >=to_date('2015/10/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and t1.dealTime  < to_date('2015/10/31 23:59:59','yyyy/mm/dd,hh24:mi:ss') 
+and lpp.steadyWorkType is not null and (t1.dealType = 1 or t1.dealType is null)
+ group by t1.dealOrgId,t1.ledgerType,t1.dealType,lpp.steadyWorkType
+ 
+ 
+ 
+ 
+ 
+<!--民生呈报数(本级收集、上月办理中、本月新建)-->
+select 11 as month, dealOrgid as orgid, to_char(ledgertype) as ledgerType,-2 as countType,count(ledgerid) as num,4 as dataType from(
+select lg.dealOrgid, lg.ledgertype,lg.ledgerid from platformaccountlogs lg,ledgerpeopleaspirations lpp where lg.dealtype = 41 and lg.dealTime >=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and 
+lg.dealTime < to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss') and lg.ledgerid = lpp.id and lg.dealOrgId = lpp.orgId and lg.ledgerid not in (select ledgerid from(
+ select dealTime, dealType, ledgerId, row_number() over(partition by ledgerType,ledgerId order by id desc) rn from platformaccountlogs where ledgerType not in (2,3)
+ ) where rn=1 and dealTime >=to_date('2015/10/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime< to_date('2015/10/31 23:59:59','yyyy/mm/dd,hh24:mi:ss') and dealType is not null and dealType <> 1)
+group by lg.dealorgid,lg.ledgertype,lg.ledgerid
+) group by dealorgid,ledgertype
+
+<!--困难呈报数(本级收集)-->
+ select 11 as month,orgid,poorType as ledgertype,countType,sum(num) as num, dataType from (
+
+select orgid,counttype,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype,datatype from (
+select orgid,counttype,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt,datatype from (
+
+select dealOrgid as orgid, poorType,-2 as countType,count(ledgerid) as num,4 as dataType from(
+select lg.dealOrgid, lg.ledgerid,lpp.poorType from platformaccountlogs lg,ledgerpoorpeople lpp where lg.dealtype = 41 and lg.dealTime >=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and 
+lg.dealTime < to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss') and lg.ledgerid = lpp.id and lg.dealOrgId = lpp.orgId and lg.ledgerid not in(select ledgerid from(
+ select dealTime, dealType, ledgerId, row_number() over(partition by ledgerType,ledgerId order by id desc) rn from platformaccountlogs where ledgerType = 2
+ ) where rn=1 and dealTime >=to_date('2015/10/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime< to_date('2015/10/31 23:59:59','yyyy/mm/dd,hh24:mi:ss') and dealType is not null and dealType <> 1)
+group by lg.dealorgid, lg.ledgerid,lpp.poortype) group by dealOrgId,poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by orgid,counttype,poortype,datatype
+  
+ <!--稳定呈报数(本级收集)-->
+  select 11 as month, dealOrgid as orgid, to_char(ledgertype) as ledgerType,-2 as countType,count(ledgerid) as num,4 as dataType from(
+select lg.dealOrgid, lpp.steadyWorkType as ledgerType,lg.ledgerid from platformaccountlogs lg,ledgersteadywork lpp where lg.dealtype = 41 and lg.dealTime >=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and 
+lg.dealTime < to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss') and lg.ledgerid = lpp.id and lg.dealOrgId = lpp.orgId and lg.ledgerid not in(select ledgerid from(
+ select dealTime, dealType, ledgerId, row_number() over(partition by ledgerType,ledgerId order by id desc) rn from platformaccountlogs where ledgerType = 3
+ ) where rn=1 and dealTime >=to_date('2015/10/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime< to_date('2015/10/31 23:59:59','yyyy/mm/dd,hh24:mi:ss') and dealType is not null and dealType <> 1)
+group by lg.dealorgid,lpp.steadyWorkType,lg.ledgerid
+) group by dealorgid,ledgertype
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+------------------------------------------页签统计方式---------------------------------------------
+
+
+
+--待办（办理中）PeriodDone(本级收集)
+select iu.orgId,cstep.ledgerType,count(cstep.ledgerId) from platformAccountSteps cstep,ledgerPeopleAspirations iu  where iu.id=cstep.ledgerId and cstep.target=iu.orgid and cstep.stateCode < 500
+and cstep.isSupported = 0 and cstep.lastdealdate >= to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') group by iu.orgid,cstep.ledgertype
+--程序性办结（本级收集）
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+select iu.orgId,iu.ledgerType,count(ledgerid) from (
+
+       select target,ledgerId from platformAccountSteps where id in 
+                (select max(id) from platformAccountSteps cstep  where cstep.stateCode = 500 and cstep.isFeedBack=1 and cstep.ledgerType not in(2,3) 
+                 and lastdealdate >= to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and lastdealdate < to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss') group by ledgerId)
+                ) istep,ledgerPeopleAspirations iu where istep.ledgerId=iu.id and istep.target=iu.orgId and iu.serialnumber like '15'||'%' 
+                
+                and istep.ledgerid not in (select ledgerid from platformaccountsteps where dealType = 31 and ledgerid in 
+ 		 (select ledgerid from platformaccountsteps where stateCode = 500 or stateCode = 700 and isFeedBack=1 and ledgerType not in(2,3) group by ledgerid) 
+     and ledgertype not in(2,3)) group by iu.orgId,iu.ledgerType
+
+--阶段性办结（本级收集）时间（月度）
+select iu.ledgerType,istep.target,count(ledgerId) from (
+                select target,ledgerId from platformAccountSteps where id in  (select max(id) from platformAccountSteps cstep where cstep.stateCode = 600 and cstep.ledgerType not in(2,3)
+                and lastdealdate >= to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and lastdealdate < to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss') group by ledgerId)
+        ) istep,ledgerPeopleAspirations iu where istep.ledgerId=iu.id and istep.target=iu.orgid group by iu.ledgerType,istep.target
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------

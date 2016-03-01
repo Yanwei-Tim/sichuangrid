@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="historicalIssue">
+	<typeAlias alias="HistoricalIssue" type="com.tianque.issue.domain.HistoricalIssue"/>
+	<typeAlias alias="IssueViewObject" type="com.tianque.issue.vo.IssueViewObject" />
+	
+	<parameterMap class="HistoricalIssue" id="historicalIssue">
+	    <parameter property="id"/>
+		<parameter property="issueNew"/>
+		<parameter property="organization"/>
+		<parameter property="issueLogNew"/>
+		<parameter property="orgInternalCode"/>
+	</parameterMap>
+	
+	<resultMap class="HistoricalIssue" id="historicalIssueResult">
+	    <result property="id" column="id"/>
+		<result property="issueNew.id" column="issueId"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="issueLogNew.id" column="issueLogId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+	</resultMap>
+	
+	<resultMap id="issueViewResult" class="IssueViewObject">
+		<result property="issueId" column="issueId" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="subject" column="subject" />
+		<result property="status" column="status" />
+		<result property="occurDate" column="occurDate" />
+		<result property="currentOrg.id" column="currentOrg" />
+		<result property="occurOrg.id" column="occurOrg" />
+		<result property="dealTime" column="lastdealdate" />
+		<result property="sourcePerson" column="sourcePerson" />
+		<result property="sourceKind.id" column="sourceKind" />
+		<result property="sourceMobile" column="sourceMobile" />
+		<result property="issueLogId" column="stepId" />
+		<result property="supervisionState" column="superviselevel" />
+		<result property="urgent" column="urgent" />
+		<result property="dealState" column="statecode" />
+		<result property="lastOrg.id" column="lastOrg" />
+	</resultMap>
+
+	<insert id="addHistoricalIssue" parameterClass="HistoricalIssue">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_historicalIssues.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		<![CDATA[INSERT INTO historicalIssues (id,issueId,orgId,issueLogId,orgInternalCode) 
+		values (#id#,#issueNew.id#,#organization.id#,#issueLogNew.id#,#orgInternalCode#)]]>
+	</insert>
+	
+	<delete id="deleteHistoricalIssueByIssueIdAndOrgId" parameterClass="java.util.Map">
+		<![CDATA[ delete from historicalIssues where issueId = #issueId# and orgId = #orgId#]]>
+	</delete>
+	<delete id="deleteHistoricalIssueByIssueId" parameterClass="java.lang.Long">
+		<![CDATA[ delete from historicalIssues where issueId = #issueId#]]>
+	</delete>
+	<select id="findHistoricalIssueByIssueIdAndOrgId" parameterClass="java.util.Map" resultMap="historicalIssueResult">
+		<![CDATA[ select * from historicalIssues where issueId = #issueId# and orgId = #orgId#]]>
+	</select>
+	
+	<select id="findHistoricalIssueById" parameterClass="java.lang.Long" resultMap="historicalIssueResult">
+		<![CDATA[select * from historicalIssues where id = #id#]]>
+	</select>
+	
+	<select id="findHistoricalIssueForPage" parameterClass="java.util.Map" resultMap="issueViewResult">
+		<![CDATA[
+		select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,iu.currentOrg,iu.occurorg,isteps.lastdealdate, 
+		iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, isteps.id as stepId,isteps.superviselevel,iu.lastOrg,isteps.statecode 
+		from historicalIssues hi,issues iu,issuesteps isteps where hi.orgId=#orgId# and iu.id=hi.issueId and isteps.id=iu.currentStep 
+		]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findHistoricalIssueForPageCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[select count(*) from historicalIssues where orgId = #orgId#]]>
+	</select>
+</sqlMap>

@@ -1,0 +1,126 @@
+package com.tianque.plugin.account.controller;
+
+import java.util.Map;
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.core.base.BaseAction;
+import com.tianque.domain.Organization;
+import com.tianque.domain.property.OrganizationLevel;
+import com.tianque.domain.property.OrganizationType;
+import com.tianque.plugin.account.report.service.AccountReportDubboService;
+import com.tianque.plugin.account.util.DialogMode;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.userAuth.api.PropertyDictDubboService;
+
+@Scope("request")
+@Namespace("/threeRecords/accountReport")
+@Controller("threeAccountReportController")
+public class ThreeAccountReportController extends BaseAction {
+
+	private Long orgId;
+	private Integer year;
+	private Integer month;
+	private Map<Integer, Map<Integer, Integer>> resultMap;
+	@Autowired
+	private AccountReportDubboService accountReportDubboService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+    private PropertyDictDubboService propertyDictDubboService;
+	private int reportType;
+	
+	@Action(value = "getDataReport", results = {
+			@Result(name = "success", type = "json", params = { "root", "resultMap", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String getDataReport() throws Exception {
+		if (orgId == null) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		resultMap = accountReportDubboService.getDataReport(orgId, year, month);
+		if (DialogMode.SEARCH_MODE.equalsIgnoreCase(mode)) {
+			return DialogMode.SEARCH_MODE;
+		}
+		return SUCCESS;
+	}
+	
+	@Action(value = "getSelectOrg", results = {
+			@Result(name = "success", type = "json", params = { "root", "reportType", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String getSelectOrganization() throws Exception {
+		if (orgId == null) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		long functionType = propertyDictDubboService.findPropertyDictByDomainNameAndDictDisplayName(OrganizationType.ORG_TYPE_KEY, OrganizationType.FUNCTION_KEY).getId();
+		Organization selectOrg = organizationDubboService.getSimpleOrgById(orgId);
+		int orgLevel = propertyDictDubboService.getPropertyDictById(selectOrg.getOrgLevel().getId()).getInternalId();
+		if (orgLevel == OrganizationLevel.VILLAGE) {
+    		reportType = 1;//村社区
+        }else if (orgLevel == OrganizationLevel.TOWN) {
+        	reportType = 2;//乡镇
+        }else if (orgLevel == OrganizationLevel.DISTRICT) {
+            if (selectOrg.getOrgType().getId() == functionType) {
+                String strDepartment = selectOrg.getDepartmentNo();
+                if (strDepartment.endsWith("1jg")) {
+                	reportType = 3;//台账办
+                } else {
+                	reportType = 4;//职能部门
+                }
+            }else{
+            	reportType = 5;//全县
+            }
+        }
+		if (DialogMode.SEARCH_MODE.equalsIgnoreCase(mode)) {
+			return DialogMode.SEARCH_MODE;
+		}
+		System.out.println(reportType);
+		return SUCCESS;
+	}
+
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+	public Integer getYear() {
+		return year;
+	}
+
+	public void setYear(Integer year) {
+		this.year = year;
+	}
+
+	public Integer getMonth() {
+		return month;
+	}
+
+	public void setMonth(Integer month) {
+		this.month = month;
+	}
+
+	public Map<Integer, Map<Integer, Integer>> getResultMap() {
+		return resultMap;
+	}
+
+	public void setResultMap(Map<Integer, Map<Integer, Integer>> resultMap) {
+		this.resultMap = resultMap;
+	}
+
+	public int getReportType() {
+		return reportType;
+	}
+
+	public void setReportType(int reportType) {
+		this.reportType = reportType;
+	}
+}

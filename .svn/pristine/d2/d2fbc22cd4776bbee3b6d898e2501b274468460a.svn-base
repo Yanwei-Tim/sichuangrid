@@ -1,0 +1,51 @@
+package com.tianque.plugin.taskList.service;
+
+import java.util.List;
+
+import com.tianque.plugin.taskList.domain.BaseTaskVisit;
+import com.tianque.plugin.taskList.domain.FloatingPopulationTask;
+import com.tianque.plugin.taskList.domain.HiddenDangerTask;
+import com.tianque.plugin.taskList.domain.Receipt;
+import com.tianque.plugin.taskList.domain.TaskListReply;
+
+/**
+ * 任务清单业务层公共方法
+ * @author lanhaifeng
+ *
+ */
+public interface TaskListCommonService {
+	/**
+	 * 签收方法
+	 * @param receipt 签收信息
+	 */
+	public void updateReceiptStatus(Receipt receipt, String signType);
+
+	public List<BaseTaskVisit> getAllKindTask(Long orgId);
+
+	public List<FloatingPopulationTask> getFloatingPopulationTaskList(Long orgId);
+
+	public List<HiddenDangerTask> getHiddenDangerVisitList(Long orgId);
+
+	/**
+	 * 特殊人群统计报表数据获取
+	 * @param orgId  组织层级id
+	 * @return
+	 */
+	public List<BaseTaskVisit> getSpecialGroupSumAndVisitList(Long orgId);
+
+	/**
+	 * 新增回复
+	 * @Title: addTaskListReply 
+	 * @param taskListReply
+	 * @return
+	 * @return: TaskListReply
+	 */
+	public TaskListReply addTaskListReply(TaskListReply taskListReply);
+
+	/**
+	 * 查询回复集合
+	 * @param data 该附件的功能模块对象id和功能模块对象名
+	 * @return
+	 */
+	public List<TaskListReply> queryTaskListReplyByTaskId(String moduleKey, Long taskId);
+}

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="IssueJointStep">
+	<typeAlias alias="IssueJointLog" type="com.tianque.issueAbutmentJoint.domain.IssueJointLog"/>
+	<typeAlias alias="IssueJointStep" type="com.tianque.issueAbutmentJoint.domain.IssueJointStep"/>
+	<typeAlias alias="IssueJoint" type="com.tianque.issueAbutmentJoint.domain.IssueJoint"/>
+	<resultMap class="IssueJointStep" id="issueJointStepResult">
+		<result property="id" column="id"/>
+		<result property="source.id" column="source"/>
+		<result property="source.orgInternalCode" column="sourceinternalcode"/>
+		<result property="target.id" column="target"/>
+		<result property="target.orgInternalCode" column="targetinternalcode"/>
+		<result property="entryDate" column="entrydate"/>
+		<result property="endDate" column="enddate"/>
+		<result property="lastDealDate" column="lastdealdate"/>
+		<result property="stateCode" column="statecode"/>
+		<result property="issueJoint.id" column="issue"/>
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<insert id="addIssueJointStepByIssueJointByImport" parameterClass="IssueJointStep">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_issueJointSteps.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into issueJointSteps(
+		id,source,sourceinternalcode,target,targetinternalcode,entrydate,enddate,lastdealdate,statecode,issue,createUser,createDate,updateUser,updateDate
+		) 
+		values (
+		#id#,#source.id#,#source.orgInternalCode#,#target.id#,#target.orgInternalCode#,#entryDate#,#endDate#,#lastDealDate#,#stateCode#,#issueJoint.id#,#createUser#,#entryDate#,#createUser#,#endDate#
+		)
+	</insert>
+	
+	<select id="getIssueJointStepById" parameterClass="java.lang.Long" resultMap="issueJointStepResult">
+		select * from issueJointSteps where id = #value#
+	</select>
+</sqlMap>

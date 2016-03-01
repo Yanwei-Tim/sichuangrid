@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="idleYouthTemp">
+    <typeAlias alias="IdleYouthTemp" type="com.tianque.plugin.dataManage.population.idleYouthTemp.domain.IdleYouthTemp" />
+    <typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+    	
+    <resultMap id="idleYouthTempResultForBase" class="IdleYouthTemp" extends="attentionPopulationTempBaseInfo.attentionPopulationBaseInfoResult">
+		<result property="staffType" column="id" select="idleYouth.loadStaffType"/>
+		<result property="workCondition" column="workCondition"/>
+		<result property="isStayInSchool" column="isStayInSchool"/>
+		<result property="schoolName" column="schoolName"/>
+		<result property="guardianName" column="guardianName"/>
+		<result property="guardianTelephone"  column="guardianTelephone"/>
+		<result property="helpingSituation.id"  column="helpingSituation"/>
+	</resultMap>
+    <resultMap id="idleYouthTempResultForList" class="IdleYouthTemp" extends="idleYouthTemp.idleYouthTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<resultMap id="propertyDictResult" class="com.tianque.domain.PropertyDict">
+		<result property="id" column="id"/>
+		<result property="displayName" column="displayName"/>
+	</resultMap>
+	<resultMap id="fullIdleYouthTempResult" class="IdleYouthTemp" extends="idleYouthTemp.idleYouthTempResultForList">
+		<result property="staffType" column="id" select="idleYouthTemp.loadStaffType"/>
+	</resultMap>
+	<select id="loadStaffType" resultMap="propertyDictResult">
+		<![CDATA[select p.* from DM_idleYouthsHasDicts_temp  hDicts
+		left join propertyDicts p on p.id=hDicts.propertyDictId where hDicts.idleYouthsTempId=#value#]]>
+	</select>
+	
+	<delete id="deleteStaffTypeByIdleYouthId" parameterClass="java.lang.Long">
+		delete from DM_idleYouthsHasDicts_temp where idleYouthsTempId=#idleYouthsTempId#
+	</delete>
+	<select id="getIdleTempHasPropertyDictsById" parameterClass="java.lang.Long" resultClass="java.util.List">
+		select propertyDictId from DM_idleYouthsHasDicts_temp where idleYouthsTempId=#value#
+	</select>
+	
+	<sql id="claim_sql_where">
+		from DM_idleYouths_temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	
+	<sql id="updateBusinessSql">
+		attentionExtent=#attentionExtent.id#,
+		workCondition=#workCondition#,
+		isStayInSchool=#isStayInSchool#,
+		schoolName=#schoolName#
+	</sql>
+	
+	<select id="findTempPageList" resultMap="idleYouthTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countTempList" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	
+	<insert id="addIdleYouthTemp" parameterClass="IdleYouthTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_idleYouths_temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_idleYouths_temp
+		(
+		<include refid="populationTempBaseInfo.addBaseInfoFields"/>
+		,<include refid="dataManage.addDataManage"/>
+		,attentionExtent
+		,actualPopulationType
+		,workCondition
+		,isStayInSchool
+		,schoolName
+		,guardianName
+		,guardianTelephone
+		,helpingSituation
+		)
+		values
+		(
+		<include refid="populationTempBaseInfo.addBaseInfoData"/>
+		,<include refid="dataManage.addValueDataManage"/>
+		,#attentionExtent.id#
+		,#actualPopulationType#
+		,#workCondition#
+		,#isStayInSchool#
+		,#schoolName#
+		,#guardianName#
+		,#guardianTelephone#
+		,#helpingSituation.id#
+		)
+    	
+    
+    </insert>
+    <insert id="addStaffType" parameterClass="java.util.Map">
+    	INSERT INTO DM_idleYouthsHasDicts_temp (propertyDictId,idleYouthsTempId)
+		VALUES(#staffId#,#id#)
+    </insert>
+    
+    <delete id="deleteStaffTypes" parameterClass="Long">
+    	delete DM_idleYouthsHasDicts_temp where idleYouthsTempId=#value#
+    </delete>
+    <select id="getIdleYouthTempById" parameterClass="Long"
+		resultMap="fullIdleYouthTempResult">
+	  <![CDATA[
+	  	select * from DM_idleYouths_temp where id = #value#
+	  ]]>
+	</select>
+	<delete id="deleteIdleYouthTempById" parameterClass="Long">
+	   delete DM_idleYouths_temp where id = #value#
+	</delete>
+	<select id="getIdleYouthTempByInId" parameterClass="Long"
+		resultMap="fullIdleYouthTempResult">
+	  <![CDATA[
+	  	select * from DM_idleYouths_temp where inid = #value#
+	  ]]>
+	</select>
+	<update id="updateRepeatState" parameterClass="IdleYouthTemp">
+		update DM_idleYouths_temp d set repeatState = 0
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_idleYouths_temp t group by t.idCardNo having count(*)>1) 
+	</update>
+	<update id="updateRepeatStateForDelete" parameterClass="IdleYouthTemp">
+		update DM_idleYouths_temp d set repeatState = 1
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_idleYouths_temp t group by t.idCardNo having count(*)=1) 
+	</update>
+	<update id="updateIdleYouthTemp" parameterClass="IdleYouthTemp">
+		update DM_idleYouths_temp set
+		<dynamic>
+           <include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+			<isPropertyAvailable prepend="," property="attentionExtent">
+				attentionExtent=#attentionExtent.id#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workCondition" prepend=",">
+				workCondition=#workCondition#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isStayInSchool" prepend=",">
+				isStayInSchool=#isStayInSchool#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="schoolName" prepend=",">
+				schoolName=#schoolName#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="guardianName" prepend=",">
+				guardianName=#guardianName#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="guardianTelephone" prepend=",">
+				guardianTelephone=#guardianTelephone#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="helpingSituation" prepend=",">
+				helpingSituation=#helpingSituation.id#
+			</isPropertyAvailable>
+			<include refid="dataManage.updateDataManage"/>
+            where id=#id#
+         </dynamic>
+	</update>
+	
+	<!-- 新写内容 -->
+	<select id="countFindTemps" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	<select id="findTemps" resultMap="idleYouthTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<update id="updateIdleYouthTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_idleYouths_temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	<update id="updateIdleYouthTempBase" parameterClass="IdleYouthTemp">
+		update DM_idleYouths_temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updateIdleYouthTempBusiness" parameterClass="IdleYouthTemp">
+		update DM_idleYouths_temp set
+		<include refid="idleYouthTemp.updateBusinessSql" />
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	
+</sqlMap>

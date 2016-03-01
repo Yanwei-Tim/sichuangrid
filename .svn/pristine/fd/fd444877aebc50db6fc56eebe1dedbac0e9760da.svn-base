@@ -1,0 +1,35 @@
+package com.tianque.plugin.taskList.service;
+
+import java.util.List;
+
+import com.tianque.plugin.taskList.domain.BaseTaskVisit;
+import com.tianque.plugin.taskList.domain.FloatingPopulationTask;
+import com.tianque.plugin.taskList.domain.HiddenDangerTask;
+import com.tianque.plugin.taskList.domain.Receipt;
+
+/**
+ * 任务清单业务层公共方法
+ * @author lanhaifeng
+ *
+ */
+public interface TaskListCommonService {
+	/**
+	 * 签收方法
+	 * @param receipt 签收信息
+	 */
+	public void updateReceiptStatus(Receipt receipt, String signType);
+
+	public List<BaseTaskVisit> getAllKindTask(Long orgId);
+
+	public List<FloatingPopulationTask> getFloatingPopulationTaskList(Long orgId);
+
+	public List<HiddenDangerTask> getHiddenDangerVisitList(Long orgId);
+
+	/**
+	 * 特殊人群统计报表数据获取
+	 * @param orgId  组织层级id
+	 * @return
+	 */
+	public List<BaseTaskVisit> getSpecialGroupSumAndVisitList(Long orgId);
+
+}

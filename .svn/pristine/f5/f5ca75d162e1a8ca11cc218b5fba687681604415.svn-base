@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ModuleTable">
+	<typeAlias alias="moduleTable" type="com.tianque.plugin.orgchange.domain.ModuleTable" />
+	<typeAlias alias="TableInfo" type="com.tianque.plugin.orgchange.domain.TableInfo"/>
+	<typeAlias alias="ColumnInfo" type="com.tianque.plugin.orgchange.domain.ColumnInfo"/>
+	
+	<resultMap id="moduleTableResult" class="moduleTable">
+		<result property="id" column="id"/>
+		<result property="permission.ename" column="ename"/>
+		<result property="active" column="active"/>
+		<result property="tableName" column="tableName"/>
+		<result property="beanName" column="beanName"/>
+		<result property="split" column="split"/>
+		<result property="orgIdColumn" column="orgIdColumn"/>
+		<result property="orgCodeColumn" column="orgCodeColumn"/>
+		<result property="executeType" column="executeType"/>
+		<result property="isMainTable" column="isMainTable"/>
+		<result property="executeLevel" column="executeLevel"/>
+		<result property="operateMode" column="operateMode"/>
+		<result property="countScript" column="countScript"/>
+		<result property="selectScript" column="selectScript"/>
+		<result property="deleteScript" column="deleteScript"/>
+		<result property="updateScript" column="updateScript"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+	
+	<resultMap id="tableInfoResult" class="TableInfo">
+		<result property="tableName" column="table_Name"/>
+		<result property="comments" column="comments"/>
+	</resultMap>
+	
+	<resultMap id="columnInfoResult" class="ColumnInfo">
+		<result property="tableName" column="table_Name"/>
+		<result property="columnName" column="column_Name"/>
+		<result property="comments" column="comments"/>
+	</resultMap>
+	
+	<sql id="sql_where">
+		<isNotEmpty prepend=" and " property="moduleTable.permission.ename">
+        	ename=#moduleTable.permission.ename#
+        </isNotEmpty>
+	</sql>
+	
+	<insert id="addModuleTable" parameterClass="moduleTable">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_MODULETABLE.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into moduleTable(
+		id,ename,active,tableName,split,beanName,orgIdColumn,orgCodeColumn,executeType,isMainTable,executeLevel,operateMode,countScript,selectScript,deleteScript,updateScript
+		,createUser,createDate,updateUser,updateDate
+		)values(
+		#id#,#permission.ename#,#active#,#tableName#,#split#,#beanName#,#orgIdColumn#,#orgCodeColumn#,#executeType#,#isMainTable#,
+		#executeLevel#,#operateMode#,#countScript#,#selectScript#,#deleteScript#,#updateScript#,
+		#createUser#,#createDate#,#updateUser#,#updateDate#
+		)
+	</insert>
+	
+	<delete id="deleteModuleTable" parameterClass="java.lang.Long">
+		delete from moduleTable where id = #value#
+	</delete>
+	
+	<update id="updateModuleTable" parameterClass="moduleTable">
+		update moduleTable set 
+		ename=#permission.ename#,
+		beanName=#beanName#,
+		executeLevel=#executeLevel#,
+		tableName=#tableName#,
+		split=#split#,
+		orgIdColumn=#orgIdColumn#,
+		orgCodeColumn=#orgCodeColumn#,
+		executeType=#executeType#,
+		isMainTable=#isMainTable#,
+		countScript=#countScript#,
+		selectScript=#selectScript#,
+		deleteScript=#deleteScript#,
+		updateScript=#updateScript#,
+	    updateUser=#updateUser#,
+	    updateDate=#updateDate#
+	    where id=#id#
+	</update>
+	
+	<select id="queryModuleTableForList" parameterClass="java.lang.String" resultMap="moduleTableResult">
+		select * from moduleTable where ename = #value#
+	</select>
+	
+	<select id="getModueTableById" parameterClass="java.lang.Long" resultMap="moduleTableResult">
+	   select * from moduleTable where id = #value#
+	</select>
+	
+	<select id="queryAllForList" parameterClass="java.lang.Boolean" resultMap="moduleTableResult">
+		select * from moduleTable where active = #value#
+	</select>
+	
+	<select id="getCount" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+	   select count(*) from moduleTable
+	   <isNotEmpty property="value">
+	     where ename = #value#
+	   </isNotEmpty>
+	</select>
+	
+	<select id="queryTableInfosForPageResultCount" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from user_tables a, user_tab_comments b where a.table_name = b.table_name
+ 			<isNotEmpty property="tableInfo.tableName" prepend="and">
+				b.table_name like #tableInfo.tableName#||'%'
+			</isNotEmpty>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+	</select>
+	<select id="queryColumnInfosForPageResultCount" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from user_col_comments uc where uc.table_name = #columnInfo.tableName#
+			<isNotEmpty property="columnInfo.columnName" prepend="and">
+				uc.column_Name like #columnInfo.columnName#||'%'
+			</isNotEmpty>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+	</select>
+	
+	
+	<select id="queryfindModuleTableForPageResultCount" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from moduleTable where 1=1
+		 	<include refid="sql_where" />
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+	</select>
+	
+	<select id="queryfindModuleTableForPageResult" parameterClass="java.util.Map"
+		resultMap="moduleTableResult">
+		select * from moduleTable where 1=1
+		 	<include refid="sql_where" />
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+	</select>
+	
+	<select id="queryTableInfosForPageResult" parameterClass="java.util.Map"
+		resultMap="tableInfoResult">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom" > 
+			    <include refid="common.sql_select_page_start"/>
+			</isNotNull>
+		 </isPropertyAvailable>
+			select b.* from user_tables a, user_tab_comments b where a.table_name = b.table_name
+ 			<isNotEmpty property="tableInfo.tableName" prepend="and">
+				b.table_name like #tableInfo.tableName#||'%'
+			</isNotEmpty>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		 <isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom" >
+				<include refid="common.sql_select_page_end"/>
+			</isNotNull>
+		 </isPropertyAvailable>
+	</select>
+	
+	<select id="queryColumnInfosForPageResult" parameterClass="java.util.Map"
+		resultMap="columnInfoResult">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom" > 
+			    <include refid="common.sql_select_page_start"/>
+			</isNotNull>
+		 </isPropertyAvailable>
+			select * from user_col_comments uc where uc.table_name = #columnInfo.tableName#
+			<isNotEmpty prepend="and" property="data_type">
+				exists(select * from user_tab_columns ut where ut.table_name = uc.table_name and ut.column_name= uc.column_name and data_type = #data_type#)
+			</isNotEmpty>
+			<isNotEmpty property="columnInfo.columnName" prepend="and">
+				uc.column_Name like #columnInfo.columnName#||'%'
+			</isNotEmpty>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		 <isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom" >
+				<include refid="common.sql_select_page_end"/>
+			</isNotNull>
+		 </isPropertyAvailable>
+	</select>
+	
+	<update id="updateMpduleTable" parameterClass="java.util.Map">
+		update moduleTable set active=#active# where 1=1
+		<isNotEmpty prepend="and" property="moduleId">
+			id=#moduleId#
+		</isNotEmpty>
+		<isNotNull prepend="and" property="permissionEnames">
+			<iterate property="permissionEnames"  conjunction="," open="ename in (" close=")">
+				#permissionEnames[]#
+			</iterate>
+		</isNotNull>
+	</update>
+	
+</sqlMap>

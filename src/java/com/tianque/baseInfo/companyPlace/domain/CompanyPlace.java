@@ -1,0 +1,538 @@
+package com.tianque.baseInfo.companyPlace.domain;
+
+import java.math.BigDecimal;
+import java.util.Date;
+
+import org.apache.struts2.json.annotations.JSON;
+
+import com.tianque.core.util.BaseDomainIdEncryptUtil;
+import com.tianque.domain.PropertyDict;
+
+/**
+ * 单位场所信息
+ * */
+public class CompanyPlace extends CompanyPlaceBase {
+	/** 基础单位场所ID */
+	private Long baseId;
+	/** 类型一级(单位，场所)字典项 */
+	private PropertyDict type;
+	/** 分类二级 字典项 */
+	private PropertyDict classifiCation;
+	/** 类别三级字典项 */
+	/** 单位场所分类，二级 ，字典项(英文) */
+	private String classifiCationEn;
+	private PropertyDict category;
+	/** 负责人（校长，法人等） */
+	private String userName;
+	/** 联系手机 */
+	private String mobileNumber;
+	/** 联系电话 */
+	private String telePhone;
+	/** 传真号码 */
+	private String faxNumber;
+	/** 通用字段：所在区域（主管单位，通道口、施工单位、周边情况、所属单位、副本许可范围、经营范围、所在派出所、主管单位） */
+	private String area;
+	/** 面积（占地面积，施工面积） */
+	private BigDecimal coveredArea;
+	/** 备注 */
+	private String remarks;
+	/** 是否有证照（0：无，1：有） */
+	private Integer hasLicense;
+	/** 营业执照号码 */
+	private String businessLicenseNo;
+	/** 组织机构码 */
+	private String orgCode;
+	/** 小件寄存处 */
+	private String cloakRoom;
+	/** 规模类型（规上，规下 字典项） */
+	private PropertyDict scaleType;
+	/** 党员数 */
+	private Long partyCountNumber;
+	/** 临时上网卡数 */
+	private Long networkCardNo;
+	/** 注册资金 */
+	private BigDecimal registeredCapital;
+	/** 注册资本 */
+	private BigDecimal registeredCapitalNo;
+	/** 开始时间（施工，注册） */
+	private Date begintime;
+	/** 结束时间（施工，注册 */
+	private Date endtime;
+	/** 营业面积（平方米 ） */
+	private BigDecimal businessArea;
+	/** 施工挖方量（立方米） */
+	private BigDecimal digVolume;
+	/** 施工填方量（立方米） */
+	private BigDecimal fillVolume;
+	/** 电子邮件 */
+	private String email;
+	/** 医院性质（公立，私立，合资，外资，其他 字典项） */
+	private PropertyDict hospitalNature;
+	/** 通用字段（存储设备，注册地址，接入方式） */
+	private String generalStorage;
+	/** 通用字段（货物类别，宽带接入服务商） */
+	private String generalType;
+	/** 传真号码2（） */
+	private String faxNo;
+	/** 现在使用IP */
+	private String nowip;
+	/** 通用字段（电脑台数，从业人数） */
+	private Long countNo;
+	/** 通用字段（网络文化经营许可证号，主管部门） */
+	private String generalManage;
+	/** 通用字段（网络安全审核意见书号，管理部门） */
+	private String generalMente;
+	/** 消防审核意见书号 */
+	private String fireAuditOpinionNo;
+	/** 网吧编号 */
+	private String internetBarNo;
+	/** 法制副校长 */
+	private String legalVicePrincipal;
+	/** 学校性质（公办，民办，其他 字典项） */
+	private PropertyDict schoolNature;
+	/** 学校英文名称 */
+	private String schoolNameEn;
+	/** 学校网址 */
+	private String schoolWebSite;
+	/** 经济性质（非公司企业法人…………）[字典] */
+	private PropertyDict economicNature;
+	/** 管理等级（0：A，1：B，2：C 字典） */
+	private PropertyDict managementLevel;
+	/** 消防等级（1：一级…………字典） */
+	private PropertyDict fireLevel;
+
+	/** 是否有无治安人 */
+	private Long hasServiceTeamMember;
+
+	/** 最新巡场时间 **/
+	private Date lastRecordTime;
+
+	private String companyPlaceSource;// 添加日志是判断该信息来源
+
+	private Boolean pollution = false;
+	/**
+	 * 经营品牌
+	 */
+	private PropertyDict operatingBrand;
+	/**
+	 * 经营方式
+	 */
+	private PropertyDict operatingMode;
+	
+	@JSON(format = "yyyy-MM-dd")
+	public Date getLastRecordTime() {
+		return lastRecordTime;
+	}
+
+	public void setLastRecordTime(Date lastRecordTime) {
+		this.lastRecordTime = lastRecordTime;
+	}
+
+	public Long getHasServiceTeamMember() {
+		return hasServiceTeamMember;
+	}
+
+	public void setHasServiceTeamMember(Long hasServiceTeamMember) {
+		this.hasServiceTeamMember = hasServiceTeamMember;
+	}
+
+	private Long cid;
+
+	public Long getCid() {
+		return cid;
+	}
+
+	public void setCid(Long cid) {
+		this.cid = cid;
+	}
+
+	public Long getBaseId() {
+		return baseId;
+	}
+
+	public void setBaseId(Long baseId) {
+		this.baseId = baseId;
+	}
+
+	public PropertyDict getType() {
+		return type;
+	}
+
+	public void setType(PropertyDict type) {
+		this.type = type;
+	}
+
+	public PropertyDict getClassifiCation() {
+		return classifiCation;
+	}
+
+	public String getClassifiCationEn() {
+		return classifiCationEn;
+	}
+
+	public void setClassifiCationEn(String classifiCationEn) {
+		this.classifiCationEn = classifiCationEn;
+	}
+
+	public void setClassifiCation(PropertyDict classifiCation) {
+		this.classifiCation = classifiCation;
+	}
+
+	public PropertyDict getCategory() {
+		return category;
+	}
+
+	public void setCategory(PropertyDict category) {
+		this.category = category;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getMobileNumber() {
+		return mobileNumber;
+	}
+
+	public void setMobileNumber(String mobileNumber) {
+		this.mobileNumber = mobileNumber;
+	}
+
+	public String getTelePhone() {
+		return telePhone;
+	}
+
+	public void setTelePhone(String telePhone) {
+		this.telePhone = telePhone;
+	}
+
+	public String getFaxNumber() {
+		return faxNumber;
+	}
+
+	public void setFaxNumber(String faxNumber) {
+		this.faxNumber = faxNumber;
+	}
+
+	public String getArea() {
+		return area;
+	}
+
+	public void setArea(String area) {
+		this.area = area;
+	}
+
+	public BigDecimal getCoveredArea() {
+		return coveredArea;
+	}
+
+	public void setCoveredArea(BigDecimal coveredArea) {
+		this.coveredArea = coveredArea;
+	}
+
+	public String getRemarks() {
+		return remarks;
+	}
+
+	public void setRemarks(String remarks) {
+		this.remarks = remarks;
+	}
+
+	public Integer getHasLicense() {
+		return hasLicense;
+	}
+
+	public void setHasLicense(Integer hasLicense) {
+		this.hasLicense = hasLicense;
+	}
+
+	public String getBusinessLicenseNo() {
+		return businessLicenseNo;
+	}
+
+	public void setBusinessLicenseNo(String businessLicenseNo) {
+		this.businessLicenseNo = businessLicenseNo;
+	}
+
+	public String getOrgCode() {
+		return orgCode;
+	}
+
+	public void setOrgCode(String orgCode) {
+		this.orgCode = orgCode;
+	}
+
+	public String getCloakRoom() {
+		return cloakRoom;
+	}
+
+	public void setCloakRoom(String cloakRoom) {
+		this.cloakRoom = cloakRoom;
+	}
+
+	public PropertyDict getScaleType() {
+		return scaleType;
+	}
+
+	public void setScaleType(PropertyDict scaleType) {
+		this.scaleType = scaleType;
+	}
+
+	public Long getPartyCountNumber() {
+		return partyCountNumber;
+	}
+
+	public void setPartyCountNumber(Long partyCountNumber) {
+		this.partyCountNumber = partyCountNumber;
+	}
+
+	public BigDecimal getRegisteredCapital() {
+		return registeredCapital;
+	}
+
+	public void setRegisteredCapital(BigDecimal registeredCapital) {
+		this.registeredCapital = registeredCapital;
+	}
+
+	public Date getBegintime() {
+		return begintime;
+	}
+
+	public void setBegintime(Date begintime) {
+		this.begintime = begintime;
+	}
+
+	public Date getEndtime() {
+		return endtime;
+	}
+
+	public void setEndtime(Date endtime) {
+		this.endtime = endtime;
+	}
+
+	public BigDecimal getBusinessArea() {
+		return businessArea;
+	}
+
+	public void setBusinessArea(BigDecimal businessArea) {
+		this.businessArea = businessArea;
+	}
+
+	public BigDecimal getDigVolume() {
+		return digVolume;
+	}
+
+	public void setDigVolume(BigDecimal digVolume) {
+		this.digVolume = digVolume;
+	}
+
+	public BigDecimal getFillVolume() {
+		return fillVolume;
+	}
+
+	public void setFillVolume(BigDecimal fillVolume) {
+		this.fillVolume = fillVolume;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public PropertyDict getHospitalNature() {
+		return hospitalNature;
+	}
+
+	public void setHospitalNature(PropertyDict hospitalNature) {
+		this.hospitalNature = hospitalNature;
+	}
+
+	public String getGeneralStorage() {
+		return generalStorage;
+	}
+
+	public void setGeneralStorage(String generalStorage) {
+		this.generalStorage = generalStorage;
+	}
+
+	public String getGeneralType() {
+		return generalType;
+	}
+
+	public void setGeneralType(String generalType) {
+		this.generalType = generalType;
+	}
+
+	public String getFaxNo() {
+		return faxNo;
+	}
+
+	public void setFaxNo(String faxNo) {
+		this.faxNo = faxNo;
+	}
+
+	public String getNowip() {
+		return nowip;
+	}
+
+	public void setNowip(String nowip) {
+		this.nowip = nowip;
+	}
+
+	public Long getCountNo() {
+		return countNo;
+	}
+
+	public void setCountNo(Long countNo) {
+		this.countNo = countNo;
+	}
+
+	public String getGeneralManage() {
+		return generalManage;
+	}
+
+	public void setGeneralManage(String generalManage) {
+		this.generalManage = generalManage;
+	}
+
+	public String getGeneralMente() {
+		return generalMente;
+	}
+
+	public void setGeneralMente(String generalMente) {
+		this.generalMente = generalMente;
+	}
+
+	public String getFireAuditOpinionNo() {
+		return fireAuditOpinionNo;
+	}
+
+	public void setFireAuditOpinionNo(String fireAuditOpinionNo) {
+		this.fireAuditOpinionNo = fireAuditOpinionNo;
+	}
+
+	public String getInternetBarNo() {
+		return internetBarNo;
+	}
+
+	public void setInternetBarNo(String internetBarNo) {
+		this.internetBarNo = internetBarNo;
+	}
+
+	public String getLegalVicePrincipal() {
+		return legalVicePrincipal;
+	}
+
+	public void setLegalVicePrincipal(String legalVicePrincipal) {
+		this.legalVicePrincipal = legalVicePrincipal;
+	}
+
+	public PropertyDict getSchoolNature() {
+		return schoolNature;
+	}
+
+	public void setSchoolNature(PropertyDict schoolNature) {
+		this.schoolNature = schoolNature;
+	}
+
+	public String getSchoolNameEn() {
+		return schoolNameEn;
+	}
+
+	public void setSchoolNameEn(String schoolNameEn) {
+		this.schoolNameEn = schoolNameEn;
+	}
+
+	public String getSchoolWebSite() {
+		return schoolWebSite;
+	}
+
+	public void setSchoolWebSite(String schoolWebSite) {
+		this.schoolWebSite = schoolWebSite;
+	}
+
+	public PropertyDict getEconomicNature() {
+		return economicNature;
+	}
+
+	public void setEconomicNature(PropertyDict economicNature) {
+		this.economicNature = economicNature;
+	}
+
+	public PropertyDict getManagementLevel() {
+		return managementLevel;
+	}
+
+	public void setManagementLevel(PropertyDict managementLevel) {
+		this.managementLevel = managementLevel;
+	}
+
+	public PropertyDict getFireLevel() {
+		return fireLevel;
+	}
+
+	public void setFireLevel(PropertyDict fireLevel) {
+		this.fireLevel = fireLevel;
+	}
+
+	public Long getNetworkCardNo() {
+		return networkCardNo;
+	}
+
+	public void setNetworkCardNo(Long networkCardNo) {
+		this.networkCardNo = networkCardNo;
+	}
+
+	public BigDecimal getRegisteredCapitalNo() {
+		return registeredCapitalNo;
+	}
+
+	public void setRegisteredCapitalNo(BigDecimal registeredCapitalNo) {
+		this.registeredCapitalNo = registeredCapitalNo;
+	}
+
+	public String getEncryptId() {
+		return BaseDomainIdEncryptUtil.encryptDomainId(cid,
+				super.getOrginternalcode(), null);
+	}
+
+	public String getCompanyPlaceSource() {
+		return companyPlaceSource;
+	}
+
+	public void setCompanyPlaceSource(String companyPlaceSource) {
+		this.companyPlaceSource = companyPlaceSource;
+	}
+
+	public Boolean getPollution() {
+		return pollution;
+	}
+
+	public void setPollution(Boolean pollution) {
+		this.pollution = pollution;
+	}
+
+	public PropertyDict getOperatingBrand() {
+		return operatingBrand;
+	}
+
+	public void setOperatingBrand(PropertyDict operatingBrand) {
+		this.operatingBrand = operatingBrand;
+	}
+
+	public PropertyDict getOperatingMode() {
+		return operatingMode;
+	}
+
+	public void setOperatingMode(PropertyDict operatingMode) {
+		this.operatingMode = operatingMode;
+	}
+
+}

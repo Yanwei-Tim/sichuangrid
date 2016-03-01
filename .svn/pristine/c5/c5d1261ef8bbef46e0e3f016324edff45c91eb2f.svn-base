@@ -1,0 +1,912 @@
+package com.tianque.plugin.transfer.handler;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.tianque.baseInfo.actualHouse.domain.HouseInfo;
+import com.tianque.baseInfo.actualHouse.service.ActualHouseService;
+import com.tianque.baseInfo.base.domain.ActualPopulation;
+import com.tianque.baseInfo.base.domain.AttentionPopulation;
+import com.tianque.baseInfo.base.domain.Countrymen;
+import com.tianque.baseInfo.base.domain.People;
+import com.tianque.baseInfo.floatingPopulation.domain.FloatingPopulation;
+import com.tianque.baseInfo.floatingPopulation.service.FloatingPopulationService;
+import com.tianque.baseInfo.householdStaff.domain.HouseholdStaff;
+import com.tianque.baseInfo.householdStaff.service.HouseholdStaffService;
+import com.tianque.baseInfo.idleYouth.domain.IdleYouthsHasPropertyDicts;
+import com.tianque.baseInfo.idleYouth.service.IdleYouthsHasPropertyDictsService;
+import com.tianque.baseInfo.positiveInfo.service.PositiveInfoService;
+import com.tianque.baseInfo.rectificativePerson.service.RectificativePersonService;
+import com.tianque.baseInfo.rentalHouse.domain.RentalHouse;
+import com.tianque.baseInfo.rentalHouse.service.RentalHouseService;
+import com.tianque.cache.PageInfoCacheThreadLocal;
+import com.tianque.core.cache.constant.MemCacheConstant;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.ConstantsProduct;
+import com.tianque.core.util.SpringBeanUtil;
+import com.tianque.domain.HouseHasActualPopulation;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PopulationTypeBean;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.plugin.transfer.dao.TransferOtherInfoDao;
+import com.tianque.plugin.transfer.util.Constants;
+import com.tianque.plugin.transfer.util.Context;
+import com.tianque.plugin.transfer.util.TransferUtil;
+import com.tianque.plugin.transfer.vo.ErrorMessageVo;
+import com.tianque.service.ActualPopulationMutexService;
+import com.tianque.service.ActualPopulationProcessorService;
+import com.tianque.service.HouseHasActualPopulationService;
+import com.tianque.service.HouseInfoService;
+import com.tianque.service.PopulationTypeService;
+import com.tianque.service.util.PopulationType;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.systemOperateLog.service.SystemOperateLogService;
+import com.tianque.systemOperateLog.util.SystemOperateType;
+
+/**
+ * 处理被转移对象的其它相关信息 处理范围： 实口----业务人员信息 业务人口----实口信息 是出租房的房屋----出租房信息 出租房----房屋信息
+ * 
+ * @author Administrator
+ */
+@Component("otherInfoHandler")
+public class OtherInfoHandler extends Handler {
+
+	@Autowired
+	private RentalHouseService rentalHouseInfoService;
+	@Autowired
+	private PopulationTypeService populationTypeService;
+	@Autowired
+	private ActualPopulationMutexService actualPopulationMutexService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private HouseholdStaffService householdStaffService;
+	@Autowired
+	private FloatingPopulationService floatingPopulationService;
+	@Autowired
+	private TransferOtherInfoDao transferOtherInfoDao;
+	@Autowired
+	private RectificativePersonService rectificativePersonService;
+	@Autowired
+	private PositiveInfoService positiveInfoService;
+	@Autowired
+	protected ActualPopulationProcessorService actualPopulationProcessorService;
+	@Autowired
+	private SystemOperateLogService systemOperateLogService;
+	@Autowired
+	private HouseInfoService houseInfoService;
+	@Autowired
+	private ActualHouseService actualHouseService;
+	@Autowired
+	private RentalHouseService rentalHouseService;
+	@Autowired
+	private HouseHasActualPopulationService houseHasActualPopulationService;
+	@Autowired
+	private IdleYouthsHasPropertyDictsService idleYouthsHasPropertyDictsService;
+
+	@Override
+	public void invoke(String type, Long id, Long toOrgId, Context context) {
+		try {
+			Organization org = organizationDubboService
+					.getSimpleOrgById(toOrgId);
+			// 没有重复，修改ORG信息
+			Map<String, Object> map = new HashMap();
+			map.put("orgId", org.getId());
+			map.put("orgCode", org.getOrgInternalCode());
+			// 1.房屋信息转移
+			if (Constants.ACTUALHOUSE_KEY.equals(type)) {
+				HouseInfo houseInfo = (HouseInfo) context.getOldMap().get(type);
+				// 1.将房屋住房人员关系解除
+				judgementTheHouseHavePupolution(houseInfo.getId());
+
+				// 2.判断是否是出租房，如果是，则先将出租房转移
+				if (houseInfo.getIsRentalHouse()) {// 是出租房
+					// 调用方法将该出租房关系解除，并转到目标网格
+					judgementTheRentalHouse(houseInfo.getId(), toOrgId);// 该id是houseId
+				}
+				if (houseInfo.getBuilddatasId() != null) {// 有关联的建筑物信息
+					deleteHouseAndBuildding(houseInfo.getId());
+				}
+			}
+			// 3.实口----修改业务信息
+			else if (TransferUtil
+					.isActualPopulation(type
+							.equals(Constants.OVERSEAPERSONNEL_KEY) ? PopulationType.OVERSEA_STAFF
+							: type)) {
+				if (context.isExistedToOrgId()) {
+					combinePopulationType(type, context, map, null);
+				} else {
+					List<PopulationTypeBean> populationTypeList = populationTypeService
+							.getPopulationTypeByActualIdAndType(id, type);
+					for (PopulationTypeBean populationTypeBean : populationTypeList) {
+						map.put("id", populationTypeBean.getPopulationId());
+						transferOtherInfoDao
+								.updateOrg(
+										BaseInfoTables.getKeytables().get(
+												populationTypeBean
+														.getPopulationType()),
+										map);
+					}
+				}
+			}
+			// 4.业务人员----新增实口信息
+			else if (TransferUtil.isAllAttentionPopulation(type)) {
+				PopulationTypeBean populationTypeBean = populationTypeService
+						.getPopulationTypeByPopulationIdAndType(id, type);
+				Object service = SpringBeanUtil
+						.getBeanFromSpringByBeanName(populationTypeBean
+								.getActualType() + "Service");
+				ActualPopulation actualPopulation = getOldActualPopulation(
+						populationTypeBean,
+						SpringBeanUtil
+								.getBeanFromSpringByBeanName(populationTypeBean
+										.getActualType() + "Service"));
+				map.put("id", actualPopulation.getId());
+				context.getOldMap().put(type, actualPopulation);
+				ActualPopulation actualPopulation_new = actualPopulationProcessorService
+						.getActualPopulationbyOrgIdAndIdCardNo(toOrgId,
+								actualPopulation.getIdCardNo());
+				Long newActualId;
+				// 判断目标网格是否存在对应实口。不存在新增
+				if (actualPopulation_new == null) {
+					actualPopulation_new = getOldActualPopulation(
+							populationTypeBean, service);
+					actualPopulation_new.setOrganization(org);
+					actualPopulation_new.setOrgInternalCode(org
+							.getOrgInternalCode());
+					actualPopulation_new.setAddressInfoId(null);
+					constructActualHouseInfo(actualPopulation_new);
+					Long oldOrgId = null;
+					if (actualPopulation.getOrganization() != null) {
+						oldOrgId = actualPopulation.getOrganization().getId();
+					}
+					systemOperateLogService.addSystemOperateLog(
+							populationTypeBean.getActualType(),
+							actualPopulation.getIdCardNo(), org,
+							org.getOrgInternalCode(), type,
+							SystemOperateType.TRANSFER, null, oldOrgId);
+					actualPopulation_new = addActualPopulation(
+							populationTypeBean.getActualType(),
+							actualPopulation_new);
+					newActualId = actualPopulation_new.getId();
+					context.getNewMap().put(type, actualPopulation_new);
+				} else {
+					context.getNewMap().put(type, actualPopulation_new);
+					newActualId = actualPopulation_new.getId();
+				}
+				// 修改实有人口和业务人员的关联表
+				if (!context.isExistedToOrgId()) {
+					transferOtherInfoDao.updatePopulationTypeBean(
+							populationTypeBean, newActualId);
+				} else {
+					List<PopulationTypeBean> list = populationTypeService
+							.getPopulationTypeByActualIdAndType(
+									actualPopulation_new.getId(),
+									actualPopulation_new
+											.getActualPopulationType());
+					for (PopulationTypeBean populationType : list) {
+						if (type.equals(Constants.RECTIFICATIVEPERSON_KEY)
+								&& populationType.getPopulationType().equals(
+										Constants.POSITIVEINFO_KEY)) {
+							transferOtherInfoDao.updatePopulationTypeBean(
+									populationTypeBean, newActualId);
+						} else if (type.equals(Constants.POSITIVEINFO_KEY)
+								&& populationType.getPopulationType().equals(
+										Constants.RECTIFICATIVEPERSON_KEY)) {
+							transferOtherInfoDao.updatePopulationTypeBean(
+									populationTypeBean, newActualId);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException("处理被转移对象的其它信息出错！", e);
+		}
+	}
+
+	/**
+	 * 房屋信息的组装（针对实口）
+	 * 
+	 * @param actualP
+	 * @return
+	 */
+	private ActualPopulation constructActualHouseInfo(ActualPopulation actualP) {
+		actualP.setIsHaveHouse(null);// 改好后就是未知了
+		actualP.setCurrentAddress(null);
+		actualP.setNoHouseReason(null);
+		return actualP;
+	}
+
+	private void combinePopulationType(String type, Context context,
+			Map<String, Object> map, Organization toOrg) {
+		Countrymen oldCountrymen = (Countrymen) context.getOldMap().get(type);
+		Countrymen newCountrymen = (Countrymen) context.getNewMap().get(type);
+		List<PopulationTypeBean> oldPopulationTypeList = populationTypeService
+				.getPopulationTypeByActualIdAndType(oldCountrymen.getId(), type);
+		List<PopulationTypeBean> newPopulationTypeList = populationTypeService
+				.getPopulationTypeByActualIdAndType(newCountrymen.getId(), type);
+		for (PopulationTypeBean oldPopulationTypeBean : oldPopulationTypeList) {
+			boolean isSamePopulation = false;
+			PopulationTypeBean temp = new PopulationTypeBean();
+			for (PopulationTypeBean newPopulationTypeBean : newPopulationTypeList) {
+				if (oldPopulationTypeBean.getPopulationType().equals(
+						newPopulationTypeBean.getPopulationType())) {
+					temp = newPopulationTypeBean;
+					isSamePopulation = true;
+					break;
+				}
+			}
+			if (isSamePopulation) {
+				// 目标网格存在相同业务信息，先删除目标网格的业务员信息，再把转移的业务信息id，org改为目标网格的id，org
+				List<IdleYouthsHasPropertyDicts> list = null;
+				// 重点青少年 特殊处理
+				if (BaseInfoTables.IDLEYOUTH_KEY.equals(temp
+						.getPopulationType())) {
+					idleYouthsHasPropertyDictsService
+							.deleteIdleYouthsHasPropertyDictsByIdleYouthId(temp
+									.getPopulationId());
+					list = idleYouthsHasPropertyDictsService
+							.queryIdleYouthsHasPropertyDictsByIdleYouthIdForList(oldPopulationTypeBean
+									.getPopulationId());
+					idleYouthsHasPropertyDictsService
+							.deleteIdleYouthsHasPropertyDictsByIdleYouthId(oldPopulationTypeBean
+									.getPopulationId());
+				}
+
+				// 转移的时候 有重复类型的 计数器-1
+				transferDecreasePageInfoCacheThreadLocal(
+						oldPopulationTypeBean.getPopulationType(),
+						oldPopulationTypeBean.getPopulationId());
+
+				// 删除重复的业务
+				transferOtherInfoDao.deleteAttentionPopulationExisted(
+						BaseInfoTables.getKeytables().get(
+								temp.getPopulationType()),
+						temp.getPopulationId());
+				map.put("id", oldPopulationTypeBean.getPopulationId());
+				transferOtherInfoDao.updateAttentionPopulationExisted(
+						BaseInfoTables.getKeytables().get(
+								oldPopulationTypeBean.getPopulationType()),
+						temp.getPopulationId(), map);
+
+				// 重点青少年 重新新增关系
+				if (list != null && list.size() > 0) {
+					IdleYouthsHasPropertyDicts idleYouthsHasPropertyDicts = null;
+					for (int i = 0; i < list.size(); i++) {
+						idleYouthsHasPropertyDicts = list.get(i);
+						idleYouthsHasPropertyDicts.setIdleYouthsid(temp
+								.getPopulationId());
+						idleYouthsHasPropertyDictsService
+								.addIdleYouthsHasPropertyDicts(idleYouthsHasPropertyDicts);
+					}
+				}
+			} else {
+				// 目标网格不存在相同业务信息，只需修改需转移信息的org
+				oldPopulationTypeBean.setActualId(newCountrymen.getId());
+				populationTypeService.addPopulationType(oldPopulationTypeBean);
+				map.put("id", oldPopulationTypeBean.getPopulationId());
+				People fromPeople = null;
+				if (Constants.getClassNameByType(oldPopulationTypeBean
+						.getPopulationType()) != null) {
+					fromPeople = TransferUtil.getPeopleByPopulationTypeAndId(
+							oldPopulationTypeBean.getPopulationType(),
+							oldPopulationTypeBean.getPopulationId());
+				}
+				transferOtherInfoDao.updateOrg(BaseInfoTables.getKeytables()
+						.get(oldPopulationTypeBean.getPopulationType()), map);
+				// 转移的时候 有重复类型的 计数器-1
+				transferPageInfoCacheThreadLocal(
+						oldPopulationTypeBean.getPopulationType(),
+						oldPopulationTypeBean.getPopulationId(), fromPeople);
+			}
+		}
+	}
+
+	@Override
+	public void validate(String type, Long id, Long toOrgId, Context context) {
+		Organization org = organizationDubboService.getSimpleOrgById(toOrgId);
+		String orgName = org.getOrgName();
+		try {
+			List<ErrorMessageVo> errorList = (List<ErrorMessageVo>) context
+					.getMap().get(Constants.ERRORLIST);
+			List<Long> errorIdList = (List<Long>) context.getMap().get(
+					Constants.ERRORIDLIST);
+			type = type.equals(Constants.OVERSEAPERSONNEL_KEY) ? PopulationType.OVERSEA_STAFF
+					: type;
+			// 验证其它信息：两类
+			// 1.实口----验证业务信息
+			if (TransferUtil.isActualPopulation(type)) {
+				// List<PopulationTypeBean> populationTypeList =
+				// populationTypeService
+				// .getPopulationTypeByActualIdAndType(id, type);
+				// for (PopulationTypeBean populationTypeBean :
+				// populationTypeList) {
+				// AttentionPopulation attentionPopulation =
+				// actualPopulationValidate(
+				// populationTypeBean, toOrgId);
+				// if (null == attentionPopulation
+				// && populationTypeBean.getPopulationType().equals(
+				// Constants.RECTIFICATIVEPERSON_KEY)) {
+				// disposeRectificativePerson(toOrgId, populationTypeBean, id,
+				// orgName,
+				// errorList, errorIdList);
+				// } else if (null == attentionPopulation
+				// && populationTypeBean.getPopulationType().equals(
+				// Constants.POSITIVEINFO_KEY)) {
+				// disposePositiveInfoPerson(toOrgId, populationTypeBean, id,
+				// orgName,
+				// errorList, errorIdList);
+				// } else if (null != attentionPopulation) {
+				// PopulationCatalog catalog =
+				// PopulationCatalog.parse(attentionPopulation
+				// .getAttentionPopulationType());
+				// String message = catalog.toString() + "信息重复";
+				// ErrorMessageVo errorMessageVo = new ErrorMessageVo(
+				// attentionPopulation.getName(),
+				// populationTypeBean.getPopulationType(), orgName,
+				// attentionPopulation.getIdCardNo(), message);
+				// errorList.add(errorMessageVo);
+				// errorIdList.add(id);
+				// }
+				// }
+			}
+			// 2.业务人员----验证实口信息
+			else if (TransferUtil.isAllAttentionPopulation(type)) {
+				// ActualPopulation actualPopolation =
+				// businessPopulationValidate(id, type, toOrgId,
+				// context);
+				// context.getNewMap().put(type, actualPopolation);
+				// if (null != actualPopolation) {
+				// PopulationCatalog catalog =
+				// PopulationCatalog.parse(actualPopolation
+				// .getActualPopulationType());
+				// String message = catalog.toString() + "信息重复";
+				// ErrorMessageVo errorMessageVo = new
+				// ErrorMessageVo(actualPopolation.getName(),
+				// actualPopolation.getActualPopulationType(), orgName,
+				// actualPopolation.getIdCardNo(), message);
+				// errorList.add(errorMessageVo);
+				// errorIdList.add(id);
+				// }
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"OtherInfoHandler类的validate方法出错\n", "验证被转移数据的其它信息方法出错！", e);
+		}
+	}
+
+	/**
+	 * 处理刑释解教到新网格时存在社区矫正
+	 * 
+	 * @param toOrgId
+	 * @param populationTypeBean
+	 * @param id
+	 * @param orgName
+	 * @param errorList
+	 * @param errorIdList
+	 * @throws Exception
+	 */
+	private void disposePositiveInfoPerson(Long toOrgId,
+			PopulationTypeBean populationTypeBean, Long id, String orgName,
+			List errorList, List errorIdList) throws Exception {
+		AttentionPopulation attentionPopulation = null;
+		String serviceBeanName = populationTypeBean.getActualType() + "Service";
+		Object service = SpringBeanUtil
+				.getBeanFromSpringByBeanName(serviceBeanName);
+		attentionPopulation = rectificativePersonService
+				.hasDuplicateRectificativePerson(toOrgId,
+						getOldActualPopulation(populationTypeBean, service)
+								.getIdCardNo());
+		if (null != attentionPopulation) {
+			String message = "该刑释人员在目标网格为社区矫正人员";
+			ErrorMessageVo errorMessageVo = new ErrorMessageVo(
+					attentionPopulation.getName(),
+					populationTypeBean.getPopulationType(), orgName,
+					attentionPopulation.getIdCardNo(), message);
+			errorList.add(errorMessageVo);
+			errorIdList.add(id);
+		}
+	}
+
+	/**
+	 * 处理社区矫正到新网格时存在刑释解教
+	 * 
+	 * @param toOrgId
+	 * @param populationTypeBean
+	 * @param id
+	 * @param orgName
+	 * @param errorList
+	 * @param errorIdList
+	 * @throws Exception
+	 */
+	private void disposeRectificativePerson(Long toOrgId,
+			PopulationTypeBean populationTypeBean, Long id, String orgName,
+			List errorList, List errorIdList) throws Exception {
+		String serviceBeanName = populationTypeBean.getActualType() + "Service";
+		Object service = SpringBeanUtil
+				.getBeanFromSpringByBeanName(serviceBeanName);
+		ActualPopulation oldActualPopulation = getOldActualPopulation(
+				populationTypeBean, service);
+		boolean flag = positiveInfoService.hasDuplicatePosiviteInfos(toOrgId,
+				oldActualPopulation.getIdCardNo(), null);
+		if (flag) {
+			String message = "该社区矫正人员在目标网格为刑释人员";
+			ErrorMessageVo errorMessageVo = new ErrorMessageVo(
+					oldActualPopulation.getName(),
+					populationTypeBean.getPopulationType(), orgName,
+					oldActualPopulation.getIdCardNo(), message);
+			errorList.add(errorMessageVo);
+			errorIdList.add(id);
+		}
+	}
+
+	/**
+	 * 实口----验证业务信息
+	 * 
+	 * @param populationTypeBean
+	 * @param toOrgId
+	 * @return
+	 */
+	private AttentionPopulation actualPopulationValidate(
+			PopulationTypeBean populationTypeBean, Long toOrgId) {
+		AttentionPopulation attentionPopulation = null;
+		String serviceBeanName = populationTypeBean.getPopulationType()
+				+ "Service";
+		// 取出被转移实口的业务人员信息
+		String methodName = TransferUtil.getMethodNameByType(populationTypeBean
+				.getPopulationType());
+		try {
+			Object service = SpringBeanUtil
+					.getBeanFromSpringByBeanName(serviceBeanName);
+			Method method = service.getClass()
+					.getMethod(methodName, Long.class);
+			attentionPopulation = (AttentionPopulation) method.invoke(service,
+					populationTypeBean.getPopulationId());
+			if (null != attentionPopulation) {
+				// 在新网格中查找是否有重复的业务人员信息
+				String hasDuplicateName = getDuplicateMethodName(populationTypeBean
+						.getPopulationType());
+				Method hasDuplicateMethod = service.getClass().getMethod(
+						hasDuplicateName, Long.class, String.class);
+				attentionPopulation = (AttentionPopulation) hasDuplicateMethod
+						.invoke(service, toOrgId,
+								attentionPopulation.getIdCardNo());
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"OtherInfoHandler类的actualPopulationValidate方法出错\n",
+					"验证被转移数据的其它信息方法出错！", e);
+		}
+		return attentionPopulation;
+	}
+
+	/**
+	 * 业务人员----验证实口信息
+	 * 
+	 * @param id
+	 * @param type
+	 * @param toOrgId
+	 * @param context
+	 * @return
+	 */
+	private ActualPopulation businessPopulationValidate(Long id, String type,
+			Long toOrgId, Context context) {
+		// 根据业务人员类型和ID取与实口的关联关系对象
+		PopulationTypeBean populationTypeBean = populationTypeService
+				.getPopulationTypeByPopulationIdAndType(id, type);
+		AttentionPopulation attentionPopulation = null;
+		ActualPopulation actualPopolation = null;
+		ActualPopulation actualPopolation_new = null;
+		if (null != populationTypeBean) {
+			try {
+				String serviceBeanName = populationTypeBean.getPopulationType()
+						+ "Service";
+				Object service = SpringBeanUtil
+						.getBeanFromSpringByBeanName(serviceBeanName);
+				attentionPopulation = getOldAttentionPopulation(
+						populationTypeBean, service);
+				actualPopolation = getActualPopulation(attentionPopulation
+						.getOrganization().getId(),
+						attentionPopulation.getIdCardNo(),
+						populationTypeBean.getActualType());
+				if (context.getOldMap().get(type) == null) {
+					context.getOldMap().put(type, actualPopolation);
+				}
+				// 在新网格中查找是否有重复的实口
+				actualPopolation_new = getActualPopulation(toOrgId,
+						attentionPopulation.getIdCardNo(),
+						populationTypeBean.getActualType());
+			} catch (Exception e) {
+				throw new ServiceValidationException(
+						"OtherInfoHandler类的businessPopulationValidate方法出错\n",
+						"验证被转移数据的其它信息方法出错！", e);
+			}
+			// 新网格中没有重复的实口
+			if (null == actualPopolation_new) {
+				// 新网格中实口互斥验证
+				if (!actualPopulationMutexService
+						.isActualPopuationByOrgIdAndIdCardNoAndExcludeActualPopulationType(
+								0L, toOrgId, attentionPopulation.getIdCardNo(),
+								populationTypeBean.getActualType())) {
+					return getActualPopulationOtherType(toOrgId,
+							attentionPopulation.getIdCardNo(),
+							populationTypeBean.getActualType());
+				}
+			}
+		}
+		return actualPopolation_new;
+	}
+
+	/**
+	 * 根据类型在实口中查找数据
+	 * 
+	 * @param orgId
+	 * @param idCardNo
+	 * @param type
+	 * @return
+	 */
+	private ActualPopulation getActualPopulation(Long orgId, String idCardNo,
+			String type) {
+		ActualPopulation actualPopolation = null;
+		if (type.equals(Constants.HOUSEHOLDSTAFF_KEY)) {
+			actualPopolation = householdStaffService
+					.findHouseholdStaffByCardNoAndOrgId(idCardNo, orgId);
+		}
+		if (type.equals(Constants.FLOATINGPOPULATION_KEY)) {
+			actualPopolation = floatingPopulationService
+					.findFloatingPopulationByCardNoAndOrgId(idCardNo, orgId);
+		}
+		return actualPopolation;
+	}
+
+	private ActualPopulation addActualPopulation(String type,
+			ActualPopulation actualPopulation) {
+		actualPopulation
+				.setSourcesState(ConstantsProduct.SourcesState.TRANSFER);
+		if (type.equals(Constants.HOUSEHOLDSTAFF_KEY)) {
+			return householdStaffService
+					.addHouseholdStaffBaseInfo((HouseholdStaff) actualPopulation);
+		}
+		if (type.equals(Constants.FLOATINGPOPULATION_KEY)) {
+			return floatingPopulationService
+					.addFloatingPopulationBaseInfo((FloatingPopulation) actualPopulation);
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * 根据类型在其他实口中查找数据
+	 * 
+	 * @param orgId
+	 * @param idCardNo
+	 * @param type
+	 * @return
+	 */
+	private ActualPopulation getActualPopulationOtherType(Long orgId,
+			String idCardNo, String type) {
+		ActualPopulation actualPopolation = null;
+		if (!type.equals(Constants.HOUSEHOLDSTAFF_KEY)) {
+			actualPopolation = householdStaffService
+					.findHouseholdStaffByCardNoAndOrgId(idCardNo, orgId);
+		}
+		if (null == actualPopolation
+				&& !type.equals(Constants.FLOATINGPOPULATION_KEY)) {
+			actualPopolation = floatingPopulationService
+					.findFloatingPopulationByCardNoAndOrgId(idCardNo, orgId);
+		}
+		return actualPopolation;
+	}
+
+	/**
+	 * 获得原始网格的实口信息
+	 * 
+	 * @param populationTypeBean
+	 * @param service
+	 * @return
+	 * @throws Exception
+	 */
+	private ActualPopulation getOldActualPopulation(
+			PopulationTypeBean populationTypeBean, Object service)
+			throws Exception {
+		// 取出被转移业务人员的实口信息
+		String methodName = TransferUtil.getMethodNameByType(populationTypeBean
+				.getActualType());
+		Method method = service.getClass().getMethod(methodName, Long.class);
+		return (ActualPopulation) method.invoke(service,
+				populationTypeBean.getActualId());
+	}
+
+	/**
+	 * 获得原始网格的业务信息
+	 * 
+	 * @param populationTypeBean
+	 * @param service
+	 * @return
+	 * @throws Exception
+	 */
+	private AttentionPopulation getOldAttentionPopulation(
+			PopulationTypeBean populationTypeBean, Object service)
+			throws Exception {
+		// 取出被转移业务人员的实口信息
+		String methodName = TransferUtil.getMethodNameByType(populationTypeBean
+				.getPopulationType());
+		Method method = service.getClass().getMethod(methodName, Long.class);
+		return (AttentionPopulation) method.invoke(service,
+				populationTypeBean.getPopulationId());
+	}
+
+	/**
+	 * 根据类型获得判断重复的方法名
+	 * 
+	 * @param type
+	 * @return
+	 */
+	private String getDuplicateMethodName(String type) {
+		String methodName = "";
+		String name = "hasDuplicate%s";
+		if (TransferUtil.isEnterPrise(type)) {
+			methodName = "hasDuplicateEnterprise";
+		} else {
+			String newType = type.substring(0, 1).toUpperCase()
+					+ type.substring(1);
+			methodName = String.format(name, newType);
+		}
+		return methodName;
+	}
+
+	/**
+	 * 解除房屋建筑物关联关系
+	 */
+	private void deleteHouseAndBuildding(Long id) {
+		List<Long> ids = new ArrayList<Long>();
+		ids.add(id);
+		actualHouseService.updateHouseInfo(ids, null);
+	}
+
+	/**
+	 * 查询房屋信息的关系，然后解绑
+	 * 
+	 * @param id
+	 */
+	private void judgementTheHouseHavePupolution(Long id) {
+		List<HouseHasActualPopulation> houseHasActualPopulations = houseHasActualPopulationService
+				.getHouseHasActualPopulationByHouseId(id);// 通过住房ID查询得到房客信息
+		if (houseHasActualPopulations != null
+				&& houseHasActualPopulations.size() != 0) {
+			for (HouseHasActualPopulation houseHasActualPopulation : houseHasActualPopulations) {
+				// 删除房客关联的住房信息以及地址信息
+				houseHasActualPopulationService
+						.deleteHouseHasActualPopulationByPopulationTypeAndHouseId(
+								houseHasActualPopulation.getPopulationType(),
+								id, houseHasActualPopulation.getPopulationId());
+			}
+		}
+	}
+
+	/**
+	 * 将出租屋的关系解绑
+	 * 
+	 * @param id
+	 * @param toOrgId
+	 */
+	private void judgementTheRentalHouse(Long id, Long toOrgId) {
+		// 通过房屋ID查询得到出租房信息
+		RentalHouse rentalHouseInfo = rentalHouseService
+				.getHouseInfoByHouseId(id);
+		if (rentalHouseInfo == null) {
+			throw new BusinessValidationException("出租房信息为空");
+		}
+		// 将出租房信息的所有关系解绑
+		Map<String, Object> map = getMapByOrgId(toOrgId);
+		map.put("id", rentalHouseInfo.getId());
+		String tableName = getTableNameByType(Constants.RENTALHOUSE_KEY);
+		transferOtherInfoDao.updateOrg(tableName, map);
+	}
+
+	private Map<String, Object> getMapByOrgId(Long toOrgId) {
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(toOrgId);
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("orgId", organization.getId());
+		map.put("orgCode", organization.getOrgInternalCode());
+		return map;
+	}
+
+	private String getTableNameByType(String type) {
+		String result = "";
+		if (Constants.ACTUALHOUSE_KEY.equals(type)) {
+			result = "houseinfo";
+		} else if (Constants.RENTALHOUSE_KEY.equals(type)) {
+			result = "rentalHouse";
+		} else {
+			result = BaseInfoTables.getKeytables().get(type);
+		}
+
+		return result;
+	}
+
+	@Override
+	public void validate(String type, Long id, Long toOrgId, Long fromOrgId,
+			Context context) {
+		validate(type, id, toOrgId, context);
+	}
+
+	@Override
+	public void invoke(String type, Long id, Long toOrgId, Long fromOrgId,
+			Context context) {
+		try {
+			Organization toOrg = organizationDubboService
+					.getSimpleOrgById(toOrgId);
+			Organization fromOrg = organizationDubboService
+					.getSimpleOrgById(fromOrgId);
+			// 没有重复，修改ORG信息
+			Map<String, Object> map = new HashMap();
+			map.put("orgId", toOrg.getId());
+			map.put("orgCode", toOrg.getOrgInternalCode());
+			// 1.房屋信息转移
+			if (Constants.ACTUALHOUSE_KEY.equals(type)) {
+				HouseInfo houseInfo = (HouseInfo) context.getOldMap().get(type);
+				// 1.将房屋住房人员关系解除
+				judgementTheHouseHavePupolution(houseInfo.getId());
+
+				// 2.判断是否是出租房，如果是，则先将出租房转移
+				if (houseInfo.getIsRentalHouse()) {// 是出租房
+					// 调用方法将该出租房关系解除，并转到目标网格
+					judgementTheRentalHouse(houseInfo.getId(), toOrgId);// 该id是houseId
+				}
+				if (houseInfo.getBuilddatasId() != null) {// 有关联的建筑物信息
+					deleteHouseAndBuildding(houseInfo.getId());
+				}
+			}
+			// 3.实口----修改业务信息
+			else if (TransferUtil
+					.isActualPopulation(type
+							.equals(Constants.OVERSEAPERSONNEL_KEY) ? PopulationType.OVERSEA_STAFF
+							: type)) {
+				if (context.isExistedToOrgId()) {
+					combinePopulationType(type, context, map, toOrg);
+				} else {
+					List<PopulationTypeBean> populationTypeList = populationTypeService
+							.getPopulationTypeByActualIdAndType(id, type);
+					for (PopulationTypeBean populationTypeBean : populationTypeList) {
+						map.put("id", populationTypeBean.getPopulationId());
+						People fromPeople = null;
+						if (Constants.getClassNameByType(populationTypeBean
+								.getPopulationType()) != null) {
+							fromPeople = TransferUtil
+									.getPeopleByPopulationTypeAndId(
+											populationTypeBean
+													.getPopulationType(),
+											populationTypeBean
+													.getPopulationId());
+						}
+						transferOtherInfoDao
+								.updateOrg(
+										BaseInfoTables.getKeytables().get(
+												populationTypeBean
+														.getPopulationType()),
+										map);
+
+						// 户籍或者流口转移的时候 对应的业务信息计数器数量 转移到的层级+1 转移的网格-1
+						transferPageInfoCacheThreadLocal(
+								populationTypeBean.getPopulationType(),
+								populationTypeBean.getPopulationId(),
+								fromPeople);
+					}
+				}
+			}
+			// 4.业务人员----新增实口信息
+			else if (TransferUtil.isAllAttentionPopulation(type)) {
+				PopulationTypeBean populationTypeBean = populationTypeService
+						.getPopulationTypeByPopulationIdAndType(id, type);
+				Object service = SpringBeanUtil
+						.getBeanFromSpringByBeanName(populationTypeBean
+								.getActualType() + "Service");
+				ActualPopulation actualPopulation = getOldActualPopulation(
+						populationTypeBean,
+						SpringBeanUtil
+								.getBeanFromSpringByBeanName(populationTypeBean
+										.getActualType() + "Service"));
+				map.put("id", actualPopulation.getId());
+				context.getOldMap().put(type, actualPopulation);
+				ActualPopulation actualPopulation_new = actualPopulationProcessorService
+						.getActualPopulationbyOrgIdAndIdCardNo(toOrgId,
+								actualPopulation.getIdCardNo());
+				Long newActualId;
+				// 判断目标网格是否存在对应实口。不存在新增
+				if (actualPopulation_new == null) {
+					actualPopulation_new = getOldActualPopulation(
+							populationTypeBean, service);
+					actualPopulation_new.setOrganization(toOrg);
+					actualPopulation_new.setOrgInternalCode(toOrg
+							.getOrgInternalCode());
+					actualPopulation_new.setAddressInfoId(null);
+					constructActualHouseInfo(actualPopulation_new);
+					Long oldOrgId = null;
+					if (actualPopulation.getOrganization() != null) {
+						oldOrgId = actualPopulation.getOrganization().getId();
+					}
+					systemOperateLogService.addSystemOperateLog(
+							populationTypeBean.getActualType(),
+							actualPopulation.getIdCardNo(), toOrg,
+							toOrg.getOrgInternalCode(), type,
+							SystemOperateType.TRANSFER, null, oldOrgId);
+					actualPopulation_new = addActualPopulation(
+							populationTypeBean.getActualType(),
+							actualPopulation_new);
+					newActualId = actualPopulation_new.getId();
+					context.getNewMap().put(type, actualPopulation_new);
+				} else {
+					context.getNewMap().put(type, actualPopulation_new);
+					newActualId = actualPopulation_new.getId();
+				}
+				// 修改实有人口和业务人员的关联表
+				if (!context.isExistedToOrgId()) {
+//					transferOtherInfoDao.updatePopulationTypeBean(
+//							populationTypeBean, newActualId);
+				} else {
+					List<PopulationTypeBean> list = populationTypeService
+							.getPopulationTypeByActualIdAndType(
+									actualPopulation_new.getId(),
+									actualPopulation_new
+											.getActualPopulationType());
+					for (PopulationTypeBean populationType : list) {
+						if (type.equals(Constants.RECTIFICATIVEPERSON_KEY)
+								&& populationType.getPopulationType().equals(
+										Constants.POSITIVEINFO_KEY)) {
+							transferOtherInfoDao.updatePopulationTypeBean(
+									populationType, newActualId);
+						} else if (type.equals(Constants.POSITIVEINFO_KEY)
+								&& populationType.getPopulationType().equals(
+										Constants.RECTIFICATIVEPERSON_KEY)) {
+							transferOtherInfoDao.updatePopulationTypeBean(
+									populationType, newActualId);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException("处理被转移对象的其它信息出错！", e);
+		}
+	}
+
+	// 缓存技术器增减
+	private void transferDecreasePageInfoCacheThreadLocal(
+			String populationType, Long populationId) {
+		// 过滤只有人口的才有缓存计数器
+		if (Constants.getClassNameByType(populationType) != null) {
+			String objectType = PopulationType
+					.getFirstCharUpperCaseTypeByType(populationType);
+			String modelName = MemCacheConstant.getCachePageKey(objectType);
+			People people = TransferUtil.getPeopleByPopulationTypeAndId(
+					populationType, populationId);
+			PageInfoCacheThreadLocal.decrease(modelName, people, 1);
+		}
+	}
+
+	// 缓存技术器增减
+	private void transferPageInfoCacheThreadLocal(String populationType,
+			Long populationId, People fromPeople) {
+		// 过滤只有人口的才有缓存计数器
+		if (Constants.getClassNameByType(populationType) != null) {
+			String objectType = PopulationType
+					.getFirstCharUpperCaseTypeByType(populationType);
+
+			String modelName = MemCacheConstant.getCachePageKey(objectType);
+
+			People toPeople = TransferUtil.getPeopleByPopulationTypeAndId(
+					populationType, populationId);
+			PageInfoCacheThreadLocal.increment(modelName, toPeople, 1);
+
+			PageInfoCacheThreadLocal.decrease(modelName, fromPeople, 1);
+		}
+	}
+}

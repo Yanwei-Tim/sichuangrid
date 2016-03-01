@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="taskPloy">
+	<typeAlias alias="taskPloy" type="com.tianque.task.domain.TaskPloy" />
+	<resultMap id="taskPloyResultMap" class="taskPloy">
+		<result column="ID" property="id" />
+		<result column="CNAME" property="cname" />
+		<result column="ENAME" property="ename" />
+		<result column="TYPE" property="type.id" />
+		<result column="DESCRIPTION" property="description" />
+		<result column="CODE" property="code" />
+	</resultMap>
+	<sql id="search_task_ploy_sql_where">
+		from taskPloy
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="and" property="type.id" >
+				type = #type.id# 
+			</isNotEmpty>
+			<!-- 后置匹配 -->
+			<isNotEmpty prepend="or" property="cname" >
+				cname like #cname#||'%' 
+			</isNotEmpty>
+			<isNotEmpty prepend="or" property="ename">
+				ename like #ename#||'%' 
+			</isNotEmpty>
+			<isNotEmpty prepend="or" property="description">
+				description like #description#||'%' 
+			</isNotEmpty>
+		</dynamic>
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<select id="selectPageListCount" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="search_task_ploy_sql_where" />
+	</select>
+	<select id="selectPageList" resultMap="taskPloyResultMap">
+		<include refid="common.sql_select" />
+		<include refid="search_task_ploy_sql_where" />
+	</select>
+	<insert id="addTaskPloy" parameterClass="taskPloy">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			select
+			s_TASKPLOY.NEXTVAL as id from dual
+		</selectKey>
+		insert into taskPloy(id,cname,ename,type,description,code) 
+		values(#id#,#cname#,#ename#,#type.id#,#description#,#code#) 
+	</insert>
+	<select id="getTaskPloyById" parameterClass="taskPloy" resultMap="taskPloyResultMap">
+		<include refid="common.sql_select" /> from taskPloy where id=#id#
+	</select>
+	<update id="updateTaskPloyById" parameterClass="taskPloy">
+		update taskPloy
+		<dynamic prepend="set">
+			<isNotNull prepend="," property="cname">
+				cname = #cname#
+		  </isNotNull>
+		  <isNotNull prepend="," property="ename">
+				ename = #ename#
+		  </isNotNull>
+		  <isNotNull prepend="," property="type.id">
+				type = #type.id#
+		  </isNotNull>
+		  <isNotNull prepend="," property="description">
+				description = #description#
+		  </isNotNull>
+		  <isNotNull prepend="," property="code">
+				code = #code#
+		  </isNotNull>
+		</dynamic>
+		where id=#id#
+	</update>
+	<delete id="deleteTaskPloyById" parameterClass="taskPloy">
+		delete from taskPloy where id=#id#
+	</delete>
+	<delete id="deleteTaskPloyByIds" parameterClass="java.util.List">
+		delete from taskPloy 	
+		<iterate prepend="where id in" open="(" close=")" conjunction=",">
+			#value[].id#
+		</iterate>
+	</delete>
+</sqlMap>

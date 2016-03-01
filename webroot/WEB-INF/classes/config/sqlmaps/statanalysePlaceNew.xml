@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="statanalysePlaceNew">
+	<typeAlias alias="StatanalysePlaceNew" type="com.tianque.plugin.analysisNew.domain.StatAnalysePlaceVo" />
+	<resultMap id="statanalysePlaceResult" class="StatanalysePlaceNew">
+		<result property="total" column="total" />
+	</resultMap>
+	<select id="findStatanalysePlace" parameterClass="java.util.Map" resultMap="statanalysePlaceResult">
+		 select (select count(*) from $tableName$ where orgInternalCode like '$orgInternalCode$%' and isEmphasis =0 
+		 <dynamic>
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					keyType = #keyType#
+				</isNotNull>
+			</isPropertyAvailable>
+		 </dynamic>
+		 ) as total,(select count(distinct person.placeId) from $tableName$ tableName inner join personInCharges person on tableName.id=person.placeId and tableName.orgInternalCode like '$orgInternalCode$%' and isEmphasis =0 
+		 	 <dynamic>
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					keyType = #keyType#
+				</isNotNull>
+			</isPropertyAvailable>
+		 </dynamic>
+		 ) as practicalPlace from dual
+	</select>
+	
+	<select id="getStatanalysePlace" parameterClass="java.util.Map" resultClass="int">
+		select count(*) from $tableName$ where orgInternalCode like '$orgInternalCode$%' and isEmphasis =0  
+		 <dynamic>
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					keyType = #keyType#
+				</isNotNull>
+			</isPropertyAvailable>
+		 </dynamic>
+	</select>
+	
+	<select id="getIsHelpStatAnalysePlace" parameterClass="java.util.Map" resultClass="int">
+		select count(*) from $tableName$ d where orgInternalCode like '$orgInternalCode$%' and isEmphasis =0 
+		and exists (select id from servicememberhasobject where objectType = #objectType# and objectId = d.id)
+		 <dynamic>
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					keyType = #keyType#
+				</isNotNull>
+			</isPropertyAvailable>
+		 </dynamic>
+	</select>
+	<sql id="isEmphasisSql" >
+	 and	isEmphasis =0 
+	</sql>
+	
+	<select id="getHelpedStatAnalysePlace" parameterClass="java.util.HashMap"
+		resultClass="java.util.HashMap" remapResults="true">
+			select o.orgname,
+       nvl(sum(sum.ishelp), 0) ishelp,
+       nvl(sum(sum.nohelp), 0) nohelp,
+       nvl(sum(sum.total), 0) sum
+	   from     
+	   (select * 
+	  from organizations  where parentid = #orgId# and  orgtype=#orgType#) o
+	  left join (select ishelp.ishelp,
+                    total.orginternalcode,
+                    nohelp.nohelp,
+                    total.total
+               from (select count(id) total,
+                            max(d.orginternalcode) orginternalcode
+                       from $tableName$ d where 1=1  <include refid="isEmphasisSql"/>
+                       <isPropertyAvailable property="keyType">
+						<isNotNull property="keyType" prepend=" and ">
+							keyType = #keyType#
+						</isNotNull>
+					</isPropertyAvailable>
+                      group by d.orginternalcode
+                     ) total
+               left join (select count(id) nohelp,
+                                max(d.orginternalcode) orginternalcode
+                           from $tableName$ d
+                          where 
+                          not exists (select id
+                                   from servicememberhasobject
+                                  where objectType = #objectType#
+                                    and objectId = d.id)
+                           <isPropertyAvailable property="keyType">
+								<isNotNull property="keyType" prepend=" and ">
+									keyType = #keyType#
+								</isNotNull>
+						  </isPropertyAvailable>
+						  <include refid="isEmphasisSql"/>
+                          group by d.orginternalcode) nohelp
+                 on total.orginternalcode = nohelp.orginternalcode
+               left join (select count(id) ishelp,
+                                max(d.orginternalcode) orginternalcode
+                           from $tableName$ d
+                          where 
+                          exists (select id
+                                   from servicememberhasobject
+                                  where objectType = #objectType#
+                                    and objectId = d.id)
+                          <isPropertyAvailable property="keyType">
+								<isNotNull property="keyType" prepend=" and ">
+									keyType = #keyType#
+								</isNotNull>
+						  </isPropertyAvailable>
+						  <include refid="isEmphasisSql"/>
+                          group by d.orginternalcode) ishelp
+                 on ishelp.orginternalcode = total.orginternalcode) sum
+    on sum.orginternalcode like o.orginternalcode || '%'
+    group by orgname,seq
+	order by seq
+	</select>
+	
+	<delete id="deleteByYearAndMonthAndType" parameterClass="map">
+	   delete from baseInfoStatType_$year$_$month$ where year=#year# and month=#month# and typeName=#typeName#
+	</delete>
+</sqlMap>

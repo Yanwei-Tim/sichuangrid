@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+
+<sqlMap namespace="buildLayout">
+	<typeAlias alias="BuildLayout" type="com.tianque.baseInfo.buildDatas.domain.BuildLayout"/>
+	<typeAlias alias="BuildLayoutCell" type="com.tianque.baseInfo.buildDatas.domain.BuildLayoutCell"/>
+	
+	<resultMap id="buildLayoutResultMap" class="BuildLayout">
+		<result property="id" column="ID"/>
+		<result property="buildId" column="buildId"/>
+		<result property="org.id" column="orgId"/>
+		<result property="org.orgInternalCode" column="orgInternalCode"/>
+		<result property="totalRow" column="totalRow"/>
+		<result property="totalCol" column="totalCol"/>
+		<result property="layoutInfo" column="layoutInfo"/>
+	</resultMap>
+	<resultMap id="buildLayoutCellResultMap" class="BuildLayoutCell">
+		<result property="id" column="id"/>
+		<result property="row" column="layoutrow"/>
+		<result property="col" column="layoutcolumn"/>
+		<result property="colSpan" column="layoutcolspan"/>
+		<!-- <result property="rowSpan" column="rowSpan"/> -->
+		<result property="room" column="room"/>
+		<result property="housePropertyId" column="housePropertyId"/>
+		<result property="buildType" column="buildType"/>
+		<result property="keyPlaceType" column="keyPlaceType"/>
+	</resultMap>
+	
+	<insert id="addBuildLayout" parameterClass="BuildLayout">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			select s_BuildLayout.NEXTVAL as id from dual
+		</selectKey>
+		insert into BuildLayout (ID ,buildId ,orgId ,orgInternalCode ,totalRow ,totalCol ,layoutInfo ,CREATEUSER ,UPDATEUSER ,CREATEDATE ,UPDATEDATE) 
+		values(#id# ,#buildId# ,#org.id# ,#org.orgInternalCode# ,#totalRow# ,#totalCol# ,#layoutInfo# ,#createUser#,#updateUser#,#createDate#,#updateDate#)	
+	</insert>
+	
+	<update id="updateBuildLayout">
+		update BuildLayout set UPDATEUSER = #updateUser#,UPDATEDATE=#updateDate#
+		<isNotNull property="totalRow" prepend=",">
+			totalRow = #totalRow#
+		</isNotNull>
+		<isNotNull property="totalCol" prepend=",">
+			totalCol = #totalCol#
+		</isNotNull>
+		<isNotNull property="layoutInfo" prepend=",">
+			layoutInfo = #layoutInfo#
+		</isNotNull>
+		where id = #id#
+	</update>
+	
+	<select id="getBuildLayoutByBuildId" parameterClass="java.util.Map" resultMap="buildLayoutResultMap">
+			select * from BuildLayout where buildId = #buildId#
+	</select>
+	
+	<select id="getBuildLayoutById" parameterClass="java.lang.Long" resultMap="buildLayoutResultMap">
+		select * from BuildLayout where id = #value#
+	</select>
+
+	<delete id="deleteBuildLayoutByBuildId" parameterClass="java.lang.Long">	
+		delete  from BuildLayout where buildId = #value#	
+	</delete>
+	
+	<delete id="deleteBuildLayoutById" parameterClass="java.lang.Long">	
+		delete  from BuildLayout where id = #value#	
+	</delete>
+	
+	<select id="countKeyPersonInBuildingByBuilddatasidAndPersonType" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(*) from houseinfo_$shardCode$ h, househasimportantpopulation hi where h.builddatasid=#builddatasid# and h.id = hi.houseid and hi.populationtype=#populationtype#
+	</select>
+	
+	<select id="existKeyPersonInHouseByPersonTypeAndHouseId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(*) from househasimportantpopulation hi where hi.populationtype=#populationtype# and hi.houseid=#houseid#
+	</select>	
+	
+	<select id="findBuildIds" resultClass="java.lang.Long">
+		select buildId from BuildLayout
+	</select>
+	<select id="findBuildLayoutCellByBuildId" parameterClass="java.util.Map" resultMap="buildLayoutCellResultMap">
+		select * from BUILDLAYOUT_OLD where buildId = #buildId#
+	</select>
+</sqlMap>

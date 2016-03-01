@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="entourageManage" extends="default" namespace="/baseinfo/entourageManage">
+		<default-class-ref class="entourageController"></default-class-ref>
+
+		<action name="dispatchOperate" method="dispatch">
+			<result name="success">
+				/baseinfo/trampResident/entourage/maintainEntourageDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="entourageList" method="findEntourageForPageByTrampResidentId">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="addEntourage" method="addEntourage">
+			<result name="success" type="json">
+				<param name="root">entourage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateEntourage" method="updateEntourage">
+			<result name="success" type="json">
+				<param name="root">entourage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="deleteEntourage" method="deleteEntourage">
+			<result name="success" type="json">
+				<param name="root">bol</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="hasDuplicateEntourage" method="hasDuplicateEntourage">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>			
+		</action>
+	</package>
+</struts>

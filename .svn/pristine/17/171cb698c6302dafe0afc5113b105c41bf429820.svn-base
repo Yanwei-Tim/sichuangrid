@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchFourTeamsIssueByLevel_history">
+	<typeAlias alias="SearchIssueVoNew" type="com.tianque.domain.vo.SearchIssueVoNew" />
+	<typeAlias alias="FourTeamsIssue" type="com.tianque.fourTeams.fourTeamsIssue.domain.FourTeamsIssueNew" />
+	<typeAlias alias="IssueType" type="com.tianque.domain.IssueType" />
+	<typeAlias alias="FourTeamsIssueAttachFile" type="com.tianque.fourTeams.fourTeamsIssue.domain.FourTeamsIssueAttachFile"/>
+	<typeAlias alias="FourTeamsIssueViewObject" type="com.tianque.fourTeams.fourTeamsIssue.vo.FourTeamsIssueViewObject" />
+	<typeAlias alias="FourTeamsIssueStep" type="com.tianque.fourTeams.fourTeamsIssue.domain.FourTeamsIssueStep" />
+	<typeAlias alias="ClobStringTypeHandler" type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+	<!-- 完整的事件信息 -->
+	<resultMap class="FourTeamsIssue" id="fullIssue">
+		<result property="id" column="id"/>
+		<result property="serialNumber" column="serialNumber"/>
+		<result property="subject" column="subject"/>
+		<result property="occurOrg.id" column="occurOrg"/>
+		<result property="occurOrg.orgInternalCode" column="occurOrgInternalCode"/>
+		<result property="createOrg.id" column="createOrg"/>
+		<result property="createOrg.orgInternalCode" column="createOrgInternalCode"/>
+		<result property="lastOrg.id" column="lastOrg"/>
+		<result property="lastOrg.orgInternalCode" column="lastOrgInternalCode"/>
+		<result property="lastUsername" column="lastUsername"/>
+		<result property="issueKind.id" column="issueKind"/>
+		<result property="historic" column="historic"/>
+		<result property="important" column="important"/>
+		<result property="sourcePerson" column="sourcePerson"/>
+		<result property="sourceKind.id" column="sourceKind"/>
+		<result property="sourceMobile" column="sourceMobile"/>
+		<result property="occurDate" column="occurDate"/>
+		<result property="relatePeopleCount" column="relatePeopleCount"/>
+		<result property="occurLocation" column="occurLocation"/>
+		<result property="mainCharacters" column="mainCharacters"/>
+		<result property="issueContent" column="issueContent" typeHandler="ClobStringTypeHandler"/>
+		<result property="remark" column="remark" typeHandler="ClobStringTypeHandler"/>
+		<result property="displayStyle" column="displayStyle"/>
+		<result property="status" column="status"/>
+		<result property="urgent" column="urgent"/>
+		<result property="endDate" column="completeDate"/>
+		<result property="isEmergency" column="isEmergency"/>
+		<result property="currentStep.id" column="currentStep"/>
+		<result property="lon" column="lon"/>
+		<result property="lat" column="lat"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="importantPlace" column="importantPlace" />
+		<result property="emergencyLevel.id" column="emergencyLevel" />
+		<result property="issueType.issueTypeDomain.id" column="ISSUETYPEDOMAINID"/>
+		<result property="issueType.id" column="ISSUETYPEID"/>
+	</resultMap>
+
+	<!-- IssueViewObject映射结果-->
+	<resultMap id="issueViewResult" class="FourTeamsIssueViewObject">
+		<result property="superviseLevel" column="superviseLevel" nullValue="-1"/>
+		<result property="issueId" column="issueId" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="subject" column="subject" />
+		<result property="status" column="status" />
+		<result property="occurDate" column="occurDate" />
+		<result property="currentOrg.id" column="currentOrg" />
+		<result property="occurOrg.id" column="occurOrg" />
+		<result property="targeOrg.id" column="targetOrg" />
+		<result property="dealTime" column="lastdealdate" />
+		<result property="sourcePerson" column="sourcePerson" />
+		<result property="sourceKind.id" column="sourceKind" />
+		<result property="sourceMobile" column="sourceMobile" />
+		<result property="issueLogId" column="stepId" />
+		<result property="issueStepId" column="stepId" />
+		<result property="supervisionState" column="superviselevel" nullValue="-1"/>
+		<result property="urgent" column="urgent" />
+		<result property="dealState" column="statecode" />
+		<result property="delayState" column="delayState" nullValue="0"/>
+		<result property="lastOrg.id" column="lastOrg" />
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="issueType.issueTypeDomain.id" column="ISSUETYPEDOMAINID"/>
+		<result property="issueType.id" column="ISSUETYPEID"/>
+	</resultMap>
+		
+	<!-- 置顶事件 (待办、历史遗留)映射结果-->
+	<resultMap id="issueViewTopResult" class="FourTeamsIssueViewObject" extends="issueViewResult">
+		<result property="topState" column="topState" />	
+	</resultMap>
+	<resultMap id="issueViewTopResultFindJurisdictionsDone" class="FourTeamsIssueViewObject" extends="issueViewTopResult">
+		<result property="issueContent" column="issuecontent" />
+		<result property="createOrg.id" column="createOrg"/>
+		<result property="publicltycass" column="publicltycass" />
+	</resultMap>
+	<resultMap id="jurisdictionsNeedDoResult" class="FourTeamsIssueViewObject" extends="issueViewResult">
+		<result property="topState" column="topState" />
+		<result property="createName" column="CREATEUSER"  select="issue.getFullUserByUerName" />	
+		<result property="createOrg.id" column="createOrg"/>
+	</resultMap>
+	<!-- 包含事件评价结果的IssueViewObject映射结果 -->
+	<resultMap id="issueViewAndEvaluateResult" class="FourTeamsIssueViewObject" extends="issueViewResult">
+		<result property="evaluateType" column="evaluateType" />
+		<result property="evaluateContent" column="evaluateContent" />
+		<result property="evaluateTime" column="evaluateTime" />
+		<result property="createOrg.id" column="createOrg"/>
+	</resultMap>
+	<!--下辖事项列表- 已办结事项映射结果 -->
+	<resultMap id="issueViewJurisdictionsCompleteResult" class="FourTeamsIssueViewObject" extends="issueViewAndEvaluateResult">
+		<result property="publicltycass" column="publicltycass" />
+		<result property="topState" column="topState" />	
+	</resultMap>
+	
+	<!-- 查询条件 -->
+	<sql id="sqlWhere">
+	<dynamic>
+			<isPropertyAvailable property="subject">
+				<isNotEmpty property="subject" prepend=" and ">
+				<![CDATA[
+					iu.subject like #subject#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurOrg">
+				<isNotNull property="occurOrg.id" prepend=" and ">
+				<![CDATA[
+			    	iu.occurOrg = #occurOrg.id#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="status">
+				<isNotNull property="status" prepend=" and ">
+					<isEqual property="status" compareValue="300">
+						iu.status =#status#
+					</isEqual>
+					<isEqual property="status" compareValue="1">
+					<![CDATA[	iu.status != 300 ]]>
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueKind">
+				<isNotNull property="issueKind.id" prepend=" and ">
+				<![CDATA[
+			        iu.issueKind = #issueKind.id#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="important">
+				<isNotNull property="important" prepend=" and ">
+				<![CDATA[
+			    	iu.important = #important#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="serialNumber">
+				<isNotEmpty property="serialNumber" prepend=" and ">
+				<![CDATA[
+					iu.serialNumber like #serialNumber#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sourcePerson">
+				<isNotEmpty property="sourcePerson" prepend=" and ">
+				<![CDATA[
+					iu.sourcePerson like #sourcePerson#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sourceMobile">
+				<isNotEmpty property="sourceMobile" prepend=" and ">
+				<![CDATA[
+					iu.sourceMobile like #sourceMobile#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurFrom">
+				<isNotEmpty property="occurFrom" prepend=" and ">
+				<![CDATA[
+					iu.occurDate >= #occurFrom#
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurEnd">
+				<isNotNull property="occurEnd" prepend=" and ">
+				 <![CDATA[
+					iu.occurDate <= #occurEnd#
+				]]>
+				</isNotNull>
+			</isPropertyAvailable>			
+			<isPropertyAvailable property="endTimeFrom">
+				<isNotEmpty property="endTimeFrom" prepend=" and ">
+				<![CDATA[
+					isteps.endDate >= #endTimeFrom#
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endTimeEnd">
+				<isNotEmpty property="endTimeEnd" prepend=" and ">
+				 <![CDATA[
+					isteps.endDate <= #endTimeEnd#
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relatePeopleMinCount">
+				<isNotNull property="relatePeopleMinCount" prepend=" and ">
+				<![CDATA[
+			    	iu.relatePeopleCount >= #relatePeopleMinCount#
+			   	]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relatePeopleMaxCount">
+				<isNotNull property="relatePeopleMaxCount" prepend=" and ">
+				<![CDATA[
+			    	iu.relatePeopleCount <= #relatePeopleMaxCount#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mainCharacters">
+				<isNotEmpty property="mainCharacters" prepend=" and ">
+				<![CDATA[
+			    	iu.mainCharacters like #mainCharacters#||'%'
+			    ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relateMinAmount">
+				<isNotNull property="relateMinAmount" prepend=" and ">
+				<![CDATA[
+			        iu.relateAmount >= #relateMinAmount#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relateMaxAmount">
+				<isNotNull property="relateMaxAmount" prepend=" and ">
+				<![CDATA[
+			        iu.relateAmount <= #relateMaxAmount#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurLocation">
+				<isNotEmpty property="occurLocation" prepend=" and ">
+				<![CDATA[
+			        iu.occurLocation like #occurLocation#||'%'
+			   	]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueContent">
+				<isNotNull property="issueContent" prepend=" and ">
+				<![CDATA[
+			        iu.issueContent like '%'||#issueContent#||'%'
+			   	]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueTypes">
+				<isNotEmpty property="issueTypes" prepend=" and ">
+					iu.id in (select Id from issues where
+					<iterate property="issueTypes" conjunction=" or ">
+						issueTypeId =#issueTypes[].id#
+		       		 </iterate>
+					)
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueTypeDomain">
+				<isNotEmpty property="issueTypeDomain.id" prepend=" and ">
+					iu.id in (select id from issues where issuetypedomainid =#issueTypeDomain.id#)
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="serialNumber">
+				<isNotEmpty property="serialNumber" prepend=" and ">
+					<![CDATA[ iu.serialNumber like #serialNumber#||'%' ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<sql id="fourteamsIssue_type_where">
+		<isEqual property="fourTeamsType" compareValue="convenienceServiceTeam">
+			<![CDATA[  and cstep.fourTeamsTypeID = 1 ]]>
+		</isEqual>
+		<isEqual property="fourTeamsType" compareValue="gridServiceTeam">
+		 	<![CDATA[  and cstep.fourTeamsTypeID = 2 ]]>
+		</isEqual>
+		<isEqual property="fourTeamsType" compareValue="partyMemberPioneerServiceTeam">
+		 	 <![CDATA[  and cstep.fourTeamsTypeID = 3 ]]>
+		</isEqual>
+		<isEqual property="fourTeamsType" compareValue="communityVolunteerServiceTeam">
+		  	<![CDATA[  and cstep.fourTeamsTypeID = 4 ]]>
+		</isEqual>
+		<isEqual property="seachValue" compareValue="allJurisdiction">
+		  <![CDATA[  and cstep.targetinternalcode like #orgCode#||'%' ]]>
+		</isEqual>
+		<isEqual property="seachValue" compareValue="sameGrade">
+		  <isPropertyAvailable property="orgLevel" prepend=" and ">
+		  		<!-- 本级需要显示职能部门的事件 -->
+		  		cstep.target in (select id  from organizations where orglevel = #orgLevel#)
+		  </isPropertyAvailable>
+		</isEqual>
+		<isEqual property="seachValue" compareValue="directJurisdiction">
+		   <!-- <![CDATA[    and cstep.target in ( select id from organizations where parentid=#orgId# ) ]]>-->
+		  		and cstep.target in ( select id from organizations where parentid=#orgId# 
+		  		 <isPropertyAvailable property="orgLevel" prepend=" and ">
+		  		 		<!-- 直属下级排除职能部门 -->
+		  				<![CDATA[ orglevel <> #orgLevel# ]]>
+		  		 </isPropertyAvailable>
+		  		 )
+		</isEqual>
+		<!-- 职能部门 ，只查看本部门事件-->
+		<isEqual property="seachValue" compareValue="functional">
+		 	<![CDATA[    and cstep.targetinternalcode = #orgCode#  ]]>
+		</isEqual>
+	</sql>
+
+
+<!-- 下辖已办事件数量 -->
+	<select id="countJurisdictionsDone" parameterClass="SearchIssueVoNew" resultClass="java.lang.Integer">
+		<![CDATA[select count(id) from (
+			select iu.id from (select *
+	          from ISSUESTEPS_HISTORY
+	         where id in
+	               (select max(id)
+	                  from ISSUESTEPS_HISTORY cstep
+	                 where cstep.stateCode >= #completeCode# ]]>
+	           		<include refid="fourteamsIssue_type_where"/>
+	          	<![CDATA[ group by issue))  isteps,ISSUES_HISTORY iu 
+			where iu.id=isteps.issue and iu.historic = 0 
+		]]>	
+			<include refid="sqlWhere" />
+		<![CDATA[	
+			)
+		]]>
+	</select>
+	
+	<!-- 四支队伍下辖已办事件列表 -->
+	<select id="findJurisdictionsDone" parameterClass="SearchIssueVoNew"	resultMap="issueViewTopResultFindJurisdictionsDone">
+		<![CDATA[	
+	   select iu.publicltycass,
+	   iu.id as issueId,
+       iu.serialnumber,
+       iu.subject,
+       iu.status,
+       iu.occurdate,
+       isteps.source currentOrg,
+       iu.occurorg,
+       iu.createOrg,
+       isteps.target targetOrg,
+       isteps.lastdealdate,
+       iu.sourceperson,
+       iu.sourcekind,
+       iu.sourcemobile,
+       iu.urgent,
+       isteps.id as stepId,
+       isteps.superviselevel,
+       iu.lastOrg,
+       iu.CREATEUSER,
+       isteps.statecode,
+       iu.hours,
+       iu.minute,
+       iu.issuecontent,
+       isteps.delayState,ti.topState,
+       iu.ISSUETYPEID,
+	   iu.ISSUETYPEDOMAINID
+	   from (select *
+	          from ISSUESTEPS_HISTORY
+	         where id in
+	               (select max(id)
+	                  from ISSUESTEPS_HISTORY cstep
+	                 where cstep.stateCode >= #completeCode# ]]>
+	    <include refid="fourteamsIssue_type_where"/>
+	    <![CDATA[ group by issue)) isteps,ISSUES_HISTORY iu 
+	    left join topIssues ti on ti.issueId = iu.id and ti.orgId=#orgId# and ti.issueTag = #issueTag#
+	    left join publicltycass p on iu.id=p.issueid
+ 		where isteps.issue = iu.id and iu.historic = 0
+		]]>
+		<include refid="sqlWhere" />
+		<dynamic prepend="order by">
+			ti.topState asc, ti.topDate desc
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">,$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+		<!-- 下辖已办结事件数量 -->
+	<select id="countJurisdictionsCompleted" parameterClass="SearchIssueVoNew" resultClass="java.lang.Integer">
+		<![CDATA[select count(id) from (
+			select iu.id from (select *
+	          from ISSUESTEPS_HISTORY
+	         where id in
+	               (select max(id)
+	                  from ISSUESTEPS_HISTORY cstep
+	                 where cstep.stateCode >= #completeCode# ]]>
+	           		<include refid="fourteamsIssue_type_where"/>
+	          	<![CDATA[ group by issue))  isteps,ISSUES_HISTORY iu 
+			where iu.id=isteps.issue and iu.historic = 0 
+		]]>	
+			<include refid="sqlWhere" />
+		<![CDATA[	
+			)
+		]]>
+	</select>
+	
+	<!-- 四支队伍下辖已办结事件列表 -->
+	<select id="findJurisdictionsCompleted" parameterClass="SearchIssueVoNew"	resultMap="issueViewTopResultFindJurisdictionsDone">
+	<![CDATA[	
+	   select iu.publicltycass,
+	   iu.id as issueId,
+       iu.serialnumber,
+       iu.subject,
+       iu.status,
+       iu.occurdate,
+       isteps.source currentOrg,
+       iu.occurorg,
+       iu.createOrg,
+       isteps.target targetOrg,
+       isteps.lastdealdate,
+       iu.sourceperson,
+       iu.sourcekind,
+       iu.sourcemobile,
+       iu.urgent,
+       isteps.id as stepId,
+       isteps.superviselevel,
+       iu.lastOrg,
+       iu.CREATEUSER,
+       isteps.statecode,
+       iu.hours,
+       iu.minute,
+       iu.issuecontent,
+       isteps.delayState,ti.topState,
+       iu.ISSUETYPEID,
+	   iu.ISSUETYPEDOMAINID
+	   from (select *
+	          from ISSUESTEPS_HISTORY
+	         where id in
+	               (select max(id)
+	                  from ISSUESTEPS_HISTORY cstep
+	                 where cstep.stateCode >= #completeCode# ]]>
+	    <include refid="fourteamsIssue_type_where"/>
+	    <![CDATA[ group by issue)) isteps,ISSUES_HISTORY iu 
+	    left join topIssues ti on ti.issueId = iu.id and ti.orgId=#orgId# and ti.issueTag = #issueTag#
+ 		where isteps.issue = iu.id and iu.historic = 0
+		]]>
+		<include refid="sqlWhere" />
+		<dynamic prepend="order by">
+			ti.topState asc, ti.topDate desc
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">,$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>

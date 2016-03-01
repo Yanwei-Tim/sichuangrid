@@ -1,0 +1,132 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<jsp:include page="/includes/baseInclude.jsp" />
+
+<style>
+#orgSelector{
+	width:138px
+}
+.print{
+	float:right;
+	width: 24px;
+	height: 20px;
+	margin: 4px;
+	background: url(${resource_path}/resource/system/images/table_print_hover.jpg) no-repeat;
+}
+</style>
+<input type="hidden" id="reportType" value="<s:property value='#parameters.reportType'/>"/>
+<input type="hidden" id="canCreateStatistic" value="0" />
+<div id="nav" class="ui-corner-all">
+	<jsp:include page="/common/orgSelectedComponent.jsp"/>
+	<select name="reportYear" id="year" onchange="">
+    </select>
+    <label style="padding:0 10px;line-height:25px;">年</label>
+    <select name="reportMonth" id="month" onchange="">
+    </select>
+    <label style="padding:0 10px;line-height:25px;">月</label>
+<%-- 	<a id="searchList" href="javascript:void(0)"><span>查询</span></a> --%>
+	<a id="createStatistic" href="javascript:void(0)"><span>刷新</span></a>
+	<label class="print" title="打印"></label>
+</div>
+<div id="gridboxType">
+</div>
+<div id="accountPrintDlg">
+</div>
+
+<script type="text/javascript">
+$(function(){
+	//时间初始化
+	autoFillYearAndMonth();
+	loadPage();
+	$("#year").change(function(){
+		$("#month").empty();
+		getmonth();
+	});
+	$("#year,#month").change(function(){
+		loadCountDatas();
+	});
+	
+	$(".print").click(function(){
+		$("#accountPrintDlg").createDialog({
+			width:900,
+			height:600,
+			title:"打印",
+			url:'${path}/account/report/reportPrint.jsp',
+			buttons: {
+			   "打印" : function(){
+				   $("#threeRecordsReportPrint").printArea();
+				   $("#accountPrintDlg").dialog("close");
+		  	   },
+			   "关闭" : function(){
+				   $("#accountPrintDlg").dialog("close");
+			   }
+			}
+		});
+	});
+});
+
+function loadPage(){//加载页面
+	if($("#reportType").val()=="<s:property value='@com.tianque.plugin.account.constants.LedgerReportType@MONTH_REPORT'/>"){
+		$("#gridboxType").load("${path}/account/report/threeRecordsReportMonth.jsp");
+	}
+}
+function autoFillYearAndMonth(){
+	$.ajax({
+		async: false,
+		url: "${path }/stat/currentTime/getCurrentTimeForYear.action",
+		success:function(responseData){
+			for(var i = 0;i<responseData.length;i++){
+				$("#year").append("<option value='"+responseData[i]+"'>"+responseData[i]+"</option>");
+			}
+			getmonth();
+		}
+	});
+	
+}
+
+function getmonth(){
+	$.ajax({
+		async: false,
+		url: "${path }/stat/currentTime/getCurrentTimeForMonth.action?currenYear="+$("#year").val(),
+		success:function(responseData){
+			for(var i = 0;i<responseData.length;i++){
+				$("#month").append("<option value='"+responseData[i]+"'>"+responseData[i]+"</option>");
+			}
+		}
+	});
+}
+
+$("#createStatistic").click(function(){
+	loadPage();
+});
+
+//县区
+function isDistrictOrganization(){
+	return $("#currentOrgId").attr("orgLevelInternalId") == <s:property value="@com.tianque.domain.property.OrganizationLevel@DISTRICT"/>;
+}
+
+//乡镇
+function isTownOrganization(){
+	return $("#currentOrgId").attr("orgLevelInternalId") == <s:property value="@com.tianque.domain.property.OrganizationLevel@TOWN"/>;
+}
+
+//村
+function isVillageOrganization(){
+	return $("#currentOrgId").attr("orgLevelInternalId") == <s:property value="@com.tianque.domain.property.OrganizationLevel@VILLAGE"/>;
+}
+
+function organizationLevelInternalString(){
+	if(isVillageOrganization()){
+		return "村级";
+	}else if(isTownOrganization()){
+		return "乡镇级";
+	}else if(isDistrictOrganization()){
+		return "县级";
+	}else{
+		return "";
+	}
+}
+
+</script>

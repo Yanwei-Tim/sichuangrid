@@ -1,0 +1,216 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib"%>
+<%@ include file="/includes/baseInclude.jsp"%>
+<%-- <jsp:include page="/includes/baseInclude.jsp" /> --%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<div class="container container_24">
+<form id="administrativeOrgTimeLimitStandardForm" method="post" action="">
+<pop:token />
+	<input type="hidden" value="${administrativeOrgTimeLimitStandard.createOrg.id }" name="administrativeOrgTimeLimitStandard.createOrg.id"/>
+    <input id="mode" type="hidden" name="mode" value="${mode}" />
+	<input id="administrativeOrgTimeLimitStandardId" type="hidden" name="administrativeOrgTimeLimitStandard.id" value="${administrativeOrgTimeLimitStandard.id }" />
+	<input id="useLevelId" type="hidden" name="administrativeOrgTimeLimitStandard.useLevel.id" value="${administrativeOrgTimeLimitStandard.useLevel.id }" />
+	<div class="grid_6 lable-right">
+	    <em class="form-req">*</em>
+		<label class="form-lbl">行政部门：</label>
+	</div>
+	
+	<div class="grid_18">
+		<input id="administrativeUseLevel" type="text" readonly="readonly" class='form-txt' value="${administrativeOrgTimeLimitStandard.useLevel.displayName }">
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+	<div class="modelBoxWrap">
+		<div class="modelSelect cf">
+			
+			<div class="grid_6 lable-right">
+				 <em class="form-req">*</em><label class="form-lbl">事件类型：</label>
+			</div>
+			<div class="grid_6 form-left">
+				<select id="issueDomain" name="administrativeOrgTimeLimitStandard.issueDomainId" class='form-select {required:true,messages:{required:"事件类型必须输入"}}'>
+			   		<pop:IssueTypeReleationSelectTag name=
+			   		"contradiction,resolveTheContradictions,securityPrecautions,specialPopulations,socialConditions,policiesAndLaws,emergencies,otherManage" 
+			   		defaultValue="${administrativeOrgTimeLimitStandard.issueDomainId}" 
+			   		reletionId="issueTypeId" isOperateDiv="0" id="issueDomain" defaultTypeValue="${administrativeOrgTimeLimitStandard.issueTypeId }"/>
+				</select>
+			</div>
+			
+			<div class="grid_5 lable-right">
+				<em class="form-req">*</em><label class="form-lbl">事件子类：</label>
+			</div>
+			<div class="grid_7 form-left">
+				<select id="issueTypeId" name="administrativeOrgTimeLimitStandard.issueTypeId" class='form-select {required:true,messages:{required:"事件子类必须输入"}}'>
+				</select>
+			</div>
+		</div>
+	</div>
+	
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_2"></div>
+   	<div class="grid_22">
+   		<em class="form-req">*</em>
+		<label class="form-lbl" style="color: red;">办理时限（至少填写一项）</label>
+	</div>		
+		
+		<table>
+			<tr>
+				<td colspan="2">
+					<div style="padding: 15px 0px 5px 50px;color: #C9C9C9;">——<span style="font-weight: bolder;color:#353535;font-size:14px;padding:0px 10px 0px 10px">受理</span>———————————————————————————————————</div>		
+				</td>
+			</tr>
+			<tr>
+				<td style="padding: 0px 0px 0px 60px;">
+					<div class='clearLine'></div>
+					<div class="grid_6 lable-right" >
+						<label class="form-lb1">黄牌时限：</label>
+					</div>
+					<div class="grid_3">
+						<input  type="text"  id="administrativeOrgTimeLimitStandardYellowLimitAccept" maxlength="10" name="administrativeOrgTimeLimitStandard.yellowLimitAccept" value="${administrativeOrgTimeLimitStandard.yellowLimitAccept}" title="黄牌受理时限"
+							class='form-txt' />
+					</div>
+					<div class="grid_7">
+						&nbsp;&nbsp;个工作日
+					</div>
+					<div class="grid_7" style="text-align:left">
+					</div>
+				</td>
+				<td>
+					<div class='clearLine'>&nbsp;</div>
+					<div class="grid_6 lable-right" >
+						<label class="form-lb1">红牌时限：</label>
+					</div>
+					<div class="grid_3">
+						<input  type="text" id="administrativeOrgTimeLimitStandardRedLimitAccept" maxlength="10" name="administrativeOrgTimeLimitStandard.redLimitAccept" value="${administrativeOrgTimeLimitStandard.redLimitAccept}" title="红牌受理时限"
+							class='form-txt' />
+					</div>
+					<div class="grid_7">
+						&nbsp;&nbsp;个工作日
+					</div>
+					<div class="grid_7" style="text-align:left">
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" style="color: red;padding: 15px 0px 0px 60px;">
+					注:受理的时限标准从事件交办之日起计算，红牌时限需大于黄牌时限
+				</td>
+			</tr>
+			
+			<tr>
+				<td colspan="2">
+					<div style="padding: 15px 0px 5px 50px;color: #C9C9C9;">——<span style="font-weight: bolder;color:#353535;font-size:14px;padding:0px 10px 0px 10px">办理</span>———————————————————————————————————</div>		
+				</td>
+			</tr>
+			<tr>
+				<td style="padding: 0px 0px 0px 60px;">
+					<div class='clearLine'>&nbsp;</div>
+					<div class="grid_6 lable-right" >
+						<label class="form-lb1">黄牌时限：</label>
+					</div>
+					<div class="grid_3">
+						<input  type="text" id="administrativeOrgTimeLimitStandardYellowLimitHandle" maxlength="10" name="administrativeOrgTimeLimitStandard.yellowLimitHandle" value="${administrativeOrgTimeLimitStandard.yellowLimitHandle}" title="黄牌办理时限"
+							class='form-txt' />
+					</div>
+					<div class="grid_7">
+						&nbsp;&nbsp;个工作日
+					</div>
+					<div class="grid_7" style="text-align:left">
+					</div>			
+				</td>
+				<td>
+					<div class='clearLine'>&nbsp;</div>
+					<div class="grid_6 lable-right" >
+						<label class="form-lb1">红牌时限：</label>
+					</div>
+					<div class="grid_3">
+						<input  type="text" id="administrativeOrgTimeLimitStandardRedLimitHandle" maxlength="10" name="administrativeOrgTimeLimitStandard.redLimitHandle" value="${administrativeOrgTimeLimitStandard.redLimitHandle}" title="红牌办理时限"
+							class='form-txt' />
+					</div>
+					<div class="grid_7">
+						&nbsp;&nbsp;个工作日
+					</div>
+					<div class="grid_7" style="text-align:left">
+					</div>		
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" style="color: red;padding: 15px 0px 0px 60px;">
+					注:办理的时限标准从事件受理之日起计算，红牌时限需大于黄牌时限
+				</td>
+			</tr>
+			
+			<tr>
+				<td colspan="2">
+					<div style="padding: 15px 0px 5px 50px;color: #C9C9C9;">——<span style="font-weight: bolder;color:#353535;font-size:14px;padding:0px 10px 0px 10px">验证</span>———————————————————————————————————</div>		
+				</td>
+			</tr>
+			<tr>
+				<td style="padding: 0px 0px 0px 60px;">
+					<div class='clearLine'>&nbsp;</div>
+					<div class="grid_6 lable-right" >
+						<label class="form-lb1">黄牌时限：</label>
+					</div>
+					<div class="grid_3">
+						<input  type="text" id="administrativeOrgTimeLimitStandardYellowLimitVerify" maxlength="10" name="administrativeOrgTimeLimitStandard.yellowLimitVerify" value="${administrativeOrgTimeLimitStandard.yellowLimitVerify}" title="黄牌验证时限"
+							class='form-txt' />
+					</div>
+					<div class="grid_7">
+						&nbsp;&nbsp;个工作日
+					</div>
+					<div class="grid_7" style="text-align:left">
+					</div>
+				</td>
+				<td>
+					<div class='clearLine'>&nbsp;</div>
+					<div class="grid_6 lable-right" >
+						<label class="form-lb1">红牌时限：</label>
+					</div>
+					<div class="grid_3">
+						<input  type="text" id="administrativeOrgTimeLimitStandardRedLimitVerify" maxlength="10" name="administrativeOrgTimeLimitStandard.redLimitVerify" value="${administrativeOrgTimeLimitStandard.redLimitVerify}" title="红牌验证时限"
+							class='form-txt'/>
+					</div>
+					<div class="grid_7">
+						&nbsp;&nbsp;个工作日
+					</div>
+					<div class="grid_7" style="text-align:left">
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" style="color: red;padding: 15px 0px 0px 60px;">
+					注:验证的时限标准从事件结案之日起计算，红牌时限需大于黄牌时限
+				</td>
+			</tr>			
+		</table> 
+	
+	<div class='clearLine'>&nbsp;</div>
+	<div id="remark">
+		<div class="grid_6 lable-right" >
+			<label class="form-lb1">备注：</label>
+		</div>
+		<div class="grid_16 heightAuto">
+			<textarea id="administrativeOrgTimeLimitStandardRemark" style="width:360px;height:60px" name="administrativeOrgTimeLimitStandard.remark" title="请输入备注"
+			class="form-txt {maxlength:200,messages:{maxlength:$.format('备注最多需要输入{0}个字符')}}">${administrativeOrgTimeLimitStandard.remark}</textarea>
+		</div>
+	</div>
+	<input type="hidden" name="administrativeOrgTimeLimitStandard.itemIds" id="itemNameIds">
+</form>
+
+</div>
+<script type="text/javascript">
+
+	function callback(){
+	    var dfop = {
+	    	ifAdd:'${mode=="add"}',
+	    	ifEdit:'${mode=="edit"}'
+	    }
+	    TQ.maintainAdministrativeOrgTimeLimitStandardDlg(dfop)
+	}
+	$.cacheScript({
+	    url:'/resource/getScript/issue/issueAccessConfig/maintainAdministrativeOrgTimeLimitStandardDlgForEdit.js',
+	    callback: callback
+	})
+
+</script>

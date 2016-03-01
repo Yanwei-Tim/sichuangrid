@@ -1,0 +1,126 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<title>地图</title>
+<jsp:include page="/includes/baseInclude.jsp" />
+<jsp:include page="/includes/jsInclude.jsp" />
+<jsp:include page="/openLayersMap/includes/cssInclude.jsp" />
+<jsp:include page="/openLayersMap/includes/jsInclude.jsp" />
+
+<body onload="init()">
+	<!-- <div id="rcp1_map" style="width: 100%; height: 100%;"></div> -->
+	<div id="map" style="position:relative;width: 100%;height: 100%;border: 1px solid #ccc;"></div>
+</body>
+
+
+<script type="text/javascript">
+var map, layer,marker;
+var layerOptions=null;
+
+function init(){
+	//map = new OpenLayers.Map('map');
+	map = new OpenLayers.Map({
+	 div: "map",
+	 projection: "EPSG:900913",  //指定投影很关键
+	 displayProjection: new OpenLayers.Projection("EPSG:4326")});
+
+	var gdLayer = new OpenLayers.Layer.XYZ("高德地图", [  
+	                      "http://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x=${x}&y=${y}&z=${z}",  
+	                       "http://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x=${x}&y=${y}&z=${z}",  
+	                        "http://webrd03.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x=${x}&y=${y}&z=${z}",  
+	                        "http://webrd04.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x=${x}&y=${y}&z=${z}"  
+	        ], {  
+	            isBaseLayer: true,  
+	            visibility: true,  
+	            displayInLayerSwitcher: true  
+	        });  
+	map.addLayer(gdLayer);
+	map.addControl(new OpenLayers.Control.LayerSwitcher());
+	var lonlat=new OpenLayers.LonLat(102.70734, 25.04505);
+	alert( map.getProjectionObject()); //当前是EPSG:900913投影
+	var lonlat2 = lonlat.clone().transform( new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject() );//转换投影
+	map.setCenter(lonlat2, 8);//指定地图中心与初始缩放级别
+	map.addControl(new OpenLayers.Control.MousePosition()); 
+	}
+
+/*
+function init() {
+	//这个参数在对接中还是稍微有y轴的偏移，考虑因该是百度平面坐标系不是基于web墨卡托投影，而这个用的是web墨卡托投影的方式却对接的。
+	var tileOrigin = new OpenLayers.LonLat(0,28000);
+	var maxExtent = new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34);
+	
+	
+	// 使用指定的文档元素创建地图
+	var map = new OpenLayers.Map("rcp1_map");
+	// 创建一个 OpenStreeMap raster layer
+	// 把这个图层添加到map中
+	var osm = new OpenLayers.Layer.OSM();
+	map.addLayer(osm);
+	// 设定视图缩放地图程度为最大
+	//map.addControl(new OpenLayers.Control.Legend({ maximized: true, contentHTML: legendHtml, size: new OpenLayers.Size(150, 220) }));
+	map.zoomToMaxExtent();
+	}
+	*/
+/*	
+getURL: function (bounds) {	
+	var tilez=this.map.zoom-1;	
+	var res = this.map.getResolution();	
+	var bbox = this.map.getMaxExtent();	
+	var size = this.tileSize;	
+	var bx = Math.round((bounds.left - this.tileOrigin.lon) / (res * size.w));	
+	var by = Math.round((bounds.bottom - this.tileOrigin.lat) / (res * size.h));	
+	tilez = tilez + 1; 	var x = bx.toString().replace("-","M");	
+	var y = by.toString().replace("-","M"); 	
+	var urlsNum = parseInt((bx + by) % this.url.length); 	
+	var strURL = ""; 	
+	strURL = this.url[urlsNum] + '?qt=tile&x='+x+'&y='+y+'&z='+tilez+'&styles=pl&udt=20140807';	
+	return strURL;}
+	*/
+	
+	/*
+	OpenLayers.Layer.Baidu = OpenLayers.Class(OpenLayers.Layer.TileCache, {
+		initialize: function (name, url, options) {
+		var tempoptions = OpenLayers.Util.extend({
+		'format': 'image/png',
+		isBaseLayer: true
+		}, options);
+		OpenLayers.Layer.TileCache.prototype.initialize.apply(this, [name, url, {},
+		tempoptions]);
+		this.extension = this.format.split('/')[1].toLowerCase();
+		this.extension = (this.extension == 'jpg') ? 'jpeg' : this.extension;
+		this.transitionEffect = "resize";
+		this.buffer = 0;
+		},
+		*/
+		/**
+		* 按地图引擎切图规则实现的拼接方式
+		*/
+		/*
+		getURL: function (bounds) {
+		var tilez=this.map.zoom-1;
+		var res = this.map.getResolution();
+		var bbox = this.map.getMaxExtent();
+		var size = this.tileSize;
+		var bx = Math.round((bounds.left - this.tileOrigin.lon) / (res * size.w));
+		var by = Math.round((bounds.bottom - this.tileOrigin.lat) / (res * size.h));
+		tilez = tilez + 1; 
+		var x = bx.toString().replace("-","M"); 
+		var y = by.toString().replace("-","M"); 
+		var urlsNum = parseInt((bx + by) % this.url.length); 
+		var strURL = ""; 
+		strURL = this.url[urlsNum] + '?qt=tile&x='+x+'&y='+y+'&z='+tilez+'&styles=pl&udt=20140807';
+		return strURL;
+		},
+		clone: function (obj) {
+		if (obj == null) {
+		obj = new OpenLayers.Layer.Baidu(this.name, this.url, this.options);
+		}
+		obj = OpenLayers.Layer.TileCache.prototype.clone.apply(this, [obj]);
+		return obj;
+		},
+		CLASS_NAME: "OpenLayers.Layer.Baidu"
+		});*/
+</script>
+
+
+

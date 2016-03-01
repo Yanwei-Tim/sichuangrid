@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+     <package name="estateInformationManage" extends="default"
+		namespace="/baseinfo/estateInformationManage">
+		<default-class-ref class="estateInformationController"></default-class-ref>
+		<action name="dispatchOperate" method="dispatch">
+			<result name="success">
+				/baseinfo/estateInformation/maintainEstateInformationDlg.jsp
+			</result>
+			<result name="search">
+				/baseinfo/estateInformation/searchEstateInformationDlg.jsp
+			</result>
+			<result name="subInhabitant">
+				/baseinfo/estateInformation/subInhabitantList.jsp
+			</result>
+			<result name="print">
+				/baseinfo/estateInformation/estateInformationPrintDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="addEstateInformation" method="addEstateInformation">
+			<result name="success" type="json">
+				<param name="root">estateInformation</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="updateEstateInformation" method="updateEstateInformation">
+			<result name="success" type="json">
+				<param name="root">estateInformation</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="deleteEstateInformation" method="deleteEstateInformation">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="estateInformationList" method="findEstateInformationByOrgInternalCode">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="findInhabitants" method="findInhabitantsByEstateId">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="getExistedProprietaryNoCount" method="getExistedProprietaryNoCount">
+			<result type="json">
+				<param name="root">existedCount</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="getExistedLandPermitCount" method="getExistedLandPermitCount">
+			<result type="json">
+				<param name="root">existedCount</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="housePropertyInfoPrint" method="housePropertyInfoPrint">
+			<result name="success">
+				/baseinfo/estateInformation/housePropertyInfoPrint.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	 </package>
+</struts>

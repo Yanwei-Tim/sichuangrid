@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="superviseLog">
+	<typeAlias type="com.tianque.domain.SuperviseLog" alias="SuperviseLog"/>
+	<resultMap class="SuperviseLog" id="superviseLogResult">
+	    <result property="id" column="id"/>
+	    <result property="superviseDate" column="superviseDate"/>
+	    <result property="success" column="success"/>
+	    <result property="dealType" column="dealType"/>
+	    <result property="days" column="days"/>
+	    <result property="overType" column="overType"/>
+	    <result property="superviseType" column="superviseType"/>
+	    <result property="createDate" column="createDate"/>
+	    <result property="createUser" column="createUser"/>
+	    <result property="updateDate" column="updateDate"/>
+	    <result property="updateUser" column="updateUser"/>
+	</resultMap>
+	
+	<insert id="addSuperviseLog" parameterClass="SuperviseLog">
+	    <selectKey resultClass="java.lang.Long" keyProperty="id">
+	        <![CDATA[SELECT S_SuperviseLog.NEXTVAL AS ID FROM DUAL ]]>
+	    </selectKey>
+	    insert into superviseLog (id,superviseDate,success,dealType,days,overType,superviseType,createDate,createUser,updateDate,updateUser)
+	    values (#id#,#superviseDate#,#success#,#dealType#,#days#,#overType#,#superviseType#,#createDate#,#createUser#,#updateDate#,#updateUser#)
+	</insert>
+	
+	<update id="updateSuperviseLogSuccess" parameterClass="java.lang.Long">
+	    update superviseLog set success = 1 where id = #value#
+	</update>
+	
+	<select id="findErrorSuperviseLogs" resultMap="superviseLogResult" parameterClass="java.util.Map">
+	    select * from superviseLog where success = 0 and dealType = #dealType# and overType=#overType# and superviseType=#superviseType#
+	</select>
+	<select id="getSuperviseLogById" parameterClass="java.lang.Long" resultMap="superviseLogResult">
+	    select * from superviseLog where id = #value#
+	</select>
+</sqlMap>

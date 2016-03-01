@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mobileErrorLogs">
+	<typeAlias alias="MobileErrorLogs" type="com.tianque.mobileErrorLogs.domain.MobileErrorLogs" />
+	
+	<resultMap class="MobileErrorLogs" id="mobileErrorLogsResult">
+		<result property="id" column="id"/>
+		<result column="orgId" property="orgId"/>
+		<result column="orgCode" property="orgCode"/>
+		<result property="name" column="name"/>
+		<result property="errorLogsName" column="errorLogsName"/>
+		<result property="occurDate" column="occurDate"/>
+	</resultMap>
+	
+	<select id="countMobileErrorLogs" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	    select count(1) from mobileErrorLogs where orgCode like #orgCode#||'%'
+	</select>
+	
+	<select id="findMobileErrorLogs" resultMap="mobileErrorLogsResult">
+		SELECT * from mobileErrorLogs where orgCode like #orgCode#||'%'
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<insert id="addMobileErrorLogs">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_mobileErrorLogs.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		<![CDATA[
+			insert into mobileErrorLogs
+			(id, orgId,orgCode,name,errorLogsName,occurDate,errorLogsPath)
+			values(#id#, #orgId#,#orgCode#,#name#, #errorLogsName#, #occurDate#,#errorLogsPath#)
+		]]>
+	</insert>
+	
+	<sql id="sql_where">
+		where 1=1
+		<dynamic>
+			<isNotEmpty  property="orgCode" prepend="and">
+					orgCode like #orgCode#||'%' 
+			</isNotEmpty>
+			<isNotEmpty property="name" prepend=" and ">
+					t.name like '$name$%'
+			</isNotEmpty>
+			<isNotEmpty property="errorLogsName" prepend=" and ">
+					t.errorLogsName like '$errorLogsName$%'
+			</isNotEmpty>
+			<isNotEmpty  property="occurFromDate" prepend="and">
+				<![CDATA[#occurFromDate# <= t.occurDate ]]>
+			</isNotEmpty>
+			<isNotEmpty  property="occurEndDate" prepend="and">
+				<![CDATA[#occurEndDate# >= t.occurDate]]>
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	 <select id="countSearchMobileErrorLogs" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from mobileErrorLogs t
+		<include refid="sql_where" />
+	</select>
+
+	<select id="searchMobileErrorLogs" parameterClass="java.util.Map" resultMap="mobileErrorLogsResult">
+		select * from mobileErrorLogs t
+		<include refid="sql_where" />
+	</select>
+</sqlMap>

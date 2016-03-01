@@ -1,0 +1,93 @@
+package com.tianque.jms.sender;
+
+import org.apache.activemq.command.ActiveMQQueue;
+import org.apache.activemq.spring.ActiveMQConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.stereotype.Component;
+
+import com.tianque.core.redis.utils.RedisDefaultPageUtils;
+import com.tianque.jms.constants.JmsMessageType;
+import com.tianque.jms.conventer.HbaseMsgConverter;
+import com.tianque.jms.conventer.MsgConventer;
+import com.tianque.jms.domain.JmsMessage;
+import com.tianque.jms.domain.JmsVo;
+import com.tianque.jms.domain.SystemOperateLogDTO;
+import com.tianque.jms.msg.BaseMsg;
+import com.tianque.jms.msg.RedisCacheMsg;
+import com.tianque.jms.service.JmsMessageService;
+import com.tianque.jms.solr.SolrMessage;
+
+@Component("activeMQMessageSender")
+public class ActiveMQMessageSender {
+
+	@Autowired
+	private JmsMessageService jmsMessageService;
+
+	private static Logger logger = LoggerFactory
+			.getLogger(ActiveMQMessageSender.class);
+
+	public void send(BaseMsg baseMsg) {
+		try {
+			JmsMessage jmsMessage = getJmsMessage(baseMsg.getJmsMessageType());
+			if (!jmsMessage.getIsSenderMessage()) {
+				return;
+			}
+			getTemplate(jmsMessage).convertAndSend(baseMsg);
+		} catch (Exception e) {
+			logger.error("发送消息失败：" + baseMsg, e);
+			if (baseMsg instanceof RedisCacheMsg) {
+				RedisCacheMsg redisCacheMsg = (RedisCacheMsg) baseMsg;
+				RedisDefaultPageUtils
+						.addClearListKey(redisCacheMsg.getObjectType(),
+								redisCacheMsg.getOrgId());
+			}
+		}
+	}
+
+	public void senderMsg(JmsVo jmsVo) {
+		try {
+			if (jmsVo instanceof SystemOperateLogDTO) {
+				JmsMessage jmsMessage = getJmsMessage(JmsMessageType.HBASE_JMS_TYPE);
+				if (!jmsMessage.getIsSenderMessage()) {
+					return;
+				}
+				getTemplate(jmsMessage).convertAndSend(jmsVo);
+			}
+		} catch (Exception e) {
+			logger.error("发送消息失败：" + jmsVo, e);
+		}
+	}
+
+	public void send(SolrMessage solrMessage) {
+
+	}
+
+	private JmsMessage getJmsMessage(String jmsMessageType) {
+		JmsMessage jmsMessage = jmsMessageService
+				.getJmsMessageByType(jmsMessageType);
+		return jmsMessage;
+	}
+
+	private JmsTemplate getTemplate(JmsMessage jmsMessage) {
+		JmsTemplate jmsTemplate = new JmsTemplate();
+		ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory();
+		connectionFactory.setBrokerURL(jmsMessage.getJmsUrl());
+		connectionFactory.setProducerWindowSize(1024000000);
+
+		// 配置JMS模版
+		jmsTemplate.setConnectionFactory(connectionFactory);
+		jmsTemplate.setSessionTransacted(true);
+		ActiveMQQueue queue = new ActiveMQQueue(jmsMessage.getJmsQueue());
+		jmsTemplate.setDefaultDestination(queue);
+		if (JmsMessageType.HBASE_JMS_TYPE.equals(jmsMessage.getMessageType())) {
+			jmsTemplate.setMessageConverter(new HbaseMsgConverter());
+		} else {
+			jmsTemplate.setMessageConverter(new MsgConventer());
+		}
+		return jmsTemplate;
+	}
+
+}

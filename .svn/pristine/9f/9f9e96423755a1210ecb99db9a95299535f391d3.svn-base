@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="dustbinTemp">
+	<typeAlias alias="dustbinTemp" type="com.tianque.plugin.dataManage.dustbin.dustbinTemp.domain.DustbinTemp" />
+	<!-- <typeAlias alias="searchDustbinVo" type="com.tianque.domain.vo.SearchDustbinVo" /> -->
+	
+	<resultMap id="dustbinTempResultForBase" class="dustbinTemp">
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="partType" property="partType.id" />
+		<result column="partName" property="partName.id" />
+		<result column="dustbinCode" property="dustbinCode" />
+		<result column="hasVideo" property="hasVideo" />
+		<result column="address" property="address" />
+		<result column="deptName" property="deptName" />
+		<result column="ownershipUnitName" property="ownershipUnitName" />
+		<result column="maintenanceUnitName" property="maintenanceUnitName" />
+		<result property="imgUrl" column="imgUrl"/>
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+		<result column="centerLon" property="centerX" />
+		<result column="centerLat" property="centerY" />
+		<result column="remark" property="remark" />
+	</resultMap>
+	
+	<resultMap id="dustbinTempResultForList" class="dustbinTemp" extends="dustbinTemp.dustbinTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<sql id="claim_sql_where">
+		from DM_DUSTBIN_TEMP where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	
+	<select id="findTemps" resultMap="dustbinTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic>
+			<isNotEmpty property="dustbinCode" prepend="and">
+				dustbinCode like '%'||#dustbinCode#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="partType" prepend="and">
+				partType = #partType#
+			</isNotEmpty>
+			<isNotEmpty property="partName" prepend="and">
+				partName = #partName#
+			</isNotEmpty>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countFindTemps" resultClass="java.lang.Integer"
+		parameterClass="searchVo">
+			select count(id)  <include refid="claim_sql_where" />
+	</select>
+	
+	<insert id="addDustbinTemp" parameterClass="dustbinTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_DM_DUSTBIN_TEMP.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_DUSTBIN_TEMP
+		(
+		id,orgId,orgInternalCode,partType,partName,dustbinCode,address,deptName,ownershipUnitName,maintenanceUnitName,imgUrl,createDate,createUser,updateDate,updateUser,centerLon,centerLat,remark,hasVideo,
+		<include refid="dataManage.addDataManage"/>
+		)
+		values
+		(
+		 #id#,#organization.id#,#orgInternalCode#,#partType.id#,#partName.id#,#dustbinCode#,#address#,#deptName#,#ownershipUnitName#,#maintenanceUnitName#,#imgUrl#,#createDate#,#createUser#,#updateDate#,#updateUser#,#centerX#,#centerY#,#remark#,#hasVideo#,
+		 <include refid="dataManage.addValueDataManage"/>
+		)
+	</insert>
+	
+	<select id="getDustbinTempById" parameterClass="java.lang.Long" resultMap="dustbinTempResultForList">
+		select * from DM_DUSTBIN_TEMP where id = #value#
+	</select>
+	
+	<delete id="deleteDustbinTempById" parameterClass="Long">
+		delete DM_DUSTBIN_TEMP where id = #value#
+	</delete>
+	
+	<update id="updateDustbinTempClaimDetail" parameterClass="java.util.Map">
+		update DM_DUSTBIN_TEMP set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	
+	<update id="updateDustbinTempInfo" parameterClass="dustbinTemp">
+		update DM_DUSTBIN_TEMP set   
+		 <dynamic>
+	      dustbinCode=#dustbinCode#
+            <isNotNull prepend="," property="partType">
+				partType=#partType.id#
+			</isNotNull>
+			<isNotNull prepend="," property="partName">
+				partName=#partName.id#
+			</isNotNull>
+            <isPropertyAvailable prepend="," property="address">
+            	address=#address#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="deptName">
+            	deptName=#deptName#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="hasVideo">
+            	hasVideo=#hasVideo#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="ownershipUnitName">
+            	ownershipUnitName=#ownershipUnitName#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="maintenanceUnitName">
+            	maintenanceUnitName=#maintenanceUnitName#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="imgUrl">
+            	imgUrl=#imgUrl#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="centerX">
+            	centerLon=#centerX#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="centerY">
+            	centerLat=#centerY#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="remark">
+            	remark=#remark#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="isEmphasis">
+            	isEmphasis=#isEmphasis#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="logOutTime">
+            	logOutTime=#logOutTime#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="logOutReason">
+            	logOutReason=#logOutReason#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="updateUser">
+            	updateUser=#updateUser#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="updateDate">
+            	updateDate=#updateDate#
+            </isPropertyAvailable>
+            <include refid="dataManage.updateDataManage"/>
+			where id = #id#
+         </dynamic>
+	</update>
+
+</sqlMap>

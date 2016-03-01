@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ReceiveMsgInfo">
+	<typeAlias alias="receiveMsgInfo"
+		type="com.tianque.tenHouseholdsJoint.domain.ReceiveMsgInfo" />
+		<typeAlias alias="messageInfoVo"
+		type="com.tianque.tenHouseholdsJoint.domain.MessageInfoVo" />
+		<typeAlias alias="message"
+		type="com.tianque.tenHouseholdsJoint.domain.Message" />
+	<typeAlias alias="organization" type="com.tianque.domain.Organization" />
+
+	<resultMap id="receiveMsgInfoResult" class="receiveMsgInfo">
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgCode" />
+		<result property="userId" column="userId" />
+		<result property="teamId" column="teamId" />
+		<result property="sendDate" column="sendDate" />
+		<result property="message.id" column="messageId" />
+		<result property="message.text" column="text" />
+		<result property="message.requestIdentifier" column="requestIdentifier" />
+		<result property="message.sendAddress" column="sendAddress" />
+		<result property="message.messageType.id" column="messageType" />
+		<result property="isDeal" column="isDeal" />
+		<result property="isReport" column="isReport" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+
+	<insert id="addMessage" parameterClass="message">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_MESSAGE.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO MESSAGE
+		(id,text,messageType,sendAddress,requestIdentifier,createUser,createDate,updateDate)
+		VALUES(#id#,#text#,#messageType.id#,#sendAddress#,#requestIdentifier#,#createUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	<insert id="addReceiveMsgInfo" parameterClass="receiveMsgInfo">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_ReceiveMsgInfo.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO ReceiveMsgInfo
+		(id,orgId,orgCode,userId,teamId,sendDate,messageId,isDeal,isReport,createUser,createDate)
+		VALUES(#id#,#organization.id#,#organization.orgInternalCode#,#userId#,#teamId#,#sendDate#,#message.id#,#isDeal#,#isReport#,#createUser#,#createDate#)
+	</insert>
+
+	<delete id="deleteReceiveMsgInfo" parameterClass="java.lang.Long">
+		delete from
+		ReceiveMsgInfo where id=#value#
+	</delete>
+	<update id="updateReceiveMsgInfo" parameterClass="receiveMsgInfo">
+		update ReceiveMsgInfo set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgCode=#organization.orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="userId">
+				userId=#userId#
+			</isNotNull>
+			<isNotNull prepend="," property="teamId">
+				teamId=#teamId#
+			</isNotNull>
+			<isNotNull prepend="," property="isDeal">
+				isDeal=#isDeal#
+			</isNotNull>
+			<isNotNull prepend="," property="isReport">
+				isReport=#isReport#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+	<select id="queryReceiveMsgInfosForPageResult" parameterClass="messageInfoVo" resultMap="receiveMsgInfoResult">
+		select
+		r.id,orgId,orgCode,userId,teamId,sendDate,messageId,isDeal,isReport,text,messageType,requestIdentifier,sendAddress,r.createUser,r.createDate,r.updateUser,r.updateDate
+		from ReceiveMsgInfo r,message m where r.messageId = m.id
+		<dynamic>
+			<isNotEmpty property="orgCode" prepend="and">
+				orgCode like #orgCode#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="messageId" prepend="and">
+				messageId = #messageId#
+			</isNotEmpty>
+			<isNotEmpty property="teamId" prepend="and">
+				teamId = #teamId#
+			</isNotEmpty>
+			<isNotEmpty property="userId" prepend="and">
+				userId = #userId#
+			</isNotEmpty>
+			<isNotEmpty property="messageTypeId" prepend="and">
+				messageType = #messageTypeId#
+			</isNotEmpty>
+			<isNotEmpty property="userIds" prepend="and">
+				userId in ($userIds$)
+			</isNotEmpty>
+			<isNotEmpty property="teamIds" prepend="and">
+				teamId in ($teamIds$)
+			</isNotEmpty>
+			<isNotEmpty property="startSendDate" prepend="and">
+				sendDate <![CDATA[>= ]]> #startSendDate#
+			</isNotEmpty>
+			<isNotEmpty property="endSendDate" prepend="and">
+				sendDate <![CDATA[<= ]]> #endSendDate#
+			</isNotEmpty>
+			<isNotEmpty property="text" prepend="and">
+				text like #text#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="isReport" prepend="and">
+				isReport = #isReport#
+			</isNotEmpty>
+			<isNotEmpty property="telephone" prepend="and">
+				sendAddress like #telephone#||'%'
+			</isNotEmpty>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="queryReceiveMsgInfosForPageResultCount" parameterClass="messageInfoVo" resultClass="java.lang.Integer">
+		select count(id) from ReceiveMsgInfo
+	</select>
+	<update id="updateDealInfo" parameterClass="java.lang.Long">
+		update ReceiveMsgInfo set isDeal = 1 where id=#id#
+	</update>
+	<update id="updateReportInfo" parameterClass="java.lang.Long">
+		update ReceiveMsgInfo set isReport = 1 where id=#id#
+	</update>
+	<select id="getReceiveMsgInfoById" parameterClass="java.lang.Long" resultMap="receiveMsgInfoResult">
+		select
+		r.id,orgId,orgCode,userId,teamId,sendDate,messageId,isDeal,isReport,text,messageType,requestIdentifier,sendAddress,r.createUser,r.createDate,r.updateUser,r.updateDate
+		from ReceiveMsgInfo r,message m where r.messageId = m.id and r.id=#id#
+	</select>
+	<select id="getReceiveBoxConditionNum" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		select count(*) from RECEIVEMSGINFO where orgCode like #orgCode#||'%' and isdeal = 0
+	</select>
+	
+</sqlMap>

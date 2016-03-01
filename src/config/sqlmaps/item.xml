@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="item">
+	<typeAlias alias="Item" type="com.tianque.approval.domain.Item" />
+	<resultMap class="Item" id="itemResult">
+		<result property="id" column="id" />
+		<result property="itemNumber" column="itemNumber" />
+		<result property="itemName" column="itemName" />
+		<result property="promiseTime" column="promiseTime" />
+		<result property="legalTime" column="legalTime" />
+		<result property="isFees" column="isFees" />
+		<result property="standardFees" column="standardFees" />
+		<result property="matterKind.id" column="matterKind" />
+		<result property="legalBasis" column="legalBasis" />
+		<result property="lawGuide" column="lawGuide" />
+		<result property="remark" column="remark" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result column="fullPinyin" property="fullPinyin" />
+		<result column="simplePinyin" property="simplePinyin" />
+	</resultMap>
+	
+	<insert id="addItem" parameterClass="Item">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_ITEMS.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into items(id,itemNumber,itemName,promiseTime,legalTime,standardFees,matterKind,isFees,createUser,createDate,legalBasis,lawGuide,remark,fullPinyin,simplePinyin)
+		values (#id#,#itemNumber#,#itemName#,#promiseTime#,#legalTime#,#standardFees#,#matterKind.id#,#isFees#,#createUser#,#createDate#,#legalBasis#,#lawGuide#,#remark#,#fullPinyin#,#simplePinyin#)
+	</insert>
+	
+	<select id="getItemByItemNumber" parameterClass="java.lang.String" resultMap="itemResult">
+		<![CDATA[select * from items where itemNumber=#value#]]>
+	</select>
+	
+	<select id="getItemById" parameterClass="java.lang.Long" resultMap="itemResult">
+		<![CDATA[select * from items where id=#value#]]>
+	</select>	
+
+	<delete id="deleteItemById" parameterClass="java.lang.Long">
+		delete from items where id = #value#
+	</delete>
+	
+	<update id="updateItem" parameterClass="Item">
+		update items set
+		 <dynamic>
+            id=#id#
+            <isPropertyAvailable prepend="," property="itemNumber">
+            	itemNumber=#itemNumber#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="itemName">
+            	itemName=#itemName#,
+            	fullPinyin=#fullPinyin#,
+            	simplePinyin=#simplePinyin#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="promiseTime">
+            	promiseTime=#promiseTime#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="legalTime">
+            	legalTime=#legalTime#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="standardFees">
+            	standardFees=#standardFees#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="matterKind">
+            	matterKind=#matterKind.id#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="updateUser">
+            	updateUser=#updateUser#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="updateDate">
+            	updateDate=#updateDate#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="isFees">
+            	isFees=#isFees#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="legalBasis">
+            	legalBasis=#legalBasis#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="lawGuide">
+            	lawGuide=#lawGuide#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="remark">
+            	remark=#remark#
+            </isPropertyAvailable>
+            where id=#id#
+         </dynamic>
+	</update>
+	
+	<sql id="sql_select">
+		<dynamic prepend="where">
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+						(itemName like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or
+            	simplePinyin like #fastSearchKeyWords#||'%' or itemNumber like '%'||#fastSearchKeyWords#||'%')
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="itemName">
+				<isNotEmpty property="itemName" prepend="and">
+					(itemName like #itemName#||'%' or fullPinyin like #itemName#||'%' or
+            	simplePinyin like #itemName#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="itemNumber">
+				<isNotEmpty property="itemNumber" prepend="and">
+					itemNumber like '%'||#itemNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="countItemPage" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(id) from items
+		<include refid="sql_select"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findItemPage" parameterClass="java.util.Map" resultMap="itemResult">
+		select * from items
+		<include refid="sql_select"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+</sqlMap>

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+  
+<struts>
+	<package name="fireSafetyEnterpriseManage" extends="default" namespace="/baseinfo/fireSafetyEnterpriseManage">
+		<default-class-ref class="fireSafetyEnterpriseController"></default-class-ref>
+		
+		<action name="dispatchOperate" method="dispatchOperate">
+			<result name="success">
+				/baseinfo/siteinfo/fireSafety/maintainFireDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+			<result name="search">
+				/baseinfo/siteinfo/fireSafety/searchFireSafetyEnterpriseCondition.jsp
+			</result>
+			<!-- 
+			<result name="print">
+				/baseinfo/siteinfo/fireSafety/fireSafetyEnterprisePrintDlg.jsp
+			</result> -->
+			<result name="print">
+				/baseinfo/commonPopulation/printTabPreviewDlg.jsp
+			</result>
+			<result name="view">
+				/baseinfo/siteinfo/fireSafety/FireSafetyEnterpriseViewDlg.jsp
+			</result>	
+		</action>
+		 <!-- 解密调用 -->
+		<action name="dispatchOperateByEncrypt" method="dispatchOperateByEncrypt">
+			<result name="success">
+				/baseinfo/siteinfo/fireSafety/maintainFireDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+			<result name="print">
+				/baseinfo/commonPopulation/printTabPreviewDlg.jsp
+			</result>
+			<result name="view">
+				/baseinfo/siteinfo/fireSafety/FireSafetyEnterpriseViewDlg.jsp
+			</result>	
+		</action>
+		
+		<action name="dispatchOperateForGis" method="dispatchOperate">
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+			<result name="view">
+				/baseinfo/siteinfo/fireSafety/FireSafetyEnterpriseViewDlg_gis.jsp
+			</result>	
+		</action>
+		
+		<action name="addFireSafetyEnterprise" method="addFireSafetyEnterprise">
+			<result name="success" type="json">
+				<param name="root">enterprise</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="shiftDispatch"  method="shiftDispatch">
+			<result name="success">
+					/common/shiftTree.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="shiftFireSafetyEnterprise" method="shiftFireSafetyEnterprise">
+			<result type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		
+		<action name="addFireSafetyEnterpriseAndPersonInCharges" method="addFireSafetyEnterpriseAndPersonInCharges">
+			<result name="success" type="json">
+				<param name="root">enterprise</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="fireSafetyEnterpriseList" method="findFireSafetyEnterprisesForListPage">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateFireSafetyEnterprise" method="updateFireSafetyEnterprise">
+			<result name="success" type="json" >
+				<param name="root">enterprise</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateEmphasis" method="updateEmphasis">
+			<result name="success" type="json" >
+				<param name="root">enterprise</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		
+		<action name="deleteFireSafetyEnterprise" method="deleteFireSafetyEnterprise">
+			<result name="success" type="json" >
+				<param name="root">bol</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="hasDuplicateFireSafetyEnterpriseName" method="hasDuplicateFireSafetyEnterpriseName">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>		
+		</action>		
+		
+		<action name="viewFireSafetyEnterprise" method="viewFireSafetyEnterprise">
+			<result name="success">
+				/baseinfo/siteinfo/fireSafety/FireSafetyEnterpriseView.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<!-- add by lss 2013.05.08 -->
+		<action name="hasDuplicateFireSafetyEnterpriseNameAndKeyType" method="hasDuplicateFireSafetyEnterpriseNameAndKeyType">
+			<result name="success" type="json">
+				<param name="root">bol</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>		
+		</action>
+	</package>
+</struts>

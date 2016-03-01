@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="IssueAnalysisToMobile">
+	<typeAlias alias="IssueAnalysisToMobile" type="com.tianque.leaderAnalysis.domain.IssueAnalysisToMobile" />
+	<resultMap class="IssueAnalysisToMobile" id="issueDatasListResult">
+		
+		<result property="id" column="id"/>
+		<result property="year" column="year"/>
+		<result property="month" column="month"/>
+		<result property="issueTypeDomain.id" column="issueTypeDomainid"/>
+		<result property="org.id" column="orgId"/>
+		<result property="org.orgInternalCode" column="orgInternalCode"/>
+		<result property="org.orgType.id" column="orgtype"/>
+		<result property="org.orgInternalCode" column="orgInternalCode"/>
+		<result property="org.parentOrg.id" column="orgParentid"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="addIssueSum" column="addIssueSum"/>
+		<result property="doingIssueSum" column="doingIssueSum"/>
+		<result property="submitIssueSum" column="submitIssueSum"/>
+		<result property="assignIssueSum" column="assignIssueSum"/>
+		<result property="doneIssueSum" column="doneIssueSum"/>
+		<result property="issueSum" column="issueSum"/>
+		<result property="extendedDoingSum" column="extendedDoingSum"/>
+		<result property="extendedDoneSum" column="extendedDoneSum"/>
+		<result property="issueTotal" column="issueTotal"/>
+	</resultMap>
+	
+	<resultMap class="IssueAnalysisToMobile" id="issueDatasTotalResult">
+		<result property="issueTotal" column="issueTotal"/>
+		<result property="addIssueSum" column="addIssueSum"/>
+	</resultMap>
+	
+
+	<delete id="deleteAllDataByYearAndMonth" parameterClass="java.util.Map">
+		delete issueAnalysisToMobile_$year$_$month$
+	</delete>
+	
+	<insert id="addIssueAnalysisToMobile" parameterClass="java.util.Map">
+		insert into issueAnalysisToMobile_$year$_$month$ (
+			id,year,month,issueTypeDomainid,createUser,createDate,orgId,orgInternalCode,orgtype,orgParentid,
+			addIssueSum,
+			doingIssueSum,
+			submitIssueSum,
+			assignIssueSum,
+			doneIssueSum,
+			issueSum,
+			extendedDoingSum,
+			extendedDoneSum,
+			issueTotal )
+		select 
+			S_IssueAnalysis.NEXTVAL,
+			#year#,
+			#month#,
+			#issueTypeDomainId#,
+			'admin',
+			sysdate,
+			id as orgId,
+			orgInternalCode,
+			orgtype,
+			parentid as orgParentid,
+			(select count(1) from issuesteps ip,issues i where ip.issue=i.id and i.issueTypeDomainid=#issueTypeDomainId# and  ip.createdate between #startDate# and #endDate# and ip.target=o.id and ip.entrydate=ip.createdate) as addIssueSum,
+			(select count(1) from issuesteps ip,issues i where ip.issue=i.id and i.issueTypeDomainid=#issueTypeDomainId# and  ip.createdate between #startDate# and #endDate# and ip.target=o.id and ip.statecode<![CDATA[<]]> 500) as doingIssueSum,
+			(select count(1) from issuesteps ip,issues i where ip.issue=i.id and i.issueTypeDomainid=#issueTypeDomainId# and  ip.createdate between #startDate# and #endDate# and ip.target=o.id and ip.submit=1) as submitIssueSum,
+			(select count(1) from issuesteps ip,issues i where ip.issue=i.id and i.issueTypeDomainid=#issueTypeDomainId# and  ip.createdate between #startDate# and #endDate# and ip.target=o.id and ip.assign=1) as assignIssueSum,
+			(select count(1) from issuesteps ip,issues i where ip.issue=i.id and i.issueTypeDomainid=#issueTypeDomainId# and  ip.createdate between #startDate# and #endDate# and ip.target=o.id and ip.statecode>=1000) as doneIssueSum,
+			(select count(1) from issuesteps ip,issues i where ip.issue=i.id and i.issueTypeDomainid=#issueTypeDomainId# and  ip.createdate between #startDate# and #endDate# and ip.target=o.id) as issueSum,
+			(select count(1) from issuesteps ip,issues i where ip.issue=i.id and i.issueTypeDomainid=#issueTypeDomainId# and  ip.createdate between #startDate# and #endDate# and ip.target=o.id and ip.statecode<![CDATA[< 500 and ip.superviselevel>-1]]>) as extendedDoingSum,
+			(select count(1) from issuesteps ip,issues i where ip.issue=i.id and i.issueTypeDomainid=#issueTypeDomainId# and  ip.createdate between #startDate# and #endDate# and ip.target=o.id and ip.statecode>=1000 and ip.isextended=1) as extendedDoneSum,
+			(
+				(select count(1) from issuesteps ip,issues i where ip.issue=i.id and i.issueTypeDomainid=#issueTypeDomainId# and  ip.createdate between #startDate# and #endDate# and ip.target=o.id)
+				+(select count(1) from issuesteps_history iph,issues i where iph.issue=i.id and i.issueTypeDomainid=#issueTypeDomainId# and iph.createdate between #startDate# and #endDate#  and iph.target=o.id)
+			) as issueTotal
+			from organizations o where o.parentid is not null
+	</insert>
+	 
+	<select id="getIssueDatasListTotalByOrgParentId" parameterClass="java.util.Map" resultMap="issueDatasTotalResult">
+		select 
+			nvl(sum(addIssueSum),0) addIssueSum,
+			nvl(sum(issueTotal),0)  issueTotal 
+		from issueAnalysisToMobile_$year$_$month$ where orgInternalCode like #orgCode# ||'%' and orgParentid=#orgId#
+	</select>
+	
+	<select id="queryIssueDatasListForList" parameterClass="java.util.Map" resultMap="issueDatasListResult">
+		select * from issueAnalysisToMobile_$year$_$month$ where orgParentid=#orgId# and issueTypeDomainId=#issueTypeDomainId# and orgtype=#orgTypeId#
+	</select>
+	
+</sqlMap>

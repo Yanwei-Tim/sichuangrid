@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="druggyTask">
+    <typeAlias alias="druggyTask"	type="com.tianque.plugin.taskList.domain.DruggyTask" />
+	<resultMap id="druggyTaskMap" class="druggyTask" >
+	    <result column="id" property="id" />  
+	    <result column="orgId" property="organization.id" />
+	    <result column="orginternalcode" property="organization.orgInternalCode"/>
+    	<result column="place" property="place" />
+		<result column="time" property="time" />
+		<result column="name" property="name" />
+		<result column="familyTel" property="familyTel" />
+		<result column="lifeResource" property="lifeResource.id" />
+		<result column="exception" property="exception" />
+		<result column="reporter" property="reporter" />
+		<result column="reporterTel" property="reporterTel" />
+		<result column="status" property="status" />
+		<result column="hasReplay" property="hasReplay" />
+		<result column="hasException" property="hasException" />
+		<result column="attitude" property="attitude" />
+		<result column="signDate" property="signDate" />
+		<result column="signMemberName" property="signMemberName" />
+		<result column="remark" property="remark" />
+		<result column="helpPeople" property="helpPeople" />
+		<result property="idCard" column="idCard" />
+		<result property="phone" column="phone" />
+		<result column="createDate" property="createDate" />
+	    <result column="createUser" property="createUser" />
+	    <result column="updateDate" property="updateDate" />
+	    <result column="updateUser" property="updateUser" />
+	    <result column="druggyId" property="druggyId" />
+	</resultMap>
+	<resultMap id="mobileDruggyTaskMap" class="druggyTask" extends="druggyTaskMap">
+	    
+		<!-- 用于手机接口返回被回复数量 -->
+		<result property="replyCount" column="replyCount" />
+	</resultMap>
+	<resultMap id="druggyTaskByNameMap" class="druggyTask" >
+    	<result column="place" property="place" />
+		<result column="name" property="name" />
+		<result column="familyTel" property="familyTel" />
+	</resultMap>
+	
+	<sql id="sql_where">      
+		from druggyTask d
+		<dynamic prepend="WHERE">
+		    <isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+				(place like #fastSearchKeyWords#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" or ">
+				name like #fastSearchKeyWords#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" or ">
+				helpPeople like #fastSearchKeyWords#||'%')
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="conditionStartDate">
+				<isNotNull property="conditionStartDate" prepend=" and ">
+				<![CDATA[ time >= #conditionStartDate# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="conditionEndDate">
+				<isNotNull property="conditionEndDate" prepend=" and ">
+				<![CDATA[ time <= #conditionEndDate# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="conditionSignEndDate">
+				<isNotNull property="conditionSignEndDate" prepend=" and ">
+				<![CDATA[ SIGNDATE <= #conditionSignEndDate# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="conditionSignStartDate">
+				<isNotNull property="conditionSignStartDate" prepend=" and ">
+				<![CDATA[ SIGNDATE >= #conditionSignStartDate# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend=" and ">
+				name like #name#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="status">
+				<isNotEmpty property="status" prepend=" and ">
+				status = #status#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="hasReplay">
+				<isNotEmpty property="hasReplay" prepend=" and ">
+				hasReplay = #hasReplay#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="hasException">
+				<isNotEmpty property="hasException" prepend=" and ">
+				hasException = #hasException#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isNotEqual property="mode" compareValue="gridConfigTask">
+			    <isNotNull property="orgCode" prepend=" and ">
+				  orgInternalCode like  #orgCode#||'%'
+				</isNotNull>
+		    </isNotEqual>
+		    <isEqual property="mode" compareValue="gridConfigTask" prepend=" and ">
+				 orgInternalCode in (select a.orgInternalCode from gridConfigTask a where 1=1
+				<isNotNull property="orgCode" prepend=" and ">
+				 a.orgInternalCode like  #orgCode#||'%'
+				</isNotNull>
+				 <isNotNull property="funOrgId" prepend=" and ">
+				 a.funorgid = #funOrgId#
+				 </isNotNull>
+					 )
+		    </isEqual>
+			<isNotEmpty  property="place" prepend="and">
+				place like #place# || '%'
+			</isNotEmpty>
+			<isNotEmpty  property="helpPeople" prepend="and">
+				helpPeople like '%'||#helpPeople#|| '%'
+			</isNotEmpty>
+			<isNotEmpty  property="idCard" prepend="and">
+				idCard like #idCard#|| '%'
+			</isNotEmpty>
+			<isNotEmpty  property="phone" prepend="and">
+				phone like #phone#|| '%'
+			</isNotEmpty>
+			<isNotEmpty  property="druggyId" prepend="and">
+				druggyId = #druggyId#
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	<update id="updateDruggyTask" parameterClass="druggyTask">
+		update druggyTask d set 
+		d.time=#time#,
+		d.place=#place#,
+		d.name=#name#,
+		d.familyTel = #familyTel#,
+		<isNotNull property="hasReplay">
+		d.hasReplay = #hasReplay#,
+		</isNotNull>
+		<isNotNull property="hasException">
+		d.hasException = #hasException#,
+		</isNotNull>
+		d.remark = #remark#,
+		d.helpPeople = #helpPeople#,
+		d.idCard = #idCard#,
+		d.phone = #phone#
+		
+		where  d.id=#id#
+	</update>
+	
+	<select id="findDruggyTask" parameterClass="map" resultMap="mobileDruggyTaskMap">
+	  	select d.*,(select count(1)
+          from TaskListReply
+         where modulekey = 'reply_druggyTask'
+           and TaskListReply.taskid = d.id) replyCount <include refid="sql_where"/>
+		order by d.time desc
+	</select>
+	<select id="countDruggyTask" parameterClass="map" resultClass="java.lang.Integer">
+	  	select count(0) 
+	  	<include refid="sql_where"/>
+	</select>
+	
+	<select id="searchDruggyTask" parameterClass="map" resultMap="druggyTaskMap">
+	  	select * 
+	  	<include refid="sql_where"/>
+		order by TIME desc
+	</select>
+	<select id="countSearchDruggyTask" parameterClass="map" resultClass="java.lang.Integer">
+	  	select count(0) 
+	  	<include refid="sql_where"/>
+	</select>
+	
+	<select id="searchDruggyTaskByName" parameterClass="map" resultMap="druggyTaskByNameMap">
+	  	select name,place,familyTel
+	  	from druggyTaskwhere name like #name#||'%'  
+		and orgCode like #orgCode#||'%' group by name,place,familyTel
+		
+	</select>
+	
+	<select id="getById" parameterClass="java.lang.Long" resultMap="druggyTaskMap">
+	  	select * from druggyTask where id=#value#
+	</select>
+	
+	<insert id="addDruggyTask" parameterClass="druggyTask">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_druggyTask.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into druggyTask
+		(id,orgId,orginternalcode,hasException,time,place,name,familyTel,lifeResource,exception,reporter,reporterTel,remark,helpPeople,createUser,createDate,idCard,phone,druggyId)
+		values
+		(#id#,#organization.id#,#organization.orgInternalCode#,#hasException#,#time#,#place#,#name#,#familyTel#,#lifeResource.id#,#exception#,#reporter#,#reporterTel#,#remark#,#helpPeople#,#createUser#,#createDate#,#idCard#,#phone#,#druggyId#		
+		)
+	</insert>
+	
+	<delete id="deleteDruggyTaskById" parameterClass="java.util.List">
+		delete from druggyTask where id  in
+    	<iterate conjunction="," open="(" close=")" >
+            #ids[]#
+        </iterate>
+	</delete>
+	
+</sqlMap>

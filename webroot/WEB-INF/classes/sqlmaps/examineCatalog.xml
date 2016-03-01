@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="examineCatalog">
+	<typeAlias alias="ExamineCatalog" type="com.tianque.domain.ExamineCatalog" />
+
+	<resultMap id="examineCatalogResult" class="ExamineCatalog">
+		<result property="id" column="id" />
+		<result property="index" column="catalogSeq" />
+		<result property="shortName" column="shortName" />
+		<result property="fullName" column="fullName" />
+		<result property="remark" column="remark" />
+	</resultMap>
+
+	<insert id="addExamineCatalog" parameterClass="ExamineCatalog">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_ExamineCatalogs.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		ExamineCatalogs(id,catalogSeq,shortName,fullName,remark)
+		VALUES(#id#,#index#,#shortName#,#fullName#,#remark#)
+	</insert>
+
+	<select id="getSimpleExamineCatalogById" parameterClass="java.lang.Long"
+		resultMap="examineCatalogResult">
+		<![CDATA[
+		select * from ExamineCatalogs where id=#value#
+		]]>
+	</select>
+
+	<select id="findExamineCatalogs" resultMap="examineCatalogResult">
+		<![CDATA[
+		select * from ExamineCatalogs order by id
+		]]>
+	</select>
+	
+	<select id="findSelectedExamineCatalogsByPlanId" resultMap="examineCatalogResult">
+		<![CDATA[
+		select * from examinecatalogs where id in
+			(select t.cataid from examineitems t where selected = 1) order by id
+		]]>
+	</select>
+</sqlMap>

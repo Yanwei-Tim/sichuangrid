@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="actualCompanyTemp">
+	<typeAlias alias="ActualCompanyTemp" type="com.tianque.plugin.dataManage.location.actualCompanyTemp.domain.ActualCompanyTemp" />
+	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+	
+	<resultMap id="actualCompanyTempResultForBase" class="ActualCompanyTemp" extends="locationTempBaseDomain.allPlaceCommonTempResultForBase">
+		<result property="businessLicenseNo" column="businessLicenseNo"/>
+		<result property="orgCode" column="orgCode"/>
+		<result property="companyType.id" column="companyType"/>
+		<result property="supervisoryLevel.id" column="supervisoryLevel"/>
+		<result property="supervisoryDepartment" column="supervisoryDepartment"/>
+		<result property="securityChief" column="securityChief"/>
+		<result property="isKey" column="isKey"/>
+		<result property="fireFightingLevel.id" column="fireFightingLevel"/>
+		<result property="telephone" column="telephone"/>
+		<result property="fax" column="fax"/>
+		<result property="registeredCapital" column="registeredCapital"/>
+		<result property="economicNature.id" column="economicNature"/>
+		<result property="expiryDate" column="expiryDate"/>
+		<result property="registrationDate" column="registrationDate"/>
+		<result property="businessScope" column="businessScope"/>
+		<result property="registrationAddress" column="registrationAddress"/>
+		<result property="employeesNum" column="employeesNum"/>
+		<result property="competentDepartment" column="competentDepartment"/>
+		<result property="idCardNo" column="idCardNo"/>
+	</resultMap>
+    <resultMap id="actualCompanyTempResultForList" class="ActualCompanyTemp" extends="actualCompanyTemp.actualCompanyTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<sql id="claim_sql_where">
+		from DM_ACTUALCOMPANY_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	<sql id="updateBusinessSql">
+		businessLicenseNo=#businessLicenseNo#,
+		orgCode=#orgCode#,
+		companyType=#companyType.id#,
+		supervisoryLevel=#supervisoryLevel.id#,
+		supervisoryDepartment=#supervisoryDepartment#,
+		securityChief=#securityChief#,
+		isKey=#isKey#,
+		fireFightingLevel=#fireFightingLevel.id#,
+		telephone=#telephone#,
+		fax=#fax#,
+		registeredCapital=#registeredCapital#,
+		economicNature=#economicNature.id#,
+		expiryDate=#expiryDate#,
+		registrationDate=#registrationDate#,
+		businessScope=#businessScope#,
+		registrationAddress=#registrationAddress#,
+		employeesNum=#employeesNum#,
+		competentDepartment=#competentDepartment#,
+		idCardNo=#idCardNo#
+	</sql>
+	<insert id="addActualCompanyTemp" parameterClass="ActualCompanyTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_ACTUALCOMPANY_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_ACTUALCOMPANY_Temp
+		(id,orgId,orgInternalCode,name,address,businessLicenseNo,orgCode,companyType,manager,
+		 supervisoryLevel,supervisoryDepartment,securityChief,isKey,fireFightingLevel,telephone,fax,
+		 registeredCapital,economicNature,expiryDate,registrationDate,businessScope,registrationAddress,
+		 employeesNum,competentDepartment,remark,createDate,createUser,idCardNo,
+		<include refid="dataManage.addDataManage"/>
+		)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#name#,#address#,#businessLicenseNo#,#orgCode#,#companyType.id#,#manager#,
+		#supervisoryLevel.id#,#supervisoryDepartment#,#securityChief#,#isKey#,#fireFightingLevel.id#,#telephone#,#fax#,
+		#registeredCapital#,#economicNature.id#,#expiryDate#,#registrationDate#,#businessScope#,#registrationAddress#,
+		#employeesNum#,#competentDepartment#,#remark#,#createDate#,#createUser#,#idCardNo#,
+		<include refid="dataManage.addValueDataManage"/>
+		)
+    </insert>
+    
+    <select id="findTempPageList" resultMap="actualCompanyTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	 <update id="updateActualCompanyTempInIdById"  parameterClass="java.util.Map">
+		update DM_ACTUALCOMPANY_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<update id="updateActualCompanyTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_ACTUALCOMPANY_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	
+	<update id="updateActualCompanyTemp" parameterClass="ActualCompanyTemp">
+		update DM_ACTUALCOMPANY_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="actualCompanyTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	
+	<select id="findTemps" resultMap="actualCompanyTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countFindTemps" resultClass="java.lang.Integer"
+		parameterClass="searchVo">
+			select count(id)  <include refid="claim_sql_where" />
+	</select>
+	<select id="getActualCompanyTempById" parameterClass="long" resultMap="actualCompanyTempResultForList">
+		select * from DM_ACTUALCOMPANY_Temp where id=#value#
+	</select>
+	<!-- 修改场所信息 -->
+	<update id="updateActualCompanyTempInfo" parameterClass="ActualCompanyTemp">
+		update DM_ACTUALCOMPANY_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="actualCompanyTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<delete id="deleteActualCompanyTempById" parameterClass="Long">
+	   delete DM_ACTUALCOMPANY_Temp where id = #value#
+	</delete>
+	
+	
+</sqlMap>

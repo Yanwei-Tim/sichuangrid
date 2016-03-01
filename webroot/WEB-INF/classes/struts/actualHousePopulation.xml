@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="actualHousePopulation" extends="default" namespace="/baseinfo/actualHousePopulation">
+		<default-class-ref class="actualHouseApplyController"></default-class-ref>
+
+		<!-- 查询房屋人员信息 -->
+		<action name="findLivingInHouseTotalInfos" method="findLivingInHouseTotalInfos">
+			<result  name="success" >
+				/baseinfo/housePopulation/housePopulationList.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<!-- 现有住户信息 -->
+		<action name="findLivingInHousePopulationInfos"	method="findLivingInHousePopulationInfos">
+			<result  name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<!-- 统计各类住户人数 -->
+		<action name="countPopulationInHouse"	method="countPopulationInHouse">
+			<result  name="success" type="json">
+				<param name="root">countPopulationInHouseMap</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+
+		<!-- 维护使用人信息 -->
+		<action name="prepairMantanceLivingPopulation"	method="prepairMantanceLivingPopulation">
+			<result  name="success" >
+				/baseinfo/houseInfo/actualHousePopulation/housePopulationMantainDlg.jsp
+			</result>
+		</action>
+		
+		<action name="prepairMantanceLivingPopulationByEncrypt"	method="prepairMantanceLivingPopulationByEncrypt">
+			<result  name="success" >
+				/baseinfo/houseInfo/actualHousePopulation/housePopulationMantainDlg.jsp
+			</result>
+		</action>
+
+		<!-- 保存使用人信息 -->
+		<action name="saveLivingPopulation"	method="saveLivingPopulation">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+
+		<!-- 可选住户信息  -->
+		<action name="findNotLivingInHousePopulationInfos"	method="findNotLivingInHousePopulationInfos">
+			<result  name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+	</package>
+</struts>

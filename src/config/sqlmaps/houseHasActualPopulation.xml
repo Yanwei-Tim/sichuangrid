@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="houseHasActualPopulation">
+	<typeAlias alias="houseHasActualPopulation" type="com.tianque.domain.HouseHasActualPopulation" />
+
+	<resultMap id="houseHasActualPopulationResult" class="houseHasActualPopulation">
+		<result column="personType" property="personType" />
+		<result column="populationType" property="populationType" />
+		<result column="houseId" property="houseId" />
+		<result column="populationId" property="populationId" />
+		<result column="defaultLivingHouse" property="defaultLivingHouse" />
+	</resultMap>
+
+	<insert id="addHouseHasActualPopulation" parameterClass="houseHasActualPopulation">
+		insert into HouseHasActualPopulation
+			(personType,populationType,houseId,populationId,defaultLivingHouse) 
+		values
+			(#personType#,#populationType#,#houseId#,#populationId#,#defaultLivingHouse#)
+	</insert>
+	
+	<insert id="updateHouseHasActualPopulationByPopulationTypeAndHouseId" parameterClass="java.util.Map">
+		update HouseHasActualPopulation set houseId=#newHouseId#
+			where populationType=#populationType# and populationId=#populationId# and houseId=#oldHouseId#
+	</insert>
+
+	<delete id="deleteHouseHasActualPopulationByPopulationTypeAndHouseId" parameterClass="java.util.Map">
+		delete from HouseHasActualPopulation
+		where populationType=#populationType# and houseId=#houseId# and populationId=#populationId#
+	</delete>
+	<delete id="deleteHouseHasActualPopulationByPopulationTypeAndPopulationId" parameterClass="java.util.Map">
+		delete from HouseHasActualPopulation
+		where populationType=#populationType# and populationId=#populationId#
+	</delete>
+
+	<select id="getHouseHasActualPopulationByPopulationTypeAndHouseId" parameterClass="java.util.Map"
+		resultMap="houseHasActualPopulationResult">
+		select * from HouseHasActualPopulation
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="populationType">
+				<isNotNull prepend="and" property="populationType">
+					populationType=#populationType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseId">
+				<isNotNull prepend="and" property="houseId">
+					houseId=#houseId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getHouseHasActualPopulationByHouseId" parameterClass="java.lang.Long"
+		resultMap="houseHasActualPopulationResult">
+		select * from HouseHasActualPopulation where houseId=#houseId#
+	</select>
+
+	<delete id="deleteHousehasactualpopulationByHouseId" parameterClass="java.lang.Long">
+		delete from HouseHasActualPopulation where houseId=#value#
+	</delete>
+	
+	<delete id="deleteHousehasimportantpopulationByHouseId" parameterClass="java.lang.Long">
+		delete from househasimportantpopulation where houseId=#value#
+	</delete>
+	
+	<!--房屋人数-->
+	<select id="getHouseIdByPopulationTypeAndPopulationId" parameterClass="java.util.Map"  resultClass="java.lang.Long">
+		select houseId from HouseHasActualPopulation h where h.populationtype=#populationType# and h.populationid = #populationId#
+	</select>
+		
+</sqlMap>

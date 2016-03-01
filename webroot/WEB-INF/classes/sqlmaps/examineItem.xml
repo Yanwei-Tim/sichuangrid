@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="examineItem">
+	<typeAlias alias="ExamineItem" type="com.tianque.domain.ExamineItem" />
+
+	<resultMap id="examineItemResult" class="ExamineItem">
+		<result property="id" column="id" />
+		<result property="plan.id" column="planId" />
+		<result property="catalog.id" column="cataId" />
+		<result property="index" column="itemSeq" />
+		<result property="examineType" column="examineType" />
+		<result property="ownerItem.id" column="ownerItemId" />
+		<result property="catalogDisplayName" column="catalogDisplayName" />
+		<result property="examineContent" column="examineContent" />
+		<result property="autoExamine" column="autoExamine" />
+		<result property="scoreWayDetail" column="scoreWayDetail" />
+		<result property="planScore" column="planScore" />
+		<result property="actualCaculateScore" column="actualCaculateScore" />
+		<result property="editabled" column="editabled" />
+		<result property="selected" column="selected" />
+		<result property="refItem.id" column="refItemId" />
+		<result property="examineOrganizationNames" column="examineOrganizationNames" />
+		<result property="remark" column="remark" />
+	</resultMap>
+
+	<insert id="addExamineItem" parameterClass="ExamineItem">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_ExamineItems.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		ExamineItems(id,planId,cataId,itemSeq,examineType,ownerItemId,catalogDisplayName,examineContent,autoExamine,
+		scoreWayDetail,planScore,actualCaculateScore,editabled,selected,refItemId,examineOrganizationNames,remark)
+		VALUES(#id#,#plan.id#,#catalog.id#,#index#,#examineType#,#ownerItem.id#,#catalogDisplayName#,#examineContent#,
+		#autoExamine#,#scoreWayDetail#,#planScore#,#actualCaculateScore#,#editabled#,#selected#,#refItem.id#,#examineOrganizationNames#,
+		#remark#)
+	</insert>
+
+	<select id="getSimpleExamineItemById" parameterClass="java.lang.Long"
+		resultMap="examineItemResult">
+		<![CDATA[
+		select * from ExamineItems where id=#value#
+		]]>
+	</select>
+
+	<delete id="deleteExamineItemById" parameterClass="java.lang.Long">
+		<![CDATA[
+		delete from ExamineItems where id=#value#
+		]]>
+	</delete>
+
+	<delete id="deleteExamineItemByExaminePlanId" parameterClass="java.lang.Long">
+		<![CDATA[
+		delete from ExamineItems where planId=#value#
+		]]>
+	</delete>
+
+	<select id="findExamineItemsByExamineCatalogIdAndPlanId" parameterClass="java.util.Map"
+		resultMap="examineItemResult">
+		<![CDATA[
+		select * from ExamineItems where cataId=#examineCatalogId# 
+		]]>
+		<isNotNull property="planId" prepend="and">
+				planId=#planId#
+		</isNotNull>
+		<isNull property="planId" prepend="and">
+				planId is null
+		</isNull>
+		<isNotNull property="selected" prepend="and">
+				selected = #selected#
+		</isNotNull>
+		
+		 order by id
+	</select>
+
+
+	<select id="findExamineItemsByExaminePlanId" parameterClass="java.lang.Long"
+		resultMap="examineItemResult">
+		<![CDATA[
+		select * from ExamineItems where 
+		]]>
+		<isNotNull property="value">
+				planId=#value#
+		</isNotNull>
+		<isNull property="value">
+				planId is null
+		</isNull>
+		
+		order by id
+	</select>
+	
+	<select id="findSelectedExamineItemsByExaminePlanId" parameterClass="java.lang.Long"
+		resultMap="examineItemResult">
+		<![CDATA[
+		select * from ExamineItems where selected = 1
+		]]>
+		<isNotNull property="value" prepend="and">
+				planId=#value#
+		</isNotNull>
+		<isNull property="value" prepend="and">
+				planId is null
+		</isNull>
+		
+		order by id
+	</select>
+	
+	<update id="updateExamineItemSelectedById" parameterClass="java.util.Map">
+		update examineItems set selected = #selected# where id = #id#
+	</update>
+	
+	<select id="getExamineItemSelectedCountByOwnerItemId" parameterClass="java.lang.Long"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from examineItems where selected = 1 and OWNERITEMID = #value#
+		]]>
+	</select>
+</sqlMap>

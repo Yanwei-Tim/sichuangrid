@@ -1,0 +1,85 @@
+package com.tianque.plugin.weChat.dao.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.plugin.weChat.dao.WeChatGroupDao;
+import com.tianque.plugin.weChat.domain.user.WeChatGroup;
+
+@Repository("weChatGroupDao")
+public class WeChatGroupDaoImpl extends AbstractBaseDao implements WeChatGroupDao {
+
+	/**
+	 * 微信分组列表
+	 * @param parameterMap
+	 * @param pageNum
+	 * @param pageSize
+	 * @return
+	 */
+	public PageInfo<WeChatGroup> findWeChatGroup(Map<String, Object> parameterMap, Integer pageNum,
+			Integer pageSize) {
+		return getPageInfoByParamMap(new PageInfo<com.tianque.plugin.weChat.domain.ModuleTable>(),
+				"weChatGroup.countFindWeChatGroup", "weChatGroup.findWeChatGroup", pageNum,
+				pageSize, parameterMap);
+	}
+
+	/**
+	 * 修改分组名（本系统）
+	 * @param weChatGroup
+	 * @return
+	 */
+
+	public Integer updateWeChatGroupById(WeChatGroup weChatGroup) {
+		return (Integer) getSqlMapClientTemplate().update("weChatGroup.updateWeChatGroupById",
+				weChatGroup);
+	}
+
+	@Override
+	public Long addWeChatGroup(WeChatGroup weChatGroup) {
+		return (Long) getSqlMapClientTemplate().insert("weChatGroup.saveWeChatGroup", weChatGroup);
+	}
+
+	@Override
+	public WeChatGroup getGroupByGroupIdAndWeChatUserId(WeChatGroup weChatGroup) {
+		return (WeChatGroup) getSqlMapClientTemplate().queryForObject(
+				"weChatGroup.getGroupByGroupIdAndWeChatUserId", weChatGroup);
+	}
+
+	@Override
+	public void deleteWeChatGroupByWeChatUserId(String weChatUserId) {
+		getSqlMapClientTemplate().delete("weChatGroup.deleteWeChatGroupByWeChatUserId",
+				weChatUserId);
+	}
+
+	/**根据服务号id（微信端）群列表*/
+	@Override
+	public List<WeChatGroup> getGroupListWeChatUserId(String weChatUserId) {
+		return (List<WeChatGroup>) getSqlMapClientTemplate().queryForList(
+				"weChatGroup.getGroupListWeChatUserId", weChatUserId);
+	}
+
+	/**
+	 * 根据id加载对象	
+	 * @param weChatGroup
+	 * @return
+	 */
+	public WeChatGroup getWeChatGroupById(WeChatGroup weChatGroup) {
+		return (WeChatGroup) getSqlMapClientTemplate().queryForObject(
+				"weChatGroup.getWeChatGroupById", weChatGroup);
+	}
+
+	@Override
+	public List<WeChatGroup> getGroupListByOrgId(Long orgId) {
+		return getSqlMapClientTemplate().queryForList("weChatGroup.getGroupListByOrgId", orgId);
+	}
+
+	@Override
+	public Long getGroupListByName(String name) {
+		return (Long) getSqlMapClientTemplate().queryForObject("weChatGroup.getGroupListByName", name);
+	}
+
+}

@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="significantIssuedeal">
+	<typeAlias alias="SignificantIssuedeal" type="com.tianque.domain.SignificantIssuedeal" />
+	<typeAlias alias="SignificantIssuedealVo" type="com.tianque.domain.vo.SignificantIssuedealVo" />
+	<resultMap id="significantIssuedealResult" class="SignificantIssuedeal">
+		<result property="id" column="id"/>
+		<result property="dailyDirectory.id" column="directoryId"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="investigationOrg.id" column="investigationOrgId"/>
+		<result property="fromKeyAreasOfInvestigationInfo.id" column="fromId"/>
+		<result property="status" column="status"/>
+		<result property="subOrgid" column="subOrgid"/>
+		<result property="investigationDate" column="investigationDate"/>
+		<result property="reportedDate" column="reportedDate"/>
+		<result property="address" column="address"/>
+		<result property="significantIssuedealReason" column="significantIssuedealReason"/>
+		<result property="accountabilityUnit" column="accountabilityUnit"/>
+		<result property="accountabilityLeading" column="accountabilityLeading"/>
+		<result property="remarks" column="remarks"/>
+		<result property="expiredEntering" column="expiredEntering"/>
+	</resultMap>
+
+	<insert id="addSignificantIssuedeal" parameterClass="SignificantIssuedeal">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_significantIssuedeal.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into significantIssuedeals
+		(id, directoryId, createDate, createUser, updateDate, updateUser, fromId, orgId, orgInternalCode, investigationOrgId, status, investigationDate, reportedDate,suborgid,address,significantIssuedealReason,accountabilityUnit,accountabilityLeading,remarks,expiredEntering)
+		values
+		(#id#, #dailyDirectory.id#, #createDate#, #createUser#, #updateDate#, #updateUser#, #fromKeyAreasOfInvestigationInfo.id#,
+			#organization.id#, #orgInternalCode#, #investigationOrg.id#, #status#, #investigationDate#, #reportedDate#,#subOrgid#,#address#,#significantIssuedealReason#,#accountabilityUnit#,#accountabilityLeading#,#remarks#,#expiredEntering#)
+	</insert>
+	<select id="getSignificantIssuedealById" parameterClass="java.lang.Long" resultMap="significantIssuedealResult">
+		select * from significantIssuedeals where id = #value#
+	</select>
+
+	<select id="countSignificantIssuedealsByInvestigationDate" parameterClass="SignificantIssuedealVo" resultClass="java.lang.Integer">
+		select count(1) from significantIssuedeals where orgid=#organization.id# and directoryid=#dailyDirectory.id#
+		  <dynamic>
+			<isPropertyAvailable property="investigationMinDate">
+				<isNotNull property="investigationMinDate" prepend=" and ">
+					investigationDate<![CDATA[>=]]>#investigationMinDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="investigationMaxDate">
+				<isNotNull property="investigationMaxDate" prepend=" and ">
+					investigationDate <![CDATA[<=]]>
+					#investigationMaxDate#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+
+	<select id="getSignificantIssuedealsByInvestigationDate" parameterClass="SignificantIssuedealVo" resultMap="significantIssuedealResult">
+		select * from significantIssuedeals  where orgid=#organization.id# and directoryid=#dailyDirectory.id#
+		  <dynamic>
+			<isPropertyAvailable property="investigationMinDate">
+				<isNotNull property="investigationMinDate" prepend=" and ">
+					investigationDate<![CDATA[>=]]>#investigationMinDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="investigationMaxDate">
+				<isNotNull property="investigationMaxDate" prepend=" and ">
+					investigationDate <![CDATA[<=]]>
+					#investigationMaxDate#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<sql id="sql_where">
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="directoryId">
+				<isNotNull property="directoryId" prepend=" and ">
+					directoryId in ($directoryId$)
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<sql id="sql_where_directoryParentId">
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="directoryId">
+				<isNotNull property="directoryId" prepend=" and ">
+					directoryid in (select id from dailydirectorys d where d.parentid = #directoryId#)
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="countSignificantIssuedeals" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from significantIssuedeals
+		<include refid="sql_where"/>
+	</select>
+	
+	<select id="countSignificantIssuedealByid" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from significantIssuedeals
+		where orgId = #orgId#
+		and directoryid = #id#
+	</select>
+
+	<select id="findSignificantIssuedeals" parameterClass="map" resultMap="significantIssuedealResult">
+		select * from significantIssuedeals
+		<include refid="sql_where"/>
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countSignificantIssuedealsByOrgIdAndDirectoryParentId" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from significantIssuedeals
+		<include refid="sql_where_directoryParentId"/>
+	</select>
+
+	<select id="findSignificantIssuedealsByOrgIdAndDirectoryParentId" parameterClass="map" resultMap="significantIssuedealResult">
+		select * from significantIssuedeals
+		<include refid="sql_where_directoryParentId"/>
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<delete id="deleteSignificantIssuedealById" parameterClass="java.lang.Long">
+		delete significantIssuedeals where id = #value#
+	</delete>
+
+	<update id="updateSignificantIssuedeal" parameterClass="SignificantIssuedeal">
+		update significantIssuedeals set
+			address = #address#,
+			significantIssuedealReason = #significantIssuedealReason#,
+			remarks = #remarks#, accountabilityLeading = #accountabilityLeading#,
+			accountabilityUnit = #accountabilityUnit# ,
+			investigationDate = #investigationDate#
+		where id = #id#
+	</update>
+
+	<update id="updateSignificantIssuedealForStautsAndReportTimeById" parameterClass="map">
+		update significantIssuedeals set
+			status = #status#
+			<isPropertyAvailable property="reportedDate" >
+				<isNotNull property="reportedDate" prepend=" , ">
+					reportedDate = #reportedDate#
+				</isNotNull>
+				<isNull property="reportedDate" prepend=" , ">
+					reportedDate = null
+				</isNull>
+				<isNotNull property="expiredEntering" prepend=" , ">
+					expiredEntering = #expiredEntering#
+				</isNotNull>
+			</isPropertyAvailable>
+		where id = #id#
+	</update>
+	<select id="findSignificantIssuedealsForPrint" parameterClass="map" resultMap="significantIssuedealResult">
+		select * from significantIssuedeals
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="significantIssuedealIds">
+				<isNotNull property="significantIssuedealIds" prepend=" and ">
+					id in ( $significantIssuedealIds$)
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<sql id="searchSql_where">
+		<dynamic>
+          <isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					directoryid in ($dailyDirectoryId$)
+				</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="investigationMaxDate">
+                <isNotNull property="investigationMaxDate" prepend=" and ">
+					investigationDate <![CDATA[<=]]>
+					#investigationMaxDate#
+				</isNotNull>
+      </isPropertyAvailable>
+        <isPropertyAvailable property="investigationMinDate">
+				<isNotNull property="investigationMinDate" prepend=" and ">
+					investigationDate <![CDATA[>=]]>
+					#investigationMinDate#
+				</isNotNull>
+       </isPropertyAvailable>
+       <isPropertyAvailable property="investigationOrgIdList">
+          <isNotEmpty prepend="and" property="investigationOrgIdList">
+          		<iterate property="investigationOrgIdList" conjunction="or" open="(" close=")">
+				  	investigationorgid in ($investigationOrgIdList[]$)
+				 </iterate>
+          </isNotEmpty>
+       </isPropertyAvailable>
+       <isPropertyAvailable property="accountabilityLeading">
+          <isNotEmpty property="accountabilityLeading" prepend="and">
+               ACCOUNTABILITYLEADING like '$accountabilityLeading$%'
+          </isNotEmpty>
+       </isPropertyAvailable>
+       <isPropertyAvailable property="accountabilityUnit">
+          <isNotEmpty property="accountabilityUnit" prepend="and">
+               ACCOUNTABILITYUNIT like '$accountabilityUnit$%'
+          </isNotEmpty>
+       </isPropertyAvailable>
+       <isPropertyAvailable property="address">
+          <isNotEmpty property="address" prepend="and">
+               ADDRESS like '$address$%'
+          </isNotEmpty>
+       </isPropertyAvailable>
+       <isPropertyAvailable property="significantIssuedealReason">
+          <isNotEmpty property="significantIssuedealReason" prepend="and">
+               SIGNIFICANTISSUEDEALREASON like '$significantIssuedealReason$%'
+          </isNotEmpty>
+       </isPropertyAvailable>
+       <isPropertyAvailable property="remarks">
+          <isNotEmpty property="remarks" prepend="and">
+               REMARKS like '$remarks$%'
+          </isNotEmpty>
+       </isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="searchSignificantIssuedealWorkingRecordByQuery" parameterClass="java.util.Map"
+		resultMap="significantIssuedealResult">
+		select * from significantIssuedeals where orgid = #orgId#
+		<include refid="searchSql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countSearchSignificantIssuedealWorkingRecord" parameterClass="map" resultClass="int">
+		select count(*) from significantIssuedeals where orgid = #orgId#
+		<include refid="searchSql_where"/>
+	</select>
+	<select id="getSignificantIssuedealByFromId" parameterClass="java.lang.Long" resultMap="significantIssuedealResult">
+		select * from significantIssuedeals where fromid = #value#
+	</select>
+	
+</sqlMap>

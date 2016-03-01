@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="FamilyTeam">
+	<typeAlias alias="familyTeam" type="com.tianque.tenHouseholdsJoint.domain.FamilyTeam" />
+
+	<resultMap id="familyTeamResult" class="familyTeam">
+		<result property="id" column="id" />
+		<result property="teamCode" column="teamCode" />
+		<result property="teamName" column="teamName" />
+		<result property="houseHolds" column="houseHolds" />
+		<result property="houseMaster" column="houseMaster" />
+		<result property="houseMastCertificateNo" column="houseMastCertificateNo" />
+		<result property="alarmCenter.id" column="alarmCenter" />
+		<result property="organization.id" column="orgId" />
+		<result property="createDate" column="createDate" />
+	</resultMap>
+ 	<!-- 分页查询  -->
+  	<select id="queryFamilyTeamForPageResult" resultMap="familyTeamResult">
+  		select id,teamCode,teamName,houseHolds,houseMaster,houseMastCertificateNo,alarmCenter,orgId,createDate from familyteam 
+  		<dynamic prepend="WHERE">
+			<isNotEmpty property="orgInternalCode">
+				orgInternalCode like #orgInternalCode#||'%'
+			</isNotEmpty>
+  		</dynamic>
+  		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+  	</select>
+	 	<select id="queryFamilyTeamForPageResultCount" resultClass="java.lang.Integer">
+  		select count(*) from familyteam
+  		<dynamic prepend="WHERE">
+			<isNotEmpty property="orgInternalCode">
+				orgInternalCode like #orgInternalCode#||'%'
+			</isNotEmpty>
+  		</dynamic>
+  	</select>
+  	
+  	<!-- 新增  -->	  	
+	<insert id="addFamilyTeam" parameterClass="familyTeam"  >
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_FAMILYTEAM.NEXTVAL AS ID FROM DUAL]]>
+	</selectKey>
+	   insert into familyteam (ID,TEAMCODE,TEAMNAME,HOUSEHOLDS,HOUSEMASTER,HOUSEMASTCERTIFICATENO,ALARMCENTER,ORGID,ORGINTERNALCODE,CREATEUSER,CREATEDATE,UPDATEDATE)
+	   values (#id#,#teamCode#,#teamName#,#houseHolds#,#houseMaster#,#houseMastCertificateNo#,#alarmCenter.id#,#organization.id#,#organization.orgInternalCode#,#createUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	<!-- 单条查询 -->
+	<select id="getFamilyTeamById" parameterClass="java.lang.Long" resultMap="familyTeamResult">
+		select id,teamCode,teamName,houseHolds,houseMaster,houseMastCertificateNo,alarmCenter,orgId,createDate from　familyteam where Id = #id#
+	</select>
+	
+	<!-- 根据主键修改 -->
+	<update id="updateFamilyTeam" parameterClass="familyTeam">
+	 	update  familyTeam f
+	  	set f.teamCode = #teamCode#,
+	  		f.teamName = #teamName#,
+	  		f.houseHolds = #houseHolds#,
+	  		f.houseMaster = #houseMaster#,
+	  		f.houseMastCertificateNo = #houseMastCertificateNo#,
+	  		f.alarmCenter = #alarmCenter.id#,
+	  		f.updateUser = #updateUser#,
+	  		f.updateDate = #updateDate#
+	  	where f.id = #id#
+	</update>
+	
+	<!-- 根据主键 批量删除 -->
+  	<delete id="batchDeleteFamilyTeamByIds" parameterClass="java.lang.Long">
+  		delete from familyTeam f where f.id=#id#
+  	</delete>
+  	
+  	<sql id="searchWhere_sql">
+		<isPropertyAvailable property="organization">
+			<isNotEmpty property="organization.orgInternalCode" prepend=" and ">
+				orgInternalCode like #organization.orgInternalCode#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isNotEmpty property="teamCode" prepend=" and ">
+			teamCode like #teamCode#||'%'
+		</isNotEmpty>
+		<isNotEmpty property="teamName" prepend=" and ">
+			teamName like #teamName#||'%'
+		</isNotEmpty>
+		<isNotEmpty property="houseHolds" prepend=" and ">
+			houseHolds = #houseHolds#
+		</isNotEmpty>
+		<isNotEmpty property="houseMaster" prepend=" and ">
+			houseMaster like #houseMaster#||'%'
+		</isNotEmpty>
+		<isNotEmpty property="houseMastCertificateNo" prepend=" and ">
+			houseMastCertificateNo like #houseMastCertificateNo#||'%'
+		</isNotEmpty>
+		<isNotEmpty property="alarmCenter.id" prepend=" and ">
+			alarmCenter =#alarmCenter.id#
+		</isNotEmpty>
+  	</sql>
+  	<!-- 高级查询  -->
+  	<select id="querySearchFamilyTeamForPageResult" resultMap="familyTeamResult">
+  		select id,teamCode,teamName,houseHolds,houseMaster,houseMastCertificateNo,alarmCenter,orgId,createDate from familyteam where 1=1  
+  		<include refid="searchWhere_sql"/>
+  		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+  	</select>
+	 	<select id="querySearchFamilyTeamForPageResultCount" resultClass="java.lang.Integer">
+  		select count(*) from familyteam where 1=1 
+  		<include refid="searchWhere_sql"/>
+  	</select>
+  	
+  	<select id="queryFamilyTeamsForList" parameterClass="familyTeam" resultMap="familyTeamResult">
+  		select * from familyteam where 1=1 
+  		<include refid="searchWhere_sql"/>
+  	</select>
+  	
+  	<select id="queryFamilyTeamByOrgIdForList" parameterClass="java.lang.String" resultMap="familyTeamResult">
+  		select id,teamCode,teamName,houseHolds,houseMaster,houseMastCertificateNo,alarmCenter,orgId,createDate from familyteam 
+  		where orgInternalCode like #orgCode#||'%'
+  	</select>
+  	
+  	<!--唯一性验证查询 -->
+	<select id="getFamilyTeamByTeamCodeAndOrgid" resultClass="java.lang.Integer" parameterClass="familyTeam">
+		select count(*) from familyteam  where teamCode =#teamCode#  and orgId = #organization.id# 
+		<isNotEmpty property="id" prepend="and">
+  			 id != #id#
+  		</isNotEmpty>
+	</select>
+	<select id="getFamilyTeamByName" parameterClass="java.util.Map" resultMap="familyTeamResult">
+		select * from familyteam where teamName =#teamName# and orgId = #orgId#
+	</select>
+</sqlMap>

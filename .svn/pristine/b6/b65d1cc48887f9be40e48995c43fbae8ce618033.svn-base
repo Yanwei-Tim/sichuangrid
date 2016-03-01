@@ -1,0 +1,241 @@
+package com.tianque.userAccountLoginDetail.service.impl;
+
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.companyPlace.constacts.ModulTypes;
+import com.tianque.core.cache.constant.MemCacheConstant;
+import com.tianque.core.cache.service.CacheService;
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.UserSign;
+import com.tianque.domain.property.OrganizationType;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.userAccountLoginDetail.constrants.UserAccountLoginDeatilConstrants;
+import com.tianque.userAccountLoginDetail.dao.UserAccountLoginDetailDao;
+import com.tianque.userAccountLoginDetail.domain.UserAccountLoginDetail;
+import com.tianque.userAccountLoginDetail.service.UserAccountLoginDetailService;
+import com.tianque.userAccountLoginDetail.vo.UserAccountLoginStatisticsVo;
+import com.tianque.userAccountLoginDetail.vo.UserAccountSearchVo;
+@Service("userAccountLoginDetailService")
+@Transactional
+public class UserAccountLoginDetailServiceImpl implements
+		UserAccountLoginDetailService {
+
+	@Autowired
+	private UserAccountLoginDetailDao userAccountLoginDetailDao;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private PropertyDictService propertyDictService;
+	@Autowired
+	private CacheService cacheService;
+	@Override
+	public void createUserAccountLoginDetailForWeek(int year,int month) {
+		//先清空周数据
+		userAccountLoginDetailDao.deleteUserAccountLoginDeatilWeek();
+		//根据当前时间获得上周时间段
+		Date startDate = CalendarUtil.getBeforWeekMonday(CalendarUtil.getDateByYearAndMonth(year, month));
+		Date endDate = CalendarUtil.getBeforWeekSunday(CalendarUtil.getDateByYearAndMonth(year, month));
+		//生成上周数据
+		userAccountLoginDetailDao.createUserAccountLoginDetailForWeek(startDate, endDate);
+	}
+
+	@Override
+	public void createUserAccountLoginDetailForMonth(int year,int month) {
+		//清空月表数据
+		userAccountLoginDetailDao.deleteUserAccountLoginDeatilMonth();
+		//根据当前时间获取上月时间段
+		Date startDate = CalendarUtil.getLastMonthStart(year, month);//上月开始
+		Date endDate = CalendarUtil.getMonthStart(year, month);//本月开始
+		//生成上月数据
+		userAccountLoginDetailDao.createUserAccountLoginDetailForMonth(startDate, endDate);
+	}
+
+	@Override
+	public PageInfo<UserAccountLoginDetail> findUserAccountLoginDetailForPageResult(
+			Organization organization, Integer searchType, Integer page,
+			Integer rows, String sidx, String sord) {
+		 if(organization==null || organization.getId()==null || searchType==null){
+			 throw new BusinessValidationException("查询失败，未获得查询条件");
+		 }
+		 Long funOrgType = propertyDictService
+			.findPropertyDictByDomainNameAndDictDisplayName(
+					OrganizationType.ORG_TYPE_KEY,
+					OrganizationType.FUNCTION_KEY).getId();
+		 boolean isFunOrgType = false;
+		 List<Long> funOrgIdList = new ArrayList<Long>();
+		 if(funOrgType.equals(ThreadVariable.getUser().getOrganization().getOrgType().getId())){//职能部门用户登录
+			 isFunOrgType = true;
+			 organization =  organizationDubboService.getSimpleOrgById(ThreadVariable.getUser().getOrganization().getId());
+			 if(searchType==2){//查询下辖全部
+				 funOrgIdList = getFunOrgById(organization.getId(), funOrgIdList);
+			 }
+		 }else{
+			 organization =  organizationDubboService.getSimpleOrgById(organization.getId());
+		 }
+		
+		return userAccountLoginDetailDao.findUserAccountLoginDetailForPageResult(organization, searchType,isFunOrgType,funOrgIdList,page, rows, sidx, sord);
+	}
+	//根据职能部门的ID查询该职能部门下辖所有的组织机构ID
+	private List<Long> getFunOrgById(Long parentFunOrgId,List<Long> functionOrgIdList){
+		List<Organization> orgList = organizationDubboService.findFunOrgsByFunParentId(parentFunOrgId);
+		if(orgList!=null && orgList.size()!=0){
+			for(Organization org:orgList){
+				functionOrgIdList.add(org.getId());
+				getFunOrgById(org.getId(),functionOrgIdList);
+			}
+		}
+		return functionOrgIdList;
+	}
+
+	@Override
+	public List<UserSign> getUserSignByUserIdAndDate(Long userId,Integer searchType) {
+		if(userId==null || searchType==null){
+			throw new BusinessValidationException("查询失败，未获得查询条件");
+		}
+		Date startDate = null;
+		Date endDate = null;
+		if(UserAccountLoginDeatilConstrants.SEARCH_WEEK.equals(searchType)){
+			//查询上周数据详情 根据当前时间查询上周时间段
+			startDate=CalendarUtil.getBeforWeekMonday(CalendarUtil.now());
+			endDate = CalendarUtil.getBeforWeekSunday(CalendarUtil.now());
+		}else{
+			//查询上月数据详情 根据当前时间获取上月时间段
+			startDate=CalendarUtil.getLastMonthStart(CalendarUtil.getNowYear(),CalendarUtil.getNowMonth());
+			endDate = CalendarUtil.getMonthStart(CalendarUtil.getNowYear(),CalendarUtil.getNowMonth());
+		}
+		return userAccountLoginDetailDao.getUserSignByUserIdAndDate(userId, startDate, endDate);
+	}
+
+	@Override
+	public void createUserAccountLoginDetail() {
+		int year = CalendarUtil.getYear(CalendarUtil.now());
+		int month = CalendarUtil.getMonth(CalendarUtil.now());
+		try{
+			createUserAccountLoginDetailForWeek(year, month);
+			createUserAccountLoginDetailForMonth(year, month);
+		}catch(Exception e){
+			throw new ServiceValidationException("生成报表失败",e);
+		}
+	}
+
+	@Override
+	public PageInfo<UserAccountLoginDetail> searchUserAccountForPageResult(
+			UserAccountSearchVo userAccountSearchVo, Integer page,
+			Integer rows, String sidx, String sord) {
+		if(userAccountSearchVo==null || userAccountSearchVo.getOrganization().getId()==null || userAccountSearchVo.getSearchType()==null){
+			 throw new BusinessValidationException("查询失败，未获得查询条件");
+		 }
+		Organization organization =  organizationDubboService.getSimpleOrgById(userAccountSearchVo.getOrganization().getId());
+		userAccountSearchVo.setOrganization(organization);
+		return userAccountLoginDetailDao.searchUserAccountForPageResult(userAccountSearchVo, page, rows, sidx, sord);
+	}
+
+	@Override
+	public List<UserAccountLoginStatisticsVo> getAccountLoginDetailStatistics(
+			Long orgId) {
+		if(orgId==null){
+			throw new BusinessValidationException("报表查看失败，未获得组织参数");
+		}
+		List<UserAccountLoginStatisticsVo> list = null;
+		String key = MemCacheConstant.getUserAccountDetailCachKey(MemCacheConstant.USER_ACCOUNT_LOGIN_DETAIL_STATISTICS_KEY, orgId);
+		if(key!=null){
+			list = (List<UserAccountLoginStatisticsVo>) cacheService.get(MemCacheConstant.USER_ACCOUNT_LOGIN_DETAIL_STATISTICS, key);
+			if(list!=null){
+				return list;
+			}
+		}
+		Long orgType = propertyDictService
+		.findPropertyDictByDomainNameAndDictDisplayName(
+				OrganizationType.ORG_TYPE_KEY,
+				OrganizationType.ADMINISTRATIVE_KEY).getId();
+		Long funcType = propertyDictService
+		.findPropertyDictByDomainNameAndDictDisplayName(
+				OrganizationType.ORG_TYPE_KEY,
+				OrganizationType.FUNCTION_KEY).getId();
+		list =  userAccountLoginDetailDao.getAccountLoginDetailStatistics(orgId, orgType, funcType);
+		if(list!=null && list.size()!=0){
+			for(UserAccountLoginStatisticsVo vo:list){
+				//计算行政部门PC、手机 城市PC手机账号数
+				vo = calculationAccountCount(vo);
+			    //行政部门
+				vo.setExecutiveWeekLivenessPC(calculationPercentage(vo.getExecutiveAccountWeekPC(),vo.getExecutiveAccountPC()));//PC周活跃度
+				vo.setExecutiveMonthLivenessPC(calculationPercentage(vo.getExecutiveAccountMonthPC(),vo.getExecutiveAccountPC()));//PC月活跃度
+				vo.setExecutiveWeekLivenessMobile(calculationPercentage(vo.getExecutiveAccountWeekMobile(),vo.getExecutiveAccountMobile()));//手机周活跃度
+				vo.setExecutiveMonthLivenessMobile(calculationPercentage(vo.getExecutiveAccountMonthMobile(),vo.getExecutiveAccountMobile()));//手机月活跃度
+				
+				//职能部门
+				vo.setFunctionalWeekLivenessPC(calculationPercentage(vo.getFunctionalAccountWeekPC(),vo.getFunctionalAccountPC()));//PC周活跃度
+				vo.setFunctionalMonthLivenessPC(calculationPercentage(vo.getFunctionalAccountMonthPC(),vo.getFunctionalAccountPC()));//PC月活跃度
+				vo.setFunctionalWeekLivenessMobile(calculationPercentage(vo.getFunctionalAccountWeekMobile(),vo.getFunctionalAccountMobile()));//手机周活跃度
+				vo.setFunctionalMonthLivenessMobile(calculationPercentage(vo.getFunctionalAccountMonthMobile(),vo.getFunctionalAccountMobile()));//手机月活跃度
+				
+				//城市
+				vo.setCityWeekLivenessPC(calculationPercentage(vo.getCityAccountWeekPC(),vo.getCityAccountPC()));//PC周活跃度
+				vo.setCityMonthLivenessPC(calculationPercentage(vo.getCityAccountMonthPC(),vo.getCityAccountPC()));//PC月活跃度
+				vo.setCityWeekLivenessMobile(calculationPercentage(vo.getCityAccountWeekMobile(),vo.getCityAccountMobile()));//手机周活跃度
+				vo.setCityMonthLivenessMobile(calculationPercentage(vo.getCityAccountMonthMobile(),vo.getCityAccountMobile()));//手机月活跃度
+				
+				//农村
+				vo.setCountrysideWeekLivenessPC(calculationPercentage(vo.getCountrysideAccountWeekPC(),vo.getCountrysideAccountPC()));//PC周活跃度
+				vo.setCountrysideMonthLivenessPC(calculationPercentage(vo.getCountrysideAccountMonthPC(),vo.getCountrysideAccountPC()));//PC月活跃度
+				vo.setCountrysideWeekLivenessMobile(calculationPercentage(vo.getCountrysideAccountWeekMobile(),vo.getCountrysideAccountMobile()));//手机周活跃度
+				vo.setCountrysideMonthLivenessMobile(calculationPercentage(vo.getCountrysideAccountMonthMobile(),vo.getCountrysideAccountMobile()));//手机月活跃度
+				//PC合计
+				vo.setWeekLivenessPC(calculationPercentage(vo.getAccountWeekPC(),vo.getAccountPC()));
+				vo.setMonthLivenessPC(calculationPercentage(vo.getAccountMonthPC(),vo.getAccountPC()));
+				vo.setWeekLivenessMobile(calculationPercentage(vo.getAccountWeekMobile(),vo.getAccountMobile()));
+				vo.setMonthLivenessMobile(calculationPercentage(vo.getAccountMonthMobile(),vo.getAccountMobile()));
+				//总计
+				vo.setLivenessWeek(calculationPercentage(vo.getAccountWeekCount(),vo.getAccountCount()));
+				vo.setLivenessMonth(calculationPercentage(vo.getAccountMonthCount(),vo.getAccountCount()));
+			}
+		}
+		if(key!=null){
+			cacheService.set(MemCacheConstant.USER_ACCOUNT_LOGIN_DETAIL_STATISTICS, key, ModulTypes.CACHETIME, list);
+		}
+		return list;
+	}
+	
+	private UserAccountLoginStatisticsVo calculationAccountCount(UserAccountLoginStatisticsVo vo){
+		vo.setExecutiveAccountPC(vo.getAccountPC()-vo.getFunctionalAccountPC());
+		vo.setExecutiveAccountWeekPC(vo.getAccountWeekPC()-vo.getFunctionalAccountWeekPC());
+		vo.setExecutiveAccountMonthPC(vo.getAccountMonthPC()-vo.getFunctionalAccountMonthPC());
+		vo.setExecutiveAccountMobile(vo.getAccountMobile()-vo.getFunctionalAccountMobile());
+		vo.setExecutiveAccountWeekMobile(vo.getAccountWeekMobile()-vo.getFunctionalAccountWeekMobile());
+		vo.setExecutiveAccountMonthMobile(vo.getAccountMonthMobile()-vo.getFunctionalAccountMonthMobile());
+		
+		vo.setCityAccountPC(vo.getAccountPC()-vo.getCountrysideAccountPC());
+		vo.setCityAccountWeekPC(vo.getAccountWeekPC()-vo.getCountrysideAccountWeekPC());
+		vo.setCityAccountMonthPC(vo.getAccountMonthPC()-vo.getCountrysideAccountMonthPC());
+		vo.setCityAccountMobile(vo.getAccountMobile()-vo.getCountrysideAccountMobile());
+		vo.setCityAccountWeekMobile(vo.getAccountWeekMobile()-vo.getCountrysideAccountWeekMobile());
+		vo.setCityAccountMonthMobile(vo.getAccountMonthMobile()-vo.getCountrysideAccountMonthMobile());
+		return vo;
+	}
+	
+	private String calculationPercentage(int molecule,int denominator){
+		String result="";
+		if(molecule==0 || denominator==0){
+			result="0.00%"; 
+		}else{
+			DecimalFormat df = new DecimalFormat("######0.00");
+			double data = (double)molecule / (double)denominator * 100;
+			result = df.format(data) + "%";
+		}
+		return result;
+	}
+
+}

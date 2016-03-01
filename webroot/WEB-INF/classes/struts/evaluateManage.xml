@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="evaluateManage" extends="default" namespace="/evaluate/evaluateManage">
+		<default-class-ref class="evaluateController"></default-class-ref>
+		<action name="dispatchOperate" method="dispatchOperate">
+			<result name="success">/evaluate/evaluate.jsp</result>
+		</action>
+		<action name="evaluateResultList" method="evaluateResultList">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="myEvaluateResultList" method="myEvaluateResultList">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="selfAssessment" method="selfAssessment">
+			<result name="success" type="json">
+				<param name="root">detailedRule</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="unActiveEvaluate" method="unActiveEvaluate">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<action name="standardEvaluateList" method="standardEvaluateList">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="getYears" method="getYears"></action>
+		<action name="findAllLowerEvaluateResultList" method="findAllLowerEvaluateResultList">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="getEvaluateById" method="getEvaluateById">
+			<result name="success" type="json">
+				<param name="root">evaluate</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="addDetailedRule" method="addDetailedRule">
+			<result name="success" type="json">
+				<param name="root">detailedRule</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="popedomEvaluateUsed" method="popedomEvaluateUsedByYear">
+			<result name="success" type="json">
+				<param name="root">popedomEvaluateUsed</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="popedomEvaluateUsedByEvaluateId" method="popedomEvaluateUsedByEvaluateId">
+			<result name="success" type="json">
+				<param name="root">popedomEvaluateUsed</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateDetailedRule" method="updateDetailedRule">
+			<result name="success" type="json">
+				<param name="root">detailedRule</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="deleteEvaluateById" method="deleteEvaluateById">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="deleteEvaluateByIdByEncrypt" method="deleteEvaluateByIdByEncrypt">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="validateTypeOfChildDetailedRule" method="validateTypeOfChildDetailedRule">
+			<result name="success" type="json">
+				<param name="root">addDetailedRuleCondition</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="deleteMultiEvaluateByIds" method="deleteMultiEvaluateByIds">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>			
+		</action>
+		
+		<action name="urgeEvaluate" method="urgeEvaluate">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="getEvaluateResultByOrgId" method="getEvaluateResultByOrgId">
+			<result name="success" type="json">
+				<param name="root">evaluate</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="getReportedEvaluateResultByOrgId" method="getReportedEvaluateResultByOrgId">
+			<result name="success" type="json">
+				<param name="root">evaluate</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="dispatchEvaluate" method="dispatchEvaluate">
+			<result name="success">
+			/evaluate/createStandardEvaluateDlg.jsp
+			</result>
+		</action>
+		<action name="dispatchDetailedRule" method="dispatchDetailedRule">
+			<result name="success">
+			/evaluate/maintainDetailedRuleDlg.jsp
+			</result>
+			<result name="edit">
+			/evaluate/maintainUpdateDetailedRule.jsp	
+			</result>
+		</action>
+		<action name="copyStandardEvaluate" method="copyStandardEvaluate">
+			<result name="success" type="json">
+				<param name="root">evaluate</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="saveDetailedRuleResult" method="saveDetailedRuleResult">
+			<result name="success" type="json">
+				<param name="root">evaluate</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findTemplatesByOrgId" method="findTemplatesByOrgId">
+			<result name="success" type="json">
+				<param name="root">gridPage.scoreStandards</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="pigeonholeEvaluate" method="pigeonholeEvaluate">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="deleteDetailedRuleById" method="deleteDetailedRuleById">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="activeStandardEvaluate" method="activeStandardEvaluate">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="ispigeonholeEvaluateById" method="ispigeonholeEvaluateById">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="reportSelfAssessmentResult" method="reportSelfAssessmentResult">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="getDetailedRulesByEvaluateId"
+			method="getDetailedRulesByEvaluateId">
+			<result  name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="getDetailedRulesByEvaluateIdByEncrypt"
+			method="getDetailedRulesByEvaluateIdByEncrypt">
+			<result  name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="getReportedDetailedRulesByEvaluateId" method="getReportedDetailedRulesByEvaluateId">
+			<result  name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateScoresStand"
+			method="updateScoresStand">
+			<result name="success" type="json">
+				<param name="root">false</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">true</param>
+			</result>
+		</action>
+		<action name="validateUnactive"
+			method="validateUnactive">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<action name="isHaveActiveEvaluate"
+			method="isHaveActiveEvaluate">
+			<result name="success" type="json">
+				<param name="root">isHaveActive</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="backEvaluate"
+			method="backEvaluate">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="getCountSelfAssessmentScore"
+			method="getCountSelfAssessmentScore">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="getEvaluateAllYears" method="getEvaluateAllYears"></action>
+		<action name="findSelfEvaluatesByOrgIdAndYearAndState" method="findSelfEvaluatesByOrgIdAndYearAndState">
+			<result name="success" type="json">
+				<param name="root">evaluates</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findReportEvaluatesByOrgIdAndYearAndState" method="findReportEvaluatesByOrgIdAndYearAndState">
+			<result name="success" type="json">
+				<param name="root">evaluates</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="redirectForWorkRecord" method="redirectForWorkRecord">
+     		<result name="meet" type="redirect">/workingRecord/meetingWorkingRecordManage/dispatch.action?mode=view&amp;dailyDirectory.id=${workingRecord.dailyDirectory.id}&amp;meetingWorkingRecord.id=${workingRecord.id}</result>
+     		<result name="file" type="redirect">/workingRecord/fileWorkingRecordManage/dispatch.action?mode=view&amp;dailyDirectory.id=${workingRecord.dailyDirectory.id}&amp;fileWorkingRecord.id=${workingRecord.id}</result>
+     		<result name="activities" type="redirect">/workingRecord/activityWorkingRecordManage/dispatch.action?mode=view&amp;dailyDirectory.id=${workingRecord.dailyDirectory.id}&amp;activityWorkingRecord.id=${workingRecord.id}</result>
+     		<result name="check" type="redirect">/workingRecord/publicSecurityRenovateManage/dispatch.action?mode=view&amp;emphasisSafetyDetail.id=${workingRecord.id}&amp;dailyDirectoryId=${workingRecord.dailyDirectory.id}&amp;reportTypeInternalId=0&amp;organization.id=${evaluate.organization.id}</result>
+     		<result name="issuedeal" type="redirect">/workingRecord/socialConflictReordManage/dispatch.action?mode=view&amp;reportTypeInternalId=0&amp;disputEsexamine.id=${workingRecord.id}&amp;organization.id=${evaluate.organization.id}</result>
+     		<result name="investigation" type="redirect">/dailylog/keyAreasOfInvestigationInfoManage/dispatch.action?mode=view&amp;dailyDirectory.id=${workingRecord.dailyDirectory.id}&amp;keyAreasOfInvestigationInfo.id=${workingRecord.id}</result>
+     		<result name="significantissuedeal" type="redirect">/workingRecord/significantIssuedealWorkingRecordManage/dispatch.action?mode=view&amp;dailyDirectory.id=${workingRecord.dailyDirectory.id}&amp;significantIssuedealWorkingRecord.id=${workingRecord.id}</result>
+		</action> 
+		
+		<action name="dailogSize" method="dailogSize">
+			<result name="success" type="json">
+				<param name="root">returnSize</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+	</package>
+	<package name="hotModuelEvaluateManage" extends="evaluateManage" namespace="/hotModuel/evaluate/evaluateManage"></package>
+</struts>

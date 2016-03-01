@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		CREATEDATE as createDate ,
+		UPDATEDATE as updateDate ,
+		CREATEUSER as createUser ,
+		UPDATEUSER as updateUser ,
+		NAME as name ,
+		KEY as key ,
+		CONTENT as content 
+	FROM SMSTEMPLATE	
+ -->	
+<sqlMap namespace="smstemplate">	
+	
+	<typeAlias alias="Smstemplate" type="com.tianque.sms.domain.Smstemplate"/>
+	<typeAlias alias="SearchSmstemplateVo" type="com.tianque.sms.domain.vo.SearchSmstemplateVo" />
+	
+	<resultMap id="smstemplateResult" class="Smstemplate">
+		<result property="id" column="ID"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="name" column="NAME"/>
+		<result property="key" column="KEY"/>
+		<result property="type" column="TYPE"/>
+		<result property="content" column="CONTENT"/>
+	</resultMap>
+	
+
+
+	<select id="getSmstemplateById" parameterClass="java.lang.Long" resultMap="smstemplateResult">
+		select * from SMSTEMPLATE where id=#value#
+	</select>
+	
+	<insert id="addSmstemplate" parameterClass="Smstemplate">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_SMSTEMPLATE.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into SMSTEMPLATE (ID , CREATEDATE , UPDATEDATE , CREATEUSER , UPDATEUSER , NAME , KEY , CONTENT , TYPE) 
+		values(#id#, #createDate#, #updateDate#, #createUser#, #updateUser#, #name#, #key#, #content#, #type#)	
+	</insert>
+	
+	<update id="updateSmstemplate" parameterClass="Smstemplate">
+		update SMSTEMPLATE set id = #id# 
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="name">
+					NAME = #name#
+				</isNotNull>
+				<isNotNull prepend="," property="key">
+					KEY = #key#
+				</isNotNull>
+				<isNotNull prepend="," property="type">
+					TYPE = #type#
+				</isNotNull>
+				<isNotNull prepend="," property="content">
+					CONTENT = #content#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteSmstemplateById" parameterClass="java.lang.Long">	
+		delete  from SMSTEMPLATE where id = #value#	
+	</delete>
+	
+	<sql id="findSmstemplatesBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="maxCreateDate">
+					<isNotEmpty prepend="and" property="maxCreateDate">
+						CREATEDATE  <![CDATA[<=]]> #maxCreateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minCreateDate">
+					<isNotEmpty prepend="and" property="minCreateDate">
+						CREATEDATE  <![CDATA[>=]]> #minCreateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="maxUpdateDate">
+					<isNotEmpty prepend="and" property="maxUpdateDate">
+						UPDATEDATE  <![CDATA[<=]]> #maxUpdateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minUpdateDate">
+					<isNotEmpty prepend="and" property="minUpdateDate">
+						UPDATEDATE  <![CDATA[>=]]> #minUpdateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="createUser">
+					<isNotEmpty prepend="and" property="createUser">
+						CREATEUSER  like #createUser# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="updateUser">
+					<isNotEmpty prepend="and" property="updateUser">
+						UPDATEUSER  like #updateUser# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="name">
+					<isNotEmpty prepend="and" property="name">
+						NAME  like #name# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="key">
+					<isNotEmpty prepend="and" property="key">
+						KEY =#key#
+					</isNotEmpty>
+				</isPropertyAvailable>	
+				<isPropertyAvailable property="type">
+					<isNotEmpty prepend="and" property="type">
+						TYPE =#type#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="content">
+					<isNotEmpty prepend="and" property="content">
+						CONTENT  like #content# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+	<select id="findSmstemplatesBySearchVo" parameterClass="SearchSmstemplateVo" resultMap="smstemplateResult">
+		select * from SMSTEMPLATE
+		<include refid="findSmstemplatesBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countSmstemplatesBySearchVo" parameterClass="SearchSmstemplateVo" resultClass="java.lang.Integer">
+		select count(0) from SMSTEMPLATE
+		<include refid="findSmstemplatesBySearchVo_sql_where" />
+	</select>
+
+	<select id="getSmstemplatesBySearchVo" parameterClass="SearchSmstemplateVo" resultMap="smstemplateResult">
+		select * from SMSTEMPLATE 
+		<include refid="findSmstemplatesBySearchVo_sql_where" />
+	</select>
+	
+</sqlMap>

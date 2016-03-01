@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="IssueJointAttachfile">
+	<typeAlias alias="IssueJointAttachfile" type="com.tianque.issueAbutmentJoint.domain.IssueJointAttachfile"/>
+	<resultMap class="IssueJointAttachfile" id="issueJointAttachfileResult">
+		<result property="id" column="id"/>
+		<result property="fileName" column="fileName"/>
+		<result property="physicsFullFileName" column="physicsFullFileName"/>
+		<result property="moduleKey" column="moduleKey"/>
+		<result property="issueId" column="issueId"/>
+	</resultMap>
+	
+	<select id="queryIssueJointAttachfileByIssueIdForList" resultMap="issueJointAttachfileResult" parameterClass="java.util.Map">
+		select * from issueJointAttachfiles  where issueId=#issueId# and moduleKey=#moduleKey#
+	</select>
+	<select id="getIssueJointAttachfileById" resultMap="issueJointAttachfileResult" parameterClass="java.lang.Long">
+		select * from issueJointAttachfiles  where id=#value#
+	</select>
+</sqlMap>

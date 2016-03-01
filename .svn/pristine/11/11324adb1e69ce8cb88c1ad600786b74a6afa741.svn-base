@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="inbox">
+	<typeAlias alias="Inbox"
+		type="com.tianque.plugin.weChat.domain.inbox.Inbox" />
+
+	<resultMap id="inboxResult" class="Inbox">
+		<result property="inboxId" column="inbox_id" />
+		<result property="toUserName" column="to_User_Name" />
+		<result property="groupId" column="group_id" />
+		<result property="fromUserName" column="from_User_Name" />
+		<result property="createTime" column="create_Time" />
+		<result property="msgType" column="msg_Type" />
+		<result property="msgId" column="msg_Id" />
+		<result property="content" column="content" />
+		<result property="createUser" column="create_User" />
+		<result property="org.id" column="org_id" />
+		<result property="issueId" column="issue_Id" />
+		<result property="dealState" column="deal_State" />
+		<result property="availability" column="availability" />
+		<result property="serviceId" column="SERVICE_ID" />
+		<result property="isKeyWordMsg" column="is_KeyWord_Msg" />
+		<result property="lng" column="lng" />
+		<result property="lat" column="lat" />
+		<result property="forwardingState" column="forwardingState" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		
+	</resultMap>
+	<resultMap class="Inbox" id="inboxResultForList" extends="inboxResult">
+		<result property="weChatUserName" column="weChat_User_Name" />
+		<result property="groupName" column="group_Name" />
+		<result property="nickName" column="nick_name" />
+		<result property="fanId" column="fan_id" />
+	</resultMap>
+	<sql id="sql_where">
+		<dynamic>
+			<isNotEmpty prepend=" and " property="inbox.createUser">
+				(i.create_User like '%'||#inbox.createUser#||'%'
+				or f.nick_name like '%'||#inbox.createUser#||'%')
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="inbox.content">
+				i.content like '%'||#inbox.content#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="inbox.startCreateTime" prepend="and">
+				<![CDATA[i.create_Time >= #inbox.startCreateTime#]]>
+			</isNotEmpty>
+			<isNotEmpty property="inbox.endCreateTime" prepend="and">
+				<![CDATA[i.create_Time <= #inbox.endCreateTime#]]>
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="inbox.dealState">
+				i.deal_State = #inbox.dealState#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="inbox.serviceId">
+				i.SERVICE_ID = #inbox.serviceId#
+			</isNotEmpty>
+			<isGreaterThan property="inbox.availability" prepend=" and "
+				compareValue="0">
+				i.availability =#inbox.availability#
+			</isGreaterThan>
+			<isNotNull property="inbox.isKeyWordMsg">
+				<isGreaterThan property="inbox.isKeyWordMsg" prepend=" and "
+					compareValue="0">
+					i.is_KeyWord_Msg !=#inbox.isKeyWordMsg#
+				</isGreaterThan>
+			</isNotNull>
+			<isNotEmpty prepend=" and " property="inbox.org.id">
+				i.org_id = #inbox.org.id#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="inbox.groupId">
+				i.group_id = #inbox.groupId#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="inbox.forwardingState">
+				i.forwardingState = #inbox.forwardingState#
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+
+	<insert id="saveInbox" parameterClass="Inbox">
+		<selectKey resultClass="java.lang.Long" keyProperty="inboxId">
+			<![CDATA[
+				SELECT s_inbox.NEXTVAL AS inboxId FROM DUAL
+			]]>
+		</selectKey>
+		insert into inbox
+		(INBOX_ID,TO_USER_NAME,LAT,LNG,GROUP_ID,FROM_USER_NAME,CREATE_TIME,MSG_TYPE,MSG_ID,CONTENT,ORG_ID,CREATE_USER,ISSUE_ID,DEAL_STATE,availability,is_KeyWord_Msg,forwardingState,orgInternalCode)
+		values
+		(#inboxId#,#toUserName#,#lat#,#lng#,#groupId#,#fromUserName#,#createTime#,#msgType#,#msgId#,#content#,#org.id#,#createUser#,#issueId#,#dealState#,#availability#,#isKeyWordMsg#,#forwardingState#,#orgInternalCode#)
+	</insert>
+	<select id="getInboxById" parameterClass="java.lang.Long"
+		resultMap="inboxResult">
+		select * from inbox where inbox_id=#value#
+	</select>
+	<select id="getMaxInboxId" resultClass="java.lang.Long">
+		select max(inbox_id) from
+		inbox
+	</select>
+	<select id="countFindInboxs" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		select count(*) from inbox i left join fan f on f.OPEN_ID=i.FROM_USER_NAME and
+		f.WECHAT_USER_ID=i.to_user_name where 1=1
+		<include refid="sql_where" />
+	</select>
+	<select id="findInboxs" parameterClass="java.util.Map"
+		resultMap="inboxResultForList">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_start" />
+			</isNotNull>
+		</isPropertyAvailable>
+		select
+		i.*,f.fan_id,
+		case when t.name is null then '已删除的公众号'
+		else t.name end as weChat_User_Name,
+		case when f.nick_name is not null then f.nick_name end
+		as nick_name ,
+		case when g.name is null then '已删除的群组'
+		else g.name end as group_Name from inbox i
+		left join tencent_user t on i.to_user_name=t.WECHAT_USER_ID
+		left join fan f on f.OPEN_ID=i.FROM_USER_NAME and
+		f.WECHAT_USER_ID=i.to_user_name
+		left join wechat_group g on i.group_id=g.group_id and
+		i.to_user_name=g.wechat_user_id
+		where 1=1
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">i.$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_end" />
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	<delete id="deleteInboxById" parameterClass="java.lang.Long">
+		delete from inbox
+		where inbox_id = #value#
+	</delete>
+
+	<update id="updateAvailabilityById" parameterClass="Inbox">
+		update inbox
+		set
+		availability = #availability#
+		where INBOX_ID = #inboxId#
+	</update>
+	<update id="updateGroupIdByWeChatUserIdAndFanId" parameterClass="Inbox">
+		update inbox set
+		group_id = #groupId#
+		where from_User_Name =
+		#fromUserName# and to_User_Name=#toUserName#
+	</update>
+	<update id="updateById" parameterClass="Inbox">
+		update inbox set
+		TO_USER_NAME = #toUserName#,
+		FROM_USER_NAME = #fromUserName#,
+		CREATE_TIME = #createTime#,
+		MSG_TYPE = #msgType#,
+		MSG_ID = #msgId#,
+		CONTENT = #content#,
+		ORG_ID = #org.id#,
+		CREATE_USER = #createUser#,
+		ISSUE_ID = #issueId#,
+		DEAL_STATE = #dealState#,
+		SERVICE_ID=#serviceId#,
+		forwardingState=#forwardingState# ,
+		orgInternalCode=#orgInternalCode#
+		where INBOX_ID =
+		#inboxId#
+	</update>
+</sqlMap>

@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="dustbin">
+	<typeAlias alias="dustbin" type="com.tianque.domain.Dustbin" />
+	<typeAlias alias="searchDustbinVo" type="com.tianque.domain.vo.SearchDustbinVo" />
+	
+	<resultMap id="dustbinResult" class="dustbin">
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="partType" property="partType.id" />
+		<result column="partName" property="partName.id" />
+		<result column="dustbinCode" property="dustbinCode" />
+		<result column="hasVideo" property="hasVideo" />
+		<result column="address" property="address" />
+		<result column="deptName" property="deptName" />
+		<result column="ownershipUnitName" property="ownershipUnitName" />
+		<result column="maintenanceUnitName" property="maintenanceUnitName" />
+		<result property="imgUrl" column="imgUrl"/>
+		<result property="isEmphasis" column="isEmphasis" />
+		<result property="logOutTime" column="logOutTime"/>	
+		<result property="logOutReason" column="logOutReason"/>
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+		<result column="centerLon" property="centerX" />
+		<result column="centerLat" property="centerY" />
+		<result column="remark" property="remark" />
+	</resultMap>
+	
+	<sql id="search_sql_where">
+		from dustbin d where d.orgInternalCode like #orgInternalCode#||'%'
+		<isPropertyAvailable property="address">
+			<isNotEmpty property="address" prepend=" and ">
+				d.address like #address#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="type">
+			<isNotNull property="type" prepend=" and ">
+				d.partType = #partType#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="partName">
+			<isNotNull property="partName" prepend=" and ">
+				d.partName = #partName#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="dustbinCode">
+			<isNotEmpty property="dustbinCode" prepend=" and ">
+				d.dustbinCode like #dustbinCode#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="deptName">
+			<isNotEmpty property="deptName" prepend=" and ">
+				d.deptName like #deptName#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="ownershipUnitName">
+			<isNotEmpty property="ownershipUnitName" prepend=" and ">
+				d.ownershipUnitName like #ownershipUnitName#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="maintenanceUnitName">
+			<isNotEmpty property="maintenanceUnitName" prepend=" and ">
+				d.maintenanceUnitName like #maintenanceUnitName#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="hasVideo">
+			<isNotNull property="hasVideo" prepend=" and ">
+				<isEqual property="hasVideo" compareValue="1">
+					d.hasVideo = #hasVideo#
+				</isEqual>
+				<isEqual property="hasVideo" compareValue="0">
+					(d.hasVideo = #hasVideo# or d.hasVideo is null)
+				</isEqual>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="isEmphasis">
+			<isNotNull property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+					d.isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+					d.isEmphasis = #isEmphasis#
+				</isEqual>
+			</isNotNull>
+		</isPropertyAvailable>
+		<!-- 新增属性 -->
+		<isPropertyAvailable property="partTypeId">
+			<isNotEmpty property="partTypeId" prepend=" and ">
+				 d.partType=#partTypeId# 
+			</isNotEmpty>
+		</isPropertyAvailable>
+<!-- 		<isEqual prepend="and" property="partType" compareValue="publicFacilities"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="roadTraffic"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="cityEnvironmrnt"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="landscaping"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="houseLand"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="otherFacilities"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="expansionComponents"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+	</sql>
+
+	<insert id="addDustbin" parameterClass="dustbin">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_dustbin.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into dustbin
+		(
+		id,orgId,orgInternalCode,partType,partName,dustbinCode,address,deptName,ownershipUnitName,maintenanceUnitName,imgUrl,createDate,createUser,updateDate,updateUser,centerLon,centerLat,remark,logOutTime,logOutReason,hasVideo
+		)
+		values
+		(
+		 #id#,#organization.id#,#orgInternalCode#,#partType.id#,#partName.id#,#dustbinCode#,#address#,#deptName#,#ownershipUnitName#,#maintenanceUnitName#,#imgUrl#,#createDate#,#createUser#,#updateDate#,#updateUser#,#centerX#,#centerY#,#remark#,#logOutTime#,#logOutReason#,#hasVideo#
+		)
+	</insert>
+	
+	<select id="getDustbinById" parameterClass="java.lang.Long" resultMap="dustbinResult">
+		<![CDATA[SELECT * FROM dustbin where id = #value#]]>
+	</select>
+	<select id="findDustbinByOrgId" parameterClass="map" resultMap="dustbinResult">
+		<![CDATA[SELECT * FROM dustbin where orgId = #orgId# ]]>
+	</select>
+	
+	<delete id="deleteDustbinbyId" parameterClass="java.lang.Long">
+		delete from dustbin where id = #value#
+	</delete>
+	
+	<sql id="sql_where">
+		from dustbin d
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					d.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis" >
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						d.isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						d.isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="partTypeId">
+				<isNotNull property="partTypeId" prepend=" and ">
+					 d.partType = #partTypeId# 
+				</isNotNull>
+			</isPropertyAvailable>
+<!-- 			<isEqual prepend="and" property="partType" compareValue="publicFacilities"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="roadTraffic"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="cityEnvironmrnt"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="landscaping"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="houseLand"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="otherFacilities"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="expansionComponents"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+		</dynamic>
+	</sql>
+	<sql id="search_by_partType">
+			<isPropertyAvailable property="partTypeId">
+				<isNotNull property="partTypeId" prepend=" and ">
+					 d.partType = #partTypeId# 
+				</isNotNull>
+			</isPropertyAvailable>
+<!-- 		<isEqual prepend="and" property="partType" compareValue="publicFacilities"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="roadTraffic"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="cityEnvironmrnt"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="landscaping"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="houseLand"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="otherFacilities"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+<!-- 		 	<isEqual prepend="and" property="partType" compareValue="expansionComponents"> -->
+<!-- 		 		 d.partType=(select id   from propertydicts s -->
+<!--                          where s.propertydomainid in -->
+<!--                                (select id -->
+<!--                                   from propertydomains p -->
+<!--                                  where p.domainname = '$typeName$') and s.displayname='$partTypeName$') -->
+<!-- 		 	</isEqual> -->
+	</sql>
+
+<select id="countDustbin" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+<select id="findDustbin" parameterClass="java.util.Map" resultMap="dustbinResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotEqual property="sortField" compareValue="id">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isNotEqual>
+			</isPropertyAvailable>
+		</dynamic>
+</select>
+
+<update id="updateDustbin" parameterClass="dustbin">
+		update dustbin set   
+		 <dynamic>
+	      dustbinCode=#dustbinCode#
+            <isPropertyAvailable prepend="," property="organization">
+            	orgId=#organization.id#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="orgInternalCode">
+            	orgInternalCode=#orgInternalCode#
+            </isPropertyAvailable>
+            <isNotNull prepend="," property="partType">
+				partType=#partType.id#
+			</isNotNull>
+			<isNotNull prepend="," property="partName">
+				partName=#partName.id#
+			</isNotNull>
+            <isPropertyAvailable prepend="," property="address">
+            	address=#address#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="deptName">
+            	deptName=#deptName#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="hasVideo">
+            	hasVideo=#hasVideo#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="ownershipUnitName">
+            	ownershipUnitName=#ownershipUnitName#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="maintenanceUnitName">
+            	maintenanceUnitName=#maintenanceUnitName#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="imgUrl">
+            	imgUrl=#imgUrl#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="centerX">
+            	centerLon=#centerX#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="centerY">
+            	centerLat=#centerY#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="remark">
+            	remark=#remark#
+            </isPropertyAvailable>
+            <isNotEmpty prepend="," property="isEmphasis">
+            	isEmphasis=#isEmphasis#
+            </isNotEmpty>
+            <isPropertyAvailable prepend="," property="logOutTime">
+            	logOutTime=#logOutTime#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="logOutReason">
+            	logOutReason=#logOutReason#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="updateUser">
+            	updateUser=#updateUser#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="updateDate">
+            	updateDate=#updateDate#
+            </isPropertyAvailable>
+			where id = #id#
+         </dynamic>
+	</update>
+	
+	
+	<select id="getDustbinByDustbinCode" parameterClass="java.util.Map"
+		resultMap="dustbinResult">
+		select * from dustbin where orgId=#orgId# and dustbinCode=#dustbinCode#
+	</select>
+	
+	<update id="updateEmphasiseById" parameterClass="map">
+		update dustbin set isEmphasis=#isEmphasis#,logOutReason=#logOutReason# ,logOutTime = #logOutTime#,UPDATEDATE = #updateDate#,UPDATEUSER = #updateUser#
+		where id=#id#
+	</update>
+	
+	<select id="countSearchDustbin" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*)
+			from dustbin d
+		<dynamic prepend="where"> 
+		<isPropertyAvailable property="orgInternalCode">
+			<isNotEmpty property="orgInternalCode"  prepend=" and ">
+				d.orgInternalCode like '$orgInternalCode$%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="isEmphasis">
+			<isNotNull property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+					d.isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+					d.isEmphasis = #isEmphasis#
+				</isEqual>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="fastSearchKeyWords">
+			<isNotEmpty property="fastSearchKeyWords"  prepend=" and ">
+<!-- 				d.partName in(select id -->
+<!--                               from propertydicts s -->
+<!--                              where s.propertydomainid in -->
+<!--                                    (select id -->
+<!--                                       from propertydomains p -->
+<!--                                      where p.domainname = '$domainname$') -->
+<!--                                and s.displayname like '$fastSearchKeyWords$%'  or s.simplepinyin like '$fastSearchKeyWords$%' or s.fullpinyin like '$fastSearchKeyWords$%' or d.dustbinCode like '$fastSearchKeyWords$%') -->
+					(d.partname = #partName# or d.dustbincode like #fastSearchKeyWords#||'%')
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<include refid="search_by_partType" />
+		</dynamic>
+	</select>
+	
+	<select id="searchFastDustbin" parameterClass="java.util.Map" resultMap="dustbinResult">
+		select *
+		from dustbin d 
+		<dynamic prepend="where">
+		<isPropertyAvailable property="orgInternalCode">
+			<isNotEmpty property="orgInternalCode"  prepend=" and ">
+				orgInternalCode like '$orgInternalCode$%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="fastSearchKeyWords">
+			<isNotEmpty property="fastSearchKeyWords"  prepend=" and ">
+<!-- 				d.partName in(select id -->
+<!--                               from propertydicts s -->
+<!--                              where s.propertydomainid in -->
+<!--                                    (select id -->
+<!--                                       from propertydomains p -->
+<!--                                      where p.domainname = '$domainname$') -->
+<!--                                and s.displayname like '$fastSearchKeyWords$%'  or s.simplepinyin like '$fastSearchKeyWords$%' or s.fullpinyin like '$fastSearchKeyWords$%' or d.dustbinCode like '$fastSearchKeyWords$%') -->
+				(d.partname = #partName# or d.dustbincode like #fastSearchKeyWords#||'%')
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<include refid="search_by_partType" />
+		<isPropertyAvailable property="isEmphasis">
+			<isNotNull property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+					d.isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+					d.isEmphasis = #isEmphasis#
+				</isEqual>
+			</isNotNull>
+		</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 根据SearchVo搜索统计 -->
+	<select id="countSearchDustbinPagerBySearchVo" parameterClass="searchDustbinVo" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="search_sql_where" />
+	</select>
+
+	<!-- 根据SearchVo搜索 -->
+	<select id="searchDustbinPagerBySearchVo" parameterClass="searchDustbinVo" resultMap="dustbinResult">
+		<include refid="common.sql_select" />
+		<include refid="search_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+</sqlMap>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="newSocietyOrganizationsTemp">
+	<typeAlias alias="NewSocietyOrganizationsTemp" type="com.tianque.plugin.dataManage.location.newSocietyOrganizationsTemp.domain.NewSocietyOrganizationsTemp" />
+	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+	
+	<resultMap id="newSocietyOrganizationsTempResultForBase" class="NewSocietyOrganizationsTemp" extends="newOrganizationsTempBaseDomain.newOrganizationsTempBaseDomainpResultForBase">
+		<result column="chargeUnit" property="chargeUnit" />		
+		<result column="registrationNumber" property="registrationNumber" />
+		<result column="personNum" property="personNum" />
+		<result column="mainResponsibilities" property="mainResponsibilities" />
+		<result column="subType" property="subType.id" />
+	</resultMap>
+    <resultMap id="newSocietyOrganizationsTempResultForList" class="NewSocietyOrganizationsTemp" extends="newSocietyOrganizationsTemp.newSocietyOrganizationsTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<sql id="claim_sql_where">
+		from DM_newSocieOrg_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	<sql id="updateBusinessSql">
+		chargeUnit = #chargeUnit#
+		,registrationNumber = #registrationNumber#
+		,personNum = #personNum#
+		,mainResponsibilities = #mainResponsibilities#
+		,subType=#subType.id#
+		,type = #type.id#
+		,mobileNumber = #mobileNumber#
+		,telephone = #telephone#
+		,partyNum = #partyNum#
+		,introduction=#introduction#
+		,honor=#honor#
+		,validityStartDate=#validityStartDate#
+		,validityEndDate=#validityEndDate#
+	</sql>
+	<insert id="addNewSocietyOrganizationsTemp" parameterClass="NewSocietyOrganizationsTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_newSocieOrg_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_newSocieOrg_Temp
+		(id,orgId,orgInternalCode,name,address,type,manager,telephone,mobileNumber,partyNum,introduction,
+		 honor,remark,validityStartDate,validityEndDate,chargeUnit,registrationNumber,personNum,
+		 mainResponsibilities,createDate,createUser,subType,
+		<include refid="dataManage.addDataManage"/>
+		)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#name#,#address#,#type.id#,#manager#,#telephone#,#mobileNumber#,
+		#partyNum#,#introduction#,#honor#,#remark#,#validityStartDate#,#validityEndDate#,#chargeUnit#,
+		#registrationNumber#,#personNum#,#mainResponsibilities#,#createDate#,#createUser#,#subType.id#,
+		<include refid="dataManage.addValueDataManage"/>
+		)
+    </insert>
+    
+     <select id="findTempPageList" resultMap="newSocietyOrganizationsTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	 <update id="updateNewSocietyOrganizationsTempInIdById"  parameterClass="java.util.Map">
+		update DM_newSocieOrg_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	
+	<!-- 新增加 -->
+	<select id="getNewSocietyOrganizationsTempById" parameterClass="java.lang.Long"
+		resultMap="newSocietyOrganizationsTempResultForList">
+		select * from DM_newSocieOrg_Temp where id=#value#
+	</select>
+	<select id="findTemps" resultMap="newSocietyOrganizationsTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countFindTemps" resultClass="java.lang.Integer"
+		parameterClass="searchVo">
+			select count(id)  <include refid="claim_sql_where" />
+		</select>
+	
+	<update id="updateNewSocietyOrganizationsTempById"  parameterClass="java.util.Map">
+		update DM_newSocieOrg_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<update id="updateNewSocietyOrganizationsTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_newSocieOrg_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	
+	<update id="updateNewSocietyOrganizationsTemp" parameterClass="NewSocietyOrganizationsTemp">
+		update DM_newSocieOrg_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="newSocietyOrganizationsTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<!-- 修改场所信息 -->
+	<update id="updateNewSocietyOrganizationsTempInfo" parameterClass="NewSocietyOrganizationsTemp">
+		update DM_newSocieOrg_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="newSocietyOrganizationsTemp.updateBusinessSql"/>
+		,imgUrl = #imgUrl#
+		where id=#id#
+	</update>
+	
+	<delete id="deleteNewSocietyOrganizationsTempById" parameterClass="Long">
+	   delete DM_newSocieOrg_Temp where id = #value#
+	</delete>
+</sqlMap>

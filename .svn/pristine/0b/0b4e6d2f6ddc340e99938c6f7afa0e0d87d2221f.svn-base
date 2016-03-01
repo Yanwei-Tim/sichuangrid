@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="poorPeopleMembers">
+
+	<typeAlias alias="poorPeopleMembers" type="com.tianque.xichang.working.poorPeople.domain.PoorPeopleMembers" />
+
+	<resultMap class="poorPeopleMembers" id="poorPeopleMembersMap">
+		<result property="id" column="ID" />
+		<result property="name" column="NAME" />
+		<result property="gender.id" column="GENDER" />
+		<result property="birthday" column="BIRTHDAY" />
+		<result property="politiCalbackGround.id" column="POLITICALBACKGROUND" />
+		<result property="schooling.id" column="SCHOOLING" />
+		<result property="nation.id" column="NATION" />
+		<result property="healthState.id" column="HEALTHSTATE" />
+		<result property="relationShipWithHead.id" column="RELATIONSHIPWITHHEAD" />
+		<result property="insuranceType.id" column="INSURANCETYPE" />
+		<result property="poorPeople.id" column="ACCOUNTID" />
+		<result property="career" column="CAREER" />
+		<result property="createUser" column="CREATEUSER" />
+		<result property="updateUser" column="UPDATEUSER" />
+		<result property="createDate" column="CREATEDATE" />
+		<result property="updateDate" column="UPDATEDATE" />
+	</resultMap>
+
+	<sql id="sql_findPoorPeopleMembersForList">
+		SELECT * FROM POORPEOPLEMEMBERS WHERE ACCOUNTID = #poorPeople.id#
+		<isPropertyAvailable property="name">
+			<isNotEmpty property="name" prepend=" AND ">NAME LIKE #name#||'%'</isNotEmpty>
+		</isPropertyAvailable>
+	</sql>
+	<select id="findPoorPeopleMembersForListCount" parameterClass="poorPeopleMembers" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM (
+		<include refid="sql_findPoorPeopleMembersForList" />
+		)
+	</select>
+	<select id="findPoorPeopleMembersForList" parameterClass="poorPeopleMembers" resultMap="poorPeopleMembersMap">
+		<include refid="sql_findPoorPeopleMembersForList" />
+		<isPropertyAvailable property="sortField">
+			<isNotEmpty property="sortField" prepend=" ORDER BY ">$sortField$</isNotEmpty>
+			<isNotEmpty property="order">$order$</isNotEmpty>
+		</isPropertyAvailable>
+	</select>
+
+	<insert id="addPoorPeopleMembers" parameterClass="poorPeopleMembers">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_POORPEOPLEMEMBERS.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		INSERT INTO POORPEOPLEMEMBERS(ID, NAME, GENDER, BIRTHDAY, POLITICALBACKGROUND, SCHOOLING, NATION, CAREER, HEALTHSTATE,
+		RELATIONSHIPWITHHEAD, INSURANCETYPE, CREATEUSER, CREATEDATE, ACCOUNTID) VALUES(#id#, #name#, #gender.id#, #birthday#,
+		#politiCalbackGround.id#, #schooling.id#, #nation.id#, #career#, #healthState.id#, #relationShipWithHead.id#, #insuranceType.id#,
+		#createUser#, #createDate#, #poorPeople.id#)
+	</insert>
+
+	<select id="getPoorPeopleMembersById" parameterClass="java.lang.Long" resultMap="poorPeopleMembersMap">
+		SELECT * FROM POORPEOPLEMEMBERS WHERE ID=#value#
+	</select>
+
+	<delete id="deletePoorPeopleMembers" parameterClass="java.lang.String">DELETE FROM POORPEOPLEMEMBERS WHERE ID=#value#</delete>
+	
+	<delete id="deletePoorPeopleMembersByIds">
+		DELETE FROM POORPEOPLEMEMBERS WHERE
+ 		<iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+
+	<update id="updatePoorPeopleMembers" parameterClass="poorPeopleMembers">
+		UPDATE POORPEOPLEMEMBERS SET NAME = #name#, GENDER = #gender.id#, BIRTHDAY = #birthday#, POLITICALBACKGROUND =
+		#politiCalbackGround.id#, SCHOOLING = #schooling.id#, NATION = #nation.id#, CAREER = #career#, HEALTHSTATE = #healthState.id#,
+		RELATIONSHIPWITHHEAD = #relationShipWithHead.id#, INSURANCETYPE = #insuranceType.id#, UPDATEUSER = #updateUser#, UPDATEDATE =
+		#updateDate# WHERE ID=#id#
+	</update>
+</sqlMap>

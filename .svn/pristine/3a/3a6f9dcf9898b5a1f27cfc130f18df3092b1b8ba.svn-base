@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ContaminationInfo">
+<typeAlias alias="contaminationInfo" type="com.tianque.baseInfo.companyPlace.domain.ContaminationInfo" />
+
+<resultMap class="contaminationInfo" id="contaminationInfoResult">
+	<result column="id" property="id" />
+	<result column="businessId" property="businessId" />
+    <result column="isWasteWater" property="isWasteWater"/>
+    <result column="isWasteSolid"  property="isWasteSolid" />
+    <result column="isRadioaction" property="isRadioaction"  />
+    <result column="isNoise" property="isNoise" />
+    <result column="isWasteGas" property="isWasteGas"  />
+    <result column="isHeavyMetal" property="isHeavyMetal"  />
+    <result column="wasteWatername" property="wasteWaterName"  />
+    <result column="wasteWaterType" property="wasteWaterType.id" />
+    <result column="wasteSolidname" property="wasteSolidName"  />
+    <result column="wasteSolidType" property="wasteSolidType.id"  />
+    <result column="radioactionName" property="radioactionName" />
+    <result column="radioactionType" property="radioactionType.id"  />
+    <result column="noiseName" property="noiseName"  />
+    <result column="noiseType" property="noiseType.id"  />
+    <result column="noiseNature" property="noiseNature"  />
+    <result column="wasteGasname" property="wasteGasName"  />
+    <result column="wasteGasType" property="wasteGasType.id" />
+    <result column="townOrg" property="townOrg.id" />
+    <result column="basin" property="basin.id" />
+    <result column="industryType" property="industryType.id"  />
+    <result column="tradeType" property="tradeType.id"  />
+    <result column="tradeTypeSmall" property="tradeTypeSmall.id"  />
+    <result column="area" property="area" />
+    <result column="assessmentType" property="assessmentType.id" />
+    <result column="startBusinessDate" property="startBusinessDate"  />
+    <result column="lowAsicsType" property="lowAsicsType.id" />
+    <result column="concernType" property="concernType.id"  />
+    <result column="relationshipType" property="relationshipType.id"  />
+    <result column="unitType" property="unitType.id" />
+    <result column="scaleType" property="scaleType.id" />
+    <result column="keyIndustryType" property="keyIndustryType.id" />
+    <result column="superviseType" property="superviseType.id" />
+    <result column="contaminationType" property="contaminationType.id"  />
+    <result column="licensingType" property="licensingType.id" />
+    <result column="penaltyDate" property="penaltyDate" />
+    <result column="penaltyAmount" property="penaltyAmount" />
+    <result column="penaltyReason" property="penaltyReason"  />
+    <result column="penaltyExecute" property="penaltyExecute"  />
+    <result column="CREATEUSER" property="createUser" />
+    <result column="UPDATEUSER" property="updateUser"/>
+    <result column="CREATEDATE" property="createDate" />
+    <result column="UPDATEDATE" property="updateDate"  />
+</resultMap>
+
+<insert id="addContaminationInfo" parameterClass="contaminationInfo">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+    		<![CDATA[ SELECT S_contaminationInfos.Nextval AS id FROM dual ]]> 
+		</selectKey>
+	<![CDATA[insert into contaminationInfos
+	(id,businessId,isWasteWater,isWasteSolid,isRadioaction,isNoise,isWasteGas,isHeavyMetal,wasteWatername,wasteWaterType,wasteSolidname,wasteSolidType,radioactionname,
+	radioactionType,noisename,noiseType,noiseNature,wasteGasname,wasteGasType,townOrg,basin,industryType,tradeType,tradeTypeSmall,area,assessmentType,startBusinessDate,lowAsicsType,
+	concernType,relationshipType,unitType,scaleType,keyIndustryType,superviseType,contaminationType,licensingType,penaltyDate,penaltyAmount,penaltyReason,
+	penaltyExecute,createUser,createDate,updateUser,updateDate)
+    values
+    (#id#,#businessId#,#isWasteWater#,#isWasteSolid#,#isRadioaction#,#isNoise#,#isWasteGas#,#isHeavyMetal#,#wasteWaterName#,#wasteWaterType.id#,#wasteSolidName#,#wasteSolidType.id#,#radioactionName#,
+	#radioactionType.id#,#noiseName#,#noiseType.id#,#noiseNature#,#wasteGasName#,#wasteGasType.id#,#townOrg.id#,#basin.id#,#industryType.id#,#tradeType.id#,#tradeTypeSmall.id#,#area#,#assessmentType.id#,#startBusinessDate#,#lowAsicsType.id#,
+	#concernType.id#,#relationshipType.id#,#unitType.id#,#scaleType.id#,#keyIndustryType.id#,#superviseType.id#,#contaminationType.id#,#licensingType.id#,#penaltyDate#,#penaltyAmount#,#penaltyReason#,
+	#penaltyExecute#,#createUser#,#createDate#,#updateUser#,#updateDate#)]]>
+</insert>
+
+<update id="updateContaminationInfo" parameterClass="contaminationInfo">
+	update contaminationInfos set 
+	businessId = #businessId#,
+	isWasteWater = #isWasteWater#,
+	isWasteSolid = #isWasteSolid#,
+	isRadioaction = #isRadioaction#,
+	isNoise = #isNoise#,
+	isWasteGas = #isWasteGas#,
+	isHeavyMetal = #isHeavyMetal#,
+	wasteWatername = #wasteWaterName#,
+	wasteWaterType = #wasteWaterType.id#,
+	wasteSolidname = #wasteSolidName#,
+	wasteSolidType = #wasteSolidType.id#,
+	radioactionName = #radioactionName#,
+	radioactionType = #radioactionType.id#,
+	noiseName = #noiseName#,
+	noiseType = #noiseType.id#,
+	noiseNature = #noiseNature#,
+	wasteGasname = #wasteGasName#,
+	wasteGasType = #wasteGasType.id#,
+	townOrg = #townOrg.id#,
+	basin = #basin.id#,
+	industryType = #industryType.id#,
+	tradeType = #tradeType.id#,
+	tradeTypeSmall =#tradeTypeSmall.id#,
+	area = #area#,
+	assessmentType = #assessmentType.id#,
+	startBusinessDate = #startBusinessDate#,
+	lowAsicsType = #lowAsicsType.id#,
+	concernType = #concernType.id#,
+	relationshipType = #relationshipType.id#,
+	unitType = #unitType.id#,
+	scaleType = #scaleType.id#,
+	keyIndustryType = #keyIndustryType.id#,
+	superviseType = #superviseType.id#,
+	contaminationType = #contaminationType.id#,
+	licensingType = #licensingType.id#,
+	penaltyDate = #penaltyDate#,
+	penaltyAmount = #penaltyAmount#,
+	penaltyReason= #penaltyReason#,
+	penaltyExecute = #penaltyExecute#,
+	updateUser = #updateUser#,
+	updateDate = #updateDate#
+    where id=#id#
+</update>
+
+<delete id="deleteContaminationInfo" parameterClass="java.lang.Long">
+	delete contaminationInfos where id=#value#
+</delete>
+
+<delete id="deleteContaminationInfoByBusinessId" parameterClass="java.lang.Long">
+	delete contaminationInfos c where c.businessid = #value#
+</delete>
+
+<select id="getContaminationInfoById" parameterClass="java.lang.Long" resultMap="contaminationInfoResult">
+	SELECT * FROM contaminationInfos where id=#value#
+</select>
+
+<select id="getContaminationInfoByBusinessId" parameterClass="java.lang.Long" resultMap="contaminationInfoResult">
+	SELECT * FROM contaminationInfos c where c.businessid = #value#
+</select>
+
+</sqlMap>

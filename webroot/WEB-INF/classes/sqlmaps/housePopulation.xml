@@ -1,0 +1,878 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="housePopulations">
+	<typeAlias alias="populationLivingInfo" type="com.tianque.domain.vo.HouseSimpleInfoForSearch" />
+	<typeAlias alias="populationLivingTotalInfo" type="com.tianque.domain.vo.HouseLivingTotalInfo" />
+	<typeAlias alias="housePopulationLivingInfo" type="com.tianque.domain.vo.HouseLivingPopulationInfo" />
+	<typeAlias alias="housePopulationInfo" type="com.tianque.gis.domain.vo.HousePopulationVo" />
+	<resultMap class="populationLivingInfo" id="populationLivingInfoResult" >
+		<result property="maxId" column="id"/>
+		<result property="address" column="address"/>
+		<result property="comnunity" column="community"/>
+		<result property="block" column="block"/>
+		<result property="unit" column="unit"/>
+		<result property="room" column="room"/>
+		<result property="houseCode" column="houseCode"/>
+		<result property="addressType.id" column="addressType"/>
+	</resultMap>
+
+	<resultMap class="populationLivingTotalInfo" id="populationLivingTotalInfoResult" >
+		<result property="typeCatalogName" column="populationType" nullValue=""/>
+		<result property="populationCount" column="populationCount" nullValue="0"/>
+	</resultMap>
+
+	<resultMap class="populationLivingTotalInfo" id="populationLivingTotalInfoResult0" >
+		<result property="populationCount" column="populationCount" nullValue="0"/>
+		<result property="orgCode" column="orgCode" nullValue=""/>
+		<result property="orgName" column="orgName" nullValue=""/>
+	</resultMap>
+
+	<resultMap class="housePopulationLivingInfo" id="housePopulationLivingInfoResultWithSid" >
+		<result column="sid" property="sid" />
+		<result property="id" column="populationid"/>
+		<result property="typeCatalogName" column="populationtype"/>
+		<result property="certificateNumber" column="certificateNumber"/>
+		<result property="personName" column="name"/>
+		<result property="genderId" column="gender"/>
+		<result property="nationId" column="nation"/>
+		<result property="educationId" column="schooling"/>
+		<result property="householdPlace" column="householdPlace"/>
+		<result property="professionId" column="career"/>
+		<result property="workCompany" column="workunit"/>
+		<result property="death" column="isdeath"/>
+		<result property="active" column="active"/>
+		<result property="nativePlaceAddress" column="nativePlaceAddress"/>
+	</resultMap>
+	
+	<resultMap class="housePopulationLivingInfo" id="housePopulationLivingInfoResult" >
+		<result property="id" column="populationid"/>
+		<result property="typeCatalogName" column="populationtype"/>
+		<result property="certificateNumber" column="certificateNumber"/>
+		<result property="personName" column="name"/>
+		<result property="genderId" column="gender"/>
+		<result property="nationId" column="nation"/>
+		<result property="educationId" column="schooling"/>
+		<result property="householdPlace" column="householdPlace"/>
+		<result property="professionId" column="career"/>
+		<result property="workCompany" column="workunit"/>
+		<result property="death" column="isdeath"/>
+		<result property="active" column="active"/>
+	</resultMap>
+	
+	<resultMap class="housePopulationLivingInfo" id="housePopulationLivingInfoForGisResult">
+		<result property="id" column="populationid"/>
+		<result property="typeCatalogName" column="populationtype"/>
+	</resultMap>
+	
+	<resultMap class="housePopulationLivingInfo" id="findActulaPopulationInHouseByHouseIdForGis" extends="housePopulationLivingInfoForGisResult">
+		<result property="certificateNumber" column="certificateNumber"/>
+		<result property="personName" column="name"/>
+		<result property="genderId" column="gender"/>
+		<result property="death" column="isdeath"/>
+		<result property="active" column="active"/>
+		<result property="currAddress" column="currentAddress"/>
+		<result property="noHouseReason" column="noHouseReason"/>
+		<result property="isHaveHouse" column="isHaveHouse"/>
+		<result property="certificateType.id" column="certificateType"/>
+	</resultMap>
+	
+	<resultMap class="housePopulationLivingInfo" id="gisFurtureStepQueryResult" extends="housePopulationLivingInfoForGisResult">
+		<result property="certificateNumber" column="certificateNumber"/>
+		<result property="personName" column="name"/>
+		<result property="genderId" column="gender"/>
+		<result property="death" column="isdeath"/>
+		<result property="active" column="active"/>
+		<result property="currAddress" column="currentAddress"/>
+		<result property="noHouseReason" column="noHouseReason"/>
+		<result property="isHaveHouse" column="isHaveHouse"/>
+		<result property="populationtypes" column="persontype"/>
+	</resultMap>
+	
+	<resultMap id="map_ct_populationType" class="java.util.HashMap">  
+		<result property="key" column="populationType"/>  
+		<result property="value" column="ct" javaType="int"/>  
+	</resultMap> 
+	
+	<resultMap id="housePopulationResult" class="housePopulationInfo">  
+		<result property="personType" column="personType"/>
+		<result property="populationType" column="populationType"/>
+		<result property="houseId" column="houseId"/>
+		<result property="populationId" column="populationId"/>
+		<result property="defaultLivingHouse" column="defaultLivingHouse"/>
+		<result property="centerX" column="centerX"/>
+		<result property="centerY" column="centerY"/>
+	</resultMap>
+	
+	<insert id="bindActualPopulationHouse" parameterClass="map">
+		INSERT INTO houseHasActualPopulation
+		(personType,populationType,houseId,populationId,defaultLivingHouse)
+		VALUES(#personType#,#populationType#,#houseId#,#populationId#,#defaultLivingHouse#)
+	</insert>
+
+	<select id="getActualPopulationLivingHouseId" parameterClass="map" resultClass="long">
+		select houseId from houseHasActualPopulation
+		where personType=#personType# and populationType=#populationType#
+			and populationId=#populationId# and defaultLivingHouse=#defaultLivingHouse#
+	</select>
+
+	<delete id="releaseActualPopulationAllHouse" parameterClass="map">
+		delete houseHasActualPopulation
+		where personType=#personType# and populationType=#populationType#
+			and populationId=#populationId#
+	</delete>
+
+	<delete id="releaseActualPopulationHouse" parameterClass="map">
+		delete houseHasActualPopulation
+		where personType=#personType# and populationType=#populationType#
+			and houseId=#houseId# and populationId=#populationId#
+	</delete>
+
+	<delete id="releaseActualPopulationsAllHouse" parameterClass="map">
+		delete houseHasActualPopulation
+		where personType=#personType# and populationType=#populationType#
+			and populationId in
+			<iterate prepend=""  property="populationIds" open="(" close=")" conjunction=",">
+				#populationIds[]#
+			</iterate>
+	</delete>
+
+	<select id="getActualPopulationLivingHouseInfo" parameterClass="map" resultMap="populationLivingInfoResult">
+		select house.* from houseInfo_$shardCode$ house,houseHasActualPopulation ph
+		where house.id=ph.houseId and ph.personType=#personType#
+	      and ph.populationType=#populationType#
+		  and ph.populationId=#populationId# and ph.defaultLivingHouse=#defaultLivingHouse#
+	</select>
+	
+<!-- 	<select id="getPopulationLivingHouseInfo" parameterClass="map" resultMap="populationLivingInfoResult">
+		select house.* from houseInfo house,houseHasActualPopulation ph
+		where house.id=ph.houseId and ph.personType=#personType#
+	      and ph.populationType=#populationType#
+		  and ph.populationId=#populationId# and ph.defaultLivingHouse=#defaultLivingHouse# 
+	</select> -->
+
+	<insert id="bindImpotantPopulationHouse" parameterClass="map">
+		INSERT INTO houseHasImportantPopulation
+		(personType,populationType,houseId,populationId,defaultLivingHouse)
+		VALUES(#personType#,#populationType#,#houseId#,#populationId#,#defaultLivingHouse#)
+	</insert>
+
+	<select id="getImportantPopulationLivingHouseId" parameterClass="map" resultClass="long">
+		select houseId from houseHasImportantPopulation
+		where populationType=#populationType#
+			and populationId=#populationId# and defaultLivingHouse=#defaultLivingHouse#
+	</select>
+	
+	
+	<select id="getPopulationLivingHouseId" parameterClass="map" resultClass="long">
+		select houseId from HouseHasActualPopulation
+		where personType=#personType# and populationType=#populationType#
+			and populationId=#populationId# and defaultLivingHouse=#defaultLivingHouse#
+	</select>
+
+	<delete id="releaseImportantPopulationAllHouse" parameterClass="map">
+		delete houseHasImportantPopulation
+		where personType=#personType# and populationType=#populationType#
+			and populationId=#populationId#
+	</delete>
+
+	<delete id="releaseImportantPopulationsAllHouse" parameterClass="map">
+		delete houseHasImportantPopulation
+		where personType=#personType# and populationType=#populationType#
+			and populationId in
+			<iterate prepend=""  property="populationIds" open="(" close=")" conjunction=",">
+				#populationIds[]#
+			</iterate>
+	</delete>
+
+	<delete id="releaseImpotantPopulationHouse" parameterClass="map">
+		delete houseHasImportantPopulation
+		where personType=#personType# and populationType=#populationType#
+			and houseId=#houseId# and populationId=#populationId#
+	</delete>
+	
+	<delete id="releasePopulationHouse" parameterClass="map">
+		delete HouseHasActualPopulation
+		where personType=#personType# and populationType=#populationType#
+			and houseId=#houseId# and populationId=#populationId#
+	</delete>
+
+	<select id="getImportantPopulationLivingHouseInfo" parameterClass="map" resultMap="populationLivingInfoResult">
+		select house.* from houseInfo_$shardCode$ house,houseHasImportantPopulation ph
+		where ph.personType=#personType# and ph.populationType=#populationType#
+			and ph.populationId=#populationId# and ph.defaultLivingHouse=#defaultLivingHouse# and house.id=ph.houseId
+	</select>
+
+	<select id="findLivingHouseActualPopulationTotalInfos" parameterClass="map" resultMap="populationLivingTotalInfoResult">
+		select count(*) populationCount, '' personType,max(populationType) populationType from houseHasActualPopulation
+		where personType=#personType# and populationType=#populationType#	houseId =#houseId#
+	</select>
+
+	<select id="findLivingHouseAllActualPopulationTotalInfos" parameterClass="long" resultMap="populationLivingTotalInfoResult">
+		select count(*) populationCount, populationType populationType from houseHasActualPopulation
+		where houseId =#houseId#
+		group by populationType
+	</select>
+
+	<select id="findLivingHouseAllAttentionPopulationTotalInfos" parameterClass="long" resultMap="populationLivingTotalInfoResult">
+		select count(*) populationCount, populationType populationType from houseHasImportantPopulation
+		where houseId =#houseId#
+		group by populationType
+	</select>
+
+	<select id="findLivingHouseAttentionPopulationTotalInfos" parameterClass="map" resultMap="populationLivingTotalInfoResult">
+		select count(*) populationCount, '' populationType from houseHasImportantPopulation
+		where personType=#personType# and populationType=#populationType# and houseId =#houseId#
+	</select>
+	
+	<!-- 现有租房数量 -->
+	<select id="countLivingHouseAllActualPopulationInfos" parameterClass="map" resultClass="int">
+		select sum(count) from (
+			select 0 as count from dual
+		<iterate prepend=""  property="catalogs" conjunction="">
+		<isNotEqual property="catalogs[].type" compareValue="residentPopulation" >
+			<isEqual property="catalogs[].type" compareValue="unsettledPopulation">
+				union all
+				select count(*) as count
+				from househasactualpopulation hp,$catalogs[].tableName$ p
+				where p.id=hp.populationid and hp.populationtype=#catalogs[].type# and hp.houseId=#houseId# and (p.logout=0 or p.logout is null)
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="householdStaff">
+				union all
+				select count(*) as count
+				from househasactualpopulation hp,$catalogs[].tableName$_$shardCode$ p
+				where p.id=hp.populationid and hp.populationtype=#catalogs[].type# and hp.houseId=#houseId# and (p.logout=0 or p.logout is null)
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="floatingPopulation">
+				union all
+				select count(*) as count
+				from househasactualpopulation hp,$catalogs[].tableName$ p
+				where p.id=hp.populationid and hp.populationtype=#catalogs[].type# and hp.houseId=#houseId# and (p.logout=0 or p.logout is null)
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="overseaStaff">
+				union all
+				select count(*) as count
+				from househasactualpopulation hp,$catalogs[].tableName$ p
+				where p.id=hp.populationid and hp.populationtype=#catalogs[].type# and hp.houseId=#houseId# and (p.logout=0 or p.logout is null)
+			</isEqual>
+		</isNotEqual>
+		</iterate>
+		)
+	</select>	
+
+	<!-- 现有租房信息 -->
+	<select id="findLivingHouseAllActualPopulationInfos" parameterClass="map" resultMap="housePopulationLivingInfoResultWithSid">
+	  <include refid="common.sql_page_start"/>
+		<iterate prepend=""  property="catalogs" conjunction=" union ">
+		<isNotEqual property="catalogs[].type" compareValue="residentPopulation" >
+			<isEqual property="catalogs[].type" compareValue="unsettledPopulation">
+				select hp.populationid as populationid,'$catalogs[].tableName$'||p.id sid, hp.populationtype as populationtype,p.idcardno as certificateNumber
+				,p.name as name,p.gender as gender,p.nation as nation, hp.houseId as houseId, p.currentaddress as currentaddress
+				,p.schooling as schooling,p.career as career,p.workunit as workunit,p.isdeath as isdeath
+				,0 as active, p.province||p.city||p.district as householdPlace,p.nativePlaceAddress as nativePlaceAddress
+				from househasactualpopulation hp,$catalogs[].tableName$ p
+				where p.id=hp.populationid and hp.populationtype=#catalogs[].type# and hp.houseId=#houseId# and (p.logout=0 or p.logout is null)
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="householdStaff">
+				select hp.populationid as populationid,'$catalogs[].tableName$'||p.id sid, hp.populationtype as populationtype,b.idcardno as certificateNumber
+				,b.name as name,b.gender as gender,b.nation as nation, hp.houseId as houseId, adds.currentaddress as currentaddress
+				,b.schooling as schooling,b.career as career,b.workunit as workunit,b.isdeath as isdeath
+				,0 as active, b.province||b.city||b.district as householdPlace,b.nativePlaceAddress as nativePlaceAddress
+				from househasactualpopulation hp,$catalogs[].tableName$_$shardCode$ p,baseinfo b,addressInfo adds 
+				where p.id=hp.populationid and hp.populationtype=#catalogs[].type# and hp.houseId=#houseId# and (p.logout=0 or p.logout is null)
+				and p.baseinfoid=b.id and p.addressInfoId = adds.id 
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="floatingPopulation">
+				select hp.populationid as populationid,'$catalogs[].tableName$'||p.id sid, hp.populationtype as populationtype,b.idcardno as certificateNumber
+				,b.name as name,b.gender as gender,b.nation as nation, hp.houseId as houseId, adds.currentaddress as currentaddress
+				,b.schooling as schooling,b.career as career,b.workunit as workunit,b.isdeath as isdeath
+				,0 as active, b.province||b.city||b.district as householdPlace,b.nativePlaceAddress as nativePlaceAddress
+				from househasactualpopulation hp,$catalogs[].tableName$ p,baseinfo b,addressInfo adds 
+				where p.id=hp.populationid and hp.populationtype=#catalogs[].type# and hp.houseId=#houseId# and (p.logout=0 or p.logout is null)
+				and p.baseinfoid=b.id and p.addressInfoId = adds.id 
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="overseaStaff">
+				select hp.populationid as populationid,'$catalogs[].tableName$'||p.id sid, hp.populationtype as populationtype,p.certificateno as certificateNumber
+				, p.englishname || NVL2(p.name,'('|| p.name ||')','') as name ,p.gender as gender,null as nations, hp.houseId as houseId, p.currentaddress as currentaddress
+				,null as schooling,null as career,p.workunit as workunit,0 as isdeath
+				,0 as active, '' as householdPlace,'' as nativePlaceAddress
+				from househasactualpopulation hp,$catalogs[].tableName$ p
+				where p.id=hp.populationid and hp.populationtype=#catalogs[].type# and hp.houseId=#houseId# and (p.logout=0 or p.logout is null)
+			</isEqual>
+		</isNotEqual>
+		</iterate>
+		 <include refid="common.sql_page_end"/>
+	</select>
+	
+	
+	<select id="countFindLivingHouseAllActualPopulationInfos" parameterClass="map" resultClass="int">
+		select count(*) from  (
+			<iterate prepend=""  property="catalogs" conjunction=" union ">
+			<isNotEqual property="catalogs[].type" compareValue="residentPopulation" >
+				<isEqual property="catalogs[].type" compareValue="unsettledPopulation">
+					select hp.populationid as populationid,'$catalogs[].tableName$'||p.id sid, hp.populationtype as populationtype,p.idcardno as certificateNumber
+					,p.name as name,p.gender as gender,p.nation as nation, hp.houseId as houseId, p.currentaddress as currentaddress
+					,p.schooling as schooling,p.career as career,p.workunit as workunit,p.isdeath as isdeath
+					,p.logout as active, p.province||p.city||p.district as householdPlace,p.nativePlaceAddress as nativePlaceAddress
+					from househasactualpopulation hp,$catalogs[].tableName$ p
+					where p.id=hp.populationid and hp.populationtype=#catalogs[].type# and hp.houseId=#houseId# and p.logout=0
+				</isEqual>
+				<isEqual property="catalogs[].type" compareValue="householdStaff">
+					select hp.populationid as populationid,'$catalogs[].tableName$'||p.id sid, hp.populationtype as populationtype,b.idcardno as certificateNumber
+					,b.name as name,b.gender as gender,b.nation as nation, hp.houseId as houseId, adds.currentaddress as currentaddress
+					,b.schooling as schooling,b.career as career,b.workunit as workunit,b.isdeath as isdeath
+					,p.logout as active, b.province||b.city||b.district as householdPlace,b.nativePlaceAddress as nativePlaceAddress
+					from househasactualpopulation hp,$catalogs[].tableName$_$shardCode$ p,baseinfo b,addressInfo adds 
+					where p.id=hp.populationid and hp.populationtype=#catalogs[].type# and hp.houseId=#houseId# and p.logout=0
+					and p.baseinfoid=b.id and p.addressInfoId = adds.id 
+				</isEqual>
+				<isEqual property="catalogs[].type" compareValue="floatingPopulation">
+					select hp.populationid as populationid,'$catalogs[].tableName$'||p.id sid, hp.populationtype as populationtype,b.idcardno as certificateNumber
+					,b.name as name,b.gender as gender,b.nation as nation, hp.houseId as houseId, adds.currentaddress as currentaddress
+					,b.schooling as schooling,b.career as career,b.workunit as workunit,b.isdeath as isdeath
+					,p.logout as active, b.province||b.city||b.district as householdPlace,b.nativePlaceAddress as nativePlaceAddress
+					from househasactualpopulation hp,$catalogs[].tableName$ p,baseinfo b,addressInfo adds 
+					where p.id=hp.populationid and hp.populationtype=#catalogs[].type# and hp.houseId=#houseId# and p.logout=0
+					and p.baseinfoid=b.id and p.addressInfoId = adds.id 
+				</isEqual>
+				<isEqual property="catalogs[].type" compareValue="overseaStaff">
+					select hp.populationid as populationid,'$catalogs[].tableName$'||p.id sid, hp.populationtype as populationtype,p.certificateno as certificateNumber
+					, p.englishname || NVL2(p.name,'('|| p.name ||')','') as name ,p.gender as gender,null as nations, hp.houseId as houseId, p.currentaddress as currentaddress
+					,null as schooling,null as career,p.workunit as workunit,0 as isdeath
+					,0 as active, '' as householdPlace,'' as nativePlaceAddress
+					from househasactualpopulation hp,$catalogs[].tableName$ p
+					where p.id=hp.populationid and hp.populationtype=#catalogs[].type# and hp.houseId=#houseId# and p.logout=0
+				</isEqual>
+			</isNotEqual>
+			</iterate>
+		)
+	</select>
+	
+
+	<select id="findLivingHouseActualPopulationInfos" parameterClass="map" resultMap="populationLivingTotalInfoResult">
+		select count(*) populationCount, '' populationType from houseHasActualPopulation
+		where personType=#personType# and populationType=#populationType# and houseId =#houseId#
+	</select>
+
+	<select id="countNotLivingActualPopulationsByNameAndIdcard" parameterClass="map" resultClass="int">
+		select sum(pcount) from (
+		<iterate prepend=""  property="catalogs" conjunction=" union all ">
+		  <isNull property="baseInfoIds">
+			<isEqual property="catalogs[].type" compareValue="unsettledPopulation">
+				select count(id) pcount from $catalogs[].tableName$
+				where orginternalcode like #orgCode#
+					and id not in (select populationid from houseHasActualPopulation where houseId = #houseId# and populationType = #catalogs[].type#)
+					<isNotEmpty property="certificationNo" prepend=" and ">
+						upper(idcardno) like upper(#certificationNo#)||'%'
+					</isNotEmpty>
+					<isNotEmpty property="name" prepend=" and ">
+						(name like #name# or simplepinyin like #name# or fullpinyin like #name#)
+					</isNotEmpty>
+					<isNotEmpty property="deadth" prepend=" and ">
+						isdeath = #deadth#
+					</isNotEmpty>
+					<isNotEmpty property="actived" prepend=" and ">
+						logout = #actived#
+					</isNotEmpty>
+					<isNotEmpty property="gender" prepend=" and ">
+						(gender = #gender#)
+					</isNotEmpty>
+			</isEqual>
+		  </isNull>
+		   <isNull property="baseInfoIds">
+			<isEqual property="catalogs[].type" compareValue="floatingPopulation">
+				select count(f.id) pcount from $catalogs[].tableName$ f left join baseinfo  b on f.baseinfoid=b.id 
+				where orginternalcode like #orgCode#
+					and f.id not in (select populationid from houseHasActualPopulation where houseId = #houseId# and populationType = #catalogs[].type#)
+					<isNotEmpty property="certificationNo" prepend=" and ">
+						upper(idcardno) like upper(#certificationNo#)||'%'
+					</isNotEmpty>
+					<isNotEmpty property="name" prepend=" and ">
+						(name like #name# or simplepinyin like #name# or fullpinyin like #name#)
+					</isNotEmpty>
+					<isNotEmpty property="deadth" prepend=" and ">
+						isdeath = #deadth#
+					</isNotEmpty>
+					<isNotEmpty property="actived" prepend=" and ">
+						logout = #actived#
+					</isNotEmpty>
+					<isNotEmpty property="gender" prepend=" and ">
+						(gender = #gender#)
+					</isNotEmpty>
+			</isEqual>
+		   </isNull>
+			<isEqual property="catalogs[].type" compareValue="householdStaff">
+				select count(f.id) pcount from $catalogs[].tableName$_$shardCode$ f left join baseinfo  b on f.baseinfoid=b.id 
+				where orginternalcode like #orgCode#
+					and f.id not in (select populationid from houseHasActualPopulation where houseId = #houseId# and populationType = #catalogs[].type#)
+					<isNotEmpty property="certificationNo" prepend=" and ">
+						upper(idcardno) like upper(#certificationNo#)||'%'
+					</isNotEmpty>
+					<isNotEmpty property="name" prepend=" and ">
+						(name like #name# or simplepinyin like #name# or fullpinyin like #name#)
+					</isNotEmpty>
+					<isNotNull property="baseInfoIds" prepend="and">
+						<iterate property="baseInfoIds" open="b.id in (" conjunction="," close=")">  
+                     		#baseInfoIds[]#  
+                   		</iterate>  
+					</isNotNull>
+					<isNotEmpty property="deadth" prepend=" and ">
+						isdeath = #deadth#
+					</isNotEmpty>
+					<isNotEmpty property="actived" prepend=" and ">
+						logout = #actived#
+					</isNotEmpty>
+					<isNotEmpty property="gender" prepend=" and ">
+						(gender = #gender#)
+					</isNotEmpty>
+			</isEqual>
+		<isNull property="baseInfoIds">
+			<isEqual property="catalogs[].type" compareValue="overseaStaff">
+				select count(id) as pcount from $catalogs[].tableName$
+				where orginternalcode like #orgCode#
+					and id not in (select populationid from houseHasActualPopulation where houseId = #houseId# and populationType = #catalogs[].type#)
+					<isNotEmpty property="actived" prepend=" and ">
+						certificateno like #certificationNo#||'%'
+					</isNotEmpty>
+					<isNotEmpty property="name" prepend=" and ">
+						(englishname like #name# or name like #name# or simplepinyin like #name# or fullpinyin like #name#)
+					</isNotEmpty>
+					<isNotEmpty property="actived" prepend=" and ">
+						logout = #actived#
+					</isNotEmpty>
+					<isNotEmpty property="gender" prepend=" and ">
+						(gender = #gender#)
+					</isNotEmpty>
+			</isEqual>
+		</isNull>
+		</iterate>
+		)
+	</select>
+
+	<select id="countActualPopulationByHouseId" parameterClass="map" resultClass="int">
+		select count(*) from (
+		<iterate prepend=""  property="catalogs" conjunction=" union ">
+			<isEqual property="catalogs[].type" compareValue="unsettledPopulation">
+				select p.idcardno as certificateNumber from $catalogs[].tableName$ p, househasactualpopulation h
+				where h.populationId=p.id and h.populationType=#catalogs[].type# and h.houseId=#houseId#
+					and p.isdeath=0 and p.logout=0
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="householdStaff">
+				select b.idcardno as certificateNumber from $catalogs[].tableName$_$shardCode$ p, househasactualpopulation h,baseinfo b
+				where h.populationId=p.id and h.populationType=#catalogs[].type# and h.houseId=#houseId#
+					and b.isdeath=0 and p.logout=0 and p.baseinfoid=b.id
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="floatingPopulation">
+				select b.idcardno as certificateNumber from $catalogs[].tableName$ p, househasactualpopulation h,baseinfo b
+				where h.populationId=p.id and h.populationType=#catalogs[].type# and h.houseId=#houseId#
+					and b.isdeath=0 and p.logout=0 and p.baseinfoid=b.id
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="overseaStaff">
+				select p.certificateno  as certificateNumber from $catalogs[].tableName$ p, househasactualpopulation h
+				where h.populationId=p.id and h.populationType=#catalogs[].type# and h.houseId=#houseId#
+				<isNotEmpty property="p.logout" prepend=" and ">
+						p.logout = 0
+				</isNotEmpty>
+			</isEqual>
+		</iterate>
+		)
+	</select>
+
+	<!-- 可选住房信息 -->
+	<select id="findNotLivingActualPopulationsByNameAndIdcard" parameterClass="map" resultMap="housePopulationLivingInfoResult">
+		<iterate prepend=""  property="catalogs" conjunction=" union ">
+		  <isNull property="baseInfoIds">
+			<isEqual property="catalogs[].type" compareValue="unsettledPopulation">
+				select id as populationid, '$catalogs[].type$' as populationtype, idCardNo as certificateNumber,name as name,
+					gender as gender,null as nation, null as schooling, '' as householdPlace, null as career, workunit as workunit,
+					0 as isdeath, 0 as active from $catalogs[].tableName$
+				where orginternalcode like #orgCode#
+					and id not in (select populationid from houseHasActualPopulation where houseId = #houseId# and populationType = #catalogs[].type#)
+					<isNotEmpty property="certificationNo" prepend=" and ">
+						upper(idcardno) like upper(#certificationNo#)||'%'
+					</isNotEmpty>
+					<isNotEmpty property="name" prepend=" and ">
+						(name like #name# or simplepinyin like #name# or fullpinyin like #name#)
+					</isNotEmpty>
+					<isNotEmpty property="deadth" prepend=" and ">
+						isdeath = #deadth#
+					</isNotEmpty>
+					<isNotEmpty property="actived" prepend=" and ">
+						logout = #actived#
+					</isNotEmpty>
+					<isNotEmpty property="gender" prepend=" and ">
+						(gender = #gender#)
+					</isNotEmpty>
+			</isEqual>
+		 </isNull>
+		 <isNull property="baseInfoIds">
+			<isEqual property="catalogs[].type" compareValue="floatingPopulation">
+				select f.id as populationid, '$catalogs[].type$' as populationtype, idCardNo as certificateNumber,name as name,
+					gender as gender,null as nation, null as schooling, '' as householdPlace, null as career, workunit as workunit,
+					0 as isdeath, 0 as active from $catalogs[].tableName$ f left join baseinfo  b on f.baseinfoid=b.id 
+				where orginternalcode like #orgCode#
+					and f.id not in (select populationid from houseHasActualPopulation where houseId = #houseId# and populationType = #catalogs[].type#)
+					<isNotEmpty property="certificationNo" prepend=" and ">
+						upper(idcardno) like upper(#certificationNo#)||'%'
+					</isNotEmpty>
+					<isNotEmpty property="name" prepend=" and ">
+						(name like #name# or simplepinyin like #name# or fullpinyin like #name#)
+					</isNotEmpty>
+					<isNotEmpty property="deadth" prepend=" and ">
+						isdeath = #deadth#
+					</isNotEmpty>
+					<isNotEmpty property="actived" prepend=" and ">
+						logout = #actived#
+					</isNotEmpty>
+					<isNotEmpty property="gender" prepend=" and ">
+						(gender = #gender#)
+					</isNotEmpty>
+			</isEqual>
+		  </isNull>
+			<isEqual property="catalogs[].type" compareValue="householdStaff">
+				select f.id as populationid, '$catalogs[].type$' as populationtype, idCardNo as certificateNumber,name as name,
+					gender as gender,null as nation, null as schooling, '' as householdPlace, null as career, workunit as workunit,
+					0 as isdeath, 0 as active from $catalogs[].tableName$_$shardCode$ f left join baseinfo  b on f.baseinfoid=b.id 
+				where orginternalcode like #orgCode#
+					and f.id not in (select populationid from houseHasActualPopulation where houseId = #houseId# and populationType = #catalogs[].type#)
+					<isNotEmpty property="certificationNo" prepend=" and ">
+						upper(idcardno) like upper(#certificationNo#)||'%'
+					</isNotEmpty>
+					<isNotEmpty property="name" prepend=" and ">
+						(name like #name# or simplepinyin like #name# or fullpinyin like #name#)
+					</isNotEmpty>
+					<isNotEmpty property="deadth" prepend=" and ">
+						isdeath = #deadth#
+					</isNotEmpty>
+					<isNotNull property="baseInfoIds" prepend="and">
+						<iterate property="baseInfoIds" open="b.id in (" conjunction="," close=")">  
+                     		#baseInfoIds[]#  
+                   		</iterate>  
+					</isNotNull>
+					<isNotEmpty property="actived" prepend=" and ">
+						logout = #actived#
+					</isNotEmpty>
+					<isNotEmpty property="gender" prepend=" and ">
+						(gender = #gender#)
+					</isNotEmpty>
+			</isEqual>
+		  <isNull property="baseInfoIds">
+			<isEqual property="catalogs[].type" compareValue="overseaStaff">
+				select id as populationid, '$catalogs[].type$' as populationtype, certificateno as certificateNumber,name as name,
+					gender as gender,null as nation, null as schooling, '' as householdPlace, null as career, workunit as workunit,
+					0 as isdeath, 0 as active from $catalogs[].tableName$
+				where orginternalcode like #orgCode#
+					and id not in (select populationid from houseHasActualPopulation where houseId = #houseId# and populationType = #catalogs[].type#)
+					<isNotEmpty property="certificationNo" prepend=" and ">
+						certificateno like #certificationNo#||'%'
+					</isNotEmpty>
+					<isNotEmpty property="name" prepend=" and ">
+						(name like #name# or simplepinyin like #name# or fullpinyin like #name# or englishname like #name#)
+					</isNotEmpty>
+					<isNotEmpty property="actived" prepend=" and ">
+						logout = #actived#
+					</isNotEmpty>
+					<isNotEmpty property="gender" prepend=" and ">
+						(gender = #gender#)
+					</isNotEmpty>
+			</isEqual>
+		  </isNull>
+		</iterate>
+	</select>
+
+	<!--Gis入口中 根据条件查询	-->
+	<select id="findGisPopulationsByNameAndOrgCode" parameterClass="map" resultMap="findActulaPopulationInHouseByHouseIdForGis">
+		<iterate prepend=""  property="catalogs" conjunction="union">
+			<isNotEqual property="catalogs[].type" compareValue="overseaStaff">
+				select p.id as populationid,#catalogs[].type# as populationtype,  p.idcardno as certificateNumber, p.noHouseReason as noHouseReason
+				,0 as certificateType
+				,p.name as name,p.gender as gender,p.isdeath as isdeath,p.logout as active,p.currentaddress as currentaddress,p.isHaveHouse as isHaveHouse
+				from $catalogs[].tableName$ p
+				where orginternalcode like #orgCode#||'%' and p.isdeath=0 and p.logout = 0
+					and (name like '$queryStr$%' or simplepinyin like '$queryStr$%' or fullpinyin like '$queryStr$%' or currentAddress like '%$queryStr$%'  or upper(idcardno) like  upper($queryStr$)||'%')
+			</isNotEqual>
+			<isEqual property="catalogs[].type" compareValue="overseaStaff">
+				select p.id as populationid, #catalogs[].type# as populationtype, p.certificateno as certificateNumber, p.noHouseReason as noHouseReason
+				,p.certificateType as certificateType
+				,p.englishName as name,p.gender as gender,0 as isdeath, p.logout as active,p.currentaddress as currentaddress,p.isHaveHouse as isHaveHouse
+				from $catalogs[].tableName$ p
+				where orginternalcode like #orgCode#||'%' and p.logout = 0
+					and (p.englishName like '$queryStr$%' or p.simplepinyin like '$queryStr$%' or p.fullpinyin like '$queryStr$%' or p.currentAddress like '%$queryStr$%' or p.certificateno like  '$queryStr$%')
+
+			</isEqual>
+		</iterate>
+	</select>
+
+		<select id="countGisPopulationsByNameAndOrgCode" parameterClass="map" resultClass="int">
+		select count(*) from (
+		<iterate prepend=""  property="catalogs" conjunction=" union ">
+			<isNotEqual property="catalogs[].type" compareValue="overseaStaff">
+				select p.idcardno as certificateNumber from $catalogs[].tableName$ p where orginternalcode like #orgCode#||'%'
+					and (name like '$queryStr$%' or simplepinyin like '$queryStr$%' or fullpinyin like '$queryStr$%' or currentAddress like '%$queryStr$%' or upper(idcardno) like  upper($queryStr$)||'%')
+					and p.isdeath = 0 and p.logout = 0
+
+			</isNotEqual>
+			<isEqual property="catalogs[].type" compareValue="overseaStaff">
+				select p.certificateno as certificateNumber from $catalogs[].tableName$ p
+				where orginternalcode like #orgCode#||'%'
+				and (p.englishName like '$queryStr$%' or simplepinyin like '$queryStr$%' or fullpinyin like '$queryStr$%' or currentAddress like '%$queryStr$%' or certificateno like  '$queryStr$%')
+				and p.logout = 0
+			</isEqual>
+		</iterate>
+		)
+	</select>
+
+	<!--gis 人口搜索 String类型	-->
+	<select id="findGisFurtherStepSearchByQueryStrAndOrgCodeAndPersonType" parameterClass="map" resultMap="gisFurtureStepQueryResult">
+		<iterate prepend="" property="catalogs" conjunction="union">
+			<isNotEqual property="catalogs[].type" compareValue="overseaStaff">
+			select ps.populationtype as persontype,  p.id as populationid,  #catalogs[].type# as populationtype,  p.idcardno  as certificateNumber,  p.name as name,  p.gender as gender,
+       			p.isdeath as isdeath, p.logout as active,  p.currentaddress as currentaddress,  p.noHouseReason as noHouseReason, p.isHaveHouse as isHaveHouse
+  			from  $catalogs[].tableName$ p,  populationtypes  ps
+ 				where  ps.actualid = p.id and p.isdeath = 0  and p.logout = 0  and ps.actualtype = #catalogs[].type#  and orginternalcode like #orgInternalCode#||'%'
+   			and (name like '$queryStr$%' or simplepinyin like '$queryStr$%' or  fullpinyin like '$queryStr$%' or currentAddress like '$queryStr$%' or upper(idcardno) like upper(#queryStr#)||'%')
+			<isNotEmpty  prepend="and" property="populationtypes">
+				ps.populationtype = #populationtypes#
+			</isNotEmpty>
+			</isNotEqual>
+			<isEqual property="catalogs[].type" compareValue="overseaStaff">
+			select ps.populationtype as persontype, p.id as populationid, #catalogs[].type# as populationtype, p.certificateno as certificateNumber,
+       			p.name as name,  p.gender as gender, 0 as isdeath, 0  as active,  p.currentaddress  as currentaddress,  p.noHouseReason as noHouseReason,  p.isHaveHouse as isHaveHouse
+  			from   $catalogs[].tableName$ p, populationtypes  ps
+ 				where   ps.actualid = p.id and ps.actualtype = #catalogs[].type#  and orginternalcode like #orgInternalCode#||'%'
+  			 and (name like '$queryStr$%' or simplepinyin like '$queryStr$%' or  fullpinyin like '$queryStr$%' or currentAddress like '$queryStr$%' or certificateno like '$queryStr$%')
+				<isNotEmpty  prepend="and" property="populationtypes">
+					ps.populationtype = #populationtypes#
+				</isNotEmpty>
+			</isEqual>
+		</iterate>
+	</select>
+
+	<select id="countGisFurtherStepSearchByQueryStrAndOrgCodeAndPersonType" parameterClass="map" resultClass="int">
+		select count(*) from (
+		<iterate prepend=""  property="catalogs" conjunction=" union ">
+			<isNotEqual property="catalogs[].type" compareValue="overseaStaff">
+					select p.idcardno  as certificateNumber  from  $catalogs[].tableName$ p,populationtypes ps where ps.actualid=p.id and  ps.actualtype=#catalogs[].type#
+      			 and  p.orginternalcode like #orgInternalCode#||'%' and ps.populationtype = #populationtypes#
+					and  isdeath=0 and logout=0 and (name like '$queryStr$%' or simplepinyin like '$queryStr$%' or fullpinyin like '$queryStr$%' or currentAddress like '%$queryStr$%' or upper(idcardno) like upper($queryStr$)||'%')
+			</isNotEqual>
+			<isEqual property="catalogs[].type" compareValue="overseaStaff">
+					select p.certificateno  as certificateNumber  from  $catalogs[].tableName$ p,populationtypes ps where ps.actualid=p.id and  ps.actualtype=#catalogs[].type#
+      			 and logout=0 and  p.orginternalcode like #orgInternalCode#||'%' and ps.populationtype = #populationtypes#
+					and (name like '$queryStr$%' or simplepinyin like '$queryStr$%' or fullpinyin like '$queryStr$%' or currentAddress like '%$queryStr$%' or certificateno like  '$queryStr$%')
+			</isEqual>
+		</iterate>
+		)
+	</select>
+
+<!--gis 人口二次搜索 List类型	-->
+	<select id="findGisFurtherStepSearchByQueryStrAndOrgCodeAndPersonTypeList" parameterClass="map" resultMap="gisFurtureStepQueryResult">
+		<iterate prepend="" property="catalogs" conjunction="union">
+			select ps.populationtype as persontype, p.id as populationid, #catalogs[].type# as populationtype,  p.idcardno as certificateNumber,
+       				p.name  as name,  p.gender as gender, p.isdeath as isdeath,  p.logout as active,   p.currentaddress  as currentaddress,
+       				p.isHaveHouse  as isHaveHouse, p.noHouseReason as noHouseReason
+ 				 from $catalogs[].tableName$   p,  populationtypes  ps
+ 				where ps.actualid = p.id and p.isdeath = 0 and p.logout = 0 and ps.actualtype = #catalogs[].type#  and orginternalcode like #orgInternalCode#||'%'
+   					and (name like '$queryStr$%' or simplepinyin like '$queryStr$%' or  fullpinyin like '$queryStr$%' or currentAddress like '%$queryStr$%' or
+      			 upper(idcardno) like upper(#queryStr#)||'%') and
+      			 ps.populationtype in 
+      			  <iterate open=" ( " close=" ) " property="populationtypes" conjunction=" , ">
+					#populationtypes[]#
+				 </iterate>	
+		</iterate>
+	</select>
+	<select id="countGisFurtherStepSearchByQueryStrAndOrgCodeAndPersonTypes" parameterClass="map"  resultClass="int">
+		select count(*) from(
+			<iterate prepend="" property="catalogs" conjunction="union">
+			select ps.populationtype as persontype, p.id as populationid, #catalogs[].type# as populationtype,  p.idcardno as certificateNumber,
+       				p.name  as name,  p.gender as gender, p.isdeath as isdeath,  p.logout as active,   p.currentaddress  as currentaddress,
+       				p.isHaveHouse  as isHaveHouse, p.noHouseReason as noHouseReason
+ 				 from $catalogs[].tableName$   p,  populationtypes  ps
+ 				where ps.actualid = p.id and p.isdeath = 0 and p.logout = 0 and ps.actualtype = #catalogs[].type#  and orginternalcode like #orgInternalCode#||'%'
+   					and (name like '$queryStr$%' or simplepinyin like '$queryStr$%' or  fullpinyin like '$queryStr$%' or currentAddress like '%$queryStr$%' or
+      			 upper(idcardno) like upper(#queryStr#)||'%') and
+      			 ps.populationtype in 
+      			  <iterate open=" ( " close=" ) " property="populationtypes" conjunction=" , ">
+					#populationtypes[]#
+				 </iterate>	
+		</iterate>
+		)
+	</select>
+	
+	
+	
+
+	<select id="countGisFurtherStepSearchByQueryStrAndOrgCodeAndPersonTypeList" parameterClass="map" resultClass="int">
+		select count(*) from (
+			<isNotEqual property="catalogs.type" compareValue="overseaStaff">
+					select p.idcardno  as certificateNumber  from  $catalogs.tableName$ p,populationtypes ps where ps.actualid=p.id and  ps.actualtype=#catalogs.type#
+      			 and  p.orginternalcode like #orgInternalCode#||'%' and isdeath=0 and logout=0
+					and (name like '$queryStr$%' or simplepinyin like '$queryStr$%' or fullpinyin like '$queryStr$%' or currentAddress like '$queryStr$%' or upper(idcardno) like upper(#queryStr#)||'%')
+				<iterate prepend="and"  property="populationtypes" open="(" close=")" conjunction="OR">
+					ps.populationtype =#populationtypes[]#
+				</iterate>
+
+			</isNotEqual>
+			<isEqual property="catalogs.type" compareValue="overseaStaff">
+					select p.certificateno  as certificateNumber  from  $catalogs.tableName$ p,populationtypes ps where ps.actualid=p.id and  ps.actualtype=#catalogs.type#
+      			 and  p.orginternalcode like #orgInternalCode#||'%'
+					and (name like '$queryStr$%' or simplepinyin like '$queryStr$%' or fullpinyin like '$queryStr$%' or currentAddress like '$queryStr$%' or certificateno like  '$queryStr$%')
+				<iterate prepend="and"  property="populationtypes" open="(" close=")" conjunction="OR">
+					ps.populationtype = #populationtypes[]#
+				</iterate>
+			</isEqual>
+		)
+	</select>
+	
+	<select id="findGisActualPersonTotalInfosByOrgId" parameterClass="map" resultMap="populationLivingTotalInfoResult">
+		<iterate prepend="" property="catalogs" conjunction=" union ">
+				 select count(*) populationCount, #catalogs[].type# as populationType  from $catalogs[].tableName$
+				  where  orginternalcode like #orgInternalCode#||'%'
+		</iterate>
+	</select>
+	
+	<select id="countGisAttenPopulationByOrgIdAndKinds" parameterClass="map" resultClass="int">
+		select count(*) from 
+			(select distinct bt.actualid, bt.actualtype from 	
+			(select pt.actualid, pt.actualtype, pt.populationtype from populationtypes pt,
+		<iterate open=" ( " close=" ) " property="catalogs" conjunction=" union ">
+			select id , #catalogs[].type# as populationType
+			  from $catalogs[].tableName$
+			 where orginternalcode like #orgInternalCode#||'%'
+		</iterate>
+			 ap
+			 where pt.actualid = ap.id and pt.actualtype = ap.populationtype 
+			   and pt.populationtype in 
+		<iterate open=" ( " close=" ) " property="kinds" conjunction=" , ">
+				#kinds[]#
+		</iterate>		
+					) bt)  ct
+	</select>
+	
+	<select id="countGisAttentionPopulationByOrgIdAndKinds" parameterClass="map" resultClass="int">
+		select count(*) from (
+			<iterate prepend="" property="catalogs" conjunction=" union ">
+					select ps.populationtype, ps.id , ps.actualtype, ps.actualid  from populationtypes ps, $catalogs[].tableName$ hs where ps.actualid = hs.id  and ps.actualtype =#catalogs[].type#
+	  			and hs.orginternalcode like  #orgInternalCode#||'%' and ps.populationtype in 
+	  			<iterate open=" ( " close=" ) " property="kinds" conjunction=" , ">
+					#kinds[]#
+				</iterate>		
+			</iterate>
+		)
+	</select>
+
+	<select id="findGisActualPersonTotalInfosByParentOrgId" parameterClass="map" resultMap="populationLivingTotalInfoResult0">
+		<iterate prepend="" property="catalogs" conjunction=" union ">
+				 select count(*) populationCount, #catalogs[].orgCode# as orgCode,#catalogs[].orgName# as orgName  from $tableName$
+				  where  orginternalcode like '$catalogs[].orgInternalCode$%'
+		</iterate>
+	</select>
+
+	<select id="countGissearchActulaPersonByNameAndOrgCode" parameterClass="map" resultClass="int">
+	select count(*) from 
+		<iterate open=" ( " close=" ) "  property="catalogs" conjunction=" union ">
+			select p.id, #catalogs[].type# as populationType from $catalogs[].tableName$ p
+			 where orginternalcode like #orgCode#||'%'
+		</iterate>
+	</select>
+	<select id="findGissearchActulaPersonByNameAndOrgCode" parameterClass="map" resultMap="housePopulationLivingInfoForGisResult">
+		<iterate prepend="" property="catalogs" conjunction="union">
+		select p.id as populationid, #catalogs[].type# as populationtype from $catalogs[].tableName$ p
+		 where orginternalcode like #orgCode#||'%'
+		</iterate>
+	</select>
+
+	<select id="findGisActulaPopulationInHouseByHouseId" parameterClass="map" resultMap="findActulaPopulationInHouseByHouseIdForGis">
+		<iterate prepend=""  property="catalogs" conjunction=" union ">
+			<isNotEqual property="catalogs[].type" compareValue="overseaStaff">
+				select hp.populationid as populationid, hp.populationtype as populationtype,p.idcardno as certificateNumber
+				,0 as certificateType, noHouseReason as noHouseReason, isHaveHouse as isHaveHouse
+				,p.name as name,p.gender as gender,p.nation as nation, hp.houseId as houseId, p.currentaddress as currentaddress
+				,p.schooling as schooling,p.career as career,p.workunit as workunit,p.isdeath as isdeath
+				,p.logout as active, p.province||p.city||p.district as householdPlace
+				from househasactualpopulation hp,$catalogs[].tableName$ p
+				where p.id=hp.populationid and hp.populationtype=#catalogs[].type# and p.isdeath=0 and p.logout = 0 and hp.houseId=#houseId#
+			</isNotEqual>
+			<isEqual property="catalogs[].type" compareValue="overseaStaff">
+				select hp.populationid as populationid, hp.populationtype as populationtype,p.certificateno as certificateNumber
+				,p.certificateType as certificateType ,noHouseReason as noHouseReason, isHaveHouse as isHaveHouse
+				,p.englishName as name,p.gender as gender,null as nations, hp.houseId as houseId, p.currentaddress as currentaddress
+				,null as schooling,null as career,p.workunit as workunit,0 as isdeath
+				,0 as active, '' as householdPlace
+				from househasactualpopulation hp,$catalogs[].tableName$ p
+				where p.id=hp.populationid and hp.populationtype=#catalogs[].type# and hp.houseId=#houseId#
+			</isEqual>
+		</iterate>
+	</select>
+
+
+	<sql id="selectActualInHouse">
+		left join househasactualpopulation has on act.id = has.populationid where
+		has.houseid = #houseId# and (act.logout is null or act.logout = 0)
+	</sql>
+	<select id="getMapForActualPopulation" parameterClass="map" resultMap="map_ct_populationType">
+		select count(id) ct,'householdStaff' populationtype from  householdstaffs_$shardCode$ act
+		<include refid="selectActualInHouse"/>
+		and has.populationtype = 'householdStaff'
+		union
+		select count(id) ct,'floatingPopulation' populationtype from  floatingPopulations act
+		<include refid="selectActualInHouse"/>
+		and has.populationtype = 'floatingPopulation'
+		union
+		select count(id) ct,'unsettledPopulation' populationtype from  unsettledPopulations act 
+		<include refid="selectActualInHouse"/>
+		and has.populationtype = 'unsettledPopulation'
+		union
+		select count(id) ct,'overseaStaff' populationtype from  overseapersonnel act 
+		<include refid="selectActualInHouse"/>
+		and has.populationtype = 'overseaStaff'
+	</select>
+	
+	<select id="getMapForSpecialPopulation" parameterClass="long" resultMap="map_ct_populationType">
+		select count(pt.populationtype) ct, pt.populationtype from populationtypes pt, househasactualpopulation hap 
+		 where pt.actualtype = hap.populationtype
+		   and pt.actualid = hap.populationid
+		   and hap.houseid = #houseId#
+		 group by pt.populationtype
+	</select>
+	
+	
+	<select id="findGisAttenPopulationsByOrgIdAndKindsAndQueryStr" parameterClass="map"  resultMap="housePopulationLivingInfoForGisResult">
+		select distinct bt.actualid as as populationid, bt.actualtype as populationtype from 	
+			(select pt.actualid, pt.actualtype, pt.populationtype from populationtypes pt,
+		<iterate open=" ( " close=" ) " property="catalogs" conjunction=" union ">
+			<![CDATA[ 	
+			select id , #catalogs[].type# as populationType
+			  from $catalogs[].tableName$
+			 where orginternalcode like #orgInternalCode#||'%' ]]> 
+			 <isNotEmpty  prepend="and" property="queryStr"> 
+             <isNotEqual property="catalogs[].type" compareValue="overseaStaff">
+             <![CDATA[ 	( name like #queryStr#||'%' or simplepinyin like #queryStr#||'%' or fullpinyin like #queryStr#||'%' or currentAddress like #queryStr#||'%' or upper(idcardno) like upper(#queryStr#)||'%')  ]]> 
+             </isNotEqual>
+             <isEqual property="catalogs[].type" compareValue="overseaStaff">
+             <![CDATA[ ( name like #queryStr#||'%' or simplepinyin like #queryStr#||'%' or fullpinyin like #queryStr#||'%' or currentAddress like #queryStr#||'%' or upper(certificateno) like upper(#queryStr#)||'%') ]]> 
+             </isEqual>	
+             </isNotEmpty> 
+		</iterate>
+			 ap
+			 where pt.actualid = ap.id and pt.actualtype = ap.populationtype 
+			   and pt.populationtype in 
+		<iterate open=" ( " close=" ) " property="kinds" conjunction=" , ">
+			<![CDATA[ 	#kinds[]# ]]> 
+		</iterate>		
+			) bt
+	</select>
+	
+	<select id="findHousePopulationInfoByPopulationTypeForGis" parameterClass="map" resultMap="housePopulationResult">
+		<isEqual property="searchType" compareValue="searchImportPopulation">
+			select * from houseHasImportantPopulation i inner join HOUSEINFO h on i.Houseid=h.id
+			where populationType=#populationType# and h.centerx is not null
+		</isEqual>
+		<isEqual property="searchType" compareValue="searchActualPopulation">
+			select * from HOUSEHASACTUALPOPULATION i inner join HOUSEINFO h on i.Houseid=h.id
+			where populationType=#populationType# and h.centerx is not null
+		</isEqual>
+	</select>
+	
+</sqlMap>

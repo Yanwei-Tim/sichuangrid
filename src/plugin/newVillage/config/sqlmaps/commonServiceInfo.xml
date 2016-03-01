@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="commonServiceInfo">
+	<typeAlias alias="CommonServiceInfo" type="com.tianque.newVillage.domain.CommonServiceInfo" />
+
+	<resultMap id="commonServiceInfoResult" class="CommonServiceInfo" >
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgInternalCode" />
+		<result property="newVillageBasic.id" column="basicInfoID" />
+		
+		<result property="villageSchool" column="villageSchool" />
+		<result property="kindergarten" column="kindergarten" />
+		<result property="highSchool" column="highSchool" />
+		<result property="clinic" column="clinic" />
+		
+		<result property="insuredNumber" column="insuredNumber" />
+		
+		<result property="socialWorkCenter" column="socialWorkCenter" />
+		<result property="library" column="library" />
+		<result property="fitnessSquare" column="fitnessSquare" />
+		<result property="fitnessEquipment" column="fitnessEquipment" />
+		<result property="entertainmentRoom" column="entertainmentRoom" />
+		<result property="farmerSupermarket" column="farmerSupermarket" />
+		
+		<result property="compulsoryEducationCount" column="compulsoryEducationCount" />
+		<result property="inCompulsoryEducationCount" column="inCompulsoryEducationCount" />
+		<result property="hasBuyInsurance" column="hasBuyInsurance" />
+		<result property="socialWorkCenterArea" column="socialWorkCenterArea" />
+		<result property="recreationalActivities" column="recreationalActivities" />
+		<result property="recreationalActivitiesPeople" column="recreationalActivitiesPeople" />
+		
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+	</resultMap>
+
+	<insert id="addCommonServiceInfo" parameterClass="CommonServiceInfo">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_COMMONSERVICEINFO.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		INSERT INTO COMMONSERVICEINFO (ID, ORGID, ORGINTERNALCODE, BASICINFOID,villageSchool,kindergarten,highSchool,clinic,socialWorkCenter,
+		compulsoryEducationCount,inCompulsoryEducationCount,hasBuyInsurance,socialWorkCenterArea,recreationalActivities,recreationalActivitiesPeople,
+		library,fitnessSquare,fitnessEquipment,entertainmentRoom,farmerSupermarket,insuredNumber,createDate,createUser)VALUES(
+		#id#,#organization.id#,#organization.orgInternalCode#,#newVillageBasic.id#,#villageSchool#,#kindergarten#,#highSchool#,#clinic#,#socialWorkCenter#,
+		#compulsoryEducationCount#,#inCompulsoryEducationCount#,#hasBuyInsurance#,#socialWorkCenterArea#,#recreationalActivities#,#recreationalActivitiesPeople#,
+		#library#,#fitnessSquare#,#fitnessEquipment#,#entertainmentRoom#,#farmerSupermarket#,#insuredNumber#,#createDate#,#createUser#)	
+	</insert>
+	<update id="updateCommonServiceInfo" parameterClass="CommonServiceInfo">
+		UPDATE COMMONSERVICEINFO SET UPDATEDATE = #updateDate#
+		<isNotNull prepend="," property="updateUser">
+			updateUser = #updateUser#,
+		</isNotNull>
+			villageSchool=#villageSchool#,
+			kindergarten=#kindergarten#,
+			highSchool=#highSchool#,
+			clinic=#clinic#,
+			socialWorkCenter=#socialWorkCenter#,
+			library=#library#,
+			fitnessSquare=#fitnessSquare#,
+			fitnessEquipment=#fitnessEquipment#,
+			entertainmentRoom=#entertainmentRoom#,
+			farmerSupermarket=#farmerSupermarket#,
+			insuredNumber=#insuredNumber#,
+			compulsoryEducationCount=#compulsoryEducationCount#,
+			inCompulsoryEducationCount=#inCompulsoryEducationCount#,
+			hasBuyInsurance=#hasBuyInsurance#,
+			socialWorkCenterArea=#socialWorkCenterArea#,
+			recreationalActivities=#recreationalActivities#,
+			recreationalActivitiesPeople=#recreationalActivitiesPeople#
+		WHERE ID=#id#
+	</update>
+	
+	<delete id="deleteCommonServiceInfo">
+		delete from  COMMONSERVICEINFO where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	<select id="getCommonServiceInfo" parameterClass="java.lang.Long" resultMap="commonServiceInfoResult">
+		<![CDATA[SELECT * FROM COMMONSERVICEINFO WHERE ID = #value#]]>
+	</select>
+	
+	<select id="getCommonServiceInfoByBasicId" parameterClass="java.util.Map" resultMap="commonServiceInfoResult">
+		select * from COMMONSERVICEINFO where BASICINFOID=#basicId#
+	</select>
+		
+</sqlMap>

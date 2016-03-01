@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="dataManage">
+	<resultMap class="com.tianque.plugin.dataManage.base.vo.ClaimDetail" id="dataManageResultMap">
+		<result property="claimState" column="claimState" />
+		<result property="claimDate" column="claimDate" />
+		<result property="claimUserName" column="claimUserName" />
+		<result property="claimUser.id" column="claimUserId" />
+		<result property="claimOrg.id" column="claimOrgId" />
+		<result property="importDepartment.id" column="importDepartmentId" />
+		<result property="importOrganization.id" column="oldOrgId" />
+		<result property="inId" column="inId" />
+		<result property="dispose" column="dispose" />
+		<result property="claimAvailable" column="claimAvailable" />
+		<result property="importDate" column="importDate" />
+		<result property="districtOrgId" column="districtOrgId" />
+	</resultMap>
+	<sql id="searchVoDataManage">
+		<dynamic>
+		
+			<isPropertyAvailable property="mode" >
+				<isEqual property="mode" compareValue="claimList">
+					<isNotEmpty property="targetOrg" prepend="and">
+						(orgInternalCode like #targetOrg.orgInternalCode#||'%' or 
+						#targetOrg.orgInternalCode# like orgInternalCode||'%')
+					</isNotEmpty>
+					<isNotEmpty property="dispose" prepend="and">
+						dispose = #dispose#
+					</isNotEmpty>
+					<isNotEmpty property="claimAvailable" prepend="and">
+						claimavailable = #claimAvailable#
+					</isNotEmpty>
+					
+				</isEqual>
+				<isEqual property="mode" compareValue="importList">
+					<isPropertyAvailable property="importDepartment" prepend="and">
+						<isNotEmpty property="importDepartment">
+							importdepartmentid = #importDepartment.id#
+						</isNotEmpty>
+					</isPropertyAvailable>
+				</isEqual>
+			</isPropertyAvailable>
+			
+			<isNotEmpty property="orgId" prepend="and">
+				<isEqual property="bigType" compareValue="builddatas">
+					organization=#orgId#
+				</isEqual>
+				<isNotEqual property="bigType" compareValue="builddatas">
+					orgId=#orgId#
+				</isNotEqual>
+			</isNotEmpty>
+		
+			<isNotEmpty property="searchArgs" prepend=" and ">
+				<isEqual property="bigType" compareValue="population" >
+					(name like '%'||#searchArgs#||'%' or idCardNo like '%'||#searchArgs#||'%')
+				</isEqual>
+				<isEqual property="bigType" compareValue="house">
+					address like '%'||#searchArgs#||'%'
+				</isEqual>
+				<isEqual property="bigType" compareValue="location">
+					(name like '%'||#searchArgs#||'%' or address like '%'||#searchArgs#||'%')
+				</isEqual>
+				<isEqual property="bigType" compareValue="dustbin">
+					(dustbinCode like '%'||#searchArgs#||'%')
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="dataState" prepend="and">
+				claimState 
+				<isEqual property="dataState" compareValue="0">
+					<![CDATA[<]]> 10
+				</isEqual>
+				<isEqual property="dataState" compareValue="10">
+					<![CDATA[>]]>= 10
+				</isEqual>
+				<isEqual  property="dataState" compareValue="-1">
+					<![CDATA[>]]>-1
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="dateType" prepend="and">
+				<isEqual property="dateType" compareValue="import">
+					<isNotEmpty property="beginDate">
+						<![CDATA[importDate >= #beginDate#]]> 
+					</isNotEmpty>
+					<isNotEmpty property="endDate">
+						<isNotEmpty property="beginDate">
+							and
+						</isNotEmpty>
+						<![CDATA[importDate <= #endDate#]]>
+					</isNotEmpty>
+				</isEqual>
+				<isEqual property="dateType" compareValue="claim">
+					<isNotEmpty property="beginDate">
+						<![CDATA[claimDate >= #beginDate#]]>
+					</isNotEmpty>
+					<isNotEmpty property="endDate">
+						<isNotEmpty property="beginDate">
+							and
+						</isNotEmpty>
+						<![CDATA[claimDate <= #endDate#]]>
+					</isNotEmpty>
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="name" prepend="and">
+					name like '%'||#name#||'%'
+			</isNotEmpty>
+			
+			<isNotEmpty property="address" prepend="and">
+					address like '%'||#address#||'%'
+			</isNotEmpty>
+			
+			<isNotEmpty property="idCardNo" prepend="and">
+					idCardNo like '%'||#idCardNo#||'%'
+			</isNotEmpty>
+			
+			<isNotEmpty property="currentAddress" prepend="and">
+					otherAddress like '%'||#currentAddress#||'%'
+			</isNotEmpty>
+			
+			<isNotNull  property="gender.id" prepend=" and ">
+					gender = #gender.id# 
+			</isNotNull>
+		</dynamic>
+	</sql>
+	<sql id="addDataManage">
+	
+	claimDate,
+	claimUserName,
+	claimUserId,
+	claimOrgId,
+	importDepartmentId,
+	oldOrgId,
+	inId,
+	importDate,
+	districtorgid
+	</sql>
+	<!-- repeatState,   #claimDetail.repeatState#, 是否重复-->
+	<sql id="addValueDataManage">
+	#claimDetail.claimDate#,
+	#claimDetail.claimUserName#,
+	#claimDetail.claimUser.id#,
+	#claimDetail.claimOrg.id#,
+	#claimDetail.importDepartment.id#,
+	#organization.id#,
+	#claimDetail.inId#,
+	#claimDetail.importDate#,
+	#claimDetail.districtOrgId#
+	</sql>
+	
+	<sql id="updateDataManage">
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="claimDetail.claimOrg">
+				claimOrgId=#claimDetail.claimOrg.id#
+			</isNotNull>
+			<isNotNull prepend="," property="claimDetail.inId">
+				inId=#claimDetail.inId#
+			</isNotNull>
+	</sql>
+	<sql id="updateDataManageBuilddatas">
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				organization=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="claimDetail.claimOrg">
+				claimOrgId=#claimDetail.claimOrg.id#
+			</isNotNull>
+			<isNotNull prepend="," property="claimDetail.inId">
+				inId=#claimDetail.inId#
+			</isNotNull>
+	</sql>
+	
+	<sql id="updateClaimDetail">
+	  CLAIMSTATE = #claimState#, CLAIMDATE = #claimDate#, CLAIMUSERNAME = #claimUserName#, CLAIMUSERID = #claimUserId#, CLAIMORGID = #claimOrgId#, inId=#inId# where id = #id#
+	</sql>
+	
+	<update id="stepClaimTempByIds" parameterClass="java.util.Map">
+		update $tabel$ set orginternalcode=#orgCode#,
+		
+				<isEqual property="tabel" compareValue="DM_builddatas_Temp">
+					organization=#orgId#
+				</isEqual>
+				<isNotEqual property="tabel" compareValue="DM_builddatas_Temp">
+					orgId=#orgId#
+				</isNotEqual>		
+			
+		where id 
+		<iterate open="(" close=")" conjunction="," prepend="in" property="ids">
+			#ids[]#
+		</iterate>
+	</update>
+		<update id="stepClaimTempCompanyPlaceByIds" parameterClass="java.util.Map">
+		update $tabel$ set orginternalcode=#orgCode#,
+		
+				<isEqual property="tabel" compareValue="DM_builddatas_Temp">
+					organization=#orgId#
+				</isEqual>
+				<isNotEqual property="tabel" compareValue="DM_builddatas_Temp">
+					org=#orgId#
+				</isNotEqual>		
+			
+		where id 
+		<iterate open="(" close=")" conjunction="," prepend="in" property="ids">
+			#ids[]#
+		</iterate>
+	</update>
+	
+	<update id="unDoClaimDetailByTableAndIds" parameterClass="java.util.Map">
+		update $tabel$ set 
+			<isEqual property="tabel" compareValue="DM_builddatas_Temp">
+				organization=#oldorgid#,
+			</isEqual>
+			<isNotEqual property="tabel" compareValue="DM_builddatas_Temp">
+				orgid=#oldorgid#,
+			</isNotEqual>	
+			CLAIMSTATE = #claimDetail.claimState#,
+		 	CLAIMDATE = #claimDetail.claimDate#, 
+		 	CLAIMUSERNAME = #claimDetail.claimUserName#, 
+		 	CLAIMUSERID = #claimDetail.claimUser.id#,  
+		 	CLAIMORGID = #claimDetail.claimOrg.id#,
+		 	inId=#claimDetail.inId#
+		where id 
+		<iterate open="(" close=")" conjunction="," prepend="in" property="ids">
+			#ids[]#
+		</iterate>
+	</update>
+	<update id="unDoClaimDetailCompanyPlaceByTableAndIds" parameterClass="java.util.Map">
+		update $tabel$ set 
+			<isEqual property="tabel" compareValue="DM_builddatas_Temp">
+				organization=oldorgid,
+			</isEqual>
+			<isNotEqual property="tabel" compareValue="DM_builddatas_Temp">
+				org=oldorgid,
+			</isNotEqual>	
+			CLAIMSTATE = #claimDetail.claimState#,
+		 	CLAIMDATE = #claimDetail.claimDate#, 
+		 	CLAIMUSERNAME = #claimDetail.claimUserName#, 
+		 	CLAIMUSERID = #claimDetail.claimUser.id#,  
+		 	CLAIMORGID = #claimDetail.claimOrg.id#,
+		 	inId=#claimDetail.inId#
+		where id 
+		<iterate open="(" close=")" conjunction="," prepend="in" property="ids">
+			#ids[]#
+		</iterate>
+	</update>
+	<update id="updateTheSamePopulationPassiveClaim" parameterClass="java.util.Map">
+		update $table$ set 
+			CLAIMSTATE = #claimDetail.claimState#,
+		 	CLAIMDATE = #claimDetail.claimDate#, 
+		 	CLAIMUSERNAME = #claimDetail.claimUserName#, 
+		 	CLAIMUSERID = #claimDetail.claimUser.id#,  
+		 	CLAIMORGID = #claimDetail.claimOrg.id#,
+		 	inId=#claimDetail.inId#
+		where id !=#id#
+		<isEqual property="table" compareValue="DM_overseaPersonnel_Temp" prepend="and">
+			certificateType = #certificateType# and certificateNo = #certificateNo#
+		</isEqual>
+		<isNotEqual property="table" compareValue="DM_overseaPersonnel_Temp" prepend="and">
+			$uniqueColumn$ = #uniqueValue# 
+		</isNotEqual>
+		and districtOrgId=#claimDetail.districtOrgId#
+		and dispose=#claimDetail.dispose#
+	</update>
+	
+	<update id="updateTempDataOrgId" parameterClass="java.util.HashMap">
+		update $tableName$ set 
+		
+		<isEqual property="tableName" compareValue="DM_builddatas_Temp">
+			organization= #orgId#
+		</isEqual>
+		<isNotEqual property="tableName" compareValue="DM_builddatas_Temp">
+			orgid= #orgId#
+		</isNotEqual>
+		
+		where id=#id#
+	</update>
+	
+	<update id="updateCompanyPlaceOrgId" parameterClass="java.util.HashMap">
+		update $tableName$ set 
+		
+		<isEqual property="tableName" compareValue="DM_builddatas_Temp">
+			organization= #orgId#
+		</isEqual>
+		<isNotEqual property="tableName" compareValue="DM_builddatas_Temp">
+			org= #orgId#
+		</isNotEqual>
+		
+		where id=#id#
+	</update>
+	
+</sqlMap>
+

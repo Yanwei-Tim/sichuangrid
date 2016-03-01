@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="penalArrestManager" extends="default"
+		namespace="/report/penalArrestManager">
+		<default-class-ref class="penalArrestController"></default-class-ref>
+		<action name="reportCpxResultList" method="reportCpxResultList">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="reportUnderLineList" method="reportUnderLineList">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/report/maintainpenalArrestDlg.jsp
+			</result>
+			<result name="forwardview">
+				/report/penalArrestTeam.jsp
+			</result>
+		</action>
+		<action name="addReportWarmMessage" method="addReportWarmMessage">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="deletepenalArrestVo" method="deletepenalArrestVo">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="reportBack" method="reportBack">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="addpenalArrestVo" method="addpenalArrestVo">
+			<result name="success" type="json">
+				<param name="root">penalArrestVo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="savepenalArrestVo" method="savepenalArrestVo">
+			<result name="success" type="json">
+				<param name="root">penalArrestVo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

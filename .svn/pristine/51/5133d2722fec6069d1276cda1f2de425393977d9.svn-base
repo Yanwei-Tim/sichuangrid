@@ -1,0 +1,842 @@
+package com.tianque.baseInfo.mentalPatient.service;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.actualHouse.domain.HouseInfo;
+import com.tianque.baseInfo.actualHouse.service.ActualHouseService;
+import com.tianque.baseInfo.base.domain.ActualPopulation;
+import com.tianque.baseInfo.base.domain.AttentionPopulation;
+import com.tianque.baseInfo.base.domain.Countrymen;
+import com.tianque.baseInfo.base.domain.LogoutDetail;
+import com.tianque.baseInfo.base.helper.CardNoHelper;
+import com.tianque.baseInfo.base.service.BaseInfoPopulationTemplateImpl;
+import com.tianque.baseInfo.base.service.BaseInfoService;
+import com.tianque.baseInfo.base.service.PopulationRelationService;
+import com.tianque.baseInfo.mentalPatient.dao.MentalPatientDao;
+import com.tianque.baseInfo.mentalPatient.domain.MentalPatient;
+import com.tianque.baseInfo.mentalPatient.domain.ServiceSupervisionMeasures;
+import com.tianque.cache.PageInfoCacheThreadLocal;
+import com.tianque.cache.UpdateType;
+import com.tianque.core.cache.constant.MemCacheConstant;
+import com.tianque.core.datatransfer.ExcelImportHelper;
+import com.tianque.core.systemLog.util.OperatorType;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.Chinese2pinyin;
+import com.tianque.core.util.NewBaseInfoTables;
+import com.tianque.core.util.ObjectToJSON;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.OperationFailedException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.service.HousePopulationMaintanceService;
+import com.tianque.service.IssueTypeService;
+import com.tianque.service.PopulationProccessorService;
+import com.tianque.service.helper.ManagePopulationByHouseHelper;
+import com.tianque.service.util.PopulationCatalog;
+import com.tianque.service.util.PopulationType;
+import com.tianque.service.vo.IsEmphasis;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.util.Arrays;
+import com.tianque.util.IdCardUtil;
+import com.tianque.util.PluginServiceHelpUtil;
+import com.tianque.validate.AbstractCountrymenValidator;
+
+@Transactional
+@Service("mentalPatientService")
+public class MentalPatientServiceImpl extends BaseInfoPopulationTemplateImpl
+		implements MentalPatientService, PopulationProccessorService {
+	private static final String CACHE_ADDMENTALPATIENT_VALUE = "CACHE_ADDMENTALPATIENT";
+	private static final String CACHE_ADDMENTALPATIENTBASEINFO_VALUE = "CACHE_ADDMENTALPATIENTBASEINFO";
+	@Autowired
+	private MentalPatientDao mentalPatientDao;
+	@Autowired
+	@Qualifier("mentalPatientValidator")
+	private AbstractCountrymenValidator<MentalPatient> mentalPatientValidator;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private PopulationRelationService populationRelationService;
+	@Autowired
+	private IssueTypeService issueTypeService;
+	@Autowired
+	private PropertyDictService propertyDictService;
+	@Autowired
+	private ActualHouseService actualHouseService;
+	@Autowired
+	private ManagePopulationByHouseHelper managePopulationByHouseHelper;
+	@Autowired
+	private HousePopulationMaintanceService housePopulationMaintanceService;
+	@Autowired
+	private BaseInfoService baseInfoService;
+
+	// @Autowired
+	// private CacheService cacheService;
+
+	@Resource(name = "mentalPatientDao")
+	public void setBaseInfoPopulationBaseDao(MentalPatientDao mentalPatientDao) {
+		super.setBaseInfoPopulationBaseDao(mentalPatientDao);
+	}
+
+	@Override
+	public MentalPatient addMentalPatient(MentalPatient mentalPatient) {
+		try {
+			if (!ExcelImportHelper.isImport.get()) {
+				validateMentalPatient(mentalPatient);
+			}
+			if (checkDataExitInCache(mentalPatient,
+					MemCacheConstant.CACHE_ADDMENTALPATIENT,
+					CACHE_ADDMENTALPATIENT_VALUE)) {
+				return mentalPatient;
+			}
+			return add(mentalPatient);
+		} catch (Exception e) {
+			logger.error("", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(mentalPatient,
+					MemCacheConstant.CACHE_ADDMENTALPATIENT);
+		}
+	}
+
+	@Override
+	public MentalPatient updateMentalPatient(MentalPatient mentalPatient) {
+		validateMentalPatient(mentalPatient);
+		return update(mentalPatient);
+	}
+
+	private MentalPatient add(MentalPatient mentalPatient) {
+		mentalPatient.setIdCardNo(mentalPatient.getIdCardNo().toUpperCase());
+		autoFilled(mentalPatient);
+		autoIsDeath(mentalPatient);
+		contructCurrentAddress(mentalPatient);
+		try {
+			Countrymen temp = populationRelationService.businessOption(
+					mentalPatient, mentalPatient.getActualPopulationType());
+			mentalPatient.setBaseInfoId(temp.getBaseInfoId());
+			mentalPatient.setAddressInfoId(temp.getAddressInfoId());
+			mentalPatient.setSourcesState(null);
+			mentalPatient = mentalPatientDao.add(mentalPatient);
+			populationRelationService.addPopulationRelation(temp.getId(),
+					mentalPatient.getActualPopulationType(),
+					mentalPatient.getId(), BaseInfoTables.MENTALPATIENT_KEY);
+			mentalPatient.setHouseId(temp.getHouseId());
+			// this.proccessHouseBind(mentalPatient);
+			// 人员轨迹
+			rebuildHouseAddress(mentalPatient);
+			
+			if (IsEmphasis.Emphasis.equals(mentalPatient.getIsEmphasis())) {
+				// 缓存计数器
+				PageInfoCacheThreadLocal.increment(MemCacheConstant
+						.getCachePageKey(MentalPatient.class.getSimpleName()),
+						mentalPatient, 1);	
+			}
+			return mentalPatient;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类MentalPatientServiceImpl的addMentalPatient方法出现异常，原因：",
+					"新增信息出现错误", e);
+		}
+	}
+
+	/**
+	 * 如果人口的房屋信息（CurrentAddress）不为空，并且房屋id不存在，新增一个房屋，并且建立关联关系, 如果房屋id不为空直接建立关联关系
+	 * 如果房屋信息为空,并且有房屋id不为空，则删除人房关系
+	 * 
+	 * @param householdStaff
+	 */
+	private void rebuildHouseAddress(MentalPatient householdStaff) {
+
+		if (householdStaff.getIsHaveHouse() != null
+				&& householdStaff.getIsHaveHouse()
+				&& householdStaff.getCurrentAddress() != null) {
+
+			if (null == householdStaff.getHouseId()
+					|| householdStaff.getHouseId().equals(01L)) {
+				// 新增一个实有房屋,并且建立人房关系
+				HouseInfo houseInfo = new HouseInfo();
+				houseInfo.setAddress(householdStaff.getCurrentAddress());
+				houseInfo.setAddressType(propertyDictService
+						.findPropertyDictByDomainNameAndDictDisplayName(
+								PropertyTypes.CURRENT_ADDRESS_TYPE, "其他"));
+				houseInfo.setOrganization(householdStaff.getOrganization());
+				houseInfo
+						.setHouseOperateSource(NewBaseInfoTables.MENTALPATIENT_KEY);
+				houseInfo = actualHouseService.addHouseInfo(houseInfo);
+				householdStaff.setHouseId(houseInfo.getId());
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.MENTAL, householdStaff,
+						houseInfo.getId());
+			} else if (householdStaff.getHouseId() != null) {
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.MENTAL, householdStaff,
+						householdStaff.getHouseId());
+			}
+		} else {
+			housePopulationMaintanceService.releaseHouse(
+					PopulationCatalog.MENTAL, householdStaff.getId(),
+					householdStaff.getHouseId());
+		}
+	}
+
+	public MentalPatient update(MentalPatient mentalPatient) {
+		mentalPatient.setIdCardNo(mentalPatient.getIdCardNo().toUpperCase());
+		autoFilled(mentalPatient);
+		if (mentalPatient.isDeath()) {
+			mentalPatient.setIsEmphasis(1L);
+			this.deletePopulationTypeByPopulationIdAndType(
+					mentalPatient.getId(), PopulationType.MENTAL_PATIENT);
+		}
+		contructCurrentAddress(mentalPatient);
+		rebuildHouseAddress(mentalPatient);
+		try {
+			populationRelationService.businessOption(mentalPatient,
+					mentalPatient.getActualPopulationType());
+			mentalPatient = mentalPatientDao.update(mentalPatient);
+			return mentalPatient;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类MentalPatientServiceImpl的updateMentalPatient方法出现异常，原因：",
+					"修改信息出现错误", e);
+		}
+	}
+
+	private LogoutDetail buildLogoutDetail(Boolean death) {
+		LogoutDetail result = new LogoutDetail();
+		if (death) {
+			result.setLogout(IsEmphasis.IsNotEmphasis);
+			result.setLogoutDate(new Date());
+			result.setLogoutReason(LogoutDetail.LOGOUT_REASON_FOR_DEATH);
+		} else if (!death) {
+			result.setLogout(IsEmphasis.Emphasis);
+		}
+		return result;
+	}
+
+	@Override
+	public MentalPatient getMentalPatientById(Long id) {
+		if (id == null)
+			return null;
+		MentalPatient mentalPatient = mentalPatientDao.get(id);
+		if (mentalPatient != null) {
+			mentalPatient.setAttentionExtent(null);
+		}
+		return mentalPatient;
+	}
+
+	@Override
+	public void deleteMentalPatientById(Long id) {
+		if (id == null) {
+			throw new BusinessValidationException("严重精神障碍患者人员id不合法");
+		}
+		MentalPatient domain = getMentalPatientById(id);
+		if (domain == null) {
+			throw new BusinessValidationException("严重精神障碍患者人员不合法");
+		}
+
+		domain.setPopulationTypeBean(getPopulationRelationService()
+				.getBusinessPopulationTypeBean(id,
+						PopulationType.MENTAL_PATIENT));
+		getRecoverDatasService().deleteActualPopulation(domain);
+		populationRelationService.businessDeletePopulationRelation(id,
+				PopulationType.MENTAL_PATIENT);
+
+		mentalPatientDao.delete(id);
+		mentalPatientDao.deleteServiceSupervisionMeasuresByIdAndType(id,
+				BaseInfoTables.MENTALPATIENT_KEY.toUpperCase());
+		try {
+			PluginServiceHelpUtil.doService("routerService",
+					"deleteServiceTeamHasObjectsAndServiceMemberHasObject",
+					new Class[] { String.class, Long.class },
+					PopulationType.MENTAL_PATIENT, id);
+			/** 删除时对关联的事件和服务记录进行orgId和idCardNo赋值 */
+			PluginServiceHelpUtil.doService("routerService",
+					"setOrgIdAndCardNoOrName", new Class[] { Long.class,
+							String.class, String.class, Long.class }, domain
+							.getOrganization().getId(), domain.getIdCardNo(),
+					PopulationType.MENTAL_PATIENT, id);
+			issueTypeService.setOrgIdAndCardNoOrNameForPerson(domain
+					.getOrganization().getId(), domain.getIdCardNo(),
+					PopulationType.MENTAL_PATIENT, id);
+
+			if (IsEmphasis.Emphasis.equals(domain.getIsEmphasis())) {
+				// 缓存计数器
+				PageInfoCacheThreadLocal.decrease(MemCacheConstant
+						.getCachePageKey(MentalPatient.class.getSimpleName()),
+						domain, 1);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			this.deletePopulationTypeByPopulationIdAndType(id,
+					PopulationType.MENTAL_PATIENT);
+		}
+	}
+
+	@Override
+	public PageInfo<MentalPatient> findMentalPatientsForPageByOrgInternalCode(
+			Long orgId, int pageNum, int pageSize, String sortField,
+			String order, Long isEmphasis) {
+		if (orgId == null) {
+			return constructEmptyPageInfo();
+		} else {
+			Organization org = organizationDubboService.getSimpleOrgById(orgId);
+			if (org == null) {
+				return constructEmptyPageInfo();
+			} else {
+				Map<String, Object> query = new HashMap<String, Object>();
+				query.put("orgInternalCode", org.getOrgInternalCode());
+				query.put("isEmphasis", isEmphasis);
+				PageInfo<MentalPatient> mentalPatientPageInfos = mentalPatientDao
+						.findPagerUsingCacheBySearchVo(orgId, query, pageNum,
+								pageSize, "MentalPatientDefaultList",
+								MemCacheConstant
+										.getCachePageKey(MentalPatient.class));
+				fitCountrymen(mentalPatientPageInfos);
+				fitServiceMemberHasObject(BaseInfoTables.MENTALPATIENT_KEY,
+						mentalPatientPageInfos);
+
+				return mentalPatientPageInfos;
+			}
+		}
+	}
+
+	@Override
+	public boolean hasDuplicateMentalPatient(Long orgId, String idCardNo,
+			Long exceptedId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return false;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		// String idCardNo15 = "";
+		// String idCardNo18 = "";
+		// if (idCardNo.length() == 15) {
+		// idCardNo15 = idCardNo;
+		// idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		// } else if (idCardNo.length() == 18) {
+		// idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+		// idCardNo18 = idCardNo;
+		// }
+		Countrymen countrymen = baseInfoService.getBaseInfoByIdCardNo(idCardNo);
+		if (countrymen == null) {
+			return false;
+		}
+		Long exsited = mentalPatientDao.getIdByBaseinfoIdAndOrgId(
+				countrymen.getId(), orgId);
+		return exceptedId == null ? exsited != null
+				: (exsited != null && !exceptedId.equals(exsited));
+	}
+
+	@Override
+	public MentalPatient hasDuplicateMentalPatient(Long orgId, String idCardNo) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return null;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		List<String> list = new ArrayList<String>();
+		list.add(idCardNo);
+		if (idCardNo.length() == 18) {
+			list.add(IdCardUtil.idCardNo18to15(idCardNo));
+		} else if (idCardNo.length() == 15) {
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+		}
+		return mentalPatientDao.getByIdCard(list, orgId);
+	}
+
+	private PageInfo<MentalPatient> constructEmptyPageInfo() {
+		PageInfo<MentalPatient> result = new PageInfo<MentalPatient>();
+		result.setResult(new ArrayList<MentalPatient>());
+		return result;
+	}
+
+	private void autoFillOrganizationInternalCode(MentalPatient mentalPatient) {
+		Organization org = organizationDubboService
+				.getSimpleOrgById(mentalPatient.getOrganization().getId());
+		if (org == null) {
+			throw new BusinessValidationException("找不到指定的网格");
+		}
+		mentalPatient.setOrgInternalCode(org.getOrgInternalCode());
+	}
+
+	private void autoFillChinesePinyin(MentalPatient mentalPatient) {
+		Map<String, String> pinyin = Chinese2pinyin
+				.changeChinese2Pinyin(mentalPatient.getName());
+		mentalPatient.setSimplePinyin(pinyin.get("simplePinyin"));
+		mentalPatient.setFullPinyin(pinyin.get("fullPinyin"));
+	}
+
+	private void autoFillBirthday(MentalPatient mentalPatient) {
+		if (StringUtil.isStringAvaliable(mentalPatient.getIdCardNo())) {
+			mentalPatient.setBirthday(IdCardUtil.parseBirthday(mentalPatient
+					.getIdCardNo()));
+		}
+	}
+
+	@Override
+	public MentalPatient updateMentalPatientByName(String name, Long orgId,
+			MentalPatient domain) {
+		try {
+			MentalPatient older = getMentalPatientByIdCardNo(name, orgId);
+			domain.setId(older.getId());
+			domain.setCreateDate(older.getCreateDate());
+			domain.setCreateUser(older.getCreateUser());
+			domain.setOrganization(older.getOrganization());
+			domain.setOrgInternalCode(older.getOrgInternalCode());
+			return updateMentalPatient(domain);
+		} catch (Exception e) {
+			logger.error("", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("修改信息出现错误");
+			} else {
+				return null;
+			}
+		}
+	}
+
+	private MentalPatient getMentalPatientByIdCardNo(String idCardNo, Long orgId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return null;
+		}
+		List<String> list = new ArrayList<String>();
+		list.add(idCardNo);
+		if (idCardNo.length() == 18) {
+			list.add(IdCardUtil.idCardNo18to15(idCardNo));
+		} else if (idCardNo.length() == 15) {
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+		}
+		return mentalPatientDao.getByIdCard(list, orgId);
+	}
+
+	private void deleteMentalPatient(Long id) {
+		MentalPatient domain = getMentalPatientById(id);
+		if (null != domain) {
+			log(WARN, MENTALPATIENT, ThreadVariable.getSession().getUserName()
+					+ "删除严重精神障碍患者" + domain.getName(), OperatorType.DELETE,
+					ObjectToJSON.convertJSON(domain));
+			this.deleteMentalPatientById(id);
+		}
+	}
+
+	private void autoFilled(MentalPatient mentalPatient) {
+		mentalPatient.setIdCardNo(mentalPatient.getIdCardNo().toUpperCase());
+		autoFillOrganizationInternalCode(mentalPatient);
+		autoFillChinesePinyin(mentalPatient);
+		autoFillBirthday(mentalPatient);
+	}
+
+	private void autoIsDeath(MentalPatient mentalPatient) {
+		if (mentalPatient.isDeath()) {
+			mentalPatient.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+		} else {
+			mentalPatient.setIsEmphasis(IsEmphasis.Emphasis);
+		}
+	}
+
+	private void validateMentalPatient(MentalPatient mentalPatient) {
+		ValidateResult validateResult = mentalPatientValidator
+				.validate(mentalPatient);
+		if (validateResult.hasError()) {
+			throw new BusinessValidationException(
+					validateResult.getErrorMessages());
+		} else if (hasDuplicateMentalPatient(mentalPatient.getOrganization()
+				.getId(), mentalPatient.getIdCardNo(), mentalPatient.getId())) {
+			throw new BusinessValidationException("该网格下已存在相同身份证号码");
+		}
+	}
+
+	@Override
+	public Map<String, Map<String, Object>> getPopulationSpecializedInfoByOrgIdAndIdCardNo(
+			Long orgId, String idCardNo) {
+		MentalPatient mentalPatient = mentalPatientDao.getByOrgIdAndIdCardNo(
+				orgId, idCardNo);
+		if (null == mentalPatient) {
+			return null;
+		}
+		Map<String, Object> mentalPatientMap = new HashMap<String, Object>();
+		mentalPatientMap.put("id", mentalPatient.getId());
+		mentalPatientMap.put("isEmphasis", mentalPatient.getIsEmphasis());
+		mentalPatientMap.put("cureDepartment",
+				mentalPatient.getCureDepartment());
+		mentalPatientMap.put("psychosisName", mentalPatient.getPsychosisName());
+		mentalPatientMap.put("dangerLevel", mentalPatient.getDangerLevel());
+		mentalPatientMap.put("treat", mentalPatient.isTreat());
+		mentalPatientMap.put("attentionExtent",
+				mentalPatient.getAttentionExtent());
+		Map<String, Map<String, Object>> map = new HashMap<String, Map<String, Object>>();
+		map.put(PopulationType.MENTAL_PATIENT, mentalPatientMap);
+		return map;
+	}
+
+	@Override
+	public Long proccessPopulationSpecializedInfo(
+			ActualPopulation actualPopulation, String[] populationType,
+			Map<String, Object> population) {
+		actualPopulation
+				.setAttentionPopulationType(NewBaseInfoTables.MENTALPATIENT_KEY);
+		Long orgId = Long
+				.valueOf(((String[]) population.get("organization.id"))[0]);
+		String idCardNo = ((String[]) population.get("idCardNo"))[0];
+		MentalPatient mentalPatient = mentalPatientDao.getByOrgIdAndIdCardNo(
+				orgId, idCardNo);
+		if (!com.tianque.util.Arrays.hasObjectInArray(populationType,
+				PopulationType.MENTAL_PATIENT)) {
+			if (null != mentalPatient) {
+				mentalPatient.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+				this.updateEmphasiseById(mentalPatient.getId(),
+						IsEmphasis.IsNotEmphasis);
+			}
+		} else {
+			if (null == mentalPatient) {
+				mentalPatient = new MentalPatient();
+				copyProperty(actualPopulation, population, mentalPatient);
+				addMentalPatient(mentalPatient);
+			} else {
+				Long id = mentalPatient.getId();
+				copyProperty(actualPopulation, population, mentalPatient);
+				mentalPatient.setId(id);
+				mentalPatient.setIsEmphasis(IsEmphasis.Emphasis);
+				updateMentalPatientBusinessInfo(mentalPatient);
+				this.updateEmphasiseById(mentalPatient.getId(),
+						IsEmphasis.Emphasis);
+			}
+		}
+		return mentalPatient == null
+				|| mentalPatient.getIsEmphasis() == IsEmphasis.IsNotEmphasis
+						.longValue() ? null : mentalPatient.getId();
+	}
+
+	private void updateEmphasiseById(Long id, Long isEmphasis) {
+		LogoutDetail logoutDetail = new LogoutDetail();
+		logoutDetail.setLogout(isEmphasis);
+		updateLogOutByPopulationTypeAndId(logoutDetail,
+				BaseInfoTables.MENTALPATIENT_KEY, id);
+	}
+
+	private void copyProperty(ActualPopulation actualPopulation,
+			Map<String, Object> population, MentalPatient mentalPatient) {
+		try {
+			PropertyUtils.copyProperties(mentalPatient, actualPopulation);
+		} catch (Exception e) {
+			throw new OperationFailedException("复制属性失败", e);
+		}
+
+		mentalPatient.setPsychosisName(Arrays.getStringValueFromArray(
+				population, "psychosisName"));
+		mentalPatient.setCureDepartment(Arrays.getStringValueFromArray(
+				population, "cureDepartment"));
+
+		mentalPatient.setDangerLevel(Arrays.getPropertyDictFromArray(
+				population, "dangerLevel.id"));
+
+		mentalPatient.setPsychosisType(Arrays.getPropertyDictFromArray(
+				population, "psychosisType.id"));
+
+		mentalPatient.setAttentionExtent(Arrays.getPropertyDictFromArray(
+				population, "attentionExtent.id"));
+		mentalPatient.setTreatmentState(Arrays.getPropertyDictFromArray(
+				population, "treatmentState.id"));
+		mentalPatient.setDiseaseTime(Arrays.getDateValueFromArray(population,
+				"diseaseTime"));
+		mentalPatient.setRecoveryTime(Arrays.getDateValueFromArray(population,
+				"recoveryTime"));
+
+		Boolean treat = Arrays.getBooleanValueFromArray(population, "treat");
+		Boolean undergoTreatment = Arrays.getBooleanValueFromArray(population,
+				"undergoTreatment");
+		if (null == treat) {
+			mentalPatient.setTreat(false);
+		} else {
+			mentalPatient.setTreat(treat);
+		}
+		if (null == undergoTreatment) {
+			mentalPatient.setUndergoTreatment(false);
+		} else {
+			mentalPatient.setUndergoTreatment(undergoTreatment);
+		}
+
+		mentalPatient
+				.setAttentionPopulationType(BaseInfoTables.MENTALPATIENT_KEY);
+	}
+
+	@Override
+	public void updatePopulationBaseInfo(ActualPopulation actualPopulation) {
+		MentalPatient mentalPatient = mentalPatientDao.getByOrgIdAndIdCardNo(
+				actualPopulation.getOrganization().getId(),
+				actualPopulation.getIdCardNo());
+		if (null == mentalPatient) {
+			return;
+		}
+		Long id = mentalPatient.getId();
+		try {
+			PropertyUtils.copyProperties(mentalPatient, actualPopulation);
+		} catch (Exception e) {
+			throw new OperationFailedException("复制属性失败", e);
+		}
+		mentalPatient.setId(id);
+		updateMentalPatient(mentalPatient);
+	}
+
+	@Override
+	public void deletePopulationByPopulationId(Long populationId) {
+		if (null != populationId) {
+			this.deleteMentalPatientById(populationId);
+			this.deletePopulationTypeByPopulationIdAndType(populationId,
+					PopulationType.MENTAL_PATIENT);
+		}
+	}
+
+	@Override
+	public void deleteMentalPatientByIds(Long[] ids) {
+		for (int i = 0; i < ids.length; i++) {
+			deleteMentalPatient(ids[i]);
+		}
+	}
+
+	@Override
+	public List<MentalPatient> updateDeathByIds(Long[] populationIds,
+			Boolean death) {
+		List<MentalPatient> list = new ArrayList<MentalPatient>();
+		for (Long id : populationIds) {
+			MentalPatient population = this.getMentalPatientById(id);
+			updateLogOutByPopulationTypeAndId(
+					LogoutDetail.buildLogoutDetail(death),
+					BaseInfoTables.MENTALPATIENT_KEY, population.getId());
+			baseInfoService.updateDeathStateById(population.getBaseInfoId(),
+					death, population.getIdCardNo(), population
+							.getOrganization().getId(), population
+							.getOrgInternalCode(),
+					NewBaseInfoTables.MENTALPATIENT_KEY);
+			list.add(population);
+			// 缓存计数器
+			PageInfoCacheThreadLocal.increment(MemCacheConstant
+					.getCachePageKey(MentalPatient.class.getSimpleName()),
+					population, 1);
+		}
+		return list;
+	}
+
+	@Override
+	public MentalPatient updateMentalPatientBaseInfo(MentalPatient population) {
+		try {
+			population.setIdCardNo(population.getIdCardNo().toUpperCase());
+			if (population.isDeath()) {
+				population.setLogoutDetail(buildLogoutDetail(population
+						.isDeath()));
+				// 缓存计数器
+				PageInfoCacheThreadLocal.decrease(MemCacheConstant
+						.getCachePageKey(MentalPatient.class.getSimpleName()),
+						population, 1);
+			}
+			contructCurrentAddress(population);
+			// proccessHouseBind(population);
+			Countrymen temp = populationRelationService.businessOption(
+					population, population.getActualPopulationType());
+			population.setHouseId(temp.getHouseId());
+			rebuildHouseAddress(population);
+			mentalPatientDao.updateTableUpdateDateById(population.getId());
+			return population;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类MentalPatientServiceImpl的updateMentalPatientBaseInfo方法出现异常，原因：",
+					"修改严重精神障碍患者基本信息出现错误", e);
+		}
+	}
+
+	@Override
+	public MentalPatient updateMentalPatientBusinessInfo(
+			MentalPatient population) {
+		population = mentalPatientDao.updateBusiness(population);
+		PageInfoCacheThreadLocal.update(
+				MemCacheConstant.getCachePageKey(MentalPatient.class),
+				population, UpdateType.BUSINESS);
+		return population;
+	}
+
+	@Override
+	public MentalPatient findMentalPatientByIdCardNoAndOrgId(String idCardNo,
+			Long orgId) {
+		return getMentalPatientByIdCardNo(idCardNo, orgId);
+	}
+
+	@Override
+	public MentalPatient addMentalPatientBaseInfo(MentalPatient mentalPatient) {
+		ValidateResult validateResult = mentalPatientValidator
+				.validateBaseInfo(mentalPatient);
+		if (validateResult.hasError()) {
+			throw new BusinessValidationException(
+					validateResult.getErrorMessages());
+		} else if (hasDuplicateMentalPatient(mentalPatient.getOrganization()
+				.getId(), mentalPatient.getIdCardNo(), mentalPatient.getId())) {
+			throw new BusinessValidationException("该网格下已存在相同身份证号码");
+		}
+		try {
+			if (checkDataExitInCache(mentalPatient,
+					MemCacheConstant.CACHE_ADDMENTALPATIENTBASEINFO,
+					CACHE_ADDMENTALPATIENTBASEINFO_VALUE)) {
+				return mentalPatient;
+			}
+			return add(mentalPatient);
+
+		} catch (Exception e) {
+			logger.error("", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+
+		} finally {
+			cleanDataInCache(mentalPatient,
+					MemCacheConstant.CACHE_ADDMENTALPATIENTBASEINFO);
+		}
+	}
+
+	public AttentionPopulation getAttentionPopulationById(Long id) {
+		return mentalPatientDao.get(id);
+	}
+
+	// fateson add move function start
+	@Override
+	public void moveTempByIds(String[] peoperIds, Long targetOrgId) {
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(targetOrgId);
+		for (String id : peoperIds) {
+			Long peoperId = Long.parseLong(id);
+			if (!StringUtils.isEmpty(id)) {
+				// get peoper
+				MentalPatient people = getMentalPatientById(peoperId);
+				if (people == null) {
+					continue;
+				}
+				Long currentOrgid = people.getOrganization().getId();
+				people.setOrganization(organization);
+				// String orgCode = people.getOrgInternalCode();
+				String orgCode = people.getOrganization().getOrgInternalCode();
+				String idCardNo = people.getIdCardNo();
+				// 验证目标组织机构是否存在这个人
+				boolean result = hasDuplicateMentalPatient(targetOrgId,
+						idCardNo, peoperId);
+				if (result) {
+					// 把存在的旧数据成为修改现在现在要移动的新数据
+					if (currentOrgid.longValue() != targetOrgId.longValue()) {
+						updateMovePersonByIdCardNo(idCardNo, targetOrgId,
+								people);
+						// 删掉要移动的数据 删除掉不在同一个网格
+						deleteMentalPatient(peoperId);
+					}
+
+				} else {
+					// 转移网格数据
+					mentalPatientDao.updateData(id, targetOrgId, orgCode,
+							people);
+				}
+				people.setCreateDate(null);
+			}
+
+		}
+	}
+
+	public void updateMovePersonByIdCardNo(String idcard, Long targetorgId,
+			MentalPatient people) {
+		List<String> cardnos = CardNoHelper.createIdCardNo(idcard);
+		// 获取
+		MentalPatient older = mentalPatientDao
+				.getByIdCard(cardnos, targetorgId);
+		people.setId(older.getId());
+		people.setCreateDate(older.getCreateDate());
+		people.setCreateUser(older.getCreateUser());
+		mentalPatientDao.update(people);
+	}
+
+	// fateson add move end
+
+	@Override
+	public PageInfo findServiceSupervisionMeasuresPatientForList(
+			Integer pageNum, Integer pageSize, String sortField, String order,
+			ServiceSupervisionMeasures serviceSupervisionMeasures) {
+		if (serviceSupervisionMeasures == null
+				|| serviceSupervisionMeasures.getMentalPatient() == null
+				|| serviceSupervisionMeasures.getMentalPatient().getId() == null
+				|| serviceSupervisionMeasures.getType() == null
+				|| "".equals(serviceSupervisionMeasures.getType())) {
+			return constructEmptyPageInfo();
+		} else {
+			return mentalPatientDao
+					.findServiceSupervisionMeasuresPatientForList(pageNum,
+							pageSize, sortField, order,
+							serviceSupervisionMeasures);
+		}
+	}
+
+	@Override
+	public ServiceSupervisionMeasures getServiceSupervisionMeasuresById(Long id) {
+		return mentalPatientDao.getServiceSupervisionMeasuresById(id);
+	}
+
+	@Override
+	public ServiceSupervisionMeasures addServiceSupervisionMeasures(
+			ServiceSupervisionMeasures serviceSupervisionMeasures) {
+		if (serviceSupervisionMeasures == null
+				|| serviceSupervisionMeasures.getMentalPatient() == null
+				|| serviceSupervisionMeasures.getMentalPatient().getId() == null
+				|| serviceSupervisionMeasures.getType() == null
+				|| (!BaseInfoTables.MENTALPATIENT_KEY.toUpperCase().equals(
+						serviceSupervisionMeasures.getType().toUpperCase()) && !BaseInfoTables.DRUGGY_KEY
+						.toUpperCase().equals(
+								serviceSupervisionMeasures.getType()
+										.toUpperCase()))) {
+			throw new BusinessValidationException("缺少参数");
+		}
+		return mentalPatientDao
+				.addServiceSupervisionMeasures(serviceSupervisionMeasures);
+	}
+
+	@Override
+	public ServiceSupervisionMeasures updateServiceSupervisionMeasures(
+			ServiceSupervisionMeasures serviceSupervisionMeasures) {
+		if (serviceSupervisionMeasures == null
+				|| serviceSupervisionMeasures.getId() == null) {
+			throw new BusinessValidationException("缺少参数");
+		}
+		return mentalPatientDao
+				.updateServiceSupervisionMeasures(serviceSupervisionMeasures);
+	}
+
+	@Override
+	public void deleteServiceSupervisionMeasuresById(Long id) {
+		if (id == null) {
+			throw new BusinessValidationException("缺少ID");
+		}
+		mentalPatientDao.deleteServiceSupervisionMeasuresById(id);
+	}
+
+	@Override
+	public void deleteBusinessPopulationDuplicate(Long id) {
+		deleteMentalPatientById(id);
+	}
+
+}

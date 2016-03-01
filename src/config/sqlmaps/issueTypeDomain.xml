@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="issueTypeDomain">
+	<typeAlias type="com.tianque.domain.IssueTypeDomain" alias="IssueTypeDomain"/>
+	<resultMap class="IssueTypeDomain" id="issueTypeDomainResult">
+        <result property="id" column="id"/>
+        <result property="module" column="module"/>
+        <result property="domainName" column="domainName"/>
+        <result property="systemSensitive" column="systemSensitive"/>
+        <result property="systemRestrict" column="systemRestrict"/>
+        <result property="personalized" column="personalized"/>
+    </resultMap>
+	<select id="findIssueTypeDomains" parameterClass="java.util.Map" resultClass="IssueTypeDomain">
+	   select * from issuetypeDomains order by id
+	</select>
+	<delete id="deleteIssueTypeDomains">
+	   delete from issuetypeDomains
+	</delete>
+	<insert id="insertIssueTypeDomain" parameterClass="IssueTypeDomain">
+	   <selectKey resultClass="java.lang.Long" keyProperty="id">
+            <![CDATA[SELECT s_issueTypeDomains.NEXTVAL as id from dual ]]>
+        </selectKey>
+        insert into issuetypeDomains(id,domainName,systemSensitive,systemRestrict,personalized,module) 
+        values (#id#,#domainName#,#systemSensitive#,#systemRestrict#,#personalized#,#module#)
+	</insert>
+	<select id="getIssueTypeDomainById" parameterClass="java.lang.Long" resultClass="IssueTypeDomain">
+	   select * from issuetypeDomains where id = #value#
+	</select>
+	<select id="getIssueTypeDomainByDomainName" parameterClass="java.lang.String" resultClass="IssueTypeDomain">
+	   select * from issuetypeDomains where domainName = #value#
+	</select>
+	<select id="findIssueTypeDomainsByDomainName" parameterClass="java.lang.String" resultClass="IssueTypeDomain">
+	   select * from issuetypeDomains where domainName like #value# || '%'
+	</select>
+	<select id="findIssueTypeDomainsByModule" parameterClass="java.lang.String" resultMap="issueTypeDomainResult">
+	   select * from issuetypeDomains where module = #value#
+	</select>
+	<!-- 事件用到的大类 -->
+	<select id="findIssueTypeDomainsToIssue" parameterClass="java.lang.String" resultMap="issueTypeDomainResult">
+		select * from issuetypedomains itd where (itd.module = 'si_chuan' or itd.domainname = '民生服务')
+	</select>
+	
+	<select id="findIssueTypeDomainsByModuleAndSystemsensitive" parameterClass="java.util.Map" resultMap="issueTypeDomainResult">
+	   select * from issuetypeDomains where module = #module# and systemSensitive = #systemSensitive#
+	</select>
+</sqlMap>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="countrymen">
+	<typeAlias alias="Countrymen" type="com.tianque.baseInfo.base.domain.Countrymen"/>
+
+	<resultMap id="baseCountrymenResult" class="Countrymen">
+		<result column="populationid" property="id" />
+		<result column="orgid" property="organization.id" />
+		<result column="orginternalcode" property="orgInternalCode" />
+		<result column="name" property="name" />
+		<result column="usedName" property="usedName"/>
+		<result column="gender" property="gender.id" />
+		<result column="certificatenumber" property="idCardNo" />
+		<result column="birthday" property="birthday" />
+		<result column="mobileNumber" property="mobileNumber" />
+		<result column="telephone" property="telephone" />
+		<result column="schooling" property="schooling.id" />
+		<result column="currentaddress" property="currentAddress" />
+		<result column="imgUrl" property="imgUrl" />
+	</resultMap>
+	
+	<resultMap id="actualCountryMemResult" extends="baseCountrymenResult" class="Countrymen">
+		<result column="populationtype" property="actualPopulationType" />
+	</resultMap>
+	<resultMap id="actualCountryMemResultIncludeProperties" extends="baseCountrymenResult" class="Countrymen">
+		<result column="populationtype" property="actualPopulationType" />
+		<result column="nation" property="nation.id" />
+	</resultMap>
+
+
+	<resultMap id="attentionCountryMemResult" extends="baseCountrymenResult" class="Countrymen">
+		<result column="populationtype" property="attentionPopulationType" />
+	</resultMap>
+	
+	<!-- 未被显式调用 -->
+	<select id="getCountrymenByPopulationIdAndPopulationCatalog" parameterClass="map" resultMap="attentionCountryMemResult">
+	<![CDATA[	
+		select uni.id as populationid, '$catalog.type$' populationtype, 
+			orgid, orginternalcode, name, usedname, gender, idcardno certificateNumber,
+			birthday, mobilenumber, telephone, schooling, currentaddress, imgUrl
+		from $catalog.tableName$ uni 
+			left join baseInfo b on uni.baseInfoId = b.id 
+			left join addressInfo adds on uni.addressInfoId = adds.id
+		where uni.id = #populationId#
+	]]>
+	</select>
+
+
+	<select id="findCountrymensByPopulationIdAndPopulationType" parameterClass="map" resultMap="actualCountryMemResultIncludeProperties">
+		<![CDATA[ select * from ]]>
+		<iterate open=" ( " close=" ) cm "  property="catalogs" conjunction=" union ">
+			<isEqual property="catalogs[].type" compareValue="householdStaff">
+			<![CDATA[	
+			select f.id populationid, '$catalogs[].type$' populationtype, 
+				   f.orgid, f.orginternalcode, name,usedName,nation,gender, idcardno certificateNumber,
+				   birthday, mobilenumber, telephone, schooling, currentaddress, imgUrl
+			  from $catalogs[].tableName$_$shardCode$ f left join baseinfo b on f.baseInfoId = b.id left join addressInfo adds on f.addressInfoId = adds.id
+			  where f.orginternalcode like #orgInternalCode#||'%'  ]]>
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="floatingPopulation">
+			<![CDATA[	
+			select f.id populationid, '$catalogs[].type$' populationtype, 
+				   f.orgid, f.orginternalcode, name,usedName,nation,gender, idcardno certificateNumber,
+				   birthday, mobilenumber, telephone, schooling, currentaddress, imgUrl
+			  from $catalogs[].tableName$ f left join baseinfo b on f.baseInfoId = b.id left join addressInfo adds on f.addressInfoId = adds.id
+			  where f.orginternalcode like #orgInternalCode#||'%'  ]]>
+			</isEqual>
+			<isEqual  property="catalogs[].type" compareValue="unsettledPopulation">
+			<![CDATA[	
+			select id populationid, '$catalogs[].type$' populationtype, 
+				   orgid, orginternalcode, name,usedName,nation,gender, idcardno certificateNumber,
+				   birthday, mobilenumber, telephone, schooling, currentaddress, imgUrl
+			  from $catalogs[].tableName$ where orginternalcode like #orgInternalCode#||'%'  ]]>
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="overseaStaff">
+			<![CDATA[	
+				select id as populationid, '$catalogs[].type$' as populationtype, 
+					   orgid, orginternalcode, name,englishname as usedName,null as nation,gender, certificateno as certificateNumber,
+					   birthday, mobilenumber, telephone, 0 as schooling, currentaddress, imgUrl
+				  from $catalogs[].tableName$ where orginternalcode like #orgInternalCode#||'%' ]]>
+			</isEqual>
+		</iterate> 
+		<![CDATA[ where cm.populationid = #populationId# and populationtype = #populationType# ]]>
+	</select>
+	
+	<select id="findCountrymensByIdCardNoAndOrgInternalCode" parameterClass="map" resultMap="actualCountryMemResult">
+		<![CDATA[ select * from ]]>
+		<iterate open=" ( " close=" ) cm "  property="catalogs" conjunction=" union ">
+			<isEqual  property="catalogs[].type" compareValue="unsettledPopulation">
+				<![CDATA[
+				select id populationid, '$catalogs[].type$' populationtype, 
+				   orgid, orginternalcode, name, usedname, gender, idcardno certificateNumber,
+				   birthday, mobilenumber, telephone, schooling, currentaddress, imgUrl
+			  	from $catalogs[].tableName$ where orginternalcode = #orgInternalCode# and upper(idcardno) = upper(#idCardNo#) ]]>
+			 </isEqual>
+			<isEqual property="catalogs[].type" compareValue="floatingPopulation">
+				<![CDATA[
+				select f.id populationid, '$catalogs[].type$' populationtype, 
+				   f.orgid, f.orginternalcode, name, usedname, gender, idcardno certificateNumber,
+				   birthday, mobilenumber, telephone, schooling, currentaddress, imgUrl
+			  	from $catalogs[].tableName$ f left join baseinfo b on f.baseInfoId = b.id left join addressInfo adds on f.addressInfoId = adds.id
+			  	 where f.orginternalcode = #orgInternalCode# and upper(idcardno) = upper(#idCardNo#) ]]>
+			 </isEqual>
+			<isEqual property="catalogs[].type" compareValue="householdStaff">
+				<![CDATA[
+				select f.id populationid, '$catalogs[].type$' populationtype, 
+				   f.orgid, f.orginternalcode, name, usedname, gender, idcardno certificateNumber,
+				   birthday, mobilenumber, telephone, schooling, currentaddress, imgUrl
+			  	from $catalogs[].tableName$_$shardCode$ f left join baseinfo b on f.baseInfoId = b.id left join addressInfo adds on f.addressInfoId = adds.id
+			  	where f.orginternalcode = #orgInternalCode# and upper(idcardno) = upper(#idCardNo#) ]]>
+			 </isEqual>
+			<isEqual property="catalogs[].type" compareValue="overseaStaff">
+			<![CDATA[	
+				select id as populationid, '$catalogs[].type$' as populationtype, 
+					   orgid, orginternalcode, name, englishname as usedname, gender, certificateno as certificateNumber,
+					   birthday, mobilenumber, telephone, 0 as schooling, currentaddress, imgUrl
+				  from $catalogs[].tableName$ where orginternalcode = #orgInternalCode# and upper(certificateno) = upper(#idCardNo#) ]]>
+			</isEqual>
+		</iterate> 
+	</select>
+	
+</sqlMap>

@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="otherLocale">
+
+	<typeAlias alias="OtherLocale" type="com.tianque.domain.OtherLocale" />
+
+	<parameterMap id="otherLocaleParams" class="OtherLocale">
+		<parameter property="id" />
+		<parameter property="createUser" />
+		<parameter property="updateUser" />
+		<parameter property="updateDate" />
+		<parameter property="createDate" />
+		<parameter property="organization.id" />
+		<parameter property="orgInternalCode" />
+		<parameter property="type.id" />
+		<parameter property="name" />
+		<parameter property="fullPinyin" />
+		<parameter property="simplePinyin" />
+		<parameter property="address" />
+		<parameter property="contactPerson" />
+		<parameter property="mobileNumber" />
+		<parameter property="telephone" />
+		<parameter property="remark" />
+		<parameter property="imgUrl"/>
+		<parameter property="isEmphasis" />
+		<parameter property="logOutReason"/>
+		<parameter property="logOutTime"/>
+		<parameter property="attentionExtent"/>
+	</parameterMap>
+
+	<resultMap id="otherLocaleResult" class="OtherLocale" extends="locationBaseInfo.locationBaseInfoResult">
+		<result property="organization.id" column="orgId" />
+		<result property="type.id" column="type" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="name" column="name" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="address" column="address" />
+		<result property="contactPerson" column="contactPerson" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="telephone" column="telephone" />
+		<result property="remark" column="remark" />
+		<result property="imgUrl" column="imgUrl" />
+		<result column="isEmphasisReason" property="logOutReason" />
+		<result column="isEmphasisDate" property="logOutTime" />
+		<result column="attentionExtent" property="attentionExtent.id"/>
+		<result column="practitioner_Number" property="practitionerNumber"/>
+	</resultMap>
+	<!-- 为列表显示准备的返回值 -->
+	<resultMap id="otherLocaleResultForList" class="OtherLocale" extends="locationBaseInfo.locationBaseInfoResultForList">
+		<result property="organization.id" column="orgId" />
+		<result property="type.id" column="type" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="name" column="name" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="address" column="address" />
+		<result property="contactPerson" column="contactPerson" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="telephone" column="telephone" />
+		<result property="remark" column="remark" />
+		<result property="imgUrl" column="imgUrl" />
+		<result column="isEmphasisReason" property="logOutReason" />
+		<result column="isEmphasisDate" property="logOutTime" />
+		<result column="attentionExtent" property="attentionExtent.id"/>
+		<result property="sourcesState" column="sourcesState"/>
+	</resultMap>
+	<insert id="addOtherLocale" parameterClass="OtherLocale">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_OtherLocales.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		OtherLocales(id,orgId,type,orgInternalCode,name,fullPinyin,simplePinyin,address,contactPerson,
+		mobileNumber,telephone,remark,createUser,updateUser,createDate,updateDate,isEmphasis,imgUrl,attentionExtent,sourcesState,practitioner_Number)
+		VALUES(#id#,#organization.id#,#type.id#,#orgInternalCode#,#name#,#fullPinyin#,#simplePinyin#,#address#,
+		#contactPerson#,#mobileNumber#,#telephone#,#remark#,#createUser#,#updateUser#,#createDate#,
+		#updateDate#,#isEmphasis#,#imgUrl#,#attentionExtent.id#,#sourcesState#,#practitionerNumber#)
+	</insert>
+
+	<select id="getOtherLocaleById" parameterClass="java.lang.Long"
+		resultMap="otherLocaleResult">
+		<![CDATA[SELECT * FROM OtherLocales WHERE id=#value#]]>
+	</select>
+
+	<update id="updateOtherLocaleById" parameterClass="OtherLocale">
+		UPDATE OtherLocales SET
+		<dynamic>
+				id = #id#
+				<isNotNull prepend="," property="updateUser">
+					updateUser = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					updateDate = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="isEmphasis">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+				<isNotNull prepend="," property="organization">
+					orgId=#organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					orgInternalCode=#orgInternalCode#
+				</isNotNull>
+		</dynamic>
+		where id=#id#
+	</update>
+
+	<update id="updateOtherLocale" parameterClass="OtherLocale">
+		update OtherLocales set
+		<dynamic>
+			fullPinyin=#fullPinyin#,
+			simplePinyin=#simplePinyin#,
+			address=#address#,
+			contactPerson=#contactPerson#,
+			mobileNumber=#mobileNumber#,
+			telephone=#telephone#,
+			remark=#remark#,
+			type=#type.id#,
+			imgUrl=#imgUrl#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#,
+			practitioner_Number=#practitionerNumber#
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="attentionExtent">
+				attentionExtent = #attentionExtent.id#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+
+	<delete id="deleteOtherLocaleById" parameterClass="java.lang.Long">
+		delete from
+		OtherLocales where id = #value#
+	</delete>
+
+	<sql id="sql_where">
+		from OtherLocales
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId=#orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findOtherLocales" parameterClass="java.util.Map"
+		resultMap="otherLocaleResultForList">
+		select OtherLocales.*,'$importantLocationType$' as locationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countOtherLocales" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	<select id="getOtherLocaleByName" parameterClass="java.util.Map"
+		resultMap="otherLocaleResult">
+		select * from OtherLocales where  name=#name# and orgId=#id#
+	</select>
+
+	<select id="countExsistedOtherLocale" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from otherlocales where name=#name# and
+		orgId=#orgId#
+		<isNotNull property="id" prepend=" and ">
+			<![CDATA[
+				id!=#id#
+			]]>
+		</isNotNull>
+	</select>
+	<update id="updateEmphasiseById" parameterClass="map">
+		update otherlocales set isEmphasis=#isEmphasis#,isEmphasisReason=#logOutReason# ,isEmphasisDate = #logOutTime#
+		where id=#id#
+	</update>
+</sqlMap>

@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchPositiveInfo">
+	<typeAlias alias="PositiveInfo" type="com.tianque.baseInfo.positiveInfo.domain.PositiveInfo" />
+	<typeAlias alias="SearchPositiveInfosVo" type="com.tianque.domain.vo.SearchPositiveInfoVo" />
+	<resultMap id="positiveInfoResult" class="PositiveInfo" extends="positiveInfo.positiveInfoResultForList">
+		<result property="householdId" column="householdId" />
+		<result property="helpEducator" column="helpEducator" />
+		<result property="educatorTelephone" column="educatorTelephone" />
+		<result property="educatorMobileNumber" column="educatorMobileNumber" />
+		<result property="isExpired" column="id" />
+	</resultMap>
+	 <resultMap id="mobilePositiveInfoMap" class="PositiveInfo" extends="positiveInfoResult">
+       <!-- 用于手机接口返回走访数量 -->
+      <result property="interviewCount" column="interviewCount" />
+     </resultMap>
+	
+	<sql id="fields">
+	        uni.id,uni.createDate,uni.createUser,uni.updateUser,uni.updateDate,uni.householdId,uni.helpEducator
+			,uni.positiveInfoType,uni.caseReason,uni.imprisonmentDate,uni.laborEduAddress
+			,uni.releaseOrBackDate,uni.isRepeat,uni.criminalBehavior,uni.agoProfession,uni.isCrime,uni.resettlementDate,uni.crimeDate,
+			uni.noResettlementReason,uni.attentionExtent,uni.sourcesState,uni.orgId,uni.orgInternalCode,uni.educatorTelephone,uni.educatorMobileNumber,
+			uni.resettlement,uni.baseinfoid,uni.addressInfoId,uni.isEmphasis,uni.isEmphasisReason,uni.isEmphasisDate
+	</sql>
+	
+	<select id="findPositiveInfos" parameterClass="map" resultMap="positiveInfoResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		 from positiveInfos uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		  where isEmphasis = 0 
+	</select>
+
+	<sql id="query_positiveInfo">
+		<dynamic>
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+					(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+				</isNotNull>
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+				<isNotEmpty property="name" prepend=" and ">
+					name like '$name$%'
+				</isNotEmpty>
+				<isNotNull property="positiveInfosType.id" prepend=" and ">
+					POSITIVEINFOTYPE = #positiveInfosType.id#
+				</isNotNull>
+				<isNotEmpty property="mobileNumber" prepend=" and ">
+					mobileNumber like #mobileNumber#||'%'
+				</isNotEmpty>
+				<isNotEmpty property="caseReason" prepend=" and ">
+					caseReason like '$caseReason$%'
+				</isNotEmpty>
+				<isNotEmpty property="imprisonmentDate" prepend=" and ">
+					imprisonmentDate like '$imprisonmentDate$%'
+				</isNotEmpty>
+				<isNotNull property="agoProfession.id" prepend=" and ">
+					agoProfession = #agoProfession.id#
+				</isNotNull>
+				<isNotEmpty property="laborEduAddress" prepend=" and ">
+					laborEduAddress like '$laborEduAddress$%'
+				</isNotEmpty>
+				<isNotNull property="noResettlementReason" prepend=" and ">
+					noResettlementReason like '$noResettlementReason$%'
+				</isNotNull>
+				<isNotEmpty property="releaseOrBackDate" prepend=" and ">
+					releaseOrBackDate <![CDATA[>=]]>
+					#releaseOrBackDate#
+				</isNotEmpty>
+				<isNotEmpty property="endReleaseOrBackDate" prepend=" and ">
+					releaseOrBackDate <![CDATA[<=]]>
+					#endReleaseOrBackDate#
+				</isNotEmpty>
+				<isNotEmpty property="resettlementDate" prepend=" and ">
+					resettlementDate <![CDATA[>=]]>
+					#resettlementDate#
+				</isNotEmpty>
+				<isNotEmpty property="endResettlementDate" prepend=" and ">
+					resettlementDate <![CDATA[<=]]>
+					#endResettlementDate#
+				</isNotEmpty>
+				<isNotEmpty property="crimeDate" prepend=" and ">
+					crimeDate <![CDATA[>=]]>
+					#crimeDate#
+				</isNotEmpty>
+				<isNotEmpty property="endCrimeDate" prepend=" and ">
+					endCrimeDate <![CDATA[<=]]>
+					#endCrimeDate#
+				</isNotEmpty>
+				<isNotNull property="gender.id" prepend=" and ">
+					gender =#gender.id#
+				</isNotNull>
+				<isNotNull property="career.id" prepend=" and ">
+					career =#career.id#
+				</isNotNull>
+				<isNotEmpty property="workUnit" prepend=" and ">
+					workUnit like '$workUnit$%'
+				</isNotEmpty>
+				<isNotEmpty property="province" prepend=" and ">
+					province like '$province$%'
+				</isNotEmpty>
+				<isNotEmpty property="city" prepend=" and ">
+					city like '$city$%'
+				</isNotEmpty>
+				<isNotEmpty property="district" prepend=" and ">
+					district like '$district$%'
+				</isNotEmpty>
+				<isNotEmpty property="nativePlaceAddress" prepend=" and ">
+					nativePlaceAddress like '$nativePlaceAddress$%'
+				</isNotEmpty>
+				<isNotEmpty property="currentlyAddress" prepend=" and ">
+					currentAddress like '$currentlyAddress$%'
+				</isNotEmpty>
+				<isNotEmpty property="birthday" prepend=" and ">
+					birthday <![CDATA[>=]]>
+					#birthday#
+				</isNotEmpty>
+				<isNotEmpty property="endBirthday" prepend=" and ">
+					birthday <![CDATA[<=]]>#endBirthday#
+				</isNotEmpty>
+
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+
+				<isNotNull property="schooling.id" prepend=" and ">
+					schooling = #schooling.id#
+				</isNotNull>
+				<isNotNull property="isRepeat" prepend=" and ">
+					<isEqual property="isRepeat" compareValue="1">
+						isRepeat = #isRepeat#
+					</isEqual>
+				</isNotNull>
+
+				<isNotNull property="householdId" prepend=" and ">
+					householdId like '$householdId$%'
+				</isNotNull>
+				<isNotNull property="nativePlace" prepend=" and ">
+					nativePlace like '$nativePlace$%'
+				</isNotNull>
+
+				<isNotNull property="telephone" prepend=" and ">
+					telephone =#telephone#
+				</isNotNull>
+				<isNotNull property="nativePoliceStation" prepend=" and ">
+					nativePoliceStation like '$nativePoliceStation$%'
+				</isNotNull>
+
+				<isNotNull property="helpEducator" prepend=" and ">
+					helpEducator like '$helpEducator$%'
+				</isNotNull>
+				<isNotEmpty property="educatorTelephone" prepend=" and ">
+					educatorTelephone = #educatorTelephone#
+				</isNotEmpty>
+				<isNotEmpty property="educatorMobileNumber" prepend=" and ">
+					educatorMobileNumber = #educatorMobileNumber#
+				</isNotEmpty>
+				<isNotNull property="isCrime" prepend=" and ">
+					isCrime <![CDATA[=]]>
+					#isCrime#
+				</isNotNull>
+
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="1">
+						isDeath = #isDeath#
+					</isEqual>
+					<isEqual property="isDeath" compareValue="0">
+						(isDeath = #isDeath# or isDeath is null)
+					</isEqual>
+				</isNotNull>
+				<include refid="attentionPopulationBaseInfo.serviceTeamInfoForSearch"/>
+		</dynamic>
+	</sql>
+
+	<select id="countSearchPositiveInfos" parameterClass="SearchPositiveInfosVo" resultClass="int">
+		select count(*) 
+		 from positiveInfos uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		 where 1=1
+		<include refid="query_positiveInfo" />
+	</select>
+	<select id="searchPositiveInfos" parameterClass="SearchPositiveInfosVo" resultMap="mobilePositiveInfoMap">
+		select '$attentionPopulationType$' as populationType,
+		 <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		 ,(select count(1) from positiveinforecord m where m.positiveinfoid=uni.id ) as interviewCount
+		 from positiveInfos uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		 where 1=1
+		<include refid="query_positiveInfo" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findPositiveInfoNameAndPinyinAndOrgInternalCode" parameterClass="java.util.Map" resultMap="positiveInfoResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		 from positiveInfos uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		  where (name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%' ) and uni.orgInternalCode like '$orgInternalCode$%' order by id
+	</select>
+
+	<select id="getCountPositiveInfoByOrgInternalCodeAndMap" parameterClass="java.util.Map" resultClass="int">
+		select count(uni.*)  from positiveInfos uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		 where  uni.orgInternalCode like '$orgInternalCode$%' and uni.isEmphasis =0
+		<dynamic>
+			<isPropertyAvailable property="isResettlementdate">
+				<isNotNull property="isResettlementdate" prepend=" and ">
+					<isEqual property="isResettlementdate" compareValue="1">
+						uni.Resettlementdate is not null
+					</isEqual>
+					<isEqual property="isResettlementdate" compareValue="0">
+						uni.Resettlementdate is null
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isHelped">
+				<isNotNull property="isHelped" prepend=" and ">
+					<isEqual property="isHelped" compareValue="1">
+						uni.id in (select personId from helpPersonnels where personType = 'positiveInfo')
+					</isEqual>
+					<isEqual property="isHelped" compareValue="0">
+						uni.id not in (select personId from helpPersonnels where personType = 'positiveInfo')
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="recidivism">
+				<isNotNull property="recidivism" prepend=" and ">
+					uni.isCrime=#recidivism#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="positiveInfoType">
+				<isNotEmpty property="positiveInfoType" prepend=" and ">
+					uni.positiveInfoType = #positiveInfoType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+		<select id="getPositiveInfoByOrgInternalCodeAndMap" parameterClass="java.util.Map" resultMap="positiveInfoResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		 from positiveInfos uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		  where  uni.orgInternalCode like '$orgInternalCode$%' and uni.isEmphasis =0
+		<dynamic>
+			<isPropertyAvailable property="isResettlementdate">
+				<isNotNull property="isResettlementdate" prepend=" and ">
+					<isEqual property="isResettlementdate" compareValue="1">
+						uni.Resettlementdate is not null
+					</isEqual>
+					<isEqual property="isResettlementdate" compareValue="0">
+						uni.Resettlementdate is null
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isHelped">
+				<isNotNull property="isHelped" prepend=" and ">
+					<isEqual property="isHelped" compareValue="1">
+						uni.id in (select personId from helpPersonnels where personType = 'positiveInfo')
+					</isEqual>
+					<isEqual property="isHelped" compareValue="0">
+						uni.id not in (select personId from helpPersonnels where personType = 'positiveInfo')
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="recidivism">
+				<isNotNull property="recidivism" prepend=" and ">
+					uni.isCrime=#recidivism#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="positiveInfoType">
+				<isNotNull property="positiveInfoType" prepend=" and ">
+					uni.positiveInfoType = #positiveInfoType#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<sql id="fast_query_positiveInfo">
+		<isNotNull property="name" prepend=" and ">
+			(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+		</isNotNull>
+		<isNotNull property="idCardNo" prepend=" and ">
+			upper(idCardNo) like upper(#idCardNo#)||'%'
+		</isNotNull>
+		<isNotNull property="isEmphasis" prepend=" and ">
+			<isEqual property="isEmphasis" compareValue="1">
+				isEmphasis = #isEmphasis#
+			</isEqual>
+			<isEqual property="isEmphasis" compareValue="0">
+				isEmphasis = #isEmphasis#
+			</isEqual>
+		</isNotNull>
+	</sql>
+
+	<select id="countFastSearchPositiveInfo" parameterClass="map" resultClass="int">
+		select count(uni.id)
+		 from positiveInfos uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		  where uni.orgInternalCode like #orgInternalCode#||'%'
+		<include refid="fast_query_positiveInfo" />
+	</select>
+	<select id="searchFastPositiveInfo" parameterClass="map" resultMap="positiveInfoResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		 from positiveInfos uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		  where uni.orgInternalCode like #orgInternalCode#||'%'
+		<include refid="fast_query_positiveInfo" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+</sqlMap>

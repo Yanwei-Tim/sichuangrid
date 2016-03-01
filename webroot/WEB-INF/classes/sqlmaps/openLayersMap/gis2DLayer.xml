@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="gis2DLayer">
+	<typeAlias alias="gis2DLayer" type="com.tianque.openLayersMap.domian.Gis2DLayer" />
+	
+	<resultMap id="simpleResult" class="gis2DLayer">
+		<result property="id" column="id" />
+		<result property="organization.id" column="organization" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="centerX" column="centerX" />
+		<result property="centerY" column="centerY" />
+		<result property="centerX2" column="centerX2" />
+		<result property="centerY2" column="centerY2" />
+		<result property="zoom" column="zoom" />
+	</resultMap>
+
+	<resultMap id="gis2DLayerResult" extends="simpleResult" class="gis2DLayer">
+		<result property="remark" column="remark" />
+		<result property="points" column="points" />
+		<result property="minLon" column="minLon" />
+		<result property="maxLon" column="maxLon" />
+		<result property="minLat" column="minLat" />
+		<result property="maxLat" column="maxLat" />
+		
+		<result property="points2" column="points2" />
+		<result property="minLon2" column="minLon2" />
+		<result property="maxLon2" column="maxLon2" />
+		<result property="minLat2" column="minLat2" />
+		<result property="maxLat2" column="maxLat2" />
+	</resultMap>
+	
+	<resultMap id="orgNameGis2DLayerResult" extends="gis2DLayerResult" class="gis2DLayer" >
+		<result column="orgName" property="orgName" />		
+	</resultMap>
+
+	<sql id="select_lonlat_fields">
+		<isNotEmpty property="gisType">
+			<isEqual property="gisType" compareValue="3D">
+				l.centerX,l.centerY,l.minLon,l.maxLon,l.minLat,l.maxLat,l.points,'' centerX2,'' centerY2,'' minLon2,'' maxLon2,'' minLat2,'' maxLat2,'' points2
+			</isEqual>
+			<isNotEqual property="gisType" compareValue="3D">
+				l.centerX2,l.centerY2,l.minLon2,l.maxLon2,l.minLat2,l.maxLat2,l.points2,'' centerX,'' centerY,'' minLon,'' maxLon,'' minLat,'' maxLat,'' points
+			</isNotEqual>
+		</isNotEmpty>
+		<isEmpty  property="gisType">
+			l.centerX2,l.centerY2,l.minLon2,l.maxLon2,l.minLat2,l.maxLat2,l.points2,l.centerX,l.centerY,l.minLon,l.maxLon,l.minLat,l.maxLat,l.points
+		</isEmpty>
+	</sql>
+	
+	<sql id="sql_screen_where">
+		<isNotNull property="screenVo" prepend="and">
+			<isEqual property="gisType" compareValue="3D">
+					TO_NUMBER(CENTERX) <![CDATA[>=]]>#screenVo.minLon#
+					and TO_NUMBER(CENTERX) <![CDATA[<=]]> #screenVo.maxLon#
+					and TO_NUMBER(CENTERY) <![CDATA[>=]]> #screenVo.minLat#
+					and TO_NUMBER(CENTERY) <![CDATA[<=]]> #screenVo.maxLat#
+			</isEqual>
+			<isNotEqual property="gisType" compareValue="3D">
+					TO_NUMBER(CENTERX2) <![CDATA[>=]]>#screenVo.minLon#
+					and TO_NUMBER(CENTERX2) <![CDATA[<=]]> #screenVo.maxLon#
+					and TO_NUMBER(CENTERY2) <![CDATA[>=]]> #screenVo.minLat#
+					and TO_NUMBER(CENTERY2) <![CDATA[<=]]> #screenVo.maxLat#
+			</isNotEqual>
+		</isNotNull>
+	</sql>
+					
+	
+	<insert id="addGis2DLayer" parameterClass="gis2DLayer">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[select s_gis2DLayers.NEXTVAL as id from dual]]>
+		</selectKey>
+		insert into gis2DLayers
+		(id,organization,orgInternalCode,centerX,centerY,zoom,remark,points,createUser,createDate,minLon,maxLon,minLat,maxLat
+		,centerX2,centerY2,points2,minLon2,maxLon2,minLat2,maxLat2)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#centerX#,#centerY#,#zoom#,#remark#,#points#,#createUser#,#createDate#,#minLon#,#maxLon#,#minLat#,#maxLat#
+		,#centerX2#,#centerY2#,#points2#,#minLon2#,#maxLon2#,#minLat2#,#maxLat2#)
+	</insert>
+
+	<update id="updateGis2DLayer" parameterClass="gis2DLayer">
+		update gis2DLayers set
+		<dynamic>
+			id = #id#
+			<isNotNull prepend="," property="updateDate">
+				updateUser = #updateUser#,updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="zoom">
+				zoom = #zoom#
+			</isNotNull>
+			<isNotEmpty prepend="," property="remark">
+				remark = #remark#
+			</isNotEmpty>
+			<isNotNull prepend="," property="centerX">
+				centerX = #centerX#,centerY = #centerY#
+			</isNotNull>
+			<isNotNull prepend="," property="centerX2">
+				centerX2 = #centerX2#,centerY2 = #centerY2#
+			</isNotNull>
+			<isNotEmpty prepend="," property="points">
+				points = #points#,minLon=#minLon#,maxLon=#maxLon#,minLat=#minLat#,maxLat=#maxLat#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="points2">
+				points2 = #points2#,minLon2=#minLon2#,maxLon2=#maxLon2#,minLat2=#minLat2#,maxLat2=#maxLat2#
+			</isNotEmpty>
+		</dynamic>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteByOrgCode" parameterClass="java.lang.String">
+		delete gis2DLayers where orgInternalCode like '$orgInternalCode$%' 
+	</delete>
+	<delete id="deleteByOrgId" parameterClass="java.lang.Long">
+		delete gis2DLayers where organization = #value#
+	</delete>
+	<delete id="deleteById" parameterClass="java.lang.Long">
+		delete gis2DLayers where id = #value#
+	</delete>
+
+	<select id="getByOrgId" parameterClass="java.util.Map" resultMap="gis2DLayerResult">
+		select l.id,l.organization,l.orgInternalCode,l.zoom,l.remark,<include refid="select_lonlat_fields"/>
+		from gis2DLayers l where organization = #orgId#
+	</select>
+
+	<select id="getById" parameterClass="java.util.Map" resultMap="gis2DLayerResult">
+		select l.id,l.organization,l.orgInternalCode,l.zoom,l.remark,<include refid="select_lonlat_fields"/>
+		from gis2DLayers l where id = #id#
+	</select>
+
+	<select id="findByCenterPointAndZoom" parameterClass="java.util.Map" resultMap="simpleResult">
+		select id,organization,orgInternalCode,centerX,centerY,centerX2,centerY2,zoom from gis2DLayers l where zoom = #zoom#
+		<isNotEmpty prepend="and" property="centerX">
+			<isEqual property="gisType" compareValue="3D">
+				TO_NUMBER(#centerX#) <![CDATA[>=]]>minLon
+				and TO_NUMBER(#centerX#) <![CDATA[<=]]>maxLon
+				and TO_NUMBER(#centerY#) <![CDATA[>=]]>minLat
+				and TO_NUMBER(#centerY#) <![CDATA[<=]]>maxLat
+			</isEqual>
+			<isNotEqual property="gisType" compareValue="3D">
+				TO_NUMBER(#centerX#) <![CDATA[>=]]>minLon2
+				and TO_NUMBER(#centerX#) <![CDATA[<=]]>maxLon2
+				and TO_NUMBER(#centerY#) <![CDATA[>=]]>minLat2
+				and TO_NUMBER(#centerY#) <![CDATA[<=]]>maxLat2
+			</isNotEqual>
+		</isNotEmpty>
+	</select>
+
+	<select id="findBySearchVo" parameterClass="java.util.Map" resultMap="orgNameGis2DLayerResult">
+		select '' as orgName,l.id,l.organization,l.orgInternalCode,l.zoom,l.remark,<include refid="select_lonlat_fields"/> 
+		 from gis2dlayers l where 1=1
+		 <isNotNull property="searchVo.orgIdsList">
+			 <iterate property="searchVo.orgIdsList" prepend="and" conjunction="or" open="(" close=")">
+				l.organization in ($searchVo.orgIdsList[]$)
+			</iterate>
+		 </isNotNull>
+		<include refid="sql_screen_where" />
+	</select>
+
+	<select id="countBySearchVo" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) from gis2dlayers l where 1=1
+		<isNotNull property="searchVo.orgIdsList">
+			 <iterate property="searchVo.orgIdsList" prepend="and" conjunction="or" open="(" close=")">
+				l.organization in ($searchVo.orgIdsList[]$)
+			</iterate>
+		 </isNotNull>
+		<include refid="sql_screen_where" />
+	</select>
+	
+	<select id="countByOrgCodeAndOrgLevel" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) from gis2dlayers l where 1=1
+		<isNotNull property="orgIdsList" >
+			<iterate property="orgIdsList" prepend="and" conjunction="or" open="(" close=")">
+				l.organization in ($orgIdsList[]$)
+			</iterate>
+		</isNotNull>
+	</select>
+
+	<select id="findUndersByOrgIdAndScreenVo" parameterClass="java.util.Map" resultMap="gis2DLayerResult">
+		select l.id,l.organization,l.orgInternalCode,l.zoom,l.remark,<include refid="select_lonlat_fields"/>
+		 from gis2dlayers l  where 1=1
+		 <isNotNull property="orgIdsList" >
+			 <iterate property="orgIdsList" prepend="and" conjunction="or" open="(" close=")">
+				l.organization in ($orgIdsList[]$)
+			</iterate>
+		</isNotNull>
+		<include refid="sql_screen_where" />
+	</select>
+
+	<select id="findByOrgCode" parameterClass="java.util.Map" resultMap="gis2DLayerResult">
+		select l.id,l.organization,l.orgInternalCode,l.zoom,l.remark,<include refid="select_lonlat_fields"/>
+		 from gis2dlayers l where l.orginternalcode like '$orgInternalCode$%'
+	</select>
+</sqlMap>

@@ -1,0 +1,246 @@
+package com.tianque.plugin.tqSearch.sqlMap;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import com.tianque.baseInfo.actualHouse.domain.HouseInfo;
+import com.tianque.baseInfo.buildDatas.domain.Builddatas;
+import com.tianque.baseInfo.buildDatas.domain.OpenLayersMapInfo;
+import com.tianque.baseInfo.buildDatas.service.BuilddatasService;
+import com.tianque.core.util.SpringBeanUtil;
+import com.tianque.core.util.StringUtil;
+import com.tianque.domain.HouseHasActualPopulation;
+import com.tianque.plugin.tqSearch.constants.TqSearchType;
+import com.tianque.plugin.tqSearch.constants.TqSearchUtil;
+import com.tianque.publicSecurity.domain.Bayonet;
+import com.tianque.publicSecurity.domain.Skynet;
+import com.tianque.publicSecurity.domain.SnapshotSystem;
+import com.tianque.service.HouseInfoService;
+
+public class UpdateSqlMap {
+	/**公共绑定接口*/
+	public final static String COMMON_BIND_KEY="commonTwoDimensionMapManage.updateDomainByTableName";
+	/**人房关系*/
+	public final static String HOUSE_POPULATION_KEY = "housePopulation";
+	/**解除业务人员与人口的关系*/
+	public final static String POPULATION_TYPE_KEY = "POPULATIONTYPE";
+	public final static String HOUSEINFO_KEY = "HOUSEINFO";
+	public final static String BUILDING_KEY="BUILDDATAS";
+	public final static String POPULATION_KEY = "populationSearch";
+	public final static String HOUSEHOLDSTAFF_KEY = "HOUSEHOLDSTAFF";
+	public final static String FLOATINGPOPULATION_KEY = "FLOATINGPOPULATION";
+	public final static String UNSETTLEDPOPULATION_KEY = "UNSETTLEDPOPULATION";
+	public final static String OVERSEAPERSONNEL_KEY = "OVERSEASTAFF";
+	public final static String ISSUE_KEY = "ISSUES";
+	public final static String DUSTBIN_KEY = "DUSTBIN";
+	public final static String SKYNET_KEY = "SKYNET";
+	public final static String BAYONET_KEY = "BAYONET";
+	public final static String SNAPSHOTSYSTEM_KEY = "SNAPSHOTSYSTEM";
+	public final static String KEYPLACE_KEY = "KEYPLACES";
+	public final static String VIDEOSYSTEM_KEY = "VIDEOSYSTEM";
+	/**
+	 * Map<key,value>
+	 * key：统一搜索DBD存储字段名
+	 * value：社管系统对象字段名
+	 * 操作说明：
+	 *		为Map中的value赋值，	在统一搜索中根据Map<key,value> 实现更新
+	 */
+	public static Map<String,String> lonlatMap = new HashMap<String,String>();
+	static{
+		lonlatMap.put("lon", "lon");
+		lonlatMap.put("lat", "lat");
+		lonlatMap.put("lon2", "lon2");
+		lonlatMap.put("lat2", "lat2");
+	}
+	public static Map<String,String> populationTypeMap = new HashMap<String,String>();
+	static{
+		populationTypeMap.put("queryField", "populationTypes");
+		populationTypeMap.put("queryValue", "queryValue");
+	}
+	public static Map<String,String> publicSecurityIndexMap = new HashMap<String,String>();
+	static{
+		publicSecurityIndexMap.put("keyId","id");
+		publicSecurityIndexMap.put("moduleType","type");
+		publicSecurityIndexMap.putAll(lonlatMap);
+	}
+	public static Map<String,String> builddataIndexMap = new HashMap<String, String>();
+	static{
+		builddataIndexMap.put("keyId", "id");
+		builddataIndexMap.putAll(lonlatMap);
+	}
+	public static Map<String,String> houseinfoIndexMap = new HashMap<String, String>();
+	static{
+		houseinfoIndexMap.put("keyId", "id");
+		houseinfoIndexMap.put("builddatasId", "builddatasId");
+		houseinfoIndexMap.putAll(lonlatMap);
+	}
+	public static Map<String,String> issueIndexMap = new HashMap<String, String>();
+	static{
+		issueIndexMap.put("keyId", "id");
+		issueIndexMap.putAll(lonlatMap);
+	}
+	
+	public static Map<String,String> keyPlaceIndexMap = new HashMap<String, String>();
+	static{
+		keyPlaceIndexMap.put("keyId", "id");
+		keyPlaceIndexMap.put("classificationen", "classificationen");
+		keyPlaceIndexMap.putAll(lonlatMap);
+	}
+	public static Map<String,String> dustbinIndexMap = new HashMap<String, String>();
+	static{
+		dustbinIndexMap.put("keyId", "id");
+		dustbinIndexMap.putAll(lonlatMap);
+	}
+	public static Map<String,String> householdStaffIndexMap = new HashMap<String, String>();
+	static{
+		householdStaffIndexMap.put("keyId", "id");
+		householdStaffIndexMap.put("dataType", "householdStaff");
+		householdStaffIndexMap.put("houseId", "houseId");
+		householdStaffIndexMap.put("address", "address");
+		householdStaffIndexMap.put("builddatasId", "builddatasId");
+		householdStaffIndexMap.putAll(lonlatMap);
+	}
+	public static Map<String,String> floatingPopulationIndexMap = new HashMap<String, String>();
+	static{
+		floatingPopulationIndexMap.putAll(householdStaffIndexMap);
+		floatingPopulationIndexMap.put("dataType", "floatingPopulation");
+	}
+	public static Map<String,String> unsettledPopulationIndexMap = new HashMap<String, String>();
+	static{
+		unsettledPopulationIndexMap.putAll(householdStaffIndexMap);
+		unsettledPopulationIndexMap.put("dataType", "unsettledPopulation");
+	}
+	public static Map<String,String> overseaStaffIndexMap = new HashMap<String, String>();
+	static{
+		overseaStaffIndexMap.putAll(householdStaffIndexMap);
+		overseaStaffIndexMap.put("dataType", "overseaStaff");
+	}
+	
+	public static Map<String,String> getSql(SolrSqlMap sqlMap,Object searchVo){
+		Map<String,String> result = new HashMap<String, String>();
+		Map dataMap = formatSearchVo(searchVo,sqlMap);
+		Map<String,String> indexMap = sqlMap.getFormatMap();
+		OpenLayersMapInfo mapInfo = (OpenLayersMapInfo) dataMap.get("openLayersMapInfo");
+		if(mapInfo!=null && dataMap.get(indexMap.get("LON"))==null ){
+			dataMap.put("lon", mapInfo.getCenterLon());
+			dataMap.put("lat", mapInfo.getCenterLat());
+			dataMap.put("lon2", mapInfo.getCenterLon2());
+			dataMap.put("lat2", mapInfo.getCenterLat2());
+		}
+		for (Iterator<Entry<String, String>>  it = indexMap.entrySet().iterator();it.hasNext(); ) {
+			Entry<String, String> entry = it.next();
+			String indexMapKey = entry.getKey();
+			String dataMapKey = entry.getValue();
+			Object value = dataMapKey;
+			if(dataMap.containsKey(dataMapKey)){
+				value = dataMap.get(dataMapKey);
+			}
+			if(lonlatMap.containsKey(indexMapKey) && (!StringUtil.isStringAvaliable((String)value) || dataMapKey.equals(value))){
+				value = 0;
+			}
+			result.put(indexMapKey, value!=null?value+"":null);
+		}
+		return result;
+	}
+	
+	private static Map formatSearchVo(Object data,SolrSqlMap sqlMap){
+		Object[] datas = (data instanceof Object[])?(Object[])data:new Object[]{data};
+		Object searchVo = datas[0];
+		Map result = (searchVo instanceof Map)?(Map) searchVo:TqSearchUtil.toMap(searchVo);
+		if(TqSearchType.PLACE_KEY.equals(sqlMap.getSearchType())){
+			formatKeyPlaceSql(datas,result);
+		}else if(TqSearchType.HOUSE_KEY.equals(sqlMap.getSearchType())){
+			formatHouseInfoSql(datas,result);
+		}else if(TqSearchType.HOUSEHOLDSTAFF.equalsIgnoreCase(sqlMap.getKey())
+				|| TqSearchType.FLOATINGPOPULATION.equalsIgnoreCase(sqlMap.getKey())
+				|| TqSearchType.UNSETTLEDPOPULATION.equalsIgnoreCase(sqlMap.getKey())
+				|| TqSearchType.OVERSEAPERSONNEL.equalsIgnoreCase(sqlMap.getKey())){
+			formatPopulationSql(datas,result);
+		}else if(UpdateSqlMap.POPULATION_TYPE_KEY.equals(sqlMap.getKey())){
+			result.put("queryValue", datas[1] +"-"+datas[0]+"@");
+		}else{
+			if(searchVo instanceof Skynet){
+				result.put("type", "SKYNET");
+			}else if(searchVo instanceof Bayonet){
+				result.put("type", "BAYONET");
+			}else if(searchVo instanceof SnapshotSystem){
+				result.put("type", "SNAPSHOTSYSTEM");
+			}
+		}
+		if(result.get("centerLon")!=null && result.get("centerLat")!=null){
+			result.put("openLayersMapInfo", new OpenLayersMapInfo(
+					result.get("centerLon")+"", result.get("centerLat")+"", result.get("centerLon2")+"", result.get("centerLat2")+""));
+		}
+		return result;
+	}
+	
+	private static void formatKeyPlaceSql(Object[] data,Map parameterMap){
+		if(parameterMap.get("allType")!=null){
+			List<String> types = (List) parameterMap.get("allType");
+			StringBuffer typeSb = new StringBuffer();
+			for (String type : types) {
+				typeSb.append((typeSb.length()>0)?" OR classificationen:" : "");
+				typeSb.append(type);
+			}
+			parameterMap.put("classificationen", typeSb.toString());
+		}else if(parameterMap.get("type")!=null){
+			parameterMap.put("classificationen", parameterMap.get("type"));
+		}
+	}
+	private static void formatHouseInfoSql(Object[] data,Map<String,Object> result){
+		List<Long> idList = (List<Long>) data[0];
+	 	Long builddatasId = (Long) data[1];
+	 	StringBuffer idSb = new StringBuffer();
+	 	Builddatas builddatas = null;
+		for (Long id:idList) {
+			idSb.append(idSb.length()>0?" OR keyId:":"");
+			idSb.append(id);
+		}
+		if(builddatasId!=null){
+			BuilddatasService builddatasService = (BuilddatasService) SpringBeanUtil.getBeanFromSpringByBeanName("builddatasService");
+			builddatas = builddatasService.getBuilddatasById(builddatasId);
+		}
+		builddatas = (builddatas==null)?new Builddatas():builddatas;
+		OpenLayersMapInfo mapInfo = builddatas.getOpenLayersMapInfo();
+		result.put("openLayersMapInfo", mapInfo);
+		result.put("id", idSb.toString());
+		result.put("builddatasId", builddatasId);
+	}
+	private static void formatPopulationSql(Object[] data,Map<String,Object> result){
+		HouseInfoService houseInfoService = (HouseInfoService) SpringBeanUtil.getBeanFromSpringByBeanName("houseInfoService");
+		BuilddatasService builddatasService = (BuilddatasService) SpringBeanUtil.getBeanFromSpringByBeanName("builddatasService");
+		Long houseId = (Long) result.get("houseId");
+		Boolean isHasHouse = (Boolean)result.get("isHaveHouse");
+		if(isHasHouse!=null && isHasHouse==false){
+			result.put("address", "");
+			result.put("houseId", null);
+			result.put("builddatasId", null);
+		}else if(houseId!=null){
+			Builddatas builddatas = null;
+			HouseInfo houseInfo = houseInfoService.getSimpleHouseInfoById(houseId);
+			if(houseInfo!=null && houseInfo.getBuilddatasId()!=null){
+				builddatas = builddatasService.getBuilddatasById(houseInfo.getBuilddatasId());
+			}
+			builddatas = (builddatas==null)?new Builddatas():builddatas;
+			OpenLayersMapInfo mapInfo = builddatas.getOpenLayersMapInfo();
+			result.put("openLayersMapInfo", mapInfo);
+			result.put("address", houseInfo.getAddress());
+			result.put("builddatasId", builddatas.getId());
+		}
+		if(data[0] instanceof HouseHasActualPopulation){
+			result.put("id", result.get("populationId"));
+		}else if(data.length==3 && data[0] instanceof String){//在房屋模块住房管理中，删除人房关系
+			result.put("id", data[2]);
+			result.put("houseId", null);
+			result.put("builddatasId", null);
+			result.put("address", "");
+		}else if(isHasHouse == null){
+			result.put("houseId", null);
+			result.put("builddatasId", null);
+			result.put("address", "");
+		}
+	}
+}

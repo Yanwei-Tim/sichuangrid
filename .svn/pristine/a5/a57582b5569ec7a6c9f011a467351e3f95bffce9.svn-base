@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="serviceListCommon" >
+  <resultMap id="serviceListCommonResult2" class="com.tianque.serviceList.domain.ServiceListCommon" >
+    <result column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="INPUTTIME" property="inputTime"/>
+    <result column="ADDRESS" property="address" jdbcType="VARCHAR" />
+    <result column="DETAILS" property="details" jdbcType="VARCHAR" />
+    <result column="REMAKE" property="remake" jdbcType="VARCHAR" />
+    <result column="ISSIGN" property="isSign" jdbcType="DECIMAL" />
+    <result column="ISREPLY" property="isReply" jdbcType="DECIMAL" />
+    <result column="SIGNDATE" property="signDate"/>
+    <result column="TELEPHONE" property="telephone"/>
+    <result column="ORGID" property="organization.id" jdbcType="DECIMAL" />
+    <result column="ORGINTERNALCODE" property="organization.orgInternalCode" jdbcType="VARCHAR" />
+    <result column="SIGNPEOPLE" property="signPeople" jdbcType="VARCHAR" />
+    <result column="SIGNCONTENT" property="signContent" jdbcType="VARCHAR" />
+    <result column="CREATEDATE" property="createDate"/>
+    <result column="CREATEUSER" property="createUser" jdbcType="VARCHAR" />
+    <result column="UPDATEDATE" property="updateDate"/>
+    <result column="UPDATEUSER" property="updateUser" jdbcType="VARCHAR" />
+  </resultMap>
+
+  <resultMap id="serviceListCommonResult" class="com.tianque.serviceList.domain.ServiceListCommon" extends="serviceListCommonResult2" >
+    <result column="CATEGORY" property="category.id" jdbcType="DECIMAL" />
+  </resultMap>
+  
+  <typeAlias alias="serviceListReport" type="com.tianque.serviceList.domain.ServiceListReport" />
+  	
+  	<resultMap id="serviceListResult" class="serviceListReport">
+	  <result column="id" property="id"/>
+	  <result column="orgname" property="orgname" />
+	  <result column="policyPropagandaSum" property="policyPropagandaSum" />
+	  <result column="foodSaftySum" property="foodSaftySum" />
+	  <result column="drugsSaftySum" property="drugsSaftySum" />
+	  <result column="businessManageSum" property="businessManageSum" />
+	  <result column="pyramidSalesManageSum" property="pyramidSalesManageSum" />
+	  <result column="unlicensedManageSum" property="unlicensedManageSum" />
+	  <result column="otherSituationManageSum" property="otherSituationManageSum" />
+	  
+	  <result column="policyPropagandaVisit" property="policyPropagandaVisit" />
+	  <result column="foodSaftyVisit" property="foodSaftyVisit" />
+	  <result column="drugsSaftyVisit" property="drugsSaftyVisit" />
+	  <result column="businessManageVisit" property="businessManageVisit" />
+	  <result column="pyramidSalesManageVisit" property="pyramidSalesManageVisit" />
+	  <result column="unlicensedManageVisit" property="unlicensedManageVisit" />
+	  <result column="otherSituationManageVisit" property="otherSituationManageVisit" />
+	  
+<!-- 	  <result column="policyPropagandaReply" property="policyPropagandaReply" /> -->
+<!-- 	  <result column="foodSaftyReply" property="foodSaftyReply" /> -->
+<!-- 	  <result column="drugsSaftyReply" property="drugsSaftyReply" /> -->
+<!-- 	  <result column="businessManageReply" property="businessManageReply" /> -->
+<!-- 	  <result column="pyramidSalesManageReply" property="pyramidSalesManageReply" /> -->
+<!-- 	  <result column="unlicensedManageReply" property="unlicensedManageReply" /> -->
+<!-- 	  <result column="otherSituationManageReply" property="otherSituationManageReply" /> -->
+	  
+	</resultMap>
+  
+  <sql id="sql_where">
+		<dynamic prepend="WHERE">
+			<isNotEmpty  property="organization.orgInternalCode" prepend="and">
+ 				ORGINTERNALCODE like #organization.orgInternalCode#||'%'
+			</isNotEmpty>
+ 			<isNotEmpty  property="inputTime" prepend="and">
+ 				INPUTTIME = #inputTime#
+			</isNotEmpty>
+			<isNotEmpty  property="address" prepend="and">
+ 				ADDRESS like '%'||#address#||'%'
+			</isNotEmpty>
+			<isNotEmpty  property="category.id" prepend="and">
+ 				CATEGORY = #category.id#
+			</isNotEmpty>
+			<isNotEmpty  property="isSign" prepend="and">
+ 				isSign = #isSign#
+			</isNotEmpty>
+			<isNotEmpty  property="isReply" prepend="and">
+ 				isReply = #isReply#
+			</isNotEmpty>
+		</dynamic>
+   </sql>
+   
+   <sql id="order_by">
+   		<isNotEmpty  property="sortField" prepend=" order by ">
+   			$sortField$
+		</isNotEmpty>
+		<isNotEmpty property="order" prepend=" ">
+			$order$
+		</isNotEmpty>
+   </sql>
+   
+   <sql id="sql_date">
+		<isPropertyAvailable property="startDate">
+			  <isNotNull property="startDate">
+			  	and createDate>=#startDate#
+			  </isNotNull>
+		</isPropertyAvailable>
+		and createDate <![CDATA[<=]]> #endDate# 
+	</sql>
+	
+	<sql id="sql_input_date">
+		<isPropertyAvailable property="startDate">
+			  <isNotNull property="startDate">
+			  	and inputTime>=#startDate#
+			  </isNotNull>
+		</isPropertyAvailable>
+		and inputTime <![CDATA[<=]]> #endDate# 
+	</sql>
+	
+	<select id="getServieSumAndVisitByOrgId" resultMap="serviceListResult" parameterClass="map">
+	select org.orgname,org.id ,
+(select count(1)  from PolicyPropaganda   r where r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_input_date" /> ) policyPropagandaSum,
+(select count(1)  from foodsafty  r where r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_input_date" /> ) foodSaftySum,
+(select count(1)  from drugssafty  r where r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_input_date" /> ) drugsSaftySum,
+(select count(1)  from Businessmanage m where m.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_input_date" /> ) businessManageSum,
+(select count(1)  from pyramidsalesmanage d where d.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_input_date" />) pyramidSalesManageSum,
+(select count(1)  from unlicensedmanage d where d.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_input_date" />) unlicensedManageSum,
+(select count(1)  from othersituationmanage d where d.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_input_date" />) otherSituationManageSum,
+
+(select nvl(count(distinct r.id),0) from PolicyPropaganda r where r.isSign=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_input_date" />) policyPropagandaVisit,
+(select nvl(count(distinct r.id),0) from foodsafty  r where r.isSign=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_input_date" />) foodSaftyVisit,
+(select nvl(count(distinct r.id),0) from drugssafty  r where r.isSign=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_input_date" />) drugsSaftyVisit,
+(select nvl(count(distinct r.id),0) from Businessmanage r where r.isSign=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_input_date" />) businessManageVisit,
+(select nvl(count(distinct r.id),0) from pyramidsalesmanage r where r.isSign=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_input_date" />) pyramidSalesManageVisit,
+(select nvl(count(distinct r.id),0) from unlicensedmanage r where r.isSign=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_input_date" />) unlicensedManageVisit,
+(select nvl(count(distinct r.id),0) from othersituationmanage r where r.isSign=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_input_date" />) otherSituationManageVisit
+
+
+ from organizations org where org.Orgtype=#orgType# 
+        <dynamic >
+			<isPropertyAvailable property="parentOrgId">
+				<isNotEmpty property="parentOrgId" prepend=" and ">
+					org.PARENTID=#parentOrgId#
+				</isNotEmpty>
+				<isNotEmpty property="parentOrgId" prepend=" or ">
+					org.ID=#parentOrgId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+		order by org.seq
+	</select>
+</sqlMap>

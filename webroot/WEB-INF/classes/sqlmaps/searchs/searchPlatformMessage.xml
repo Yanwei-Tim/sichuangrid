@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="searchPlatformMessage">
+	<typeAlias alias="SearchPlatformMessageVo" type="com.tianque.platformMessage.domain.SearchPlatformMessageVo"/>
+	<!-- 发件箱查询条件 -->
+	<sql id="outbox_sql_where">
+		from outboxPlatformMessages pm
+		<dynamic prepend="where">
+			<isPropertyAvailable property="sendUserId" >
+				<isNotEmpty property="sendUserId" prepend=" and ">
+					pm.senderId = #sendUserId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+            <isPropertyAvailable property="title" >
+                <isNotEmpty property="title" prepend=" and ">
+                  (  pm.title like #title#||'%' or pm.fullpinyin like #title# || '%' or pm.simplepinyin like #title# || '%')
+                </isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="isDraft" >
+                <isNotEmpty property="isDraft" prepend=" and ">
+                    pm.isDraft=#isDraft#
+                </isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="content">
+				<isNotEmpty property="content" prepend=" and ">
+					pm.content like #content#||'%'
+	            </isNotEmpty>
+			</isPropertyAvailable>
+            <isPropertyAvailable property="fastSearchCondition">
+				<isNotEmpty property="fastSearchCondition" prepend=" and ">
+					( pm.title like #fastSearchCondition#||'%' or pm.fullpinyin like #fastSearchCondition# || '%' or pm.simplepinyin like #fastSearchCondition# || '%' or pm.content like #fastSearchCondition#||'%' )
+	            </isNotEmpty>
+			</isPropertyAvailable>
+            <isPropertyAvailable property="sendTimeStart" >
+                <isNotNull property="sendTimeStart" prepend=" and ">
+                    <![CDATA[pm.SendDate >= #sendTimeStart#]]>
+                </isNotNull>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="sendTimeEnd" >
+                <isNotNull property="sendTimeEnd" prepend=" and ">
+                    <![CDATA[pm.SendDate <= #sendTimeEnd#]]>
+                </isNotNull>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="receiverNames" >
+                <isNotEmpty property="receiverNames" prepend=" and ">
+                   pm.receiverNames like #receiverNames#||'%'
+                </isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="hasAttach" >
+                <isNotNull property="hasAttach" prepend=" and ">
+                    <isEqual compareValue="1" property="hasAttach">
+                    	pm.id in (select pmId from platformmessagesattachfiles where attachType = 1 and userId = #sendUserId# )
+                    </isEqual>
+                    <isEqual compareValue="0" property="hasAttach">
+                    	pm.id not in (select pmId from platformmessagesattachfiles where attachType = 1 and userId = #sendUserId# )
+                    </isEqual>
+                </isNotNull>
+            </isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="countSearchOutboxPlatformMessage" parameterClass="SearchPlatformMessageVo" resultClass="int">
+		select count(pm.id)
+		<include refid="outbox_sql_where"/>
+	</select>
+	
+	<select id="searchOutboxPlatformMessage" parameterClass="SearchPlatformMessageVo"  resultMap="platformMessage.platformMessageResult">
+		select pm.* 
+		<include refid="outbox_sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<sql id="readStateCondition">
+		
+		(	select pmId from userhasplatformmessages 
+			where userId = #userId# 
+			and  deleteState = 0 and readState = 1
+		)
+	</sql>
+	
+	
+</sqlMap>

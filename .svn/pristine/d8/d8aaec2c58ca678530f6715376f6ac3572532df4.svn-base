@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="helpPrecord" extends="default" namespace="/baseinfo/helpPrecord">
+		<default-class-ref class="helpPrecordController"></default-class-ref>
+		<action name="findHelpPrecord" method="findHelpPrecord">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="addHelpPrecord" method="addHelpPrecord">
+			<result type="json">
+				<param name="root">helpPrecord</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateHelpPrecord" method="updateHelpPrecord">
+			<result type="json">
+				<param name="root">helpPrecord</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+			<action name="deleteHelpPrecordById" method="deleteHelpPrecordById">
+			<result type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="dispatch"  method="dispatch">
+			<result name="help">
+				/baseinfo/helpPersonnel/maintainHelpPrecord.jsp
+			</result>
+			<result name="supervise">
+				/baseinfo/helpPersonnel/maintainSupervisePrecord.jsp
+			</result>
+			<result name="ward">
+				/baseinfo/helpPersonnel/maintainWardPrecord.jsp
+			</result>
+			<result name="management">
+				/baseinfo/helpPersonnel/maintainManagementPrecord.jsp
+			</result>
+				<result name="superiorHelp">
+				/baseinfo/helpPersonnel/superior/maintainHelpPrecord.jsp
+			</result>
+			<result name="poorpopleHelp">
+				/baseinfo/helpPersonnel/poorPeople/maintainHelpPrecord.jsp
+			</result>
+			<result name="dangerousPeopleHelp">
+				/baseinfo/helpPersonnel/dangerousPeople/maintainHelpPrecord.jsp
+			</result>
+			<result name="elderlyPeopleHelp">
+				/baseinfo/helpPersonnel/elderlyPeople/maintainSupervisePrecord.jsp
+			</result>
+			<result name="handicappedHelp">
+				/baseinfo/helpPersonnel/handicapped/managementGuardianPrecord.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+	</package>
+</struts>

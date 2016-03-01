@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="migrationIssueData">
+	<typeAlias alias="IssueMigrationVo" type="com.tianque.issue.migrateData.IssueMigrationVo" />
+	<typeAlias alias="IssueHasType" type="com.tianque.issue.migrateData.IssueHasType" />
+	<typeAlias alias="IssueAreaStat" type="com.tianque.statAnalyse.issueManage.listManage.domain.IssueAreaStat"/>
+	
+	<resultMap class="IssueMigrationVo" id="haveEmergencylevelResult">
+		<result property="issueStepId" column="id"/>
+		<result property="emergencyLevel" column="emergencyLevel"/>
+	</resultMap>
+	
+	<resultMap class="IssueHasType" id="issueHasTypeResult">
+		<result property="issueId" column="issueId"/>
+		<result property="issueTypeId" column="issueTypeId"/>
+		<result property="issuetypedomainId" column="issuetypedomainId"/>
+	</resultMap>
+	
+	<resultMap class="IssueAreaStat" id="issueAreaStatPromptlyMap">
+		<result property="addIssueSum" column="addIssueSum"/>
+		<result property="submitIssueSum" column="submitIssueSum"/>
+		<result property="assignIssueSum" column="assignIssueSum"/>
+		<result property="doingIssueSum" column="doingIssueSum"/>
+		<result property="doneIssueSum" column="doneIssueSum"/>
+		<result property="issueSum" column="issueSum"/>
+		<result property="extendedDoingSum" column="extendedDoingSum"/>
+		<result property="extendedDoneSum" column="extendedDoneSum"/>
+	</resultMap>
+	
+	<resultMap class="IssueAreaStat" id="issueAreaStatTypeMap">
+		<result property="contradictionSum" column="contradictionSum"/>
+		<result property="resolveTheContradictionSum" column="resolveTheContradictionSum"/>
+		<result property="securityPrecautionSum" column="securityPrecautionSum"/>
+		<result property="specialPopulationSum" column="specialPopulationSum"/>
+		<result property="socialConditionSum" column="socialConditionSum"/>
+		<result property="policiesAndLawSum" column="policiesAndLawSum"/>
+		<result property="emergencieSum" column="emergencieSum"/>
+		<result property="otherManageSum" column="otherManageSum"/>
+	</resultMap>
+	
+	<resultMap class="IssueAreaStat" id="issueStepStatMap">
+		<result property="resolveGeneralSum" column="resolveGeneralSum"/>
+		<result property="resolveSkipSum" column="resolveSkipSum"/>
+		<result property="securityGeneralSum" column="securityGeneralSum"/>
+		<result property="securitySkipSum" column="securitySkipSum"/>
+		<result property="emergencieGeneralSum" column="emergencieGeneralSum"/>
+		<result property="emergencieSkipSum" column="emergencieSkipSum"/>
+		<result property="otherManageGeneralSum" column="otherManageGeneralSum"/>
+		<result property="otherManageSkipSum" column="otherManageSkipSum"/>
+	</resultMap>
+
+	<select id="getHaveEmergencyLevelData" resultMap="haveEmergencylevelResult">
+		select step.id,iu.emergencylevel from issues iu,issueSteps step where iu.id=step.issue and iu.createorg=step.target and iu.createdate=step.createdate and iu.emergencylevel
+		is not null
+	</select>
+	
+	<update id="updateIssuestepEmergencyLevel" parameterClass="IssueMigrationVo">
+		update issueSteps set emergencylevel=#emergencyLevel# where id=#issueStepId#
+	</update>
+	
+	<select id="getIssueIdsFromIssuehastypeByDomainid" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		 select distinct issueid from issuehastypes m where  m.issuetypedomainid in (#contradictionDomainId#,#securitytroubleDomainId#) and
+ 		 m.issueid in (select id from issues i where 
+ 		 i.createdate<![CDATA[<=]]>to_date('2013-11-11 5:02:08','yyyy-MM-dd HH24:mi:ss') ) order by issueid 
+	</select>
+	
+	
+	<select id="getIssueHasTypeByIssueId" parameterClass="java.lang.Long" resultMap="issueHasTypeResult">
+		 select * from issuehastypes where issueid=#value# order by issuetypeid
+	</select>
+	
+	<delete id="deleteIssueHasTypeByIssueId" parameterClass="java.lang.Long">
+		delete from issuehastypes where issueid=#value# 
+	</delete>
+	
+	<insert id="addIssuehastypes" parameterClass="IssueHasType">
+		 INSERT INTO issuehastypes(ISSUEID,ISSUETYPEID,ISSUETYPEDOMAINID) 
+		 VALUES(#issueId#,#issueTypeId#,#issuetypedomainId#)
+	</insert>
+
+	<!-- 事件统计报表报表 -->
+	<insert id="addIssueHandleStat" parameterClass="IssueAreaStat">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_issuehandleStat.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into issuehandleStat
+		(   
+			id,year,month,orgid,parentorgid,orginternalcode,orglevel,funorgtype,addissuesum,submitIssueSum,assignIssueSum,doingissuesum,
+			doneissuesum,issuesum,completionrate,extendeddoingsum,extendeddonesum,extendedrate,createdate,createuser
+		)
+		values
+		(
+			#id#,to_char(#findBackDate#, 'yyyy'),to_char(#findBackDate#, 'mm'),#organization.id#,#parentOrgId#,#organization.orgInternalCode#,#organization.orgLevel.id#,#organization.functionalOrgType.id#,#addIssueSum#,#submitIssueSum#,#assignIssueSum#,#doingIssueSum#,
+			#doneIssueSum#,#issueSum#,#completionRate#,#extendedDoingSum#,#extendedDoneSum#,#extendedRate#,#findBackDate#,'admin'
+		)
+	</insert>
+	
+	<insert id="addIssueClassificationStat" parameterClass="IssueAreaStat">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_issueClassificationStat.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into issueClassificationStat
+		(   
+			id,year,month,orgid,parentorgid,orginternalcode,orglevel,funorgtype,contradictionSum,resolveTheContradictionSum,securityPrecautionSum,specialPopulationSum,
+			socialConditionSum,policiesAndLawSum,emergencieSum,otherManageSum,createdate,createuser
+		)
+		values
+		(
+			#id#,to_char(#findBackDate#, 'yyyy'),to_char(#findBackDate#, 'mm'),#organization.id#,#parentOrgId#,#organization.orgInternalCode#,#organization.orgLevel.id#,#organization.functionalOrgType.id#,#contradictionSum#,#resolveTheContradictionSum#,#securityPrecautionSum#,#specialPopulationSum#,
+			#socialConditionSum#,#policiesAndLawSum#,#emergencieSum#,#otherManageSum#,#findBackDate#,'admin'
+		)
+	</insert>
+	
+	<insert id="addIssueStepStat" parameterClass="IssueAreaStat">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_issueStepStat.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into issueStepStat
+		(   
+			id,year,month,orgid,parentorgid,orginternalcode,resolveGeneralSum,resolveSkipSum,securityGeneralSum,securitySkipSum,
+			emergencieGeneralSum,emergencieSkipSum,otherManageGeneralSum,otherManageSkipSum,createdate,createuser
+		)
+		values
+		(
+			#id#,to_char(#findBackDate#, 'yyyy'),to_char(#findBackDate#, 'mm'),#organization.id#,#parentOrgId#,#organization.orgInternalCode#,#resolveGeneralSum#,#resolveSkipSum#,#securityGeneralSum#,#securitySkipSum#,
+			#emergencieGeneralSum#,#emergencieSkipSum#,#otherManageGeneralSum#,#otherManageSkipSum#,#findBackDate#,'admin'
+		)	
+	</insert>
+	
+	<!-- 各区域办理-历史job -->
+	<select id="getIssueAreaStatsByYearAndMonthAndOrgId" parameterClass="map" resultMap="issueAreaStatPromptlyMap">
+		select * from
+		(select count(1) as addIssueSum from issuesteps ip where to_char(ip.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and ip.target=#orgId# and ip.entrydate=ip.createdate),
+		(select count(1) as doingIssueSum from issuesteps ip where to_char(ip.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and ip.target=#orgId# and ip.statecode<![CDATA[<]]>500),
+		(select count(1) as submitIssueSum from issuesteps ip where to_char(ip.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and ip.target=#orgId# and ip.submit=1),
+		(select count(1) as assignIssueSum from issuesteps ip where to_char(ip.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and ip.target=#orgId# and ip.assign=1),
+		(select count(1) as doneIssueSum from issuesteps ip where to_char(ip.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and ip.target=#orgId# and ip.statecode>=1000),
+		(select count(1) as issueSum from issuesteps ip where to_char(ip.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and ip.target=#orgId#),
+		(select count(1) as extendedDoingSum from issuesteps ip where to_char(ip.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and ip.target=#orgId# and ip.statecode<![CDATA[<]]>500 and ip.superviselevel>-1),
+		(select count(1) as extendedDoneSum from issuesteps ip where to_char(ip.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and ip.target=#orgId# and ip.target<![CDATA[<>]]>#orgId# and ip.statecode>=1000 and ip.isextended=1)		
+	</select>
+	
+	<!-- 各区域分类-历史job -->
+	<select id="getIssueAreaTypeStatsByYearAndMonthAndOrgId" parameterClass="map" resultMap="issueAreaStatTypeMap">
+		select * from
+		(select count(1) as contradictionSum from issues iu,issuehastypes it,issuetypedomains im where to_char(iu.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.id = it.issueid and it.issuetypedomainid=im.id and im.domainname=#contradiction#),
+		(select count(1) as resolveTheContradictionSum from issues iu,issuehastypes it,issuetypedomains im where to_char(iu.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.id = it.issueid and it.issuetypedomainid=im.id and im.domainname=#resolveTheContradiction#),
+		(select count(1) as securityPrecautionSum from issues iu,issuehastypes it,issuetypedomains im where to_char(iu.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.id = it.issueid and it.issuetypedomainid=im.id and im.domainname=#securityPrecaution#),
+		(select count(1) as specialPopulationSum from issues iu,issuehastypes it,issuetypedomains im where to_char(iu.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.id = it.issueid and it.issuetypedomainid=im.id and im.domainname=#specialPopulation#),
+		(select count(1) as socialConditionSum from issues iu,issuehastypes it,issuetypedomains im where to_char(iu.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.id = it.issueid and it.issuetypedomainid=im.id and im.domainname=#socialCondition#),
+		(select count(1) as policiesAndLawSum from issues iu,issuehastypes it,issuetypedomains im where to_char(iu.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.id = it.issueid and it.issuetypedomainid=im.id and im.domainname=#policiesAndLaw#),
+		(select count(1) as emergencieSum from issues iu,issuehastypes it,issuetypedomains im where to_char(iu.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.id = it.issueid and it.issuetypedomainid=im.id and im.domainname=#emergencie#),
+		(select count(1) as otherManageSum from issues iu,issuehastypes it,issuetypedomains im where to_char(iu.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.id = it.issueid and it.issuetypedomainid=im.id and im.domainname=#otherManage#)
+	</select>
+	
+	<!-- 按流程统计-历史job -->
+	<select id="getIssueStepStatsByYearAndMonthAndOrgId" parameterClass="map" resultMap="issueStepStatMap">
+		select * from
+		(select count(1) as resolveGeneralSum from issues iu,issuehastypes it,issuetypedomains im,issuesteps step where to_char(iu.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.id = it.issueid and it.issuetypedomainid=im.id and im.domainname=#resolveTheContradiction# and step.issue=iu.id and step.target=#orgId# and step.emergencylevel is null),
+		(select count(1) as resolveSkipSum from issues iu,issuehastypes it,issuetypedomains im,issuesteps step where to_char(iu.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.id = it.issueid and it.issuetypedomainid=im.id and im.domainname=#resolveTheContradiction# and step.issue=iu.id and step.target=#orgId# and step.emergencylevel is not null),
+		(select count(1) as securityGeneralSum from issues iu,issuehastypes it,issuetypedomains im ,issuesteps step where to_char(iu.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.id = it.issueid and it.issuetypedomainid=im.id and im.domainname=#securityPrecaution# and step.issue=iu.id and step.target=#orgId# and step.emergencylevel is null),
+		(select count(1) as securitySkipSum from issues iu,issuehastypes it,issuetypedomains im,issuesteps step where to_char(iu.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.id = it.issueid and it.issuetypedomainid=im.id and im.domainname=#securityPrecaution# and step.issue=iu.id and step.target=#orgId# and step.emergencylevel is not null),
+		(select count(1) as emergencieGeneralSum from issues iu,issuehastypes it,issuetypedomains im,issuesteps step where to_char(iu.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.id = it.issueid and it.issuetypedomainid=im.id and im.domainname=#emergencie# and step.issue=iu.id and step.target=#orgId# and step.emergencylevel is null),
+		(select count(1) as emergencieSkipSum from issues iu,issuehastypes it,issuetypedomains im,issuesteps step where to_char(iu.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.id = it.issueid and it.issuetypedomainid=im.id and im.domainname=#emergencie# and step.issue=iu.id and step.target=#orgId# and step.emergencylevel is not null),
+		(select count(1) as otherManageGeneralSum from issues iu,issuehastypes it,issuetypedomains im,issuesteps step where to_char(iu.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.id = it.issueid and it.issuetypedomainid=im.id and im.domainname=#otherManage# and step.issue=iu.id and step.target=#orgId# and step.emergencylevel is null),
+		(select count(1) as otherManageSkipSum from issues iu,issuehastypes it,issuetypedomains im,issuesteps step where to_char(iu.createdate,'yyyy-mm')=to_char(#endDate#,'yyyy-mm') and iu.createorg=#orgId# and iu.id = it.issueid and it.issuetypedomainid=im.id and im.domainname=#otherManage# and step.issue=iu.id and step.target=#orgId# and step.emergencylevel is not null)
+	</select>
+	
+</sqlMap>

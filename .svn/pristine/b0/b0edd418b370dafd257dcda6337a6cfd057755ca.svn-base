@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="searchElderlyPeople">
+	
+	<typeAlias alias="SearchElderlyPeopleVo" type="com.tianque.domain.vo.SearchElderlyPeopleVo"/>
+
+	<sql id="fields">
+		uni.id,uni.baseInfoId,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.createDate,uni.createUser,uni.updateUser,uni.updateDate,
+		enterWorkDate,retireDate,pension,liveStatus,peopleType,spouseStatus,currentStatus,incomeSource,retireUnitAndDuty,
+		zhiwu,elderPeopleId,isEmphasis,isEmphasisReason,isEmphasisDate,sourcesState,attentionExtent
+	</sql>
+	
+	<sql id="sql_where">
+		from elderlyPeople_$shardCode$ uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where 1=1
+		<dynamic>
+			<isPropertyAvailable property="name">
+				<isNotEmpty prepend=" and " property="name">
+					name like '$name$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty prepend=" and " property="idCardNo">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+						(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="elderPeopleId">
+				<isNotEmpty prepend=" and " property="elderPeopleId">
+					elderPeopleId like #elderPeopleId#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativePlaceAddress">
+				<isNotEmpty prepend=" and " property="nativePlaceAddress">
+					nativePlaceAddress like '%'||#nativePlaceAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="gender">
+				<isNotEmpty prepend=" and " property="gender">
+					gender = #gender#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="peopleType">
+				<isNotEmpty prepend=" and " property="peopleType">
+					peopleType = #peopleType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthdayStart" >
+				<isNotEmpty prepend=" and " property="birthdayStart">
+					<![CDATA[ birthday >= #birthdayStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthdayEnd">
+				<isNotEmpty prepend=" and " property="birthdayEnd">
+					<![CDATA[ birthday <= #birthdayEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentAddress">
+				<isNotEmpty prepend=" and " property="currentAddress">
+					currentAddress like '$currentAddress$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="telephone">
+				<isNotEmpty prepend=" and " property="telephone">
+					telephone like #telephone#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty prepend=" and " property="mobileNumber">
+					mobileNumber like #mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isNotNull property="schooling" prepend=" and ">
+					schooling = #schooling#
+				</isNotNull>
+			<isPropertyAvailable property="nation">
+				<isNotEmpty prepend=" and " property="nation">
+					nation = #nation#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="politicalBackground">
+				<isNotEmpty prepend=" and " property="politicalBackground">
+					politicalBackground = #politicalBackground#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maritalState">
+				<isNotEmpty prepend=" and " property="maritalState">
+					maritalState = #maritalState#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="career">
+				<isNotEmpty prepend=" and " property="career">
+					career = #career#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="enterWorkDateStart" >
+				<isNotEmpty prepend=" and " property="enterWorkDateStart">
+					<![CDATA[ enterWorkDate >= #enterWorkDateStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="enterWorkDateEnd">
+				<isNotEmpty prepend=" and " property="enterWorkDateEnd">
+					<![CDATA[ enterWorkDate <= #enterWorkDateEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="retireDateStart" >
+				<isNotEmpty prepend=" and " property="retireDateStart">
+					<![CDATA[ retireDate >= #retireDateStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="retireDateEnd">
+				<isNotEmpty prepend=" and " property="retireDateEnd">
+					<![CDATA[ retireDate <= #retireDateEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="minPension">
+				<isNotNull property="minPension" prepend=" and ">
+					<![CDATA[pension >= #minPension#]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maxPension">
+				<isNotNull property="maxPension" prepend=" and ">
+					<![CDATA[pension <= #maxPension#]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="liveStatus">
+				<isNotEmpty prepend=" and " property="liveStatus">
+					liveStatus = #liveStatus#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="specialPerson">
+				<isNotEmpty prepend=" and " property="specialPerson">
+					specialPerson = #specialPerson#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="spouseStatus">
+				<isNotEmpty prepend=" and " property="spouseStatus">
+					spouseStatus = #spouseStatus#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentStatus">
+				<isNotEmpty prepend=" and " property="currentStatus">
+					currentStatus = #currentStatus#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="incomeSource">
+				<isNotEmpty prepend=" and " property="incomeSource">
+					incomeSource = #incomeSource#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="faith">
+				<isNotEmpty prepend=" and " property="faith">
+					faith = #faith#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="email">
+				<isNotEmpty prepend=" and " property="email">
+					email liek #email#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="retireUnitAndDuty">
+				<isNotEmpty prepend=" and " property="retireUnitAndDuty">
+					retireUnitAndDuty like '%'||#retireUnitAndDuty#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="workUnit">
+				<isNotEmpty prepend=" and " property="workUnit">
+					workUnit like '%'||#workUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="zhiwu">
+				<isNotEmpty prepend=" and " property="zhiwu">
+					zhiwu like '%'||#zhiwu#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="province">
+				<isNotEmpty property="province" prepend=" and ">
+					province like #province#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="city">
+				<isNotEmpty property="city" prepend=" and ">
+					city like #city#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="district">
+				<isNotEmpty property="district" prepend=" and ">
+					district like #district#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isDeath">
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="1">
+						isDeath = #isDeath#
+					</isEqual>
+					<isEqual property="isDeath" compareValue="0">
+						(isDeath = #isDeath# or isDeath is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis# 
+				</isEqual>
+			</isPropertyAvailable>
+			<include refid="attentionPopulationBaseInfo.serviceTeamInfoForSearch"/>
+		</dynamic>
+	</sql>
+	
+	<select id="countSearchElderlyPeople" parameterClass="SearchElderlyPeopleVo" resultClass="int">
+		select count(*)
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="searchElderlyPeople" parameterClass="SearchElderlyPeopleVo" resultMap="elderlyPeople.elderlyPeopleResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countElderServiceRecord" parameterClass="SearchElderlyPeopleVo" resultClass="int">
+		select count(*) from servicerecordrelyobject where populationtype ='elderlyPeople'and populationId in (select uni.id <include refid="sql_where" />)
+	</select>
+</sqlMap>

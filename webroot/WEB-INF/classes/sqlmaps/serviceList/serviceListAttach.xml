@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="serviceListAttch" >
+  <typeAlias alias="attch" type="com.tianque.serviceList.domain.ServiceListAttch" />
+  <resultMap id="serviceListAttchResult" class="attch">
+    <result column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="path" property="path" jdbcType="VARCHAR" />
+    <result column="serviceid" property="serviceId" jdbcType="DECIMAL" />
+    <result column="servicetype" property="serviceType" jdbcType="DECIMAL" />
+  </resultMap>
+  <insert id="addServiceListAttch" parameterClass="attch" >
+  	<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_Servicelistattch.NEXTVAL as id from dual ]]>
+	</selectKey>
+    insert into Servicelistattch (ID, name, path, serviceid, servicetype)
+    values (#id:DECIMAL#, #name:VARCHAR#, #path:VARCHAR#,#serviceId:DECIMAL#,#serviceType:DECIMAL#)
+  </insert>
+  
+  <delete id="deleteServiceListAttch" parameterClass="java.util.Map" >
+    delete from Servicelistattch
+    where serviceid = #id:DECIMAL# and servicetype=#type:DECIMAL#
+  </delete>
+  
+  <select id="getServiceListAttchById" resultMap="serviceListAttchResult" parameterClass="java.lang.Long" >
+    select ID, name, path, serviceid, servicetype
+    from Servicelistattch
+    where ID = #id:DECIMAL# 
+  </select>
+  
+  <select id="getServiceListAttchByIdAndType" resultMap="serviceListAttchResult" parameterClass="java.util.Map" >
+    select ID, name, path, serviceid, servicetype
+    from Servicelistattch
+    where serviceid = #id:DECIMAL# and servicetype=#type:DECIMAL#
+  </select>
+  
+  <delete id="deleteServiceListAttchById" parameterClass="java.lang.Long" >
+    delete from Servicelistattch
+    where id = #id:DECIMAL#
+  </delete>
+</sqlMap>

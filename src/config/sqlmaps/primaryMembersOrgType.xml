@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="primaryMembersOrgType">
+	<typeAlias alias="primaryOrganizations"
+		type="com.tianque.baseInfo.primaryOrg.domain.PrimaryOrganizations" />
+	<typeAlias alias="primaryMembersOrgType"
+		type="com.tianque.baseInfo.primaryOrg.primaryMembers.domain.PrimaryMembersOrgType" />
+	<resultMap class="primaryMembersOrgType" id="primaryMembersOrgType_resutl">
+		<result property="id" column="Id" />
+		<result property="primaryMembersId" column="primaryMembersId" />
+		<result property="primaryOrgId" column="primaryOrgId" />
+		<result property="isFourLevelPlatform" column="isFourLevelPlatform" />
+	</resultMap>
+	<resultMap class="primaryMembersOrgType" id="primaryOrganizationsResult">
+		<result property="primaryOrgId" column="id" />
+		<result property="isFourLevelPlatform" column="isFourLevelPlatform" />
+		<result property="detailName" column="detailname" />
+	</resultMap>
+	<resultMap class="primaryMembersOrgType" id="primaryOrganizations_Result">
+		<result property="primaryOrgId" column="id" />
+		<result property="detailName" column="detailname" />
+	</resultMap>
+
+	<insert id="addPrimaryMembersOrgType" parameterClass="primaryMembersOrgType">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+    	<![CDATA[ SELECT s_primarymembersorgtype.NEXTVAL AS id FROM dual ]]>
+		</selectKey>
+		<![CDATA[ insert into primarymembersorgtype
+		(id,primarymembersid,primaryorgid,isFourLevelPlatform)
+		values
+		(#id#,#primaryMembersId#,#primaryOrgId#,#isFourLevelPlatform#) ]]>
+	</insert>
+
+	<delete id="deltePrimaryMembersOrgType" parameterClass="java.util.Map">
+		delete
+		primarymembersorgtype where primaryMembersId=#primaryMembersId# and
+		primaryOrgId=#primaryOrgId#
+	</delete>
+	<delete id="deltePrimaryMembersOrgTypeByPrimaryMembersId" parameterClass="java.lang.Long">
+		delete primarymembersorgtype where primaryMembersId=#primaryMembersId#
+	</delete>
+	
+	<delete id="deltePrimaryMembersOrgTypeByPrimaryMembersIds" parameterClass="java.util.Map">
+		delete primarymembersorgtype p
+		<dynamic prepend="where">
+			<isNotNull property="ids">
+				p.primaryMembersId in
+				<iterate property="ids" conjunction="," open="(" close=")">
+					#ids[]#
+				</iterate>
+			</isNotNull>
+			<isNull property="ids">
+				p.primaryMembersId = ''
+			</isNull>
+		</dynamic>
+	</delete>
+	
+	<delete id="deletePrimaryMembersOrgType"
+		parameterClass="primaryMembersOrgType">
+		delete primarymembersorgtype where
+		primaryMembersId=#primaryMembersId#
+		and primaryOrgId = #primaryOrgId#
+		and isFourLevelPlatform = #isFourLevelPlatform#
+	</delete>
+
+	<update id="updatePrimaryMembersOrgType" parameterClass="primaryMembersOrgType">
+		update
+		primarymembersorgtype set primaryOrgId=#primaryOrgId# where
+		primaryMembersId=#primaryMembersId#
+	</update>
+
+	<update id="updatePrimaryMembers" parameterClass="primaryMembersOrgType">
+		update
+		primarymembersorgtype set
+		primaryOrgId=#primaryOrgId#,
+		primaryMembersId=#primaryMembersId#
+		where id=#id#
+	</update>
+
+	<select id="getprimaryOrgName" parameterClass="java.lang.Long"
+	resultMap="primaryOrganizationsResult">
+	select * from (
+	(select po.id,po.detailName,pt.isfourlevelplatform from primarymembersorgtype
+	pt,primaryorganizations po
+	where pt.primaryorgid=po.id and pt.isfourlevelplatform=0 and
+	pt.primarymembersid=#primarymembersid# )
+	union
+	(select fp.id,fp.name,pt.isfourlevelplatform from primarymembersorgtype
+	pt,fourlevelplatform fp
+	where pt.primaryorgid=fp.id and pt.isfourlevelplatform=1 and
+	pt.primarymembersid=#primarymembersid#)
+	)
+</select>
+
+	<sql id="sql_select_forMember">
+		select pms.*
+	</sql>
+
+	<select id="findPrimaryMembersOrgTypeByMember" parameterClass="java.lang.Long"
+		resultMap="primaryMembersOrgType_resutl">
+		<include refid="sql_select_forMember" />
+		from primarymembersorgtype pms where pms.primarymembersid = #value#
+	</select>
+
+	<select id="findPrimaryMembersOrgTypeByMemberAndPrimaryOrg"
+		parameterClass="java.util.Map" resultMap="primaryMembersOrgType_resutl">
+		<include refid="sql_select_forMember" />
+		from primarymembersorgtype pms where 1=1
+		<isNotEmpty property="memberId" prepend=" AND ">
+			pms.primarymembersid = #memberId#
+		</isNotEmpty>
+		<isNotEmpty property="primaryOrgId" prepend=" AND ">
+			pms.primaryOrgId = #primaryOrgId#
+		</isNotEmpty>
+	</select>
+
+	<select id="countFindPrimaryOrgMembers" parameterClass="primaryMembersOrgType"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		from primarymembersorgtype pms where 1=1
+		<isNotEmpty property="primaryOrgId" prepend="and">
+			pms.primaryOrgId=#primaryOrgId#
+		</isNotEmpty>
+		<isNotEmpty property="isFourLevelPlatform" prepend="and">
+			pms.isFourLevelPlatform=#isFourLevelPlatform#
+		</isNotEmpty>
+	</select>
+	
+	<!--迁移合并方法-->
+	<update id="updatePrimarymembersorgtypeOrgIdForOrgChange" parameterClass="java.util.Map">
+		update primarymembersorgtype p set p.primaryorgid=#newId# where p.id in 
+		(select p.id from primarymembersorgtype p where p.primaryorgid=#oldId#)
+	</update>
+
+</sqlMap>

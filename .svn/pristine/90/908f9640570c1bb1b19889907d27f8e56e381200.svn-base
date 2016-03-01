@@ -1,0 +1,370 @@
+<#assign pop=JspTaglibs["/WEB-INF/taglib/pop-taglib.tld"]>
+<#assign s=JspTaglibs["/WEB-INF/taglib/struts-tags.tld"]>
+<@s.include value="/includes/baseInclude.jsp" />
+<div class="content">
+	<div class="ui-corner-all contentNav" id="nav">
+	<div class="btnbanner btnbannerData">
+		<div class="btnbanner">
+		 <#--<@s.include value="/common/orgSelectedComponent.jsp"/>-->
+		    <@s.include value="/common/orgSelectedTaskListComponent.jsp"/>
+	    </div>
+		<div class="ui-widget autosearch">
+				<input class="basic-input" type="text" value="请输入地点或姓名" id="searchByCondition" maxlength="18" style="width: 150px;" onblur="value=(this.value=='')?'请输入地点或姓名':this.value;" onfocus="value=(this.value=='请输入地点或姓名')?'':this.value;">
+				<button id="refreshSearchKey" class="ui-icon ui-icon-refresh searchbtnico"></button>
+			</div>
+		</div>
+		<a href="javascript:;" id="fastSearchButton"><span>搜索</span></a>
+		<@pop.JugePermissionTag ename='searchMentalPatientTask'>
+		<a id="search" href="javascript:void(0)"><span><strong class="ui-ico-cx"></strong>高级搜索</span></a>
+		</@pop.JugePermissionTag>
+		<span class="lineBetween "></span>
+		<@pop.JugePermissionTag ename='addMentalPatientTask'>
+			<a id="addFamilyInfo"  href="javascript:void(0)"><span>新增</span></a>
+		</@pop.JugePermissionTag>
+		<@pop.JugePermissionTag ename='refreshMentalPatientTask'>
+		    <a id="refresh"  href="javascript:void(0)"><span>刷新</span></a>
+		</@pop.JugePermissionTag>
+		<@pop.JugePermissionTag ename='deleteMentalPatientTask'>
+		    <a id="delete" href="javascript:void(0)"><span><strong
+					class="ui-ico-sc"></strong>批量删除</span></a>
+		</@pop.JugePermissionTag>
+	</div>
+		<div style="clear: both;"></div>
+		<div style="width: 100%">
+			<table id="mentalPatientTaskList"></table>
+			<div id="mentalPatientTaskListPager"></div>
+		</div>
+		<div id="mentalPatientTaskDialog"></div>
+		<div id="importFamilyInfoDialog"></div>
+		<div id="searchFamilyInfoDialog"></div>
+		<div id="addTaskListReplyDlg"></div>
+</div>
+<script type="text/javascript">
+
+var orgId=selectConfigTaskOrg();
+var title="严重精神障碍患者信息";
+$(document).ready(function(){
+	var postData={
+		"orgId":orgId
+	};
+	if(isConfigTaskSelect()){
+		$.extend(postData,{"mentalPatientTask.mode":"gridConfigTask","mentalPatientTask.funOrgId": $("#funOrgId").val()})
+	}
+	$("#mentalPatientTaskList").jqGridFunction({
+		url:'${path}/baseInfo/mentalPatientTaskManage/getMentalPatientTaskList.action',
+		datatype: "json",
+		postData:postData,
+	   	colModel:[
+	   	          {name:"id",index:"id",sortable:false,hidden:true,frozen:true},
+	   	          {name:"organization.orgName",index:"fullOrgName",label:'所属网格',sortable:false,hidden:false,frozen:false},
+                  {name:"name",index:"name",label:'姓名',sortable:false,hidden:false,frozen:true},
+                  {name:"time",index:"time",label:'时间',sortable:false,hidden:false,frozen:false},
+                  {name:"place",index:"place",label:'地点',sortable:false,hidden:false,frozen:false},
+                  {name:"statusPolice",index:"statusPolice",label:'派出所签收状态',formatter:statusPoliceFormatter,sortable:false,hidden:false,frozen:false,align:"center"},
+                  {name:"statusJustice",index:"statusJustice",label:'卫生所签收状态',formatter:statusJusticeFormatter,sortable:false,hidden:false,frozen:false,align:"center"},
+                  {name:'hasReplay',label:'是否回复',sortable:false,align:"center", width:150,formatter:addTaskListReplyFormatter},
+                  {name:"guardianName",index:"guardianName",label:'监护人姓名',sortable:false,hidden:false,frozen:false},
+                  {name:"guardianTel",index:"guardianTel",label:'监护人电话',sortable:false,hidden:false,frozen:false},
+                  {name:"isDriinked",index:"isDriinked",label:'是否服药',formatter:isDrinkedFormatter,sortable:false,hidden:false,frozen:false},
+                  {name:"exception",index:"exception",label:'异常详情',sortable:false,hidden:false,frozen:false},
+                  {name:"isout",index:"isout",label:'是否外出',sortable:false,hidden:false,frozen:false,formatter:isOutFormatter},
+                  {name:"reporterTel",index:"reporterTel",label:'网格员联系电话',sortable:false,hidden:false,frozen:false},
+                  {name:"remark",index:"remark",label:'备注',sortable:false,hidden:false,frozen:false},
+		   ],
+		multiselect:true,
+		onSelectAll:function(aRowids,status){},
+		showColModelButton:true,
+		<@pop.JugePermissionTag ename="viewMentalPatientTask">
+		ondblClickRow:viewMentalPatientTask,
+		</@pop.JugePermissionTag>
+		onSelectRow:function(){}
+	});
+
+	$("#refresh").click(function(event){
+	$("#searchByCondition").attr("value","请输入地点或姓名");
+		onOrgChanged();
+	});
+	
+	$("#delete").click(function(event){
+		var selectedId = $("#mentalPatientTaskList").jqGrid("getGridParam", "selarrrow");
+		if(selectedId.length==0){
+		   $.messageBox({level:"warn",message:"请至少选择一条记录进行删除！"});
+		   return;
+		}
+		$.confirm({
+		   title:"确认删除该"+title,
+		   message:"该"+title+"删除后，将不可恢复，您确定要删除该"+title+"吗？",
+		   width:400,
+		   okFunc: function(){
+		     $.ajax({
+		        url: "${path}/baseInfo/mentalPatientTaskManage/deleteMentalPatientTask.action?ids="+selectedId,
+		        success: function(data){
+		           onOrgChanged(selectConfigTaskOrg(),isConfigTaskGrid());
+		        }
+		     });
+		   }
+		});
+	    var evt = event || window.event;
+        if (window.event) {
+        evt.cancelBubble=true;
+        } else {
+        evt.stopPropagation();
+        }
+	});
+	
+	$("#search").click(function(){
+		$("#searchFamilyInfoDialog").createDialog({
+				width: 500,
+				height: 350,
+				title: '高级查询',
+				url:'${path}/baseInfo/mentalPatientTaskManage/dispatch.action?mode=search',
+				buttons: {
+					"查询" : function(){
+						searchMentalPatient();
+						$(this).dialog("close");
+					},
+					"关闭" : function(){
+						$(this).dialog("close");
+					}
+				}
+			});
+	});
+	
+	
+	$("#fastSearchButton").click(function(e){
+	var orgId=selectConfigTaskOrg();
+	fastSearch(orgId);
+	});
+	
+	$("#refreshSearchKey").click(function(){
+		$("#searchByCondition").attr("value","请输入地点或姓名");
+	});
+	
+	$("#addFamilyInfo").click(function(){
+		if(!isConfigTaskGrid()){
+				$.messageBox({level:"warn",message:"请先选择网格级别组织机构进行新增！"});
+				return;
+		}
+		$("#mentalPatientTaskDialog").createDialog({
+				width: 600,
+				height: 550,
+				title: '新增严重精神障碍患者记录',
+				url:'${path}/baseInfo/mentalPatientTaskManage/dispatch.action?mode=add&orgId='+selectConfigTaskOrg(),
+				buttons: {
+					"保存" : function(){
+						$("#maintainForm").submit();
+					},
+					"关闭" : function(){
+						$(this).dialog("close");
+					}
+				}
+			});
+	});
+	
+})
+
+//高级搜索
+	function searchMentalPatient()
+	{   
+	 var initParam = {
+		"mentalPatientTask.organization.id": selectConfigTaskOrg(),
+		"mentalPatientTask.name": $("#conditionName").val(),
+		"mentalPatientTask.place": $("#conditionPlace").val(),
+		"mentalPatientTask.guardianTel":$("#conditionGuardianTel").val(),
+	    "mentalPatientTask.guardianName":$("#conditionGuardianName").val(),
+		"mentalPatientTask.isout":$("input:radio[name='mentalPatientTask.isout']:checked").val(),
+		"mentalPatientTask.isDriinked":$("input:radio[name='mentalPatientTask.isDriinked']:checked").val(),
+		"mentalPatientTask.conditionStartDate":$("#conditionStartDate").val(),
+		"mentalPatientTask.conditionEndDate":$("#conditionEndDate").val(),
+		"mentalPatientTask.statusJustice":$("#statusJustice").val(),
+		"mentalPatientTask.statusPolice":$("#statusPolice").val(),
+		"mentalPatientTask.hasReplay":$("#hasReplay").val()
+	}
+	if(isConfigTaskSelect()){
+		$.extend(initParam,{"mentalPatientTask.mode":"gridConfigTask","mentalPatientTask.funOrgId": $("#funOrgId").val()})
+	}
+	$("#mentalPatientTaskList").setGridParam({
+		url:"${path}/baseInfo/mentalPatientTaskManage/searchMentalPatient.action",
+		datatype: "json",
+		page:1
+	});
+	    $("#mentalPatientTaskList").setPostData(initParam);
+		$("#mentalPatientTaskList").trigger("reloadGrid");
+	}
+	
+function isDrinkedFormatter(el, options, rowData){
+	if(true==rowData.isDriinked){
+		return "已服药";
+	}else{
+		return "未服药";
+	}
+}
+
+function statusPoliceFormatter(el, options, rowData){
+		var flag = "<@pop.JugePermissionTag ename='mentalPatientPoliceTask'>true</@pop.JugePermissionTag>";
+		if(rowData.statusPolice == 0 && flag){
+			   return "<@pop.JugePermissionTag ename='mentalPatientPoliceTask'><a href='javascript:' onclick='updateOperator("+rowData.id+",\"police\")'><span style='color:#ff0000;'>签收</span></a></@pop.JugePermissionTag>";
+		}else if(rowData.statusPolice == 0 && flag != 'true'){
+			return "否";
+		}
+		if(rowData.statusPolice == 1){
+			return "是";
+		}
+	}
+	
+function statusJusticeFormatter(el, options, rowData){
+		var flag = "<@pop.JugePermissionTag ename='mentalPatientJusticeTask'>true</@pop.JugePermissionTag>";
+		if(rowData.statusJustice == 0 && flag){
+			   return "<@pop.JugePermissionTag ename='mentalPatientJusticeTask'><a href='javascript:' onclick='updateOperator("+rowData.id+",\"justice\")'><span style='color:#ff0000;'>签收</span></a></@pop.JugePermissionTag>";
+		}else if(rowData.statusJustice == 0 && flag != 'true'){
+			return "否";
+		}
+		if(rowData.statusJustice == 1){
+			return "是";
+		}
+	}
+	
+
+
+function isOutFormatter(el, options, rowData){
+	if(true==rowData.isout){
+		return "是";
+	}else{
+		return "否";
+	}
+}
+
+function updateOperator(selectedId,i){
+	if(selectedId==null){
+		return;
+	}
+	var builddata=$("#mentalPatientTaskList").getRowData(selectedId);
+	$("#mentalPatientTaskDialog").createDialog({
+		width: 600,
+		height:470,
+		title: '签收',
+		url:'${path}/baseInfo/mentalPatientTaskManage/dispatch.action?mode=sign&orgId='+ selectConfigTaskOrg()+'&mentalPatientTaskId='+selectedId+'&signType='+i,
+		buttons: {
+			"签收" : function(){
+				$("#maintainForm").submit();
+			},
+			"关闭" : function(){
+				$(this).dialog("close");
+			}
+		}
+	});
+	var evt = event || window.event;
+	if(typeof evt!="object"){return false;}
+	if (window.event) { 
+	evt.cancelBubble=true; 
+	} else { 
+	evt.stopPropagation(); 
+	} 
+}
+
+function viewMentalPatientTask(rowid){
+	if(rowid==null){
+ 		return;
+	}
+	$("#mentalPatientTaskDialog").createDialog({
+		width: 600,
+		height: 420,
+		title:'查看重症精神病信息',
+		modal : true,
+		url:'${path}/baseInfo/mentalPatientTaskManage/viewMentalPatientTask.action?id='+rowid,
+		buttons: {
+		   "关闭" : function(){
+		        $(this).dialog("close");
+		   }
+		}
+	});
+}
+
+function refreshList(searchText){
+	var orgId=selectConfigTaskOrg();
+	$("#mentalPatientTaskList").setGridParam({
+		url:'${path}/baseInfo/mentalPatientTaskManage/getMentalPatientTaskList.action',
+		datatype: "json",
+		page:1
+	});
+	var postData={
+		"orgId":orgId
+	};
+	if(isConfigTaskSelect()){
+		$.extend(postData,{"mentalPatientTask.mode":"gridConfigTask","mentalPatientTask.funOrgId": $("#funOrgId").val()})
+	}
+	$("#mentalPatientTaskList").setPostData(postData);
+	$("#mentalPatientTaskList").trigger("reloadGrid");
+} 
+
+function fastSearch(orgId){
+	var condition = $("#searchByCondition").val();
+
+	if(condition == '请输入地点或姓名') return;
+	var initParam = {
+	"mentalPatientTask.organization.id":orgId,
+	"mentalPatientTask.fastSearchKeyWords":condition,
+	"mentalPatientTask.isGrid":isConfigTaskGrid()
+	
+	}
+	if(isConfigTaskSelect()){
+		$.extend(initParam,{"mentalPatientTask.mode":"gridConfigTask","mentalPatientTask.funOrgId": $("#funOrgId").val()})
+	}
+	$("#mentalPatientTaskList").setGridParam({
+		url:'${path}/baseInfo/mentalPatientTaskManage/searchMentalPatient.action',
+		datatype: "json",
+		page:1
+	});
+	$("#mentalPatientTaskList").setPostData(initParam);
+	$("#mentalPatientTaskList").trigger("reloadGrid");
+}
+
+function onOrgChanged(){
+    var orgId = selectConfigTaskOrg();
+		$("#mentalPatientTaskList").setGridParam({
+			url:'${path}/baseInfo/mentalPatientTaskManage/getMentalPatientTaskList.action',
+			datatype: "json",
+			page:1
+		});
+		var postData={
+			"orgId":orgId
+		};
+		if(isConfigTaskSelect()){
+			$.extend(postData,{"mentalPatientTask.mode":"gridConfigTask","mentalPatientTask.funOrgId": $("#funOrgId").val()})
+		}
+		$("#mentalPatientTaskList").setPostData(postData);
+		$("#mentalPatientTaskList").trigger("reloadGrid");
+}
+
+function addTaskListReplyFormatter(el, options, rowData){
+	var flag = '<@pop.JugePermissionTag ename="replyMentalPatientTask">true</@pop.JugePermissionTag>';
+	if(rowData.exception&&(rowData.statusPolice == 1||rowData.statusJustice==1) && flag == 'true'){
+		if(rowData.hasReplay==1){
+			return "<a href='javascript:void(0);' onclick='addTaskListReply("+rowData.id+")'><span style='color:#999999;'>已回复</span></a>";
+		}
+		return "<a href='javascript:void(0);' onclick='addTaskListReply("+rowData.id+")'><span style='color:#ff0000;'>回复</span></a>";
+	}else if(rowData.hasReplay == 0 && flag != 'true'){
+		return "否";
+	}
+	if(rowData.hasReplay == 1){
+		return "是";
+	}
+	return "";
+}
+function addTaskListReply(id){
+	$("#addTaskListReplyDlg").createDialog({
+		width: 600,
+		height: 400,
+		title: '回复',
+		url:"${path}/plugin/taskListManage/common/addTaskListReplyDlg.action?taskListReply.moduleKey=reply_mentalPatientTask&taskListReply.taskId="+id,
+		buttons: {
+			"回复" : function(){
+				$("#maintainForm").submit();
+			},
+			"关闭" : function(){
+				$(this).dialog("close");
+			}
+		}
+	});
+}
+</script>

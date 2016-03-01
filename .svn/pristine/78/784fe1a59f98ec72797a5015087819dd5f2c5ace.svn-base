@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="examineScroseStanal">
+    <select id="countAll" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+        select count(0) from examineScores e where e.year=#year# 
+        <iterate prepend=" and "  property="orgIdsList" conjunction="or" open="(" close=")">
+			e.orgid in ($orgIdsList[]$)
+		</iterate>
+    </select>
+    <select id="examineScroseStanal" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+        select  count(0) from examinescores e where e.year = #year# 
+        <iterate prepend=" and "  property="orgIdsList" conjunction="or" open="(" close=")">
+			e.orgid in ($orgIdsList[]$)
+		</iterate>
+		<dynamic>
+		    <isPropertyAvailable property="beginScrose">
+		        <isNotNull property="beginScrose" prepend="and">
+		            <![CDATA[ e.annualactualscore >= #beginScrose# ]]>
+		        </isNotNull>
+		    </isPropertyAvailable>
+		    <isPropertyAvailable property="endScrose">
+                <isNotNull property="endScrose" prepend="and">
+                    <![CDATA[ e.annualactualscore < #endScrose# ]]>
+                </isNotNull>
+            </isPropertyAvailable>
+		</dynamic>
+    </select>
+</sqlMap>

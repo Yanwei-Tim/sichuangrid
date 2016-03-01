@@ -1,0 +1,127 @@
+package com.tianque.plugin.taskList.daoImpl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.plugin.taskList.dao.WorkingSituationDao;
+import com.tianque.plugin.taskList.domain.WorkingSituation;
+import com.tianque.plugin.taskList.domain.WorkingSituationVo;
+
+/**
+ * 民警带领下开展工作情况dao实现
+ * 
+ * @author GAOHU
+ *
+ */
+@Repository("workingSituationDao")
+public class WorkingSituationDaoImpl extends AbstractBaseDao implements WorkingSituationDao {
+
+	@Override
+	public WorkingSituation getWorkingSituationById(Long id) {
+		return (WorkingSituation) getSqlMapClientTemplate().queryForObject(
+				"workingSituation.getWorkingSituationById", id);
+	}
+
+	@Override
+	public WorkingSituation addWorkingSituation(WorkingSituation workingSituation) {
+		Long id = (Long) getSqlMapClientTemplate().insert("workingSituation.addWorkingSituation",
+				workingSituation);
+		return getWorkingSituationById(id);
+	}
+
+	@Override
+	public void deleteWorkingSituation(List<Long> ids) {
+
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("ids", ids);
+		getSqlMapClientTemplate().delete("workingSituation.deleteWorkingSituationByIds", map);
+
+	}
+
+	@Override
+	public WorkingSituation updateWorkingSituation(WorkingSituation workingSituation) {
+		getSqlMapClientTemplate().update("workingSituation.updateWorkingSituation",
+				workingSituation);
+		return getWorkingSituationById(workingSituation.getId());
+
+	}
+
+	@Override
+	public PageInfo<WorkingSituation> searchWorkingSituation(WorkingSituationVo workingSituationVo,
+			Integer pageNum, Integer pageSize, String sortField, String order) {
+
+		PageInfo<WorkingSituation> pageInfo = new PageInfo<WorkingSituation>();
+
+		Integer countNum = (Integer) getSqlMapClientTemplate().queryForObject(
+				"workingSituation.countWorkingSituationByVo",
+				getConditionMapOut(workingSituationVo, sortField, order));
+		int pageCount = 0;
+		if (pageSize != 0 && countNum > 0) {
+			pageCount = (countNum - 1) / pageSize + 1;
+		} else {
+			pageNum = pageNum > pageCount ? pageCount : pageNum;
+		}
+
+		if (countNum > 0) {
+			List<WorkingSituation> list = getSqlMapClientTemplate().queryForList(
+					"workingSituation.searchWorkingSituation",
+					getConditionMapOut(workingSituationVo, sortField, order),
+					(pageNum - 1) * pageSize, pageSize);
+			pageInfo.setResult(list);
+		} else {
+			pageInfo.setResult(new ArrayList<WorkingSituation>());
+		}
+		pageInfo.setCurrentPage(pageNum);
+		pageInfo.setPerPageSize(pageSize);
+		pageInfo.setTotalRowSize(countNum);
+		return pageInfo;
+
+	}
+
+	private Map getConditionMapOut(WorkingSituationVo condition, String sortField, String order) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		if (condition == null) {
+			return map;
+		}
+		if (condition.getSignDateEnd() != null) {
+			condition.setSignDateEnd(CalendarUtil.getLastDaySecoend(condition.getSignDateEnd()));
+		}
+		if (condition.getOccurrenceDateEnd() != null) {
+			condition.setOccurrenceDateEnd(CalendarUtil.getLastDaySecoend(condition
+					.getOccurrenceDateEnd()));
+		}
+		map.put("fastSearchKeyWords", condition.getFastSearchKeyWords());
+		map.put("orgInternalCode", condition.getOrgInternalCode());
+		map.put("occurrenceDateStart", condition.getOccurrenceDateStart());
+		map.put("occurrenceDateEnd", condition.getOccurrenceDateEnd());
+		map.put("workcontent", condition.getWorkcontentId());
+		map.put("policeName", condition.getPoliceName());
+		map.put("ishandle", condition.getIshandle());
+		map.put("cellName", condition.getCellName());
+		map.put("signUserName", condition.getSignUserName());
+		map.put("signDateStart", condition.getSignDateStart());
+		map.put("signDateEnd", condition.getSignDateEnd());
+		map.put("remark", condition.getRemark());
+		map.put("sortField", sortField);
+		map.put("order", order);
+		map.put("mode", condition.getMode());
+		map.put("funOrgId", condition.getFunOrgId());
+
+		return map;
+	}
+
+	@Override
+	public WorkingSituation updateWorkingSituationSignDetail(WorkingSituation workingSituation) {
+		getSqlMapClientTemplate().update("workingSituation.updateWorkingSituationSignDetail",
+				workingSituation);
+		return getWorkingSituationById(workingSituation.getId());
+	}
+
+}

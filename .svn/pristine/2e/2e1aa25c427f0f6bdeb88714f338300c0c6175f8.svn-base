@@ -1,0 +1,702 @@
+package com.tianque.plugin.analyzing.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.baseInfo.companyPlace.constacts.ModulTypes;
+import com.tianque.baseInfo.companyPlace.service.CompanyPlaceBaseSevice;
+import com.tianque.baseInfo.leaderViewCache.service.LeaderViewCacheService;
+import com.tianque.baseInfo.utils.Utils;
+import com.tianque.baseInfo.youths.vo.SearchYouthsVo;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.cache.constant.MemCacheConstant;
+import com.tianque.core.cache.service.CacheService;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.NewBaseInfoTables;
+import com.tianque.core.vo.GridPage;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.vo.StatisticsBaseInfoAddCountForMobileVo;
+import com.tianque.plugin.analyzing.domain.StatisticsBaseInfoAddCountVo;
+import com.tianque.plugin.analyzing.domain.StatisticsHousePopuComBaseInfoAddCountVo;
+import com.tianque.plugin.analyzing.service.BaseSituationStatementService;
+import com.tianque.plugin.analyzing.service.CompanyPlaceLeaderViewService;
+import com.tianque.plugin.analyzing.service.LeaderViewService;
+import com.tianque.plugin.analyzing.service.PrimaryOrganizationsStatisticsService;
+import com.tianque.plugin.analyzing.service.StatisticsPopulationService;
+import com.tianque.service.util.PopulationType;
+import com.tianque.statAnalyse.issueManage.listManage.service.IssueReportService;
+import com.tianque.sysadmin.service.JobMonitorService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+@Scope("prototype")
+@Controller("leaderViewController")
+public class LeaderViewController extends BaseAction {
+
+	private static Logger logger = LoggerFactory
+			.getLogger(LeaderViewController.class);
+
+	@Autowired
+	private LeaderViewService leaderViewService;
+	@Autowired
+	private CompanyPlaceBaseSevice companyPlaceBaseService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private CompanyPlaceLeaderViewService companyPlaceLeaderViewService;
+	@Autowired
+	private StatisticsPopulationService statisticsPopulationService;
+	@Autowired
+	private JobMonitorService jobMonitorService;
+	@Autowired
+	private PrimaryOrganizationsStatisticsService primaryOrganizationsStatisticsService;
+	@Autowired
+	private BaseSituationStatementService baseSituationStatementService;
+	@Autowired
+	private CacheService cacheService;
+	@Autowired
+	private LeaderViewCacheService<StatisticsBaseInfoAddCountVo> leaderViewCacheService;
+	@Autowired
+	private IssueReportService issueReportService;
+
+	private Long orgId;
+	private String tableName;
+	private String tableType;
+	private boolean isGrid = false;
+	private String moduleKey;
+	private String houseTableName;
+	private String popuTableName;
+	private int year;
+	private int month;
+	private String completionType;
+	private StatisticsBaseInfoAddCountForMobileVo baseInfoAddCountForMobileVo;
+
+	public int getYear() {
+		return year;
+	}
+
+	public void setYear(int year) {
+		this.year = year;
+	}
+
+	public int getMonth() {
+		return month;
+	}
+
+	public void setMonth(int month) {
+		this.month = month;
+	}
+
+	public boolean getIsGrid() {
+		return isGrid;
+	}
+
+	public void setIsGrid(boolean isGrid) {
+		this.isGrid = isGrid;
+	}
+
+	public String getTableType() {
+		return tableType;
+	}
+
+	public void setTableType(String tableType) {
+		this.tableType = tableType;
+	}
+
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+	public String getTableName() {
+		return tableName;
+	}
+
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
+	}
+
+	public String getModuleKey() {
+		return moduleKey;
+	}
+
+	public void setModuleKey(String moduleKey) {
+		this.moduleKey = moduleKey;
+	}
+
+	public String getHouseTableName() {
+		return houseTableName;
+	}
+
+	public void setHouseTableName(String houseTableName) {
+		this.houseTableName = houseTableName;
+	}
+
+	public String getPopuTableName() {
+		return popuTableName;
+	}
+
+	public void setPopuTableName(String popuTableName) {
+		this.popuTableName = popuTableName;
+	}
+
+	public String getCompletionType() {
+		return completionType;
+	}
+
+	public void setCompletionType(String completionType) {
+		this.completionType = completionType;
+	}
+
+	/**
+	 * 各个模块本月统计表
+	 * 
+	 * @return
+	 */
+	public String statisticsBaseInfoAddCountByOrgIdForArea() throws Exception {
+		if (orgId == null) {
+			gridPage = new GridPage(emptyPage(rows));
+			return SUCCESS;
+		}
+
+		List<StatisticsBaseInfoAddCountVo> datas = leaderViewService
+				.statisticsBaseInfoAddCountByOrgIdForArea(orgId, tableName,
+						isGrid);
+
+		StatisticsBaseInfoAddCountVo e = null;
+		Utils utils = new Utils();
+		utils.lastremovefirst(e, datas);
+
+		PageInfo<StatisticsBaseInfoAddCountVo> pageInfo = new PageInfo<StatisticsBaseInfoAddCountVo>();
+		pageInfo.setResult(datas);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	public String statisticsBaseInfo() throws Exception {
+		if (orgId == null) {
+			gridPage = new GridPage(emptyPage(rows));
+			return SUCCESS;
+		}
+
+		List<StatisticsBaseInfoAddCountVo> datas = leaderViewService
+				.statisticsBaseInfo(orgId, tableName, isGrid);
+
+		StatisticsBaseInfoAddCountVo e = null;
+		Utils utils = new Utils();
+		utils.lastremovefirst(e, datas);
+
+		PageInfo<StatisticsBaseInfoAddCountVo> pageInfo = new PageInfo<StatisticsBaseInfoAddCountVo>();
+		pageInfo.setResult(datas);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	public String gridStatisticsBaseInfo() throws Exception {
+		if (orgId == null) {
+			gridPage = new GridPage(emptyPage(rows));
+			return SUCCESS;
+		}
+
+		List<StatisticsBaseInfoAddCountVo> datas = leaderViewService
+				.statisticsBaseInfo(orgId, tableName, isGrid);
+
+		StatisticsBaseInfoAddCountVo e = null;
+		Utils utils = new Utils();
+		utils.lastremovefirst(e, datas);
+
+		PageInfo<StatisticsBaseInfoAddCountVo> pageInfo = new PageInfo<StatisticsBaseInfoAddCountVo>();
+		pageInfo.setResult(datas);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	/**
+	 * 各个模块往月统计
+	 * 
+	 * @return
+	 */
+	public String statisticsBaseInfoSummary() throws Exception {
+		if (orgId == null) {
+			gridPage = new GridPage(emptyPage(rows));
+			return SUCCESS;
+		}
+		List<StatisticsBaseInfoAddCountVo> datas = leaderViewService
+				.statisticsBaseInfoSummary(orgId, tableName);
+		PageInfo<StatisticsBaseInfoAddCountVo> pageInfo = new PageInfo<StatisticsBaseInfoAddCountVo>();
+		pageInfo.setResult(datas);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	/**
+	 * (实有人口)各个模块往月统计
+	 * 
+	 * @return
+	 */
+	public String statisticsPopulationSummary() throws Exception {
+		if (orgId == null) {
+			gridPage = new GridPage(emptyPage(rows));
+			return SUCCESS;
+		}
+		List<StatisticsBaseInfoAddCountVo> datas = leaderViewService
+				.statisticsPopulationSummary(orgId, tableName);
+		PageInfo<StatisticsBaseInfoAddCountVo> pageInfo = new PageInfo<StatisticsBaseInfoAddCountVo>();
+		pageInfo.setResult(datas);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	/**
+	 * (民政)各个模块往月统计
+	 * 
+	 * @return
+	 */
+	public String statisticsSummary() throws Exception {
+		if (orgId == null) {
+			gridPage = new GridPage(emptyPage(rows));
+			return SUCCESS;
+		}
+		List<StatisticsBaseInfoAddCountVo> datas = leaderViewService
+				.statisticsSummary(orgId, tableName);
+		PageInfo<StatisticsBaseInfoAddCountVo> pageInfo = new PageInfo<StatisticsBaseInfoAddCountVo>();
+		pageInfo.setResult(datas);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	/**
+	 * （ 总况）本月新增统计表
+	 * 
+	 * @return
+	 */
+	public String personGeneralCondition() throws Exception {
+		if (orgId == null) {
+			gridPage = new GridPage(emptyPage(rows));
+			return SUCCESS;
+		}
+
+		List<StatisticsBaseInfoAddCountVo> datas = leaderViewService
+				.personGeneralCondition(orgId, tableType);
+		StatisticsBaseInfoAddCountVo e = null;
+		Utils utils = new Utils();
+		utils.lastremovefirst(e, datas);
+		PageInfo<StatisticsBaseInfoAddCountVo> pageInfo = new PageInfo<StatisticsBaseInfoAddCountVo>();
+		pageInfo.setResult(datas);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	/**
+	 * 手机接口，统计实有人口和实有房屋信息（本月）
+	 * 
+	 * @param orgId
+	 * @param tableType
+	 */
+	public String statisticalBaseInfoMobile() throws Exception {
+		List<String> list = new ArrayList<String>();
+		list.add(BaseInfoTables.POPULATION_KEY);
+		list.add(BaseInfoTables.ACTUALHOUSE_KEY);
+		baseInfoAddCountForMobileVo = new StatisticsBaseInfoAddCountForMobileVo();
+
+		// TODO 手机接口
+		for (String item : list) {
+			Map map = leaderViewService.personGeneralConditionForMobile(orgId,
+					item);
+			baseInfoAddCountForMobileVo.getTotalConditions().add(map);
+		}
+		return SUCCESS;
+	}
+
+	/**
+	 * （ 总况）往月统计
+	 * 
+	 * @return
+	 */
+	public String personMonthGeneralCondition() throws Exception {
+		if (orgId == null) {
+			gridPage = new GridPage(emptyPage(rows));
+			return SUCCESS;
+		}
+		List<StatisticsBaseInfoAddCountVo> datas = leaderViewService
+				.personMonthGeneralCondition(orgId, tableType);
+		PageInfo<StatisticsBaseInfoAddCountVo> pageInfo = new PageInfo<StatisticsBaseInfoAddCountVo>();
+		pageInfo.setResult(datas);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	/**
+	 * (实有人口) （ 总况）往月统计
+	 * 
+	 * @return
+	 */
+	public String populationMonthGeneralCondition() throws Exception {
+		if (orgId == null) {
+			gridPage = new GridPage(emptyPage(rows));
+			return SUCCESS;
+		}
+		List<StatisticsBaseInfoAddCountVo> datas = leaderViewService
+				.populationMonthGeneralCondition(orgId, tableType);
+		PageInfo<StatisticsBaseInfoAddCountVo> pageInfo = new PageInfo<StatisticsBaseInfoAddCountVo>();
+		pageInfo.setResult(datas);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	/**
+	 * (民政) （ 总况）往月统计
+	 * 
+	 * @return
+	 */
+	public String monthGeneralCondition() throws Exception {
+		if (orgId == null) {
+			gridPage = new GridPage(emptyPage(rows));
+			return SUCCESS;
+		}
+		List<StatisticsBaseInfoAddCountVo> datas = leaderViewService
+				.monthGeneralCondition(orgId, tableType);
+		PageInfo<StatisticsBaseInfoAddCountVo> pageInfo = new PageInfo<StatisticsBaseInfoAddCountVo>();
+		pageInfo.setResult(datas);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	/**
+	 * 房屋、人口，场所今日和本月的统计
+	 * 
+	 * @return
+	 */
+	public String statisticsBaseInfoAddCountByOrgIdForHousePopuCom()
+			throws Exception {
+		if (orgId == null) {
+			gridPage = new GridPage(emptyPage(rows));
+			return SUCCESS;
+		}
+		// CountDownLatch counter = new CountDownLatch(3);
+
+		String populationDatas_key = MemCacheConstant.getCurrentKey(orgId,
+				popuTableName);
+		List<StatisticsBaseInfoAddCountVo> populationDatas = leaderViewCacheService
+				.getDatasByCacheKeyForJob(
+						MemCacheConstant.LEADERVIEW_NAMESPACE,
+						populationDatas_key, StatisticsBaseInfoAddCountVo.class);
+		if (populationDatas == null) {
+			populationDatas = setStatisticsBaseInfoAddCountVo(orgId);
+		}
+
+		// new Thread(new GetPopulationDatas(orgId, popuTableName, isGrid,
+		// populationDatas, counter)).start();
+
+		String houseDatas_key = MemCacheConstant.getCurrentKey(orgId,
+				houseTableName);
+		List<StatisticsBaseInfoAddCountVo> houseDatas = leaderViewCacheService
+				.getDatasByCacheKey(MemCacheConstant.LEADERVIEW_NAMESPACE,
+						houseDatas_key, StatisticsBaseInfoAddCountVo.class);
+		if (houseDatas == null) {
+			houseDatas = setStatisticsBaseInfoAddCountVo(orgId);
+		}
+
+		// new Thread(new GetHouseDatas(orgId, houseTableName, isGrid,
+		// houseDatas,
+		// counter)).start();
+
+		String comDatas_key = MemCacheConstant.getCurrentKey(orgId,
+				ModulTypes.ALL_COMPANY_PLACE_KEY);
+		List<StatisticsBaseInfoAddCountVo> comDatas = leaderViewCacheService
+				.getDatasByCacheKeyForJob(
+						MemCacheConstant.LEADERVIEW_NAMESPACE, comDatas_key,
+						StatisticsBaseInfoAddCountVo.class);
+		if (comDatas == null) {
+			comDatas = setStatisticsBaseInfoAddCountVo(orgId);
+		}
+		// new Thread(new GetComDatas(orgId, moduleKey, comDatas, counter))
+		// .start();
+		// counter.await();
+
+		StatisticsBaseInfoAddCountVo e = null;
+		Utils utils = new Utils();
+		utils.lastremovefirst(e, populationDatas);
+		utils.lastremovefirst(e, houseDatas);
+		List<StatisticsHousePopuComBaseInfoAddCountVo> datas = combineListData(
+				populationDatas, houseDatas, comDatas);
+		PageInfo<StatisticsHousePopuComBaseInfoAddCountVo> pageInfo = new PageInfo<StatisticsHousePopuComBaseInfoAddCountVo>();
+		pageInfo.setResult(datas);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	// 获取人口的今日和本月的统计
+	class GetPopulationDatas implements Runnable {
+		private Long orgId;
+		private String popuTableName;
+		private Boolean isGrid;
+		List<StatisticsBaseInfoAddCountVo> populationDatas;
+		private CountDownLatch counter;
+
+		public GetPopulationDatas(Long orgId, String popuTableName,
+				Boolean isGrid,
+				List<StatisticsBaseInfoAddCountVo> populationDatas,
+				CountDownLatch counter) {
+			this.orgId = orgId;
+			this.popuTableName = popuTableName;
+			this.isGrid = isGrid;
+			this.populationDatas = populationDatas;
+			this.counter = counter;
+		}
+
+		@Override
+		public void run() {
+			populationDatas.addAll(leaderViewService
+					.statisticsBaseInfoAddCountByOrgIdForArea(orgId,
+							popuTableName, isGrid));
+			counter.countDown();
+		}
+	}
+
+	class GetHouseDatas implements Runnable {
+		private Long orgId;
+		private String houseTableName;
+		private Boolean isGrid;
+		List<StatisticsBaseInfoAddCountVo> houseDatas;
+		private CountDownLatch counter;
+
+		public GetHouseDatas(Long orgId, String houseTableName, Boolean isGrid,
+				List<StatisticsBaseInfoAddCountVo> houseDatas,
+				CountDownLatch counter) {
+			this.orgId = orgId;
+			this.houseTableName = houseTableName;
+			this.isGrid = isGrid;
+			this.houseDatas = houseDatas;
+			this.counter = counter;
+		}
+
+		@Override
+		public void run() {
+			houseDatas.addAll(leaderViewService.statisticsBaseInfo(orgId,
+					houseTableName, isGrid));
+			counter.countDown();
+		}
+	}
+
+	class GetComDatas implements Runnable {
+		private Long orgId;
+		private String moduleKey;
+		List<StatisticsBaseInfoAddCountVo> comDatas;
+		private CountDownLatch counter;
+
+		public GetComDatas(Long orgId, String moduleKey,
+				List<StatisticsBaseInfoAddCountVo> comDatas,
+				CountDownLatch counter) {
+			this.orgId = orgId;
+			this.moduleKey = moduleKey;
+			this.comDatas = comDatas;
+			this.counter = counter;
+		}
+
+		@Override
+		public void run() {
+			comDatas.addAll(companyPlaceBaseService.statisticsBaseInfo(orgId,
+					moduleKey));
+			counter.countDown();
+		}
+	}
+
+	/**
+	 * 合并人口，房屋，场所统计数据
+	 * 
+	 * @param dataPopu
+	 * @param dataHouse
+	 * @param dataCom
+	 * @return
+	 */
+	private List<StatisticsHousePopuComBaseInfoAddCountVo> combineListData(
+			List<StatisticsBaseInfoAddCountVo> dataPopu,
+			List<StatisticsBaseInfoAddCountVo> dataHouse,
+			List<StatisticsBaseInfoAddCountVo> dataCom) {
+		List<StatisticsHousePopuComBaseInfoAddCountVo> data = new ArrayList<StatisticsHousePopuComBaseInfoAddCountVo>();
+		for (int i = 0; i < dataPopu.size() - 1; i++) {
+			// 最后的合计数据不要的
+			data.add(combineDataVo(dataPopu.get(i), dataHouse.get(i),
+					dataCom.get(i)));
+		}
+		return data;
+	}
+
+	private StatisticsHousePopuComBaseInfoAddCountVo combineDataVo(
+			StatisticsBaseInfoAddCountVo popuVo,
+			StatisticsBaseInfoAddCountVo houseVo,
+			StatisticsBaseInfoAddCountVo comVo) {
+		StatisticsHousePopuComBaseInfoAddCountVo vo = new StatisticsHousePopuComBaseInfoAddCountVo();
+		vo.setAllCount(popuVo.getAllCount() + houseVo.getAllCount()
+				+ comVo.getAllCount());
+		vo.setThisMonthCountForCom(comVo.getThisMonthCount());
+		vo.setTodayAddCountForCom(comVo.getTodayAddCount());
+		vo.setThisMonthCountForHouse(houseVo.getThisMonthCount());
+		vo.setTodayAddCountForHouse(houseVo.getTodayAddCount());
+		vo.setThisMonthCountForPopu(popuVo.getThisMonthCount());
+		vo.setTodayAddCountForPopu(popuVo.getTodayAddCount());
+		vo.setStatisticsType(popuVo.getStatisticsType());
+		return vo;
+	}
+
+	private PageInfo<StatisticsBaseInfoAddCountVo> emptyPage(int pageSize) {
+		PageInfo<StatisticsBaseInfoAddCountVo> pageInfo = new PageInfo<StatisticsBaseInfoAddCountVo>();
+		pageInfo.setTotalRowSize(0);
+		pageInfo.setCurrentPage(0);
+		pageInfo.setPerPageSize(pageSize);
+		pageInfo.setResult(new ArrayList<StatisticsBaseInfoAddCountVo>());
+		return pageInfo;
+	}
+
+	public StatisticsBaseInfoAddCountForMobileVo getBaseInfoAddCountForMobileVo() {
+		return baseInfoAddCountForMobileVo;
+	}
+
+	public void setBaseInfoAddCountForMobileVo(
+			StatisticsBaseInfoAddCountForMobileVo baseInfoAddCountForMobileVo) {
+		this.baseInfoAddCountForMobileVo = baseInfoAddCountForMobileVo;
+	}
+
+	/**
+	 * 青少年统计
+	 * 
+	 * @return
+	 */
+	public String statisticsYouthsCount() throws Exception {
+		if (orgId == null) {
+			gridPage = new GridPage(emptyPage(rows));
+			return SUCCESS;
+		}
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(orgId);
+		SearchYouthsVo searchYouthsVo = new SearchYouthsVo();
+		searchYouthsVo.setKeyType(tableType);
+		searchYouthsVo.setOrganization(organization);
+		searchYouthsVo.setOrgInternalCode(organization.getOrgInternalCode());
+		List<StatisticsBaseInfoAddCountVo> datas = leaderViewService
+				.statisticsYouthsCount(searchYouthsVo, isGrid);
+		PageInfo<StatisticsBaseInfoAddCountVo> pageInfo = new PageInfo<StatisticsBaseInfoAddCountVo>();
+		pageInfo.setResult(datas);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	/**
+	 * 青少年月统计
+	 * 
+	 * @return
+	 */
+	public String statisticsYouthsMonthSummary() throws Exception {
+		if (orgId == null) {
+			gridPage = new GridPage(emptyPage(rows));
+			return SUCCESS;
+		}
+		List<StatisticsBaseInfoAddCountVo> datas = leaderViewService
+				.statisticsYouthsMonthSummary(orgId, tableType, isGrid);
+		PageInfo<StatisticsBaseInfoAddCountVo> pageInfo = new PageInfo<StatisticsBaseInfoAddCountVo>();
+		pageInfo.setResult(datas);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	/***
+	 * 数据补全手动执行job
+	 */
+	public String complentionJob() throws Exception {
+		if (completionType == null || completionType == "") {
+			errorMessage = "未得到补全类型数据，执行失败";
+			logger.error("手动补全数据失败,原因是completionType为null");
+			return ERROR;
+		}
+		id = jobMonitorService.addJobMonitor(completionType + "历史数据补全job");
+		try {
+			long startTime = System.currentTimeMillis();
+			logger.error("补全" + year + "年" + month + "月" + completionType
+					+ "信息开始");
+			if (NewBaseInfoTables.COMPANYPLACE_COMPLEMENT_KEY
+					.equals(completionType)) {
+				/** 执行单位场所数据补全 */
+				companyPlaceLeaderViewService
+						.addCompanyPlaceAnalyzStatisticsByTime(null, null,
+								null, Integer.valueOf(year),
+								Integer.valueOf(month));
+			} else if (NewBaseInfoTables.YONTH_COMPLEMENT_KEY
+					.equals(completionType)) {
+				/** 执行青少年数据补全 */
+				statisticsPopulationService.addYouthPopulationStat(
+						Integer.valueOf(year), Integer.valueOf(month));
+
+			} else if (NewBaseInfoTables.FLOATING_COMPLEMENT_KEY
+					.equals(completionType)) {
+				/** 执行流动人口数据补全 */
+				statisticsPopulationService
+						.addFloatingPopulationStatForYearAndMonth(
+								Integer.valueOf(year), Integer.valueOf(month));
+			} else if (PopulationType.PRIMARYORGANIZATIONS
+					.equals(completionType)) {
+				/** 组织机构数据补全 */
+				primaryOrganizationsStatisticsService
+						.addPrimaryOrganizationsStat(completionType,
+								Integer.valueOf(year), Integer.valueOf(month));
+			} else if (NewBaseInfoTables.BASESITUATIONSTATEMENT
+					.equals(completionType)) {
+				/** 执行基本信息统计报表 */
+				baseSituationStatementService
+						.addBaseStituationStatementHistory(year, month);
+			} else if ("issueReport".equals(completionType)){
+				issueReportService.statIssueReport(year, month);
+			}else {
+				errorMessage = "为找到匹配的补全类，请确认后执行";
+				logger.error("手动补全数据失败,原因是未找到匹配的补全类");
+				return ERROR;
+			}
+			jobMonitorService.updateJobMonitor(id,
+					"花了" + (System.currentTimeMillis() - startTime) + "手动执行"
+							+ completionType + "历史数据补全job", true);
+			double usedMinute = Math
+					.floor((System.currentTimeMillis() - startTime) / 60000);
+			logger.error("补全" + year + "年" + month + "月" + completionType
+					+ "信息结束,共花了" + usedMinute + "分钟");
+			return SUCCESS;
+		} catch (Exception e) {
+			jobMonitorService.updateJobMonitor(id, "手动执行" + completionType
+					+ "历史数据补全的job出现异常：" + e.getMessage(), false);
+			logger.error("补全" + year + "年" + month + "月" + completionType
+					+ "信息出现异常，原因是:" + e.getMessage());
+			return ERROR;
+		}
+	}
+
+	private List<StatisticsBaseInfoAddCountVo> setStatisticsBaseInfoAddCountVo(
+			Long id) {
+		List<Organization> list = organizationDubboService
+				.findOrganizationsByParentId(id);
+
+		StatisticsBaseInfoAddCountVo addCountVo = null;
+		List<StatisticsBaseInfoAddCountVo> data = new ArrayList<StatisticsBaseInfoAddCountVo>();
+
+		if (list != null) {
+			for (int i = 0; i < list.size(); i++) {
+				addCountVo = new StatisticsBaseInfoAddCountVo();
+				addCountVo.setStatisticsType(list.get(i).getOrgName());
+				data.add(addCountVo);
+			}
+		}
+		addCountVo = new StatisticsBaseInfoAddCountVo();
+		addCountVo.setStatisticsType("合计");
+		data.add(addCountVo);
+		return data;
+	}
+}

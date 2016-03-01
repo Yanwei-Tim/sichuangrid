@@ -1,0 +1,120 @@
+package com.tianque.plugin.weChat.util;
+
+import java.io.File;
+
+/**常量类*/
+public class Constants {
+	private static String fileSeparator = File.separator;
+	/**与接口配置信息中的Token要一致*/
+	public static final String TOKEN = "weChatCenter";
+	//关键词新增数量
+	public static final long KEYWORD_COUNT = 10;
+	//素材新增数量(类型)
+	public static final long WECHATSOURCE_TYPE_COUNT = 10;
+	//素材新增数量(服务号)
+	public static final long WECHATSOURCE_ALL_COUNT = 100;
+	/**文件保存的位置（若在本地调试可改成本地电脑上的地址，如：d:///aaa.jpg）*/
+	public static final String FILE_URL = "d:///FILE_NAME.FILE_TYPE";
+	public static final String WECHAT_ATTACHFILE = "uploadFile" + fileSeparator + "weChat";
+	/**GET或POST（必须大写，不可更改）*/
+	public static final String GET = "GET";
+	public static final String POST = "POST";
+	/**是否受理*/
+	public static final Long NOT_ACCEPT = 0l;
+	public static final Long ACCEPT = 1l;
+	
+	/**是否转发*/
+	public static final Long NOT_FORWARD = 1l;
+	public static final Long FORWARD = 2l;//已转发
+	
+	public static final Long AVAILABILITY = 1L;//有效
+	public static final Long INVALID = 2L;//无效
+
+	/**信息类型（由微信方规定，不可更改）*/
+	/** 
+	 * 请求消息类型
+	 */
+	public static final String REQ_MESSAGE_TYPE_TEXT = "text";
+	public static final String REQ_MESSAGE_TYPE_IMAGE = "image";
+	public static final String REQ_MESSAGE_TYPE_LINK = "link";
+	public static final String REQ_MESSAGE_TYPE_LOCATION = "location";
+	public static final String REQ_MESSAGE_TYPE_VOICE = "voice";
+	public static final String REQ_MESSAGE_TYPE_VIDEO = "video";
+	public static final String REQ_MESSAGE_TYPE_EVENT = "event";
+	/** 
+	 * 返回消息类型
+	 */
+	public static final String RESP_MESSAGE_TYPE_TEXT = "text";
+	public static final String RESP_MESSAGE_TYPE_IMAGE = "image";
+	public static final String RESP_MESSAGE_TYPE_VOICE = "voice";
+	public static final String RESP_MESSAGE_TYPE_VIDEO = "video";
+	public static final String RESP_MESSAGE_TYPE_MUSIC = "music";
+	public static final String RESP_MESSAGE_TYPE_NEWS = "news";
+	/** 
+	 * 事件类型
+	 */
+	public static final String EVENT_TYPE_SUBSCRIBE = "subscribe";
+	/** 
+	 * 事件类型：unsubscribe(取消订阅) 
+	 */
+	public static final String EVENT_TYPE_UNSUBSCRIBE = "unsubscribe";
+
+	/** 
+	 * 事件类型：scan(关注用户扫描带参数二维码) 
+	 */
+	public static final String EVENT_TYPE_SCAN = "scan";
+	/** 
+	 * 事件类型：location上报地理位置
+	 */
+	public static final String EVENT_TYPE_LOCATION = "LOCATION";
+
+	/** 
+	 * 事件类型：CLICK(自定义菜单点击事件) 
+	 */
+	public static final String EVENT_TYPE_CLICK = "CLICK";
+
+	/**接口地址（由微信方规定，不可更改）*/
+	// 获取access_token的接口地址（GET） 限200（次/天） 
+	public final static String ACCESS_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET";
+	// 菜单创建（POST） 限100（次/天）  
+	public static String MENU_CREATE_URL = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=ACCESS_TOKEN";
+
+	//删除菜单（POST） 限100（次/天）  
+	public static String MENU_DELETE_URL = "https://api.weixin.qq.com/cgi-bin/menu/delete?access_token=ACCESS_TOKEN";
+
+	//发送客服消息
+	public static String SEND_MESSAGE_URL = "https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=ACCESS_TOKEN";
+	//按组群发消息
+	public static String SEND_MESSAGE_BYGROUP_URL = "https://api.weixin.qq.com/cgi-bin/message/mass/sendall?access_token=ACCESS_TOKEN";
+	//按微信号群发消息
+	public static String SEND_MESSAGE_BYOPENID_URL = "https://api.weixin.qq.com/cgi-bin/message/mass/send?access_token=ACCESS_TOKEN";
+	//上传文件
+	public static String UPLOAD_MEDIA_URL = "http://file.api.weixin.qq.com/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type=TYPE";
+	//上传图文消息素材(用于群发) 每日调用限制为100次，但是用户每月只能接收4条
+	public static String UPLOAD_NEWS_URL = "https://api.weixin.qq.com/cgi-bin/media/uploadnews?access_token=ACCESS_TOKEN";
+	//下载文件
+	public static String DOWNLOAD_MEDIA_URL = "http://file.api.weixin.qq.com/cgi-bin/media/get?access_token=ACCESS_TOKEN&media_id=MEDIA_ID";
+	//获取粉丝（用户信息）
+	public static String GET_FANINFO_URL = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=ACCESS_TOKEN&openid=OPENID";
+	//创建分组 最多支持创建500个分组
+	public static String CREATE_GROUP_URL = "https://api.weixin.qq.com/cgi-bin/groups/create?access_token=ACCESS_TOKEN";
+	//查询所有分组
+	public static String GET_GROUPLIST_URL = "https://api.weixin.qq.com/cgi-bin/groups/get?access_token=ACCESS_TOKEN";
+	//查询用户所在分组
+	public static String GET_GROUPID_URL = "https://api.weixin.qq.com/cgi-bin/groups/getid?access_token=ACCESS_TOKEN";
+	//修改组名
+	public static String UPDATE_GROUP_URL = "https://api.weixin.qq.com/cgi-bin/groups/update?access_token=ACCESS_TOKEN";
+	//移动用户分组
+	public static String REMOVE_USERFORGROUP_URL = "https://api.weixin.qq.com/cgi-bin/groups/members/update?access_token=ACCESS_TOKEN";
+	//微信红包发送请求接口url
+	public static String REDENVELOPE_URL = "https://api.mch.weixin.qq.com/mmpaymkttransfers/sendredpack";
+	//微信红包查看请求接口url
+	public static String REDENVELOPE_RECORD_VIEW_URL = "https://api.mch.weixin.qq.com/mmpaymkttransfers/gethbinfo";
+	//微信消息模板-获得模板id接口url
+	public static String MESSAGETEMPLATE_GETID_URL = "https://api.weixin.qq.com/cgi-bin/template/api_add_template?access_token=ACCESS_TOKEN";
+	//微信消息模板-发送模板消息接口url
+	public static String SEND_MESSAGETEMPLATE_URL = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=ACCESS_TOKEN";
+	
+
+
+}

@@ -1,0 +1,748 @@
+package com.tianque.baseInfo.mPersonnel.service;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.actualHouse.domain.HouseInfo;
+import com.tianque.baseInfo.actualHouse.service.ActualHouseService;
+import com.tianque.baseInfo.base.domain.ActualPopulation;
+import com.tianque.baseInfo.base.domain.Countrymen;
+import com.tianque.baseInfo.base.domain.LogoutDetail;
+import com.tianque.baseInfo.base.service.BaseInfoPopulationTemplateImpl;
+import com.tianque.baseInfo.base.service.BaseInfoService;
+import com.tianque.baseInfo.base.service.PopulationRelationService;
+import com.tianque.baseInfo.mPersonnel.dao.MPersonnelDao;
+import com.tianque.baseInfo.mPersonnel.domain.MPersonnel;
+import com.tianque.cache.PageInfoCacheThreadLocal;
+import com.tianque.cache.UpdateType;
+import com.tianque.core.cache.constant.MemCacheConstant;
+import com.tianque.core.datatransfer.ExcelImportHelper;
+import com.tianque.core.systemLog.util.OperatorType;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.Chinese2pinyin;
+import com.tianque.core.util.NewBaseInfoTables;
+import com.tianque.core.util.ObjectToJSON;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.service.HousePopulationMaintanceService;
+import com.tianque.service.IssueTypeService;
+import com.tianque.service.PopulationProccessorService;
+import com.tianque.service.helper.ManagePopulationByHouseHelper;
+import com.tianque.service.util.PopulationCatalog;
+import com.tianque.service.util.PopulationType;
+import com.tianque.service.vo.IsEmphasis;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.userAuth.api.PermissionDubboService;
+import com.tianque.util.Arrays;
+import com.tianque.util.IdCardUtil;
+import com.tianque.util.PluginServiceHelpUtil;
+import com.tianque.validate.AbstractCountrymenValidator;
+
+@Service("mPersonnelService")
+@Transactional
+public class MPersonnelServiceImpl extends BaseInfoPopulationTemplateImpl
+		implements MPersonnelService, PopulationProccessorService {
+
+	private static final String CACHE_ADDMPERSONNEL_VALUE = "CACHE_ADDMPERSONNEL";
+	private static final String CACHE_ADDMPERSONNELBASEINFO_VALUE = "CACHE_ADDMPERSONNELBASEINFO";
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+
+	@Autowired
+	MPersonnelDao mPersonnelDao;
+
+	@Qualifier("mPersonnelValidator")
+	@Autowired
+	private AbstractCountrymenValidator<MPersonnel> updateValidator;
+	@Autowired
+	private IssueTypeService issueTypeService;
+	@Autowired
+	private PropertyDictService propertyDictService;
+	@Autowired
+	private ActualHouseService actualHouseService;
+	@Autowired
+	private ManagePopulationByHouseHelper managePopulationByHouseHelper;
+	@Autowired
+	private HousePopulationMaintanceService housePopulationMaintanceService;
+	@Autowired
+	private PopulationRelationService populationRelationService;
+	@Autowired
+	private BaseInfoService baseInfoService;
+	@Autowired
+	private PermissionDubboService permissionDubboService;
+
+	// @Autowired
+	// private CacheService cacheService;
+
+	@Resource(name = "mPersonnelDao")
+	public void setBaseInfoPopulationBaseDao(MPersonnelDao mPersonnelDao) {
+		super.setBaseInfoPopulationBaseDao(mPersonnelDao);
+	}
+
+	@Override
+	public Long proccessPopulationSpecializedInfo(
+			ActualPopulation actualPopulation, String[] populationType,
+			Map<String, Object> population) {
+		actualPopulation
+				.setAttentionPopulationType(NewBaseInfoTables.MPERSONNEL_KEY);
+		Long orgId = Long
+				.valueOf(((String[]) population.get("organization.id"))[0]);
+		String idCardNo = ((String[]) population.get("idCardNo"))[0];
+		MPersonnel MPersonnel = mPersonnelDao.getByOrgIdAndIdCardNo(orgId,
+				idCardNo);
+		if (!com.tianque.util.Arrays.hasObjectInArray(populationType,
+				PopulationType.M_PERSONNEL)) {
+			if (null != MPersonnel) {
+				MPersonnel.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+				updateEmphasiseById(MPersonnel.getId(),
+						IsEmphasis.IsNotEmphasis);
+			}
+		} else {
+			if (null == MPersonnel) {
+				MPersonnel = new MPersonnel();
+				copyProperty(actualPopulation, population, MPersonnel);
+				addMPersonnel(MPersonnel);
+			} else {
+				Long id = MPersonnel.getId();
+				copyProperty(actualPopulation, population, MPersonnel);
+				MPersonnel.setId(id);
+				MPersonnel.setIsEmphasis(IsEmphasis.Emphasis);
+				updateMPersonnelBusiness(MPersonnel);
+				updateEmphasiseById(MPersonnel.getId(), IsEmphasis.Emphasis);
+			}
+		}
+		return MPersonnel == null
+				|| MPersonnel.getIsEmphasis() == IsEmphasis.IsNotEmphasis
+						.longValue() ? null : MPersonnel.getId();
+	}
+
+	private void updateEmphasiseById(Long id, Long isEmphasis) {
+		LogoutDetail logoutDetail = new LogoutDetail();
+		logoutDetail.setLogout(isEmphasis);
+		updateLogOutByPopulationTypeAndId(logoutDetail,
+				BaseInfoTables.MPERSONNEL_KEY, id);
+	}
+
+	@Override
+	public MPersonnel updateMPersonnel(MPersonnel MPersonnel) {
+
+		if (!ExcelImportHelper.isImport.get()) {
+			MPersonnelValidator(MPersonnel);
+		}
+		try {
+			autoFillFields(MPersonnel);
+			if (MPersonnel.isDeath()) {
+				MPersonnel.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+				deletePopulationTypeByPopulationIdAndType(MPersonnel.getId(),
+						PopulationType.M_PERSONNEL);
+			}
+			MPersonnel = mPersonnelDao.update(MPersonnel);
+			return MPersonnel;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类MPersonnelServiceImpl的updateMPersonnel方法出现异常，原因：",
+					"修改信息出现错误", e);
+		}
+	}
+
+	private void MPersonnelValidator(MPersonnel MPersonnel) {
+		ValidateResult baseDataValidator = updateValidator.validate(MPersonnel);
+		if (baseDataValidator.hasError()) {
+			throw new BusinessValidationException(
+					baseDataValidator.getErrorMessages());
+		}
+	}
+
+	@Override
+	public MPersonnel addMPersonnel(MPersonnel mPersonnel) {
+		if (!ExcelImportHelper.isImport.get()) {
+			MPersonnelValidator(mPersonnel);
+		}
+		try {
+			if (checkDataExitInCache(mPersonnel,
+					MemCacheConstant.CACHE_ADDMPERSONNEL,
+					CACHE_ADDMPERSONNEL_VALUE)) {
+				return mPersonnel;
+			}
+			return add(mPersonnel);
+		} catch (Exception e) {
+			logger.error("MPersonnelServiceImpl addMPersonnel", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(mPersonnel, MemCacheConstant.CACHE_ADDMPERSONNEL);
+		}
+	}
+
+	private void copyProperty(ActualPopulation actualPopulation,
+			Map<String, Object> population, MPersonnel mPersonnel) {
+
+		copyProperties(mPersonnel, actualPopulation);
+		mPersonnel.setAttentionExtent(Arrays.getPropertyDictFromArray(
+				population, "attentionExtent.id"));
+		mPersonnel.setMbusinessRemark(Arrays.getStringValueFromArray(
+				population, "mbusinessRemark"));
+		mPersonnel.setAttentionPopulationType(BaseInfoTables.MPERSONNEL_KEY);
+
+	}
+
+	@Override
+	public Map<String, Map<String, Object>> getPopulationSpecializedInfoByOrgIdAndIdCardNo(
+			Long orgId, String idCardNo) {
+		MPersonnel mPersonnel = mPersonnelDao.getByOrgIdAndIdCardNo(orgId,
+				idCardNo);
+		if (null == mPersonnel) {
+			return null;
+		}
+		Map<String, Object> dangerousGoodsPractitionerMap = new HashMap<String, Object>();
+		dangerousGoodsPractitionerMap.put("id", mPersonnel.getId());
+		dangerousGoodsPractitionerMap.put("isEmphasis",
+				mPersonnel.getIsEmphasis());
+		dangerousGoodsPractitionerMap.put("workUnit", mPersonnel.getWorkUnit());
+		dangerousGoodsPractitionerMap.put("attentionExtent",
+				mPersonnel.getAttentionExtent());
+		dangerousGoodsPractitionerMap.put("mbusinessRemark",
+				mPersonnel.getMbusinessRemark());
+		Map<String, Map<String, Object>> map = new HashMap<String, Map<String, Object>>();
+		map.put(PopulationType.M_PERSONNEL, dangerousGoodsPractitionerMap);
+		return map;
+	}
+
+	@Override
+	public void updatePopulationBaseInfo(ActualPopulation actualPopulation) {
+		MPersonnel MPersonnel = mPersonnelDao.getByOrgIdAndIdCardNo(
+				actualPopulation.getOrganization().getId(),
+				actualPopulation.getIdCardNo());
+		if (null == MPersonnel) {
+			return;
+		}
+		Long id = MPersonnel.getId();
+		if (!StringUtil.isStringAvaliable(actualPopulation.getWorkUnit())) {
+			actualPopulation.setWorkUnit(MPersonnel.getWorkUnit());
+		}
+		copyProperties(MPersonnel, actualPopulation);
+		MPersonnel.setId(id);
+		updateMPersonnel(MPersonnel);
+	}
+
+	@Override
+	public void deletePopulationByPopulationId(Long populationId) {
+		if (null != populationId) {
+			this.deleteMPersonnelById(populationId);
+			this.deletePopulationTypeByPopulationIdAndType(populationId,
+					PopulationType.M_PERSONNEL);
+		}
+	}
+
+	@Override
+	public PageInfo<MPersonnel> findMPersonnelsForPageByOrgId(
+			Long organizationId, Integer page, Integer rows, String sidx,
+			String sord, Long isEmphasis) {
+		if (organizationId == null) {
+			return constructEmptyPageInfo();
+		} else {
+			Organization org = organizationDubboService
+					.getSimpleOrgById(organizationId);
+			if (org == null) {
+				return constructEmptyPageInfo();
+			} else {
+				/*
+				 * Map<String, Object> map = new HashMap<String, Object>();
+				 * map.put("orgInternalCode", org.getOrgInternalCode());
+				 * map.put("sortField", sidx); map.put("order", sord);
+				 * map.put("isEmphasis", isEmphasis);
+				 * map.put("attentionPopulationType",
+				 * BaseInfoTables.MPERSONNEL_KEY); return
+				 * mPersonnelDao.findPagerUsingCacheBySearchVo( organizationId,
+				 * map, page, rows, "MPersonnels",
+				 * MemCacheConstant.getCachePageKey(MPersonnel.class
+				 * .getSimpleName()));
+				 */
+				Map<String, Object> query = new HashMap<String, Object>();
+				query.put("orgInternalCode", org.getOrgInternalCode());
+				query.put("isEmphasis", isEmphasis);
+				query.put("attentionPopulationType",
+						BaseInfoTables.MPERSONNEL_KEY);
+				PageInfo<MPersonnel> pageInfos = mPersonnelDao
+						.findPagerUsingCacheBySearchVo(organizationId, query,
+								page, rows, "MPersonnelDefaultList",
+								MemCacheConstant
+										.getCachePageKey(MPersonnel.class));
+				fitCountrymen(pageInfos);
+				fitServiceMemberHasObject(BaseInfoTables.MPERSONNEL_KEY,
+						pageInfos);
+				//隐藏身份证中间4位
+				pageInfos=hiddenIdCard(pageInfos);
+				return pageInfos;
+
+				// return mPersonnelDao.findMPersonnelsForPageByOrgInternalCode(
+				// org.getOrgInternalCode(), page, rows, sidx, sord,
+				// isEmphasis);
+			}
+		}
+	}
+	
+	//隐藏身份证中间4位
+	private PageInfo<MPersonnel> hiddenIdCard(PageInfo<MPersonnel> pageInfo){
+					//判断权限，有权限不隐藏
+					if(permissionDubboService.
+							isUserHasPermission(ThreadVariable.getUser().getId(), "isMPersonnelManagementNotHidCard")){
+						return pageInfo;
+					}
+					List<MPersonnel> list = pageInfo.getResult();
+					int index=0;
+					for (MPersonnel verification:list) {
+						verification.setIdCardNo(IdCardUtil.hiddenIdCard(verification.getIdCardNo()));
+						list.set(index, verification);
+						index++;
+					}
+					pageInfo.setResult(list);
+					return pageInfo;
+}
+
+	private PageInfo<MPersonnel> constructEmptyPageInfo() {
+		PageInfo<MPersonnel> emptyPageInfo = new PageInfo<MPersonnel>();
+		emptyPageInfo.setResult(new ArrayList<MPersonnel>());
+		return emptyPageInfo;
+	}
+
+	@Override
+	public Boolean existMPersonnel(Long orgId, String idCardNo, Long hopeId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return false;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		Countrymen countrymen = baseInfoService.getBaseInfoByIdCardNo(idCardNo);
+		if (countrymen == null) {
+			return false;
+		}
+		Long dr = mPersonnelDao.getIdByBaseinfoIdAndOrgId(countrymen.getId(),
+				orgId);
+		return hopeId == null ? dr != null
+				: (dr != null && hopeId.longValue() != dr.longValue());
+	}
+
+	@Override
+	public MPersonnel hasDuplicateMPersonnel(Long orgId, String idCardNo) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return null;
+		}
+		try {
+			idCardNo = idCardNo.toUpperCase();
+			List<String> list = new ArrayList<String>();
+			list.add(idCardNo);
+			if (idCardNo.length() == 18) {
+				list.add(IdCardUtil.idCardNo18to15(idCardNo));
+			} else if (idCardNo.length() == 15) {
+				list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+				list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+			}
+			return mPersonnelDao.getByIdCard(list, orgId);
+
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类MPersonnelServiceImpl的hasDuplicateMPersonnel方法出现异常，原因：",
+					"判断M人员身份证号码是否存在出现错误", e);
+		}
+	}
+
+	@Override
+	public MPersonnel updateMPersonnelBaseInfo(MPersonnel population) {
+		if (!ExcelImportHelper.isImport.get()) {
+			ValidateResult baseDataValidator = updateValidator
+					.validateBaseInfo(population);
+			if (baseDataValidator.hasError()) {
+				throw new BusinessValidationException(
+						baseDataValidator.getErrorMessages());
+			}
+		}
+		try {
+			autoFillFields(population);
+			if (population.isDeath()) {
+				population.setLogoutDetail(buildLogoutDetail(population
+						.isDeath()));
+				// 缓存计数器
+				PageInfoCacheThreadLocal.decrease(MemCacheConstant
+						.getCachePageKey(MPersonnel.class.getSimpleName()),
+						population, 1);
+			}
+			Countrymen temp = populationRelationService.businessOption(
+					population, population.getActualPopulationType());
+			contructCurrentAddress(population);
+			population.setHouseId(temp.getHouseId());
+			rebuildHouseAddress(population);
+			return population;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类MPersonnelServiceImpl的updateMPersonnelBaseInfo方法出现异常，原因：",
+					"修改信息出现错误", e);
+		}
+
+	}
+
+	private LogoutDetail buildLogoutDetail(Boolean death) {
+		LogoutDetail result = new LogoutDetail();
+		if (death) {
+			result.setLogoutDate(new Date());
+			result.setLogoutReason(LogoutDetail.LOGOUT_REASON_FOR_DEATH);
+			result.setLogout(IsEmphasis.IsNotEmphasis);
+		} else if (!death) {
+			result.setLogout(IsEmphasis.Emphasis);
+		}
+
+		return result;
+	}
+
+	private void autoFillFields(MPersonnel MPersonnel) {
+		autoFillOrganizationInternalCode(MPersonnel);
+		autoFillChinesePinyin(MPersonnel);
+		autoFillBirthday(MPersonnel);
+		MPersonnel.setIdCardNo(MPersonnel.getIdCardNo().toUpperCase());
+		autoIsDeath(MPersonnel);
+	}
+
+	private void autoIsDeath(MPersonnel domain) {
+		if (domain.isDeath()) {
+			domain.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+		} else {
+			domain.setIsEmphasis(IsEmphasis.Emphasis);
+		}
+	}
+
+	private void autoFillOrganizationInternalCode(MPersonnel MPersonnel) {
+		Organization org = organizationDubboService.getSimpleOrgById(MPersonnel
+				.getOrganization().getId());
+		if (org == null)
+			throw new BusinessValidationException("数据传入错误");
+		MPersonnel.setOrgInternalCode(org.getOrgInternalCode());
+	}
+
+	private void autoFillChinesePinyin(MPersonnel MPersonnel) {
+		Map<String, String> pinyin = Chinese2pinyin
+				.changeChinese2Pinyin(MPersonnel.getName());
+		MPersonnel.setSimplePinyin(pinyin.get("simplePinyin"));
+		MPersonnel.setFullPinyin(pinyin.get("fullPinyin"));
+	}
+
+	private void autoFillBirthday(MPersonnel MPersonnel) {
+		if (StringUtil.isStringAvaliable(MPersonnel.getIdCardNo())) {
+			MPersonnel.setBirthday(IdCardUtil.parseBirthday(MPersonnel
+					.getIdCardNo()));
+		}
+	}
+
+	@Override
+	public MPersonnel addMPersonnelBaseInfo(MPersonnel population) {
+		ValidateResult baseDataValidator = updateValidator
+				.validateBaseInfo(population);
+		if (baseDataValidator.hasError()) {
+			throw new BusinessValidationException(
+					baseDataValidator.getErrorMessages());
+		}
+		try {
+			if (checkDataExitInCache(population,
+					MemCacheConstant.CACHE_ADDMPERSONNELBASEINFO,
+					CACHE_ADDMPERSONNELBASEINFO_VALUE)) {
+				return population;
+			}
+			return add(population);
+		} catch (Exception e) {
+			logger.error("MPersonnelServiceImpl addMPersonnelBaseInfo", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(population,
+					MemCacheConstant.CACHE_ADDMPERSONNELBASEINFO);
+		}
+	}
+
+	private MPersonnel add(MPersonnel MPersonnel) {
+		autoFillFields(MPersonnel);
+		try {
+			contructCurrentAddress(MPersonnel);
+			Countrymen temp = populationRelationService.businessOption(
+					MPersonnel, MPersonnel.getActualPopulationType());
+			MPersonnel.setBaseInfoId(temp.getBaseInfoId());
+			MPersonnel.setAddressInfoId(temp.getAddressInfoId());
+			MPersonnel.setSourcesState(null);
+			MPersonnel = mPersonnelDao.add(MPersonnel);
+			populationRelationService.addPopulationRelation(temp.getId(),
+					MPersonnel.getActualPopulationType(), MPersonnel.getId(),
+					BaseInfoTables.MPERSONNEL_KEY);
+			MPersonnel.setHouseId(temp.getHouseId());
+			rebuildHouseAddress(MPersonnel);
+			// 人员轨迹
+			// addPersonnelTrackWhenAttentionedOrCancel(MPersonnel, null,
+			// PersonnelTrackOperationType.ATTENTIONED,
+			// PersonInitType.IMPORT, "");
+
+			if (IsEmphasis.Emphasis.equals(MPersonnel.getIsEmphasis())) {
+				// 缓存计数器
+				PageInfoCacheThreadLocal.increment(MemCacheConstant
+						.getCachePageKey(MPersonnel.class.getSimpleName()),
+						MPersonnel, 1);
+			}
+			return MPersonnel;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类MPersonnelServiceImpl的add方法出现异常，原因：",
+					"新增MPersonnel信息出现错误", e);
+		}
+	}
+
+	/**
+	 * 如果人口的房屋信息（CurrentAddress）不为空，并且房屋id不存在，新增一个房屋，并且建立关联关系, 如果房屋id不为空直接建立关联关系
+	 * 如果房屋信息为空,并且有房屋id不为空，则删除人房关系
+	 * 
+	 * @param householdStaff
+	 */
+	private void rebuildHouseAddress(MPersonnel householdStaff) {
+
+		if (householdStaff.getIsHaveHouse() != null
+				&& householdStaff.getIsHaveHouse()
+				&& householdStaff.getCurrentAddress() != null) {
+
+			if (null == householdStaff.getHouseId()
+					|| householdStaff.getHouseId().equals(01L)) {
+				// 新增一个实有房屋,并且建立人房关系
+				HouseInfo houseInfo = new HouseInfo();
+				houseInfo.setAddress(householdStaff.getCurrentAddress());
+				houseInfo.setAddressType(propertyDictService
+						.findPropertyDictByDomainNameAndDictDisplayName(
+								PropertyTypes.CURRENT_ADDRESS_TYPE, "其他"));
+				houseInfo.setOrganization(householdStaff.getOrganization());
+				houseInfo
+						.setHouseOperateSource(NewBaseInfoTables.MPERSONNEL_KEY);
+				houseInfo = actualHouseService.addHouseInfo(houseInfo);
+
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.M_PERSONNEL, householdStaff,
+						houseInfo.getId());
+			} else if (householdStaff.getHouseId() != null) {
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.M_PERSONNEL, householdStaff,
+						householdStaff.getHouseId());
+			}
+		} else {
+			housePopulationMaintanceService.releaseHouse(
+					PopulationCatalog.M_PERSONNEL, householdStaff.getId(),
+					householdStaff.getHouseId());
+		}
+	}
+
+	private void addPersonnelTrackWhenAttentionedOrCancel(
+			MPersonnel dangerousGoodsPractitioner,
+			Organization oldPersonnelOrg, Integer operationType,
+			Integer personInitType, String operationContent) {
+		personnelTrackService.addPersonnelTrackWhenAttentionedOrCancel(
+				dangerousGoodsPractitioner, oldPersonnelOrg,
+				BaseInfoTables.MPERSONNEL_KEY, operationType, personInitType,
+				operationContent);
+	}
+
+	@Override
+	public MPersonnel updateMPersonnelBusiness(MPersonnel population) {
+		if (!ExcelImportHelper.isImport.get()) {
+			ValidateResult baseDataValidator = updateValidator
+					.validateSpecializedInfo(population);
+			if (baseDataValidator.hasError()) {
+				throw new BusinessValidationException(
+						baseDataValidator.getErrorMessages());
+			}
+		}
+		try {
+
+			population = mPersonnelDao.updateBusiness(population);
+			PageInfoCacheThreadLocal.update(
+					MemCacheConstant.getCachePageKey(MPersonnel.class),
+					population, UpdateType.BUSINESS);
+			return population;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类MPersonnelServiceImpl的updateMPersonnelBusiness方法出现异常，原因：",
+					"修改信息出现错误", e);
+		}
+
+	}
+
+	@Override
+	public List<Long> deleteMPersonnelByIds(List<Long> personIds) {
+		if (personIds == null) {
+			throw new BusinessValidationException("id没有获得");
+		}
+		for (Long id : personIds) {
+			deleteMPersonnelById(id);
+		}
+		return personIds;
+	}
+
+	private void deleteMPersonnelById(Long id) {
+
+		MPersonnel domain = mPersonnelDao.get(id);
+		if (null != domain) {
+			log(WARN, M_PERSONNEL, ThreadVariable.getSession().getUserName()
+					+ "删除M" + domain.getName(), OperatorType.DELETE,
+					ObjectToJSON.convertJSON(domain));
+
+			domain.setPopulationTypeBean(getPopulationRelationService()
+					.getBusinessPopulationTypeBean(id,
+							PopulationType.M_PERSONNEL));
+			getRecoverDatasService().deleteActualPopulation(domain);
+			populationRelationService.businessDeletePopulationRelation(id,
+					PopulationType.M_PERSONNEL);
+
+			mPersonnelDao.delete(id);
+			try {
+				PluginServiceHelpUtil.doService("routerService",
+						"deleteServiceTeamHasObjectsAndServiceMemberHasObject",
+						new Class[] { String.class, Long.class },
+						PopulationType.M_PERSONNEL, id);
+				/** 删除时对关联的事件和服务记录进行orgId和idCardNo赋值 */
+				PluginServiceHelpUtil.doService("routerService",
+						"setOrgIdAndCardNoOrName", new Class[] { Long.class,
+								String.class, String.class, Long.class },
+						domain.getOrganization().getId(), domain.getIdCardNo(),
+						PopulationType.M_PERSONNEL, id);
+				issueTypeService.setOrgIdAndCardNoOrNameForPerson(domain
+						.getOrganization().getId(), domain.getIdCardNo(),
+						"mPersonnel", id);
+
+				if (IsEmphasis.Emphasis.equals(domain.getIsEmphasis())) {
+					// 缓存计数器
+					PageInfoCacheThreadLocal.decrease(MemCacheConstant
+							.getCachePageKey(MPersonnel.class.getSimpleName()),
+							domain, 1);
+				}
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e1) {
+					logger.error("MPersonnelServiceImpldeleteMPersonnelById",
+							e1);
+				}
+			} catch (Exception e) {
+				logger.error("MPersonnelServiceImpldeleteMPersonnelById", e);
+			}
+		}
+
+	}
+
+	private boolean validateObjId(Long id) {
+		return null == id || id < 1L;
+	}
+
+	@Override
+	public MPersonnel getSimpleMPersonnelById(Long id) {
+		if (validateObjId(id)) {
+			throw new BusinessValidationException("获取M时，ID不合法");
+		}
+		return mPersonnelDao.get(id);
+	}
+
+	@Override
+	public List<MPersonnel> updateDeathByIds(List<Long> populationIds,
+			boolean death) {
+		List<MPersonnel> list = new ArrayList<MPersonnel>();
+		for (Long id : populationIds) {
+			MPersonnel population = this.getSimpleMPersonnelById(id);
+			updateLogOutByPopulationTypeAndId(
+					LogoutDetail.buildLogoutDetail(death),
+					BaseInfoTables.MPERSONNEL_KEY, population.getId());
+			baseInfoService.updateDeathStateById(population.getBaseInfoId(),
+					death, population.getIdCardNo(), population
+							.getOrganization().getId(), population
+							.getOrgInternalCode(),
+					NewBaseInfoTables.MPERSONNEL_KEY);
+			list.add(population);
+			// 缓存计数器
+			PageInfoCacheThreadLocal.increment(MemCacheConstant
+					.getCachePageKey(MPersonnel.class.getSimpleName()),
+					population, 1);
+		}
+		return list;
+	}
+
+	@Override
+	public MPersonnel getMPersonnelByIdCardNo(String idCardNo, Long id) {
+		if (idCardNo == null || "".equals(idCardNo.trim())) {
+			return null;
+		}
+		List<String> list = new ArrayList<String>();
+		list.add(idCardNo);
+		if (idCardNo.length() == 18) {
+			list.add(IdCardUtil.idCardNo18to15(idCardNo));
+		} else if (idCardNo.length() == 15) {
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+		}
+		return mPersonnelDao.getByIdCard(list, id);
+	}
+
+	@Override
+	public MPersonnel updateMPersonnelByName(String idCardNo, Long id,
+			MPersonnel domain) {
+		try {
+			MPersonnel older = this.getMPersonnelByIdCardNo(idCardNo, id);
+			domain.setId(older.getId());
+			domain.setCreateDate(older.getCreateDate());
+			domain.setCreateUser(older.getCreateUser());
+			return updateMPersonnel(domain);
+		} catch (Exception e) {
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("修改信息出现错误");
+			} else {
+				return null;
+			}
+		}
+	}
+
+	@Override
+	public void deleteMPersonnelByIds(Long[] ids) {
+		if (ids == null || ids.length == 0) {
+			throw new BusinessValidationException("传入参数为空");
+		}
+		try {
+			for (int i = 0; i < ids.length; i++) {
+				deleteMPersonnelById(ids[i]);
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类MPersonnelServiceImpl的deleteMPersonnelByIds方法出现异常，原因：",
+					"删除M信息出现错误", e);
+		}
+
+	}
+
+	@Override
+	public MPersonnel getMPersonnelById(Long id) {
+		return getSimpleMPersonnelById(id);
+	}
+
+	@Override
+	public void deleteBusinessPopulationDuplicate(Long id) {
+		deleteMPersonnelById(id);
+	}
+
+}

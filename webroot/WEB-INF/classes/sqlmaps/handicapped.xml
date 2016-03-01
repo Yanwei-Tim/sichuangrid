@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="handicapped">
+	<typeAlias alias="Handicapped" type="com.tianque.baseInfo.handicapped.domain.Handicapped" />
+	<typeAlias alias="handicappedSdisabilityType" type="com.tianque.baseInfo.handicapped.domain.HandicappedSdisabilityType" />
+
+		<resultMap class="Handicapped" id="handicappedResult" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResult">
+			<result property="workProfile.id" column="workProfile"/>
+			<result property="skillProfile.id" column="skillProfile"/>
+			<result property="disabilityCardNo" column="disabilityCardNo"/>
+			<result property="guardianName" column="guardianName"/>
+			<result property="disabilityReason" column="disabilityReason"/>
+			<result property="disability.id" column="disability"/>
+			<result property="disabilityType.id" column="disabilityType"/>
+			<result property="disabilityDate" column="disabilityDate"/>
+			<result property="hadDisabilityCard" column="hadDisabilityCard"/>
+	</resultMap>
+	<!-- 这两个resultMap内容一致，继承关系不一样 -->
+	<resultMap class="Handicapped" id="handicappedResultForList" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+			<result property="workProfile.id" column="workProfile"/>
+			<result property="skillProfile.id" column="skillProfile"/>
+			<result property="disabilityCardNo" column="disabilityCardNo"/>
+			<result property="guardianName" column="guardianName"/>
+			<result property="disabilityReason" column="disabilityReason"/>
+			<result property="disability.id" column="disability"/>
+			<result property="disabilityType.id" column="disabilityType"/>
+			<result property="disabilityDate" column="disabilityDate"/>
+			<result property="hadDisabilityCard" column="hadDisabilityCard"/>
+	</resultMap>
+	
+	<sql id="fields">
+		uni.id,uni.baseInfoId,uni.createDate,uni.createUser,uni.updateUser,uni.updateDate,uni.orgId,uni.orgInternalCode,
+		workProfile,skillProfile,disabilityCardNo,guardianName,disabilityReason,disability,disabilityType,disabilityDate
+		,uni.addressInfoId,hadDisabilityCard,isEmphasis,isEmphasisReason,isEmphasisDate,sourcesState,attentionExtent
+	</sql>
+	<sql id="updateBusinessSql">
+				<include refid="populationBaseInfo.updateBaseInfoSql"/>,
+		         workProfile = #workProfile.id#
+				,skillProfile = #skillProfile.id#
+		        ,disabilityCardNo= #disabilityCardNo#
+			    ,guardianName = #guardianName#
+		        ,disabilityReason = #disabilityReason#
+			    ,disability = #disability.id#
+			    ,disabilityType = #disabilityType.id#
+			    ,disabilityDate = #disabilityDate#
+				,hadDisabilityCard = #hadDisabilityCard#
+				,attentionExtent=#attentionExtent.id#
+				
+	</sql>
+
+
+	<insert id="addHandicapped" parameterClass="Handicapped">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_handicappeds.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into HANDICAPPEDS
+		(
+		<include refid="populationBaseInfo.addBaseInfoFields"/>,
+		disabilitycardno,guardianName,workProfile,skillProfile,
+		disabilityreason,disabilitytype,disability,disabilityDate,hadDisabilityCard,attentionExtent,sourcesState,isEmphasis)
+    	values
+    	 (
+    	 <include refid="populationBaseInfo.addBaseInfoData"/>,
+    	 #disabilityCardNo#,#guardianName#,#workProfile.id#,#skillProfile.id#,
+    	#disabilityReason#,#disabilityType.id#,#disability.id#,#disabilityDate#,#hadDisabilityCard#,#attentionExtent.id#,#sourcesState#,#isEmphasis#)
+	</insert>
+
+	<select id="getHandicappedById" parameterClass="java.lang.Long" resultMap="handicappedResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		FROM handicappeds uni left join baseinfo b on uni.baseinfoid = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.id = #value#
+	</select>
+
+	<select id="getHandicappedByIdCardNoAndOrganizationId" parameterClass="java.util.Map" resultMap="handicappedResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		FROM handicappeds uni left join baseinfo b on uni.baseinfoid = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where (upper(idCardNo) = upper(#idCardNo15#) or upper(idCardNo) like upper(#idCardNo18#))
+		and uni.orgId = #organizationId# 
+	</select>
+
+	<select id="countHandicappeds" parameterClass="Handicapped" resultClass="java.lang.Integer">
+		SELECT count(uni.id) from handicappeds uni left join baseinfo b on uni.baseinfoid = b.id
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis" prepend="and">
+				<isEqual property="isEmphasis" compareValue="1">
+				  		isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="-1">
+						1=1
+				</isEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findHandicappeds" parameterClass="Handicapped" resultMap="handicappedResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		from handicappeds uni left join baseinfo b on uni.baseinfoid = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis" prepend="and">
+				<isEqual property="isEmphasis" compareValue="1">
+				  		isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="-1">
+						1=1
+				</isEqual>
+			</isPropertyAvailable>
+		</dynamic>
+
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+
+
+	</select>
+
+	<update id="updateHandicapped" parameterClass="Handicapped">
+		update handicappeds set
+		<include refid="updateBusinessSql"/>
+		<isNotEmpty property="isEmphasis">
+			,isEmphasis = #isEmphasis#
+		</isNotEmpty>
+		where id=#id#
+
+	</update>
+
+	<delete id="deleteHandicappedById" parameterClass="java.lang.Long">
+		delete from handicappeds where id = #value#
+	</delete>
+
+<!-- 	<update id="updateHandicappedByIdCardNoFromBasePersonnel" parameterClass="Handicapped"> -->
+<!-- 		update handicappeds set -->
+<!-- 		<dynamic> -->
+<!-- 			idCardNo=#idCardNo# -->
+<!-- 			<isNotEmpty property="name" prepend=","> -->
+<!-- 				name = #name# -->
+<!-- 			</isNotEmpty> -->
+<!-- 			<isNotEmpty property="fullPinyin" prepend=","> -->
+<!-- 				fullPinyin = #fullPinyin# -->
+<!-- 			</isNotEmpty> -->
+<!-- 			<isNotEmpty property="simplePinyin" prepend=","> -->
+<!-- 				simplePinyin = #simplePinyin# -->
+<!-- 			</isNotEmpty> -->
+<!-- 			<isNotNull property="gender"> -->
+<!-- 				<isNotNull property="gender.id" prepend=","> -->
+<!-- 					gender = #gender.id# -->
+<!-- 				</isNotNull> -->
+<!-- 			</isNotNull> -->
+<!-- 			where IDCARDNO=#idCardNo# -->
+<!-- 		</dynamic> -->
+<!-- 	</update> -->
+
+	<update id="updateEmphasiseById" parameterClass="java.util.Map">
+	    update handicappeds set isEmphasis = #isEmphasis# where id=#id#
+	</update>
+
+	<update id="updateDeathAndLogoutStateById" parameterClass="java.util.Map">
+	    update handicappeds set
+	    <isNotEmpty property="death">
+	    	isdeath = #death#
+	    </isNotEmpty>
+	     <isNotEmpty property="isEmphasis" prepend=",">
+	    	  isEmphasis = #isEmphasis#
+	    </isNotEmpty>
+	    	where id=#id#
+	</update>
+
+
+
+	<select id="getByOrgIdAndIdCardNo" resultMap="handicappedResult" parameterClass="java.util.Map">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		FROM handicappeds uni left join baseinfo b on uni.baseinfoid = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where upper(idCardno) = upper(#idCardNo#) and uni.orgId=#orgId#
+	</select>
+	<update id="updateBaseInfo" parameterClass="Handicapped">
+		update handicappeds set
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>
+		<include refid="populationBaseInfo.updateBussLogoutDetail"/>
+		where id = #id#
+	</update>
+
+	<update id="updateBusiness" parameterClass="Handicapped">
+		update handicappeds set
+		<include refid="updateBusinessSql"/>
+		<isNotEmpty property="isEmphasis">
+			,isEmphasis = #isEmphasis#
+		</isNotEmpty>
+		where id = #id#
+	</update>
+	<delete id="deleteDisbilityType" parameterClass="handicappedSdisabilityType">
+		DELETE FROM HANDICAPPEDSDISABILITYTYPE WHERE HANDICAPPEDSID = #id# AND ISDATAMANAGE = #isDataManage#
+	</delete>
+	<insert id="saveHandicappedSdisabilityTypeToReal" parameterClass="handicappedSdisabilityType">
+		INSERT INTO HANDICAPPEDSDISABILITYTYPE(ID, HANDICAPPEDSID, HANDICAPPEDSTYPE, HANDICAPPEDSLEVEL, ISDATAMANAGE)
+		SELECT S_HANDICAPPEDSDISABILITYTYPE.NEXTVAL,#disId#, HANDICAPPEDSTYPE, HANDICAPPEDSLEVEL, 0 FROM HANDICAPPEDSDISABILITYTYPE
+		WHERE HANDICAPPEDSID = #id# AND ISDATAMANAGE = 1
+	</insert>
+	<select id="queryDisabilityLevelById" parameterClass="handicappedSdisabilityType" resultClass="handicappedSdisabilityType">
+		SELECT HANDICAPPEDSTYPE, HANDICAPPEDSLEVEL FROM HANDICAPPEDSDISABILITYTYPE WHERE HANDICAPPEDSID = #id# AND ISDATAMANAGE = #isDataManage#
+	</select>
+	<insert id="saveDisabilityType" parameterClass="handicappedSdisabilityType">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_HANDICAPPEDSDISABILITYTYPE.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		INSERT INTO HANDICAPPEDSDISABILITYTYPE(ID, HANDICAPPEDSID, HANDICAPPEDSTYPE, HANDICAPPEDSLEVEL, ISDATAMANAGE)
+		VALUES (#id#, #disId#, #handicappedstype#, #handicappedslevel#, #isDataManage#)
+	</insert>
+	
+	<select id="getIdByBaseinfoIdAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		SELECT id from handicappeds  
+		where baseinfoid=#baseInfoId# and orgId=#orgId#
+	</select>
+	
+	<resultMap id="handicappedResultForDefaultList" class="Handicapped" 
+		extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForDefaultList">
+		<result property="workProfile.id" column="workProfile"/>
+			<result property="skillProfile.id" column="skillProfile"/>
+			<result property="disabilityCardNo" column="disabilityCardNo"/>
+			<result property="guardianName" column="guardianName"/>
+			<result property="disabilityReason" column="disabilityReason"/>
+			<result property="disability.id" column="disability"/>
+			<result property="disabilityType.id" column="disabilityType"/>
+			<result property="disabilityDate" column="disabilityDate"/>
+			<result property="hadDisabilityCard" column="hadDisabilityCard"/>
+	</resultMap>
+	<sql id="default_sql_where">
+	  from handicappeds uni 
+	  <dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findHandicappedDefaultList" resultMap="handicappedResultForDefaultList" parameterClass="map">
+	  select <include refid="fields"/>
+	  <include refid="default_sql_where" />
+	  ORDER BY ID DESC
+	</select>
+	
+	<select id="countHandicappedDefaultList" resultClass="java.lang.Integer" parameterClass="map">
+		<![CDATA[select count(uni.id)]]>
+		<include refid="default_sql_where" />
+	</select>
+	
+
+</sqlMap>

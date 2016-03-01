@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="termerRecord">
+	<typeAlias alias="TermerRecord" type="com.tianque.plugin.taskList.domain.TermerRecord" />
+	<resultMap id="termerRecordResult" class="TermerRecord">
+	  <result column="id" property="id"/>
+	  <result column="orgId" property="organization.id" />
+	  <result column="orgCode" property="organization.orgInternalCode" />
+	  <result column="recordDate" property="recordDate" />
+	  <result column="address" property="address" />
+	  <result column="name" property="name" />
+	  <result column="exceptionSituationInfo" property="exceptionSituationInfo" />
+	  <result column="mark" property="mark" />
+	  <result column="status" property="status" />
+	  <result column="attitude" property="attitude" />
+	  <result column="signDate" property="signDate" />
+	  <result column="gridMemberPhone" property="gridMemberPhone" />
+	  <result column="signMemberName" property="signMemberName" />
+	  <result column="createDate" property="createDate" />
+	  <result column="createUser" property="createUser" />
+	  <result column="updateDate" property="updateDate" />
+	  <result column="updateUser" property="updateUser" />  
+	</resultMap>
+	
+	<resultMap id="termerRecordResultByName" class="TermerRecord">
+	  <result column="address" property="address" />
+	  <result column="name" property="name" />
+	</resultMap>
+	
+	<sql id="sql_where">
+		where 1=1
+		<dynamic>
+			<isNotEmpty  property="fastSearchCondition" prepend="and">
+				(address like #fastSearchCondition# || '%' or name like #fastSearchCondition# || '%')
+			</isNotEmpty>
+			<isNotEmpty  property="name" prepend="and">
+				name like #name# || '%'
+			</isNotEmpty>
+			<isNotEmpty  property="address" prepend="and">
+				address like #address# || '%'
+			</isNotEmpty>
+			<isNotEmpty  property="signMemberName" prepend="and">
+				signMemberName like #signMemberName# || '%'
+			</isNotEmpty>
+			<isNotEmpty  property="status" prepend="and">
+				status = #status#
+			</isNotEmpty>
+			<isNotEmpty  property="recordStartDate" prepend="and">
+				<![CDATA[#recordStartDate# <= recordDate ]]>
+			</isNotEmpty>
+			<isNotEmpty  property="recordEndDate" prepend="and">
+				<![CDATA[#recordEndDate# >= recordDate]]>
+			</isNotEmpty>
+			<isNotEmpty  property="signEndDate" prepend="and">
+				<![CDATA[#signEndDate# >= signDate]]>
+			</isNotEmpty>
+			<isNotEmpty  property="signStartDate" prepend="and">
+				<![CDATA[#signStartDate# <= signDate]]>
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	<insert id="addTermerRecord">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_termerRecord.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		<![CDATA[
+			insert into termerRecord
+			(id, orgCode,orgId,recordDate,address,name,exceptionSituationInfo,mark,gridMemberPhone,createUser,updateUser,createDate,updateDate)
+			values(#id#, #organization.orgInternalCode#, #organization.id#, #recordDate#, #address#, #name#, #exceptionSituationInfo#, #mark#, #gridMemberPhone#, #createUser#, #updateUser#, #createDate#, #updateDate#)
+		]]>
+	</insert>
+	
+	<update id="updateTermerRecord" parameterClass="TermerRecord">
+		update termerRecord set
+			recordDate=#recordDate#,
+			address=#address#,
+			name=#name#,
+			exceptionSituationInfo=#exceptionSituationInfo#,
+			mark=#mark#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#
+		where id=#id#
+	</update>
+	
+	<select id="getTermerRecordById" parameterClass="java.lang.Long"
+		resultMap="termerRecordResult">
+		select id,orgCode,orgId,recordDate,address,name,exceptionSituationInfo,mark,signDate,attitude,status,gridMemberPhone,signMemberName,updateUser,updateDate,createDate,createUser
+		from termerRecord where id=#value#
+	</select>
+	
+	<select id="countFindTermerRecords" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(0) from termerRecord
+		<include refid="sql_where" />
+		<isNotEmpty  property="orgCode" prepend="and">
+				orgCode like #orgCode#||'%' 
+		</isNotEmpty>
+	</select>
+	
+	<select id="findTermerRecords" parameterClass="java.util.Map"
+		resultMap="termerRecordResult">
+		select id,orgCode,orgId,recordDate,address,name,exceptionSituationInfo,mark,signDate,attitude,status,gridMemberPhone,signMemberName,updateUser,updateDate,createDate,createUser
+		from termerRecord
+		<include refid="sql_where" />
+		<isNotEmpty  property="orgCode" prepend="and">
+				orgCode like #orgCode#||'%' 
+		</isNotEmpty>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findTermerRecordsByName" parameterClass="java.util.Map"
+		resultMap="termerRecordResultByName">
+		select address,name
+		from termerRecord where name like #name#||'%' 
+		and orgCode like #orgCode#||'%' group by name,address
+	</select>
+	
+	<delete id="deleteTermerRecord" parameterClass="java.util.Map">
+    	delete from termerRecord where id in
+    	<iterate conjunction="," open="(" close=")" property="ids">
+            #ids[]#
+        </iterate>
+    </delete>
+    
+    <select id="countTermerRecordAndGridTask" parameterClass="map" resultClass="java.lang.Integer">
+    select count(b.id) from gridConfigTask a,termerRecord b 
+    <include refid="sql_where" />
+    and a.orgInternalCode like b.orgCode
+	</select>
+	
+	<select id="countTermerRecordAndGridTaskOther" parameterClass="map" resultClass="java.lang.Integer">
+    select count(b.id) from gridConfigTask a,termerRecord b
+    <include refid="sql_where" />
+    and a.orgInternalCode = b.orgCode and a.orgInternalCode = #orgCode#
+	</select>
+	
+	<select id="searchTermerRecordAndGridTask" parameterClass="map" resultMap="termerRecordResult">
+	select b.* from gridConfigTask a,termerRecord b 
+	<include refid="sql_where" />
+	and a.orgInternalCode like b.orgCode
+	</select>
+	
+	<select id="searchTermerRecordAndGridTaskOther" parameterClass="map" resultMap="termerRecordResult">
+	select b.* from gridConfigTask a,termerRecord b 
+	<include refid="sql_where" />
+    and a.orgInternalCode = b.orgCode and a.orgInternalCode = #orgCode#
+	</select>
+</sqlMap>

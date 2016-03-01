@@ -1,0 +1,1084 @@
+package com.tianque.baseInfo.unsettledPopulation.service;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.actualHouse.domain.HouseInfo;
+import com.tianque.baseInfo.actualHouse.service.ActualHouseService;
+import com.tianque.baseInfo.base.domain.ActualPopulation;
+import com.tianque.baseInfo.base.domain.Countrymen;
+import com.tianque.baseInfo.base.domain.LogoutDetail;
+import com.tianque.baseInfo.base.service.BaseInfoIdCardChangeProcessorService;
+import com.tianque.baseInfo.base.service.BaseInfoPopulationTemplateImpl;
+import com.tianque.baseInfo.base.service.BaseInfoService;
+import com.tianque.baseInfo.familyInfo.domain.GroupFamily;
+import com.tianque.baseInfo.familyInfo.service.GroupFamilyService;
+import com.tianque.baseInfo.unsettledPopulation.dao.SearchUnsettledPopulationDao;
+import com.tianque.baseInfo.unsettledPopulation.dao.UnsettledPopulationDao;
+import com.tianque.baseInfo.unsettledPopulation.domain.UnsettledPopulation;
+import com.tianque.cache.PageInfoCacheThreadLocal;
+import com.tianque.cache.UpdateType;
+import com.tianque.controller.annotation.SolrServerIndex;
+import com.tianque.core.cache.constant.MemCacheConstant;
+import com.tianque.core.datatransfer.ExcelImportHelper;
+import com.tianque.core.systemLog.util.OperatorType;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.Chinese2pinyin;
+import com.tianque.core.util.ConstantsProduct;
+import com.tianque.core.util.NewBaseInfoTables;
+import com.tianque.core.util.ObjectToJSON;
+import com.tianque.core.util.PeopleHelper;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.domain.vo.BaseUnsettledPopulationSearchCondition;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.gis.domain.vo.PopulationVo;
+import com.tianque.gis.service.SearchGisPopulationService;
+import com.tianque.jms.OperateMode;
+import com.tianque.plugin.tqSearch.sqlMap.DeleteSqlMap;
+import com.tianque.plugin.tqSearch.sqlMap.UpdateSqlMap;
+import com.tianque.service.ActualPopulationService;
+import com.tianque.service.HouseInfoService;
+import com.tianque.service.HousePopulationMaintanceService;
+import com.tianque.service.helper.ManagePopulationByHouseHelper;
+import com.tianque.service.util.PopulationCatalog;
+import com.tianque.service.util.PopulationType;
+import com.tianque.service.vo.IsEmphasis;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.systemOperateLog.service.SystemOperateLogService;
+import com.tianque.systemOperateLog.util.SystemOperateType;
+import com.tianque.util.IdCardUtil;
+import com.tianque.util.PropertyUtil;
+
+@Service("unsettledPopulationService")
+@Transactional
+public class UnsettledPopulationServiceImpl extends
+		BaseInfoPopulationTemplateImpl implements UnsettledPopulationService,
+		SearchGisPopulationService, ActualPopulationService,
+		BaseInfoIdCardChangeProcessorService {
+	@Autowired
+	private PropertyDictService propertyDictService;
+	// @Autowired
+	// private BaseInfoDeleter baseInfoDeleter;
+	@Autowired
+	private UnsettledPopulationDao unsettledPopulationDao;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private SearchUnsettledPopulationDao searchUnsettledPopulationDao;
+	@Autowired
+	private ManagePopulationByHouseHelper managePopulationByHouseHelper;
+	@Autowired
+	private ActualHouseService actualHouseService;
+
+	@Autowired
+	private HouseInfoService houseInfoService;
+	@Autowired
+	private HousePopulationMaintanceService housePopulationMaintanceService;
+
+	@Autowired
+	private GroupFamilyService groupFamilyService;
+	@Autowired
+	private SystemOperateLogService systemOperateLogService;
+	@Autowired
+	@Qualifier("peopleHelper")
+	PeopleHelper peopleHelper;
+	@Autowired
+	private BaseInfoService baseInfoService;
+
+	@Resource(name = "unsettledPopulationDao")
+	public void setBaseInfoPopulationBaseDao(
+			UnsettledPopulationDao unsettledPopulationDao) {
+		super.setBaseInfoPopulationBaseDao(unsettledPopulationDao);
+	}
+
+	@Override
+	public UnsettledPopulation addUnsettledPopulation(
+			UnsettledPopulation unsettledPopulation) {
+		autoFilled(unsettledPopulation);
+		if (!ExcelImportHelper.isImport.get()) {
+			validateFields(unsettledPopulation);
+		}
+		unsettledPopulation.setLogOut(0L);
+		Long houseId = unsettledPopulation.getHouseId();
+		try {
+			Integer operateType=OperatorType.ADD;
+			String operateStr="添加";
+			if(unsettledPopulation.getSourcesState()!=null&&
+					unsettledPopulation.getSourcesState().equals(ConstantsProduct.SourcesState.CLAIM)){
+				operateType=OperatorType.CLAIM;
+				operateStr="认领";
+			}
+			logOperate(unsettledPopulation.getOrganization().getId(),
+					UNSETTEDPOPULATION,
+					ThreadVariable.getSession().getUserName() + operateStr+"未落户人口"
+							+ unsettledPopulation.getName(), operateType,
+					BaseInfoTables.UNSETTEDPOPULATION_KEY,
+					ObjectToJSON.convertJSON(unsettledPopulation));
+
+			contructCurrentAddress(unsettledPopulation);
+			unsettledPopulation = unsettledPopulationDao
+					.add(unsettledPopulation);
+			unsettledPopulation.setHouseId(houseId);
+			rebuildHouseAddress(unsettledPopulation);
+			// 缓存计数器
+			PageInfoCacheThreadLocal.increment(
+					MemCacheConstant.getCachePageKey(UnsettledPopulation.class
+							.getSimpleName()), unsettledPopulation, 1);
+		} catch (Exception e) {
+			logger.error("异常信息", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		}
+		// commonPopulationService.execute(Mode.ADD,
+		// unsettledPopulation.getCommonPopulation());
+		return unsettledPopulation;
+	}
+
+	private void autoFilled(UnsettledPopulation unsettledPopulation) {
+		if (null != unsettledPopulation.getIdCardNo()) {
+			unsettledPopulation.setIdCardNo(unsettledPopulation.getIdCardNo()
+					.toUpperCase());
+		}
+		autoFillChinesePinyin(unsettledPopulation);
+		autoFillOrganizationInternalCode(unsettledPopulation);
+		autoFillBirthday(unsettledPopulation);
+		autoFillGender(unsettledPopulation);
+	}
+
+	/**
+	 * 填充性别
+	 * 
+	 * @param householdStaff
+	 */
+	private void autoFillGender(UnsettledPopulation unsettledPopulation) {
+		if (unsettledPopulation.getIdCardNo() != null
+				&& !"".equals(unsettledPopulation.getIdCardNo())) {
+			unsettledPopulation.setGender(peopleHelper.autoFillGender(
+					PropertyTypes.GENDER, unsettledPopulation.getIdCardNo()));
+		}
+
+	}
+
+	private void autoFillOrganizationInternalCode(
+			UnsettledPopulation unsettledPopulation) {
+		Organization org = organizationDubboService
+				.getSimpleOrgById(unsettledPopulation.getOrganization().getId());
+		if (org == null) {
+			throw new BusinessValidationException("找不到指定的网格");
+		}
+		unsettledPopulation.setOrgInternalCode(org.getOrgInternalCode());
+	}
+
+	private void autoFillBirthday(UnsettledPopulation unsettledPopulation) {
+		if (StringUtil.isStringAvaliable(unsettledPopulation.getIdCardNo())) {
+			unsettledPopulation.setBirthday(IdCardUtil
+					.parseBirthday(unsettledPopulation.getIdCardNo()));
+		}
+	}
+
+	private void autoFillChinesePinyin(UnsettledPopulation unsettledPopulation) {
+		Map<String, String> pinyin = Chinese2pinyin
+				.changeChinese2Pinyin(unsettledPopulation.getName());
+		unsettledPopulation.setFullPinyin((String) pinyin.get("fullPinyin"));
+		unsettledPopulation
+				.setSimplePinyin((String) pinyin.get("simplePinyin"));
+	}
+
+	@Override
+	public PageInfo<UnsettledPopulation> findUnsettledPopulationsForPageByOrgId(
+			Long logOut, Long isDeath, Long organizationId, Integer pageNum,
+			Integer pageSize, String sortField, String order) {
+		Map<String, Object> query = new HashMap<String, Object>();
+		query.put("isDeath", isDeath);
+		query.put("logOut", logOut);
+		query.put("orgInternalCode",
+				organizationDubboService.getSimpleOrgById(organizationId)
+						.getOrgInternalCode());
+		query.put("sortField", sortField);
+		query.put("order", order);
+		return unsettledPopulationDao.findPagerUsingCacheBySearchVo(
+				organizationId, query, pageNum, pageSize,
+				"UnsettledPopulations", MemCacheConstant
+						.getCachePageKey(UnsettledPopulation.class
+								.getSimpleName()));
+
+		// return unsettledPopulationDao
+		// .findUnsettledPopulationsForPageByOrgInternalCode(logOut,
+		// isDeath,
+		// organizationDubboService.getSimpleOrgById(organizationId)
+		// .getOrgInternalCode(), pageNum, pageSize,
+		// sortField, order);
+	}
+
+	@Override
+	public UnsettledPopulation getUnsettledPopulationByIdCardNo(
+			String idCardNo, Long orgId) {
+		idCardNo = idCardNo.toUpperCase();
+		List<String> list = new ArrayList<String>();
+		list.add(idCardNo);
+		if (idCardNo.length() == 18) {
+			list.add(IdCardUtil.idCardNo18to15(idCardNo));
+		} else if (idCardNo.length() == 15) {
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+		}
+		UnsettledPopulation result = unsettledPopulationDao
+				.getUnsettledPopulationByIdCard(list, orgId);
+		if (null != result) {
+			managePopulationByHouseHelper.loadLivingHouseIfNecc(
+					PopulationCatalog.UNHOUSEHOULD_POPULATION, result);
+		}
+		return result;
+	}
+
+	@Override
+	public void syncActualPopulationByDeleteHousePopulationRela(
+			Long populationId, Boolean isHaveHouse, String noHouseReason) {
+		UnsettledPopulation unsettledPopulation = this.unsettledPopulationDao
+				.getUnsettledPopulationById(populationId);
+		unsettledPopulation.setIsHaveHouse(isHaveHouse);
+		if (!StringUtil.isStringAvaliable(unsettledPopulation
+				.getNoHouseReason()))
+			unsettledPopulation.setNoHouseReason(noHouseReason);
+
+		emptyAddress(unsettledPopulation);
+		this.unsettledPopulationDao
+				.updateUnsettledPopulation(unsettledPopulation);
+	}
+
+	private void emptyAddress(UnsettledPopulation unsettledPopulation) {
+		unsettledPopulation.setCurrentAddress("");
+		unsettledPopulation.setCurrentAddressType(null);
+		unsettledPopulation.setCommunity("");
+		unsettledPopulation.setBlock("");
+		unsettledPopulation.setUnit("");
+		unsettledPopulation.setRoom("");
+
+	}
+
+	@Override
+	@SolrServerIndex(mode = OperateMode.EDIT, value = UpdateSqlMap.UNSETTLEDPOPULATION_KEY)
+	public UnsettledPopulation updateUnsettledPopulation(
+			UnsettledPopulation unsettledPopulation) {
+		try {
+			autoFilled(unsettledPopulation);
+			if (!ExcelImportHelper.isImport.get()) {
+				validateFields(unsettledPopulation);
+				validateUpdate(unsettledPopulation);
+			}
+			if (unsettledPopulation.isDeath() == true) {
+				unsettledPopulation.setLogOut(1L);
+				LogoutDetail logoutDetail = new LogoutDetail();
+				logoutDetail.setLogout(IsEmphasis.IsNotEmphasis);
+				logoutDetail.setLogoutDate(new Date());
+				logoutDetail
+						.setLogoutReason(LogoutDetail.LOGOUT_REASON_FOR_DEATH);
+				updateLogOutDetailByPopulationTypeAndIds(logoutDetail,
+						BaseInfoTables.UNSETTEDPOPULATION_KEY,
+						new Long[] { unsettledPopulation.getId() });
+				// 缓存计数器
+				PageInfoCacheThreadLocal.decrease(MemCacheConstant
+						.getCachePageKey(UnsettledPopulation.class
+								.getSimpleName()), unsettledPopulation, 1);
+			}
+			Long houseId = unsettledPopulation.getHouseId();
+			unsettledPopulation.setOrgInternalCode(organizationDubboService
+					.getSimpleOrgById(
+							unsettledPopulation.getOrganization().getId())
+					.getOrgInternalCode());
+
+			contructCurrentAddress(unsettledPopulation);
+
+			unsettledPopulation = unsettledPopulationDao
+					.update(unsettledPopulation);
+
+			unsettledPopulation.setHouseId(houseId);
+
+			groupFamilyService
+					.updateGroupFamilyByObj(
+							parseToGroupFamilyByUnsettledPopulation(unsettledPopulation),
+							unsettledPopulation.getId(),
+							BaseInfoTables.UNSETTEDPOPULATION_KEY,
+							unsettledPopulation.isDeath());
+
+			rebuildHouseAddress(unsettledPopulation);
+			PageInfoCacheThreadLocal.update(
+					MemCacheConstant.getCachePageKey(UnsettledPopulation.class
+							.getSimpleName()), unsettledPopulation,
+					UpdateType.BUSINESS);
+			return unsettledPopulation;
+		} catch (Exception e) {
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("修改信息出现错误");
+			} else {
+				return null;
+			}
+		}
+	}
+
+	private GroupFamily parseToGroupFamilyByUnsettledPopulation(
+			UnsettledPopulation unsettledPopulation) {
+		GroupFamily groupFamily = new GroupFamily();
+		groupFamily.setFamilyMaster(unsettledPopulation.getName());
+		groupFamily.setMasterCardNo(unsettledPopulation.getIdCardNo());
+		groupFamily
+				.setMasterMobileNumber(unsettledPopulation.getMobileNumber());
+		groupFamily.setMasterTelephone(unsettledPopulation.getTelephone());
+		return groupFamily;
+	}
+
+	@Override
+	public UnsettledPopulation getUnsettledPopulationById(Long id) {
+		if (null == id || id < 0L) {
+			throw new BusinessValidationException("未落户人口id不合法");
+		}
+		UnsettledPopulation result = this.unsettledPopulationDao
+				.getUnsettledPopulationById(id);
+		managePopulationByHouseHelper.loadLivingHouseIfNecc(
+				PopulationCatalog.UNHOUSEHOULD_POPULATION, result);
+		return result;
+	}
+
+	@Override
+	@SolrServerIndex(mode = OperateMode.DELETE, value = DeleteSqlMap.UNSETTLEDPOPULATION_KEY)
+	public void deleteUnsettledPopulationById(Long id) {
+		if (null == id || id < 0L) {
+			throw new BusinessValidationException("未落户人口id不合法");
+		}
+		UnsettledPopulation unsettledPopulation = unsettledPopulationDao
+				.getUnsettledPopulationById(id);
+		if (unsettledPopulation == null) {
+			return;
+		}
+		systemOperateLogService.addSystemOperateLog(
+				NewBaseInfoTables.UNSETTLEDPOPULATION_KEY,
+				unsettledPopulation.getIdCardNo(),
+				unsettledPopulation.getOrganization(),
+				unsettledPopulation.getOrgInternalCode(),
+				NewBaseInfoTables.UNSETTLEDPOPULATION_KEY,
+				SystemOperateType.DELETE, unsettledPopulation.getId(), null);
+		logOperate(unsettledPopulation.getOrganization().getId(),
+				UNSETTEDPOPULATION, ThreadVariable.getSession().getUserName()
+						+ "删除未落户人口" + unsettledPopulation.getName(),
+				OperatorType.DELETE, BaseInfoTables.UNSETTEDPOPULATION_KEY,
+				ObjectToJSON.convertJSON(unsettledPopulation));
+
+		managePopulationByHouseHelper.releasePopulationBindedHouses(
+				PopulationCatalog.UNHOUSEHOULD_POPULATION, id);
+
+		unsettledPopulationDao.deleteUnsettledPopulationById(id);
+
+		groupFamilyService
+				.deleteGroupFamilyByPopulationIdAndPopulationTypeAndIdCardNo(
+						unsettledPopulation.getId(),
+						BaseInfoTables.UNSETTEDPOPULATION_KEY,
+						unsettledPopulation.getIdCardNo());
+
+		if (IsEmphasis.Emphasis.equals(unsettledPopulation.getLogOut())) {
+			// 缓存计数器
+			PageInfoCacheThreadLocal.decrease(
+					MemCacheConstant.getCachePageKey(UnsettledPopulation.class
+							.getSimpleName()), unsettledPopulation, 1);
+		}
+		// commonPopulationService.execute(Mode.DELETE,
+		// domain.getCommonPopulation());
+	}
+
+	@Override
+	@SolrServerIndex(mode = OperateMode.DELETE, value = DeleteSqlMap.UNSETTLEDPOPULATION_KEY)
+	public void deleteUnsettledPopulationByIds(Long[] ids) {
+		for (int i = 0; null != ids && i < ids.length; i++) {
+			deleteUnsettledPopulationById(ids[i]);
+		}
+	}
+
+	@Override
+	@SolrServerIndex(mode = OperateMode.DELETE, value = DeleteSqlMap.UNSETTLEDPOPULATION_KEY)
+	public List<Long> deleteUnsettledPopulationsByIdList(List<Long> idList) {
+		if (idList == null) {
+			throw new BusinessValidationException("id没有获得");
+		}
+		for (Long id : idList) {
+			deleteUnsettledPopulationById(id);
+		}
+		return idList;
+	}
+
+	@Override
+	public UnsettledPopulation updateUnsettledPopulationById(
+			UnsettledPopulation unsettledPopulation) {
+		Long houseId = unsettledPopulation.getHouseId();
+		unsettledPopulation = unsettledPopulationDao
+				.updateUnsettledPopulation(unsettledPopulation);
+		unsettledPopulation.setCreateDate(null);
+		managePopulationByHouseHelper.reBindHouseIfNecc(
+				PopulationCatalog.UNHOUSEHOULD_POPULATION, unsettledPopulation,
+				houseId);
+		// if(unsettledPopulation.getIsEmphasis()==null||unsettledPopulation.getIsEmphasis()==0L){
+		// this.addPersonnelTrackWhenAttentionedOrCancel(unsettledPopulation,
+		// null, PersonnelTrackOperationType.AGAIN_ATTENTION,
+		// PersonInitType.IMPORT, "");
+		// }else if(unsettledPopulation.getIsEmphasis()==1L){
+		// this.addPersonnelTrackWhenAttentionedOrCancel(unsettledPopulation,
+		// null, PersonnelTrackOperationType.CANCEL_ATTENTION,
+		// PersonInitType.IMPORT, "");
+		// }
+		return unsettledPopulation;
+
+	}
+
+	@Override
+	public boolean hasDuplicateUnsettledPopulation(Long orgId, String idCardNo,
+			Long exceptedId) {
+		idCardNo = idCardNo.toUpperCase();
+		String idCardNo15 = "";
+		String idCardNo18 = "";
+		if (idCardNo.length() == 15) {
+			idCardNo15 = idCardNo;
+			idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		} else if (idCardNo.length() == 18) {
+			idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+			idCardNo18 = idCardNo;
+		}
+		UnsettledPopulation exsited = unsettledPopulationDao
+				.getUnsettledPopulationByIdCardNoAndOrganizationId(idCardNo15,
+						idCardNo18, orgId);
+		return exceptedId == null ? exsited != null
+				: (exsited != null && !exceptedId.equals(exsited.getId()));
+	}
+
+	@Override
+	public UnsettledPopulation hasDuplicateUnsettledPopulation(Long orgId,
+			String idCardNo) {
+		if (null == idCardNo) {
+			return null;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		String idCardNo15 = "";
+		String idCardNo18 = "";
+		if (idCardNo.length() == 15) {
+			idCardNo15 = idCardNo;
+			idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		} else if (idCardNo.length() == 18) {
+			idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+			idCardNo18 = idCardNo;
+		}
+		return unsettledPopulationDao
+				.getUnsettledPopulationByIdCardNoAndOrganizationId(idCardNo15,
+						idCardNo18, orgId);
+
+	}
+
+	private void validateFields(UnsettledPopulation unsettledPopulation) {
+		if (unsettledPopulation == null) {
+			throw new BusinessValidationException("不能为空!");
+		} else {
+			if (null == unsettledPopulation.getName()) {
+				throw new BusinessValidationException("姓名不能为空!");
+			}
+			if (null == unsettledPopulation.getGender()
+					|| null == unsettledPopulation.getGender().getId()) {
+				throw new BusinessValidationException("性别不能为空!");
+			}
+
+			if (null == unsettledPopulation.getOrganization()
+					|| null == unsettledPopulation.getOrganization().getId()) {
+				throw new BusinessValidationException("所属网格不能为空!");
+			}
+		}
+		if (StringUtil.isStringAvaliable(unsettledPopulation.getIdCardNo())) {
+			if (hasDuplicateUnsettledPopulation(unsettledPopulation
+					.getOrganization().getId(),
+					unsettledPopulation.getIdCardNo(),
+					unsettledPopulation.getId())) {
+				throw new BusinessValidationException("该网格下已存在相同身份证号码");
+			}
+		}
+
+	}
+
+	private void validateUpdate(UnsettledPopulation update) {
+		UnsettledPopulation unsettledPopulation = this.unsettledPopulationDao
+				.getUnsettledPopulationById(update.getId());
+		// if(null !=
+		// update.getIdCardNo()&&!update.getIdCardNo().equals(unsettledPopulation.getIdCardNo())){
+		// throw new BusinessValidationException("身份证不能修改");
+		// }
+		if (null != update.getOrganization()
+				&& null != update.getOrganization().getId()
+				&& !update.getOrganization().getId()
+						.equals(unsettledPopulation.getOrganization().getId())) {
+			throw new BusinessValidationException("所属网格不能修改");
+		}
+		if (null != update.getCreateUser()
+				&& !update.getCreateUser().equals(
+						unsettledPopulation.getCreateUser())) {
+			throw new BusinessValidationException("创建人不能修改");
+		}
+		if (null != update.getCreateDate()
+				&& !update.getCreateDate().equals(
+						unsettledPopulation.getCreateDate())) {
+			throw new BusinessValidationException("创建时间不能修改");
+		}
+	}
+
+	@Override
+	public PageInfo<UnsettledPopulation> findUnsettledPopulationForPageByOrgId(
+			BaseUnsettledPopulationSearchCondition unsettledPopulationCondition,
+			Long orgId, Integer pageNum, Integer pageSize, String sidx,
+			String sord) {
+		PageInfo<UnsettledPopulation> upPage = searchUnsettledPopulationDao
+				.findUnsettledPopulationForPageByOrgId(
+						unsettledPopulationCondition, orgId, pageNum, pageSize,
+						sidx, sord);
+		for (UnsettledPopulation upo : upPage.getResult()) {
+			// fateson add
+			if (upo.getIsHaveHouse() == null)
+				continue;
+			if (upo.getIsHaveHouse()) {
+				Long houseId = managePopulationByHouseHelper
+						.getPopulationLivingHouseId(
+								PopulationCatalog.UNHOUSEHOULD_POPULATION,
+								upo.getId());
+				if (houseId != null) {
+					upo.setHouseId(houseId);
+					upo.setHouseCode(houseInfoService.getSimpleHouseInfoById(
+							upo.getHouseId()).getHouseCode());
+				}
+			}
+
+		}
+		return upPage;
+	}
+
+	@Override
+	public List<UnsettledPopulation> findUnsettledPopulationList(
+			BaseUnsettledPopulationSearchCondition unsettledPopulationCondition,
+			Long orgId, String sidx, String sord) {
+		List<UnsettledPopulation> upoList = searchUnsettledPopulationDao
+				.findUnsettledPopulationList(unsettledPopulationCondition,
+						orgId, sidx, sord);
+		for (UnsettledPopulation upo : upoList) {
+			// fateson add
+			if (upo.getIsHaveHouse() == null) {
+				continue;
+			}
+			if (upo.getIsHaveHouse()) {
+				Long houseId = managePopulationByHouseHelper
+						.getPopulationLivingHouseId(
+								PopulationCatalog.UNHOUSEHOULD_POPULATION,
+								upo.getId());
+				if (houseId != null) {
+					upo.setHouseId(houseId);
+					upo.setHouseCode(houseInfoService.getSimpleHouseInfoById(
+							upo.getHouseId()).getHouseCode());
+				}
+			}
+		}
+		return upoList;
+	}
+
+	@Override
+	public PageInfo<PopulationVo> findPopulationsByOrgId(Long orgId,
+			Integer page, Integer rows, String sidx, String sord) {
+		if (orgId == null) {
+			return new PageInfo<PopulationVo>();
+		} else {
+			Organization org = organizationDubboService.getSimpleOrgById(orgId);
+			PageInfo<UnsettledPopulation> uInfo = searchUnsettledPopulationDao
+					.findUnsettledPopulationByorgCodeForGis(
+							org.getOrgInternalCode(), page, rows, sidx, sord);
+			return exchangeUnsettledPopulationToPopulationVoPageInfo(uInfo);
+		}
+	}
+
+	private PageInfo<PopulationVo> exchangeUnsettledPopulationToPopulationVoPageInfo(
+			PageInfo<UnsettledPopulation> uInfo) {
+		List<PopulationVo> populationVos = new ArrayList<PopulationVo>();
+		for (UnsettledPopulation unsettledPopulation : uInfo.getResult()) {
+			populationVos
+					.add(shiftGisPopulationFromUnsettledPopulation(unsettledPopulation));
+		}
+		PageInfo<PopulationVo> pInfo = new PageInfo<PopulationVo>();
+		pInfo.setCurrentPage(uInfo.getCurrentPage());
+		pInfo.setPerPageSize(uInfo.getPerPageSize());
+		pInfo.setTotalRowSize(uInfo.getTotalRowSize());
+		pInfo.setResult(populationVos);
+		return pInfo;
+	}
+
+	private PopulationVo shiftGisPopulationFromUnsettledPopulation(
+			UnsettledPopulation unsettledPopulation) {
+		PopulationVo populationVo = new PopulationVo();
+		if (unsettledPopulation.getIsHaveHouse() != null
+				&& unsettledPopulation.getIsHaveHouse()) {
+			managePopulationByHouseHelper.loadLivingHouseIfNecc(
+					PopulationCatalog.UNHOUSEHOULD_POPULATION,
+					unsettledPopulation);
+			if (unsettledPopulation.getHouseId() != null) {
+				HouseInfo houseInfo = actualHouseService
+						.getHouseInfoById(unsettledPopulation.getHouseId());
+				populationVo.setOrgId(houseInfo.getOrganization().getId());
+				populationVo.setAddress(houseInfo.getAddress());
+				populationVo.setHouseId(unsettledPopulation.getHouseId());
+				if (null != houseInfo && null != houseInfo.getGisInfo()) {
+					populationVo.setGisInfo(houseInfo.getGisInfo());
+					populationVo.setEnableBind(true);
+				} else {
+					populationVo.setEnableBind(false);
+				}
+			}
+		} else {
+			if (null != unsettledPopulation.getNoHouseReason()) {
+				populationVo.setNoHouseReason(unsettledPopulation
+						.getNoHouseReason());
+			} else {
+				populationVo.setNoHouseReason("暂未填写原因");
+			}
+			populationVo.setEnableBind(false);
+		}
+		populationVo.setKeyPersonType(PopulationType.UNSETTLED_POPULATION);
+		populationVo.setIsHaveHouse(unsettledPopulation.getIsHaveHouse());
+		populationVo.setGender(unsettledPopulation.getGender());
+		populationVo.setGenderName(getPropertyDictText(PropertyTypes.GENDER,
+				unsettledPopulation.getGender().getId()));
+		populationVo.setName(unsettledPopulation.getName());
+		populationVo.setImgUrl(unsettledPopulation.getImgUrl());
+		populationVo.setIdCardNo(unsettledPopulation.getIdCardNo());
+		populationVo.setPersonId(unsettledPopulation.getId());
+		return populationVo;
+	}
+
+	@Override
+	public List<PopulationVo> findPopulationByPersonId(Long personId) {
+		if (personId == null || personId <= 0L) {
+			throw new BusinessValidationException("未落户人口gis详细信息查询异常，Id获取失败！");
+		} else {
+			UnsettledPopulation unsettledPopulation = unsettledPopulationDao
+					.findGisUnsettledPopulationById(personId);
+			return exchangeUnsettedPopulationToPopulationVo(unsettledPopulation);
+		}
+	}
+
+	private List<PopulationVo> exchangeUnsettedPopulationToPopulationVo(
+			UnsettledPopulation unsettledPopulation) {
+		PopulationVo populationVo = new PopulationVo();
+		populationVo.setAddress(unsettledPopulation.getCurrentAddress());
+		populationVo.setName(unsettledPopulation.getName());
+		populationVo.setGenderName(getPropertyDictText(PropertyTypes.GENDER,
+				unsettledPopulation.getGender().getId()));
+		populationVo.setIdCardNo(unsettledPopulation.getIdCardNo());
+		populationVo.setPersonId(unsettledPopulation.getId());
+		populationVo.setImgUrl(unsettledPopulation.getImgUrl());
+		populationVo.setActulType(PopulationType
+				.getCnameByActualType(unsettledPopulation.getActualType()));
+		populationVo.setKeyPersonType(unsettledPopulation.getActualType());
+		List<PopulationVo> populationVos = new ArrayList<PopulationVo>();
+		populationVos.add(populationVo);
+
+		return populationVos;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.tianque.service.ActualPopulationService#getActualPopulationById(java
+	 * .lang.Long)
+	 */
+	@Override
+	public ActualPopulation getActualPopulationById(Long id) {
+		return null;
+	}
+
+	@Override
+	public List<ActualPopulation> getActualPopulationByOrgIdAndIdCardNoExcludePopulationIdList(
+			Long excludePopulationId, Long orgId, String idCardNo) {
+		idCardNo = idCardNo.toUpperCase();
+		String idCardNo15 = "";
+		String idCardNo18 = "";
+		if (idCardNo.length() == 15) {
+			idCardNo15 = idCardNo;
+			idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		} else if (idCardNo.length() == 18) {
+			idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+			idCardNo18 = idCardNo;
+		}
+		List<ActualPopulation> actualPopulationList = new ArrayList<ActualPopulation>();
+		try {
+			List<UnsettledPopulation> unsettledPopulationList = unsettledPopulationDao
+					.getActualPopulationByOrgIdAndIdCardNoExcludePopulationId(
+							excludePopulationId, orgId, idCardNo15, idCardNo18);
+			for (UnsettledPopulation unsettledPopulation : unsettledPopulationList) {
+				unsettledPopulation
+						.setActualPopulationType(PopulationType.UNSETTLED_POPULATION);
+				actualPopulationList.add(unsettledPopulation);
+			}
+		} catch (Exception e) {
+			throw new BusinessValidationException("查询未落户人口出现异常");
+		}
+		return actualPopulationList;
+	}
+
+	@Override
+	public ActualPopulation getActualPopulationByOrgIdAndIdCardNoExcludePopulationId(
+			Long excludePopulationId, Long orgId, String idCardNo) {
+		idCardNo = idCardNo.toUpperCase();
+		String idCardNo15 = "";
+		String idCardNo18 = "";
+		if (idCardNo.length() == 15) {
+			idCardNo15 = idCardNo;
+			idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		} else if (idCardNo.length() == 18) {
+			idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+			idCardNo18 = idCardNo;
+		}
+		ActualPopulation actualPopulation = null;
+		List<UnsettledPopulation> unsettledPopulationList = unsettledPopulationDao
+				.getActualPopulationByOrgIdAndIdCardNoExcludePopulationId(
+						excludePopulationId, orgId, idCardNo15, idCardNo18);
+		if (!unsettledPopulationList.isEmpty()) {
+			actualPopulation = unsettledPopulationList.get(0);
+		}
+		return actualPopulation;
+	}
+
+	public List<UnsettledPopulation> updateLogOutOfUnsettledPopulationByIdList(
+			List<Long> idList, Long logOut) {
+		if (null == idList) {
+			throw new BusinessValidationException("未落户人口idList不能为空");
+		}
+		List<UnsettledPopulation> populationList = new ArrayList<UnsettledPopulation>();
+		for (Long id : idList) {
+			UnsettledPopulation population = this
+					.getUnsettledPopulationById(id);
+			population.setLogOut(logOut);
+			if (logOut == 1L) {
+				logOperate(population.getOrganization().getId(),
+						UNSETTEDPOPULATION,
+						ThreadVariable.getSession().getUserName() + "注销未落户人口"
+								+ population.getName(), OperatorType.LOGOUT,
+						BaseInfoTables.UNSETTEDPOPULATION_KEY,
+						ObjectToJSON.convertJSON(population));
+
+			} else {
+				logOperate(population.getOrganization().getId(),
+						UNSETTEDPOPULATION,
+						ThreadVariable.getSession().getUserName() + "取消注销未落户人口"
+								+ population.getName(),
+						OperatorType.CANCELLOGOUT,
+						BaseInfoTables.UNSETTEDPOPULATION_KEY,
+						ObjectToJSON.convertJSON(population));
+			}
+			if (logOut != 1L) {
+				population.setIsHaveHouse(false);
+				population.setRoom(null);
+				population.setCurrentAddressType(null);
+				population.setCurrentAddress(null);
+				population.setCommunity(null);
+				population.setUnit(null);
+				population.setBlock(null);
+				population.setHouseCode(null);
+				population.setHouseId(null);
+				population.setNoHouseReason("被取消注销，系统自动设置为无房");
+				population.getLogoutDetail().setLogoutDate(null);
+				population.getLogoutDetail().setLogoutReason(null);
+			}
+			population = this.unsettledPopulationDao
+					.updateUnsettledPopulation(population);
+			populationList.add(population);
+		}
+		return populationList;
+	}
+
+	public List<UnsettledPopulation> updateDeathOfUnsettledPopulationByIdList(
+			List<Long> idList, Boolean death) {
+		if (null == idList) {
+			throw new BusinessValidationException("未落户人口idList不能为空");
+		}
+		List<UnsettledPopulation> populationList = new ArrayList<UnsettledPopulation>();
+		Long logoutState = death ? IsEmphasis.IsNotEmphasis
+				: IsEmphasis.Emphasis;
+		for (Long id : idList) {
+			UnsettledPopulation unsettledPopulation = getUnsettledPopulationById(id);
+			systemOperateLogService.addSystemOperateLog(
+					NewBaseInfoTables.UNSETTLEDPOPULATION_KEY,
+					unsettledPopulation.getIdCardNo(),
+					unsettledPopulation.getOrganization(),
+					unsettledPopulation.getOrgInternalCode(),
+					NewBaseInfoTables.UNSETTLEDPOPULATION_KEY,
+					SystemOperateType.CANCEL_ISDEATH,
+					unsettledPopulation.getId(), null);
+			unsettledPopulationDao.updateDeathAndLogoutStateById(id, death,
+					logoutState);
+			populationList.add(unsettledPopulation);
+			groupFamilyService
+					.deleteGroupFamilyByPopulationIdAndPopulationTypeAndIdCardNo(
+							id, BaseInfoTables.UNSETTEDPOPULATION_KEY, null);
+			// 缓存计数器
+			PageInfoCacheThreadLocal.increment(
+					MemCacheConstant.getCachePageKey(UnsettledPopulation.class
+							.getSimpleName()), unsettledPopulation, 1);
+		}
+		return populationList;
+	}
+
+	private String getPropertyDictText(String domainName, Long id) {
+		if (null == id) {
+			return "";
+		} else {
+			PropertyDict dict = propertyDictService.getPropertyDictById(id);
+			return dict == null ? "" : dict.getDisplayName();
+		}
+	}
+
+	@Override
+	public ActualPopulation getActualPopulationHouseId(
+			ActualPopulation actualPopulation) {
+		actualPopulation.setHouseId(managePopulationByHouseHelper
+				.getPopulationLivingHouseId(
+						PopulationCatalog.UNHOUSEHOULD_POPULATION,
+						actualPopulation.getId()));
+		return actualPopulation;
+	}
+
+	@Override
+	public PageInfo<PopulationVo> getFurtherStepGisPopulationInfoByPersonType(
+			Long orgId, String personType, String queryStr, Integer page,
+			Integer rows, String sidx, String sord) {
+		return null;
+	}
+
+	@Override
+	public PageInfo<PopulationVo> getFurtherStepGisPopulationInfoByPersonTypeList(
+			Long orgId, List personType, String queryStr, Integer page,
+			Integer rows, String sidx, String sord) {
+		return null;
+	}
+
+	@Override
+	public void sysActualPopulationByAddHousePopulationRela(Long populationId,
+			String address) {
+		unsettledPopulationDao.updateActualPopulationToHasHouseState(
+				populationId, address);
+	}
+
+	@Override
+	public List<PopulationVo> findGisPopulationByOrgid(Long orgid) {
+		if (null == orgid) {
+			return new ArrayList<PopulationVo>();
+		} else {
+			Organization org = organizationDubboService.getSimpleOrgById(orgid);
+			List<UnsettledPopulation> unsettledPopulations = unsettledPopulationDao
+					.findAllBindingUnsettledPopulationByorgCodeForGis(
+							PopulationCatalog.UNHOUSEHOULD_POPULATION,
+							org.getOrgInternalCode());
+			return exchangeUnsettledPopulationToPopulationVoPageInfo(unsettledPopulations);
+		}
+	}
+
+	private List<PopulationVo> exchangeUnsettledPopulationToPopulationVoPageInfo(
+			List<UnsettledPopulation> unsettledPopulations) {
+		List<PopulationVo> populationVos = new ArrayList<PopulationVo>();
+		for (UnsettledPopulation unsettledPopulation : unsettledPopulations) {
+			populationVos
+					.add(shiftGisPopulationFromUnsettledPopulation(unsettledPopulation));
+		}
+		return populationVos;
+	}
+
+	@Override
+	public PopulationVo shiftGisPopulationById(Long id) {
+		return shiftGisPopulationFromUnsettledPopulation(unsettledPopulationDao
+				.getUnsettledPopulationById(id));
+	}
+
+	@Override
+	public void sysActualPopulationByAddHousePopulationRela(Long populationId,
+			HouseInfo houseInfo) {
+		this.sysActualPopulationByAddHousePopulationRela(populationId,
+				houseInfo.getAddress());
+
+	}
+
+	public UnsettledPopulation getUnsettledPopulationByIdCardNoAndOrgId(
+			String idCardNo, Long orgId) {
+		idCardNo = idCardNo.toUpperCase();
+		String idCardNo15 = "";
+		String idCardNo18 = "";
+		if (idCardNo.length() == 15) {
+			idCardNo15 = idCardNo;
+			idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		} else if (idCardNo.length() == 18) {
+			idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+			idCardNo18 = idCardNo;
+		}
+		return unsettledPopulationDao
+				.getUnsettledPopulationByIdCardNoAndOrganizationId(idCardNo15,
+						idCardNo18, orgId);
+	}
+
+	/**
+	 * 如果人口的房屋信息（CurrentAddress）不为空，并且房屋id不存在，新增一个房屋，并且建立关联关系, 如果房屋id不为空直接建立关联关系
+	 * 
+	 * 如果房屋信息为空,并且有房屋id不为空，则删除人房关系
+	 * 
+	 * @param unsettledPopulation
+	 */
+	private void rebuildHouseAddress(UnsettledPopulation unsettledPopulation) {
+
+		if (unsettledPopulation.getIsHaveHouse() != null
+				&& unsettledPopulation.getIsHaveHouse()
+				&& unsettledPopulation.getCurrentAddress() != null) {
+
+			if (null == unsettledPopulation.getHouseId()
+					|| unsettledPopulation.getHouseId().equals(01L)) {
+				// 新增一个实有房屋,并且建立人房关系
+				HouseInfo houseInfo = new HouseInfo();
+				houseInfo.setAddress(unsettledPopulation.getCurrentAddress());
+				houseInfo.setAddressType(propertyDictService
+						.findPropertyDictByDomainNameAndDictDisplayName(
+								PropertyTypes.CURRENT_ADDRESS_TYPE, "其他"));
+				houseInfo
+						.setOrganization(unsettledPopulation.getOrganization());
+				houseInfo
+						.setHouseOperateSource(NewBaseInfoTables.UNSETTLEDPOPULATION_KEY);
+				houseInfo = actualHouseService.addHouseInfo(houseInfo);
+
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.UNHOUSEHOULD_POPULATION,
+						unsettledPopulation, houseInfo.getId());
+			} else if (unsettledPopulation.getHouseId() != null) {
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.UNHOUSEHOULD_POPULATION,
+						unsettledPopulation, unsettledPopulation.getHouseId());
+			}
+		} else {
+			housePopulationMaintanceService.releaseHouse(
+					PopulationCatalog.UNHOUSEHOULD_POPULATION,
+					unsettledPopulation.getId(),
+					unsettledPopulation.getHouseId());
+		}
+	}
+
+	@Override
+	public Integer getCount(BaseUnsettledPopulationSearchCondition condition) {
+		return searchUnsettledPopulationDao.getCount(condition);
+	}
+
+	@Override
+	public ActualPopulation getActualPopulationByOrgIdAndIdCardNoExcludePopulationIdIncludeLogout(
+			Long excludePopulationId, Long orgId, String idCardNo) {
+		idCardNo = idCardNo.toUpperCase();
+		String idCardNo15 = "";
+		String idCardNo18 = "";
+		if (idCardNo.length() == 15) {
+			idCardNo15 = idCardNo;
+			idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		} else if (idCardNo.length() == 18) {
+			idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+			idCardNo18 = idCardNo;
+		}
+		ActualPopulation actualPopulation = null;
+		List<UnsettledPopulation> unsettledPopulationList = unsettledPopulationDao
+				.getActualPopulationByOrgIdAndIdCardNoExcludePopulationId(
+						excludePopulationId, orgId, idCardNo15, idCardNo18);
+		if (!unsettledPopulationList.isEmpty()) {
+			actualPopulation = unsettledPopulationList.get(0);
+		}
+		return actualPopulation;
+	}
+
+	public Countrymen updateBaseInfoIdCardNo(Countrymen countrymen,
+			String idCardNo) {
+		if (countrymen == null || countrymen.getIdCardNo() == null
+				|| countrymen.getId() == null || idCardNo == null
+				|| countrymen.getOrganization() == null
+				|| countrymen.getOrganization().getId() == null
+				|| "".equals(countrymen.getIdCardNo()) || "".equals(idCardNo)) {
+			throw new BusinessValidationException("参数错误");
+		}
+		try {
+			// 是修改家庭信息家长身份证号
+			updateGroupFamily(countrymen);
+			return updateUnsettledPopulationIdCardNo(countrymen, idCardNo);
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"UnsettledPopulationServiceImpl的updateBaseInfoIdCardNo错误",
+					"修改未落户身份证号错误", e);
+		}
+	}
+
+	public Countrymen updateUnsettledPopulationIdCardNo(Countrymen countrymen,
+			String idCardNo) {
+		if (countrymen == null || countrymen.getId() == null
+				|| countrymen.getIdCardNo() == null || idCardNo == null
+				|| countrymen.getOrganization() == null
+				|| countrymen.getOrganization().getId() == null
+				|| "".equals(countrymen.getIdCardNo()) || "".equals(idCardNo)) {
+			throw new BusinessValidationException("参数错误");
+		}
+		try {
+			UnsettledPopulation unsettledPopulation = unsettledPopulationDao
+					.changeUnsettledPopulationIdCardNo(countrymen, idCardNo);
+			countrymen.setId(null);
+			PropertyUtil.copyAllPropertiesWithRecursion(Countrymen.class,
+					countrymen, unsettledPopulation);
+			return countrymen;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"UnsettledPopulationServiceImpl的updateUnsettledPopulationIdCardNo错误",
+					"修改未落户身份证号错误", e);
+		}
+	}
+
+	@Override
+	public Countrymen existBaseInfo(String actualPopulationType,
+			String idCardNo, Long orgId) {
+		if (!StringUtils.isNotBlank(actualPopulationType)
+				|| !StringUtils.isNotBlank(idCardNo) || orgId == null) {
+			throw new BusinessValidationException("参数错误");
+		}
+		try {
+			Countrymen UnsettledPopulationCountrymen = null;
+			Countrymen countrymen = baseInfoService.existBaseInfo(idCardNo);
+			UnsettledPopulation unsettledPopulation = unsettledPopulationDao
+					.getByOrgIdAndIdCardNo(orgId, idCardNo);
+			if (unsettledPopulation != null
+					&& unsettledPopulation.getId() != null) {
+				UnsettledPopulationCountrymen = new Countrymen();
+				PropertyUtil.copyPropertiesWithRecursion(Countrymen.class,
+						unsettledPopulation, UnsettledPopulationCountrymen,
+						null);
+			}
+			return countrymen != null ? countrymen
+					: (unsettledPopulation != null
+							&& unsettledPopulation.getId() != null ? unsettledPopulation
+							: null);
+		} catch (Exception e) {
+			throw new ServiceValidationException("验证未落户人口重复错误", "验证未落户人口重复错误",
+					e);
+		}
+	}
+}

@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="issueType">
+	<typeAlias type="com.tianque.domain.IssueType" alias="IssueType"/>
+	<typeAlias type="com.tianque.domain.IssueTypeDomain" alias="IssueTypeDomain"/>
+	<typeAlias alias="EmphasesVo" type="com.tianque.domain.vo.EmphasesVo"/>
+	<typeAlias type="com.tianque.mobile.vo.MobileIssueType" alias="MobileIssueType"/>
+	<typeAlias alias="PropertyDict" type="com.tianque.domain.PropertyDict" />
+	<typeAlias alias="PropertyDomain" type="com.tianque.domain.PropertyDomain" />
+	<!-- 提供给事件对接的返回（二级联动，包含一级和二级的信息） -->
+	<resultMap class="PropertyDict" id="fullPropertyDictResult">
+		<result property="id" column="id"/>
+		<result property="displayName" column="displayName"/>
+		<result property="propertyDomain.id" column="domainId"/>
+		<result property="propertyDomain.domainName" column="domainName"/>
+	</resultMap>
+	<resultMap class="IssueType" id="issueTypeResultMap">
+	    <result property="id" column="id"/>
+	    <result property="internalId" column="internalId"/>
+	    <result property="issueTypeDomain.id" column="domainId"/>
+	    <result property="issueTypeName" column="issueTypeName"/>
+	    <result property="indexId" column="indexId"/>
+	    <result property="content" column="content"/>
+	    <result property="simplePinYin" column="simplePinYin"/>
+	    <result property="fullPinYin" column="fullPinYin"/>
+	    <result property="createDate" column="createDate"/>
+        <result property="createUser" column="createUser"/>
+        <result property="updateUser" column="updateUser"/>
+        <result property="updateDate" column="updateDate"/>
+        <result property="org.id" column="orgId"/>
+        <result property="orgInternalCode" column="orgInternalCode"/>
+        <result property="personalized" column="personalized"/>
+        <result property="enabled" column="enabled"/>
+	</resultMap>
+	<resultMap class="IssueType" id="issueTypeSimpleResultMap">
+	    <result property="id" column="issuetypeid"/>
+	    <result property="issueTypeDomain.id" column="issuetypedomainid"/>
+	</resultMap>
+		<resultMap class="MobileIssueType" id="mobileIssueTypeResultMap">
+	    <result property="id" column="id"/>
+	    <result property="content" column="content"/>
+	</resultMap>
+	<resultMap class="EmphasesVo" id="emphasesVoResultMap">
+	    <result property="worksheetid" column="personid"/>
+	    <result property="type" column="personType"/>
+	    <result property="name" column="personName"/>
+	</resultMap>
+	
+	<resultMap class="EmphasesVo" id="emphasesVosResultMap">
+	    <result property="worksheetid" column="placeid"/>
+	    <result property="type" column="placeType"/>
+	    <result property="name" column="placename"/>
+	</resultMap>
+	
+	
+	<!-- 获得类别排序ID -->
+	<select id="getIndexIdByDomainId" resultClass="java.lang.Integer" parameterClass="java.lang.Long">
+	   select max(indexId) from issueTypes where domainId = #value#
+	</select>
+	<select id="findIssueTypes" resultMap="issueTypeResultMap" parameterClass="java.util.Map">
+	   select * from issueTypes 
+            <dynamic prepend="where">
+	            <isPropertyAvailable property="domainId">
+	                <isNotNull property="domainId" prepend="and">
+	                    domainId = #domainId#
+	                </isNotNull>
+	            </isPropertyAvailable>
+	            <isPropertyAvailable property="orgId">
+	                <isNotNull property="orgId" prepend="and">
+	                    orgId = #orgId#
+	                </isNotNull>
+	            </isPropertyAvailable>
+	        </dynamic>
+         order by indexId
+	</select>
+	<select id="countIssueTypes" resultClass="java.lang.Integer" parameterClass="java.util.Map">
+	   select count(*) from issueTypes 
+	   <dynamic prepend="where">
+           <isPropertyAvailable property="domainId">
+                <isNotNull property="domainId" prepend="and">
+                        domainId = #domainId#
+                </isNotNull>
+            </isPropertyAvailable>
+       </dynamic>
+	</select>
+	<insert id="addIssueType" parameterClass="IssueType">
+	   <selectKey resultClass="java.lang.Long" keyProperty="id">
+	       <![CDATA[select s_issuetypes.NEXTVAL as id from dual]]>
+	   </selectKey>
+	   insert into issueTypes (id,domainId,internalId,ISSUETYPENAME,INDEXID,CONTENT,SIMPLEPINYIN,FULLPINYIN,CREATEUSER,UPDATEUSER,CREATEDATE,UPDATEDATE,
+	   ORGID,ORGINTERNALCODE,PERSONALIZED)
+	   values (#id#,#issueTypeDomain.id#,#internalId#,#issueTypeName#,#indexId#,#content#,#simplePinYin#,#fullPinYin#,#createUser#,#updateUser#,#createDate#,#updateDate#,
+	   #org.id#,#orgInternalCode#,#personalized#)
+	</insert>
+	<select id="findIssueTypeById" resultMap="issueTypeResultMap" parameterClass="java.lang.Long">
+	   select * from ISSUETYPES where id = #id#
+	</select>
+	<update id="updateIssueType" parameterClass="IssueType">
+	   update issueTypes set id=#id#,domainId=#issueTypeDomain.id#,internalId=#internalId#,issueTypeName=#issueTypeName#,content=#content#,indexId=#indexId#,simplePinYin=#simplePinYin#,
+	   fullPinYin=#fullPinYin#,updateUser=#updateUser#,updateDate=#updateDate#
+	    where id=#id#
+	</update>
+	<delete id="deleteIssueTypeById" parameterClass="java.lang.Long">
+	   delete from issueTypes where id=#value#
+	</delete>
+	<update id="moveAllIndexPrevious" parameterClass="java.util.Map">
+      <![CDATA[ update  issueTypes set indexid = indexid - 1 where domainId = #domainId# and indexid > #indexId# ]]>
+    </update>
+    <update id="moveAllIndexNext" parameterClass="java.util.Map">
+        <![CDATA[ update  issueTypes set indexid = indexid + 1 where domainId = #domainId# and indexid <= #indexId# ]]>
+    </update>
+    <update id="moveToFirst" parameterClass="java.util.Map">
+        <![CDATA[ update  issueTypes set indexid = 1 where domainId = #domainId# and id = #id# ]]>
+    </update>
+    <update id="moveToEnd" parameterClass="java.util.Map">
+        <![CDATA[ update issueTypes set indexid = (select max(indexid)+1 from issuetypes where domainId=#domainId#) where domainId = #domainId# and id = #id# ]]>
+    </update>
+    <update id="changeIndexOwn" parameterClass="java.util.Map" >
+        <![CDATA[ update issueTypes set indexid = (select indexid from issuetypes where domainId=#domainId# and id=#referIssueTypeId#) where domainId = #domainId# and id = #id# ]]>
+    </update>
+    <update id="changeIndexRefer" parameterClass="java.util.Map">
+        <![CDATA[ update issueTypes set indexid = #indexId# where domainId = #domainId# and id = #referIssueTypeId# ]]>
+    </update>
+    <select id="getIssueTypeByName" parameterClass="java.util.Map" resultMap="issueTypeResultMap">
+        select * from issueTypes where domainId = #domainId# and issueTypeName = #issueTypeName#
+    </select>
+    <select id="getIssueTypeByNameAndOrgId" parameterClass="java.util.Map" resultMap="issueTypeResultMap">
+        select * from issueTypes where  issueTypeName = #issueTypeName#
+        <isPropertyAvailable property="orgInternalCode">
+                <isNotNull property="orgInternalCode" prepend="and">
+                        orgInternalCode = #orgInternalCode#
+                </isNotNull>
+            </isPropertyAvailable>
+        <isPropertyAvailable property="domainId">
+                <isNotNull property="domainId" prepend="and">
+                        domainId = #domainId#
+                </isNotNull>
+            </isPropertyAvailable>
+        <isPropertyAvailable property="orgId">
+                <isNotNull property="orgId" prepend="and">
+                        orgId = #orgId#
+                </isNotNull>
+            </isPropertyAvailable>
+    </select>
+    <delete id="deleteIssueTypes" parameterClass="java.lang.Long">
+        delete from issueTypes where domainId = #value#
+    </delete>
+    
+    <insert id="addRelatePlaces" parameterClass="java.util.Map">
+		INSERT INTO
+		relatePlaces(worksheetid,placeType,placeId,placename) VALUES(#issueId#,#placeType#,#placeId#,#placename#)
+	</insert>
+	
+	<delete id="deleteRelatePlaces" parameterClass="java.lang.Long">
+		delete
+		from relatePlaces where worksheetid=#issueId#
+	</delete>
+	<insert id="addRelatePersons" parameterClass="java.util.Map">
+		INSERT INTO
+		relatePersons(worksheetid,personType,personId,personName) VALUES(#issueId#,#personType#,#personId#,#personName#)
+	</insert>
+	
+	<delete id="deleteRelatePersons" parameterClass="java.lang.Long">
+		delete from relatePersons where worksheetid=#issueId#
+	</delete>
+	<select id="findRelatePersons"  parameterClass="java.lang.Long" resultMap="emphasesVoResultMap">
+	   select * from relatePersons  where worksheetid = #value#
+	</select>
+	<select id="findRelatePlaces"  parameterClass="java.lang.Long" resultMap="emphasesVosResultMap">
+	   select * from relatePlaces  where worksheetid = #value#
+	</select>
+	<select id="getIsRelatePlaces" resultClass="java.lang.Integer" parameterClass="java.util.Map">
+		select count(*) from relatePlaces where placeid=#RelatePlaceId# and  placeType=#RelatePlaceType#
+	</select>
+	
+	<select id="getIsRelatePersons" resultClass="java.lang.Integer" parameterClass="java.util.Map">
+		select * from relatePersons where personid=#RelatePersonsId# and  personType=#RelatePersonsType#
+	</select>
+	<select id="findAllIssueTypes" resultMap="issueTypeResultMap">
+		select * from issueTypes order by id
+	</select>
+	<select id="findEnabledIssueTypesByDomainIdAndOrgId" resultMap="issueTypeResultMap" parameterClass="java.util.Map">
+	   select * from issueTypes 
+            <dynamic prepend="where">
+	            <isPropertyAvailable property="domainId">
+	                <isNotNull property="domainId" prepend="and">
+	                    domainId = #domainId#
+	                </isNotNull>
+	            </isPropertyAvailable>
+	            <isPropertyAvailable property="enabled">
+	                <isNotNull property="enabled" prepend="and">
+	                    enabled = #enabled#
+	                </isNotNull>
+	            </isPropertyAvailable>
+	        </dynamic>
+         order by indexId
+	</select>
+	<update id="updateIsEnabledById" parameterClass="java.util.Map">
+		update issueTypes set enabled=#enabled# where id=#id#
+	</update>
+	<select id="getIsRelatePersonIds" resultClass="java.lang.Long" parameterClass="java.util.Map">
+		select r.personId from relatePersons r
+		where r.personid in 
+		<iterate property="RelatePersonsId" conjunction="," open="(" close=")">
+			#RelatePersonsId[]#
+		</iterate>
+		 and  r.personType=#RelatePersonsType#
+	</select>
+	
+	<select id="getIsRelatePlaceIds" resultClass="java.lang.Long" parameterClass="java.util.Map">
+		select r.placeid from relatePlaces r
+		where r.placeid in 
+		<iterate property="RelatePlaceId" conjunction="," open="(" close=")">
+			#RelatePlaceId[]#
+		</iterate>
+		 and  r.placeType=#RelatePlaceType#
+	</select>
+	<select id="findMobileEnabledIssueTypesByDomainIdAndOrgId" resultMap="mobileIssueTypeResultMap" parameterClass="java.util.Map">
+	   select * from issueTypes 
+            <dynamic prepend="where">
+	            <isPropertyAvailable property="domainId">
+	                <isNotNull property="domainId" prepend="and">
+	                    domainId = #domainId#
+	                </isNotNull>
+	            </isPropertyAvailable>
+	            <isPropertyAvailable property="orgId">
+	                <isNotNull property="orgId" prepend="and">
+	                    orgId = #orgId#
+	                </isNotNull>
+	            </isPropertyAvailable>
+	            <isPropertyAvailable property="enabled">
+	                <isNotNull property="enabled" prepend="and">
+	                    enabled = #enabled#
+	                </isNotNull>
+	            </isPropertyAvailable>
+	        </dynamic>
+         order by indexId
+	</select>
+	
+	<update id="updateRelatePersonsForOrgChange" parameterClass="java.util.Map">
+		update relatePersons set personId=#personId# 
+		where personType=(select lower(#personType#) from dual) and orgId=#orgId# and cardNoOrName=#cardNoOrName#
+	</update>
+	
+	<update id="updateRelatePlacesForOrgChange" parameterClass="java.util.Map">
+		update relatePlaces set placeId=#placeId# 
+		where placeType=(select upper(#placeType#) from dual) and orgId=#orgId# and cardNoOrName=#cardNoOrName#
+	</update>
+	
+	<update id="setOrgIdAndCardNoOrNameForPerson" parameterClass="java.util.Map">
+    	update relatePersons set 
+    	orgId=#orgId#,cardNoOrName=#cardNoOrName#
+    	where personType=(select lower(#objectType#) from dual) and personId=#objectId#
+    </update>
+    
+    <update id="setOrgIdAndCardNoOrNameForPlace" parameterClass="java.util.Map">
+    	update relatePlaces set 
+    	orgId=#orgId#,cardNoOrName=#cardNoOrName#
+    	where placeType=(select upper(#objectType#) from dual) and placeId=#objectId#
+    </update>
+    <select id="getIssueTypeIdByIssueId" parameterClass="long" resultClass="long">
+    	select issuetypeid from issuehastypes where issueid=#value#
+    </select>
+    <select id="getIssueTypeByIssueId" parameterClass="long" resultMap="issueTypeSimpleResultMap">
+    	select issuetypeid,issuetypedomainid from issuehastypes where issueid=#value#
+    </select>
+    <select id="findFullPropertyDictByDomainId" resultMap="fullPropertyDictResult">
+		select itd.id domainId, itd.domainname domainName, it.id id, it.issuetypename displayName
+		  from issuetypes it
+		  left join issuetypedomains itd on it.domainid = itd.id
+		 where (itd.module = 'si_chuan' or itd.domainname = '民生服务')
+	</select>
+</sqlMap>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="issueTypeManage" extends="default" namespace="/sysadmin/issueTypeManage">
+		<default-class-ref class="issueTypeManageController"></default-class-ref>
+		<action name="issueTypeList"
+            method="findIssueTypes">
+            <result type="json">
+                <param name="root">gridPage</param>
+                <param name="ignoreHierarchy">false</param>
+            </result>
+        </action>
+        <action name="dispatchIssueTypeOperate" method="dispatchIssueTypeOperate">
+            <result name="success">/sysadmin/issueTypeManage/maintainIssueTypeDlg.jsp</result>
+        </action>
+        <action name="addIssueType" method="addIssueType">
+            <result name="success" type="json">
+                <param name="root">issueType</param>
+                <param name="ignoreHierarchy">false</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+        <action name="updateIssueType" method="updateIssueType">
+            <result name="success" type="json">
+                <param name="root">issueType</param>
+                <param name="ignoreHierarchy">false</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+        <action name="deleteIssueType" method="deleteIssueType">
+            <result name="success" type="json">
+                <param name="root">true</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+        
+        <action name="moveIssueType" method="moveIssueType">
+            <result name="success" type="json">
+                <param name="root">true</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+        <action name="validateIssueTypeName" method="validateIssueTypeName">
+            <result name="success" type="json">
+                <param name="root">true</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+        <action name="findIssueTypesByDomainName" method="ajaxFindIssueTypesByDomainName">
+            <result name="success" type="json">
+                <param name="root">issueTypes</param>
+                <param name="ignoreHierarchy">false</param>
+            </result>
+        </action>
+        <action name="findIssueTypeDomainsByDomainName" method="findIssueTypeDomainsByDomainName">
+            <result name="success" type="json">
+                <param name="root">issueTypeDomains</param>
+                <param name="ignoreHierarchy">false</param>
+            </result>
+        </action>
+        <action name="findIssueTypeDomains" method="findIssueTypeDomains">
+            <result name="success">
+             /sysadmin/issueTypeManage/issueTypeList.jsp
+            </result>
+        </action>
+        <action name="getIssueTypeDomainById" method="getIssueTypeDomainById">
+            <result name="success" type="json">
+                <param name="root">issueTypeDomain</param>
+                <param name="ignoreHierarchy">false</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+                <param name="ignoreHierarchy">false</param>
+            </result>
+        </action>
+		<action name="enabledOperate" method="enabledOperate">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>	
+	</package>
+	<package name="hotModuelIssueTypeManage" extends="issueTypeManage" namespace="/hotModuel/sysadmin/issueTypeManage"></package>
+</struts>

@@ -1,0 +1,733 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="nurturesWomen">
+	<typeAlias alias="NurturesWomen" type="com.tianque.baseInfo.nurturesWomen.domain.NurturesWomen" />
+	<typeAlias alias="NurturesWomenVo" type="com.tianque.domain.vo.SearchNurturesWomenVo" />
+	<resultMap class="NurturesWomen" id="nurturesWomenResult" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResult">
+		<result property="firstMarriageTime" column="firstMarriageTime" />
+		<result property="marriageRegistrationTime" column="marriageRegistrationTime" />
+		<result property="licenseSituation.id" column="licenseSituation" />
+		<result property="marriageOrDivorceTime" column="marriageOrDivorceTime" />
+		<result property="fertilityServicesNo" column="fertilityServicesNo" />
+		<result property="licenseTime" column="licenseTime" />
+		<result property="contraceptiveMethod" column="contraceptiveMethod" />
+		<result property="contraceptiveTime" column="contraceptiveTime" />
+		<result property="boyNumber" column="boyNumber" />
+		<result property="girlNumber" column="girlNumber" />
+		<result property="onechildOfCouple.id" column="onechildOfCouple" />
+		<result property="manIdcardNo" column="manIdcardNo" />
+		<result property="manName" column="manName" />
+		<result property="manMaritalState.id" column="manMaritalState" />
+		<result property="manFirstMarriageTime" column="manFirstMarriageTime" />
+		<result property="manMobileNumber" column="manMobileNumber" />
+		<result property="manTelephone" column="manTelephone" />
+		<result property="manBirthday" column="manBirthday" />
+		<result property="manNation.id" column="manNation" />
+		<result property="manPoliticalBackground.id" column="manPoliticalBackground" />
+		<result property="manSchooling.id" column="manSchooling"/>
+		<result property="manResidenceType.id" column="manResidenceType" />
+		<result property="manCareer.id" column="manCareer" />
+		<result property="manWorkUnit" column="manWorkUnit" />
+		<result property="manProvince" column="manProvince" />
+		<result property="manCity" column="manCity" />
+		<result property="manDistrict" column="manDistrict" />
+		<result property="manNativeplaceAddress" column="manNativeplaceAddress" />
+		<result property="manCurrentAddress" column="manCurrentAddress" />
+		<result property="manCurrentAddressType.id" column="manCurrentAddressType" />
+		<result property="manCommunity" column="manCommunity" />
+		<result property="manBlock" column="manBlock" />
+		<result property="manUnit" column="manUnit" />
+		<result property="manRoom" column="manRoom" />
+		<result property="manRemark" column="manRemark" />
+		<result property="singleChildCardno" column="singleChildCardno" />
+		<result property="singleChildCDIssueTime" column="singleChildCDIssueTime" />
+		<result property="certifiedUnit" column="certifiedUnit" />
+		<result property="isUnmarriedPregnant" column="isUnmarriedPregnant" />
+		<result property="isLevied" column="isLevied" />
+		<result property="isMaternityCard" column="isMaternityCard" />
+		<result property="maternityCardUnit" column="maternityCardUnit" />
+		<result property="maternityCardNo" column="maternityCardNo" />
+		<result property="maternityCardIssueTime" column="maternityCardIssueTime" />
+		<result property="maternityCardValidityTime" column="maternityCardValidityTime" />
+		<result property="maternityCardCheckTime" column="maternityCardCheckTime" />
+		<result property="maternityCardRemark" column="maternityCardRemark" />
+	</resultMap>
+	<!-- 这两个resultMap内容一致，继承关系不一样 -->
+	<resultMap class="NurturesWomen" id="nurturesWomenResultForList" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoNurturesmenResult">
+		<result column="id" property="id"  nullValue="0"/> 
+		<result property="firstMarriageTime" column="firstMarriageTime" />
+		<result property="marriageRegistrationTime" column="marriageRegistrationTime" />
+		<result property="licenseSituation.id" column="licenseSituation" />
+		<result property="marriageOrDivorceTime" column="marriageOrDivorceTime" />
+		<result property="fertilityServicesNo" column="fertilityServicesNo" />
+		<result property="licenseTime" column="licenseTime" />
+		<result property="contraceptiveMethod" column="contraceptiveMethod" />
+		<result property="contraceptiveTime" column="contraceptiveTime" />
+		<result property="boyNumber" column="boyNumber" />
+		<result property="girlNumber" column="girlNumber" />
+		<result property="onechildOfCouple.id" column="onechildOfCouple" />
+		<result property="manIdcardNo" column="manIdcardNo" />
+		<result property="manName" column="manName" />
+		<result property="manMaritalState.id" column="manMaritalState" />
+		<result property="manFirstMarriageTime" column="manFirstMarriageTime" />
+		<result property="manMobileNumber" column="manMobileNumber" />
+		<result property="manTelephone" column="manTelephone" />
+		<result property="manBirthday" column="manBirthday" />
+		<result property="manNation.id" column="manNation" />
+		<result property="manPoliticalBackground.id" column="manPoliticalBackground" />
+		<result property="manSchooling.id" column="manSchooling"/>
+		<result property="manResidenceType.id" column="manResidenceType" />
+		<result property="manCareer.id" column="manCareer" />
+		<result property="manWorkUnit" column="manWorkUnit" />
+		<result property="manProvince" column="manProvince" />
+		<result property="manCity" column="manCity" />
+		<result property="manDistrict" column="manDistrict" />
+		<result property="manNativeplaceAddress" column="manNativeplaceAddress" />
+		<result property="manCurrentAddress" column="manCurrentAddress" />
+		<result property="manCurrentAddressType.id" column="manCurrentAddressType" />
+		<result property="manCommunity" column="manCommunity" />
+		<result property="manBlock" column="manBlock" />
+		<result property="manUnit" column="manUnit" />
+		<result property="manRoom" column="manRoom" />
+		<result property="manRemark" column="manRemark" />
+		<result property="singleChildCardno" column="singleChildCardno" />
+		<result property="singleChildCDIssueTime" column="singleChildCDIssueTime" />
+		<result property="certifiedUnit" column="certifiedUnit" />
+		<result property="isUnmarriedPregnant" column="isUnmarriedPregnant" />
+		<result property="isLevied" column="isLevied" />
+		<result property="isMaternityCard" column="isMaternityCard" />
+		<result property="maternityCardUnit" column="maternityCardUnit" />
+		<result property="maternityCardNo" column="maternityCardNo" />
+		<result property="maternityCardIssueTime" column="maternityCardIssueTime" />
+		<result property="maternityCardValidityTime" column="maternityCardValidityTime" />
+		<result property="maternityCardCheckTime" column="maternityCardCheckTime" />
+		<result property="maternityCardRemark" column="maternityCardRemark" />
+	</resultMap>
+	<!--育龄妇女高级查询所有返回结果集-->
+	<resultMap class="NurturesWomen" id="nurturesWomenResultForSearchList" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+		<result column="id" property="id"  nullValue="0"/> 
+		<result property="firstMarriageTime" column="firstMarriageTime" />
+		<result property="marriageRegistrationTime" column="marriageRegistrationTime" />
+		<result property="licenseSituation.id" column="licenseSituation" />
+		<result property="marriageOrDivorceTime" column="marriageOrDivorceTime" />
+		<result property="fertilityServicesNo" column="fertilityServicesNo" />
+		<result property="licenseTime" column="licenseTime" />
+		<result property="contraceptiveMethod" column="contraceptiveMethod" />
+		<result property="contraceptiveTime" column="contraceptiveTime" />
+		<result property="boyNumber" column="boyNumber" />
+		<result property="girlNumber" column="girlNumber" />
+		<result property="onechildOfCouple.id" column="onechildOfCouple" />
+		<result property="manIdcardNo" column="manIdcardNo" />
+		<result property="manName" column="manName" />
+		<result property="manMaritalState.id" column="manMaritalState" />
+		<result property="manFirstMarriageTime" column="manFirstMarriageTime" />
+		<result property="manMobileNumber" column="manMobileNumber" />
+		<result property="manTelephone" column="manTelephone" />
+		<result property="manBirthday" column="manBirthday" />
+		<result property="manNation.id" column="manNation" />
+		<result property="manPoliticalBackground.id" column="manPoliticalBackground" />
+		<result property="manSchooling.id" column="manSchooling"/>
+		<result property="manResidenceType.id" column="manResidenceType" />
+		<result property="manCareer.id" column="manCareer" />
+		<result property="manWorkUnit" column="manWorkUnit" />
+		<result property="manProvince" column="manProvince" />
+		<result property="manCity" column="manCity" />
+		<result property="manDistrict" column="manDistrict" />
+		<result property="manNativeplaceAddress" column="manNativeplaceAddress" />
+		<result property="manCurrentAddress" column="manCurrentAddress" />
+		<result property="manCurrentAddressType.id" column="manCurrentAddressType" />
+		<result property="manCommunity" column="manCommunity" />
+		<result property="manBlock" column="manBlock" />
+		<result property="manUnit" column="manUnit" />
+		<result property="manRoom" column="manRoom" />
+		<result property="manRemark" column="manRemark" />
+		<result property="singleChildCardno" column="singleChildCardno" />
+		<result property="singleChildCDIssueTime" column="singleChildCDIssueTime" />
+		<result property="certifiedUnit" column="certifiedUnit" />
+		<result property="isUnmarriedPregnant" column="isUnmarriedPregnant" />
+		<result property="isLevied" column="isLevied" />
+		<result property="isMaternityCard" column="isMaternityCard" />
+		<result property="maternityCardUnit" column="maternityCardUnit" />
+		<result property="maternityCardNo" column="maternityCardNo" />
+		<result property="maternityCardIssueTime" column="maternityCardIssueTime" />
+		<result property="maternityCardValidityTime" column="maternityCardValidityTime" />
+		<result property="maternityCardCheckTime" column="maternityCardCheckTime" />
+		<result property="maternityCardRemark" column="maternityCardRemark" />
+	</resultMap>
+
+	<sql id="fields">
+		uni.id,uni.baseInfoId,uni.addressInfoId,uni.createDate,uni.createUser,uni.updateUser,uni.updateDate,uni.orgId,uni.orgInternalCode,
+		firstMarriageTime,marriageRegistrationTime,manUnit,manRoom,manRemark,
+		licenseSituation,marriageOrDivorceTime,fertilityServicesNo,licenseTime,contraceptiveMethod,contraceptiveTime,
+		boyNumber,girlNumber,onechildOfCouple,manIdcardNo,manName,manMaritalState,manFirstMarriageTime,manMobileNumber,
+		manTelephone,manBirthday,manNation,manPoliticalBackground,manSchooling,manResidenceType,manCareer,manWorkUnit,
+		manProvince,manCity,manDistrict,manNativeplaceAddress,manCurrentAddress,manCurrentAddressType,manCommunity,manBlock,
+		singleChildCardno,singleChildCDIssueTime,certifiedUnit,isUnmarriedPregnant,isLevied,isMaternityCard,maternityCardUnit,maternityCardNo,
+		maternityCardIssueTime,maternityCardValidityTime,maternityCardCheckTime,maternityCardRemark,
+		isEmphasis,isEmphasisReason,isEmphasisDate,sourcesState,attentionExtent
+	</sql>
+	
+	<select id="getId" resultClass="java.lang.Long">
+		<![CDATA[SELECT s_nurturesWomen.NEXTVAL as id from dual ]]>
+	</select>
+
+	<insert id="addNurturesWomen" parameterClass="NurturesWomen">
+		insert into nurturesWomen_$shardCode$
+			(
+			<include refid="populationBaseInfo.addBaseInfoFields"/>,
+			isEmphasis,firstMarriageTime,marriageRegistrationTime,
+			licenseSituation,marriageOrDivorceTime,fertilityServicesNo,licenseTime,contraceptiveMethod,contraceptiveTime,
+			boyNumber,girlNumber,onechildOfCouple,manIdcardNo,manName,manMaritalState,manFirstMarriageTime,manMobileNumber,
+			manTelephone,manBirthday,manNation,manPoliticalBackground,manSchooling,manResidenceType,manCareer,manWorkUnit,
+			manProvince,manCity,manDistrict,manNativeplaceAddress,manCurrentAddress,manCurrentAddressType,manCommunity,manBlock,
+			manUnit,manRoom,manRemark,
+			singleChildCardno,singleChildCDIssueTime,certifiedUnit,isUnmarriedPregnant,isLevied,isMaternityCard,maternityCardUnit,maternityCardNo,
+			maternityCardIssueTime,maternityCardValidityTime,maternityCardCheckTime,maternityCardRemark,attentionExtent,sourcesState
+			)
+		values
+			 (
+			 <include refid="populationBaseInfo.addBaseInfoData"/>,
+			 #isEmphasis#,#firstMarriageTime#,#marriageRegistrationTime#,
+			 #licenseSituation.id#,#marriageOrDivorceTime#,#fertilityServicesNo#,#licenseTime#,#contraceptiveMethod#,#contraceptiveTime#,
+			 #boyNumber#,#girlNumber#,#onechildOfCouple.id#,#manIdcardNo#,#manName#,#manMaritalState.id#,#manFirstMarriageTime#,#manMobileNumber#,
+			 #manTelephone#,#manBirthday#,#manNation.id#,#manPoliticalBackground.id#,#manSchooling.id#,#manResidenceType.id#,#manCareer.id#,#manWorkUnit#,
+			 #manProvince#,#manCity#,#manDistrict#,#manNativeplaceAddress#,#manCurrentAddress#,#manCurrentAddressType.id#,#manCommunity#,#manBlock#,
+			 #manUnit#,#manRoom#,#manRemark#,
+			 #singleChildCardno#,#singleChildCDIssueTime#,#certifiedUnit#,#isUnmarriedPregnant#,#isLevied#,#isMaternityCard#,#maternityCardUnit#,#maternityCardNo#,
+			 #maternityCardIssueTime#,#maternityCardValidityTime#,#maternityCardCheckTime#,#maternityCardRemark#,#attentionExtent.id#,#sourcesState#
+			 )
+	</insert>
+
+	<sql id="updateBusinessSql">
+				<include refid="populationBaseInfo.updateBaseInfoSql"/>,
+            	firstMarriageTime=#firstMarriageTime#
+            	,marriageRegistrationTime=#marriageRegistrationTime#
+            	,licenseSituation=#licenseSituation.id#
+            	,marriageOrDivorceTime=#marriageOrDivorceTime#
+            	,fertilityServicesNo=#fertilityServicesNo#
+            	,licenseTime=#licenseTime#
+            	,contraceptiveMethod=#contraceptiveMethod#
+            	,contraceptiveTime=#contraceptiveTime#
+            	,boyNumber=#boyNumber#
+            	,girlNumber=#girlNumber#
+            	,onechildOfCouple=#onechildOfCouple.id#
+            	,manIdcardNo=#manIdcardNo#
+            	,manName=#manName#
+            	,manMaritalState=#manMaritalState.id#
+            	,manFirstMarriageTime=#manFirstMarriageTime#
+            	,manMobileNumber=#manMobileNumber#
+            	,manTelephone=#manTelephone#
+            	,manBirthday=#manBirthday#
+            	,manNation=#manNation.id#
+            	,manPoliticalBackground=#manPoliticalBackground.id#
+            	,manSchooling=#manSchooling.id#
+            	,manResidenceType=#manResidenceType.id#
+            	,manCareer=#manCareer.id#
+            	,manWorkUnit=#manWorkUnit#
+            	,manProvince=#manProvince#
+            	,manCity=#manCity#
+            	,manDistrict=#manDistrict#
+            	,manNativeplaceAddress=#manNativeplaceAddress#
+            	,manCurrentAddress=#manCurrentAddress#
+            	,manCurrentAddressType=#manCurrentAddressType.id#
+            	,manCommunity=#manCommunity#
+            	,manBlock=#manBlock#
+            	,manUnit=#manUnit#
+            	,manRoom=#manRoom#
+            	,manRemark=#manRemark#
+            	,singleChildCardno=#singleChildCardno#
+            	,singleChildCDIssueTime=#singleChildCDIssueTime#
+            	,certifiedUnit=#certifiedUnit#
+            	,isUnmarriedPregnant=#isUnmarriedPregnant#
+            	,isLevied=#isLevied#
+            	,isMaternityCard=#isMaternityCard#
+            	,maternityCardUnit=#maternityCardUnit#
+            	,maternityCardNo=#maternityCardNo#
+                ,maternityCardIssueTime=#maternityCardIssueTime#
+                ,maternityCardValidityTime=#maternityCardValidityTime#
+            	,maternityCardCheckTime=#maternityCardCheckTime#
+            	,maternityCardRemark=#maternityCardRemark#
+            	,attentionExtent=#attentionExtent.id#
+	</sql>
+
+	<update id="updateNurturesWomen" parameterClass="NurturesWomen">
+		update nurturesWomen_$shardCode$ set
+		<isNotEmpty property="isEmphasis">
+			isEmphasis=#isEmphasis#,
+		</isNotEmpty>
+		<include refid="updateBusinessSql"/>
+		where id=#id#
+	</update>
+
+	<update id="updateBusiness" parameterClass="NurturesWomen">
+		update nurturesWomen_$shardCode$ set
+		<isNotEmpty property="isEmphasis">
+			isEmphasis=#isEmphasis#,
+		</isNotEmpty>
+		<include refid="updateBusinessSql"/>
+        where id=#id#
+	</update>
+
+	<delete id="deleteNurturesWomenById" parameterClass="java.util.Map">
+		delete from nurturesWomen_$shardCode$ where id = #id#
+	</delete>
+
+	<select id="getNurturesWomenById" parameterClass="java.util.Map" resultMap="nurturesWomenResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		FROM NurturesWomen_$shardCode$ uni left join baseinfo b on uni.baseinfoid = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.id = #id#
+	</select>
+
+	<select id="getByOrgIdAndIdCardNo" parameterClass="map" resultMap="nurturesWomenResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		FROM NurturesWomen_$shardCode$ uni left join baseinfo b on uni.baseinfoid = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgId = #orgId# and upper(idCardNo)=upper(#idCardNo#)
+	</select>
+
+	<sql id="sql_where">
+		from NurturesWomen_$shardCode$ uni 
+		where uni.orgInternalCode like #orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend="and">
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="countNurturesWomen" parameterClass="NurturesWomen" resultClass="java.lang.Integer">
+		select count(uni.id) from NurturesWomen_$shardCode$ uni where uni.orgInternalCode like #orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findNurturesWomen" parameterClass="NurturesWomen" resultMap ="nurturesWomenResultForList">
+		select <include refid="fields"/>,'$attentionPopulationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="getNurturesWomenByIdCardNoAndOrgId" parameterClass="java.util.Map" resultMap="nurturesWomenResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		FROM NurturesWomen_$shardCode$ uni left join baseinfo b on uni.baseinfoid = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where upper(idCardno) = upper(#idCardNo#) and uni.orgId = #orgId#
+	</select>
+
+	<sql id="search_sql_where">
+		from NurturesWomen_$shardCode$ uni left join baseinfo b on uni.baseinfoid = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="where">
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+					(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty prepend=" and " property="name">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="genderId">
+				<isNotEmpty prepend=" and " property="genderId">
+					gender = #genderId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty prepend=" and " property="idCardNo">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativeProvince">
+				<isNotEmpty prepend=" and " property="nativeProvince">
+					province=#nativeProvince#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativeCity">
+				<isNotEmpty prepend=" and " property="nativeCity">
+					city=#nativeCity#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativeDistrict">
+				<isNotEmpty prepend=" and " property="nativeDistrict">
+					district=#nativeDistrict#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="telephone">
+				<isNotEmpty prepend=" and " property="telephone">
+					telephone like #telephone#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty prepend=" and " property="mobileNumber">
+					mobileNumber like #mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workUnit">
+				<isNotEmpty prepend=" and " property="workUnit">
+					workUnit like #workUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativePlaceAddress">
+				<isNotEmpty prepend=" and " property="nativePlaceAddress">
+					nativePlaceAddress like #nativePlaceAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentAddress">
+				<isNotEmpty prepend=" and " property="currentAddress">
+					currentAddress like #currentAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthdayStart" >
+				<isNotEmpty prepend=" and " property="birthdayStart">
+				<![CDATA[ birthday >= #birthdayStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthdayEnd">
+				<isNotEmpty prepend=" and " property="birthdayEnd">
+				<![CDATA[ birthday <= #birthdayEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maritalState">
+				<isNotEmpty prepend=" and " property="maritalState">
+					maritalState= #maritalState#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="schooling">
+				<isNotEmpty prepend=" and " property="schooling">
+					schooling = #schooling#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="career">
+				<isNotEmpty prepend=" and " property="career">
+					career = #career#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="statureStart" >
+				<isNotEmpty prepend=" and " property="statureStart">
+				<![CDATA[ stature >= #statureStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="statureEnd">
+				<isNotEmpty prepend=" and " property="statureEnd">
+				<![CDATA[ stature <= #statureEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="bloodType">
+				<isNotEmpty prepend=" and " property="bloodType">
+					bloodType = #bloodType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="faith">
+				<isNotEmpty prepend=" and " property="faith">
+					faith = #faith#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="politicalBackground">
+				<isNotEmpty prepend=" and " property="politicalBackground">
+					politicalBackground= #politicalBackground#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="email">
+				<isNotEmpty prepend=" and " property="email">
+					email like #email#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isDeath">
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="1">
+						isDeath = #isDeath#
+					</isEqual>
+					<isEqual property="isDeath" compareValue="0">
+						(isDeath = #isDeath# or isDeath is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+				</isEqual>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nation">
+				<isNotEmpty prepend=" and " property="nation">
+					nation= #nation#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<!-- business information-->
+			<isPropertyAvailable property="childNumberStart" >
+				<isNotEmpty prepend=" and " property="childNumberStart">
+				<![CDATA[ (boyNumber+girlNumber) >= #childNumberStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="childNumberEnd">
+				<isNotEmpty prepend=" and " property="childNumberEnd">
+				<![CDATA[ (boyNumber+girlNumber)  <= #childNumberEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="manIdCardNo">
+				<isNotEmpty prepend=" and " property="manIdCardNo">
+					manIdCardNo like #manIdCardNo#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="manName">
+				<isNotEmpty prepend=" and " property="manName">
+					(manName like #manName#||'%' or fullPinyin like #manName#||'%' or simplePinyin like #manName#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="licenseSituation">
+				<isNotEmpty prepend=" and " property="licenseSituation">
+					licenseSituation=#licenseSituation#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fertilityServicesNo">
+				<isNotEmpty prepend=" and " property="fertilityServicesNo">
+					fertilityServicesNo like #fertilityServicesNo#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="licenseTimeStart" >
+				<isNotEmpty prepend=" and " property="licenseTimeStart">
+				<![CDATA[ licenseTime >= #licenseTimeStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="licenseTimeEnd">
+				<isNotEmpty prepend=" and " property="licenseTimeEnd">
+				<![CDATA[ licenseTime <= #licenseTimeEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="contraceptiveMethod">
+				<isNotEmpty prepend=" and " property="contraceptiveMethod">
+					contraceptiveMethod like #contraceptiveMethod#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="contraceptiveTimeStart" >
+				<isNotEmpty prepend=" and " property="contraceptiveTimeStart">
+				<![CDATA[ contraceptiveTime >= #contraceptiveTimeStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="contraceptiveTimeEnd">
+				<isNotEmpty prepend=" and " property="contraceptiveTimeEnd">
+				<![CDATA[ contraceptiveTime <= #contraceptiveTimeEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="firstMarriageTimeStart" >
+				<isNotEmpty prepend=" and " property="firstMarriageTimeStart">
+				<![CDATA[ firstMarriageTime >= #firstMarriageTimeStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="firstMarriageTimeEnd">
+				<isNotEmpty prepend=" and " property="firstMarriageTimeEnd">
+				<![CDATA[ firstMarriageTime <= #firstMarriageTimeEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="marriageRegistrationTimeStart" >
+				<isNotEmpty prepend=" and " property="marriageRegistrationTimeStart">
+				<![CDATA[ marriageRegistrationTime >= #marriageRegistrationTimeStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="marriageRegistrationTimeEnd">
+				<isNotEmpty prepend=" and " property="marriageRegistrationTimeEnd">
+				<![CDATA[ marriageRegistrationTime <= #marriageRegistrationTimeEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="marriageOrDivorceTimeStart" >
+				<isNotEmpty prepend=" and " property="marriageOrDivorceTimeStart">
+				<![CDATA[ marriageOrDivorceTime >= #marriageOrDivorceTimeStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="marriageOrDivorceTimeEnd">
+				<isNotEmpty prepend=" and " property="marriageOrDivorceTimeEnd">
+				<![CDATA[ marriageOrDivorceTime <= #marriageOrDivorceTimeEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<!-- xiNing business  -->
+			<isPropertyAvailable property="onechildOfCouple">
+				<isEqual property="onechildOfCouple" compareValue="0" prepend="and">
+					1=1
+				</isEqual>
+				<isNotEqual prepend=" and " property="onechildOfCouple" compareValue="0">
+					onechildOfCouple = #onechildOfCouple#
+				</isNotEqual>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isUnmarriedPregnant" prepend=" and ">
+				<isEqual property="isUnmarriedPregnant" compareValue="1">
+						isUnmarriedPregnant = #isUnmarriedPregnant#
+				</isEqual>
+				<isEqual property="isUnmarriedPregnant" compareValue="0">
+						(isUnmarriedPregnant = #isUnmarriedPregnant# or isUnmarriedPregnant is null)
+				</isEqual>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isLevied" prepend=" and ">
+				<isEqual property="isLevied" compareValue="1">
+						isLevied = #isLevied#
+				</isEqual>
+				<isEqual property="isLevied" compareValue="0">
+						(isLevied = #isLevied# or isLevied is null)
+				</isEqual>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isMaternityCard" prepend=" and ">
+				<isEqual property="isMaternityCard" compareValue="1">
+						isMaternityCard = #isMaternityCard#
+				</isEqual>
+				<isEqual property="isMaternityCard" compareValue="0">
+						(isMaternityCard = #isMaternityCard# or isMaternityCard is null)
+				</isEqual>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isSingleChildCard" prepend=" and ">
+				<isEqual property="isSingleChildCard" compareValue="1">
+						singleChildCardno is not null
+				</isEqual>
+				<isEqual property="isSingleChildCard" compareValue="0">
+						singleChildCardno is  null
+				</isEqual>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="singleChildCardno">
+				<isNotEmpty prepend=" and " property="singleChildCardno">
+					singleChildCardno like #singleChildCardno#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="singleChildCardIssueStart" >
+				<isNotEmpty prepend=" and " property="singleChildCardIssueStart">
+				<![CDATA[ singlechildcdissuetime >= #singleChildCardIssueStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="singleChildCardIssueEnd">
+				<isNotEmpty prepend=" and " property="singleChildCardIssueEnd">
+				<![CDATA[ singlechildcdissuetime <= #singleChildCardIssueEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="certifiedUnit">
+				<isNotEmpty prepend=" and " property="certifiedUnit">
+					certifiedUnit like #certifiedUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maternityCardNo">
+				<isNotEmpty prepend=" and " property="maternityCardNo">
+					maternityCardNo like #maternityCardNo#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maternityCardUnit">
+				<isNotEmpty prepend=" and " property="maternityCardUnit">
+					maternityCardUnit like #maternityCardUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maternityCardIssueTimeStart">
+				<isNotEmpty prepend=" and " property="maternityCardIssueTimeStart">
+				<![CDATA[ maternitycardissuetime >= #maternityCardIssueTimeStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maternityCardIssueTimeEnd">
+				<isNotEmpty prepend=" and " property="maternityCardIssueTimeEnd">
+				<![CDATA[ maternitycardissuetime <= #maternityCardIssueTimeEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maternityCardValidityTimeStart">
+				<isNotEmpty prepend=" and " property="maternityCardValidityTimeStart">
+				<![CDATA[ maternitycardvaliditytime >= #maternityCardValidityTimeStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maternityCardValidityTimeEnd">
+				<isNotEmpty prepend=" and " property="maternityCardValidityTimeEnd">
+				<![CDATA[ maternitycardvaliditytime <= #maternityCardValidityTimeEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maternityCardCheckTimeStart">
+				<isNotEmpty prepend=" and " property="maternityCardCheckTimeStart">
+				<![CDATA[ maternitycardchecktime >= #maternityCardCheckTimeStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maternityCardCheckTimeEnd">
+				<isNotEmpty prepend=" and " property="maternityCardCheckTimeEnd">
+				<![CDATA[ maternitycardchecktime <= #maternityCardCheckTimeEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<include refid="attentionPopulationBaseInfo.serviceTeamInfoForSearch"/>
+		</dynamic>
+	</sql>
+
+	<select id="countSearchNurturesWomen" parameterClass="NurturesWomenVo" resultClass="int">
+		select count(uni.id) 
+		<include refid="search_sql_where" />
+	</select>
+	<select id="searchNurturesWomen" parameterClass="NurturesWomenVo" resultMap="nurturesWomenResultForSearchList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="search_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+				</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<update id="updateEmphasiseById" parameterClass="java.util.Map">
+			update nurturesWomen_$shardCode$ set
+			isEmphasis=#isEmphasis#
+            where id=#id#
+	</update>
+
+	<!-- 以下SQL已经过时，如需启用，请先修改 -->
+	<update id="updateBaseInfo" parameterClass="NurturesWomen">
+		update nurturesWomen_$shardCode$ set
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=",">
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		where id = #id#
+	</update>
+
+	<update id="updateDeathAndLogoutStateById" parameterClass="map">
+		update nurturesWomen_$shardCode$ set
+		<isNotEmpty property="death">
+			isdeath = #death#
+		</isNotEmpty>
+		<isNotEmpty property="isEmphasis" prepend=",">
+			isEmphasis=#isEmphasis#
+		</isNotEmpty>
+		where id=#id#
+	</update>
+	
+	<select id="getIdByBaseinfoIdAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		SELECT id from nurturesWomen_$shardCode$  
+		where baseinfoid=#baseInfoId# and orgId=#orgId#
+	</select>
+
+</sqlMap>

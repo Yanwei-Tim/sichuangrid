@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<sqlMap namespace="hourseInfo">	
+	<typeAlias alias="HourseInfo" type="com.tianque.openLayersMap.domian.HourseInfo"/>
+	
+	<resultMap id="hourseInfoResult" class="HourseInfo">
+		<result property="id" column="ID"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="lon" column="centerlon"/>
+		<result property="lat" column="centerlat"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="lon2" column="centerlon2"/>
+		<result property="lat2" column="centerlat2"/>
+	</resultMap>
+	
+	<resultMap class="HourseInfo" id="hourseInfoAndBuildDataInfoResult" extends="hourseInfoResult">
+		<result property="buildDataInfoVo.type.id" column="type"/>
+		<result property="buildDataInfoVo.name" column="buildingname"/>
+		<result property="buildDataInfoVo.address" column="buildingaddress"/>
+		<result property="name" column="buildingname"/>
+		<result property="address" column="buildingaddress"/>
+		<result property="typeId" column="type"/>
+		<result property="featureId" column="featureId"/>
+	</resultMap>
+	
+	<resultMap id="wfsResult" class="HourseInfo" extends="hourseInfoResult">
+		<result property="featureId" column="featureId"/>
+	</resultMap>
+	
+	<sql id="sql_where">
+		<dynamic prepend="where">
+			<isEqual property="searchInfoVo.gisType" compareValue="3D">
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLon">
+					TO_NUMBER(b.centerlon) <![CDATA[>=]]>#screenCoordinateVo.minLon#
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+					TO_NUMBER(b.centerlon) <![CDATA[<=]]>#screenCoordinateVo.maxLon#
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+					TO_NUMBER(b.centerlat) <![CDATA[>=]]>#screenCoordinateVo.minLat#
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+					TO_NUMBER(b.centerlat) <![CDATA[<=]]>#screenCoordinateVo.maxLat#
+				</isNotEmpty>
+				<isNotEmpty prepend="and"  property="orgInternalCode">
+					b.orgInternalCode like '$orgInternalCode$%'
+				</isNotEmpty>
+			</isEqual>
+			<isNotEqual property="searchInfoVo.gisType" compareValue="3D">
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLon">
+					TO_NUMBER(b.centerlon2) <![CDATA[>=]]>#screenCoordinateVo.minLon#
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+					TO_NUMBER(b.centerlon2) <![CDATA[<=]]>#screenCoordinateVo.maxLon#
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+					TO_NUMBER(b.centerlat2) <![CDATA[>=]]>#screenCoordinateVo.minLat#
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+					TO_NUMBER(b.centerlat2) <![CDATA[<=]]>#screenCoordinateVo.maxLat#
+				</isNotEmpty>
+				<isNotEmpty prepend="and"  property="orgInternalCode">
+					b.orgInternalCode like '$orgInternalCode$%'
+				</isNotEmpty>
+			</isNotEqual>
+		</dynamic>
+	</sql>
+	
+	<insert id="addHourseInfo" parameterClass="HourseInfo" >
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			 select hourse_squ.NEXTVAL as id from dual
+		</selectKey>
+		insert into HourseInfo(id,createUser,updateUser,createDate,updateDate,centerLon,centerLat,orgId,orgInternalCode,featureId,centerLon2,centerLat2)
+		values(#id#,#createUser#,#updateUser#,#createDate#,#updateDate#,#lon#,#lat#,#organization.id#,#orgInternalCode#,#featureId#,#lon2#,#lat2#)
+	</insert>
+	
+	<update id="updateHourseInfo">
+		update HourseInfo set
+		updateUser = #updateUser#,
+		updateDate = #updateDate#,
+		centerLon = #lon#,
+		centerLat = #lat#,
+		centerLon2 = #lon2#,
+		centerLat2 = #lat2#,
+		featureId = #featureId#
+		where id = #id#
+	</update>
+	
+	<delete id="deleteHourseInfoById" parameterClass="java.lang.Long">
+		delete from HourseInfo where id=#value#
+	</delete>
+	
+	<select id="getHourseInfoById" parameterClass="java.lang.Long" resultMap="wfsResult">
+		select * from HourseInfo WHERE id=#value#
+	</select>
+	
+	<select id="findTwoDimensionMapHoursePageInfoByOrgCodeAndScreenCoordinateVo" parameterClass="java.util.Map" resultMap="hourseInfoAndBuildDataInfoResult">
+		<include refid="common.sql_page_start"/>
+		select id,centerlon,centerLat,centerLon2 ,centerLat2,typeId type,createUser,updateUser,createDate,updateDate,orgInternalCode,orgId,buildingname,buildingaddress,featureId  
+		from(select h.id,h.centerLon ,h.centerLat,h.centerLon2 ,h.centerLat2,b.type typeId,h.createUser,h.updateUser,h.createDate,h.updateDate,h.orgInternalCode,h.orgId,
+		b.buildingname,b.buildingaddress,h.featureid from hourseinfo h left join builddatas b  on h.id=b.buildingid) b 
+		<include refid="sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countTwoDimensionMapHourseInfosByOrgCodeAndScreenCoordinateVo" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0) from(select h.id,h.centerLon ,h.centerLat,h.centerLon2 ,h.centerLat2,b.type,h.createUser,h.updateUser,h.createDate,h.updateDate,h.orgInternalCode,h.orgId,
+		b.buildingname,b.buildingaddress from hourseinfo h left join builddatas b  on h.id=b.buildingid) b 
+		<include refid="sql_where"/>
+	</select>
+	
+	<select id="countBoundedTwoDimensionMapPageInfoByOrgInternalCode" parameterClass="java.util.Map"  resultClass="java.lang.Integer">
+		select count(0) from hourseinfo where centerlat is not null and centerlon is not null 
+			and orginternalcode like '$orginternalcode$%'
+	</select>
+	
+	<select id="findUnboundHouseInfoByOrganizationId" parameterClass="java.util.Map" resultMap="hourseInfoAndBuildDataInfoResult" >
+		select id,centerlon,centerLat,centerLon2 ,centerLat2,type,createUser,updateUser,createDate,updateDate,orgInternalCode,orgId,buildingname,buildingaddress,featureId 
+		from(select h.id,h.centerLon ,h.centerLat,h.centerLon2 ,h.centerLat2,b.type,h.createUser,h.updateUser,h.createDate,h.updateDate,h.orgInternalCode,h.orgId,
+		b.buildingname,b.buildingaddress,h.featureId from hourseinfo h left join builddatas b  on h.id=b.buildingid) b 
+		where orgId=#orgId#
+	</select>
+	
+	<select id="getHourseInfoByFeatureId" parameterClass="java.lang.String" resultMap="wfsResult">
+		select * from HourseInfo WHERE featureId=#featureId#
+	</select>
+</sqlMap>

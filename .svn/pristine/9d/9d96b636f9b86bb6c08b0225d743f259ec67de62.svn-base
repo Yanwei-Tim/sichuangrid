@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="IssueJoint">
+	<typeAlias alias="IssueJoint" type="com.tianque.issueAbutmentJoint.domain.IssueJoint"/>
+	<typeAlias alias="IssueJointVo" type="com.tianque.issueAbutmentJoint.domain.vo.IssueJointVo"/>
+	
+	<resultMap class="IssueJoint" id="issueJointResult">
+		<result property="id" column="id"/>
+		<result property="serialNumber" column="serialNumber"/>
+		<result property="subject" column="subject"/>
+		<result property="maincharacters" column="maincharacters"/>
+		<result property="mobile" column="mobile"/>
+		<result property="telephone" column="telephone"/>
+		<result property="occurOrg.id" column="occurOrg"/>
+		<result property="occurOrg.orgInternalCode" column="occurOrgInternalCode"/>
+		<result property="createOrg.id" column="createOrg"/>
+		<result property="createOrg.orgInternalCode" column="createOrgInternalCode"/>
+		<result property="lastOrg.id" column="lastOrg"/>
+		<result property="lastOrg.orgInternalCode" column="lastOrgInternalCode"/>
+		<result property="issueKind.id" column="issueKind"/>
+		<result property="issueJointType.id" column="issueJointType"/>
+		<result property="issueJointTypeSub.id" column="issueJointTypeSub"/>
+		<result property="relatePeopleCount" column="relatePeopleCount"/>
+		<result property="lastUsername" column="lastUsername"/>
+		<result property="occurLocation" column="occurLocation"/>
+		<result property="status" column="status"/>
+		<result property="occurDate" column="occurDate"/>
+		<result property="hours" column="hours"/>
+		<result property="minute" column="minute"/>
+		<result property="issueContent" column="issueContent"/>
+		<result property="importantPlace" column="importantPlace"/>
+		<result property="feedbackTime" column="feedbackTime"/>
+		<result property="lastDealTime" column="lastDealTime"/>
+		<result property="dealUserName" column="dealUserName"/>
+		<result property="dealMobile" column="dealMobile"/>
+		<result property="dealContent" column="dealContent"/>
+		<result property="impDate" column="impDate"/>
+		<result property="associateId" column="associateId"/>
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<insert id="addIssueJointByImport" parameterClass="IssueJoint">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_issueJoints.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into issueJoints(
+		id,serialNumber,subject,maincharacters,mobile,telephone,occurOrg,occurOrgInternalCode,createOrg,createOrgInternalCode,
+		lastOrg,lastOrgInternalCode,issueKind,issueJointType,issueJointTypeSub,relatePeopleCount,lastUsername,occurLocation,status,occurDate,
+		hours,minute,issueContent,importantPlace,feedbackTime,lastDealTime,dealUserName,dealMobile,dealContent,impDate,createUser,updateUser,createDate,updateDate) 
+		values(
+		#id#,#serialNumber#,#subject#,#maincharacters#,#mobile#,#telephone#,#occurOrg.id#,#occurOrg.orgInternalCode#,#createOrg.id#,#createOrg.orgInternalCode#,
+		#lastOrg.id#,#lastOrg.orgInternalCode#,#issueKind.id#,#issueJointType.id#,#issueJointTypeSub.id#,#relatePeopleCount#,#lastUsername#,#occurLocation#,#status#,#occurDate#,
+		#hours#,#minute#,#issueContent#,#importantPlace#,#feedbackTime#,#lastDealTime#,#dealUserName#,#dealMobile#,#dealContent#,#createDate#,#createUser#,#createUser#,#feedbackTime#,#lastDealTime#)
+	</insert>
+	<select id="getIssueJointById" parameterClass="java.lang.Long" resultMap="issueJointResult">
+		select * from IssueJoints where id = #value#
+	</select>
+	<sql id="sql_where">
+		<dynamic prepend="where">
+			<isPropertyAvailable property="issueJointType">
+				<isNotNull property="issueJointType.id" prepend=" and ">
+					issueJointType = #issueJointType.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueJointTypeSub">
+				<isNotNull property="issueJointTypeSub.id" prepend=" and ">
+					issueJointTypeSub = #issueJointTypeSub.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="serialNumber">
+				<isNotEmpty property="serialNumber" prepend=" and ">
+					serialNumber like #serialNumber# ||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurOrg">
+				<isNotNull property="occurOrg.id" prepend=" and ">
+					occurOrg = #occurOrg.id# 
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="subject">
+				<isNotEmpty property="subject" prepend=" and ">
+					subject like #subject# ||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueKind">
+				<isNotNull property="issueKind.id" prepend=" and ">
+					issueKind = #issueKind.id# 
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relatePeopleMinCount">
+				<isNotNull property="relatePeopleMinCount" prepend=" and ">
+					<![CDATA[ relatePeopleCount >= #relatePeopleMinCount# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relatePeopleMaxCount">
+				<isNotNull property="relatePeopleMaxCount" prepend=" and ">
+					<![CDATA[	relatePeopleCount <= #relatePeopleMaxCount# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurDateStart">
+				<isNotNull property="occurDateStart" prepend=" and ">
+					<![CDATA[	occurDate >= #occurDateStart# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurDateEnd">
+				<isNotNull property="occurDateEnd" prepend=" and ">
+					<![CDATA[	occurDate <= #occurDateEnd# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurLocation">
+				<isNotEmpty property="occurLocation" prepend=" and ">
+					occurLocation like #occurLocation# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="createOrg">
+				<isNotNull property="createOrg.orgInternalCode" prepend=" and ">
+					createorginternalcode like #createOrg.orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="queryIssueJointByIssueJointVoForPageResult" parameterClass="IssueJointVo" resultMap="issueJointResult">
+		select * from IssueJoints
+		<include refid="sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="queryIssueJointByIssueJointVoForPageResultCount" parameterClass="IssueJointVo" resultClass="java.lang.Integer">
+		select count(*) from IssueJoints 
+		<include refid="sql_where"/>
+	</select>
+</sqlMap>

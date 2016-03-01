@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="myContactManage" extends="default"
+		namespace="/contact/myContacterManage">
+		<default-class-ref class="myContacterController"></default-class-ref>
+		<action name="findMyContacters" method="findMyContacters">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/interaction/contact/myContact/maintainMyContactDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="addMyContacter" method="addMyContacter">
+			<result name="success" type="json">
+				<param name="root">myContacter</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateMyContacter" method="updateMyContacter">
+			<result  name="success" type="json">
+				<param name="root">myContacter</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="deleteMyContacter" method="deleteMyContacter" >
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="searchMyContacters" method="searchMyContacters">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+	</package>
+</struts>

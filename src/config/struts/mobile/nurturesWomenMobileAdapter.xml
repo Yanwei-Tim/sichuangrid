@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	
+	<package name="nurturesWomenMobileManage" namespace="/mobile/nurturesWomenMobileManage" extends="default">
+		<default-class-ref class="nurturesWomenMobileAdapter"></default-class-ref>
+	    <action name="findNurturesWomenList" method="findNurturesWomenList">
+		    <result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+	    
+	    <action name="getManInfoByIdcard" method="getManInfoByIdcard">
+		    <result name="success" type="json">
+				<param name="root">countrymen</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action>
+	</package>
+</struts>

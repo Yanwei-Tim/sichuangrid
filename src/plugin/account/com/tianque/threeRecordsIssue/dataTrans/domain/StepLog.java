@@ -1,0 +1,127 @@
+package com.tianque.threeRecordsIssue.dataTrans.domain;
+
+/**
+ * Created by daniel on 2015/4/26.
+ */
+public class StepLog implements java.io.Serializable {
+	private static final long serialVersionUID = 1L;
+	private String regCardCode;
+	private String unit;
+	private String targetOrg;
+	private String content;
+	private String workDate;
+	private String serverName;
+	private String serverTele;
+	private String villageName;
+	private String townName;
+	private String ledgerName;
+	private int type;
+
+	private String workStep;
+	private String dealType;
+
+	public String getRegCardCode() {
+		return regCardCode;
+	}
+
+	public void setRegCardCode(String regCardCode) {
+		this.regCardCode = regCardCode;
+	}
+
+	public String getUnit() {
+		return unit;
+	}
+
+	public void setUnit(String unit) {
+		this.unit = unit;
+	}
+
+	public String getContent() {
+		return content;
+	}
+
+	public void setContent(String content) {
+		this.content = content;
+	}
+
+	public String getWorkDate() {
+		return workDate;
+	}
+
+	public void setWorkDate(String workDate) {
+		this.workDate = workDate;
+	}
+
+	public String getServerName() {
+		return serverName;
+	}
+
+	public void setServerName(String serverName) {
+		this.serverName = serverName;
+	}
+
+	public String getServerTele() {
+		return serverTele;
+	}
+
+	public void setServerTele(String serverTele) {
+		this.serverTele = serverTele;
+	}
+
+	public String getVillageName() {
+		return villageName;
+	}
+
+	public void setVillageName(String villageName) {
+		this.villageName = villageName;
+	}
+
+	public String getTownName() {
+		return townName;
+	}
+
+	public void setTownName(String townName) {
+		this.townName = townName;
+	}
+
+	public String getLedgerName() {
+		return ledgerName;
+	}
+
+	public void setLedgerName(String ledgerName) {
+		this.ledgerName = ledgerName;
+	}
+
+	public int getType() {
+		return type;
+	}
+
+	public void setType(int type) {
+		this.type = type;
+	}
+
+	public String getWorkStep() {
+		return workStep;
+	}
+
+	public void setWorkStep(String workStep) {
+		this.workStep = workStep;
+	}
+
+	public String getDealType() {
+		return dealType;
+	}
+
+	public void setDealType(String dealType) {
+		this.dealType = dealType;
+	}
+
+	public String getTargetOrg() {
+		return targetOrg;
+	}
+
+	public void setTargetOrg(String targetOrg) {
+		this.targetOrg = targetOrg;
+	}
+
+}

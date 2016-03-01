@@ -1,0 +1,247 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%> 
+<%@page import="com.tianque.plugin.analysisNew.util.AnalyseUtilNew"%>
+<style>
+.SigmaReport{
+	overflow: auto !important; 
+}
+.SigmaReport .head td{
+  line-height: normal;
+}
+</style> 
+<div id="nav" class="ui-corner-all">
+		<select name="year" id="year" onchange="" style="float:left;">
+			<option selected="selected" value="2015">2015</option>
+        </select>
+        <label style="float:left;padding:0 10px;line-height:25px;">年</label>
+        <select style="float:left;" name="month" id="month" onchange="">
+       	 <option selected="selected" value="0">上半年</option>
+       	 <option value="1">下半年</option>
+        </select>
+		<a id="searchList" href="javascript:void(0)"><span>查询</span></a>
+
+
+</div>
+<div class="content" >
+	<div id="gridbox" class="SigmaReport"></div>
+</div>
+<div id="${type}PrintDlg"></div>
+
+<script type="text/javascript">
+var grid = null;
+var sortName="";
+var sortColumn="";
+function onOrgChanged(){
+	$.ajax({
+		url:'${path}/baseInfo/comprehensiveInfomationManage/findComprehensiveInfomationList.action?orgId=1',
+		success:function(data){
+			if(data == null){
+				$.messageBox({
+					message: "新农村报表统计失败",
+					level: "error"
+				});
+				return;
+			}
+			grid.bindData(data);
+		}
+	})
+}
+
+
+$(document).ready(function(){
+	var columns = getColumns();
+	$.gridboxHeight();
+	var context = {};
+	grid = new SigmaReport("gridbox",context,columns);
+	$("#gridbox").css({"overflow": "auto", "height": document.documentElement.offsetHeight - ($.browser.msie ? 240 : 216)});
+	
+	$("#title_gridbox").children().remove();
+	$("#title_gridbox").html("新农村建设综合信息统计表<a href='javascript:;' class='print' title='打印'></a>");
+	$("#title_gridbox,#head_gridbox,#body_gridbox").width( $("#tHead_gridbox").width()+100); 
+	$("#gridbox").height("425px");
+	
+	onOrgChanged();
+	$("#searchList").click(function(){
+		onOrgChanged();
+	});
+	
+	$(".print").click(function(){
+		$("#zongkuangPrint").createDialog({
+			width:1400,
+			height:480,
+			title:document.title,
+			url:'${path}/newCountryside/comprehensiveInformationPrint.jsp?orgId='+getCurrentOrgId(),
+			buttons: {
+			   "打印" : function(){
+				print();
+		  	   },
+			   "关闭" : function(){
+			        $("#zongkuangPrint").dialog("close");
+			   }
+			}
+		});
+	});
+	
+	function print(){
+		$("#zongkuangPrint").printArea();
+		$("#zongkuangPrint").dialog("close");
+	}
+});
+
+function getColumns(){
+	var columns = [		
+					{name:"organization.orgName",caption:"市州",width:80,mode:"string"}, 
+					{name:"detailedDataList[index].projectName",caption:"项目",width:80,mode:"string"}, 
+					{name:"general",caption:"新农村建设",width:120,mode:"string",children:[
+						{name:"general",caption:"新建聚居点",width:120,mode:"string",children:[
+							{name:"general",caption:"年度开工",width:120,mode:"string",children:[
+	                           {name:"detailedDataList[index].settlementsCount",caption:"个数(个)",width:70,mode:"string"},
+	                           {name:"detailedDataList[index].settlementsHouseCount",caption:"农户(户)",width:50,mode:"string"}
+	                        ]},
+	                        {name:"general",caption:"年度完成",width:120,mode:"string",children:[
+	                           {name:"detailedDataList[index].settlementsCompleteCount",caption:"个数(个)",width:70,mode:"string"},
+	                           {name:"detailedDataList[index].settlementsCompleteHouseCount",caption:"农户(户)",width:50,mode:"string"}
+	                        ]},
+	                        {name:"general",caption:"累计完成",width:120,mode:"string",children:[
+	                          {name:"detailedDataList[index].settlementsCumulativeCount",caption:"个数(个)",width:70,mode:"string"},
+	                          {name:"detailedDataList[index].settlementsCumulativeHouseCount",caption:"农户(户)",width:50,mode:"string"}
+	                        ]},
+	                        {name:"general",caption:"新农村综合体",width:120,mode:"string",children:[
+	                          {name:"detailedDataList[index].newRuralComplexCount",caption:"年度开工(个)",width:70,mode:"string"},
+	                          {name:"detailedDataList[index].newRuralComplexCompleteCount",caption:"年度完成(个)",width:70,mode:"string"},
+	                          {name:"detailedDataList[index].newRuralComplexCumulativeCount",caption:"累计建成(个)",width:80,mode:"string"}
+	                       ]}
+	                	]},
+	                   {name:"general",caption:"自然村庄改造提升和保护",width:120,mode:"string",children:[
+						   {name:"general",caption:"年度开工",width:120,mode:"string",children:[
+                              {name:"detailedDataList[index].naturalVillageCount",caption:"个数(个)",width:70,mode:"string"},
+                              {name:"detailedDataList[index].naturalVillageHouseCount",caption:"农户(户)",width:80,mode:"string"}
+                           ]},
+                           {name:"general",caption:"年度完成",width:120,mode:"string",children:[
+                              {name:"detailedDataList[index].naturalVillageCompleteCount",caption:"个数(个)",width:70,mode:"string"},
+                              {name:"detailedDataList[index].naturalVillageCompleteHouseCount",caption:"农户(户)",width:80,mode:"string"}
+                           ]},
+                           {name:"general",caption:"累计完成",width:120,mode:"string",children:[
+                              {name:"detailedDataList[index].naturalVillageCumulativeCount",caption:"个数(个)",width:70,mode:"string"},
+                              {name:"detailedDataList[index].naturalVillageCumulativeHouseCount",caption:"农户(户)",width:80,mode:"string"}
+                           ]}                                                             
+	                   ]},
+	                   {name:"general",caption:"传统民居保护修复",width:120,mode:"string",children:[
+	                      {name:"general",caption:"年度开工",width:120,mode:"string",children:[
+	                         {name:"detailedDataList[index].traditionalHouseCount",caption:"农户(户)",width:80,mode:"string"}
+	                      ]},
+	                      {name:"general",caption:"累计完成",width:120,mode:"string",children:[
+	                         {name:"detailedDataList[index].traditionalCumulativeHouseCount",caption:"农户(户)",width:80,mode:"string"}
+	                      ]}                                                          
+	                   ]}
+				  ]},
+				  {name:"general",caption:"基础设施建设",width:120,mode:"string",children:[
+					{name:"general",caption:"",width:120,mode:"string",children:[
+				        {name:"general",caption:"农村硬化道路(公里)",width:120,mode:"string",children:[
+				        	{name:"detailedDataList[index].ruralSclerosisCount",caption:"年度完成",width:80,mode:"string"},
+				        	{name:"detailedDataList[index].ruralSclerosisCumulativeCount",caption:"累计完成",width:80,mode:"string"}
+				        ]},
+				        {name:"general",caption:"农田水利渠系建设(公里)",width:120,mode:"string",children:[
+				            {name:"detailedDataList[index].canalCount",caption:"年度完成",width:80,mode:"string"},
+				            {name:"detailedDataList[index].canalCumulativeCount",caption:"累计完成",width:80,mode:"string"}
+				        ]} 
+				      ]}                                                         
+				  ]},
+				  {name:"general",caption:"产业发展",width:120,mode:"string",children:[
+					   {name:"general",caption:"种植业",width:120,mode:"string",children:[   
+							{name:"general",caption:"连片发展种植业(亩)",width:120,mode:"string",children:[ 
+								{name:"detailedDataList[index].plantingCount",caption:"年度完成",width:80,mode:"string"},
+								{name:"detailedDataList[index].plantingCumulativeCount",caption:"累计完成",width:80,mode:"string"}                                                      
+							]},
+							{name:"general",caption:"设施农业(亩)",width:120,mode:"string",children:[ 
+							    {name:"detailedDataList[index].facilityAgricultureCount",caption:"年度完成",width:80,mode:"string"},
+							    {name:"detailedDataList[index].facilityCumulativeCount",caption:"累计完成",width:80,mode:"string"}                                                      
+							]}
+					   ]},
+					   {name:"general",caption:"畜牧业",width:120,mode:"string",children:[   
+							{name:"general",caption:"规模养殖(户)",width:120,mode:"string",children:[ 
+                                {name:"detailedDataList[index].breedCount",caption:"年度完成",width:80,mode:"string"},
+                                {name:"detailedDataList[index].breedCumulativeCount",caption:"累计完成",width:80,mode:"string"}                                                      
+                            ]},
+                            {name:"general",caption:"标准化养殖小区/场(个)",width:120,mode:"string",children:[ 
+                                {name:"detailedDataList[index].breedingAreaCount",caption:"年度完成",width:80,mode:"string"},
+                                {name:"detailedDataList[index].breedingAreaCumulativeCount",caption:"累计完成",width:80,mode:"string"}                                                      
+                            ]}
+					   ]},
+					   {name:"general",caption:"龙头企业数(家)",width:120,mode:"string",children:[   
+							{name:"general",caption:"国家级",width:120,mode:"string",children:[ 
+                               {name:"detailedDataList[index].enterpriseCountry",caption:"年度新增",width:80,mode:"string"},
+                               {name:"detailedDataList[index].enterpriseCumulativeCountry",caption:"累计个数",width:80,mode:"string"}                                                      
+                            ]},  
+                            {name:"general",caption:"省级",width:120,mode:"string",children:[ 
+                               {name:"detailedDataList[index].enterpriseProvince",caption:"年度新增",width:80,mode:"string"},
+                               {name:"detailedDataList[index].enterpriseCumulativeProvince",caption:"累计个数",width:80,mode:"string"}                                                      
+                            ]}  
+					   ]},
+					   {name:"general",caption:"农民合作组织数(个)",width:120,mode:"string",children:[   
+					       {name:"general",caption:"国家级",width:120,mode:"string",children:[ 
+					          {name:"detailedDataList[index].cooperativeCountry",caption:"年度新增",width:80,mode:"string"},
+					          {name:"detailedDataList[index].cooperativeCumulativeCountry",caption:"累计个数",width:80,mode:"string"}                                                      
+					       ]},  
+					       {name:"general",caption:"省级",width:120,mode:"string",children:[ 
+					          {name:"detailedDataList[index].cooperativeProvince",caption:"年度新增",width:80,mode:"string"},
+					          {name:"detailedDataList[index].cooperativeCumulativeProvince",caption:"累计个数",width:80,mode:"string"}                                                      
+					      ]}                                                                
+					   ]},
+					   {name:"general",caption:"注册家庭农场数(个)",width:120,mode:"string",children:[
+   					        {name:"general",caption:"",width:120,mode:"string",children:[ 
+							 {name:"detailedDataList[index].farmCount",caption:"年度新增",width:80,mode:"string"},
+							 {name:"detailedDataList[index].farmCumulativeCount",caption:"累计个数",width:80,mode:"string"} ]}                                                                     
+					   ]}
+				  ]},
+				  {name:"general",caption:"公共服务",width:120,mode:"string",children:[
+					  {name:"general",caption:"",width:120,mode:"string",children:[
+					  {name:"general",caption:"1+6村级公共服务活动中心",width:50,mode:"string",children:[
+							{name:"detailedDataList[index].serviceCenter",caption:"年度完成",width:80,mode:"string"},
+							{name:"detailedDataList[index].serviceCenterCumulative",caption:"累计完成",width:80,mode:"string"}                                                               
+					  ]}]}
+				  ]},
+				  {name:"general",caption:"幸福美丽新村建设",width:120,mode:"string",children:[
+   				      {name:"general",caption:"",width:120,mode:"string",children:[
+					  {name:"general",caption:"",width:120,mode:"string",children:[
+					  {name:"detailedDataList[index].newVillagePlanCount",caption:"今年计划建成(个)",width:100,mode:"string"},
+					  {name:"detailedDataList[index].newVillagePlanYearCount",caption:"年度启动建设(个)",width:100,mode:"string"},
+					  {name:"detailedDataList[index].newVillageCumulativeCount",caption:"累计建设完成(个)",width:100,mode:"string"} ]}]}                                                         
+				  ]},
+				  {name:"general",caption:"投入情况",width:120,mode:"string",children:[
+					  {name:"general",caption:"财政专项资金投入(万元)",width:120,mode:"string",children:[
+						    {name:"general",caption:"年度计划投入",width:120,mode:"string",children:[
+								{name:"detailedDataList[index].planInvestmentCity",caption:"市(州)级财政",width:80,mode:"string"},
+								{name:"detailedDataList[index].planInvestmentCounty",caption:"县级财政",width:80,mode:"string"}
+                            ]},
+                            {name:"general",caption:"累计实际投入",width:120,mode:"string",children:[
+                                {name:"detailedDataList[index].cumulativeTotal",caption:"合计",width:120,mode:"string"},
+									{name:"detailedDataList[index].cumulativeCentralFinance",caption:"中央财政",width:80,mode:"string"},   
+									{name:"detailedDataList[index].cumulativeProvinceFinance",caption:"省级财政",width:80,mode:"string"},
+									{name:"detailedDataList[index].cumulativeCityceFinance",caption:"市(州)财政",width:80,mode:"string"},
+									{name:"detailedDataList[index].cumulativeCountyFinance",caption:"县级财政",width:80,mode:"string"}
+                            ]} 
+					  ]},
+					  {name:"general",caption:"累计项目整合(万元)",width:120,mode:"string",children:[
+                               {name:"detailedDataList[index].projectTotal",caption:"合计",width:120,mode:"string"},
+                               {name:"general",caption:"其中",width:120,mode:"string",children:[
+                                   {name:"detailedDataList[index].projectCentralTotal",caption:"中央项目",width:80,mode:"string"},   
+                                   {name:"detailedDataList[index].projectProvinceTotal",caption:"省级项目",width:80,mode:"string"},
+                                   {name:"detailedDataList[index].projectCityTotal",caption:"市(州)项目",width:80,mode:"string"},
+                                   {name:"detailedDataList[index].projectCountyTotal",caption:"县级项目",width:80,mode:"string"}
+                              ]}
+					  ]},
+					  {name:"general",caption:"累计社会资金实际投入(万元)",width:120,mode:"string",children:[
+					        {name:"general",caption:"",width:120,mode:"string",children:[
+							 {name:"detailedDataList[index].financialInvestment",caption:"金融部门投入",width:120,mode:"string"},
+							 {name:"detailedDataList[index].farmerInvestment",caption:"农民投入",width:120,mode:"string"},
+							 {name:"detailedDataList[index].businessCirclesInvestment",caption:"工商资本投入",width:120,mode:"string"},
+							 {name:"detailedDataList[index].otherInvestment",caption:"其他投入",width:120,mode:"string"}]}
+					  ]}
+				  ]}
+				 ];
+	return columns;
+}
+
+</script>

@@ -1,0 +1,348 @@
+package com.tianque.plugin.taskList.domain;
+
+import java.util.Date;
+import java.util.List;
+
+import org.apache.struts2.json.annotations.JSON;
+
+import com.tianque.core.base.BaseDomain;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+
+public class DruggyTask extends BaseDomain {
+	private long replyCount;//用于手机接口返回被回复数量
+	private Long id;
+	private String place;//地点
+	private Date time;//时间
+	private String name;//姓名
+	private PropertyDict lifeResource;//生活来源方式（1.务农；2.打工；3.低保；4.其他）
+	private String familyTel;//家属联系电话
+	private String exception;//异常详情
+	private Long status;//是否签收（0未签收，1已签收）
+	/**是否有回复*/
+	private Integer hasReplay;
+	/**任务清单回复列表*/
+	private List<TaskListReply> taskListReplyList;
+	private String attitude;//签收备注
+	private Date signDate;//签收日期
+	private String signMemberName;//签收人
+	private Long reporter;//上报人（默认就是网格员）
+	private String reporterTel;//上报人联系电话（默认网格员联系电话）
+	private String remark;//备注
+	/** 所属网格 */
+	private Organization organization;
+	/** 搜索关键字 */
+	private String fastSearchKeyWords;
+	/** 记录起始时间*/
+	private Date conditionStartDate;
+	/** 记录结束时间*/
+	private Date conditionEndDate;
+	/** 签收结束时间*/
+	private Date conditionSignEndDate;
+	/** 签收开始时间*/
+	private Date conditionSignStartDate;
+	/** 附件名 **/
+	private String[] attachFileNames;
+
+	/* 附件 */
+	private List<TaskListAttachFile> annexFiles;
+
+	private String mode;
+
+	private Long funOrgId;
+	/**有无异常*/
+	private Integer hasException;
+	/**
+	 * 帮扶人员
+	 */
+	private String helpPeople;
+	/**
+	 * 身份证号码
+	 */
+	private String idCard;
+	/**
+	 * 电话号码
+	 */
+	private String phone;
+	/**回复时间*/
+	private Date replayDate;
+
+	private Long druggyId;
+
+	private String createUserName;
+
+	public Date getReplayDate() {
+		return replayDate;
+	}
+
+	public void setReplayDate(Date replayDate) {
+		this.replayDate = replayDate;
+	}
+	public Integer getHasException() {
+		return hasException;
+	}
+
+	public void setHasException(Integer hasException) {
+		this.hasException = hasException;
+	}
+
+	public String getMode() {
+		return mode;
+	}
+
+	public void setMode(String mode) {
+		this.mode = mode;
+	}
+
+	public Long getFunOrgId() {
+		return funOrgId;
+	}
+
+	public void setFunOrgId(Long funOrgId) {
+		this.funOrgId = funOrgId;
+	}
+
+	public String getReporterTel() {
+		return reporterTel;
+	}
+
+	public String getFastSearchKeyWords() {
+		return fastSearchKeyWords;
+	}
+
+	public void setFastSearchKeyWords(String fastSearchKeyWords) {
+		this.fastSearchKeyWords = fastSearchKeyWords;
+	}
+
+	public String[] getAttachFileNames() {
+		return attachFileNames;
+	}
+
+	public void setAttachFileNames(String[] attachFileNames) {
+		this.attachFileNames = attachFileNames;
+	}
+
+	public List<TaskListAttachFile> getAnnexFiles() {
+		return annexFiles;
+	}
+
+	public void setAnnexFiles(List<TaskListAttachFile> annexFiles) {
+		this.annexFiles = annexFiles;
+	}
+
+	public PropertyDict getLifeResource() {
+		return lifeResource;
+	}
+
+	public void setLifeResource(PropertyDict lifeResource) {
+		this.lifeResource = lifeResource;
+	}
+
+	public Date getConditionSignEndDate() {
+		return conditionSignEndDate;
+	}
+
+	public void setConditionSignEndDate(Date conditionSignEndDate) {
+		this.conditionSignEndDate = conditionSignEndDate;
+	}
+
+	public Date getConditionSignStartDate() {
+		return conditionSignStartDate;
+	}
+
+	public void setConditionSignStartDate(Date conditionSignStartDate) {
+		this.conditionSignStartDate = conditionSignStartDate;
+	}
+
+	public Date getConditionStartDate() {
+		return conditionStartDate;
+	}
+
+	public void setConditionStartDate(Date conditionStartDate) {
+		this.conditionStartDate = conditionStartDate;
+	}
+
+	public Date getConditionEndDate() {
+		return conditionEndDate;
+	}
+
+	public void setConditionEndDate(Date conditionEndDate) {
+		this.conditionEndDate = conditionEndDate;
+	}
+
+	public void setReporterTel(String reporterTel) {
+		this.reporterTel = reporterTel;
+	}
+
+	public String getSignMemberName() {
+		return signMemberName;
+	}
+
+	public void setSignMemberName(String signMemberName) {
+		this.signMemberName = signMemberName;
+	}
+
+	public Long getReporter() {
+		return reporter;
+	}
+
+	public void setReporter(Long reporter) {
+		this.reporter = reporter;
+	}
+
+	public String getFamilyTel() {
+		return familyTel;
+	}
+
+	public void setFamilyTel(String familyTel) {
+		this.familyTel = familyTel;
+	}
+
+	public Organization getOrganization() {
+		return organization;
+	}
+
+	public void setOrganization(Organization organization) {
+		this.organization = organization;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getPlace() {
+		return place;
+	}
+
+	public void setPlace(String place) {
+		this.place = place;
+	}
+
+	@JSON(format = "yyyy-MM-dd HH:mm:ss")
+	public Date getTime() {
+		return time;
+	}
+
+	public void setTime(Date time) {
+		this.time = time;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+
+	public String getException() {
+		return exception;
+	}
+
+	public void setException(String exception) {
+		this.exception = exception;
+	}
+
+	public Long getStatus() {
+		return status;
+	}
+
+	public void setStatus(Long status) {
+		this.status = status;
+	}
+
+	public String getAttitude() {
+		return attitude;
+	}
+
+	public void setAttitude(String attitude) {
+		this.attitude = attitude;
+	}
+
+	@JSON(format = "yyyy-MM-dd HH:mm:ss")
+	public Date getSignDate() {
+		return signDate;
+	}
+
+	public void setSignDate(Date signDate) {
+		this.signDate = signDate;
+	}
+
+	public Integer getHasReplay() {
+		return hasReplay;
+	}
+
+	public void setHasReplay(Integer hasReplay) {
+		this.hasReplay = hasReplay;
+	}
+
+	public List<TaskListReply> getTaskListReplyList() {
+		return taskListReplyList;
+	}
+
+	public void setTaskListReplyList(List<TaskListReply> taskListReplyList) {
+		this.taskListReplyList = taskListReplyList;
+	}
+
+	public long getReplyCount() {
+		return replyCount;
+	}
+
+	public void setReplyCount(long replyCount) {
+		this.replyCount = replyCount;
+	}
+
+	public String getHelpPeople() {
+		return helpPeople;
+	}
+
+	public void setHelpPeople(String helpPeople) {
+		this.helpPeople = helpPeople;
+	}
+
+	public String getIdCard() {
+		return idCard;
+	}
+
+	public void setIdCard(String idCard) {
+		this.idCard = idCard;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public Long getDruggyId() {
+		return druggyId;
+	}
+
+	public void setDruggyId(Long druggyId) {
+		this.druggyId = druggyId;
+	}
+
+	public String getCreateUserName() {
+		return createUserName;
+	}
+
+	public void setCreateUserName(String createUserName) {
+		this.createUserName = createUserName;
+	}
+
+
+}

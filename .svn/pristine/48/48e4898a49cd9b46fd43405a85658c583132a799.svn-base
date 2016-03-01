@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="buildDataTwoDimensionMap">
+	<typeAlias alias="buildDataInfoVo" type="com.tianque.openLayersMap.domian.vo.BuildDataInfoVo" />
+	
+	<resultMap id="buildDataInfoVoResult" class="buildDataInfoVo">
+		<result column="id" property="id" />
+		<result column="buildingName" property="name" />
+		<result column="buildingAddress" property="address" />
+		<result column="type" property="type.id" />
+		<result column="centerLon" property="lon" />
+		<result column="centerLat" property="lat" />
+		<result column="centerLon2" property="lon2" />
+		<result column="centerLat2" property="lat2" />
+		<result column="isLayout" property="isLayout" />
+		<result column="type" property="typeId" />
+	</resultMap>
+	
+	<sql id="sql_screenCoordinateVo">
+		<isNotNull property="searchInfoVo">
+			<isEqual property="searchInfoVo.gisType" compareValue="3D">
+				<isNotEmpty  property="screenCoordinateVo.minLon">
+					<![CDATA[ centerlon>#screenCoordinateVo.minLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+					<![CDATA[ centerlon<#screenCoordinateVo.maxLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+					<![CDATA[ centerlat>#screenCoordinateVo.minLat# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+					<![CDATA[ centerlat<#screenCoordinateVo.maxLat# ]]>
+				</isNotEmpty>
+			</isEqual>
+			<isNotEqual  property="searchInfoVo.gisType"  compareValue="3D">
+				<isNotEmpty  property="screenCoordinateVo.minLon">
+					<![CDATA[ centerlon2>#screenCoordinateVo.minLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+					<![CDATA[ centerlon2<#screenCoordinateVo.maxLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+					<![CDATA[ centerlat2>#screenCoordinateVo.minLat# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+					<![CDATA[ centerlat2<#screenCoordinateVo.maxLat# ]]>
+				</isNotEmpty>
+			</isNotEqual>
+		</isNotNull>
+	</sql>
+	
+	<select id="countBoundedTwoDimensionMapPageInfoByOrgInternalCode" parameterClass="java.util.Map"  resultClass="java.lang.Integer">
+		select count(0) from builddatas where centerlat is not null and centerlon is not null 
+			and orginternalcode like '$orgInternalCode$%'
+	</select>
+	
+	<select id="countUnBoundedTwoDimensionMapPageInfoByOrgInternalCode" parameterClass="java.util.Map"  resultClass="java.lang.Integer">
+		select count(0) from builddatas where centerlat is null and centerlon is null 
+			and orginternalcode like '$orgInternalCode$%'
+	</select>
+	
+	<select id="findBoundedTwoDimensionMapPageInfoByOrgInternalCode" parameterClass="java.util.Map" resultMap="buildDataInfoVoResult">
+		<include refid="common.sql_page_start"/>
+			select id, buildingName, buildingAddress, type, centerLat, centerlon,isLayout ,centerLon2,centerLat2 from builddatas 
+				where  centerlat is not null and  centerlon is not null and  orginternalcode like '$orgInternalCode$%'
+			<dynamic prepend="order by ">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField"> $sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="findUnBoundTwoDimensionMapPageInfoByOrgInternalCode" parameterClass="java.util.Map" resultMap="buildDataInfoVoResult">
+		<include refid="common.sql_page_start"/>
+			select id, buildingName, buildingAddress, type, centerLat, centerlon,isLayout  ,centerLon2,centerLat2 from builddatas 
+				where  centerlat is null and  centerlon is null and  orginternalcode like '$orgInternalCode$%'
+			<dynamic prepend="order by ">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField"> $sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countUnBoundTwoDimensionMapPageInfoByOrgInternalCode" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from builddatas where centerlat is null and centerlon is null  orginternalcode like '$orgInternalCode$%'
+	</select>
+	
+	<select id="getBuildDataInfoById" parameterClass="java.lang.Long" resultMap="buildDataInfoVoResult">
+		select id, buildingName, buildingAddress, type, centerLat, centerlon ,isLayout ,centerLon2,centerLat2 from Builddatas t where id = #value#
+	</select>
+	
+	<sql id="sql_where">
+		from builddatas where 
+		<dynamic>
+			<isNotNull  property="orgInternalCode">
+				orgInternalCode like '$orgInternalCode$%'
+			</isNotNull>
+			<isPropertyAvailable property="screenCoordinateVo.minLon">
+				and (
+					<include refid="sql_screenCoordinateVo"/>
+					<isEqual property="isBound" compareValue="false">
+						or (centerLon is null and centerLat is null)
+					</isEqual>
+				) 
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findBuildDataInfoVosByOrgCodeAndMaxAndMinLonLatArrays" parameterClass="java.util.Map" resultMap="buildDataInfoVoResult">
+		select  id, buildingName, buildingAddress, type, centerLat, centerlon ,isLayout  ,centerLon2,centerLat2
+		<include refid="sql_where"/>
+	</select>
+	
+	<select id="countBuildDataByOrgCode" parameterClass="java.lang.String" resultClass="Integer">
+		select count(0) from builddatas where orgInternalCode like '$orgInternalCode$%'
+	</select>
+	
+	<select id="countUnBoundBuilddatas" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from builddatas where centerlat is null and centerlon is null and orgInternalCode like '$orgInternalCode$%'
+		<dynamic>
+			<isNotNull property="str" prepend="and ">
+				( buildingname like '$str$%' or buildingaddress like '$str$%' )
+			</isNotNull>
+		</dynamic>
+		
+	</select>
+	
+	<select id="findUnBoundBuilddatasByStr" parameterClass="java.util.Map" resultMap="buildDataInfoVoResult">
+		<include refid="common.sql_page_start"/>
+			select id, buildingName, buildingAddress, type, centerLat, centerlon,isLayout   ,centerLon2,centerLat2 from Builddatas
+			where centerlat is null and centerlon is null  and orgInternalCode like '$orgInternalCode$%'
+			<dynamic>
+				<isNotNull property="str" prepend="and ">
+					( buildingName like '$str$%' or buildingAddress like '$str$%' )
+				</isNotNull>
+			</dynamic>
+			<dynamic prepend="order by ">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countBoundedTwoDimensionMapInfoByOrgInternalCodeAndSearchValue" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0) from Builddatas b 
+		<dynamic prepend="where">
+			<isNotEmpty property="searchValue" prepend=" and " open=" ( " close=" ) ">
+				b.buildingName like #searchValue#||'%' or b.buildingAddress like #searchValue#||'%'
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="orgInternalCode">
+				b.orginternalcode like '$orgInternalCode$%'
+			</isNotEmpty>
+				and (b.centerlon is not null or b.centerlat is not null)
+		</dynamic>
+	</select>
+	
+	<!--乡镇一下 搜索	-->
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValue" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) 
+		<include refid="sql_where"/>
+		<isNotEmpty property="searchValue" prepend=" and " open=" ( " close=" ) ">
+			buildingName like #searchValue#||'%' or buildingAddress like #searchValue#||'%'
+		</isNotEmpty>
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValue" parameterClass="java.util.Map" resultMap="buildDataInfoVoResult">
+		<include refid="common.sql_page_start"/>
+			select centerlon,centerlat,buildingName,id,buildingAddress,type,isLayout  ,centerLon2,centerLat2
+			<include refid="sql_where"/>
+			<isNotEmpty property="searchValue" prepend=" and " open=" ( " close=" ) ">
+				buildingName like #searchValue#||'%' or buildingAddress like #searchValue#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="sortField">
+				<isNotEmpty property="order"  prepend="order by">
+					$sortField$ $order$
+				</isNotEmpty>
+			</isNotEmpty>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="getBuildDataInfoVoByCenterLonLat" parameterClass="java.util.Map" resultMap="buildDataInfoVoResult">
+		select id, buildingName, buildingAddress, type, centerLat, centerLon ,isLayout ,centerLon2,centerLat2 from Builddatas t where 
+		<isEqual property="gisType" compareValue="3D">
+			centerLon = #centerLon# and centerLat=#centerLat#
+		</isEqual>
+		<isNotEqual property="gisType" compareValue="3D">
+			centerLon2 = #centerLon# and centerLat2=#centerLat#
+		</isNotEqual>
+	</select>
+	
+	<update id="updateBuildDataTwoDimensionMap" parameterClass="java.util.Map">
+		update builddatas set centerLon=#centerLon#,centerLat=#centerLat# ,centerLon2=#centerLon2#,centerLat2=#centerLat2#,
+			buildingid=#buildingid# 
+		where id = #id#
+	</update>
+	
+	
+	<select id="getBuildDataInfoByHourseInfoId" parameterClass="java.util.Map" resultMap="buildDataInfoVoResult">
+		select id, buildingName, buildingAddress, type, centerLat, centerLon ,isLayout ,centerLon2,centerLat2 from Builddatas t where 
+		buildingid=#hourseInfoId#
+	</select>
+	
+</sqlMap>

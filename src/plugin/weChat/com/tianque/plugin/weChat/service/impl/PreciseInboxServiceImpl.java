@@ -1,0 +1,826 @@
+package com.tianque.plugin.weChat.service.impl;
+
+import java.io.File;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.base.AbstractBaseService;
+import com.tianque.core.cache.service.CacheService;
+import com.tianque.core.exception.ServiceException;
+import com.tianque.core.util.FileUtil;
+import com.tianque.core.util.GridProperties;
+import com.tianque.core.util.StoredFile;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.plugin.weChat.dao.PreciseInboxDao;
+import com.tianque.plugin.weChat.domain.WeiXinMedia;
+import com.tianque.plugin.weChat.domain.inbox.PreciseInbox;
+import com.tianque.plugin.weChat.domain.inbox.ReplyMessage;
+import com.tianque.plugin.weChat.domain.sendMessage.Article;
+import com.tianque.plugin.weChat.domain.sendMessage.News;
+import com.tianque.plugin.weChat.domain.sendMessage.TextMessage;
+import com.tianque.plugin.weChat.domain.sendMessage.text.TextSendMessage;
+import com.tianque.plugin.weChat.domain.user.Fan;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+import com.tianque.plugin.weChat.proxy.service.BaseHttpClientService;
+import com.tianque.plugin.weChat.service.FanService;
+import com.tianque.plugin.weChat.service.InboxAttachmentService;
+import com.tianque.plugin.weChat.service.KeyWordService;
+import com.tianque.plugin.weChat.service.PreciseInboxService;
+import com.tianque.plugin.weChat.service.ReplyMessageService;
+import com.tianque.plugin.weChat.service.TencentUserService;
+import com.tianque.plugin.weChat.service.UploadFileService;
+import com.tianque.plugin.weChat.service.WeChatService;
+import com.tianque.plugin.weChat.util.Constants;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+/** 收件箱数据处理服务类 */
+@Service("preciseInboxService")
+@Transactional
+public class PreciseInboxServiceImpl extends AbstractBaseService implements
+		PreciseInboxService {
+
+	@Autowired
+	private PreciseInboxDao preciseInboxDao;
+	@Autowired
+	private WeChatService weChatService;
+	@Autowired
+	private InboxAttachmentService inboxAttachmentService;
+	@Autowired
+	private ReplyMessageService replyMessageService;
+	@Autowired
+	private FanService fanService;
+	@Autowired
+	private TencentUserService tencentUserService;
+	@Autowired
+	private KeyWordService keyWordService;
+	@Autowired
+	private OrganizationDubboService organizationService;
+	@Autowired
+	private BaseHttpClientService baseHttpClientService;
+	@Autowired
+	private CacheService cacheService;
+	@Autowired
+	private UploadFileService uploadFileService;
+
+	/** 流动人口消息 */
+	private static int FLOATING_POPULATION_INBOX = 0;
+	/** 治安隐患消息 */
+	private static int HIDDEN_DANGER_INBOX = 1;
+	/** 综合服务消息 */
+	private static int COMPREHENSIVE_INBOX = 2;
+
+	@Override
+	public PageInfo<PreciseInbox> findPreciseInboxs(PreciseInbox preciseInbox,
+			Integer pageNum, Integer pageSize, String sidx, String sord) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		/*
+		 * if ("createUser".equals(sidx)) sidx = "create_User"; else if
+		 * ("createTime".equals(sidx)) sidx = "create_Time";
+		 */
+		map.put("sortField", sidx);
+		map.put("order", sord);
+		map.put("preciseInbox", preciseInbox);
+		PageInfo<PreciseInbox> pageInfo = preciseInboxDao.findPreciseInboxs(
+				map, pageNum, pageSize);
+		for (PreciseInbox vo : pageInfo.getResult()) {
+			/*
+			 * vo.setInboxAttachments(inboxAttachmentService
+			 * .getInboxAttachmentByInboxId(vo.getId()));
+			 */
+			vo.setCount(replyMessageService.countRMByPreciseInboxId(vo.getId()));
+			if(vo.getIsRead()!=null&&vo.getIsRead().equals(Constants.NOT_READ)){
+				//更新数据库标记为已读
+				vo.setIsRead(Constants.READ);
+				preciseInboxDao.update(vo);
+				//传回页面，标记新消息
+				vo.setIsRead(Constants.NOT_READ);
+			}
+		}
+		return pageInfo;
+	}
+
+	/**
+	 * 保存消息（收件箱）
+	 */
+	@Override
+	public String savePreciseInbox(PreciseInbox preciseInbox) {
+		String inboxId = saveInboxMain(preciseInbox);
+		return inboxId;
+	}
+
+	/** 保存收件箱主消息 */
+	private String saveInboxMain(PreciseInbox preciseInbox) {
+		String msg = null;
+		HashMap<String, String> messageMap = new HashMap<String, String>();
+
+		if (preciseInbox.getInboxType() == null) {
+			msg = "上报失败!未获取到上报类型";
+			return msg;
+		}
+
+		if (preciseInbox.getInboxType() != null
+				&& preciseInbox.getInboxType().intValue() == FLOATING_POPULATION_INBOX) {
+			if (preciseInbox.getOccurLocation() == null) {
+				msg = "上报失败!发生地点为空";
+				return msg;
+			} else if (preciseInbox.getReportPeopleName() == null) {
+				msg = "上报失败!上报人姓名为空";
+				return msg;
+			} else if (preciseInbox.getReportPeoplePhoneNumber() == null) {
+				msg = "上报失败!上报人手机号码为空";
+				return msg;
+			} else if (preciseInbox.getProfile() == null) {
+				msg = "上报失败!简述为空";
+				return msg;
+			}
+		} else if (preciseInbox.getInboxType() != null
+				&& preciseInbox.getInboxType().intValue() == HIDDEN_DANGER_INBOX) {
+			if (preciseInbox.getOccurLocation() == null) {
+				msg = "上报失败!发生地点为空";
+				return msg;
+			} else if (preciseInbox.getReportPeopleName() == null) {
+				msg = "上报失败!上报人姓名为空";
+				return msg;
+			} else if (preciseInbox.getReportPeoplePhoneNumber() == null) {
+				msg = "上报失败!上报人手机号码为空";
+				return msg;
+			} else if (preciseInbox.getProfile() == null) {
+				msg = "上报失败!异常情况为空";
+				return msg;
+			} else if (preciseInbox.getExceptionType() == null) {
+				msg = "上报失败!异常类型为空";
+				return msg;
+			}
+
+		} else if (preciseInbox.getInboxType() != null
+				&& preciseInbox.getInboxType().intValue() == COMPREHENSIVE_INBOX) {
+			if (preciseInbox.getOccurLocation() == null) {
+				msg = "上报失败!发生地点为空";
+				return msg;
+			} else if (preciseInbox.getReportPeopleName() == null) {
+				msg = "上报失败!上报人姓名为空";
+				return msg;
+			} else if (preciseInbox.getReportPeoplePhoneNumber() == null) {
+				msg = "上报失败!上报人手机号码为空";
+				return msg;
+			} else if (preciseInbox.getProfile() == null) {
+				msg = "上报失败!简述为空";
+				return msg;
+			}
+		}
+
+		messageMap.put("FromUserName", preciseInbox.getFromUserName());
+		TencentUser tencentUser = tencentUserService
+				.getTencentUserByWeChatUserId(preciseInbox.getToUserName());
+		preciseInbox.setAvailability("1");
+
+		if (tencentUser == null) {
+			msg = "上报失败!该微信公众号不存在!";
+			return msg;
+		}
+		Organization org = organizationService.getSimpleOrgById(tencentUser
+				.getOrganization().getId());
+		if (org == null) {
+			msg = "上报失败!组织机构未获取到!";
+			return msg;
+		}
+		preciseInbox.setOrg(org);
+		preciseInbox.setOrgInternalCode(org.getOrgInternalCode());
+
+		Fan fan = fanService.getFanByOpenIdAndWeChatUserId(
+				preciseInbox.getFromUserName(), tencentUser.getWeChatUserId());
+
+		if (fan == null) {
+			fanService.saveFan(messageMap, tencentUser);
+			fan = fanService.getFanByOpenIdAndWeChatUserId(
+					messageMap.get("FromUserName"),
+					tencentUser.getWeChatUserId());
+		}
+		preciseInbox.setCreateDate(new Date());
+		preciseInbox.setCreateUser(fan.getName());// 区别系统中的ccuu字段 存的是粉丝名
+		preciseInbox.setGroupId(fan.getGroupId());
+		preciseInbox.setDealState(Constants.NOT_ACCEPT);
+		preciseInbox.setForwardingState(Constants.NOT_FORWARD);
+		preciseInbox.setMsgType("text");
+		preciseInboxDao.savePreciseInbox(preciseInbox);
+		return "success";
+	}
+
+	private Date formatTime(String createTime) {
+		Date date = new Date();
+		try {
+			long msgCreateTime = Long.parseLong(createTime) * 1000L;
+			DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			date = format.parse(format.format(new Date(msgCreateTime)));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return date;
+	}
+
+	/**
+	 * 事件处理调用该方法(微信不调用)
+	 */
+	@Override
+	public int replyMessage(PreciseInbox preciseInbox,
+			TextSendMessage textSendMessage) {
+		textSendMessage.setMsgtype(Constants.REQ_MESSAGE_TYPE_TEXT);
+		TencentUser tencentUser = tencentUserService
+				.getTencentUserByWeChatUserId(preciseInbox.getToUserName());
+		int resultCode = weChatService.replyMessage(textSendMessage,
+				tencentUser);
+		if (resultCode == 0) {
+			saveReplyMessage(preciseInbox, textSendMessage);
+		}
+		return resultCode;
+	}
+
+	/**
+	 * 保存回复消息 事件处理调用该方法
+	 */
+	@Override
+	public Long saveReplyMessage(PreciseInbox preciseInbox,
+			TextSendMessage textSendMessage) {
+		ReplyMessage replyMessage = new ReplyMessage();
+		replyMessage.setPreciseInboxId(preciseInbox.getId());
+		replyMessage.setContent(textSendMessage.getText().getContent());
+		replyMessage.setReceiveUser(preciseInbox.getCreateUser());// 区别系统中的ccuu字段
+																	// 存的是粉丝名
+		replyMessage.setCreateDate(new Date());
+		replyMessage.setWechatUserId(preciseInbox.getToUserName());
+		return replyMessageService.saveReplyMessage(replyMessage);
+	}
+
+	@Override
+	public PreciseInbox getPreciseInboxById(Long id) {
+		return preciseInboxDao.getPreciseInboxById(id);
+	}
+
+	/****
+	 * 删除消息
+	 */
+	@Override
+	public void deletePreciseInboxById(List<Long> preciseInboxIds) {
+		for (int i = 0; i < preciseInboxIds.size(); i++) {
+			/*
+			 * inboxAttachmentService
+			 * .deleteInboxAttachmentByInboxId(preciseInboxIds.get(i));
+			 */
+			replyMessageService
+					.deleteReplyMessageByPreciseInboxId(preciseInboxIds.get(i));
+		}
+		preciseInboxDao.deletePreciseInboxById(preciseInboxIds);
+	}
+
+	/****
+	 * 设置有无效
+	 */
+	@Override
+	public void setAvailabilityOrInvalid(List<Long> preciseInboxIds, String flag) {
+		for (int i = 0; i < preciseInboxIds.size(); i++) {
+			PreciseInbox in = new PreciseInbox();
+			in.setId(preciseInboxIds.get(i));
+			in.setAvailability(flag);
+			preciseInboxDao.setAvailabilityOrInvalid(in);
+		}
+	}
+
+	@Override
+	public void update(PreciseInbox preciseInbox) {
+		preciseInboxDao.update(preciseInbox);
+	}
+
+	@Override
+	public Long getMaxPreciseInboxId() {
+		return preciseInboxDao.getMaxPreciseInboxId();
+	}
+
+	/**
+	 * 回复文本
+	 * 
+	 * @param preciseInbox
+	 * @param textSendMessage
+	 * @return
+	 */
+	@Override
+	public String replyTextMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage) {
+		if (preciseInbox.getToUserName() == null
+				|| "".equals(preciseInbox.getToUserName()))
+			throw new ServiceException("回复文本消息时，服务号不能为空！");
+		textMessage.setMsgType(Constants.REQ_MESSAGE_TYPE_TEXT);
+		TencentUser tencentUser = tencentUserService
+				.getTencentUserByWeChatUserId(preciseInbox.getToUserName());// getToUserName()
+																			// 开发者微信号
+		if (tencentUser == null)
+			throw new ServiceException("回复文本消息时，服务号获取失败！");
+		List<TextMessage> listTextMessage = new ArrayList<TextMessage>();
+		listTextMessage.add(textMessage);
+		String result = weChatService.replyTextMessage(listTextMessage,
+				tencentUser);
+		if (result == null && !"null".equals(result)) {
+			saveReplyMessage(preciseInbox, textMessage);
+			return result;
+		} else {
+			throw new ServiceException(result);
+		}
+	}
+
+	@Override
+	public String replyMoreFortyEightTextMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage) {
+		if (preciseInbox.getToUserName() == null
+				|| "".equals(preciseInbox.getToUserName()))
+			throw new ServiceException("回复文本消息时，服务号不能为空！");
+		textMessage.setMsgType(Constants.REQ_MESSAGE_TYPE_TEXT);
+		TencentUser tencentUser = tencentUserService
+				.getTencentUserByWeChatUserId(preciseInbox.getToUserName());// getToUserName()
+																			// 开发者微信号
+		if (tencentUser == null)
+			throw new ServiceException("回复文本消息时，服务号获取失败！");
+		List<TextMessage> listTextMessage = new ArrayList<TextMessage>();
+		listTextMessage.add(textMessage);
+		String result = weChatService.replyMoreFortyEightTextMessage(
+				listTextMessage, tencentUser);
+		if (result == null && !"null".equals(result)) {
+			saveReplyMessage(preciseInbox, textMessage);
+			return result;
+		} else {
+			throw new ServiceException(result);
+		}
+	}
+
+	/******* 转发文本（支持群转发） **/
+	@Override
+	public String retransmissionTextMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, String openIds) {
+		TencentUser tencentUser = tencentUserService
+				.getTencentUserByWeChatUserId(preciseInbox.getToUserName());// getToUserName()
+																			// 开发者微信号
+		if (tencentUser == null)
+			throw new ServiceException("转发文本消息时，服务号获取失败！");
+		List<TextMessage> listTextMessage = getListTextMessage(preciseInbox,
+				textMessage, openIds, tencentUser);
+		if (listTextMessage.size() > 0) {
+			String result = weChatService.replyTextMessage(listTextMessage,
+					tencentUser);
+			if (result == null && !"null".equals(result)) {
+				return result;
+			} else {
+				throw new ServiceException(result);
+			}
+		} else {
+			throw new ServiceException("转发文本消息时，转发粉丝不能为空！");
+		}
+	}
+
+	/******* 回复图片 **/
+	@Override
+	public String replyImageMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, Set<String> attachFiles) {
+		TencentUser tencentUser = tencentUserService
+				.getTencentUserByWeChatUserId(preciseInbox.getToUserName());// getToUserName()
+																			// 开发者微信号
+		if (tencentUser == null)
+			throw new ServiceException("回复图片消息时，服务号获取失败！");
+		String result = null;
+		for (String fileNameAndId : attachFiles) {
+			String fileName = fileNameAndId.substring(1);
+			File file = new File(FileUtil.getWebRoot() + File.separator
+					+ GridProperties.TMP + File.separator
+					+ ThreadVariable.getUser().getId() + File.separator
+					+ fileName);
+			if (!file.exists())
+				throw new ServiceException("图片文件不存在，操件失败");
+			if (fileName.contains(" "))
+				throw new ServiceException("请上传文件名不含空格的文件");
+			String path = GridProperties.PROXY_SERVER_DOMAIN_NAME
+					+ "/uploadFile/tmp/" + ThreadVariable.getUser().getId()
+					+ "/" + fileName;
+			List<TextMessage> listTextMessages = new ArrayList<TextMessage>();
+			listTextMessages.add(textMessage);
+			result = weChatService.replyImageMessage(listTextMessages,
+					tencentUser, path);
+			if (result == null) {
+				if (file.exists())
+					file.delete();
+			}
+		}
+		if (result != null)
+			throw new ServiceException(result);
+		else
+			return result;
+	}
+
+	@Override
+	public String replyMoreFortyEightImageMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, Set<String> attachFiles) {
+		TencentUser tencentUser = tencentUserService
+				.getTencentUserByWeChatUserId(preciseInbox.getToUserName());// getToUserName()
+																			// 开发者微信号
+		if (tencentUser == null)
+			throw new ServiceException("回复图片消息时，服务号获取失败！");
+		String result = null;
+		for (String fileNameAndId : attachFiles) {
+			String fileName = fileNameAndId.substring(1);
+			File file = new File(FileUtil.getWebRoot() + File.separator
+					+ GridProperties.TMP + File.separator
+					+ ThreadVariable.getUser().getId() + File.separator
+					+ fileName);
+			if (!file.exists())
+				throw new ServiceException("图片文件不存在，操件失败");
+			if (fileName.contains(" "))
+				throw new ServiceException("请上传文件名不含空格的文件");
+			String path = GridProperties.PROXY_SERVER_DOMAIN_NAME
+					+ "/uploadFile/tmp/" + ThreadVariable.getUser().getId()
+					+ "/" + fileName;
+			List<TextMessage> listTextMessages = new ArrayList<TextMessage>();
+			listTextMessages.add(textMessage);
+			result = weChatService.replyMoreFortyEightImageMessage(
+					listTextMessages, tencentUser, path);
+			if (result == null) {
+				if (file.exists())
+					file.delete();
+			}
+		}
+		if (result != null)
+			throw new ServiceException(result);
+		else
+			return result;
+	}
+
+	/******* 转发图片（支持群转发） **/
+	@Override
+	public String retransmissionImageMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, String openIds, String pathImage) {
+		TencentUser tencentUser = tencentUserService
+				.getTencentUserByWeChatUserId(preciseInbox.getToUserName());// getToUserName()
+																			// 开发者微信号
+		if (tencentUser == null)
+			throw new ServiceException("转发图片消息时，服务号获取失败！");
+		List<TextMessage> listTextMessage = getListTextMessage(preciseInbox,
+				textMessage, openIds, tencentUser);
+		File file = new File(FileUtil.getWebRoot() + pathImage);
+		if (!file.exists())
+			throw new ServiceException("图片文件不存在，操件失败");
+		if (listTextMessage.size() > 0) {
+			String path = GridProperties.PROXY_SERVER_DOMAIN_NAME + pathImage;
+			String result = weChatService.replyImageMessage(listTextMessage,
+					tencentUser, path);
+			if (result == null && !"null".equals(result))
+				return result;
+			else
+				throw new ServiceException(result);
+		} else {
+			throw new ServiceException("转发图片消息时，转发粉丝不能为空！");
+		}
+	}
+
+	/******* 回复图文 **/
+	@Override
+	public String replyNewsMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, Set<String> attachFiles, Article article) {
+		TencentUser tencentUser = tencentUserService
+				.getTencentUserByWeChatUserId(preciseInbox.getToUserName());// getToUserName()
+																			// 开发者微信号
+		if (tencentUser == null)
+			throw new ServiceException("回复图文消息时，服务号获取失败！");
+		String result = null;
+		try {
+			for (String fileNameAndId : attachFiles) {
+				String fileName = fileNameAndId.substring(1);
+				File file = new File(FileUtil.getWebRoot() + File.separator
+						+ GridProperties.TMP + File.separator
+						+ ThreadVariable.getUser().getId() + File.separator
+						+ fileName);
+				if (!file.exists())
+					throw new ServiceException("图片文件不存在，操件失败");
+				if (fileName.contains(" "))
+					throw new ServiceException("请上传文件名不含空格的文件");
+				StoredFile s = FileUtil.copyTmpFileToStoredFile(fileName,
+						Constants.WECHAT_ATTACHFILE);
+				String picUrl = (GridProperties.PROXY_SERVER_DOMAIN_NAME
+						+ File.separator + s.getFullName()).replaceAll("\\\\",
+						"/");
+				List<Article> listArticles = new ArrayList<Article>();
+				article.setPicUrl(picUrl);
+				listArticles.add(article);
+				List<TextMessage> listTextMessage = new ArrayList<TextMessage>();
+				listTextMessage.add(textMessage);
+				result = weChatService.replyNewsMessage(listTextMessage,
+						tencentUser, listArticles);
+			}
+		} catch (Exception e) {
+		}
+		if (result != null)
+			throw new ServiceException(result);
+		else
+			return result;
+	}
+
+	@Override
+	public String replyMoreFortyEightNewsMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, Set<String> attachFiles, Article article) {
+		TencentUser tencentUser = tencentUserService
+				.getTencentUserByWeChatUserId(preciseInbox.getToUserName());// getToUserName()
+																			// 开发者微信号
+		if (tencentUser == null)
+			throw new ServiceException("回复图文消息时，服务号获取失败！");
+		String result = null;
+		try {
+			String accessToken = getAccessToken(tencentUser);
+			for (String fileNameAndId : attachFiles) {
+				String fileName = fileNameAndId.substring(1);
+				File file = new File(FileUtil.getWebRoot() + File.separator
+						+ GridProperties.TMP + File.separator
+						+ ThreadVariable.getUser().getId() + File.separator
+						+ fileName);
+				if (!file.exists())
+					throw new ServiceException("图片文件不存在，操件失败");
+				if (fileName.contains(" "))
+					throw new ServiceException("请上传文件名不含空格的文件");
+				StoredFile s = FileUtil.copyTmpFileToStoredFile(fileName,
+						Constants.WECHAT_ATTACHFILE);
+				String picUrl = (GridProperties.PROXY_SERVER_DOMAIN_NAME
+						+ File.separator + s.getFullName()).replaceAll("\\\\",
+						"/");
+
+				// 上传图片
+				WeiXinMedia mediaTemp = uploadFileService.uploadMedia(
+						accessToken, "image", picUrl);
+				if (mediaTemp == null) {
+					logger.error("发送图片消息时上传图片失败");
+					return "发送图片消息时上传图片失败";
+				}
+				List<News> newslist = new ArrayList<News>();
+				News news = new News();
+				news.setTitle(article.getTitle());
+				news.setContentSourceUrl(article.getUrl());
+				news.setDigest(article.getDescription());
+				news.setThumbMediaId(mediaTemp.getMediaId());
+				news.setContent("");
+				newslist.add(news);
+				List<TextMessage> listTextMessage = new ArrayList<TextMessage>();
+				listTextMessage.add(textMessage);
+				result = weChatService.replyMoreFortyEightNewsMessage(
+						listTextMessage, tencentUser, newslist);
+			}
+		} catch (Exception e) {
+		}
+		if (result != null)
+			throw new ServiceException(result);
+		else
+			return result;
+	}
+
+	/******* 回复语音 **/
+	@Override
+	public String replyVoiceMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, Set<String> attachFiles) {
+		TencentUser tencentUser = tencentUserService
+				.getTencentUserByWeChatUserId(preciseInbox.getToUserName());// getToUserName()
+																			// 开发者微信号
+		if (tencentUser == null)
+			throw new ServiceException("回复语音消息时，服务号获取失败！");
+		String result = null;
+		for (String fileNameAndId : attachFiles) {
+			String fileName = fileNameAndId.substring(1);
+			File file = new File(FileUtil.getWebRoot() + File.separator
+					+ GridProperties.TMP + File.separator
+					+ ThreadVariable.getUser().getId() + File.separator
+					+ fileName);
+			if (!file.exists())
+				throw new ServiceException("语音文件不存在，操件失败");
+			if (fileName.contains(" "))
+				throw new ServiceException("请上传文件名不含空格的文件");
+			String path = GridProperties.PROXY_SERVER_DOMAIN_NAME
+					+ "/uploadFile/tmp/" + ThreadVariable.getUser().getId()
+					+ "/" + fileName;
+			List<TextMessage> listTextMessage = new ArrayList<TextMessage>();
+			listTextMessage.add(textMessage);
+			result = weChatService.replyVoiceMessage(listTextMessage,
+					tencentUser, path);
+			if (result == null) {
+				if (file.exists())
+					file.delete();
+			}
+		}
+		if (result != null)
+			throw new ServiceException(result);
+		else
+			return result;
+	}
+
+	@Override
+	public String replyMoreFortyEightVoiceMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, Set<String> attachFiles) {
+		TencentUser tencentUser = tencentUserService
+				.getTencentUserByWeChatUserId(preciseInbox.getToUserName());// getToUserName()
+																			// 开发者微信号
+		if (tencentUser == null)
+			throw new ServiceException("回复语音消息时，服务号获取失败！");
+		String result = null;
+		for (String fileNameAndId : attachFiles) {
+			String fileName = fileNameAndId.substring(1);
+			File file = new File(FileUtil.getWebRoot() + File.separator
+					+ GridProperties.TMP + File.separator
+					+ ThreadVariable.getUser().getId() + File.separator
+					+ fileName);
+			if (!file.exists())
+				throw new ServiceException("语音文件不存在，操件失败");
+			if (fileName.contains(" "))
+				throw new ServiceException("请上传文件名不含空格的文件");
+			String path = GridProperties.PROXY_SERVER_DOMAIN_NAME
+					+ "/uploadFile/tmp/" + ThreadVariable.getUser().getId()
+					+ "/" + fileName;
+			List<TextMessage> listTextMessage = new ArrayList<TextMessage>();
+			listTextMessage.add(textMessage);
+			result = weChatService.replyMoreFortyEightVoiceMessage(
+					listTextMessage, tencentUser, path);
+			if (result == null) {
+				if (file.exists())
+					file.delete();
+			}
+		}
+		if (result != null)
+			throw new ServiceException(result);
+		else
+			return result;
+	}
+
+	@Override
+	public String retransmissionVoiceMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, String openIds, String pathVoice) {
+		TencentUser tencentUser = tencentUserService
+				.getTencentUserByWeChatUserId(preciseInbox.getToUserName());// getToUserName()
+																			// 开发者微信号
+		if (tencentUser == null)
+			throw new ServiceException("转发语音消息时，服务号获取失败！");
+		List<TextMessage> listTextMessage = getListTextMessage(preciseInbox,
+				textMessage, openIds, tencentUser);
+		File file = new File(FileUtil.getWebRoot() + pathVoice);
+		if (!file.exists())
+			throw new ServiceException("语音文件不存在，操件失败");
+		if (listTextMessage.size() > 0) {
+			String path = GridProperties.PROXY_SERVER_DOMAIN_NAME + pathVoice;
+			String result = weChatService.replyVoiceMessage(listTextMessage,
+					tencentUser, path);
+			if (result == null && !"null".equals(result))
+				return result;
+			else
+				throw new ServiceException(result);
+		} else {
+			throw new ServiceException("转发语音消息时，转发粉丝不能为空！");
+		}
+	}
+
+	/**
+	 * 根据微信号和粉丝号，修改粉丝所在的群组Id
+	 * 
+	 * @param inbox
+	 */
+	@Override
+	public Integer setGroupIdByWeChatUserIdAndFanId(PreciseInbox preciseInbox) {
+		return preciseInboxDao.setGroupIdByWeChatUserIdAndFanId(preciseInbox);
+	}
+
+	/**
+	 * 保存回复消息
+	 */
+
+	public Long saveReplyMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage) {
+		ReplyMessage replyMessage = new ReplyMessage();
+		replyMessage.setPreciseInboxId(preciseInbox.getId());
+		replyMessage.setContent(textMessage.getContent());
+		replyMessage.setReceiveUser(preciseInbox.getCreateUser());// 区别系统中的ccuu字段存的是粉丝名
+		replyMessage.setCreateDate(new Date());
+		replyMessage.setWechatUserId(preciseInbox.getToUserName());
+		return replyMessageService.saveReplyMessage(replyMessage);
+	}
+
+	/***
+	 * 转发时提取转发的粉丝
+	 * 
+	 * @param inbox
+	 * @param textMessage
+	 * @param openIds
+	 * @return
+	 */
+	private List<TextMessage> getListTextMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, String openIds, TencentUser tencentUser) {
+		if (preciseInbox.getToUserName() == null
+				|| "".equals(preciseInbox.getToUserName()))
+			throw new ServiceException("转送文本消息时，服务号不能为空！");
+		List<TextMessage> listTextMessage = new ArrayList<TextMessage>();
+		if (openIds.startsWith("fan_")) {
+			String openId = openIds.replaceAll("fan_", "");
+			String[] openIdArray = openId.split(",");
+			for (int i = 0; i < openIdArray.length; i++) {
+				TextMessage t = new TextMessage();
+				t.setContent(textMessage.getContent());
+				t.setToUserName(openIdArray[i]);
+				listTextMessage.add(t);
+			}
+		}
+		if (openIds.startsWith("group_")) {
+			String groupIds = openIds.replaceAll("group_", "");
+			List<Fan> fanList = fanService.getFanListByGroupIdsAndWeChatUserId(
+					groupIds, tencentUser.getWeChatUserId());
+			if (fanList.size() > 0) {
+				for (int i = 0; i < fanList.size(); i++) {
+					TextMessage t = new TextMessage();
+					t.setContent(textMessage.getContent());
+					t.setToUserName(fanList.get(i).getOpenId());
+					listTextMessage.add(t);
+				}
+			} else {
+				throw new ServiceException("转送文本消息时，转送群组不能为空！");
+			}
+		}
+		return listTextMessage;
+	}
+
+	/**
+	 * 获取公众号的全局唯一票据
+	 */
+	private String getAccessToken(TencentUser tencentUser) {
+		String accessToken = (String) cacheService.get("weChatAccessToken"
+				+ tencentUser.getWeChatUserId());
+		if (accessToken != null && "代理错误".equals(accessToken)) {
+			accessToken = null;
+			cacheService.remove("weChatAccessToken"
+					+ tencentUser.getWeChatUserId());
+		}
+		if (accessToken == null) {
+			String appid = tencentUser.getAppId();
+			String secret = tencentUser.getAppSecret();
+			String url = Constants.ACCESS_TOKEN_URL.replace("APPID", appid)
+					.replace("APPSECRET", secret)
+					+ "&requestType=getAccessToken";
+			accessToken = baseHttpClientService.postMethod(url);
+			cacheService.set(
+					"weChatAccessToken" + tencentUser.getWeChatUserId(), 7100,
+					accessToken);
+		}
+		return accessToken;
+
+	}
+
+	@Override
+	public Long findPreciseInboxByFromUserNameTotal(String fromUserName) {
+
+		if (fromUserName == null) {
+			throw new ServiceException("参数错误");
+		}
+		return preciseInboxDao
+				.findPreciseInboxByFromUserNameTotal(fromUserName);
+	}
+
+	@Override
+	public ArrayList<PreciseInbox> findPreciseInboxPaging(
+			PreciseInbox preciseInbox, Integer pageNum, Integer pageSize,
+			String sidx, String sord) {
+		if (pageNum == null) {
+			pageNum = 1;
+		}
+		if (pageSize == null) {
+			pageSize = 10;
+		}
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("sortField", "createDate");
+		map.put("order", "desc");
+		map.put("fromUserName", preciseInbox.getFromUserName());
+		map.put("startSize", (pageNum - 1) * pageSize + 1);
+		map.put("endSize", pageNum * pageSize);
+
+		ArrayList<PreciseInbox> reciseInboxList = preciseInboxDao
+				.findPreciseInboxPaging(map);
+		return reciseInboxList;
+	}
+
+	@Override
+	public List<PreciseInbox> findPreciseInboxsByDealStateAndIsRead(
+			PreciseInbox preciseInbox) {
+		if (preciseInbox == null || preciseInbox.getDealState() == null
+				|| preciseInbox.getIsRead() == null
+				|| preciseInbox.getOrg() == null) {
+			throw new ServiceException("查询未读精确消息失败，未获取关键参数！");
+		}
+
+		return preciseInboxDao.findPreciseInboxsByDealStateAndIsRead(preciseInbox);
+	}
+}

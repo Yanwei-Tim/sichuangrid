@@ -1,0 +1,48 @@
+package com.tianque.plugin.weChat.dao;
+
+import java.util.List;
+import java.util.Map;
+
+import com.tianque.core.vo.PageInfo;
+import com.tianque.plugin.weChat.domain.inbox.Inbox;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+
+public interface InboxDao {
+	/**列表查询*/
+	public PageInfo<Inbox> findInboxs(Map<String, Object> parameterMap, Integer pageNum,
+			Integer pageSize);
+
+	/**新增*/
+	public Long saveInbox(Inbox inbox);
+
+	/**根据inboxId删除*/
+	public void deleteInboxById(List<Long> inboxId);
+
+	/****
+	 * 设置有无效
+	 */
+	public void setAvailabilityOrInvalid(Inbox inbox);
+
+	/**根据id获取单个对象*/
+	public Inbox getInboxById(Long id);
+
+	public void update(Inbox inbox);
+
+	/**查找最大Id*/
+	public Long getMaxInboxId();
+	
+	/**
+	 * 根据微信号和粉丝号，修改粉丝所在的群组Id
+	 * @param inbox
+	 */
+
+	public Integer setGroupIdByWeChatUserIdAndFanId(Inbox inbox);
+	/**
+	 * 在mq端保存信息（文本，语音，图片）
+	 * @param messageMap
+	 * @param tencentUser
+	 * @param msgType
+	 * @param access_Token
+	 */
+	public void saveMsgByMq(Map<String, String> messageMap,TencentUser tencentUser,String msgType,String access_Token);
+}

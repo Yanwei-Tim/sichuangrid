@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="peopleLiveService" extends="default" namespace="/issue/peopleLiveService">
+		<default-class-ref class="peopleLiveServiceController"></default-class-ref>
+		<action name="dispatch" method="dispatch">
+              <result name="success">
+                  /issue/peopleLiveService/searchPeopleLiveServiceDlgNew.jsp
+              </result>
+        </action>
+		<action name="viewSubDetail" method="viewSubDetail">
+		      <result name="success">
+		          /issue/issueServices/issueAccordingContext.jsp
+		      </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+		</action>
+		<action name="prePeopleLiveServiceList" method="prePeopleLiveServiceList">
+            <result name="success">
+                /issue/peopleLiveService/peopleLiveServiceListNew.jsp
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+	</package>
+	<package name="hotModuelPeopleLiveService" extends="peopleLiveService" namespace="/hotModuel/issue/peopleLiveService"></package>
+</struts>

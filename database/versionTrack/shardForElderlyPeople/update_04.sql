@@ -1,0 +1,264 @@
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5116
+  add constraint PK_ELDERLYPEOPLE_ID_5116 primary key (ID);
+alter table ELDERLYPEOPLE_5116 add constraint FKELDERLYPEOPLEORG_5116 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5116 on ELDERLYPEOPLE_5116 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5116 on ELDERLYPEOPLE_5116 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5116 on ELDERLYPEOPLE_5116 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5116 on ELDERLYPEOPLE_5116 (ORGID);
+create index IND_ELDER_OIDBIID_5116 on ELDERLYPEOPLE_5116 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5101
+  add constraint PK_ELDERLYPEOPLE_ID_5101 primary key (ID);
+alter table ELDERLYPEOPLE_5101 add constraint FKELDERLYPEOPLEORG_5101 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5101 on ELDERLYPEOPLE_5101 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5101 on ELDERLYPEOPLE_5101 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5101 on ELDERLYPEOPLE_5101 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5101 on ELDERLYPEOPLE_5101 (ORGID);
+create index IND_ELDER_OIDBIID_5101 on ELDERLYPEOPLE_5101 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5103
+  add constraint PK_ELDERLYPEOPLE_ID_5103 primary key (ID);
+alter table ELDERLYPEOPLE_5103 add constraint FKELDERLYPEOPLEORG_5103 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5103 on ELDERLYPEOPLE_5103 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5103 on ELDERLYPEOPLE_5103 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5103 on ELDERLYPEOPLE_5103 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5103 on ELDERLYPEOPLE_5103 (ORGID);
+create index IND_ELDER_OIDBIID_5103 on ELDERLYPEOPLE_5103 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5104
+  add constraint PK_ELDERLYPEOPLE_ID_5104 primary key (ID);
+alter table ELDERLYPEOPLE_5104 add constraint FKELDERLYPEOPLEORG_5104 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5104 on ELDERLYPEOPLE_5104 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5104 on ELDERLYPEOPLE_5104 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5104 on ELDERLYPEOPLE_5104 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5104 on ELDERLYPEOPLE_5104 (ORGID);
+create index IND_ELDER_OIDBIID_5104 on ELDERLYPEOPLE_5104 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5105
+  add constraint PK_ELDERLYPEOPLE_ID_5105 primary key (ID);
+alter table ELDERLYPEOPLE_5105 add constraint FKELDERLYPEOPLEORG_5105 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5105 on ELDERLYPEOPLE_5105 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5105 on ELDERLYPEOPLE_5105 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5105 on ELDERLYPEOPLE_5105 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5105 on ELDERLYPEOPLE_5105 (ORGID);
+create index IND_ELDER_OIDBIID_5105 on ELDERLYPEOPLE_5105 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5106
+  add constraint PK_ELDERLYPEOPLE_ID_5106 primary key (ID);
+alter table ELDERLYPEOPLE_5106 add constraint FKELDERLYPEOPLEORG_5106 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5106 on ELDERLYPEOPLE_5106 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5106 on ELDERLYPEOPLE_5106 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5106 on ELDERLYPEOPLE_5106 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5106 on ELDERLYPEOPLE_5106 (ORGID);
+create index IND_ELDER_OIDBIID_5106 on ELDERLYPEOPLE_5106 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5107
+  add constraint PK_ELDERLYPEOPLE_ID_5107 primary key (ID);
+alter table ELDERLYPEOPLE_5107 add constraint FKELDERLYPEOPLEORG_5107 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5107 on ELDERLYPEOPLE_5107 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5107 on ELDERLYPEOPLE_5107 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5107 on ELDERLYPEOPLE_5107 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5107 on ELDERLYPEOPLE_5107 (ORGID);
+create index IND_ELDER_OIDBIID_5107 on ELDERLYPEOPLE_5107 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5108
+  add constraint PK_ELDERLYPEOPLE_ID_5108 primary key (ID);
+alter table ELDERLYPEOPLE_5108 add constraint FKELDERLYPEOPLEORG_5108 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5108 on ELDERLYPEOPLE_5108 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5108 on ELDERLYPEOPLE_5108 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5108 on ELDERLYPEOPLE_5108 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5108 on ELDERLYPEOPLE_5108 (ORGID);
+create index IND_ELDER_OIDBIID_5108 on ELDERLYPEOPLE_5108 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5109
+  add constraint PK_ELDERLYPEOPLE_ID_5109 primary key (ID);
+alter table ELDERLYPEOPLE_5109 add constraint FKELDERLYPEOPLEORG_5109 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5109 on ELDERLYPEOPLE_5109 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5109 on ELDERLYPEOPLE_5109 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5109 on ELDERLYPEOPLE_5109 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5109 on ELDERLYPEOPLE_5109 (ORGID);
+create index IND_ELDER_OIDBIID_5109 on ELDERLYPEOPLE_5109 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5110
+  add constraint PK_ELDERLYPEOPLE_ID_5110 primary key (ID);
+alter table ELDERLYPEOPLE_5110 add constraint FKELDERLYPEOPLEORG_5110 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5110 on ELDERLYPEOPLE_5110 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5110 on ELDERLYPEOPLE_5110 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5110 on ELDERLYPEOPLE_5110 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5110 on ELDERLYPEOPLE_5110 (ORGID);
+create index IND_ELDER_OIDBIID_5110 on ELDERLYPEOPLE_5110 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5111
+  add constraint PK_ELDERLYPEOPLE_ID_5111 primary key (ID);
+alter table ELDERLYPEOPLE_5111 add constraint FKELDERLYPEOPLEORG_5111 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5111 on ELDERLYPEOPLE_5111 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5111 on ELDERLYPEOPLE_5111 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5111 on ELDERLYPEOPLE_5111 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5111 on ELDERLYPEOPLE_5111 (ORGID);
+create index IND_ELDER_OIDBIID_5111 on ELDERLYPEOPLE_5111 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5113
+  add constraint PK_ELDERLYPEOPLE_ID_5113 primary key (ID);
+alter table ELDERLYPEOPLE_5113 add constraint FKELDERLYPEOPLEORG_5113 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5113 on ELDERLYPEOPLE_5113 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5113 on ELDERLYPEOPLE_5113 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5113 on ELDERLYPEOPLE_5113 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5113 on ELDERLYPEOPLE_5113 (ORGID);
+create index IND_ELDER_OIDBIID_5113 on ELDERLYPEOPLE_5113 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5114
+  add constraint PK_ELDERLYPEOPLE_ID_5114 primary key (ID);
+alter table ELDERLYPEOPLE_5114 add constraint FKELDERLYPEOPLEORG_5114 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5114 on ELDERLYPEOPLE_5114 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5114 on ELDERLYPEOPLE_5114 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5114 on ELDERLYPEOPLE_5114 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5114 on ELDERLYPEOPLE_5114 (ORGID);
+create index IND_ELDER_OIDBIID_5114 on ELDERLYPEOPLE_5114 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5115
+  add constraint PK_ELDERLYPEOPLE_ID_5115 primary key (ID);
+alter table ELDERLYPEOPLE_5115 add constraint FKELDERLYPEOPLEORG_5115 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5115 on ELDERLYPEOPLE_5115 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5115 on ELDERLYPEOPLE_5115 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5115 on ELDERLYPEOPLE_5115 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5115 on ELDERLYPEOPLE_5115 (ORGID);
+create index IND_ELDER_OIDBIID_5115 on ELDERLYPEOPLE_5115 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5117
+  add constraint PK_ELDERLYPEOPLE_ID_5117 primary key (ID);
+alter table ELDERLYPEOPLE_5117 add constraint FKELDERLYPEOPLEORG_5117 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5117 on ELDERLYPEOPLE_5117 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5117 on ELDERLYPEOPLE_5117 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5117 on ELDERLYPEOPLE_5117 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5117 on ELDERLYPEOPLE_5117 (ORGID);
+create index IND_ELDER_OIDBIID_5117 on ELDERLYPEOPLE_5117 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5118
+  add constraint PK_ELDERLYPEOPLE_ID_5118 primary key (ID);
+alter table ELDERLYPEOPLE_5118 add constraint FKELDERLYPEOPLEORG_5118 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5118 on ELDERLYPEOPLE_5118 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5118 on ELDERLYPEOPLE_5118 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5118 on ELDERLYPEOPLE_5118 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5118 on ELDERLYPEOPLE_5118 (ORGID);
+create index IND_ELDER_OIDBIID_5118 on ELDERLYPEOPLE_5118 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5119
+  add constraint PK_ELDERLYPEOPLE_ID_5119 primary key (ID);
+alter table ELDERLYPEOPLE_5119 add constraint FKELDERLYPEOPLEORG_5119 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5119 on ELDERLYPEOPLE_5119 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5119 on ELDERLYPEOPLE_5119 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5119 on ELDERLYPEOPLE_5119 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5119 on ELDERLYPEOPLE_5119 (ORGID);
+create index IND_ELDER_OIDBIID_5119 on ELDERLYPEOPLE_5119 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5120
+  add constraint PK_ELDERLYPEOPLE_ID_5120 primary key (ID);
+alter table ELDERLYPEOPLE_5120 add constraint FKELDERLYPEOPLEORG_5120 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5120 on ELDERLYPEOPLE_5120 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5120 on ELDERLYPEOPLE_5120 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5120 on ELDERLYPEOPLE_5120 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5120 on ELDERLYPEOPLE_5120 (ORGID);
+create index IND_ELDER_OIDBIID_5120 on ELDERLYPEOPLE_5120 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5132
+  add constraint PK_ELDERLYPEOPLE_ID_5132 primary key (ID);
+alter table ELDERLYPEOPLE_5132 add constraint FKELDERLYPEOPLEORG_5132 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5132 on ELDERLYPEOPLE_5132 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5132 on ELDERLYPEOPLE_5132 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5132 on ELDERLYPEOPLE_5132 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5132 on ELDERLYPEOPLE_5132 (ORGID);
+create index IND_ELDER_OIDBIID_5132 on ELDERLYPEOPLE_5132 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5133
+  add constraint PK_ELDERLYPEOPLE_ID_5133 primary key (ID);
+alter table ELDERLYPEOPLE_5133 add constraint FKELDERLYPEOPLEORG_5133 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5133 on ELDERLYPEOPLE_5133 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5133 on ELDERLYPEOPLE_5133 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5133 on ELDERLYPEOPLE_5133 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5133 on ELDERLYPEOPLE_5133 (ORGID);
+create index IND_ELDER_OIDBIID_5133 on ELDERLYPEOPLE_5133 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_5134
+  add constraint PK_ELDERLYPEOPLE_ID_5134 primary key (ID);
+alter table ELDERLYPEOPLE_5134 add constraint FKELDERLYPEOPLEORG_5134 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_5134 on ELDERLYPEOPLE_5134 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_5134 on ELDERLYPEOPLE_5134 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_5134 on ELDERLYPEOPLE_5134 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_5134 on ELDERLYPEOPLE_5134 (ORGID);
+create index IND_ELDER_OIDBIID_5134 on ELDERLYPEOPLE_5134 (BASEINFOID,ORGID);
+
+
+-- Create/Recreate primary, unique and foreign key constraints 
+alter table elderlypeople_3301
+  add constraint PK_ELDERLYPEOPLE_ID_3301 primary key (ID);
+alter table ELDERLYPEOPLE_3301 add constraint FKELDERLYPEOPLEORG_3301 foreign key (ORGID) references ORGANIZATIONS (ID);
+-- Create/Recreate indexes 
+create index IDX_ELDERLYPEOPLE_ADSID_3301 on ELDERLYPEOPLE_3301 (ADDRESSINFOID);
+create index IDX_ELDER_BASEINFOID_3301 on ELDERLYPEOPLE_3301 (BASEINFOID);
+create index IDX_ED_ORGCODEANDISEMP_3301 on ELDERLYPEOPLE_3301 (ORGINTERNALCODE, ISEMPHASIS);
+create index IND_ELDERLYPEOPLE_ORGID_3301 on ELDERLYPEOPLE_3301 (ORGID);
+create index IND_ELDER_OIDBIID_3301 on ELDERLYPEOPLE_3301 (BASEINFOID,ORGID);
+
+

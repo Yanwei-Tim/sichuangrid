@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="infrastructure">
+	<typeAlias alias="Infrastructure" type="com.tianque.newVillage.domain.Infrastructure" />
+
+	<resultMap id="infrastructureResult" class="Infrastructure" >
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgInternalCode" />
+		<result property="newVillageBasic.id" column="basicInfoID" />
+		
+		<result property="villageRoad" column="villageRoad" />
+		<result property="villageHardenedRoad" column="villageHardenedRoad" />
+		<result property="villageMudKnotRoad" column="villageMudKnotRoad" />
+		<result property="weirPoolNum" column="weirPoolNum" />
+		<result property="canalLength" column="canalLength" />
+		<result property="drinkingWaterNum" column="drinkingWaterNum" />
+		<result property="isPowerGrid" column="isPowerGrid" />
+		<result property="biogasNum" column="biogasNum" />
+		<result property="involveHouseCount" column="involveHouseCount" />
+		<result property="isBroadbandVillage" column="isBroadbandVillage" />
+		<result property="cableTvCount" column="cableTvCount" />
+		<result property="broadbandCount" column="broadbandCount" />
+		
+		<result property="pond" column="pond" />
+		<result property="library" column="library" />
+		<result property="weir" column="weir" />
+		<result property="pool" column="pool" />
+		<result property="solarEnergy" column="solarEnergy" />
+		<result property="naturalGas" column="naturalGas" />
+		 
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+	</resultMap>
+
+	<insert id="addInfrastructure" parameterClass="Infrastructure">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_INFRASTRUCTURE.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		INSERT INTO INFRASTRUCTURE (ID, ORGID, ORGINTERNALCODE, BASICINFOID,villageRoad,villageHardenedRoad,villageMudKnotRoad,weirPoolNum,canalLength,
+		drinkingWaterNum,isPowerGrid,biogasNum,involveHouseCount,isBroadbandVillage,cableTvCount,broadbandCount,pond,library,weir,pool,solarEnergy,naturalGas,
+		createDate,createUser)VALUES(
+		#id#,#organization.id#,#organization.orgInternalCode#,#newVillageBasic.id#,#villageRoad#,#villageHardenedRoad#,#villageMudKnotRoad#,#weirPoolNum#,#canalLength#,
+		#drinkingWaterNum#,#isPowerGrid#,#biogasNum#,#involveHouseCount#,#isBroadbandVillage#,#cableTvCount#,#broadbandCount#,
+		#pond#,#library#,#weir#,#pool#,#solarEnergy#,#naturalGas#,
+		#createDate#,#createUser#)	
+	</insert>
+	<update id="updateInfrastructure" parameterClass="Infrastructure">
+		UPDATE INFRASTRUCTURE SET UPDATEDATE = #updateDate#
+		<isNotNull prepend="," property="updateUser">
+			updateUser = #updateUser#,
+		</isNotNull>
+			villageRoad=#villageRoad#,
+			villageHardenedRoad=#villageHardenedRoad#,
+			villageMudKnotRoad=#villageMudKnotRoad#,
+			weirPoolNum=#weirPoolNum#,
+			canalLength=#canalLength#,
+		    drinkingWaterNum=#drinkingWaterNum#,
+		    isPowerGrid=#isPowerGrid#,
+		    biogasNum=#biogasNum#,
+		    involveHouseCount=#involveHouseCount#,
+		    isBroadbandVillage=#isBroadbandVillage#,
+		    cableTvCount=#cableTvCount#,
+		    broadbandCount=#broadbandCount#,
+		    pond=#pond#,
+		    library=#library#,
+		    weir=#weir#,
+		    pool=#pool#,
+		    solarEnergy=#solarEnergy#,
+		    naturalGas=#naturalGas#
+		WHERE ID=#id#
+	</update>
+	
+	<delete id="deleteInfrastructure">
+		delete from  INFRASTRUCTURE where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	<select id="getInfrastructure" parameterClass="java.lang.Long" resultMap="infrastructureResult">
+		<![CDATA[SELECT * FROM INFRASTRUCTURE WHERE ID = #value#]]>
+	</select>
+	
+	<select id="getInfrastructureByBasicId" parameterClass="java.util.Map" resultMap="infrastructureResult">
+		select * from INFRASTRUCTURE where BASICINFOID=#basicId#
+	</select>
+		
+</sqlMap>

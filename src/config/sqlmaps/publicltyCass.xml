@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="publicltyCass">
+	<typeAlias alias="PublicltyCass" type="com.tianque.issue.domain.PublicltyCass"/>
+	
+	<parameterMap class="PublicltyCass" id="publicltyCass">
+	    <parameter property="id"/>
+		<parameter property="issueNew"/>
+		<parameter property="organization"/>
+		<parameter property="issueLogNew"/>
+	</parameterMap>
+	
+	<resultMap class="PublicltyCass" id="publicltyCassResult">
+	    <result property="id" column="id"/>
+		<result property="issueNew.id" column="issueId"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="issueLogNew.id" column="issueLogId"/>
+	</resultMap>
+	
+	<insert id="addPublicltyCass" parameterClass="PublicltyCass">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_publicltyCass.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into publicltyCass(id,issueId,orgId,issueLogId) 
+		values(#id#,#issueNew.id#,#organization.id#,#issueLogNew.id#)
+	</insert>
+	
+	<select id="findPublicltyCassById" parameterClass="java.lang.Long" resultMap="publicltyCassResult">
+		select * from publicltyCass where id = #value#
+	</select>
+	
+	<select id="findPublicltyCassForPage" parameterClass="java.util.Map" resultMap="issueNewResult.issueViewResult">
+		<![CDATA[select iu.id as issueId,iu.serialnumber,iu.subject,iu.status,iu.occurdate,iu.currentorgdisplayname,iu.occurorg,iu.sourceperson,iu.sourcekind,
+		iu.sourcemobile,iu.urgent,il.id as issueLogId,il.dealtime,il.supervisionstate,il.dealState,il.targeOrgId,iu.lastOrg from issues iu,issuelogs il
+		,publicltyCass pc where iu.id = pc.issueId and il.id = pc.issueLogId and pc.orgId = #orgId#]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findPublicltyCassForPageCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[select count(*) from publicltyCass where orgId = #orgId#]]>
+	</select>
+	
+	<delete id="deletePublicltyCassByIssueIdAndOrgId" parameterClass="java.util.Map">
+		<![CDATA[ delete from publicltyCass where issueId = #issueId# and orgId = #orgId#]]>
+	</delete>
+	<delete id="deletePublicltyCassByIssueId" parameterClass="java.lang.Long">
+		<![CDATA[ delete from publicltyCass where issueId = #issueId# ]]>
+	</delete>
+	
+	<select id="findPublicltyCassByIssueIdAndOrgId" parameterClass="java.util.Map" resultMap="publicltyCassResult">
+		<![CDATA[ select * from publicltyCass where issueId = #issueId# and orgId = #orgId#]]>
+	</select>
+</sqlMap>

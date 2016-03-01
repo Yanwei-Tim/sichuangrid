@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="teamInfo">
+	<typeAlias alias="TeamInfo" type="com.tianque.domain.TeamInfo" />
+	<typeAlias alias="volunteerTeamInfo" type="com.tianque.domain.VolunteerTeam" />
+	<typeAlias alias="serviceTeamInfo" type="com.tianque.domain.ServiceTeam" />
+	<typeAlias alias="ClobStringTypeHandler"
+		type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+	<resultMap id="teamInfoResult" class="teamInfo">
+		<result column="id" property="id" />
+		<result column="orgId" property="ownerOrg.id" />
+		<result column="teamLeader" property="teamLeader" />
+		<result column="name" property="name" />
+		<result column="simplePinyin" property="simplePinyin" />
+		<result column="fullPinyin" property="fullPinyin" />
+		<result column="leaderPhone" property="leaderPhone" />
+		<result column="establishDate" property="establishDate" />
+		<result column="telphone" property="telphone" />
+		<result column="remark" property="remark" />
+		
+	</resultMap>
+
+	<resultMap id="volunteerTeamInfoResult" class="volunteerTeamInfo" extends="teamInfoResult" >
+	</resultMap>
+	
+	<resultMap id="serviceTeamInfoResult" class="serviceTeamInfo" extends="teamInfoResult" >
+	</resultMap>
+
+	<insert id="addTeamInfo" parameterClass="map">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_teamInfos.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into teamInfos
+		(id,orgId,orgInternalCode,name,teamLeader,leaderPhone,establishDate,simplePinyin,fullPinyin,
+		telphone,teamType,remark,createUser,createDate)
+		values
+		(#id#,#teamInfo.ownerOrg.id#,#teamInfo.ownerOrg.orgInternalCode#,#teamInfo.name#,#teamInfo.teamLeader#,
+		#teamInfo.leaderPhone#,#teamInfo.establishDate#,#teamInfo.simplePinyin#,#teamInfo.fullPinyin#,
+		#teamInfo.telphone#,#teamType#,#teamInfo.remark,handler=ClobStringTypeHandler#,#teamInfo.createUser#,#teamInfo.createDate#
+		)
+	</insert>
+	
+	<update id="updateTeamInfo" parameterClass="map">
+		update teamInfos set
+		<dynamic>
+			 updateUser = #teamInfo.updateUser#
+			,updateDate = #teamInfo.updateDate#
+			,orgId=#teamInfo.ownerOrg.id#
+			,orgInternalCode=#teamInfo.ownerOrg.orgInternalCode#
+			,name=#teamInfo.name#
+			,teamLeader=#teamInfo.teamLeader#
+			,leaderPhone=#teamInfo.leaderPhone#
+			,establishDate=#teamInfo.establishDate#
+			,simplePinyin=#teamInfo.simplePinyin#
+			,fullPinyin=#teamInfo.fullPinyin#
+			,telphone=#teamInfo.telphone#
+			,teamType=#teamType#
+			,remark=#teamInfo.remark,handler=ClobStringTypeHandler#
+			where id = #teamInfo.id#
+		</dynamic>
+	</update>
+	
+	
+	
+	
+	<select id="getTeamTypeById" parameterClass="long" resultClass="String">
+		select teamType from teamInfos where id=#value# 
+	</select>
+	
+	<select id="getServiceTeamById" parameterClass="long" resultMap="serviceTeamInfoResult">
+		select * from teamInfos where id=#value# 
+	</select>
+
+	<select id="getVolunteerTeam" parameterClass="long" resultMap="volunteerTeamInfoResult">
+		select * from teamInfos where id=#value#
+	</select>
+	
+	<delete id="deleteTeam" parameterClass="java.lang.Long">
+		delete from teamInfos  where id=#value#
+	</delete>
+	                     
+	            
+	            
+	            
+	            
+	<select id="countTeamInfosByOwnerOrgIdAndTeamType" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		    from teamInfos where orgId=#orgId# 
+		<dynamic>
+			<isNotEmpty prepend=" and " property="teamType">
+				teamType=#teamType#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="findTeamInfosByOwnerOrgIdAndTeamType" parameterClass="map" resultMap="teamInfoResult">
+		select * from teamInfos where orgId=#orgId# 
+		<dynamic>
+			<isNotEmpty prepend=" and " property="teamType">
+				teamType=#teamType#
+			</isNotEmpty>
+		</dynamic>
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>

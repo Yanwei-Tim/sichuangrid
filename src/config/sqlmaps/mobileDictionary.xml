@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" 
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="mobileDictionary">
+
+    <typeAlias alias="MobileDictionary" type="com.tianque.mobile.mobileDictionary.domain.MobileDictionary" />
+    <typeAlias alias="MobileDictionaryVo" type="com.tianque.mobile.mobileDictionary.domain.vo.MobileDictionaryVo" />
+
+    <resultMap id="mobileDictionaryResult" class="MobileDictionary">
+		<result column="id" property="id" />
+		<result column="version" property="version" />
+		<result column="fileUrl" property="fileUrl" />
+		<result column="renewDate" property="renewDate" />
+		<result column="type" property="type" />
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+	</resultMap>
+	
+	<resultMap class="MobileDictionaryVo" id="MobileDictionaryVoResult">
+		<result property="id" column="id"/>
+		<result property="domainName" column="domainName"/>
+		<result property="internalId" column="internalId"/>
+		<result property="displayName" column="displayName"/>
+		<result property="domainId" column="domainId"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="createDate" column="createDate"/>
+		
+	</resultMap>
+	
+	<resultMap class="MobileDictionaryVo" id="MobileDictionaryVoResult2" extends="MobileDictionaryVoResult">
+		<result property="operateType" column="operateType"/>
+	</resultMap>
+	
+	<select id="countMobileDictionary" resultClass="java.lang.Integer" parameterClass="java.lang.Integer">
+		select count(*) from MOBILEDICTIONARY where type=#type#
+	</select>
+	
+	<select id="findMobileDictionary" resultMap="mobileDictionaryResult" parameterClass="MobileDictionary">
+		select * from MOBILEDICTIONARY where type=#type#
+		<isNotEmpty property="renewDate" prepend=" and " >
+			renewDate>#renewDate#
+		</isNotEmpty>
+	</select>
+	
+	<select id="findAllDictsForList" resultMap="MobileDictionaryVoResult">
+		select pdm.id			as domainId,
+      		pdm.domainName,
+       		pdc.fullPinyin,
+       		pdc.simplePinyin,
+       		pdc.internalId,
+       		pdc.id          	as id,
+       		pdc.displayName,
+       		pdc.createDate,
+       		pdc.updateDate
+		from propertydomains pdm
+		left join propertydicts pdc on pdm.id = pdc.propertydomainid
+	</select>
+	
+	<insert id="addMobileDictionary" parameterClass="MobileDictionary">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_MOBILEDICTIONARY.NEXTVAL as id from dual ]]>
+	    </selectKey>
+	    insert into MOBILEDICTIONARY(id,fileurl,renewdate,version,createdate,createuser,updatedate,updateuser,type) 
+			values(#id#,#fileUrl#,#renewDate#,#version#,#createDate#,#createUser#,#updateDate#,#updateUser#,#type#)
+	</insert>
+	
+	<update id="updateMobileDictionary" parameterClass="MobileDictionary">
+		update MOBILEDICTIONARY set fileUrl=#fileUrl#,renewDate=#renewDate#,version=#version#,type=#type#,updateDate=#updateDate#,updateUser=#updateUser#
+		where id=#id#
+	</update>
+	
+	<select id="findIncrementDictsForList" resultMap="MobileDictionaryVoResult2" parameterClass="java.util.Map">
+		select pdm.id          as domainId,
+	       pdm.domainName,
+	       pdc.internalId,
+	       pdc.id          as id,
+	       pdc.displayName,
+	       pdc.createDate,
+	       pdc.updateDate,
+	       pdc.operatetype
+  	   from (select pdc.internalId,
+               pdl.dictId as id,
+               pdc.displayName,
+               pdc.createDate,
+               pdc.updateDate,
+               pdl.propertydomainid,
+               pdl.operatetype
+          from (select distinct (dictId), max(operatetype) as operatetype,max(domainid) as propertydomainid
+                  from propertyDictLogs
+                 where createDate > #createDate# group by dictId) pdl
+          left join propertydicts pdc
+            on pdl.dictId = pdc.id) pdc
+       left join   propertydomains pdm
+        on pdm.id = pdc.propertydomainid
+
+	</select>
+
+</sqlMap>
+

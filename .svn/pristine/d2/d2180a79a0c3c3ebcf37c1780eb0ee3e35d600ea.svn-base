@@ -1,0 +1,388 @@
+<#assign pop=JspTaglibs["/WEB-INF/taglib/pop-taglib.tld"]>
+<#assign s=JspTaglibs["/WEB-INF/taglib/struts-tags.tld"]>
+<ul class="tabnav">
+    <li><span>分布图</span></li>
+
+    <@pop.JugePermissionTag ename="importantOrganizationStat">
+        <li><span><@s.property value="#request.name"/></span></li>
+    </@pop.JugePermissionTag>
+    <@pop.JugePermissionTag ename="populationStat_stat">
+        <li><span><@s.property value="#request.name"/></span></li>
+    </@pop.JugePermissionTag>
+    <@pop.JugePermissionTag ename="importantPersonelStat_stat">
+        <li><span><@s.property value="#request.name"/></span></li>
+    </@pop.JugePermissionTag>
+     <@pop.JugePermissionTag ename="importantBirthStat_stat">
+        <li><span><@s.property value="#request.name"/></span></li>
+    </@pop.JugePermissionTag>
+     <@pop.JugePermissionTag ename="importantCivilStat_stat">
+        <li><span><@s.property value="#request.name"/></span></li>
+    </@pop.JugePermissionTag>
+
+     <@pop.JugePermissionTag ename="importantHouseStat_stat">
+        <li><span><@s.property value="#request.name"/></span></li>
+    </@pop.JugePermissionTag>
+     <@pop.JugePermissionTag ename="importantLocaltionStat_stat">
+        <li><span><@s.property value="#request.name"/></span></li>
+    </@pop.JugePermissionTag>
+    <@pop.JugePermissionTag ename="enterpriseStat_stat">
+    	<li><span><@s.property value="#request.name"/></span></li>
+    </@pop.JugePermissionTag>
+    <@pop.JugePermissionTag ename="newSocietyFederations_stat">
+    	<li><span><@s.property value="#request.name"/></span></li>
+    </@pop.JugePermissionTag>
+    <@pop.JugePermissionTag ename="lettingHouse_stat">
+    	<li><span><@s.property value="#request.name"/></span></li>
+    </@pop.JugePermissionTag>
+    <@pop.JugePermissionTag ename="issueDealStatReport">
+		<li><span><@s.property value="#request.name"/></span></li>
+	</@pop.JugePermissionTag>
+	<@pop.JugePermissionTag ename="issueTypeStatistics">
+		<li><span><@s.property value="#request.name"/></span></li>
+	</@pop.JugePermissionTag>
+	<@pop.JugePermissionTag ename="actualCompany_stat">
+		<li><span><@s.property value="#request.name"/></span></li>
+	</@pop.JugePermissionTag>
+	<@pop.JugePermissionTag ename="doubleNewOrganizationsStat">
+		<li><span><@s.property value="#request.name"/></span></li>
+	</@pop.JugePermissionTag>
+    <!--
+    <@pop.JugePermissionTag ename="issueInvestigationMediate_stat">
+        <li><span><@s.property value="#request.name"/></span></li>
+    </@pop.JugePermissionTag>
+    <@pop.JugePermissionTag ename="examineStat_stat">
+        <li><span><@s.property value="#request.name"/></span></li>
+    </@pop.JugePermissionTag>
+       <@pop.JugePermissionTag ename="evaluateManage">
+        <li><span><@s.property value="#request.name"/></span></li>
+    </@pop.JugePermissionTag>
+ 	-->
+</ul>
+<div class="tabbox">
+	<ul class="subnavbar">
+		<li><a href="javascript:void(0)"
+			    onclick="asyncMiddleLevelOpen(this,'${path}/gis/mapEZ.jsp')"><span>分布图</span></a></li>
+	</ul>
+   <@pop.JugePermissionTag ename="importantOrganizationStat">
+	    <ul class="subnavbar">
+		 <li> <a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/primaryOrganizationStat/statisticsOrganization.jsp')" ><span>基层组织</span></a></li>
+	     </ul>
+	</@pop.JugePermissionTag>
+
+	<@pop.JugePermissionTag ename="populationStat_stat">
+	<ul class="subnavbar">
+		<@pop.JugePermissionTag ename="populationStat_stat">
+
+		</@pop.JugePermissionTag>
+		<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/population/index.jsp')"><span>总况</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/population/commonPopulation.jsp?populationType=<@s.property value="@com.tianque.core.util.BaseInfoTables@FLOATINGPOPULATION_KEY"/>')"><span>流动人员</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/population/commonPopulation.jsp?populationType=<@s.property value="@com.tianque.core.util.BaseInfoTables@HOUSEHOLDSTAFF_KEY"/>')"><span>户籍人员</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/population/commonPopulation.jsp?populationType=<@s.property value="@com.tianque.core.util.BaseInfoTables@UNSETTEDPOPULATION_KEY"/>')"><span>未落户人员</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/population/commonPopulation.jsp?populationType=<@s.property value="@com.tianque.core.util.BaseInfoTables@OVERSEAPERSONNEL_KEY"/>')"><span>境外人员</span></a></li>
+
+	</ul>
+</@pop.JugePermissionTag>
+
+
+
+<@pop.JugePermissionTag ename="importantPersonelStat_stat">
+	<ul class="subnavbar">
+		<@pop.JugePermissionTag ename="importantPersonelStat_stat">
+
+		</@pop.JugePermissionTag>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/totalStatistic/index.jsp?type=all_attention_population')"><span>总况</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/positiveinfo/index.jsp')"><span>刑释解教人员</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/rectificative/index.jsp')"><span>社区矫正人员</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/idleyouth/index.jsp')"><span>重点青少年</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/mentalPatient/index.jsp')"><span>严重精神障碍患者</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/druggy/index.jsp')"><span>吸毒人员</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/dangerousGoodsPractitioner/index.jsp')"><span>危险品从业人员</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/superiorVisit/index.jsp')"><span>重点上访人员</span></a></li>
+
+	</ul>
+</@pop.JugePermissionTag>
+
+<@pop.JugePermissionTag ename="importantBirthStat_stat">
+	<ul class="subnavbar">
+		<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/totalStatistic/index.jsp?type=all_birth_population')"><span>总况</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/nurturesWomen/index.jsp')"><span>育妇</span></a></li>
+
+
+	</ul>
+</@pop.JugePermissionTag>
+
+
+<@pop.JugePermissionTag ename="importantCivilStat_stat">
+	<ul class="subnavbar">
+		<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/totalStatistic/index.jsp?type=all_civil_population')"><span>总况</span></a></li>
+			  <li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/optimalObject/index.jsp')"><span>优抚对象</span></a></li>
+				<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/elderlyPeople/index.jsp')"><span>老年人</span></a></li>
+				<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/handicapped/index.jsp')"><span>残疾人</span></a></li>
+				<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/aidNeedPopulation/index.jsp')"><span>需救助人员</span></a></li>
+				 <li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/unEmployedPeople/index.jsp')"><span>失业人员</span></a></li>
+
+
+	</ul>
+</@pop.JugePermissionTag>
+<@pop.JugePermissionTag ename="importantLocaltionStat_stat">
+	 <ul class="subnavbar">
+		<@pop.JugePermissionTag ename="importantLocaltionStat_stat">
+			<li><a href="javascript:void(0)"
+			onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/importantPlace/index.jsp')"><span>总况</span></a></li>
+		</@pop.JugePermissionTag>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/keyPlace/index.jsp?keyTpe=SAFETYPRODUCTIONKEY')">安全生产重点</a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/keyPlace/index.jsp?keyTpe=FIRESAFETYKEY')">消防安全重点</a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/keyPlace/index.jsp?keyTpe=SECURITYKEY')">治安重点</a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/keyPlace/index.jsp?keyTpe=SCHOOL')">学校</a></li>
+	</ul>
+</@pop.JugePermissionTag>
+<@pop.JugePermissionTag ename="enterpriseStat_stat">
+	<ul class="subnavbar">
+	<li><a href="javascript:void(0)"
+			onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/keyPlace/index.jsp?keyTpe=ENTERPRISEKEY')">规上企业</a></li>
+	</ul>
+</@pop.JugePermissionTag>
+ <@pop.JugePermissionTag ename="importantOrganizationStat">
+	    <ul class="subnavbar">
+		 <li> <a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/primaryOrganizationStat/statisticsOrganization.jsp')" ><span>基层组织</span></a></li>
+	     </ul>
+	</@pop.JugePermissionTag>
+<@pop.JugePermissionTag ename="importantPersonelStat_stat">
+	<ul class="subnavbar">
+		<@pop.JugePermissionTag ename="importantPersonelStat_stat">
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/importantPersonel/index.jsp')"><span>总况</span></a></li>
+		</@pop.JugePermissionTag>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/positiveinfo/index.jsp')"><span>刑释解教人员</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/rectificative/index.jsp')"><span>社区矫正人员</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/idleyouth/index.jsp')"><span>重点青少年</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/mentalPatient/index.jsp')"><span>严重精神障碍患者</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/druggy/index.jsp')"><span>吸毒人员</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/superiorVisit/index.jsp')"><span>重点上访人员</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/poorPeople/index.jsp')"><span>需救助人员</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/dangerousGoodsPractitioner/index.jsp')"><span>危险品从业人员</span></a></li>
+	</ul>
+</@pop.JugePermissionTag>
+
+<@pop.JugePermissionTag ename="importantHouseStat_stat">
+	<ul class="subnavbar">
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/lettingHouse/index.jsp')"><span>出租房</span></a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/actualHouse/index.jsp')"><span>实有房屋</span></a></li>
+	</ul>
+</@pop.JugePermissionTag>
+
+<@pop.JugePermissionTag ename="importantLocaltionStat_stat">
+	 <ul class="subnavbar">
+		<@pop.JugePermissionTag ename="importantLocaltionStat_stat">
+			<li><a href="javascript:void(0)"
+			onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/importantPlace/index.jsp')"><span>总况</span></a></li>
+		</@pop.JugePermissionTag>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/keyPlace/index.jsp?keyTpe=SAFETYPRODUCTIONKEY')">安全生产重点</a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/keyPlace/index.jsp?keyTpe=FIRESAFETYKEY')">消防安全重点</a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/keyPlace/index.jsp?keyTpe=SECURITYKEY')">治安重点</a></li>
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/keyPlace/index.jsp?keyTpe=SCHOOL')">学校</a></li>
+	</ul>
+</@pop.JugePermissionTag>
+<@pop.JugePermissionTag ename="enterpriseStat_stat">
+	<ul class="subnavbar">
+	<li><a href="javascript:void(0)"
+			onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/keyPlace/index.jsp?keyTpe=ENTERPRISEKEY')">规上企业</a></li>
+	</ul>
+</@pop.JugePermissionTag>
+<@pop.JugePermissionTag ename="newSocietyFederations_stat">
+	<ul class="subnavbar">
+	<li><a href="javascript:void(0)"
+			onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/newSocietyFederation/index.jsp?keyTpe=NEWSOCIETYFEDERATION')">社会组织</a></li>
+	</ul>
+</@pop.JugePermissionTag>
+<@pop.JugePermissionTag ename="lettingHouse_stat">
+	<ul class="subnavbar">
+	<li><a href="javascript:void(0)"
+			onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/lettingHouse/index.jsp?keyTpe=LETTINGHOUSE')">出租房</a></li>
+	</ul>
+</@pop.JugePermissionTag>
+<!--
+<@pop.JugePermissionTag ename="orgLoginStanalsManage">
+   <ul class="subnavbar">
+	<@pop.JugePermissionTag ename="adminOrgLoginStanalsManage">
+         		 <li><a href="javascript:void(0)"
+                  onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/orgLoginStanalsManager/dispatch.action?mode=initDate&internalId=<@s.property value="@com.tianque.domain.property.OrganizationType@ADMINISTRATIVE_REGION"/>')"><span id="nextOrgLoginStanalsName">行政部门登录统计</span></a></li>
+          </@pop.JugePermissionTag>
+		<@pop.JugePermissionTag ename="funcationOrgLoginStanalsManage">
+         		 <li id="orgLoginStanalsFunMenu"><a href="javascript:void(0)"
+                  onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/orgLoginStanalsManager/dispatch.action?mode=initDate&internalId=<@s.property value="@com.tianque.domain.property.OrganizationType@FUNCTIONAL_ORG"/>')""><span>职能部门登录统计</span></a></li>
+          </@pop.JugePermissionTag>
+   </ul>
+</@pop.JugePermissionTag>
+
+-->
+<!--
+<@pop.JugePermissionTag ename="issueInvestigationMediate_stat">
+	<ul class="subnavbar">
+		<@pop.JugePermissionTag ename="issueInvestigationMediate_stat">
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/issueInvestigationMediate/issueInvestigationMediateManage/dispatch.action','normalState')"><span><@s.property value="#request.name"/></span></a></li>
+		</@pop.JugePermissionTag>
+		<@pop.JugePermissionTag ename="issueTypeStat_stat">
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/issueTypeStanal/issueTypeStanalManage/dispatch.action?mode=initDate')"><span><@s.property value="#request.name"/></span></a></li>
+		</@pop.JugePermissionTag>
+		<@pop.JugePermissionTag ename="issueStatusStat_stat">
+			<li><a href="javascript:void(0)"
+				onclick="asyncMiddleLevelOpen(this,'${path}/stat/statAnalyseIssueStatueManage/getIssueStateList.action')"><span><@s.property value="#request.name"/></span></a></li>
+		</@pop.JugePermissionTag>
+	</ul>
+</@pop.JugePermissionTag>
+<@pop.JugePermissionTag ename="evaluateManage">
+<ul class="subnavbar">
+<li><a href="javascript:void(0)"
+					onclick="asyncMiddleLevelOpen(this,'${path}/statAnalyse/baseInfoStat/evaluateStatisticList.jsp')">考核评估</a></li>
+</ul>
+</@pop.JugePermissionTag>
+<@pop.JugePermissionTag ename="examineStat_stat">
+	<ul class="subnavbar">
+	    <@pop.JugePermissionTag ename="examineScroseStanal_stat">
+	        <li><a href="javascript:void(0)"
+	                onclick="asyncMiddleLevelOpen(this,'${path}/examineScroseStanal/dispatch.action')"><span><@s.property value="#request.name"/></span></a></li>
+	    </@pop.JugePermissionTag>
+	</ul>
+</@pop.JugePermissionTag>
+-->
+
+
+<@pop.JugePermissionTag ename="issueDealStatReport">
+        <ul class="subnavbar">
+        	<@pop.JugePermissionTag ename="issueDealStatMenu">
+			     <li id="issueDealStatMenu"><a id='issueDeal' href="javascript:void(0)"
+				    onclick="asyncMiddleLevelOpen(this,'${path}/issueDealStat/dispatch.action?orgType=1')"><span id="issueDealStatAdminsName">事件处理办理统计</span></a></li>
+			</@pop.JugePermissionTag>
+			 <!--<@pop.JugePermissionTag ename="issueDealStatFunMenu">
+			    <li><a href="javascript:void(0)"
+				    onclick="asyncMiddleLevelOpen(this,'${path}/issueDealStat/dispatch.action?orgType=1&realtime=1')"><span id="issueRealTimeDealStatAdminsName">事件处理实时办理统计</span></a></li>
+			     <li id="issueDealStatFunMenu"><a href="javascript:void(0)"
+				    onclick="asyncMiddleLevelOpen(this,'${path}/issueDealStat/dispatch.action?orgType=2')"><span>职能部门事件处理办理统计</span></a></li>
+			</@pop.JugePermissionTag>
+			     <li id="issueDealRealtimeStatFunMenu"><a href="javascript:void(0)"
+				    onclick="asyncMiddleLevelOpen(this,'${path}/issueDealStat/dispatch.action?orgType=2&realtime=1')"><span>部门事件处理实时办理统计</span></a></li>-->
+	    </ul>
+	</@pop.JugePermissionTag>
+    <@pop.JugePermissionTag ename="issueTypeStatistics">
+        <ul class="subnavbar">
+            <@pop.JugePermissionTag ename="issueTypeStat">
+			     <li><a href="javascript:void(0)"
+				    onclick="asyncMiddleLevelOpen(this,'${path}/issueTypeStanal/issueTypeStanalManage/dispatch.action?mode=initDate')"><span>事件处理类别统计</span></a></li>
+	        </@pop.JugePermissionTag>
+
+	    </ul>
+	</@pop.JugePermissionTag>
+<!--
+	<ul class="subnavbar">
+		<li><a href="javascript:void(0)"
+			    onclick="asyncMiddleLevelOpen(this,'${path}/gis/mapEZ.jsp')"><span>人口分布图</span></a></li>
+		<li><a href="javascript:void(0)"
+			    onclick="asyncMiddleLevelOpen(this,'${path}/gis/mapEZ.jsp')"><span>场所分布图</span></a></li>
+		<li><a href="javascript:void(0)"
+			    onclick="asyncMiddleLevelOpen(this,'${path}/gis/events/event.jsp')"><span>事件分布图</span></a></li>
+	</ul>
+ -->
+
+</div>
+<script>
+
+	$(function() {
+		var _box=$('.tabbox ul');
+		var _hover='hover';
+		var objwidth=0;
+		function showBoxMenu(i,n){
+			objwidth=objwidth+$(n).innerWidth();
+			if(objwidth>screen.width-265){
+				$(n).after('<li class="more"><img src="'+RESOURCE_PATH+'/resource/system/images/popmenu2.gif" /></li>');
+				$(".popMenu").attr("showMenu","false");
+				$(".more").toggle(
+						function () {
+							$(this).html('<img src="'+RESOURCE_PATH+'/resource/system/images/popmenu1.gif" />');
+							var _index=$(this).parent().index();
+							$(".popMenu").children().hide();
+							$(".test"+_index,$(".popMenu")).show();
+							$(".popMenu").attr("showMenu","true");
+							$(".ceng").show();
+						},
+						function () {
+							$(this).html('<img src="'+RESOURCE_PATH+'/resource/system/images/popmenu2.gif" />');
+							var _index=$(this).parent().index();
+							$(".ceng").hide();
+							$(".popMenu").children().hide();
+							$(".popMenu").attr("showMenu","false");
+						}
+				);
+				return false;
+			};
+		};
+
+		var _tab=$('ul.tabnav>li');
+		var boxindex=0;
+		_tab.click(function(){
+			var _index=_tab.index(this);
+			boxindex=_index;
+			$(this).addClass(_hover).siblings().removeClass(_hover);
+			_box.eq(_index).show().siblings().hide();
+			//前一次又焦点的box
+			if(!$(".test"+_index).attr("afterProccess")){
+				var currentBox = _box.eq(_index);
+				$.each(currentBox.children(),showBoxMenu);
+				objwidth=0;
+				$(".popMenu").append($("<div class='test"+_index+"'/>").append($(".more",currentBox).nextAll()));
+				$(".test"+_index).attr("afterProccess",true);
+			}
+			$("a:first",$($(".tabbox>ul")[boxindex])).click();
+		});
+		$(".ui-layout-center").click(function() {
+			if($(".popMenu").attr("showMenu")=="true"){
+				_box.eq(boxindex).children(".more").click();
+			}
+		});
+		$(_tab[0]).click();
+
+	});
+</script>

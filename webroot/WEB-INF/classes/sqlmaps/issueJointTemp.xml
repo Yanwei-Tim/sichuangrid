@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="IssueJointTemp">
+	<typeAlias alias="IssueJointTemp" type="com.tianque.qinYangIssue.domain.IssueJointTemp"/>
+	<resultMap class="IssueJointTemp" id="issueJointTempResult">
+		<result property="id" column="id"/>
+		<result property="serialNumber" column="serialNumber"/>
+		<result property="subject" column="subject"/>
+		<result property="maincharacters" column="maincharacters"/>
+		<result property="mobile" column="mobile"/>
+		<result property="telephone" column="telephone"/>
+		<result property="occurOrg.id" column="occurOrg"/>
+		<result property="occurOrgInternalCode" column="occurOrgInternalCode"/>
+		<result property="createOrg.id" column="createOrg"/>
+		<result property="createOrgInternalCode" column="createOrgInternalCode"/>
+		<result property="issueKind.id" column="issueKind"/>
+		<result property="issueJointType.id" column="issueJointType"/>
+		<result property="issueJointTypeSub.id" column="issueJointTypeSub"/>
+		<result property="relatePeopleCount" column="relatePeopleCount"/>
+		<result property="occurLocation" column="occurLocation"/>
+		<result property="occurDate" column="occurDate"/>
+		<result property="hours" column="hours"/>
+		<result property="minute" column="minute"/>
+		<result property="issueContent" column="issueContent"/>
+		<result property="importantPlace" column="importantPlace"/>
+		<result property="state" column="state"/>
+		<result property="attachFileName" column="attachFileName"/>
+		<result property="attachFileName_uuid" column="attachFileName_uuid"/>
+		<result property="lastDealTime" column="lastDealTime"/>
+		<result property="status" column="status"/>
+		<result property="lastUsername" column="lastUsername"/>
+		<result property="lastOrg.id" column="lastOrg"/>
+		<result property="feedbackTime" column="feedbackTime"/>
+		<result property="issueId" column="issueId"/>
+		<result property="data_source" column="data_source"/>
+		<result property="statusCode" column="statusCode"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+	
+	<select id="getIssueJointTempCountByState" parameterClass="java.lang.Integer" resultClass="java.lang.Integer">
+		select count(*) from issueJointTemps where state=#value#
+	</select>
+	<update id="updateIssueJointTempById" parameterClass="java.util.Map">
+		update issueJointTemps set state=#state# 
+		<isPropertyAvailable property="status">
+			<isNotNull property="status">
+				,status=#status#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="statusCode">
+			<isNotNull property="statusCode">
+				,statusCode=#statusCode#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueId">
+			<isNotNull property="issueId">
+				,issueId=#issueId#
+			</isNotNull>
+		</isPropertyAvailable>
+		where id=#id#
+	</update>
+	<update id="updateIssueJointTempDataStatus" parameterClass="java.lang.Integer">
+		update issuejointtemps it
+		   set it.status = (select ip.statecode
+		                      from issuesteps ip
+		                     where ip.id = (select max(id)
+		                                      from issuesteps itp
+		                                     where itp.issue = it.issueId))
+		 where it.status = #value#
+		   and exists (select 1 from issues i where i.id = it.issueId)
+	</update>
+	<update id="updateIssueJointTempDataStatusCodeByStatus" parameterClass="java.util.Map">
+		update issuejointtemps set statusCode=#statusCode# where  status = #status# and state=1
+	</update>
+	
+	<select id="queryIssueJointTempByStateForList" resultMap="issueJointTempResult" parameterClass="java.util.Map">
+		<include refid="common.sql_page_start"/>
+		<![CDATA[
+			select * from issueJointTemps t where t.state=#state#
+		]]>
+		<include refid="common.sql_page_end"/>
+	</select>
+</sqlMap>

@@ -1,0 +1,14 @@
+--治安负责人服务人员和服务服务对象的关联关系数据关联
+insert into servicememberhasobject(id,memberid,teamid,objecttype,objectname,objectid,teammember,onduty,objectlogout)
+(select s_servicememberhasobject.nextval,smo.memberid,smo.teamid,(SELECT ct.classificationen FROM  complaceInfo_temp ct,keyplaces kp
+  where ct.id_key = kp.id_key and kp.id = smo.objectid and kp.type =CASE WHEN UPPER(smo.objecttype)='SCHOOL' THEN 'SCHOOLS' WHEN UPPER(smo.objecttype)='OTHERLOCALE' THEN 'OTHERLOCALES' ELSE UPPER(smo.objecttype) END),smo.objectname,(SELECT ct.companyplaceId FROM  complaceInfo_temp ct,keyplaces kp
+  where ct.id_key = kp.id_key and kp.id = smo.objectid and kp.type =CASE WHEN UPPER(smo.objecttype)='SCHOOL' THEN 'SCHOOLS' WHEN UPPER(smo.objecttype)='OTHERLOCALE' THEN 'OTHERLOCALES' ELSE UPPER(smo.objecttype) END),smo.teammember,smo.onduty,smo.objectlogout from servicememberhasobject smo,keyplaces kp where kp.id = smo.objectid and kp.type =CASE WHEN UPPER(smo.objecttype)='SCHOOL' THEN 'SCHOOLS' WHEN UPPER(smo.objecttype)='OTHERLOCALE' THEN 'OTHERLOCALES' ELSE UPPER(smo.objecttype) END and exists(SELECT 1 FROM  complaceInfo_temp ct,keyplaces kp
+  where ct.id_key = kp.id_key and kp.id = smo.objectid and kp.type =CASE WHEN UPPER(smo.objecttype)='SCHOOL' THEN 'SCHOOLS' WHEN UPPER(smo.objecttype)='OTHERLOCALE' THEN 'OTHERLOCALES' ELSE UPPER(smo.objecttype) END));
+
+--治安负责人服务团队和服务对象的关联关系数据关联
+insert into serviceTeamHasObject(id,memberid,teamid,objecttype,objectid,objectlogout,onduty)
+(select s_serviceTeamHasObject.Nextval,st.memberid,st.teamid,(SELECT ct.classificationen FROM  complaceInfo_temp ct,keyplaces kp
+	where ct.id_key = kp.id_key and kp.id = st.objectid and kp.type =CASE WHEN UPPER(st.objecttype)='SCHOOL' THEN 'SCHOOLS' WHEN UPPER(st.objecttype)='OTHERLOCALE' THEN 'OTHERLOCALES' ELSE UPPER(st.objecttype) END),(SELECT ct.companyplaceId FROM  complaceInfo_temp ct,keyplaces kp
+	where ct.id_key = kp.id_key and kp.id = st.objectid and kp.type =CASE WHEN UPPER(st.objecttype)='SCHOOL' THEN 'SCHOOLS' WHEN UPPER(st.objecttype)='OTHERLOCALE' THEN 'OTHERLOCALES' ELSE UPPER(st.objecttype) END),st.objectlogout,st.onduty from serviceTeamHasObject st,keyplaces kp where kp.id = st.objectid and kp.type =CASE WHEN UPPER(st.objecttype)='SCHOOL' THEN 'SCHOOLS' WHEN UPPER(st.objecttype)='OTHERLOCALE' THEN 'OTHERLOCALES' ELSE UPPER(st.objecttype) END and exists(SELECT 1 FROM  complaceInfo_temp ct,keyplaces kp
+	where ct.id_key = kp.id_key and kp.id = st.objectid and kp.type =CASE WHEN UPPER(st.objecttype)='SCHOOL' THEN 'SCHOOLS' WHEN UPPER(st.objecttype)='OTHERLOCALE' THEN 'OTHERLOCALES' ELSE UPPER(st.objecttype) END) );
+ 

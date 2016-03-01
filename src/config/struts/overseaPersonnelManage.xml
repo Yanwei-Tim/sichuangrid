@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="overseaPersonnelManage" extends="default"
+		namespace="/baseinfo/overseaPersonnelManage">
+		<default-class-ref class="overseaPersonnelController"></default-class-ref>
+		<action name="dispatch"
+			method="dispatch">
+			<result name="success">
+				/baseinfo/overseaPersonnel/maintainOverseaPersonnelDlg.jsp
+			</result>
+			<result name="search">
+				/baseinfo/overseaPersonnel/maintainOverseaPersonnelConditionDlg.jsp
+			</result>
+			<!-- <result name="print">
+				/baseinfo/overseaPersonnel/maintainOverseaPersonnelPrintDlg.jsp
+			</result> -->
+			<result name="print">
+				/baseinfo/commonPopulation/printTabPreviewDlg.jsp
+			</result>
+			<result name="view">
+				/baseinfo/overseaPersonnel/viewOverseaPersonnelDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="dispatchByEncrypt"
+			method="dispatchByEncrypt">
+			<result name="success">
+				/baseinfo/overseaPersonnel/maintainOverseaPersonnelDlg.jsp
+			</result>
+			<result name="print">
+				/baseinfo/commonPopulation/printTabPreviewDlg.jsp
+			</result>
+			<result name="view">
+				/baseinfo/overseaPersonnel/viewOverseaPersonnelDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="dispatchForGis"
+			method="dispatch">
+			<result name="view">
+				/baseinfo/overseaPersonnel/viewOverseaPersonnelDlg_gis.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="maintainOverseaPersonnelBaseInfo" method="maintainOverseaPersonnelBaseInfo">
+			<result name="success" type="json">
+				<param name="root">overseaPersonnel</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="cacheSuccess" type="json">
+				<param name="root">cacheId</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="maintainOverseaPersonnel" method="maintainOverseaPersonnel">
+			<result name="success" type="json">
+				<param name="root">overseaPersonnel</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action><action name="addOverseaPersonnelForMobile" method="addOverseaPersonnelForMobile">
+			<result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="updateOverseaPersonnelForMobile" method="updateOverseaPersonnelForMobile">
+			<result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="overseaPersonnelList"
+			method="findOverseaPersonnelForListPage">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="shiftDispatch"  method="shiftDispatch">
+			<result name="success">
+			        /baseinfo/overseaPersonnel/shiftTree.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="shiftOverseaPersonnel" method="shiftOverseaPersonnel">
+			<result type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="saveOverseaPersonnel"
+			method="saveOverseaPersonnel">
+			<result name="success" type="json">
+				<param name="root">overseaPersonnel</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+
+		<action name="updateOverseaPersonnel"
+			method="updateOverseaPersonnel">
+			<result name="success" type="json">
+				<param name="root">overseaPersonnel</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="getOverseaPersonnelByIdCardNo"
+			method="getOverseaPersonnelByIdCardNo">
+			<result name="success" type="json">
+				<param name="root">overseaPersonnel</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateOverseaPersonnelByIds"
+			method="updateOverseaPersonnelByIds">
+			<result name="success" type="json">
+				<param name="root">overseaPersonnel</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+
+		<action name="deleteOverseaPersonnel" method="deleteOverseaPersonnel">
+			<result name="success"  type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="hasDuplicateOverseaPersonnel" method="hasDuplicateOverseaPersonnel">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<action name="hasRelatePersons" method="hasRelatePersons">
+			<result name="success" type="json">
+				<param name="root">flag</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+
+		<action name="viewOverseaPopulation" method="viewOverseaPopulation">
+			<result name="success">
+				/baseinfo/overseaPersonnel/viewMaintainOverseaPersonnelDlg.jsp
+			</result>
+		</action>
+		<action name="getOverseaPersonnelByIdForMobile"
+			method="viewOverseaPopulation">
+			<result name="success" type="json">
+				<param name="root">overseaPersonnel</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateEmphasiseById"
+			method="updateEmphasiseById">
+			<result name="success" type="json">
+				<param name="root">populationIdList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateEmphasiseByEncryptId"
+			method="updateEmphasiseByEncryptId">
+			<result name="success" type="json">
+				<param name="root">populationIdList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+<action name="shiftOverseaPersonnel" method="shiftOverseaPersonnel">
+			<result type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		
+        <action name="shiftToDispatch"  method="shiftToDispatch">
+			<result name="success">
+				/common/shiftTree.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+ 
+		<action name="shiftPerson" method="shiftPerson">
+			<result type="json">
+				<param name="root"></param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>		
+	</package>
+</struts>

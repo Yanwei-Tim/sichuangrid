@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="importCommonDataSource">
+	
+	<sql id="sequences_sql">
+		SELECT 
+			<isNotEmpty  property="sequencesName">
+			$sequencesName$.NEXTVAL as id from dual
+		</isNotEmpty>
+	</sql>
+	<insert id="addImportCommonDataSource" parameterClass="java.util.Map">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<include refid="sequences_sql"/>
+		</selectKey>
+		insert into 
+		<isNotEmpty  property="tableName">
+			$tableName$
+		</isNotEmpty>
+		(ID,<iterate  property="listKey" conjunction=",">$listKey[]$</iterate>)
+		values
+		(#id#,<iterate  property="listValue" conjunction=",">#listValue[]#</iterate>)
+    </insert>	
+</sqlMap>

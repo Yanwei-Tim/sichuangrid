@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="userAccountLoginDetail">
+	<typeAlias alias="userAccountLoginDetail" type="com.tianque.userAccountLoginDetail.domain.UserAccountLoginDetail"/>
+	<typeAlias alias="userAccountLoginStatisticsVo" type="com.tianque.userAccountLoginDetail.vo.UserAccountLoginStatisticsVo"/>
+	<typeAlias alias="userSign" type="com.tianque.domain.UserSign"/>
+	<resultMap class="userAccountLoginDetail" id="userAccountLoginDetailResult">
+		 <result property="id" column="id"/>
+		 <result property="organization.id" column="orgId"/>
+		 <result property="organization.orgInternalCode" column="orgCode"/>
+		 <result property="userId" column="userId"/>
+		 <result property="userName" column="userName"/>
+		 <result property="name" column="name"/>
+		 <result property="weekCount" column="weekCount"/>
+		 <result property="activationTime" column="activationTime"/>
+		 <result property="monthCount" column="monthCount"/>
+		 <result property="lastLoginTime" column="lastLoginTime"/>
+		<result property="pcUsable" column="pcUsable"/>
+		 <result property="mobileUsable" column="mobileUsable"/>
+	</resultMap>
+	<resultMap class="userAccountLoginStatisticsVo" id="userAccountLoginStatisticsVoResult">
+		<result property="organization.orgName" column="orgname"/>
+		<result property="organization.id" column="orgId"/>
+		<!--行政部门-->
+		<result property="executiveAccountPC" column="executiveAccountPC"/>
+		<result property="executiveAccountWeekPC" column="executiveAccountWeekPC"/>
+		<result property="executiveAccountMonthPC" column="executiveAccountMonthPC"/>
+		<result property="executiveAccountMobile" column="executiveAccountMobile"/>
+		<result property="executiveAccountWeekMobile" column="executiveAccountWeekMobile"/>
+		<result property="executiveAccountMonthMobile" column="executiveAccountMonthMobile"/>
+		<!--职能部门-->
+		<result property="functionalAccountPC" column="functionalAccountPC"/>
+		<result property="functionalAccountWeekPC" column="functionalAccountWeekPC"/>
+		<result property="functionalAccountMonthPC" column="functionalAccountMonthPC"/>
+		<result property="functionalAccountMobile" column="functionalAccountMobile"/>
+		<result property="functionalAccountWeekMobile" column="functionalAccountWeekMobile"/>
+		<result property="functionalAccountMonthMobile" column="functionalAccountMonthMobile"/>
+		<!--城市-->
+		<result property="cityAccountPC" column="cityAccountPC"/>
+		<result property="cityAccountWeekPC" column="cityAccountWeekPC"/>
+		<result property="cityAccountMonthPC" column="cityAccountMonthPC"/>
+		<result property="cityAccountMobile" column="cityAccountMobile"/>
+		<result property="cityAccountWeekMobile" column="cityAccountWeekMobile"/>
+		<result property="cityAccountMonthMobile" column="cityAccountMonthMobile"/>
+		<!--农村-->
+		<result property="countrysideAccountPC" column="countrysideAccountPC"/>
+		<result property="countrysideAccountWeekPC" column="countrysideAccountWeekPC"/>
+		<result property="countrysideAccountMonthPC" column="countrysideAccountMonthPC"/>
+		<result property="countrysideAccountMobile" column="countrysideAccountMobile"/>
+		<result property="countrysideAccountWeekMobile" column="countrysideAccountWeekMobile"/>
+		<result property="countrysideAccountMonthMobile" column="countrysideAccountMonthMobile"/>
+		<!--合计-->
+		<result property="accountPC" column="accountPC"/>
+		<result property="accountWeekPC" column="accountWeekPC"/>
+		<result property="accountMonthPC" column="accountMonthPC"/>
+		<result property="accountMobile" column="accountMobile"/>
+		<result property="accountWeekMobile" column="accountWeekMobile"/>
+		<result property="accountMonthMobile" column="accountMonthMobile"/>
+		<!--总账号-->
+		<result property="accountCount" column="accountCount"/>
+		<result property="accountWeekCount" column="accountWeekCount"/>
+		<result property="accountMonthCount" column="accountMonthCount"/>
+	</resultMap>
+	
+	<resultMap class="userSign" id="userSignResult">
+		 <result property="userId" column="userId"/>
+		 <result property="createDate" column="createDate"/>
+	</resultMap>
+	
+	<insert id="createUserAccountLoginDetailForWeek"  parameterClass="java.util.Map">
+		insert into userAccountLoginDetailWeek(id,orgId,orgCode,userId,userName,name,weekCount,activationTime,lastLoginTime,pcUsable,mobileUsable,createUser,createDate)
+		select S_userAccountLoginDetail.Nextval,t.orgid,t.orgCode,t.userid,t.userName userName,t.name,t.weekCount,t.activationTime,lastLoginTime,pcUsable,mobileUsable,#createUser#,#createDate#
+    		from (
+    		select u.organizationid orgid,u.orginternalcode orgCode,u.id userid,u.userName userName,u.name name ,c.weekCount weekCount,u.activationTime activationTime,u.lastLoginTime lastLoginTime,
+    		u.pcUsable pcUsable,u.mobileUsable mobileUsable
+    			from users u left join (
+      				select s.userid,count(s.id) weekCount from usersign s where s.createdate >=#startDate#
+     					 and s.createdate<![CDATA[ <= ]]>#endDate# group by s.userid
+      									) c on u.id=c.userid  
+    			) t
+	</insert>
+	
+	<insert id="createUserAccountLoginDetailForMonth"  parameterClass="java.util.Map">
+		insert into userAccountLoginDetailMonth(id,orgId,orgCode,userId,userName,name,monthCount,activationTime,lastLoginTime,pcUsable,mobileUsable,createUser,createDate)
+		select S_userAccountLoginDetail.Nextval,t.orgid,t.orgCode,t.userid,t.userName,t.name,t.monthCount,t.activationTime,lastLoginTime,pcUsable,mobileUsable,#createUser#,#createDate#
+    		from (
+    		select u.organizationid orgid,u.orginternalcode orgCode,u.id userid,u.userName userName,u.name name ,c.monthCount monthCount,u.activationTime activationTime,u.lastLoginTime lastLoginTime,
+    		u.pcUsable pcUsable,u.mobileUsable mobileUsable
+    			from users u left join (
+      				select s.userid,count(s.id) monthCount from usersign s where s.createdate >=#startDate#
+     					 and s.createdate<![CDATA[ < ]]>#endDate# group by s.userid
+      									) c on u.id=c.userid 
+    			) t
+	</insert>
+	
+	<select id="countFindUserAccountLoginDetailForPageResult" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(1) 
+		from useraccountLoginDetailWeek w left join useraccountLoginDetailMonth m 
+		on w.userid = m.userid where 1=1
+		 <dynamic prepend="and" >
+		 	<isEqual property="searchType" compareValue="1">
+		 		w.orgId = #orgId#
+		 	</isEqual>
+		 	<isEqual property="searchType" compareValue="2">
+		 		w.orgCode like #orgCode# || '%' and w.orgCode!=#orgCode#
+		 	</isEqual>
+		 </dynamic>
+		 
+	</select>
+	
+	<select id="findUserAccountLoginDetailForPageResult" parameterClass="java.util.Map" resultMap="userAccountLoginDetailResult">
+		select w.id id,w.orgid orgId,w.orgcode orgCode,w.userid userId,
+		w.username userName,w.name name,w.weekcount weekCount,m.monthcount monthCount,w.activationTime activationTime,w.lastLoginTime lastLoginTime ,w.pcUsable pcUsable,w.mobileUsable mobileUsable
+		from useraccountLoginDetailWeek w left join useraccountLoginDetailMonth m 
+		on w.userid = m.userid where 1=1
+		 	<isEqual property="searchType" compareValue="1">
+		 		and w.orgId = #orgId#
+		 	</isEqual>
+		 	<isEqual property="searchType" compareValue="2">
+		 		and w.orgCode like #orgCode# || '%' and w.orgCode!=#orgCode#
+		 	</isEqual>
+		 	<dynamic prepend="order by" >
+		 	<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+			    </isPropertyAvailable>
+		    </dynamic>
+	</select>
+	<sql id="search_sql_where">
+		(select  w.id id,w.orgid orgId,w.orgcode orgCode,w.userid userId,w.username userName,w.name name,w.weekcount weekCount,m.monthcount monthCount,w.activationTime activationTime,w.lastLoginTime lastLoginTime 
+    ,w.pcusable  pcusable,w.mobileusable  mobileusable from useraccountLoginDetailWeek w left join useraccountLoginDetailMonth m on w.userid = m.userid where 1=1
+     	  <isEqual property="searchType" compareValue="1">
+		 		and w.orgId = #orgId#
+		 	</isEqual>
+		 	<isEqual property="searchType" compareValue="2">
+		 		and w.orgCode like #orgCode# || '%' and w.orgCode!=#orgCode#
+		 	</isEqual>
+      
+      ) a left join  organizations org on org.id=a.orgId
+      where org.orginternalcode like #orgCode# || '%' 
+      <isNotNull property="orgType" prepend="and">
+     	org.orgtype=#orgType#
+      </isNotNull>
+      <isNotNull property="userAccountType">
+      	<isEqual property="userAccountType" compareValue="1"  prepend="and">
+      		 a.pcusable=1
+      	</isEqual>
+      	<isEqual property="userAccountType" compareValue="2"  prepend="and">
+      		a.mobileusable=1
+      	</isEqual>
+      </isNotNull>
+      <isNotNull property="cityVillageType" >
+      	<isEqual property="cityVillageType" compareValue="1" prepend="and">
+      		 (org.orginternalcode not in(select o.orginternalcode from organizations o where o.orgname like '%村' or o.orgname like '%村民委员会' or
+                        o.orgname like '%农村工作中心站' or o.orgname like '%村委会') 
+             or 
+             org.parentid not in(select o.id from organizations o where o.orgname like '%村' or o.orgname like '%村民委员会' or
+                        o.orgname like '%农村工作中心站' or o.orgname like '%村委会'))
+      	</isEqual>
+      	<isEqual property="cityVillageType" compareValue="2" prepend="and">
+      		  (org.orginternalcode in(select o.orginternalcode from organizations o where o.orgname like '%村' or o.orgname like '%村民委员会' or
+                        o.orgname like '%农村工作中心站' or o.orgname like '%村委会') 
+              or 
+              org.parentid in(select o.id from organizations o where o.orgname like '%村' or o.orgname like '%村民委员会' or
+                        o.orgname like '%农村工作中心站' or o.orgname like '%村委会'))
+      	</isEqual>
+      </isNotNull>
+       <isNotNull property="startActivationTime" prepend="and">
+     	   a.activationTime >=#startActivationTime#
+      </isNotNull>
+       <isNotNull property="endActivationTime" prepend="and">
+     	    a.activationTime <![CDATA[ <= ]]>#endActivationTime#
+      </isNotNull>
+      <isNotNull property="startLastLoginTime" prepend="and">
+     	   a.lastLoginTime >=#startLastLoginTime#
+      </isNotNull>
+      <isNotNull property="endLastLoginTime" prepend="and">
+     	   a.lastLoginTime <![CDATA[ <= ]]>#endLastLoginTime#
+      </isNotNull> 
+	</sql>
+	<select id="countSearchUserAccountForPageResult" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(1) from <include refid="search_sql_where" />
+	</select>
+	<select id="searchUserAccountForPageResult" parameterClass="java.util.Map" resultMap="userAccountLoginDetailResult">
+	select a.id id,a.orgid orgId,a.orgcode orgCode,a.userid userId,a.username userName,a.name name,a.weekcount weekCount,
+	a.monthcount monthCount,a.activationTime activationTime,a.lastLoginTime lastLoginTime ,a.pcUsable pcUsable,a.mobileUsable mobileUsable
+    from 
+    <include refid="search_sql_where" />
+    <dynamic prepend="order by" >
+		 	<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+			    </isPropertyAvailable>
+		    </dynamic>
+	</select>
+	
+	<delete id="deleteUserAccountLoginDeatilWeek">
+		delete from userAccountLoginDetailWeek
+	</delete>
+	<delete id="deleteUserAccountLoginDeatilMonth">
+		delete from userAccountLoginDetailMonth
+	</delete>
+	
+	<select id="getUserSignByUserIdAndDate" parameterClass="java.util.Map" resultMap="userSignResult">
+		select userid,createDate from usersign u where u.userid=#userId# and u.createdate>=#startDate# and u.createdate<![CDATA[ < ]]>#endDate# order by createDate desc
+	</select>
+	<sql id="citySql_where">
+		and (w.orgcode not in((select org.orginternalcode from organizations org where org.orgname like '%村' or org.orgname like '%村民委员会' or
+                        org.orgname like '%农村工作中心站' or org.orgname like '%村委会') 
+                        union all
+              (select orginternalcode from organizations where parentid in(select org.id from organizations org where org.orgname like '%村' or org.orgname like '%村民委员会' or
+                        org.orgname like '%农村工作中心站' or org.orgname like '%村委会'))))
+	</sql>
+	<sql id="countrysideSql_where">
+		and (w.orgcode in((select org.orginternalcode from organizations org where org.orgname like '%村' or org.orgname like '%村民委员会' or
+                        org.orgname like '%农村工作中心站' or org.orgname like '%村委会') 
+                        union all
+              (select orginternalcode from organizations where parentid in(select org.id from organizations org where org.orgname like '%村' or org.orgname like '%村民委员会' or
+                        org.orgname like '%农村工作中心站' or org.orgname like '%村委会'))))
+	</sql>
+	<select id="getAccountLoginDetailStatistics" parameterClass="java.util.Map" resultMap="userAccountLoginStatisticsVoResult">	
+	   select o.id orgId,max(o.orgname) orgname,
+       <!--所有账号-->
+       (select count(w.id) accountCount 
+       from useraccountlogindetailweek w  where w.orgcode like o.orginternalcode ||'%' ) accountCount,
+       (select sum(case when w.weekcount>=5 then 1 else 0 end) accountWeekCount 
+       from useraccountlogindetailweek w  where w.orgcode like o.orginternalcode ||'%'  ) accountWeekCount, 
+        (select sum(case when m.monthcount>=20 then 1 else 0 end) accountMonthCount 
+       from useraccountlogindetailmonth m  where m.orgcode like o.orginternalcode ||'%' ) accountMonthCount,
+       <!--行政部门 PC-->
+       (select count(w.id) executiveAccountPC 
+       from useraccountlogindetailweek w  where w.pcusable=1 and w.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#) and w.orgcode like o.orginternalcode ||'%' ) executiveAccountPC,
+       (select sum(case when w.weekcount>=5 then 1 else 0 end) executiveAccountWeekPC 
+       from useraccountlogindetailweek w  where w.pcusable=1 and w.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#) and w.orgcode like o.orginternalcode ||'%'  ) executiveAccountWeekPC, 
+        (select sum(case when m.monthcount>=20 then 1 else 0 end) executiveAccountMonthPC 
+       from useraccountlogindetailmonth m  where m.pcusable=1 and m.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#) and m.orgcode like o.orginternalcode ||'%' ) executiveAccountMonthPC,
+       <!--行政部门 mobile-->
+       (select count(w.id) executiveAccountMobile 
+       from useraccountlogindetailweek w  where w.mobileusable=1 and w.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#) and w.orgcode like o.orginternalcode ||'%' ) executiveAccountMobile,
+       (select sum(case when w.weekcount>=5 then 1 else 0 end) executiveAccountWeekMobile 
+       from useraccountlogindetailweek w  where w.mobileusable=1 and w.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#) and w.orgcode like o.orginternalcode ||'%'  ) executiveAccountWeekMobile, 
+        (select sum(case when m.monthcount>=20 then 1 else 0 end) executiveAccountMonthMobile 
+       from useraccountlogindetailmonth m  where m.mobileusable=1 and m.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#) and m.orgcode like o.orginternalcode ||'%' ) executiveAccountMonthMobile,
+       <!--职能部门 PC-->
+       (select count(w.id) functionalAccountPC 
+       from useraccountlogindetailweek w  where w.pcusable=1 and w.orgcode in ( select orginternalcode from organizations where orgtype=#funcType#) and w.orgcode like o.orginternalcode ||'%' ) functionalAccountPC,
+       (select sum(case when w.weekcount>=5 then 1 else 0 end) functionalAccountWeekPC 
+       from useraccountlogindetailweek w  where w.pcusable=1 and w.orgcode in ( select orginternalcode from organizations where orgtype=#funcType#) and w.orgcode like o.orginternalcode ||'%'  ) functionalAccountWeekPC, 
+        (select sum(case when m.monthcount>=20 then 1 else 0 end) functionalAccountMonthPC 
+       from useraccountlogindetailmonth m  where m.pcusable=1 and m.orgcode in ( select orginternalcode from organizations where orgtype=#funcType#) and m.orgcode like o.orginternalcode ||'%' ) functionalAccountMonthPC,
+       <!--职能部门 mobile-->
+       (select count(w.id) functionalAccountMobile 
+       from useraccountlogindetailweek w  where w.mobileusable=1 and w.orgcode in ( select orginternalcode from organizations where orgtype=#funcType#) and w.orgcode like o.orginternalcode ||'%' ) functionalAccountMobile,
+       (select sum(case when w.weekcount>=5 then 1 else 0 end) functionalAccountWeekMobile 
+       from useraccountlogindetailweek w  where w.mobileusable=1 and w.orgcode in ( select orginternalcode from organizations where orgtype=#funcType#) and w.orgcode like o.orginternalcode ||'%'  ) functionalAccountWeekMobile, 
+        (select sum(case when m.monthcount>=20 then 1 else 0 end) functionalAccountMonthMobile 
+       from useraccountlogindetailmonth m  where m.mobileusable=1 and m.orgcode in ( select orginternalcode from organizations where orgtype=#funcType#) and m.orgcode like o.orginternalcode ||'%' ) functionalAccountMonthMobile,
+       <!--城市 PC -->
+       (select count(w.id) cityAccountPC 
+       from useraccountlogindetailweek w  where w.pcusable=1 <include refid="citySql_where" /> and w.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#)  and w.orgcode like o.orginternalcode ||'%' ) cityAccountPC,
+       (select sum(case when w.weekcount>=5 then 1 else 0 end) cityAccountWeekPC 
+       from useraccountlogindetailweek w  where w.pcusable=1 <include refid="citySql_where" /> and w.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#) and w.orgcode like o.orginternalcode ||'%'  ) cityAccountWeekPC, 
+        (select sum(case when w.monthcount>=20 then 1 else 0 end) cityAccountMonthPC 
+       from useraccountlogindetailmonth w  where w.pcusable=1 <include refid="citySql_where" /> and w.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#)  and w.orgcode like o.orginternalcode ||'%' ) cityAccountMonthPC,
+       <!--城市 mobile-->
+       (select count(w.id) cityAccountMobile 
+       from useraccountlogindetailweek w  where w.mobileusable=1 <include refid="citySql_where" /> and w.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#) and w.orgcode like o.orginternalcode ||'%' ) cityAccountMobile,
+       (select sum(case when w.weekcount>=5 then 1 else 0 end) cityAccountWeekMobile 
+       from useraccountlogindetailweek w  where w.mobileusable=1 <include refid="citySql_where" /> and w.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#)  and w.orgcode like o.orginternalcode ||'%'  ) cityAccountWeekMobile, 
+        (select sum(case when w.monthcount>=20 then 1 else 0 end) cityAccountMonthMobile 
+       from useraccountlogindetailmonth w  where w.mobileusable=1 <include refid="citySql_where" /> and w.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#)  and w.orgcode like o.orginternalcode ||'%' ) cityAccountMonthMobile,
+       <!--农村 PC -->
+       (select count(w.id) countrysideAccountPC 
+       from useraccountlogindetailweek w  where w.pcusable=1 <include refid="countrysideSql_where" /> and w.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#) and w.orgcode like o.orginternalcode ||'%' ) countrysideAccountPC,
+       (select sum(case when w.weekcount>=5 then 1 else 0 end) countrysideAccountWeekPC 
+       from useraccountlogindetailweek w  where w.pcusable=1 <include refid="countrysideSql_where" /> and w.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#) and w.orgcode like o.orginternalcode ||'%'  ) countrysideAccountWeekPC, 
+        (select sum(case when w.monthcount>=20 then 1 else 0 end) countrysideAccountMonthPC 
+       from useraccountlogindetailmonth w  where w.pcusable=1 <include refid="countrysideSql_where" /> and w.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#) and w.orgcode like o.orginternalcode ||'%' ) countrysideAccountMonthPC,
+       <!--农村 mobile-->
+       (select count(w.id) countrysideAccountMobile 
+       from useraccountlogindetailweek w  where w.mobileusable=1 <include refid="countrysideSql_where" /> and  w.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#) and w.orgcode like o.orginternalcode ||'%' ) countrysideAccountMobile,
+       (select sum(case when w.weekcount>=5 then 1 else 0 end) countrysideAccountWeekMobile 
+       from useraccountlogindetailweek w  where w.mobileusable=1 <include refid="countrysideSql_where" /> and w.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#)  and w.orgcode like o.orginternalcode ||'%'  ) countrysideAccountWeekMobile, 
+        (select sum(case when w.monthcount>=20 then 1 else 0 end) countrysideAccountMonthMobile 
+       from useraccountlogindetailmonth w  where w.mobileusable=1 <include refid="countrysideSql_where" /> and w.orgcode in ( select orginternalcode from organizations where orgtype=#orgType#)  and w.orgcode like o.orginternalcode ||'%' ) countrysideAccountMonthMobile,
+       <!--所有 PC-->
+       (select count(w.id) accountPC 
+       from useraccountlogindetailweek w  where w.pcusable=1 and w.orgcode like o.orginternalcode ||'%' ) accountPC,
+       (select sum(case when w.weekcount>=5 then 1 else 0 end) accountWeekPC 
+       from useraccountlogindetailweek w  where w.pcusable=1 and w.orgcode like o.orginternalcode ||'%'  ) accountWeekPC, 
+        (select sum(case when m.monthcount>=20 then 1 else 0 end) accountMonthPC 
+       from useraccountlogindetailmonth m  where m.pcusable=1 and m.orgcode like o.orginternalcode ||'%' ) accountMonthPC,
+       <!--所有手机-->
+       (select count(w.id) accountMobile 
+       from useraccountlogindetailweek w  where w.mobileusable=1 and w.orgcode like o.orginternalcode ||'%' ) accountMobile,
+       (select sum(case when w.weekcount>=5 then 1 else 0 end) accountWeekMobile 
+       from useraccountlogindetailweek w  where w.mobileusable=1 and w.orgcode like o.orginternalcode ||'%'  ) accountWeekMobile, 
+        (select sum(case when m.monthcount>=20 then 1 else 0 end) accountMonthMobile 
+       from useraccountlogindetailmonth m  where m.mobileusable=1 and m.orgcode like o.orginternalcode ||'%' ) accountMonthMobile
+       from organizations o where  o.parentid =#orgId# group by o.id,o.orginternalcode,o.seq,o.orgname,o.orgtype,o.parentid
+       order by  o.seq
+		
+	</select>
+</sqlMap>

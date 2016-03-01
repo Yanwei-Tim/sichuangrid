@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="taskListCommon">
+<typeAlias alias="BaseTaskVisit" type="com.tianque.plugin.taskList.domain.BaseTaskVisit" />
+<typeAlias alias="FloatingPopulationTask" type="com.tianque.plugin.taskList.domain.FloatingPopulationTask" />
+<typeAlias alias="HiddenDangerTask" type="com.tianque.plugin.taskList.domain.HiddenDangerTask" />
+<typeAlias alias="TaskListStatistics" type="com.tianque.plugin.taskList.domain.TaskListStatistics" />
+
+	<resultMap id="taskListStatisticsResult" class="TaskListStatistics">
+	  <result column="orgName" property="organization.orgName" />
+	  <result column="druggyPopulationNum" property="druggyPopulationNum" />
+	  <result column="visitsDruggyNumber" property="visitsDruggyNumber" />
+	  <result column="visitsNumberOfDruggy" property="visitsNumberOfDruggy"/>
+	  <result column="exceptionOfDruggy" property="exceptionOfDruggy"/>
+	  <result column="signOfDruggy" property="signOfDruggy"/>
+	  <result column="replyOfDruggy" property="replyOfDruggy"/>
+	  
+	  <result column="mentalPatientPopulationNum" property="mentalPatientPopulationNum"/>
+	  <result column="visitsMentalPatientNumber" property="visitsMentalPatientNumber"/>
+	  <result column="visitsNumberOfMentalPatient" property="visitsNumberOfMentalPatient"/>
+	  <result column="exceptionOfMentalPatient" property="exceptionOfMentalPatient"/>
+	  <result column="signOfMentalPatient" property="signOfMentalPatient"/>
+	  <result column="replyOfMentalPatient" property="replyOfMentalPatient"/>
+	  
+	  <result column="rectificativePopulationNum" property="rectificativePopulationNum"/>
+	  <result column="visitsRectificativeNumber" property="visitsRectificativeNumber"/>
+	  <result column="visitsNumberOfRectificative" property="visitsNumberOfRectificative"/>
+	  <result column="exceptionOfRectificative" property="exceptionOfRectificative"/>
+	  <result column="signOfRectificative" property="signOfRectificative"/>
+	  <result column="replyOfRectificative" property="replyOfRectificative"/>
+	  
+	  <result column="positiveInfoPopulationNum" property="positiveInfoPopulationNum"/>
+	  <result column="visitsPositiveInfoNumber" property="visitsPositiveInfoNumber"/>
+	  <result column="visitsNumberOfPositiveInfo" property="visitsNumberOfPositiveInfo"/>
+	  <result column="exceptionOfPositiveInfo" property="exceptionOfPositiveInfo"/>
+	  <result column="signOfPositiveInfo" property="signOfPositiveInfo"/>
+	  <result column="replyOfPositiveInfo" property="replyOfPositiveInfo"/>
+	</resultMap>
+	
+	
+	<resultMap id="taskListResult" class="BaseTaskVisit">
+	  <result column="id" property="id"/>
+	  <result column="orgname" property="orgname" />
+	  <result column="druggySum" property="druggySum" />
+	  <result column="mentalPatientSum" property="mentalPatientSum" />
+	  <result column="rectificativeSum" property="rectificativeSum" />
+	  <result column="publicSum" property="publicSum" />
+	  <result column="policeSum" property="policeSum" />
+	  <result column="positiveSum" property="positiveSum" />
+	  <result column="hiddenDangerSum" property="hiddenDangerSum" />
+	  <result column="druggyVisit" property="druggyVisit" />
+	  <result column="mentalPatientPoliceVisit" property="mentalPatientPoliceVisit" />
+	  <result column="mentalPatientJusticeVisit" property="mentalPatientJusticeVisit" />
+	  <result column="rectificativeVisit" property="rectificativeVisit" />
+	  <result column="publicVisit" property="publicVisit" />
+	  <result column="policeVisit" property="policeVisit" />
+	  <result column="positiveVisit" property="positiveVisit" />
+	  <result column="hiddenDangerVisit" property="hiddenDangerVisit" />
+	  <result column="exceptionSum" property="exceptionSum" />
+	  <result column="exceptionVisit" property="exceptionVisit" />
+	  
+	   <result column="exceptionReply" property="exceptionReply" />
+	   <result column="positiveException" property="positiveException" />
+	   <result column="positiveReply" property="positiveReply" />
+	   <result column="rectificativeException" property="rectificativeException" />
+	   <result column="rectificativeReply" property="rectificativeReply" />
+	   <result column="mentalPatientException" property="mentalPatientException" />
+	   <result column="mentalPatientJusticeReply" property="mentalPatientJusticeReply" />
+	  <!-- <result column="mentalPatientPoliceReply" property="mentalPatientPoliceReply" />-->
+	   <result column="druggyException" property="druggyException" />
+	   <result column="druggyReply" property="druggyReply" />
+	   <result column="hiddenDangerReply" property="hiddenDangerReply" />
+	</resultMap>
+	
+	<resultMap id="floatingPopulationResult" class="FloatingPopulationTask">
+	  <result column="id" property="id"/>
+	  <result column="orgname" property="orgname" />
+	  <result column="policeSum" property="policeSum" />
+	  <result column="policeVisit" property="policeVisit" />
+	  <result column="publicSum" property="publicSum" />
+	  <result column="publicVisit" property="publicVisit" />
+	  <result column="gatherSum" property="gatherSum" />
+	  <result column="gatherVisit" property="gatherVisit" />
+	  <result column="smellSum" property="smellSum" />
+	  <result column="smellVisit" property="smellVisit" />
+	  <result column="noiseSum" property="noiseSum" />
+	  <result column="noiseVisit" property="noiseVisit" />
+	  <result column="noIdcardSum" property="noIdcardSum" />
+	  <result column="noIdcardVisit" property="noIdcardVisit" />
+	  <result column="groupLiveSum" property="groupLiveSum" />
+	  <result column="groupLiveVisit" property="groupLiveVisit" />
+	  <result column="liveSum" property="liveSum" />
+	  <result column="liveVisit" property="liveVisit" />
+	  
+	  <result column="gatherReply" property="gatherReply" />
+	  <result column="smellReply" property="smellReply" />
+	  <result column="noiseReply" property="noiseReply" />
+	  <result column="noIdCardReply" property="noIdCardReply" />
+	  <result column="groupLiveReply" property="groupLiveReply" />
+	  <result column="liveReply" property="liveReply" />
+	</resultMap>
+	
+	<resultMap id="hiddenDangerResult" class="HiddenDangerTask">
+	  <result column="id" property="id"/>
+	  <result column="orgname" property="orgname" />
+	  <result column="hiddenDangerSum" property="hiddenDangerSum" />
+	  <result column="hiddenDangerVisit" property="hiddenDangerVisit" />
+	  <result column="explosion" property="explosion" />
+	  <result column="gunAndExplosion" property="gunAndExplosion" />
+	  <result column="makeDruggy" property="makeDruggy" />
+	  <result column="sellDruggy" property="sellDruggy" />
+	  <result column="drinkDruggy" property="drinkDruggy" />
+	  <result column="cultActive" property="cultActive" />
+	  <result column="fake" property="fake" />
+	  <result column="yellow" property="yellow" />
+	  <result column="drink" property="drink" />
+	  <result column="pyramidSelling" property="pyramidSelling" />
+	  <result column="fire" property="fire" />
+	  <result column="receiveGood" property="receiveGood" />
+	  <result column="destroyGood" property="destroyGood" />
+	  <result column="noGuard" property="noGuard" />
+	  <result column="otherException" property="otherException" />
+	  
+	  <result column="explosionReply" property="explosionReply" />
+	  <result column="gunAndExplosionReply" property="gunAndExplosionReply" />
+	  <result column="makeDruggyReply" property="makeDruggyReply" />
+	  <result column="sellDruggyReply" property="sellDruggyReply" />
+	  <result column="drinkDruggyReply" property="drinkDruggyReply" />
+	  <result column="cultActiveReply" property="cultActiveReply" />
+	  <result column="fakeReply" property="fakeReply" />
+	  <result column="yellowReply" property="yellowReply" />
+	  <result column="drinkReply" property="drinkReply" />
+	  <result column="pyramidSellingReply" property="pyramidSellingReply" />
+	  <result column="fireReply" property="fireReply" />
+	  <result column="receiveGoodReply" property="receiveGoodReply" />
+	  <result column="destroyGoodReply" property="destroyGoodReply" />
+	  <result column="noGuardReply" property="noGuardReply" />
+	  <result column="otherExceptionReply" property="otherExceptionReply" />
+	</resultMap>
+	
+	<resultMap id="specialGroupResult" class="BaseTaskVisit">
+	  <result column="id" property="id"/>
+	  <result column="orgname" property="orgname" />
+	  <result column="druggySum" property="druggySum" />
+	  <result column="mentalPatientSum" property="mentalPatientSum" />
+	  <result column="rectificativeSum" property="rectificativeSum" />
+	  <result column="positiveSum" property="positiveSum" />
+	  
+	  <result column="druggyVisit" property="druggyVisit" />
+	  <result column="mentalPatientPoliceVisit" property="mentalPatientPoliceVisit" />
+	  <result column="mentalPatientJusticeVisit" property="mentalPatientJusticeVisit" />
+	  <result column="rectificativeVisit" property="rectificativeVisit" />
+	  <result column="positiveVisit" property="positiveVisit" />
+	  
+	  <result column="rectificativeException" property="rectificativeException" />
+	  <result column="rectificativeReply" property="rectificativeReply" />
+	  <result column="positiveException" property="positiveException" />
+	  <result column="positiveReply" property="positiveReply" />
+	  <result column="druggyException" property="druggyException" />
+	  <result column="druggyReply" property="druggyReply" />
+	  <result column="mentalPatientException" property="mentalPatientException" />
+	  <result column="mentalPatientJusticeReply" property="mentalPatientJusticeReply" />
+	</resultMap>
+	
+	<sql id="sql_date">
+		<isPropertyAvailable property="startDate">
+			  <isNotNull property="startDate">
+			  	and createDate>=#startDate#
+			  </isNotNull>
+		</isPropertyAvailable>
+		and createDate <![CDATA[<=]]> #endDate# 
+	</sql>
+	
+	<select id="getTaskSumAndVisitByOrgId" resultMap="taskListResult" parameterClass="map">
+	select org.orgname,org.id ,
+(select count(1)  from hiddenDanger   r where r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" /> ) hiddenDangerSum,
+(select count(1)  from workingSituation  r where r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" /> ) publicSum,
+(select count(1)  from exceptionalSituationRecord  r where r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" /> ) exceptionSum,
+(select count(1)  from propagandaAndVerification m where m.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" /> ) policeSum,
+(select count(1)  from termerRecord d where d.ORGCODE like org.orginternalcode ||'%' <include refid="sql_date" />) rectificativeSum,
+(select count(1)  from positiveInfoRecord d where d.ORGCODE like org.orginternalcode ||'%' <include refid="sql_date" />) positiveSum,
+(select count(1)  from druggyTask d where d.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) druggySum,
+(select count(1)  from mentalPatientTask d where d.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) mentalPatientSum,
+(select nvl(count(distinct r.id),0) from hiddenDanger r where r.ishandle=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) hiddenDangerVisit,
+(select nvl(count(distinct r.id),0) from workingSituation  r where r.ishandle=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) publicVisit,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.status=1 and r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) exceptionVisit,
+(select nvl(count(distinct r.id),0) from propagandaAndVerification r where r.ishandle=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) policeVisit,
+(select nvl(count(distinct r.id),0) from termerRecord r where r.status=1 and r.ORGCODE like org.orginternalcode ||'%' <include refid="sql_date" />) rectificativeVisit,
+(select nvl(count(distinct r.id),0) from positiveInfoRecord r where r.status=1 and r.ORGCODE like org.orginternalcode ||'%' <include refid="sql_date" />) positiveVisit,
+(select nvl(count(distinct r.id),0) from druggyTask r where r.status=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) druggyVisit,
+(select nvl(count(distinct r.id),0) from mentalPatientTask r where r.statuspolice=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) mentalPatientPoliceVisit,
+(select nvl(count(distinct r.id),0) from mentalPatientTask r where r.statusjustice=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) mentalPatientJusticeVisit, 
+
+(select nvl(count(1),0) from exceptionalsituationrecord e where e.hasreplay  = 1 and e.orgcode like org.orginternalcode ||'%' <include refid="sql_date" />) exceptionReply,
+(select nvl(count(1),0) from druggyTask d where d.hasexception=1 and d.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) druggyException,
+(select nvl(count(1),0) from druggyTask d where d.hasreplay=1 and d.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) druggyReply,
+(select nvl(count(distinct r.id),0) from mentalPatientTask r where r.hasexception=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) mentalPatientException,
+(select nvl(count(distinct r.id),0) from mentalPatientTask r where r.hasReplay=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) mentalPatientJusticeReply,
+(select nvl(count(distinct r.id),0) from termerRecord r where r.hasexception=1 and r.ORGCODE like org.orginternalcode ||'%' <include refid="sql_date" />) rectificativeException,
+(select nvl(count(distinct r.id),0) from termerRecord r where r.hasReplay=1 and r.ORGCODE like org.orginternalcode ||'%' <include refid="sql_date" />) rectificativeReply,
+(select nvl(count(distinct r.id),0) from positiveInfoRecord r where r.hasexception=1 and r.ORGCODE like org.orginternalcode ||'%' <include refid="sql_date" />) positiveException,
+(select nvl(count(distinct r.id),0) from positiveInfoRecord r where r.hasReplay=1 and r.ORGCODE like org.orginternalcode ||'%' <include refid="sql_date" />) positiveReply,
+(select nvl(count(distinct r.id),0) from hiddenDanger r where r.hasReplay=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) hiddenDangerReply
+
+ from organizations org where org.Orgtype=#orgType# 
+        <dynamic >
+			<isPropertyAvailable property="parentOrgId">
+				<isNotEmpty property="parentOrgId" prepend=" and ">
+					org.PARENTID=#parentOrgId#
+				</isNotEmpty>
+				<isNotEmpty property="parentOrgId" prepend=" or ">
+					org.ID=#parentOrgId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+		order by org.seq
+	</select>
+	
+	<select id="getFloatingPopulationVisitByOrgId" resultMap="floatingPopulationResult" parameterClass="map">
+	select org.orgname,org.id ,
+(select count(1)  from propagandaAndVerification   r where r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) policeSum,
+(select count(1)  from workingSituation  r where r.orginternalcode like org.orginternalcode ||'%'  <include refid="sql_date" />) publicSum,
+(select count(1)  from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#dljj# and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) gatherSum,
+(select count(1)  from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#ycqw# and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) smellSum,
+(select count(1)  from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#ycsy# and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) noiseSum,
+(select count(1)  from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#wsfz# and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) noIdcardSum,
+(select count(1)  from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#qzfrylwfz# and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) groupLiveSum,
+(select count(1)  from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#ybz# and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) liveSum,
+(select nvl(count(distinct r.id),0) from propagandaAndVerification r where r.ishandle=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) policeVisit,
+(select nvl(count(distinct r.id),0) from workingSituation  r where r.ishandle=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) publicVisit,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#dljj# and r.status=1 and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) gatherVisit,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#ycqw# and r.status=1 and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) smellVisit,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#ycsy# and r.status=1 and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) noiseVisit,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#wsfz# and r.status=1 and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) noIdcardVisit,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#qzfrylwfz# and r.status=1 and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) groupLiveVisit,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#ybz# and r.status=1 and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) liveVisit,
+
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#dljj# and r.hasreplay=1 and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) gatherReply,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#ycqw# and r.hasreplay=1 and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) smellReply,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#ycsy# and r.hasreplay=1 and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) noiseReply,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#wsfz# and r.hasreplay=1 and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) noIdCardReply,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#qzfrylwfz# and r.hasreplay=1 and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) groupLiveReply,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=#ybz# and r.hasreplay=1 and  r.orgCode like org.orginternalcode ||'%' <include refid="sql_date" />) liveReply
+ 
+ from organizations org where org.Orgtype=#orgType# 
+        <dynamic >
+			<isPropertyAvailable property="parentOrgId">
+				<isNotEmpty property="parentOrgId" prepend=" and ">
+					org.PARENTID=#parentOrgId#
+				</isNotEmpty>
+				<isNotEmpty property="parentOrgId" prepend=" or ">
+					org.ID=#parentOrgId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+		order by org.seq
+	</select>
+	
+	<select id="getHiddenDangerVisitByOrgId" resultMap="hiddenDangerResult" parameterClass="map">
+	select org.orgname,org.id ,
+(select count(1)  from hiddendanger   r where r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) hiddenDangerSum,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.ishandle=1 and r.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) hiddenDangerVisit,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=#sbk# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) explosion,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=#sqsb# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) gunAndExplosion,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=#szd# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) makeDruggy,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=#sfd# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) sellDruggy,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=#sxd# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) drinkDruggy,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=#xjhd# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) cultActive,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=#zjfj# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) fake,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=#sh# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) yellow,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=#sd# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) drink,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=#cx# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) pyramidSelling,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=#hzyh# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) fire,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=#sz# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) receiveGood,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=#xz# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) destroyGood,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=#wslhyry# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) noGuard,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=#qtycsj# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) otherException,
+
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.HASREPLAY = 1 and r.exceptionType=#sbk# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) explosionReply,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.HASREPLAY = 1 and r.exceptionType=#sqsb# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) gunAndExplosionReply,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.HASREPLAY = 1 and r.exceptionType=#szd# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) makeDruggyReply,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.HASREPLAY = 1 and r.exceptionType=#sfd# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) sellDruggyReply,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.HASREPLAY = 1 and r.exceptionType=#sxd# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) drinkDruggyReply,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.HASREPLAY = 1 and r.exceptionType=#xjhd# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) cultActiveReply,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.HASREPLAY = 1 and r.exceptionType=#zjfj# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) fakeReply,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.HASREPLAY = 1 and r.exceptionType=#sh# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) yellowReply,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.HASREPLAY = 1 and r.exceptionType=#sd# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) drinkReply,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.HASREPLAY = 1 and r.exceptionType=#cx# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) pyramidSellingReply,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.HASREPLAY = 1 and r.exceptionType=#hzyh# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) fireReply,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.HASREPLAY = 1 and r.exceptionType=#sz# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) receiveGoodReply,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.HASREPLAY = 1 and r.exceptionType=#xz# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) destroyGoodReply,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.HASREPLAY = 1 and r.exceptionType=#wslhyry# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) noGuardReply,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.HASREPLAY = 1 and r.exceptionType=#qtycsj# and  r.ORGINTERNALCODE like org.orginternalcode ||'%' <include refid="sql_date" />) otherExceptionReply
+
+ from organizations org where org.Orgtype=#orgType# 
+        <dynamic >
+			<isPropertyAvailable property="parentOrgId">
+				<isNotEmpty property="parentOrgId" prepend=" and ">
+					org.PARENTID=#parentOrgId#
+				</isNotEmpty>
+				<isNotEmpty property="parentOrgId" prepend=" or ">
+					org.ID=#parentOrgId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+		order by org.seq
+	</select>
+	
+		<select id="getSpecialGroupSumAndVisitByOrgId" resultMap="specialGroupResult" parameterClass="map">
+			select org.orgname,org.id,
+				(select count(1)  from termerRecord d where d.ORGCODE like org.orginternalcode ||'%' <include refid="sql_date" />) rectificativeSum,
+				(select count(1)  from druggyTask d where d.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) druggySum,
+				(select count(1)  from mentalPatientTask d where d.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) mentalPatientSum,
+				(select count(1)  from positiveInfoRecord d where d.ORGCODE like org.orginternalcode ||'%' <include refid="sql_date" />) positiveSum,
+				(select nvl(count(distinct h.id),0) from termerRecord h where h.status=1 and h.ORGCODE like org.orginternalcode ||'%' <include refid="sql_date" />) rectificativeVisit,
+				(select nvl(count(distinct h.id),0) from positiveInfoRecord h where h.status=1 and h.ORGCODE like org.orginternalcode ||'%' <include refid="sql_date" />) positiveVisit,
+				(select nvl(count(distinct h.id),0) from druggyTask h where h.status=1 and h.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) druggyVisit,
+				(select nvl(count(distinct h.id),0) from mentalPatientTask h where h.statuspolice=1 and h.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) mentalPatientPoliceVisit,
+				(select nvl(count(distinct h.id),0) from mentalPatientTask h where h.statusjustice=1 and h.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) mentalPatientJusticeVisit,
+				
+				(select nvl(count(distinct h.id),0) from termerRecord h where h.hasexception=1 and h.ORGCODE like org.orginternalcode ||'%' <include refid="sql_date" />) rectificativeException,
+				(select nvl(count(distinct h.id),0) from positiveInfoRecord h where h.hasexception=1 and h.ORGCODE like org.orginternalcode ||'%' <include refid="sql_date" />) positiveException,
+				(select nvl(count(distinct h.id),0) from druggyTask h where h.hasexception=1 and h.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) druggyException,
+				(select nvl(count(distinct h.id),0) from mentalPatientTask h where h.hasexception=1 and h.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) mentalPatientException,
+				
+				(select nvl(count(distinct h.id),0) from termerRecord h where h.hasreplay=1 and h.ORGCODE like org.orginternalcode ||'%' <include refid="sql_date" />) rectificativeReply,
+				(select nvl(count(distinct h.id),0) from positiveInfoRecord h where h.hasreplay=1 and h.ORGCODE like org.orginternalcode ||'%' <include refid="sql_date" />) positiveReply,
+				(select nvl(count(distinct h.id),0) from druggyTask h where h.hasreplay=1 and h.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) druggyReply,
+				(select nvl(count(distinct h.id),0) from mentalPatientTask h where h.hasreplay=1 and h.orginternalcode like org.orginternalcode ||'%' <include refid="sql_date" />) mentalPatientJusticeReply
+		 	from organizations org where org.Orgtype=#orgType# 
+	        <dynamic >
+				<isPropertyAvailable property="parentOrgId">
+					<isNotEmpty property="parentOrgId" prepend=" and ">
+						org.PARENTID=#parentOrgId#
+					</isNotEmpty>
+					<isNotEmpty property="parentOrgId" prepend=" or ">
+						org.ID=#parentOrgId#
+					</isNotEmpty>
+				</isPropertyAvailable>
+			</dynamic>
+			order by org.seq
+	</select>
+	
+	<update id="updateReceiptStatus" parameterClass="java.util.Map">
+	        update $tableName$ set
+	   <isEqual property="signType" compareValue="police">
+			STATUSPOLICE=1,
+			attitudepolice=#attitude#,
+			signDatepolice=#signDate#,
+			signMemberNamepolice=#signMemberName#
+		</isEqual>
+		<isEqual property="signType" compareValue="justice">
+			STATUSJUSTICE=1,
+			attitudejustice=#attitude#,
+			signDatejustice=#signDate#,
+			signMemberNamejustice=#signMemberName#
+		</isEqual>
+		<isNull property="signType" >
+			status=1,
+			attitude=#attitude#,
+			signDate=#signDate#,
+			signMemberName=#signMemberName#
+		 </isNull>
+		  where id=#id#
+	</update>
+	<sql id="taskListStatistics_sql">
+		and k.createDate>=#startDate# and k.createDate<![CDATA[<]]>#endDate#
+	</sql>
+	<select id="getTaskListStatistics" parameterClass="java.util.Map" resultMap="taskListStatisticsResult">
+		select org.orgName orgName,
+		(select count(1) from druggys d where d.orginternalcode like org.orginternalcode ||'%') druggyPopulationNum,
+		(select count(distinct(k.druggyid)) from druggytask k where k.druggyid is not null <include refid="taskListStatistics_sql" /> and k.orginternalcode like org.orginternalcode ||'%') visitsDruggyNumber,
+		(select count(1) from druggytask k where k.druggyid is not null <include refid="taskListStatistics_sql" /> and k.orginternalcode like org.orginternalcode ||'%') visitsNumberOfDruggy,
+		(select count(1) from druggytask k where k.druggyid is not null <include refid="taskListStatistics_sql" /> and k.hasexception= 1 and k.orginternalcode like org.orginternalcode ||'%') exceptionOfDruggy,
+		(select count(1) from druggytask k where k.druggyid is not null <include refid="taskListStatistics_sql" /> and k.status= 1 and k.orginternalcode like org.orginternalcode ||'%') signOfDruggy,
+		(select count(1) from druggytask k where k.druggyid is not null <include refid="taskListStatistics_sql" /> and k.hasreplay= 1 and k.orginternalcode like org.orginternalcode ||'%') replyOfDruggy,
+		
+		(select count(1) from mentalpatients m where m.orginternalcode like org.orginternalcode ||'%') mentalPatientPopulationNum,
+		(select count(distinct(k.mentalpatientid)) from mentalpatienttask k where k.mentalpatientid  is not null <include refid="taskListStatistics_sql" /> and k.orginternalcode like org.orginternalcode ||'%')visitsMentalPatientNumber,
+		(select count(1) from mentalpatienttask k where k.mentalpatientid is not null <include refid="taskListStatistics_sql" /> and k.orginternalcode like org.orginternalcode ||'%')visitsNumberOfMentalPatient,
+		(select count(1) from mentalpatienttask k where k.mentalpatientid is not null <include refid="taskListStatistics_sql" /> and k.hasexception= 1 and k.orginternalcode like org.orginternalcode ||'%')exceptionOfMentalPatient,
+		(select count(1) from mentalpatienttask k where k.mentalpatientid is not null <include refid="taskListStatistics_sql" /> and (k.statuspolice= 1 or k.statusjustice=1) and k.orginternalcode like org.orginternalcode ||'%')signOfMentalPatient,
+		(select count(1) from mentalpatienttask k where k.mentalpatientid is not null <include refid="taskListStatistics_sql" /> and k.hasreplay= 1 and k.orginternalcode like org.orginternalcode ||'%') replyOfMentalPatient,
+		
+		(select count(1) from rectificativepersons r where r.orginternalcode like org.orginternalcode ||'%') rectificativePopulationNum,
+		(select count(distinct(k.termerid)) from termerrecord k where k.termerid  is not null <include refid="taskListStatistics_sql" /> and k.orgCode like org.orginternalcode ||'%')visitsRectificativeNumber,
+		(select count(1) from termerrecord k where k.termerid is not null <include refid="taskListStatistics_sql" /> and k.orgCode like org.orginternalcode ||'%')visitsNumberOfRectificative,
+		(select count(1) from termerrecord k where k.termerid is not null <include refid="taskListStatistics_sql" /> and k.hasexception= 1 and k.orgCode like org.orginternalcode ||'%')exceptionOfRectificative,
+		(select count(1) from termerrecord k where k.termerid is not null <include refid="taskListStatistics_sql" /> and k.status= 1 and k.orgCode like org.orginternalcode ||'%')signOfRectificative,
+		(select count(1) from termerrecord k where k.termerid is not null <include refid="taskListStatistics_sql" /> and k.hasreplay= 1 and k.orgCode like org.orginternalcode ||'%') replyOfRectificative,
+		
+		(select count(1) from positiveinfos p where p.orginternalcode like org.orginternalcode ||'%') positiveInfoPopulationNum,
+		(select count(distinct(k.positiveinfoid)) from positiveinforecord k where k.positiveinfoid  is not null <include refid="taskListStatistics_sql" /> and k.orgCode like org.orginternalcode ||'%')visitsPositiveInfoNumber,
+		(select count(1) from positiveinforecord k where k.positiveinfoid is not null <include refid="taskListStatistics_sql" /> and k.orgCode like org.orginternalcode ||'%')visitsNumberOfPositiveInfo,
+		(select count(1) from positiveinforecord k where k.positiveinfoid is not null <include refid="taskListStatistics_sql" /> and k.hasexception= 1 and k.orgCode like org.orginternalcode ||'%')exceptionOfPositiveInfo,
+		(select count(1) from positiveinforecord k where k.positiveinfoid is not null <include refid="taskListStatistics_sql" /> and k.status=1 and k.orgCode like org.orginternalcode ||'%')signOfPositiveInfo,
+		(select count(1) from positiveinforecord k where k.positiveinfoid is not null <include refid="taskListStatistics_sql" /> and k.hasreplay= 1 and k.orgCode like org.orginternalcode ||'%') replyOfPositiveInfo
+		
+		   
+		
+		from organizations org where org.orgType=#orgType# and org.parentid=#parentOrgId# group by org.id,org.orgName,org.seq,org.orginternalcode order by org.seq
+			</select>
+	
+	
+</sqlMap>

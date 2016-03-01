@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="workContactManage" extends="default"
+		namespace="/contact/workContactManage">
+		<default-class-ref class="workContactController"></default-class-ref>
+		<action name="findOtherWorkContacts" method="findOtherWorkContacts">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			
+		</action>
+		
+		<action name="getContacterById" method="getContacterById">
+			<result name="success" type="json">
+				<param name="root">workContacter</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="findWorkContacts" method="findWorkContacts">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="searchWorkContacters" method="searchWorkContacters">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="searchWorkContactersForMobile" method="searchWorkContactersForMobile">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+	</package>
+</struts>

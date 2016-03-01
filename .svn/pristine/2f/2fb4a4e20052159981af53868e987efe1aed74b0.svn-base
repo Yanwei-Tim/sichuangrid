@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="otherLocaleTemp">
+	<typeAlias alias="OtherLocaleTemp" type="com.tianque.plugin.dataManage.location.otherLocaleTemp.domain.OtherLocaleTemp" />
+	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+	
+	<resultMap id="otherLocaleTempResultForBase" class="OtherLocaleTemp" extends="locationTempBaseDomain.placeCommonTempResultForBase">
+		<result property="type.id" column="type" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="telephone" column="telephone" />
+		<result column="practitioner_Number" property="practitionerNumber"/>
+	</resultMap>
+    <resultMap id="otherLocaleTempResultForList" class="OtherLocaleTemp" extends="otherLocaleTemp.otherLocaleTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<sql id="updateBusinessSql">
+		type = #type.id#
+		,mobileNumber = #mobileNumber#
+		,telephone = #telephone#
+		,attentionExtent=#attentionExtent.id#
+		,practitioner_Number=#practitionerNumber#
+	</sql>
+	
+	<delete id="deleteOtherLocaleTempById" parameterClass="Long">
+	  	 delete DM_otherLocales_Temp where id = #value#
+	</delete>
+
+	<sql id="claim_sql_where">
+		from DM_otherLocales_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	
+	<insert id="addOtherLocaleTemp" parameterClass="OtherLocaleTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_otherLocales_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_otherLocales_Temp
+		(id,orgId,orgInternalCode,name,type,address,manager,telephone,mobileNumber,attentionExtent,remark,
+		createDate,createUser,practitioner_Number,
+		<include refid="dataManage.addDataManage"/>
+		)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#name#,#type.id#,#address#,#manager#,#telephone#,#mobileNumber#,
+		#attentionExtent.id#,#remark#,#createDate#,#createUser#,#practitionerNumber#,	
+		<include refid="dataManage.addValueDataManage"/>
+		)
+    </insert>
+    
+    <select id="findTemps" resultMap="otherLocaleTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countFindTemps" resultClass="java.lang.Integer"
+		parameterClass="searchVo">
+		<![CDATA[select count(id) ]]>
+		<include refid="claim_sql_where" />
+	</select>
+	
+	
+	
+	  <select id="getOtherLocaleTempById" resultMap="otherLocaleTempResultForList"
+		parameterClass="java.lang.Long">
+			select * from DM_otherLocales_Temp where id=#value#
+	</select>
+	<update id="updateOtherLocaleTempInIdById"  parameterClass="java.util.Map">
+		update DM_otherLocales_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<update id="updateOtherLocaleTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_otherLocales_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	<update id="updateOtherLocaleTempInfo" parameterClass="OtherLocaleTemp">
+		update DM_otherLocales_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="otherLocaleTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+</sqlMap>

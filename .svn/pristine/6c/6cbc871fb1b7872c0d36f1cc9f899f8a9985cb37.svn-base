@@ -1,0 +1,628 @@
+html,body {  overflow: hidden;}
+#map{width:100%;}
+body { background-position:50% 50%; background-repeat:repeat repeat;}
+a {text-decoration: none;}
+.hidden{display:none;}
+.triangle{background: #fff;width: 0px;height: 0px;overflow: hidden;}
+.triangle_b{border-top: 5px solid #7196DB;border-right: 5px solid #fff;border-left: 5px solid #fff;}
+/*.ui-layout-north{z-index:1020;}*/
+#TwoMapView .formBox{padding:0px;}
+#TwoMapView .FormTreeBox{display:none;}
+#TwoMapView .searchContent{width:210px;}
+#TwoMapView .searchText{width:210px;}
+.searchContent .updownList{display:none;}
+.olImageLoadError{ padding:256px;background:none !important; }
+
+/*header*/
+.formBox,.formBox .FormTreeBox,.searchContain,.searchForm,.searchBtn,.searchBtn span,
+.searchContent .searchText,.searchBox{display:inline-block;*display:inline;*zoom:1;}
+.searchBox{height:30px;}
+
+.formBox{float:left;height:28px;padding:0 0 0 10px;}
+.formBox .FormTreeBox{margin:5px 5px 0 5px;vertical-align:top;}
+.searchContain{height:28px;}
+.searchForm{height:28px;border:1px solid #9C9A94;}
+.searchForm select{height:24px;}
+.searchTrees{float:left;width:138px;height:24px;*display:inline;margin:3px 0px 0 22px;}
+.searchTrees option{height:24px;line-height:24px;vertical-align:middle;}
+.searchMark{height:25px;position:absolute;right:23px;top:15px;overflow:hidden;}
+.searchMark li{float:left;width:24px;height:26px;*display:inline;margin:0 8px;text-align:center;}
+.searchMark li a{height:55px;display:block;font:12px/109px "microsoft yahei";color:#AFBBD5;text-decoration:none;}
+.searchBtn{height:31px;margin:0 5px 0 5px;padding-left:15px;line-height:31px;color:#fff;background:#BD5A32;text-align:center;vertical-align:top;text-decoration:none;position:relative;cursor:pointer;}
+.searchBtn span{padding-right:15px;vertical-align: top;*vertical-align: middle;}
+.searchSelect{margin: 3px 0px 0 5px;}
+.searchContent{width:218px;height:22px;display:inline;}
+.searchContent .searchText{width:210px;*width:200px;height:18px;*height:17px;border:1px solid #fff;color:#333;background:none;}
+
+#statisticInfo .areaInfoBoxC{height:155px;margin:0 7%;position:relative;}
+#statisticInfo .areaInfoBoxC .areaList{width:240px;border: 1px solid #FAC9CD;background: #F8EDED;overflow:hidden;}
+#statisticInfo .areaInfoBoxC li{height:25px;line-height:25px;}
+#statisticInfo .areaInfoBoxC li .cl,
+#statisticInfo .areaInfoBoxC li .cr{float:left;padding:0 0 0 10px;font:12px/25px "microsoft yahei";border-right:1px solid #FAC9CD;border-bottom:1px solid #FAC9CD;}
+#statisticInfo .areaInfoBoxC li .cl{width:35%;font-weight:bold;text-align:right;}
+#statisticInfo .areaInfoBoxC li .cr{width:45%;border-right:none}
+#statisticInfo .areaInfoBoxC li span{padding:0 5px;font-weight:bold;color:#16B9F0;}
+#statisticInfo .areaInfoBoxShadow{width: 178px;height: 154px;position: absolute;top: 0px;left: 0px;z-index: -1;}
+#statisticInfo .gridZoom{width:15px;height:54px;position:absolute;top:50%;left:-15px;margin:-27px 0 0 0;}
+#statisticInfo .gridZoom.close{background:url(../images/icon_zoomUpDown.png) no-repeat;}
+#statisticInfo .gridZoom.open{background:url(../images/icon_gridUp.png) no-repeat;}
+
+/*orgBox*/
+.gis_tree{float:left;padding:0 0 0 5px;color:#333;font-weight:bold;background:#fff;position:relative;}
+#changeArea{width:200px;height:25px;padding:0 0 0 10px;}
+.gis_tree .orgTreeSelected{display:inline-block;*display:inline;*zoom:1;line-height:30px;color:#fff;}
+.gis_tree a{color:#fff;}
+.gis_tree .orgBox{width:231px;height:420px;padding:5px 10px;border:2px solid #EAEDF4;background:#fff;position:absolute;top:27px;left:0px;z-index:10000;overflow:auto;}
+#nav a.globalOrgBtnMod, a.globalOrgBtnMod{height:28px;line-height:28px;}
+
+/*toolbar*/
+.gis_tools{padding-left:15px;}
+.sel_container {
+	float: left;
+	margin-right: 3px;
+}
+.sel_container .curcity-expand {
+	font-size: 12px;
+	margin:8px 2px 0 0;
+	line-height: 15px;
+	height: 15px;
+	display: inline-block;
+	color: #4c4c4c;
+	text-decoration: none;
+	background: url(../images/city_buttons_fdgjdh.png) no-repeat scroll right -146px;
+	padding-right: 15px;
+}
+.tools_r {display:inline-block;*display:inline;*zoom:1; position:absolute;right:0;top:0px; z-index:2; }
+.tools_r_con {display:inline-block;*display:inline;*zoom:1; height:27px; padding-top:4px; }
+.tools_r .toolBtn { float:left; margin-right:3px;position:relative;vertical-align:middle;}
+.toolBtn { font-family:arial; text-align:center; text-decoration:none; cursor:pointer; color:#333; height:22px; line-height:22px; display:inline-block; padding:1px; }
+.toolBtn:hover { color:#4c73c2; background:#F6F6F6; border:1px solid #DBDBDB; -o-border-radius:1px; -moz-border-radius:1px; -webkit-border-radius:1px; border-radius:1px; padding:0; }
+.toolBtn .toolBtn-cont { padding:0 6px; display:inline-block; height:22px; line-height:23px; }
+.toolBtn--link { color:#4c73c2; }
+.toolBtn--info { color:#4c4c4c; }
+.toolBtn--border { height:24px; padding:0; position:relative; }
+.toolBtn--border:hover { border:none; }
+.toolBtn--border .toolBtn-img { top:4px; }
+.toolBtn--border .toolBtn-cont { height:24px; margin-left:1px; float:left; line-height:25px; }
+.toolBtn--border.span_focus, .toolBtn--border.span_over, .toolBtn--border.span_over .toolBtn-cont, .toolBtn--border.span_focus .toolBtn-cont { border:none; background:url(../images/tools_img_yr3cul.png) no-repeat 0 0; }
+.toolBtn--border.span_over .toolBtn-cont { background-position:right 0; }
+.toolBtn--border.span_focus { background-position:0 -27px; }
+.toolBtn--border.span_focus .toolBtn-cont { background-position:right -27px; }
+.toolBtn--noHover:hover { border:none; padding:1px; color:#333; background:transparent; }
+.toolBtn--img { line-height:23px; }
+.toolBtn--img .toolBtn-cont { padding-left:21px; position:relative; }
+.toolBtn--img .toolBtn-img { background:url(../images/tools_img_yr3cul.png) no-repeat; width:12px; height:16px; position:absolute; left:4px; top:2px; }
+.toolBtn--img--both .toolBtn-cont { padding-right:21px; }
+.toolBtn--img--right .toolBtn-cont { padding-right:21px; padding-left:6px; }
+.toolBtn--img--right .toolBtn-img, .toolBtn--img .toolBtn-img--right { left:auto; right:4px; }
+.toolBtn--img--home .toolBtn-img { background-position:-91px -228px; }
+.toolBtn--img--fav .toolBtn-img { background-position:-91px -202px; }
+.toolBtn--img--subway .toolBtn-img { background-position:-91px -254px; }
+.toolBtn--img--sehinv .toolBtn-img { background-position:0 -154px; }
+.toolBtn--img--traf .toolBtn-img { background-position:-15px -154px; left:6px; }
+.toolBtn--img--full .toolBtn-img { background-position:-45px -153px; }
+.toolBtn--img--returnFull .toolBtn-img { background-position:-15px -203px; }
+.toolBtn--img--pano .toolBtn-img { background-position:-45px -179px; }
+.toolBtn--img--tool .toolBtn-img { background-position:-30px -155px; }
+.toolBtn--img--arrow .toolBtn-img { background-position:-60px -156px; top:7px; }
+.toolBtn--img--tool .toolBtn-img--right { background-position:-60px -156px; top:7px; }
+.toolBtn--img--event .toolBtn-cont { color:red; padding-left:24px; }
+.toolBtn--img--event .toolBtn-img { width:20px; background-position:-1px -304px; top:6px; }
+.toolBtn--img--ponding .toolBtn-img { background:url(../images/ponding-icon_nw1u0t.png) no-repeat; width:15px; height:13px; left:3px; top:6px; }
+#tool_event { display:none; }
+#sivCtrlCloseBtn{position:absolute;border:0;cursor:pointer;top:0px;right:0px;width:17px;height:23px; background:url(../images/sehInView_qnvq50.png) no-repeat -100px -36px;}
+#tools_box{ display:none;position:absolute; z-index:300000; text-align:left; }
+.toolBox { background:#fff; left:0; top:23px; width:61px; border:#c3c3c2 solid 1px; }
+.toolBox .span_over, .toolBox .span_focus { background:#f5f5f5; }
+.toolBox .toolBox-item { position:relative; padding-left:21px; display:block; height:22px; line-height:22px; *line-height:26px;
+text-align:baseline; cursor:pointer; text-decoration:none; color:#333; }
+.toolBox .toolBox-item strong{ position:absolute; background:url(../images/icon_toolsBar.png) no-repeat; overflow:hidden; zoom:1; top:3px; width:18px; height:16px; left:3px; }
+.toolBox .toolBox-item strong.drawdol{background-position:-241px 5px;}
+.toolBox .toolBox-item strong.drawline{background-position:-281px 5px;}
+.toolBox .toolBox-item strong.drawface{background-position:1px 5px;}
+.toolBox .toolBox-item strong.drawCircle{background-position:-40px 5px;}
+.toolBox .toolBox-item strong.rectangular{background-position:-79px 5px;}
+.toolBox .toolBox-item strong.ranging{background-position:-122px 5px;}
+.toolBox .toolBox-item strong.measure{background-position:-161px 5px;}
+.toolBox .toolBox-item strong.clearSign{background-position:-203px 5px;}
+.toolBox .toolBox-item strong.showCurrentArea{background-position:-317px 5px;}
+.toolBox .toolBox-item strong.showJurisdictionArea{background-position:-351px 5px;}
+
+.distinguishLine,.distinguishLine .gisTools_Statistics,.distinguishLine .gisTools_tools,.distinguishLine .buildingMarks{display:inline-block;*display:inline;*zoom:1;}
+.gis_tools_info{height:33px;_display:inline;_zoom:1;line-height:25px;background:url(../images/icon_toolsBarLine.jpg) repeat-x;position:relative;z-index:1005;}
+.distinguishLine{float:left;height:33px;padding:0 2px 0 0;position:relative;}
+.distinguishLine .gisToolsMarks{padding:0 20px 0 25px;color:#525252;}
+.distinguishLine .gisToolsMarks strong{width:9px;height:5px;display:inline-block;*display:inline;*zoom:1;margin:0 0 0 5px;}
+.distinguishLine .gisTools_Statistics{background:url(../images/icon_toolsBar.png) no-repeat -430px 11px;}
+.distinguishLine .gisTools_Statistics strong{background:url(../images/icon_searchAeraSelectpng.png) no-repeat;}
+.distinguishLine .gisTools_Statistics.current{background:#F1F1F1 url(../images/icon_toolsBar.png) no-repeat -430px 11px;}
+.distinguishLine .gisTools_tools{background:url(../images/icon_toolsBar.png) no-repeat -505px 10px;}
+.distinguishLine .gisTools_tools strong{background:url(../images/icon_searchAeraSelectpng.png) no-repeat;}
+.distinguishLine .gisTools_tools.current{background:#F1F1F1 url(../images/icon_toolsBar.png) no-repeat -505px 10px;}
+.distinguishLine .gisToolsGraph{width:83px;border:1px solid #5993E3;border-top:none;background:#fff;position:absolute;left:-1px;top:34px;}
+.distinguishLine .gisToolsGraph a{width:100%;display:inline-block;*display:inline;*zoom:1;height:25px;font:12px/25px "";text-align:center;color:#3F81D5;}
+.distinguishLine .boxShadeContent,.distinguishLine .buildingMarks{float:left;}
+.distinguishLine .boxShadeContent input{vertical-align:middle;}
+.distinguishLine .boxShadeContent a{padding:0 10px;}
+.distinguishLine .buildingMarks.plusBorder{border:1px solid #5993E3;border-top:none;}
+.distinguishLine .buildingMarks.minusBorder{border:none;}
+
+.map_popup {display:none;width: 280px;position:absolute;right:0; top:27px; height:210px; z-index:99997;}
+.map_popup .popup_main { border:1px solid #999; z-index:2; position:absolute; width:100%; height:100%; background:#FFF; overflow:hidden; }
+#siv_main{overflow:hidden;}
+.popup_main .content{padding-left: 10px; overflow-y: auto;}
+.map_popup .poput_shadow { width:100%; height:100%; position:absolute; left:4px; top:4px; z-index:1; background:url(../images/pop_shadow_0vtwki.png) no-repeat right bottom; _left:1px; _top:1px; _background:#505050; _border:1px solid #505050; _filter:alpha(opacity=20); }
+.map_popup .title { background:#f9f9f9; border-bottom:1px solid #dadada; height:25px; line-height:25px; font-size:12px; color:#4c4c4c; padding-left:7px; }
+.map_popup button { position:absolute; z-index:50; top:7px; right:4px; width:12px; height:12px; background:url(../images/popup_close_jhuger.gif) no-repeat; border:0; cursor:pointer; }
+.map_popup .shade { width:100%; height:100%; position:absolute; z-index:50; background:#FFF; filter:alpha(opacity=70); opacity:.7; left:0; top:0; display:none; }
+.map_popup .msgContent { overflow-y:auto; height:150px; word-wrap:break-word; word-break:break-all; }
+.map_popup .tip { background:#fdfddd; color:#9c4200; position:absolute; text-align:center; border:1px solid #eabb00; z-index:1000; }
+.map_popup .tip.warn { z-index:50; width:256px; padding:10px; left:120px; top:150px; display:none; }
+.map_popup .tip.fail { padding:3px 5px; top:15px; left:180px; display:none; }
+.map_popup .tip.fail span { vertical-align:middle; _vertical-align:baseline; }
+.map_popup .tip.fail a { background:url(../images/bgs_xybncw.gif) -271px -48px no-repeat; width:11px; height:11px; display:inline-block; display:-moz-inline-stack; zoom:1; *display:inline;vertical-align:middle; _vertical-align:baseline; margin-left:4px; overflow:hidden; }
+.siv_list { margin-top:10px; overflow:hidden; }
+.siv_list li {float:left;width: 72px;text-align: left;line-height:24px; padding:0 5px; zoom:1; }
+.siv_list li a { cursor:pointer;color: #3d6dcc;}
+.siv_list li.cur{background:#3f75af;}
+.siv_list li.cur a{color:#fff;}
+.siv_note { color:#808080; padding-top:8px; line-height:16px; }
+.siv_sec { margin-top:3px; overflow:hidden; }
+.siv_lst { line-height:18px; }
+.siv_lst a { margin-right:5px; cursor:pointer; }
+.siv_title { margin-bottom:1px; }
+.siv_txt, .siv_btn { float:left; }
+.siv_txt { width:177px; height:19px; color:#808080; line-height:19px; padding-left:4px; }
+.siv_txt_hover { color:black; }
+.siv_btn { width:48px; height:26px; border:0; background:url(../images/sehInView_qnvq50.png) no-repeat 0 0; cursor:pointer; margin-left:5px; padding:0; }
+.siv_btn_over { background-position:-50px 0; }
+.siv_btn_down { background-position:-100px 0; font-weight:700; }
+.gis_tools_info .siv_result{display:none;}
+.gis_tools_info .siv_resultext{padding: 10px 0 0 0;text-align:left;color:#333;}
+.gis_tools_info .siv_resultext span{white-space: nowrap;}
+.gis_tools_info .siv_resultext a.siv_result_change_link{position: absolute;right:12px;color: #3d6dcc;}
+.gis_tools_info .siv_resultext a.resultitem{border: 1px solid #c3c3c2;position:relative;padding: 3px 15px 3px 3px;}
+.gis_tools_info .siv_resultext a.resultitem:hover{background:#f7f7f7;}
+.gis_tools_info .siv_resultext .remove{position:absolute;top:3px;right:0;width:10px;height:10px;background:url(../images/gis_tab_hover_close.gif) no-repeat;}
+
+/*gisTools*/
+.fullScreenOrZoom{position:absolute;right:0px;top:0px;}
+.fullScreenOrZoom a{height:25px;padding:0 14px;background:url(../images/icon_fullScreenOrZoom.png) no-repeat;}
+.fullScreenOrZoom a.open{background-position:5px 0px;}
+.fullScreenOrZoom a.close{background-position:5px -32px;}
+.fullScreenOrZoom a.openZoom{background-position:-34px 0px;}
+.fullScreenOrZoom a.closeZoom{background-position:-34px -35px;}
+
+
+/*gisLeft*/
+.gisLeft{width:268px;border-right:1px solid #B4B4B4;background:#fff;position:absolute;top:0;left:0px;z-index:999;overflow:hidden;}
+.gis_left_turn{width:20px;height:60px;background:url(../images/turn_ico.png) no-repeat;position:absolute;top:300px;right:268px;z-index:999;overflow:hidden;}
+.gis_left_zoomOut{right:-2px;}
+.gis_left_info{width:100%;position:relative;}
+.tabChangeAll{position:relative;overflow:hidden;}
+
+.gis_left_info h3{margin:0 16px 5px 16px;line-height:33px;overflow:hidden;}
+.gis_img{margin:5px 5px;padding:5px;border:1px solid #A0A5A2;box-shadow:1px 1px 5px #A0A5A2;text-align:center;background:#fff;}
+.gis_img img{width:230px;height:132px;border:1px solid #A6AAA7;}
+.gis_org_info{margin:5px 16px;line-height:22px;color:#030303;overflow:hidden;zoom:1;clear:both;}
+.gis_org_info b{color:#333;}
+.gis_org_info .more{float:right;}
+#gis-org-introduce{height:350px;overflow:hidden;}
+.person_container{padding-top:10px;background:url(../images/gis_info_line.png) no-repeat top center;overflow:hidden;}
+.person_title{margin:0 10px;padding:0 15px;line-height:30px;position:relative;cursor:pointer;}
+.person_selected{background-color:#EAF1F8;overflow:hidden;clear:both;}
+.person_selected a{float:left;height:30px;padding:0 41px;line-height:30px;}
+.person_selected a.current{color:#3B3B3B;background:#fff;padding-left:42px;border-bottom:1px solid #fff;}
+.person_title a{padding:5px 0 5px 20px;background:url(../images/person_ico.gif) no-repeat left;cursor:pointer;}
+.person_title span{float:right;width:10px;height:30px;background:url(../images/person_right_ico.gif) no-repeat right;}
+.person_title .place{background:url(../images/cs_ico.gif) no-repeat left;}
+.personList{display:none;padding:0 5px;overflow:hidden;}
+.personList li{float:left;width:80px;margin-top:5px;text-align:center;}
+.personList li img,.personList li span{cursor:pointer;}
+.personList li span{display:block;line-height:22px;text-align:center;}
+.personList a{color:#3E576F;}
+.personList a:hover{text-decoration: underline;}
+.gisContainer{margin-left:268px;border-left:1px solid #ccc;background:#fff;position:relative;}
+#gisSearchBox{visibility:hidden;}
+#gisSearchBox .ui-tabs-panel{padding:0;overflow:auto;}
+#gisSearchBox .gis_result{border:0;overflow:hidden;}
+#tabmenulist{width:213px;height:34px;line-height:34px;padding:0;border:0;background:url(../images/toolsbar_bg.jpg) repeat-x;position:absolute;top:0px;left:20px;z-index:0;overflow:hidden;}
+#tabmenulist li{float:left;width:66px;height:28px;margin:0;margin-top:5px;margin-left:2px;border:1px solid #7397DB;border-bottom:0;line-height:28px;background:url(../images/gis_tab_bg.jpg) repeat-x;position:relative;overflow:hidden;}
+#tabmenulist li.ui-tabs-selected{border:1px solid #FFA567;border-bottom:0;background:url(../images/gis_tab_hover.jpg) repeat-x;}
+#tabmenulist li.ui-tabs-selected a{padding:0 0 0 2px;font:bold 13px/28px "microsoft yahei";color:#f60;}
+#tabmenulist li em{display:none;}
+.gisLeft .ui-tabs .ui-tabs-nav li a{float:left;width:51px;padding:0;text-align:center;overflow:hidden;}
+#tabmenulist .ui-icon-close{width:8px;height:8px;display:block;background:url(../images/gis_tab_close.gif) no-repeat;position:absolute;top:10px;right:2px;cursor:pointer;text-indent:-99999px;overflow: hidden;}
+#tabmenulist .ui-tabs-selected .ui-icon-close{*height:18px;background:url(../images/gis_tab_hover_close.gif) no-repeat 0 center;*top:0;}
+.ui-tabs-hide{display:none;}
+
+#moreTabs{width:112px;display:none;border:1px solid #4F7FB7;background:#F2F5FC;position:absolute;top:13px;left:0;z-index:1;}
+#moreTabs a{height:24px;display:block;margin:1;color:#4C73C2;line-height:24px;}
+#moreTabs a:hover{background:#AEBFE4;}
+#moreTabs a.cur{color:#fff;font-weight:bold;background:#4C73C2;}
+
+.gis_tools_sys{height:34px;border-left:1px solid #ccc;line-height:34px;background:url(../images/toolsbar_bg.jpg) repeat-x;}
+.gis_tools_sys .gis_manager_btn{float:right;text-indent:22px;color:#4C73C2;background:url(../images/sysManage_ico.gif) no-repeat left;cursor:pointer;}
+.gis_tools_sys .gis_manager_btn:hover{text-decoration: underline;}
+.gis_tools_sys{position:relative;}
+.gis_tools_sys .more{width:13px;height:13px;background:url(../images/gis_tab_more.jpg) no-repeat;position:absolute;top:10px;left:3px;}
+.gis_tools_sys .move_left,.gis_tools_sys .move_right{width:13px;height:13px;position:absolute;top:13px;overflow:hidden;}
+.gis_tools_sys .move_left{right:20px;}
+.gis_tools_sys .move_right{right:3px;}
+.gis_tools_sys .move_left,
+.gis_tools_sys .move_right,
+.gis_tools_sys .move_left:hover,
+.gis_tools_sys .move_right:hover{background:url(../images/move_btn.jpg) no-repeat;}
+.gis_tools_sys .move_right{background-position:-13px 0;}
+.gis_tools_sys .move_left:hover{background-position:0 -13px;}
+.gis_tools_sys .move_right:hover{background-position:-13px -13px;}
+.gis_tools_sys .move_left:active{background-position:0 0;}
+.gis_tools_sys .move_right:active{background-position:-13px 0;}
+
+#gisTabs .ui-tabs-panel{overflow:hidden;}
+
+/*searchResult*/
+.searchResult{background:#fff;overflow:auto;}
+.searchResult .resultNum{height:25px;margin:10px 0 0;padding:0 0 0 10px;border-bottom:1px solid #B1D1E8;line-height:25px;color:#515452;background:#D0E9FF;}
+.searchResult .resultNum #total{color:#FF6600;}
+.searchResult .resultNum #totals{color:#FF6600;}
+.searchResult .resultNum span.plaint,
+.searchResult .resultNum span.plaint a{display:inline-block;*display:inline;*zoom:1;}
+.searchResult .resultNum span.plaint{float:right;width:16px;height:25px;margin:0 8px;background:url(../images/icon_orgDel.png) no-repeat 0 center;}
+.searchResult .resultNum span.plaint a{text-indent:-999em;}
+.searchResult .resultNum .return{float:left;padding-left:5px;}
+.searchResult .resultlist{margin:0 10px;overflow:hidden;}
+.searchResult .resultlist li{padding:0 0 5px 40px;border-bottom:1px dotted #cee0f1;line-height:23px;background:url(../images/dashed.gif) no-repeat 0 bottom;position:relative;overflow:hidden;zoom:1;}
+.searchResult .resultlist li{display:block;margin-top:5px;text-decoration:none;}
+.searchResult .resultlist li.cur{background:#d2edfc;}
+.searchResult .resultlist li .resNum{width:32px;height:48px;font:normal 10px/1em Arial, Helvetica, sans-serif;position:absolute;left:0px;top:0px;}
+.searchResult .resultlist li .resNum span{width:20px;height:27px;display:block;line-height:18px;text-align:center;color:#fff;}
+.searchResult .resultlist li .resAbc{width:32px;height:48px;font:normal 10px/1em Arial, Helvetica, sans-serif;position:absolute;left:0px;top:0px;}
+.searchResult .resultlist li .resAbc span{width:20px;height:27px;display:block;line-height:18px;text-align:center;color:#fff;}
+.searchResult .resultlist li .btnlist a{float:right;color:#f60;}
+.searchResult .resultlist li .btnlist a:hover{text-decoration:underline;}
+.searchResult .resultlist li div{word-break:break-all;word-wrap:break-word;overflow:hidden;zoom:1;}
+.searchResult .resultlist li div a{color: #0B96F7;}
+
+/*personallist*/
+.new_personal_list{height:25px;margin:5px 0 5px 0;border-bottom:1px solid #9ABFDA;background:#BEE1FF;}
+.new_personal_list li{float:left;width:59px;height:25px;margin:0px 0 0 3px;text-align:center;}
+.new_personal_list li a{display:block;line-height:30px;color:#030303;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
+.new_personal_list li.current a{height:22px;margin:3px 0 0 0;border:1px solid #9ABFDA;border-bottom:none;line-height:22px;background:#fff;position:relative;z-index:1;}
+.new_personal_tableCon{margin: 5px 8px;border:1px solid #C5CBD0;border-bottom:none;overflow:hidden;overflow-y:auto;}
+.new_personal_table{width:250px;}
+.new_personal_table tr{height:25px;}
+.new_personal_table tr.odd{background:#F5F8FA;}
+.new_personal_table tr.even{background:#E9F0F7;}
+.new_personal_table tr.even span{font-weight:bold;}
+.new_personal_table tr.popClick{background:#E1E5EF;}
+.new_personal_table td{height:25px;padding:0 0 0 5px;border-right:1px solid #C5CBD0;border-bottom:1px solid #C5CBD0; border-collapse:collapse;line-height:25px;}
+.new_personal_table td.dataPoint{border-right:none;}
+.new_personal_table td.detailInfo{border-right:none;}
+.new_personal_table td span{color:#030303;}
+.new_personal_table td span.text{width:84px;display:block;}
+.new_personal_table td span.num{font-weight:bold;color:#030303;}
+.new_personal_table td span.largenum{color:#990000;}
+.new_personal_table td.msgL{width:45%;cursor:pointer;}
+.new_personal_table td.gissj{padding:0 0 0 30px;}
+.tableCur{background:#EDF1F4;}
+
+/*updownlist*/
+.updownList{float:left;width:90px;height:28px;display:inline;padding:0 0 0 3px;border-left:1px solid #9B9C97;font:14px/30px "microsoft yahei";color:#333;background:none;position:relative;cursor:pointer;}
+
+.updownList dl{position:relative;}
+.updownList dt{width:70px;display:block;text-align:center;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
+.updwonlist-Content{width:95px;display:none;font:14px/30px "microsoft yahei";color:#030303;text-align:center;background:#F9FBFC;position:absolute;left:-4px;*left:2px;top:26px;*top:28px;_top:24px;z-index:10002;cursor:pointer;}
+.updwonlist-Content li{height:25px;border:1px solid #9C9A94;border-top:none;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
+.updwonlist-Content li:hover{color:#fff;background:#84C6FF;}
+.updownList .sarrow{width:20px;height:15px;display:inline-block;background:url(../images/icon_updown.png) no-repeat;position:absolute;right:0px;top:11px;z-index:9999;}
+.updwonlist .cur{color:#fff;background:#84C6FF;}
+#personlistContent{margin-left: -48px;}
+#peopleListContent{margin-left:60px;}
+
+.updownTree{margin-bottom:5px;position:relative;}
+.new_person_title{
+	height:31px;line-height:31px;
+	background: -moz-linear-gradient(top, white, #eeeeee);
+	background: -webkit-gradient(linear, left top, left bottom, from(white), to(#eeeeee));
+	filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0, StartColorStr='#ffffff', EndColorStr='#eeeeee');
+	background:linear-gradient(to bottom, #ffffff, #eeeeee);
+	position:relative;overflow:hidden;
+}
+.new_person_title span{cursor:pointer;}
+.new_person_selected{background:#fff;overflow:hidden;}
+.new_person_title a{display:block;color:#333;font-weight:normal;background:url(../images/person_ico.gif) no-repeat 0 50px;border-bottom:1px solid #d6d6d6;border-left: 1px solid #d6d6d6;cursor:pointer;}
+.new_person_title a.current{font-weight:bold;}
+.new_person_title span{float:right;width:10px;height:30px;background:url(../images/down.jpg) no-repeat right 7px;}
+.new_person_title span.downCur{background:url(../images/up.jpg) no-repeat right 7px;}
+.new_person_title .place{background:url(../images/cs_ico.gif) no-repeat left;}
+.new_personList{margin:8px 0;position:relative;}
+
+.personTool{height:25px;text-align:right;}
+.personTool a{width:31px;height:24px;display:inline-block;*display:inline;*zoom:1;}
+.personTool .columnChart,
+.personTool .columnChart:hover,
+.personTool .pieChart,
+.personTool .pieChart:hover{vertical-align:middle;background:url(../images/markt.png) no-repeat;}
+.personTool .columnChart{background-position:0 0;}
+.personTool .columnChart:hover{background-position:-69px 0;}
+.personTool .pieChart{background-position:-30px 0}
+.personTool .pieChart:hover{background-position:-99px 0}
+
+/*selected personal*/
+.XN-searchList{}
+.XN-searchList .list{padding:10px 0 0 4px;overflow:hidden;}
+.XN-searchList .list li{float:left;*display:inline;margin:0 1px 5px 1px;}
+.XN-searchList .list li a{display:block;padding:0 5px;font:12px/20px "microsoft yahei";color:#0000CC;}
+.XN-searchList .list li.cur a{color:#fff;background:#3D6DCC;}
+.XN-searchList .sublist{padding:10px 0 0 4px;border-top:1px dotted #ccc;overflow:hidden;}
+.XN-searchList .sublist dd{float:left;*display:inline;margin:0 1px 5px 1px;}
+.XN-searchList .sublist dd a{display:block;padding:0 2px;font:12px/20px "microsoft yahei";color:#333;}
+.XN-searchList .sublist dd a.cur{color:#fff;background:#3D6DCC;}
+.XN-searchList .sublist dd a:hover{color:#fff;background:#3D6DCC;}
+
+/*show message*/
+.showMessage-title{padding:10px 0;border-bottom:1px dashed #A1B5D8;background:#FFFFE1;}
+.showMessage-title .messageAddr{float:left;width:248px;padding:0 10px;font:bold 12px/20px "microsoft yahei";color:#333;}
+.showMessage-title .cancelBind{float:right;width:73px;height:20px;display:block;color: #DF0024;text-indent:-9999em;background:url(../images/binding.gif) no-repeat;}
+.showMessage-usersmsg li{padding:12px 15px;border-bottom:1px dashed #A1B5D8;}
+.showMessage-usersmsg li .username,.showMessage-usersmsg li .userID{font:12px/20px "microsoft yahei";}
+.showMessage-usersmsg li a{font:bold 14px/20px "microsoft yahei";color:#5072B0;}
+
+/*control details*/
+.detailInfo{padding-left: 10px;}
+.detailInfo.detailsHidden{text-indent:-9999em;}
+.detailInfo a{display:block;text-indent:-999em;}
+.detailInfo.detailsHidden a,
+.detailInfo.detailsHidden a:hover,
+.detailInfo.details a,
+.detailInfo.details a:hover{background: url(../images/icon_exeDetail.png) no-repeat;}
+.detailInfo.detailsHidden a{background-position:40% 9px;}
+.detailInfo.detailsHidden a:hover{background-position:40% -18px;}
+.detailInfo.details a{background-position:40% -48px;}
+.detailInfo.details a:hover{background-position:40% -80px;}
+
+/*gis Zoom*/
+.gis_zoom{height:200px;position:absolute;bottom:0px;right:0px;z-index:1001;}
+.gis_zoom_button{width:10px;height:170px;border:1px solid #9EA3A0;background:#E4EAED url(../images/icon_zoom.png) no-repeat center center;text-indent:-999em;position:absolute;top:0px;left:-10px;}
+.gis_zoom_content{width:225px;height:170px;border:1px solid #9EA3A0;border-right:none;color:#777B78;background:#F1F7F7;}
+.gis_zoom_content .legendTitle{height:26px;}
+.gis_zoom_content .legendTitle li{float:left;width:74px;height:25px;border-left:1px solid #9EA3A0;border-bottom:1px solid #9EA3A0;line-height:25px;text-align:center;}
+.gis_zoom_content .legendContent{height:145px;border-left:1px solid #9EA3A0;overflow:hidden;overflow-y:auto;}
+.areaCon div{float:left;width:33.3%;*width:33.2%;height:25px;display:inline;border-bottom:1px solid #9EA3A0;line-height:25px;text-align:center;overflow:hidden;white-space: nowrap;text-overflow: ellipsis;}
+
+.person_info_top{position:absolute;top:0px;left:90px;z-index:12;}
+.person_info_top a{padding-right:10px;font-size:12px;line-height:35px;color:#00f;}
+.map-ctt-top {display:block;padding-right:82px;font-size: 12px;color: #333;position:relative;overflow:hidden;}
+
+.map-ctt-top .imgbox {border:1px solid #ccc;position:absolute;top:0px;right:10px;}
+.map-ctt-top .small_text p{margin:0;padding:0;line-height:24px;}
+.map-ctt-top .title{line-height:24px;color:#030303;zoom:1;}
+.map-ctt-top .title strong {font-weight:normal;}
+.map-ctt-top .title .sex{padding-left:80px;}
+.map-ctt-top .title b{font-weight:normal;color:#3D6CCC;}
+.map-ctt-top .title .double{width:49%;float:left;}
+.person_info_type{font-size:12px;margin:0 0 20px 0;padding:0 5px;position:relative;overflow:hidden;zoom:1}
+.person_info_type h3{border-bottom:1px solid #ccc;line-height:24px;}
+.person_info_list{position:relative;zoom:1;overflow:hidden;}
+.person_info_range{padding:10px 0 0 0;border-top: 1px dashed #A1CAEE;}
+.person_info_list label.lab{display:inline-block;*display:inline;*zoom:1;line-height:25px;float:left;}
+.person_info_list .typelist{float:left;padding:3px 0 0 20px;overflow:hidden;}
+.person_info_list .typelist li{float:left;padding-right:5px;line-height:22px;white-space:nowrap;}
+.person_info_list .typelist li input{margin-right:3px;}
+.person_info_search{padding:10px 0 0 0;border-top: 1px dashed #A1CAEE;}
+.person_info_list label.searchStr{display:inline-block;*display:inline;*zoom:1;line-height:25px;float:left;}
+
+.person_info_list .typelistTabs{height:24px;padding:2px 0 0 3px;background:#DAEAF7;overflow:hidden;}
+.person_info_list .typelistTabs li{float:left;width:108px;height:26px;*display:inline;margin:0 10px 0 0;line-height:25px;text-align:center;position:relative;top:1px;overflow:hidden;}
+.person_info_list .typelistTabs li.current{line-height:26px;font-size:12px;color:#030303;background:#F9FBFC;}
+.person_info_list .typelistTabs li a{display:block;color:#030303;position:aboslute;top:2px;}
+.person_info_list .typelistTabs li.current a{color:#030303;background:#F9FBFC;z-index:1;}
+.person_info_list .typelistManage{margin:0 0 5px 0;padding:5px 10px;}
+.person_info_list .typelistManage li{float:left;padding-right:5px;line-height:22px;white-space:nowrap;}
+
+.type_menu{height:30px;line-height:30px;overflow:hidden;position:relative;z-index:11;}
+.type_menu li{float:left;height:25px;margin-right:10px;padding:0 10px;font:12px/25px "";color:#333;text-align:center;cursor:pointer;}
+.type_menu li.curDetails{color:#0B96F7;}
+.person_lists dt span{font-weight:bold;}
+.person_lists dt,.person_lists dd{overflow:hidden;}
+.person_lists span{float:left;width:20%;}
+.person_lists span.idCardNo{width:45%}
+.person_lists span.genderName{width:15%;}
+.gis_search_content{background:#F9FBFC;}
+.gis_search_find{height:25px;margin:0 5px 1px;padding:2px 0 0 3px;border-bottom:1px solid #70B3E0;background:url(../images/icon_bigglass.png) no-repeat right center;overflow:hidden;}
+.gis_search_type{width:108px;height:26px;font:bold 12px/25px "microsoft yahei";color:#54AAE8;}
+.search_btnlist{position:absolute;bottom:0px;right:5px;}
+.search_btn{height:25px\9;display:block;color:#333;line-height:24px;padding-left:10px;vertical-align: top;text-decoration:none;}
+.search_btn span{height:24px;line-height:26px\9;display:inline-block;*display:inline;*zoom:1;padding-right:10px;}
+.search_btn,
+.search_btn span{background:url(../images/icon_search.png) no-repeat;}
+.search_btn{background-position:left 0;}
+.search_btn span{background-position:right 0;}
+
+/*basePop*/
+.basepop{padding:10px;font-size: 12px;}
+.basepop .map-ctt-top{height:70px;font-size:12px;color:#333;}
+.basepop .map-ctt-top .imgbox{float:left;}
+.basepop .map-ctt-top .bindingHouseContent{margin:10px 0 10px 0;}
+.basepop .map-ctt-top .bindingHouse{margin:10px 0 0 0;}
+.basepop .map-ctt-top .title strong{color:#3B4E92;}
+
+/*basic Data*/
+.type_menu_statistics{height:20px;}
+.basicData,.basicData .houseName{display:inline-block;*display:inline;*zoom:1;}
+.basicData{float:left;padding:0 5px;}
+.basicData .houseName{width:170px;height:25px;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;vertical-align:top;*vertical-align:middle;}
+.basicData .title{margin:5px 0 10px 0;font:bold 12px/25px "";color:#F10202;}
+.basicData .data{font:12px/20px "microsoft yahei";color:#030303;}
+
+/*house Data*/
+.basicData .houseMsg{font:12px/25px "";}
+.houseList{width:280px;*width:270px;height:130px;overflow:hidden;overflow-y:auto;position: absolute;top: 40px;right: 0px;border: 1px solid #C8DDF6;}
+.houseList li{float:left;line-height:25px;padding-left: 15px;}
+.houseList li .houseTotel{float:left;}
+.houseList li span,.houseList li a{display:inline-block;*display:inline;*zoom:1;vetical-align:bottom;}
+.houseTotel,.bindingCon a,.bindingCon a span{display:inline-block;*display:inline;*zoom:1;}
+.houseTotel{width:49px;height:25px;font:12px/25px "";text-align:right;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
+.bindingContent{margin:5px 0;}
+.bindingCon a{height:24px;padding-left:20px;line-height:24px;color:#030303;background:url(../images/icon_bindKey.png) left top  no-repeat; position:relative; cursor:pointer;}
+.bindingCon a span{padding-right:15px;vertical-align:top; *vertical-align:middle;background:url(../images/icon_bindKey.png) right top no-repeat; }
+.gisArea .personMsg li{line-height:20px;}
+
+/*popframe*/
+#chicken_map{width:auto!important;height:30px!important;background:none!important;}
+/*#chicken_map_contentDiv{width:200px !important;height:30px !important;}*/
+#chicken_map_contentDiv .popFrame{float:left;height:30px;padding:0 0 0 10px;line-height:20px;color:#fff;background:url(../images/pop-1.png) no-repeat left top;}
+#chicken_map_contentDiv .popFrame span{float:left;height:30px;display:block;padding:0 10px 0 0;background:url(../images/pop-1.png) no-repeat right top;}
+#chicken_map_contentDiv .popupText{float:left;height:25px;color:red;padding:0 10px;border:1px solid #2e89c2;line-height:25px;text-align:center;background:#fff;}
+#chicken_map_contentDiv {background:#fff;padding:0 10px;height:auto!important;line-height:22px;text-align:center;color:red;border:1px solid #2e89c2;}
+/*pagination*/
+div.pagination {margin:5px 0 0;*margin:5px 0 0 50px;padding:4px 6px 4px 0;font-family:Verdana,Tahoma,Arial,Helvetica,Sans-Serif;color:#313031;text-align:center;background-color:#F5F8FA;overflow:hidden;}
+div.pagination a {*float:left;display:inline-block;*display:inline;*zoom:1;margin:0 3px 0 3px;padding:0 3px 0 2px;border:1px solid #7EA4C3;line-height:16px;font-weight:bold;color:#067CCF;background:#E3F3FF;}
+div.pagination a:hover, div.pagination a:active {margin:0 3px 0 3px;padding:0 3px 0 2px;border:1px solid #7EA4C3;color:#0066a7;background:#E3F3FF;}
+div.pagination a.next,
+div.pagination a.prev{*width:16px;*height:16px;}
+div.pagination a.next,
+div.pagination a.prev{background:#E3F3FF url(../images/icon_pagerBtn.png) no-repeat;text-indent:-999em;}
+div.pagination a.next{background-position:5px -42px;}
+div.pagination a.prev{background-position:4px 2px;}
+div.pagination span.current {*float:left;height:16px;margin:0 3px 0 3px;padding:1px 3px 1px 2px;border:1px solid #7EA4C3;line-height:16px;font-weight:bold;color:#067CCF;background:#E3F3FF;}
+div.pagination span.disabled {*float:left;display:none;}
+div.pagination .sumbox{display:none;}
+
+.periphery_button{position:absolute;top:300px;right:268px;z-index:999;}
+.dButton{float:left;height:26px;padding-left:15px;line-height:26px;color:#070B90;background:url(../images/mapbtn.png) no-repeat left 0;}
+.dButton span{float:right;height:26px;padding-right:15px;line-height:26px;background:url(../images/mapbtn.png) no-repeat right 0;}
+.dButton:active{background:url(../images/mapbtn.png) no-repeat left -27px;}
+.dButton:active span{background:url(../images/mapbtn.png) no-repeat right -27px;}
+
+/*bindButton*/
+.addressBind,
+.alreadyBind,
+.cancelBind,
+.unBind{float:right;width:73px;height:20px;display:block;color: #DF0024;text-indent:-9999em;background:url(../images/binding.gif) no-repeat;}
+.addressBind{background-position:-80px 0;}
+.alreadyBind{background-position:-158px 0;}
+.cancelBind{background-position:0 0;}
+.unBind{background-position:-260px 0;}
+
+/*pointNorth*/
+.point3DNorth{position:absolute;bottom:58px;left:10px;z-index:99999;background:url(../images/3dNorth.png) no-repeat;width:56px;height:67px;}
+.point2DNorth{position:absolute;bottom:58px;left:10px;z-index:99999;background:url(../images/2dNorth.png) no-repeat;width:56px;height:67px;}
+
+/* treeOrg */
+.treeOrgCon{float:left;*display:inline;margin:0 10px 0 0;}
+
+/* mapChangeToolsArea */
+.mapChangeToolsArea{position:absolute;right:10px;top:36px;z-index:1000;}
+.mapChangeToolsArea .mapChangeTools{width:57px;height:56px;overflow:hidden;position:absolute;right:0px;top:0px;}
+.mapChangeToolsArea .mapChangeTools li{width:56px;height:56px;display:block;cursor:pointer;position:absolute;}
+.mapChangeToolsArea .mapChangeTools li .text{width:54px;height:20px;font:bold 12px/20px "";color:#fff;text-align:center;background:#000;opacity:0.7;filter:alpha(opacity=70);_filter:none;_zoom: 1;position:absolute;bottom:1px;left:1px;}
+.mapChangeToolsArea .mapChangeTools .img{position:relative;}
+.mapChangeToolsArea .mapChangeTools .map2D{width:56px;height:56px;background:#fff url(../images/GIS_2D.jpg) no-repeat center center;}
+.mapChangeToolsArea .mapChangeTools .map25D{width:56px;height:56px;background:#fff url(../images/GIS_2.5D.jpg) no-repeat center center;}
+.mapChangeToolsArea .mapChangeTools .mapYingxiang{width:56px;height:56px;background:#fff url(../images/mapyingxiang.jpg) no-repeat center center;}
+.mapChangeToolsArea .mapLayoutTools{border:1px solid #4f4f4f;background:#fff;position:absolute;right:-1px;top:66px;}
+.mapChangeToolsArea .LayerDisplay{width:56px;}
+.mapChangeToolsArea .LayerDisplay li{height:25px;margin-top:1px;border-top:1px solid #DFDFDF;font:12px/25px "";position:relative;}
+.mapChangeToolsArea .layoutManage{height:15px;background:url(../images/GIS_downSarrow.jpg) center center no-repeat;}
+.mapChangeToolsArea .layoutManage.dropdown{display:none;}
+
+.mapChangeToolsArea .LayerDisplay li a{display:block;line-height:22px;color:#333;position:relative;vertical-align:top;}
+.mapChangeToolsArea .LayerDisplay li a.personalLayer{width:56px;border-right:none;}
+.mapChangeToolsArea .LayerDisplay li a.personalLayer span.tit{display:block;text-align:center;}
+.mapChangeToolsArea .LayerDisplay li a strong{display:block;width:18px;height:24px;position:absolute;top:3px;left:3px;}
+.mapChangeToolsArea .LayerDisplay li a strong.drawlayer{}
+.mapChangeToolsArea .LayerDisplay li a input{vertical-align:middle;}
+.mapChangeToolsArea .LayerDisplay li .showPersonLayer{background:#fff;}
+.mapChangeToolsArea .LayerDisplay li .showPersonLayer .dataMsg{width:120px;border:1px solid #4f4f4f;background:#fff;position:absolute;top:-3px;right: 56px;}
+.mapChangeToolsArea .LayerDisplay li .showPersonLayer .dataMsgT{width:135px;border:1px solid #4f4f4f;background:#fff;position:absolute;top:-3px;right:120px;}
+.mapChangeToolsArea .LayerDisplay li .showPersonLayer li{height:25px;border-left:1px solid #DFDFDF;border-right:1px solid #DFDFDF;line-height:25px;text-indent:30px;position:relative;}
+.mapChangeToolsArea .currentPosHover,.mapChangeToolsArea .currentPosClick{position:relative;}
+.mapChangeToolsArea .LayerDisplay li.currentPointer{cursor:pointer;}
+.mapChangeToolsArea .LayerDisplay li.currentDefault{cursor:default;}
+.mapChangeToolsArea .LayerDisplay li label.currentPointer{cursor:pointer;}
+
+.PersonalToolsArea li{text-indent:30px;}
+
+.showPersonalTools{width:108px;border:1px solid #4f4f4f;background:#fff;position: absolute;right: 56px;top:0px;}
+.mapChangeToolsArea .currentPosHover{background:url(../images/icon_hoveSelect.png) no-repeat 10px center;}
+.mapChangeToolsArea .currentPosClick{background:#EAEAEA url(../images/icon_clickSelect.png) no-repeat 10px center;}
+.curHoverEffect{background:url(../images/GIS_sarrow.jpg) no-repeat 6px center;}
+.clearMaptraceTools{width:57px;position:absolute;top:142px;right:10px;z-index:1000;}
+.clearMaptraceTools a{width:100%;height:25px;margin:0 0 10px 0;border:1px solid #4f4f4f;font:12px/25px "";text-align:center;background:#fff;}
+.clearMaptraceTools a.fullScreen{display:block;background:#fff url(../images/GIS_zoomEffect.jpg) no-repeat 3px 8px;}
+.clearMaptraceTools a.clearMaptrace{display:block;background:#fff url(../images/GIS_del.jpg) no-repeat 3px 8px;}
+.message-tip{z-index:1020;}
+
+/* zoomOrOpen */
+.gis_zoomOropen{width:16px;position:absolute;left:-3px;top:50%;z-index:1000;}
+.gis_zoomOropen a.zoom{height:61px;display:block;background:url(../images/icon_zoomoropen.png) no-repeat 0 -2px;cursor:pointer;}
+.gis_zoomOropen a.openZoom{background-position:-22px -2px;}
+.gis_zoomOropen a.closeZoom{background-position:0px -2px;}
+
+/*multiselect*/
+.ui-multiselect {position:relative;padding:2px 0 2px 4px; text-align:left;white-space: initial !important;width:auto !important;color:#333 !important;background:#fff !important;border:1px solid #ccc!important;}
+.ui-multiselect span{padding:0 3px;}
+.ui-multiselect span.ui-icon { float:right;margin-top: 6px;padding:0;*position:absolute;*top:0;*right:0;}
+.ui-multiselect-single .ui-multiselect-checkboxes input { position:absolute !important; top: auto !important; left:-9999px; }
+.ui-multiselect-single .ui-multiselect-checkboxes label { padding:5px !important }
+.ui-multiselect .ui-icon-triangle-2-n-s{background: url(../images/icon_updown.png) no-repeat !important;width:20px !important;}
+
+.ui-multiselect-header { margin-bottom:3px; padding:3px 0 3px 4px }
+.ui-multiselect-header ul { font-size:0.9em }
+.ui-multiselect-header ul li { float:left; padding:0 10px 0 0 }
+.ui-multiselect-header a { text-decoration:none }
+.ui-multiselect-header a:hover { text-decoration:underline }
+.ui-multiselect-header span.ui-icon { float:left }
+.ui-multiselect-header li.ui-multiselect-close { float:right; text-align:right; padding-right:0 }
+
+.ui-multiselect-menu { width:380px !important;display:none; padding:3px; position:absolute; z-index:10000; text-align: left }
+.ui-multiselect-checkboxes { position:relative /* fixes bug in IE6/7 */; overflow-y:auto }
+.ui-multiselect-checkboxes label { cursor:default; display:block; border:1px solid transparent; padding:3px 1px }
+.ui-multiselect-checkboxes label input { position:relative; top:1px }
+.ui-multiselect-checkboxes li {width: 120px;float: left;}
+.ui-multiselect-checkboxes li.ui-multiselect-optgroup-label { text-align:center; font-weight:bold; border-bottom:1px solid }
+.ui-multiselect-checkboxes li.ui-multiselect-optgroup-label a { display:block; padding:3px; margin:1px 0; text-decoration:none }
+.ui-multiselect-menu .ui-widget-header .ui-state-hover{border:0;background:none;}
+
+/* remove label borders in IE6 because IE6 does not support transparency */
+* html .ui-multiselect-checkboxes label { border:none }
+.maploadChange{background:#000;opacity:0.5;filter:alpha(opacity=50);position: absolute;top: 0;left: 0;height:600px;text-align:center;z-index: 9999;}
+.gis_tools_info{
+	height:30px;line-height:30px;
+	background:#eee;
+	background: -moz-linear-gradient(top, white, #eeeeee);
+	background: -webkit-gradient(linear, left top, left bottom, from(white), to(#eeeeee));
+	background:linear-gradient(to bottom, #ffffff, #eeeeee);
+	box-shadow: 2px 2px 3px #333;
+	color: #333;position:relative;z-index:1005;
+}
+.gis_tools_info a{color:#333;}
+
+
+
+/*pop*/
+.olFramedCloudPopupContent{padding:0;}
+.noFeature{position: absolute;top: 115px;left: 10px;}
+.olFramedCloudPopupContent a{color:#015DC5;}
+.featurePop{color:#333;}
+.featurePop a{color:#015DC5;}
+.featurePop .title{border-bottom:1px solid #C8DDF6;}
+.featurePop .title span{font:bold 16px/28px '' !important;}
+.noneb{display:inline-block;*display:inline;*zoom:1;width:13px;height:13px;vertical-align: middle;background:url(../images/jzwnone.png) no-repeat;}
+.olPopupCloseBox {width: 21px !important;height: 21px!important; background: url(../images/close.jpg) no-repeat !important;}
+.bindFeature{position: absolute;bottom: 2px;right: 0;line-height:30px;width: 100%;text-align: right;border-top: 1px solid #C8DDF6;}
+.bindFeature .bindFeatureContent{-moz-border-radius: 3px;border-radius: 3px;text-align:left;padding:0 5px;height:25px;line-height:25px;display:inline-block;*display:inline;*zoom:1;background:url(../images/feature_btn.png) repeat-x;}
+.bindFeature .bindFeatureContent a span{display:inline-block;*display:inline;*zoom:1;width:15px;height:15px;margin: 0 3px 0 0;vertical-align:middle;background: url(../images/popbtnicon.png) no-repeat;}
+.bindFeature .bindFeatureContent a span.bindicon{background-position:0 0;}
+.bindFeature .bindFeatureContent a span.unbindicon{background-position:0 -24px;}
+.bindFeature .bindFeatureContent a span.viewlayouticon{background-position:0 -47px;}
+.placeCtt{position: relative;}
+#placeModules{position: absolute;top: -39px;left: -5px;border: 1px solid #C8DDF6;border-bottom: 1px solid #fff;padding: 5px 10px;background: #fff;}
+.tab_load{position:relative;}
+.tab_load .refresh{
+	display:block;height:36px;background:url(../images/click_load.png) center top no-repeat;
+	color:#333;width:130px;font:normal 14px/33px 'microsoft yahei';
+	text-indent:2.5em;position:absolute;left:50%;margin-left:-65px;top:40px;}
+.tab_load .refresh:hover{background-position:center bottom;}

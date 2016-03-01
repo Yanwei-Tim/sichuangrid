@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="FourTeamsOrg">
+	<typeAlias alias="fourTeamsOrg" type="com.tianque.fourTeams.fourTeamsManage.domain.FourTeamsOrg" />
+
+	<resultMap id="fourTeamsOrg_resultMap" class="fourTeamsOrg" >
+	    <result column="ID" property="id"  />
+	    <result column="PARENTID" property="parentId" />
+	    <result column="LEVE" property="leve" />
+	    <result column="LEVESORT" property="leveSort" />
+	    <result column="TEAMTITLE" property="teamTitle" />
+	    <result column="USERNAME" property="userName" />
+	    <result column="POSITION" property="position" />
+	    <result column="PHONENUMBER" property="phoneNumber" />
+	    <result column="HEADIMAGE" property="headImage" />
+	    <result column="CREATEUSER" property="createUser" />
+	    <result column="UPDATEUSER" property="updateUser"/>
+	    <result column="CREATEDATE" property="createDate" />
+	    <result column="UPDATEDATE" property="updateDate" />
+  	</resultMap>
+	
+	<!-- 根据主键查找记录 -->
+	<select id="getFourTeamsOrgByPrimaryKey" resultMap="fourTeamsOrg_resultMap" parameterClass="java.lang.Long" >
+	    select ID, PARENTID, LEVE, LEVESORT, TEAMTITLE, USERNAME, POSITION, PHONENUMBER, HEADIMAGE,
+	      CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE
+	    from FOURTEAMSORG
+	    where ID = #id#
+  	</select>
+  	
+  	<!-- 查找全部记录 -->
+  	<select id="queryFourTeamsOrgForList" resultMap="fourTeamsOrg_resultMap" parameterClass="fourTeamsOrg"> 
+	    select ID,PARENTID, LEVE, LEVESORT, TEAMTITLE, USERNAME, POSITION, PHONENUMBER, HEADIMAGE,
+	      CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE
+	    from FOURTEAMSORG fOrg
+	    where fOrg.organization = #organization.id#
+  	</select>
+  	<!-- 根据主键删除记录 -->
+  	<delete id="deleteFourTeamsOrgByPrimaryKey" parameterClass="java.lang.Long" >
+	    delete from FOURTEAMSORG
+	    where ID = #id#
+    </delete>
+    <!-- 新增记录 -->
+     <insert id="addFourTeamsOrg" parameterClass="fourTeamsOrg">
+     	<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_FOURTEAMSORG.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+	    insert into FOURTEAMSORG (ID,ORGANIZATION,ORGINTERNALCODE, PARENTID, LEVE, LEVESORT, TEAMTITLE, USERNAME, POSITION,PHONENUMBER, HEADIMAGE, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+	    values (#id#,#organization.id#,#organization.orgInternalCode#,#parentId#, #leve#, #leveSort#,#teamTitle#, #userName#, #position#, #phoneNumber#,#headImage#, #createUser#, #updateUser#, #createDate#,#updateDate#)
+  	</insert>
+  	<!-- 根据主键全修改记录 -->
+  	 <update id="updateFourTeamsOrgByPrimaryKey" parameterClass="fourTeamsOrg" >
+	    update FOURTEAMSORG
+	    set PARENTID = #parentId#,
+	      LEVE = #leve#,
+	      LEVESORT = #leveSort#,
+	      TEAMTITLE = #teamTitle#,
+	      USERNAME = #userName#,
+	      POSITION = #position#,
+	      PHONENUMBER = #phoneNumber#,
+	      HEADIMAGE = #headImage#,
+	      UPDATEUSER = #updateUser#,
+	      UPDATEDATE = #updateDate#
+	    where ID = #id#
+ 	</update>
+ 	<!-- 根据主键选择性修改记录 -->
+ 	<update id="updateFourTeamsOrgByPrimaryKeySelective" parameterClass="fourTeamsOrg" >
+    update FOURTEAMSORG
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="parentId" >
+        PARENTID = #parentId#
+      </isNotNull>
+      <isNotNull prepend="," property="leve" >
+        LEVE = #leve#
+      </isNotNull>
+      <isNotNull prepend="," property="leveSort" >
+        LEVESORT = #leveSort#
+      </isNotNull>
+      <isNotNull prepend="," property="teamTitle" >
+        TEAMTITLE = #teamTitle#
+      </isNotNull>
+      <isNotNull prepend="," property="userName" >
+        USERNAME = #userName#
+      </isNotNull>
+      <isNotNull prepend="," property="position" >
+        POSITION = #position#
+      </isNotNull>
+      <isNotNull prepend="," property="phoneNumber" >
+        PHONENUMBER = #phoneNumber#
+      </isNotNull>
+      <isNotNull prepend="," property="headImage" >
+        HEADIMAGE = #headImage#
+      </isNotNull>
+      <isNotNull prepend="," property="updateUser" >
+        UPDATEUSER = #updateUser#
+      </isNotNull>
+      <isNotNull prepend="," property="updateDate" >
+        UPDATEDATE = #updateDate#
+      </isNotNull>
+    </dynamic>
+    where ID = #id#
+  </update>
+  	
+  	
+  
+	
+</sqlMap>

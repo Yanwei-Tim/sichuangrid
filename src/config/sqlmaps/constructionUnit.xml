@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="constructionUnit">
+
+	<typeAlias alias="constructionUnit" type="com.tianque.domain.ConstructionUnit" />
+
+	<parameterMap id="constructionUnitParams" class="ConstructionUnit">
+		<parameter property="id" />
+		<parameter property="createUser" />
+		<parameter property="updateUser" />
+		<parameter property="updateDate" />
+		<parameter property="createDate" />
+		<parameter property="organization.id" />
+		<parameter property="orgInternalCode" />
+		<parameter property="projectName" />
+		<parameter property="fullPinyin" />
+		<parameter property="simplePinyin" />
+		<parameter property="projectAddress" />
+		<parameter property="developmentUnit" />
+		<parameter property="developmentContactPerson" />
+		<parameter property="developmentContactPersonPhone" />
+		<parameter property="contractor" />
+		<parameter property="contractorContactPerson" />
+		<parameter property="contractorContactPersonPhone" />
+		<parameter property="laborer" />
+		<parameter property="laborerContactPerson" />
+		<parameter property="laborerContactPersonPhone" />
+		<parameter property="salaryPayDate" />
+		<parameter property="actualTotalSalary" />
+		<parameter property="shouldSignContractNumber" />
+		<parameter property="notSignContractNumber" />
+		<parameter property="workersNumber" />
+		<parameter property="startTime" />
+		<parameter property="remark" />
+		<parameter property="isEmphasis" />
+	</parameterMap>
+
+	<resultMap id="constructionUnitResult" class="ConstructionUnit">
+		<result property="id" column="id" />
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="projectName" column="projectName" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="projectAddress" column="projectAddress" />
+		<result property="developmentUnit" column="developmentUnit" />
+		<result property="developmentContactPerson" column="developmentContactPerson" />
+		<result property="developmentContactPersonPhone" column="developmentContactPersonPhone" />
+		<result property="contractor" column="contractor" />
+		<result property="contractorContactPerson" column="contractorContactPerson" />
+		<result property="contractorContactPersonPhone" column="contractorContactPersonPhone" />
+		<result property="laborer" column="laborer" />
+		<result property="laborerContactPerson" column="laborerContactPerson" />
+		<result property="laborerContactPersonPhone" column="laborerContactPersonPhone" />
+		<result property="salaryPayDate" column="salaryPayDate" />
+		<result property="actualTotalSalary" column="actualTotalSalary" />
+		<result property="shouldSignContractNumber" column="shouldSignContractNumber" />
+		<result property="notSignContractNumber" column="notSignContractNumber" />
+		<result property="workersNumber" column="workersNumber" />
+		<result property="startTime" column="startTime" />
+		<result property="remark" column="remark" />
+		<result property="isEmphasis" column="isEmphasis" />
+	</resultMap>
+
+	<insert id="addConstructionUnit" parameterClass="ConstructionUnit">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_constructionUnits.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		constructionUnits(id,orgId,orgInternalCode,projectName,fullPinyin,simplePinyin,projectAddress,developmentUnit,
+		developmentContactPerson,developmentContactPersonPhone,contractor,contractorContactPerson,contractorContactPersonPhone,
+		laborer,laborerContactPerson,laborerContactPersonPhone,salaryPayDate,actualTotalSalary,shouldSignContractNumber,
+		notSignContractNumber,workersNumber,startTime,remark,createUser,updateUser,createDate,updateDate,isEmphasis)
+		VALUES(#id#,#organization.id#,#orgInternalCode#,#projectName#,#fullPinyin#,#simplePinyin#,#projectAddress#,
+		#developmentUnit#,#developmentContactPerson#,#developmentContactPersonPhone#,#contractor#,#contractorContactPerson#,
+		#contractorContactPersonPhone#,#laborer#,#laborerContactPerson#,#laborerContactPersonPhone#,#salaryPayDate#,
+		#actualTotalSalary#,#shouldSignContractNumber#,#notSignContractNumber#,#workersNumber#,#startTime#,#remark#,#createUser#,
+		#updateUser#,#createDate#, #updateDate#,#isEmphasis#)
+	</insert>
+
+	<select id="getConstructionUnitById" parameterClass="java.lang.Long"
+		resultMap="constructionUnitResult">
+		<![CDATA[SELECT * FROM constructionUnits WHERE id=#value#]]>
+	</select>
+
+	<update id="updateConstructionUnitById" parameterClass="ConstructionUnit">
+		UPDATE constructionUnits SET
+		<dynamic>
+			id = #id#
+			fullPinyin=#fullPinyin#,
+			simplePinyin=#simplePinyin#,
+			remark=#remark#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#
+			shouldSignContractNumber=#shouldSignContractNumber#,
+			notSignContractNumber=#notSignContractNumber#,
+			workersNumber=#workersNumber#,
+			startTime=#startTime#
+			<isNotNull prepend="," property="isEmphasis">
+				isEmphasis = #isEmphasis#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+				</isNotNull>
+			<isNotNull prepend="," property="projectName">
+				projectName=#projectName#
+				</isNotNull>
+				<isNotNull prepend="," property="projectAddress">
+				projectAddress=#projectAddress#
+				</isNotNull>
+				<isNotNull prepend="," property="developmentUnit">
+				developmentUnit=#developmentUnit#
+				</isNotNull>
+				<isNotNull prepend="," property="developmentContactPerson">
+				developmentContactPerson=#developmentContactPerson#
+				</isNotNull>
+		
+				<isNotNull prepend="," property="developmentContactPersonPhone">
+				developmentContactPersonPhone=#developmentContactPersonPhone#
+				</isNotNull>
+				<isNotNull prepend="," property="contractor">
+				contractor=#contractor#
+				</isNotNull>
+				<isNotNull prepend="," property="contractorContactPerson">
+				contractorContactPerson=#contractorContactPerson#
+				</isNotNull>
+				<isNotNull prepend="," property="contractorContactPersonPhone">
+				contractorContactPersonPhone=#contractorContactPersonPhone#
+				</isNotNull>
+				<isNotNull prepend="," property="laborer">
+				laborer=#laborer#
+				</isNotNull>
+				<isNotNull prepend="," property="laborerContactPerson">
+				laborerContactPerson=#laborerContactPerson#
+				</isNotNull>
+				<isNotNull prepend="," property="laborerContactPersonPhone">
+				laborerContactPersonPhone=#laborerContactPersonPhone#
+				</isNotNull>
+		</dynamic>
+		where id=#id#
+	</update>
+
+	<update id="updateConstructionUnit" parameterClass="ConstructionUnit">
+		update constructionUnits set
+		<dynamic>
+			fullPinyin=#fullPinyin#,
+			simplePinyin=#simplePinyin#,
+			remark=#remark#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#,
+			shouldSignContractNumber=#shouldSignContractNumber#,
+			notSignContractNumber=#notSignContractNumber#,
+			workersNumber=#workersNumber#,
+			startTime=#startTime#,
+			salaryPayDate=#salaryPayDate#
+			
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			
+			<isNotNull prepend="," property="isEmphasis">
+				isEmphasis = #isEmphasis#
+			</isNotNull>
+			
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+				</isNotNull>
+			<isNotNull prepend="," property="projectName">
+				projectName=#projectName#
+				</isNotNull>
+				<isNotNull prepend="," property="projectAddress">
+				projectAddress=#projectAddress#
+				</isNotNull>
+				<isNotNull prepend="," property="developmentUnit">
+				developmentUnit=#developmentUnit#
+				</isNotNull>
+				<isNotNull prepend="," property="developmentContactPerson">
+				developmentContactPerson=#developmentContactPerson#
+				</isNotNull>
+		
+				<isNotNull prepend="," property="developmentContactPersonPhone">
+				developmentContactPersonPhone=#developmentContactPersonPhone#
+				</isNotNull>
+				<isNotNull prepend="," property="contractor">
+				contractor=#contractor#
+				</isNotNull>
+				<isNotNull prepend="," property="contractorContactPerson">
+				contractorContactPerson=#contractorContactPerson#
+				</isNotNull>
+				<isNotNull prepend="," property="contractorContactPersonPhone">
+				contractorContactPersonPhone=#contractorContactPersonPhone#
+				</isNotNull>
+				<isNotNull prepend="," property="laborer">
+				laborer=#laborer#
+				</isNotNull>
+				<isNotNull prepend="," property="laborerContactPerson">
+				laborerContactPerson=#laborerContactPerson#
+				</isNotNull>
+				<isNotNull prepend="," property="laborerContactPersonPhone">
+				laborerContactPersonPhone=#laborerContactPersonPhone#
+				</isNotNull>
+				
+			where id=#id#
+		</dynamic>
+	</update>
+
+	<delete id="deleteConstructionUnitById" parameterClass="java.lang.Long">
+		delete from
+		constructionUnits where id = #value#
+	</delete>
+
+	<sql id="sql_where">
+		from constructionUnits
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId=#orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis =
+						#isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis# 
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findConstructionUnits" parameterClass="java.util.Map"
+		resultMap="constructionUnitResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countConstructionUnits" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	<select id="getConstructionUnitByProjectName" parameterClass="java.util.Map"
+		resultMap="constructionUnitResult">
+		select * from constructionUnits where projectName=#projectName# and orgId=#id#
+	</select>
+
+	<select id="countExsistedConstructionUnit" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from constructionUnits where projectName=#projectName# and
+		orgId=#orgId#
+		<isNotNull property="id" prepend=" and ">
+			<![CDATA[
+				id!=#id#
+			]]>
+		</isNotNull>
+	</select>
+</sqlMap>

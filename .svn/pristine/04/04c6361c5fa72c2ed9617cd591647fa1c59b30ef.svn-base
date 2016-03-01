@@ -1,0 +1,380 @@
+﻿var mapData=[];//地图数据加载变量
+var markData = [];//地图闪动数据加载变量
+//用于拼接组织结构
+//用于判断地图目前处于某级城市（市、县、乡镇）  1处于市  2县   3乡镇
+var changeCityNum = 1;
+
+
+//获得地图数据
+function getMapData(){
+	$.ajax({
+		async: false,
+		url: "/plugin/statistics/generalSituationManage/getMaxCreatSignOrgByType.action",
+		data: {"taskListStatisticsVo.orgName":organizationName,"taskListStatisticsVo.year":year,"taskListStatisticsVo.month":month,"taskListStatisticsVo.basesicType":"pandect","taskListStatisticsVo.isSegin":signType,"taskListStatisticsVo.searchDateType":searchDateType,"taskListStatisticsVo.mapTypeByOrg":0},
+		success:function(responseData){
+				var obj = "";
+				for(var i = 0;i < responseData.length;i++){
+					var city = responseData[i].organization.orgName;
+					//排名前三，可能需要加地图标注，暂时未加
+					if(responseData[i].ranking == 1){
+						obj = {"name":city,"value":responseData[i].monthCreateSign,"tooltip":{"formatter":"{a}</br>{b}:{c}</br>同比数据:"+responseData[i].onProportion+"</br>环比数据:"+responseData[i].momProportion+""}}
+					}else if(responseData[i].ranking == 2){
+						obj = {"name":city,"value":responseData[i].monthCreateSign,"tooltip":{"formatter":"{a}</br>{b}:{c}</br>同比数据:"+responseData[i].onProportion+"</br>环比数据:"+responseData[i].momProportion+""}}
+					}else if(responseData[i].ranking == 3){
+						obj = {"name":city,"value":responseData[i].monthCreateSign,"tooltip":{"formatter":"{a}</br>{b}:{c}</br>同比数据:"+responseData[i].onProportion+"</br>环比数据:"+responseData[i].momProportion+""}}
+					}else{
+						obj = {"name":city,"value":responseData[i].monthCreateSign,"tooltip":{"formatter":"{a}</br>{b}:{c}</br>同比数据:"+responseData[i].onProportion+"</br>环比数据:"+responseData[i].momProportion+""}}
+					}
+					if(obj != ""){
+						mapData.push(obj);
+					}
+				}
+		}
+	});
+}
+
+
+require.config({
+    paths: {
+        echarts: '/resource/judgmentAnalysis/js/echarts/build/dist'
+    }
+});
+    
+    // 使用
+    require(
+        [
+            'echarts',
+            'echarts/chart/map' // 使用柱状图就加载bar模块，按需加载
+        ],
+        function (ec) {
+            // 基于准备好的dom，初始化echarts图表
+        	var mapHeight = $(document).height()-120 ;
+        	$('#mapMain').height(mapHeight);
+            myChart = ec.init($('#mapMain')[0]); 
+            var MPATH = "/resource/judgmentAnalysis/js/echarts/";//自定义地图geojson数据加载路径
+			var cityMap = {
+				"阿坝藏族羌族自治州": MPATH+"json/阿坝藏族羌族自治州",
+				"凉山彝族自治州":  MPATH+"json/凉山彝族自治州",
+				"甘孜藏族自治州":  MPATH+"json/甘孜藏族自治州",
+				"绵阳市":  MPATH+"json/绵阳市",
+				"泸州市":  MPATH+"json/泸州市",
+				"达州市":  MPATH+"json/达州市",
+				"广元市":  MPATH+"json/广元市",
+				"雅安市":  MPATH+"json/雅安市",
+				"宜宾市":  MPATH+"json/宜宾市",
+				"乐山市":  MPATH+"json/乐山市",
+				"南充市":  MPATH+"json/南充市",
+				"巴中市":  MPATH+"json/巴中市",
+				"成都市":  MPATH+"json/成都市",
+				"资阳市":  MPATH+"json/资阳市",
+				"攀枝花市":  MPATH+"json/攀枝花市",
+				"眉山市":  MPATH+"json/眉山市",
+				"广安市": MPATH+"json/广安市",
+				"德阳市": MPATH+"json/德阳市",
+				"内江市": MPATH+"json/内江市",
+				"遂宁市": MPATH+"json/遂宁市",
+				"自贡市": MPATH+"json/自贡市",
+				//广安市下所有乡镇
+				"广安区": MPATH+"json/广安市广安区",
+				"华蓥市": MPATH+"json/广安市华蓥市",
+				"邻水县": MPATH+"json/广安市邻水县",
+				"武胜县": MPATH+"json/广安市武胜县",
+				"岳池县": MPATH+"json/广安市岳池县",
+				//资阳市下所有乡镇
+				"简阳市": MPATH+"json/资阳简阳市",
+				"乐至县": MPATH+"json/资阳乐至县",
+				"安岳县": MPATH+"json/资阳安岳县",
+				"雁江区": MPATH+"json/资阳雁江区",
+				//乐山市下所有乡镇
+				"峨边彝族自治县": MPATH+"json/乐山峨边彝族自治县",
+				"峨眉山市": MPATH+"json/乐山峨眉山市",
+				"夹江县": MPATH+"json/乐山夹江县",
+				"犍为县": MPATH+"json/乐山犍为县",
+				"金口河区": MPATH+"json/乐山金口河区",
+				"井研县": MPATH+"json/乐山井研县",
+				"马边彝族自治县": MPATH+"json/乐山马边彝族自治县",
+				"沐川县": MPATH+"json/乐山沐川县",
+				"沙湾区": MPATH+"json/乐山沙湾区",
+				"市中区": MPATH+"json/乐山市中区",
+				"五通桥区": MPATH+"json/乐山五通桥区",
+				//凉山彝族自治州下所有乡镇
+				"布拖县": MPATH+"json/凉山布拖县",
+				"德昌县": MPATH+"json/凉山德昌县",
+				"甘洛县": MPATH+"json/凉山甘洛县",
+				"会东县": MPATH+"json/凉山会东县",
+				"会理县": MPATH+"json/凉山会理县",
+				"金阳县": MPATH+"json/凉山金阳县",
+				"雷波县": MPATH+"json/凉山雷波县",
+				"美姑县": MPATH+"json/凉山美姑县",
+				"冕宁县": MPATH+"json/凉山冕宁县",
+				"宁南县": MPATH+"json/凉山宁南县",
+				"普格县": MPATH+"json/凉山普格县",
+				"喜德县": MPATH+"json/凉山喜德县",
+				"西昌市": MPATH+"json/凉山西昌市",
+				"盐源县": MPATH+"json/凉山盐源县",
+				"越西县": MPATH+"json/凉山越西县",
+				"昭觉县": MPATH+"json/凉山昭觉县",
+				"木里藏族自治县" : MPATH+"json/凉山木里藏族自治县"
+			};
+			var curIndx = 0;
+			var mapType = [];
+			mapGeoData = require('echarts/util/mapData/params');
+			//当前登录用户的组织机构名称alert(userByOrgName+"......")
+			//初始化地图数据
+			$.ajax({
+				async: false,
+				url: "/plugin/statistics/generalSituationManage/getMaxCreatSignOrgByType.action",
+				data: {"taskListStatisticsVo.orgName":"四川省","taskListStatisticsVo.year":year,"taskListStatisticsVo.month":month,"taskListStatisticsVo.basesicType":"pandect","taskListStatisticsVo.isSegin":signType,"taskListStatisticsVo.searchDateType":searchDateType,"taskListStatisticsVo.mapTypeByOrg":0},
+				success:function(responseData){
+					for (var city in cityMap) {
+						mapType.push(city);
+						var obj = "";
+						var markObj = "";
+						for(var i = 0;i < responseData.length;i++){
+							if(city == responseData[i].organization.orgName){//判断返回数据中是否对应该地图数据
+								//排名前三，可能需要加地图标注，暂时未加
+								if(responseData[i].ranking == 1){
+									obj = {"name":city,"value":responseData[i].monthCreateSign,"tooltip":{"formatter":"{a}</br>{b}:{c}</br>同比数据:"+responseData[i].onProportion+"</br>环比数据:"+responseData[i].momProportion+""}}
+									if(responseData[i].monthCreateSign!=0){
+										markObj = {"name":city,"value":responseData[i].monthCreateSign}
+									}
+//									markObj = {"name":city,"value":responseData[i].monthCreateSign,"itemStyle":{"normal":{"color":"red"}}}
+								}else if(responseData[i].ranking == 2){
+									obj = {"name":city,"value":responseData[i].monthCreateSign,"tooltip":{"formatter":"{a}</br>{b}:{c}</br>同比数据:"+responseData[i].onProportion+"</br>环比数据:"+responseData[i].momProportion+""}}
+									if(responseData[i].monthCreateSign!=0){
+										markObj = {"name":city,"value":responseData[i].monthCreateSign}
+									}
+								}else if(responseData[i].ranking == 3){
+									obj = {"name":city,"value":responseData[i].monthCreateSign,"tooltip":{"formatter":"{a}</br>{b}:{c}</br>同比数据:"+responseData[i].onProportion+"</br>环比数据:"+responseData[i].momProportion+""}}
+									if(responseData[i].monthCreateSign!=0){
+										markObj = {"name":city,"value":responseData[i].monthCreateSign}
+									}
+								}else{
+									obj = {"name":city,"value":responseData[i].monthCreateSign,"tooltip":{"formatter":"{a}</br>{b}:{c}</br>同比数据:"+responseData[i].onProportion+"</br>环比数据:"+responseData[i].momProportion+""}}
+								}
+								if(markObj != ""){
+									markData.push(markObj);
+								}
+								if(obj != ""){
+									mapData.push(obj);
+								}
+								break;
+							}
+						}
+						// 自定义扩展图表类型
+						mapGeoData.params[city] = {
+							getGeoJson: (function (c) {
+								var geoJsonName = cityMap[c];
+								return function (callback) {
+									$.getJSON(geoJsonName + '.json', callback);
+								}
+							})(city)
+						}
+					}
+				}
+			});
+			ecConfig = require('echarts/config');
+			zrEvent = require('zrender/tool/event');
+			//地图双击事件
+			myChart.on(ecConfig.EVENT.DBLCLICK, function (param){
+				var mt = param.name;
+				changeType("pandect","","");//刷新地图右边饼状图数据
+				getMapData();//显示选中地区下属地区数据
+				var optionss =  option.series[0];
+				var len = mapType.length;
+				var f= false;
+				for(var i=0;i<len;i++){
+					if(mt == mapType[i]){
+						  f =true;
+						  mt=mapType[i];
+					}
+				 }
+			  if(!f){
+				return;
+				mt='四川';
+			  }
+			  	changeCityNum++;
+				option.series[0].mapType = mt;//显示选中区域地图
+				myChart.setOption(option, true);//重新加载地图数据
+			});
+			
+			//选中地图事件
+			myChart.on(ecConfig.EVENT.CLICK, function (param){
+				if(changeCityNum == 1){//选中市
+					//判断是否有其它市区，没有就赋值，有就覆盖
+					if(organizationName.indexOf(",") == -1){
+						organizationName += ","+param.name;
+					}else{
+						organizationName = organizationName.substring(0,(organizationName.indexOf(",")+1))+param.name;
+					}
+				}else if(changeCityNum == 2){//选中县
+					var splitNames = organizationName.split(",");
+					//判断是否存在其它区县，没有复制，有就覆盖
+					if(splitNames.length == 2){
+						organizationName += ","+param.name;
+					}else{
+						splitNames[2] = param.name;
+						organizationName = splitNames+"";
+					}
+				}else{//选中乡镇
+					var splitNames = organizationName.split(",");
+					//判断是否存在其它乡镇，没有复制，有就覆盖
+					if(splitNames.length == 3){
+						organizationName += ","+param.name;
+					}else{
+						splitNames[3] = param.name;
+						organizationName = splitNames+"";
+					}
+				}
+			});
+			option = {
+				tooltip : {
+					enterable:true,//默认false表示鼠标不能停留在提示框上   true可以停留可做提示框内部点击事件及跳转等
+					trigger: 'item'
+				},
+				dataRange: {//地图数据控件、拖拉控件显示地图数据
+					x: 'left',
+			        y: 'center',
+			        min: 0,
+			        max: 200,
+			        text:['高','低'],
+			        realtime: false,
+			        calculable : true,
+			        color: ['orangered','yellow','lightskyblue']
+			    },
+				series : [//定义地图显示数据
+					{
+						name: '任务清单上报数据',
+						type: 'map',
+						mapType: '四川',
+						roam:true,
+						selectedMode : 'single',
+						itemStyle:{  
+		                    normal:{  
+		                           label:{
+		                        	   show:true,
+		                        	   textStyle: {
+				                           color: "#333"
+				                        }
+		                           } ,
+		                           //地图默认是灰色color: '#66CCFF', //刚才说的图例颜色设置  
+		                           borderColor:"#fff"
+		                    },  
+		                    emphasis:{label:{show:true}},
+			                emphasis: {                 // 地图选中样式
+			                    borderWidth:2,
+			                    borderColor:'#fff',
+			                    color: '#FF6600',
+			                    label: {
+			                        show: true,
+			                        textStyle: {
+			                            color: '#fff'
+			                        }
+			                    }
+			                }
+		                },
+		                data:mapData,//设置地图数据
+						geoCoord: {//各市区经纬度用于定位显示闪动效果或做地图标记
+			                "成都市":[104.06,30.67],
+			                "广安市":[106.61,30.48],
+			                "德阳市":[104.37,31.13],
+			                "甘孜藏族自治州":[99.96,31.64],
+			                "攀枝花市":[101.72 ,26.58 ],
+			                "凉山彝族自治州":[102.27,27.9],
+			                "阿坝藏族羌族自治州":[102.22,31.9],
+			                "雅安市":[103.0,29.98],
+			                "乐山市":[103.77,29.57],
+			                "宜宾市":[104.62,28.77],
+			                "泸州市":[105.43,28.87],
+			                "自贡市":[104.78,29.35],
+			                "内江市":[105.05,29.58],
+			                "眉山市":[103.83,30.05],
+			                "资阳市":[104.65,30.12],
+			                "遂宁市":[105.57,30.52],
+			                "南充市":[106.08,30.78],
+			                "达州市":[107.5,31.22],
+			                "巴中市":[106.77,31.85],
+			                "广元市":[105.83,32.43],
+			                "绵阳市":[104.73,31.47]
+			            }/*,
+			            markPoint : {//地图闪动特效
+			                symbol:'emptyCircle',
+			                symbolSize : function (v){
+			                    return 10
+			                },
+			                effect : {
+			                    show: true,
+			                    shadowBlur : 0
+			                },
+			                data : markData
+			            }*/
+					}
+				]
+			};
+			myChart.setOption(option); 
+        }
+    );
+    
+
+ $(function(){
+	 $(".tabs .tabsItem").hover(function(){
+		 $(this).find(".item").show().siblings().find(".item").hide();
+	 },function(){
+		 $(this).find(".item").hide();
+		 $(this).find(".item .subitem").hide();
+	 });
+	$(".tabsItem .itemA").hover(function(){
+		//bugger
+		$(".tabs").find(".subitem").hide();
+		var sWidth = $(".tabs .tabsItem h2").width()-1,
+			subitem = $(this).next(".subitem");
+		if(subitem.length>0){
+			subitem.show().css("left",sWidth);
+		}else{
+			$(".item .subitem").hide()
+		}
+	 });
+	$(".tabs .tabsItem .item .subitem a").hover(
+			function(){
+				$(this).closest("li").find(".itemA").addClass("selected");
+			},function(){
+				$(this).closest("li").find(".itemA").removeClass("selected");
+			}
+		);
+	//返回按钮点击事件
+	$("#returnBtn").click(function(){
+		changeCityNum = 1;
+		organizationName = "四川省";
+		changeType("pandect","","map");
+	})
+ });
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="weChatResponse">
+	<typeAlias alias="weChatResponse" type="com.tianque.plugin.weChat.domain.WeChatResponse"/>
+	
+	<resultMap id="weChatResponseResult" class="weChatResponse">
+		<result property="id" column="id"/>
+		<result property="org.id" column="orgid"/>
+		<result property="org.orgInternalCode" column="orgCode"/>
+		
+		<result property="sourceId" column="sourceId"/>
+		<result property="mediaId" column="mediaId"/>
+		<result property="text" column="text"/>
+		<result property="sendType" column="sendType"/>
+		<result property="wechatUserName" column="wechatUserName"/>
+		<result property="status" column="status"/>
+		<result property="totalCount" column="TotalCount"/>
+		<result property="filterCount" column="filterCount"/>
+		<result property="sentCount" column="sentCount"/>
+		<result property="errorCount" column="errorCount"/>
+		<result property="resultDate" column="resultDate"/>
+		<result property="userId" column="userId"/>
+		<result property="userName" column="userName"/>
+		
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	<update id="updateWeChatResponse" parameterClass="weChatResponse">
+		update weChatResponse set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="org">
+				orgid=#org.id#,orgCode=#org.orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="sendType">
+				sendType=#sendType#
+			</isNotNull>
+			<isNotNull prepend="," property="mediaId">
+				mediaId=#mediaId#
+			</isNotNull>
+			<isNotNull prepend="," property="text">
+				text=#text#
+			</isNotNull>
+			<isNotNull prepend="," property="wechatUserName">
+				wechatUserName=#wechatUserName#
+			</isNotNull>
+			<isNotNull prepend="," property="status">
+				status=#status#
+			</isNotNull>
+			<isNotNull prepend="," property="totalCount">
+				totalCount=#totalCount#
+			</isNotNull>
+			<isNotNull prepend="," property="filterCount">
+				filterCount=#filterCount#
+			</isNotNull>
+			<isNotNull prepend="," property="sentCount">
+				sentCount=#sentCount#
+			</isNotNull>
+			<isNotNull prepend="," property="errorCount">
+				errorCount=#errorCount#
+			</isNotNull>
+			<isNotNull prepend="," property="resultDate">
+				resultDate=#resultDate#
+			</isNotNull>
+			<isNotNull prepend="," property="userId">
+				userId=#userId#
+			</isNotNull>
+			<isNotNull prepend="," property="userName">
+				userName=#userName#
+			</isNotNull>
+
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+		</dynamic>
+		WHERE id=#id#
+	</update>
+	
+	<insert id="saveWeChatResponse" parameterClass="weChatResponse">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_weChatResponse.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		insert into weChatResponse
+		(id,orgid,orgCode,sendType,wechatUserName,sourceId,text,msgId,status,totalCount,filterCount,sentCount,errorCount,resultDate,userId,userName,createUser,updateUser,createDate,updateDate)
+		values
+		(#id#,#org.id#,#org.orgInternalCode#,#sendType#,#wechatUserName#,#sourceId#,#text#,#msgId#,#status#,#totalCount#,#filterCount#,#sentCount#,#errorCount#,#resultDate#,#userId#,#userName#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	<sql id="sql_where">
+		<dynamic>
+			<isNotEmpty prepend=" and " property="weChatResponse.sendType">
+				regexp_like(res.sendType,',{0,1}'||#weChatResponse.sendType#||',{0,1}')
+			</isNotEmpty>
+			<isNotEmpty  property="weChatResponse.org">
+				<isNotEmpty prepend=" and " property="weChatResponse.org.id">
+					res.orgId= #weChatResponse.org.id#
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty  property="weChatResponse.org">
+				<isNotEmpty prepend=" and " property="weChatResponse.org.orgInternalCode">
+					res.orgCode like #weChatResponse.org.orgInternalCode#||'%'
+				</isNotEmpty>
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	<select id="countFindWeChatResponse" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		select count(1) from weChatResponse res where 1=1
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="findWeChatResponse" parameterClass="java.util.Map"
+		resultMap="weChatResponseResult">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_start" />
+			</isNotNull>
+		</isPropertyAvailable>
+		select res.* from weChatResponse res where 1=1
+		<include refid="sql_where"/>
+		<dynamic prepend="order by">
+				<isPropertyAvailable property="sidx">
+					<isNotNull property="sidx">$sidx$</isNotNull>
+					<isNotNull property="sord">$sord$</isNotNull>
+				</isPropertyAvailable>
+		</dynamic>
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_end" />
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	
+	<select id="getById" parameterClass="long" resultMap="weChatResponseResult">
+		select * from weChatResponse where id=#id#
+	</select>
+	<select id="getByMsgId" parameterClass="String" resultMap="weChatResponseResult">
+		select * from weChatResponse where msgId=#msgId#
+	</select>
+	<select id="countByWechatName" parameterClass="map" resultClass="int">
+		<![CDATA[select count(1) from weChatResponse where wechatUserName=#wechatUserName# and (resultDate is null or resultDate>=#startDate#)]]>
+	</select>
+	
+</sqlMap>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="speech">
+	<typeAlias alias="Speech" type="com.tianque.domain.Speech" />
+
+	<resultMap id="speechResult" class="Speech">
+		<result column="id" property="id" />
+		<result column="orgId" property="orgId" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+		
+		<result column="title" property="title" />
+		<result column="content" property="content" />
+		<result column="speechType" property="speechType" />
+		<result property="createUserRealName" column="createUserRealName"/>
+	</resultMap>
+
+	<insert id="addSpeech" parameterClass="Speech">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_speech.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into speech
+		(
+			id,orgId,orgInternalCode,createDate,createUser,updateDate,updateUser,title,content,speechType,createUserRealName
+		)
+		values
+		(
+			#id#,#orgId#,#orgInternalCode#,#createDate#,#createUser#,#updateDate#,#updateUser#,#title#,#content#,#speechType#,#createUserRealName#
+		)
+	</insert>
+	
+	<update id="updateSpeech" parameterClass="Speech">
+		update speech set
+		title = #title#,
+		content = #content#,
+		updateUser = #updateUser#,
+		updateDate = #updateDate#
+		where id=#id#
+	</update>
+	
+	
+	<delete id="deleteSpeechById" parameterClass="java.lang.Long">
+		delete from speech
+		where id=#value#
+	</delete>
+
+	<select id="getSpeechById" parameterClass="java.lang.Long"
+		resultMap="speechResult">
+		select * from speech where id=#value#
+	</select>
+
+	<sql id="sql_where">
+		from speech
+		<dynamic prepend="WHERE">
+		<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="title">
+				<isNotNull property="title" prepend=" and ">
+					title = #title#
+				</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="speechType">
+				<isNotNull property="speechType" prepend=" and ">
+					speechType = #speechType#
+				</isNotNull>
+		</isPropertyAvailable>
+		<!--  目前只查选中级别的，这个条件暂时用不上
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			 -->
+		</dynamic>
+	</sql>
+
+	<select id="findSpeechs" parameterClass="java.util.Map"
+		resultMap="speechResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countSpeechByMap" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count"/>
+		<include refid="sql_where"/>
+	</select>
+	
+</sqlMap>

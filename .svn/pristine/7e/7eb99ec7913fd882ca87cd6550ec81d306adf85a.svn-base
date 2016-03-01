@@ -1,0 +1,413 @@
+package com.tianque.issue.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Actions;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.controller.annotation.PermissionFilter;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.util.DialogMode;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.GridPage;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.property.OrganizationLevel;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.issue.domain.IssueMessageRemind;
+import com.tianque.issue.domain.IssueSkiprule;
+import com.tianque.issue.domain.vo.SearchIssueSkipruleVo;
+import com.tianque.issue.service.IssueMessageRemindService;
+import com.tianque.issue.service.IssueSkipruleService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+
+/**
+ * 事件类型越级规则设置:服务前端控制类
+ * 
+ * @author
+ * @date 2013-11-22 14:51:42
+ */
+@Namespace("/issueSkipruleManage")
+@Scope("request")
+@Controller("issueSkipruleController")
+public class IssueSkipruleController extends BaseAction {
+
+	@Autowired
+	private IssueSkipruleService issueSkipruleService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private PropertyDictService propertyDictService;
+	@Autowired
+	private IssueMessageRemindService issueMessageRemindService;
+
+	private IssueSkiprule issueSkiprule;
+	private List<IssueMessageRemind> issueMessageRemindList;
+	private SearchIssueSkipruleVo searchIssueSkipruleVo;
+	private String ids;
+	private Long organizationId;
+	private List<PropertyDict> propertyDicts;
+	private String dailogName;
+
+	@Actions({ @Action(value = "dispatchOperate", results = {
+			@Result(name = "edit", location = "/issue/issueSkipruleManage/editIssueSkipruleDlg.jsp"),
+			@Result(name = "search", location = "/issue/issueSkipruleManage/searchIssueSkipruleDlg.jsp"),
+			@Result(name = "view", location = "/issue/issueSkipruleManage/viewIssueSkipruleDlg.jsp"),
+			@Result(name = "add", location = "/issue/issueSkipruleManage/issueSkipruleViewDlg.jsp"),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) }) })
+	public String dispatchOperate() throws Exception {
+		if (DialogMode.ADD_MODE.equals(mode)) {
+			issueSkiprule = new IssueSkiprule();
+			if (ThreadVariable.getUser().getOrganization().getOrgLevel()
+					.getDisplayName().equals("县（区）")) {
+				PropertyDict aa = propertyDictService
+						.findPropertyDictByDomainNameAndDictDisplayName(
+								"事件重大紧急等级", "高");
+				issueSkiprule.setIssueUrgentLevel(aa);
+				issueSkiprule.setSubmitLevel(ThreadVariable.getUser()
+						.getOrganization().getOrgLevel());
+			} else if (ThreadVariable.getUser().getOrganization().getOrgLevel()
+					.getDisplayName().equals("乡镇（街道）")) {
+				PropertyDict bb = propertyDictService
+						.findPropertyDictByDomainNameAndDictDisplayName(
+								"事件重大紧急等级", "中");
+				issueSkiprule.setIssueUrgentLevel(bb);
+				issueSkiprule.setSubmitLevel(ThreadVariable.getUser()
+						.getOrganization().getOrgLevel());
+			}
+			issueSkiprule.setOrgId(ThreadVariable.getUser().getOrganization()
+					.getId());
+			return mode;
+		} else if (DialogMode.EDIT_MODE.equals(mode)
+				|| DialogMode.VIEW_MODE.equals(mode)) {
+			if (id == null) {
+				this.errorMessage = "参数无效!";
+				return ERROR;
+			}
+			issueSkiprule = issueSkipruleService.getIssueSkipruleById(id);
+			issueMessageRemindList = issueMessageRemindService
+					.findIssueMessageRemindListBySkipRuleId(issueSkiprule
+							.getId());
+			if (issueMessageRemindList == null
+					|| issueMessageRemindList.size() == 0)
+				issueMessageRemindList = null;
+			return mode;
+		} else if (DialogMode.SEARCH_MODE.equals(mode)) {
+			propertyDicts = propertyDictService
+					.findPropertyDictByDomainName(PropertyTypes.URGENT_LEVEL);
+			return mode;
+		}
+		return ERROR;
+	}
+
+	/**
+	 * 根据ID获取实体对象
+	 * 
+	 * @param id
+	 *            记录ID
+	 * @return 实体对象
+	 */
+	@Action(value = "getIssueSkipruleById", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"issueSkiprule", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	@PermissionFilter(ename = "viewIssueSkiprule")
+	public String getIssueSkipruleById() throws Exception {
+		if (id == null) {
+			this.errorMessage = "参数无效!";
+			return ERROR;
+		}
+		issueSkiprule = issueSkipruleService.getIssueSkipruleById(id);
+		return SUCCESS;
+	}
+
+	/**
+	 * 保存实体对象
+	 * 
+	 * @param entity
+	 *            对象
+	 * @return ID
+	 */
+	@Action(value = "addIssueSkiprule", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"issueSkiprule", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	@PermissionFilter(ename = "addIssueSkiprule")
+	public String addIssueSkiprule() throws Exception {
+		if (issueSkiprule == null) {
+			this.errorMessage = "参数无效!";
+			return ERROR;
+		}
+		issueSkiprule = issueSkipruleService.addIssueSkiprule(issueSkiprule,
+				issueMessageRemindList);
+		return SUCCESS;
+	}
+
+	/**
+	 * 更新实体对象
+	 * 
+	 * @param entity
+	 *            对象
+	 */
+	@Action(value = "updateIssueSkiprule", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"issueSkiprule", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	@PermissionFilter(ename = "updateIssueSkiprule")
+	public String updateIssueSkiprule() throws Exception {
+		if (issueSkiprule == null || issueSkiprule.getId() == null) {
+			this.errorMessage = "参数无效!";
+			return ERROR;
+		}
+		issueSkiprule = issueSkipruleService.updateIssueSkiprule(issueSkiprule,
+				issueMessageRemindList);
+		return SUCCESS;
+	}
+
+	/**
+	 * 根据ID删除实体对象
+	 * 
+	 * @param id
+	 *            记录ID
+	 */
+	@Action(value = "deleteIssueSkipruleById", results = {
+			@Result(name = "success", type = "json", params = { "root", "id" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	@PermissionFilter(ename = "deleteIssueSkiprule")
+	public String deleteIssueSkipruleById() throws Exception {
+		if (id == null) {
+			this.errorMessage = "请选择要删除的记录!";
+			return ERROR;
+		}
+		issueSkipruleService.delete(id);
+		return SUCCESS;
+	}
+
+	/**
+	 * 根据ID数组删除实体对象
+	 * 
+	 * @param ids
+	 *            ID数组
+	 */
+	@Action(value = "deleteIssueSkipruleByIds", results = {
+			@Result(name = "success", type = "json", params = { "root", "ids" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	@PermissionFilter(ename = "deleteIssueSkiprule")
+	public String deleteIssueSkipruleByIds() throws Exception {
+		if (ids == null || "".equals(ids.trim())) {
+			this.errorMessage = "请选择要删除的记录!";
+			return ERROR;
+		}
+		String[] idsStr = ids.split(",");
+		Long[] idsLong = new Long[idsStr.length];
+		String id = null;
+		for (int i = 0; i < idsStr.length; i++) {
+			id = idsStr[i];
+			if (id != null && !"".equals(id.trim())) {
+				idsLong[i] = Long.parseLong(idsStr[i]);
+			}
+		}
+		if (idsLong.length == 0) {
+			this.errorMessage = "请选择要删除的记录!";
+			return ERROR;
+		}
+		issueSkipruleService.delete(idsLong);
+		return SUCCESS;
+	}
+
+	/**
+	 * 根据ID数组启用实体对象
+	 * 
+	 * @param ids
+	 *            ID数组
+	 */
+	@Action(value = "startIssueSkipruleByIds", results = {
+			@Result(name = "success", type = "json", params = { "root", "true" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	@PermissionFilter(ename = "startIssueSkiprule")
+	public String startIssueSkipruleByIds() throws Exception {
+		if (ids == null || "".equals(ids.trim())) {
+			this.errorMessage = "请选择要启用的记录!";
+			return ERROR;
+		}
+		String[] idsStr = ids.split(",");
+		List<Long> idList = transformStrArrToLongList(idsStr);
+		if (idList == null || idList.size() == 0) {
+			this.errorMessage = "请选择要启用的记录!";
+			return ERROR;
+		}
+		issueSkipruleService.startIssueSkipRule(idList);
+		return SUCCESS;
+	}
+
+	private List<Long> transformStrArrToLongList(String str[]) {
+		if (str == null || str.length == 0)
+			return null;
+		List<Long> list = new ArrayList<Long>();
+		for (String s : str) {
+			if (s != null && !"".equals(s.trim())) {
+				list.add(Long.parseLong(s));
+			}
+		}
+		return list;
+	}
+
+	/**
+	 * 根据ID数组停用实体对象
+	 * 
+	 * @param ids
+	 *            ID数组
+	 */
+	@Action(value = "stopIssueSkipruleByIds", results = {
+			@Result(name = "success", type = "json", params = { "root", "true" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	@PermissionFilter(ename = "stopIssueSkiprule")
+	public String stopIssueSkipruleByIds() throws Exception {
+		if (ids == null || "".equals(ids.trim())) {
+			this.errorMessage = "请选择要停用的记录!";
+			return ERROR;
+		}
+		String[] idsStr = ids.split(",");
+		List<Long> idList = transformStrArrToLongList(idsStr);
+		if (idList == null || idList.size() == 0) {
+			this.errorMessage = "请选择要停用的记录!";
+			return ERROR;
+		}
+		issueSkipruleService.stopIssueSkipRule(idList);
+		return SUCCESS;
+	}
+
+	/**
+	 * 根据SearchVo进行查询(提供分页、查找、排序功能)
+	 * 
+	 * @param pager
+	 *            Pager对象
+	 * 
+	 * @return Pager对象
+	 */
+	@Action(value = "findIssueSkiprulePagerBySearchVo", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	@PermissionFilter(ename = "findIssueSkiprule")
+	public String findIssueSkiprulePagerBySearchVo() throws Exception {
+		if ((searchIssueSkipruleVo == null || searchIssueSkipruleVo.getOrgId() == null)
+				&& searchIssueSkipruleVo.getOrgIds() == null) {
+			this.errorMessage = "参数错误";
+			return ERROR;
+		}
+		// Organization organization = organizationDubboService
+		// .getSimpleOrgById(searchIssueSkipruleVo.getOrgId());
+		// if (organization == null) {
+		// this.errorMessage = "网格不存在";
+		// return ERROR;
+		// }
+		// searchIssueSkipruleVo.setOrgInternalCode(organization
+		// .getOrgInternalCode());
+		gridPage = new GridPage(issueSkipruleService.findPagerBySearchVo(
+				searchIssueSkipruleVo, page, rows, sidx, sord));
+		return SUCCESS;
+	}
+
+	@Action(value = "getUrgentLevelList", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"propertyDicts", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String getUrgentLevelList() throws Exception {
+		if (issueSkiprule == null) {
+			this.errorMessage = "参数无效!";
+			return ERROR;
+		}
+		Organization organization = organizationDubboService
+				.getParentOrgByOrgTypeAndChildOrgId(issueSkiprule.getOrgId(),
+						OrganizationLevel.DISTRICT);
+
+		issueSkiprule.setOrgId(organization.getId());
+		List<IssueSkiprule> isList = issueSkipruleService
+				.findIssueSkiprulesByRules(issueSkiprule);
+		if (isList != null) {
+			propertyDicts = new ArrayList<PropertyDict>();
+			for (IssueSkiprule is : isList) {
+				propertyDicts.add(propertyDictService.getPropertyDictById(is
+						.getIssueUrgentLevel().getId()));
+			}
+		}
+		return SUCCESS;
+	}
+
+	public IssueSkiprule getIssueSkiprule() {
+		return issueSkiprule;
+	}
+
+	public void setIssueSkiprule(IssueSkiprule issueSkiprule) {
+		this.issueSkiprule = issueSkiprule;
+	}
+
+	public SearchIssueSkipruleVo getSearchIssueSkipruleVo() {
+		return searchIssueSkipruleVo;
+	}
+
+	public void setSearchIssueSkipruleVo(
+			SearchIssueSkipruleVo searchIssueSkipruleVo) {
+		this.searchIssueSkipruleVo = searchIssueSkipruleVo;
+	}
+
+	public Long getOrganizationId() {
+		return organizationId;
+	}
+
+	public void setOrganizationId(Long organizationId) {
+		this.organizationId = organizationId;
+	}
+
+	public String getIds() {
+		return ids;
+	}
+
+	public void setIds(String ids) {
+		this.ids = ids;
+	}
+
+	public List<PropertyDict> getPropertyDicts() {
+		return propertyDicts;
+	}
+
+	public void setPropertyDicts(List<PropertyDict> propertyDicts) {
+		this.propertyDicts = propertyDicts;
+	}
+
+	public String getDailogName() {
+		return dailogName;
+	}
+
+	public void setDailogName(String dailogName) {
+		this.dailogName = dailogName;
+	}
+
+	public List<IssueMessageRemind> getIssueMessageRemindList() {
+		return issueMessageRemindList;
+	}
+
+	public void setIssueMessageRemindList(
+			List<IssueMessageRemind> issueMessageRemindList) {
+		this.issueMessageRemindList = issueMessageRemindList;
+	}
+
+}

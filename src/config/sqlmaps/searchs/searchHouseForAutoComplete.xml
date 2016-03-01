@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="searchHouseForAutoComplete">
+	<typeAlias alias="houseInfoForAutoComplete" type="com.tianque.domain.vo.HouseSimpleInfoForSearch" />
+	<resultMap class="houseInfoForAutoComplete" id="houseInfoResult" >
+		<result property="maxId" column="id"/>
+		<result property="address" column="address" />
+		<result property="comnunity" column="community" />
+		<result property="block" column="block" />
+		<result property="unit" column="unit" />
+		<result property="room" column="room" />
+		<result property="houseCode" column="houseCode" />
+		<result property="addressType.id" column="addressType" />
+	</resultMap>
+
+	<select id="searchHouseInfoByHouseCode" parameterClass="map" resultMap="houseInfoResult">
+		select id, community , address , houseCode ,addressType, block, unit, room from houseInfo_$shardCode$
+		where
+		orgInternalCode like #orgCode#||'%' and houseCode like #houseCode#||'%'
+	</select>
+
+	<select id="searchHouseInfoByAddress" parameterClass="map" resultMap="houseInfoResult">
+		select id, address address,houseCode, community, block, unit, room,addressType from houseInfo_$shardCode$
+		where
+		orgInternalCode like #orgCode#||'%' and address like '%'||#address#||'%'
+	</select>
+
+	<select id="searchHouseInfoByCommunity" parameterClass="map" resultMap="houseInfoResult">
+		select id, community , address , houseCode ,addressType, block, unit, room from houseInfo_$shardCode$
+		where
+		orgInternalCode like #orgCode#||'%' and community like #community#||'%'
+	</select>
+
+	<select id="searchHouseInfoByCommunityAndBlock" parameterClass="map" resultMap="houseInfoResult">
+		select id, community , address , houseCode ,addressType, block, unit, room from houseInfo_$shardCode$
+		where
+		orgInternalCode like #orgCode#||'%' and community like #community#||'%' 
+			<isNotEmpty property="block">
+				and block like #block#||'%'
+			</isNotEmpty>
+			<isEmpty  property="unit">
+				and unit like #unit#||'%'
+			</isEmpty>
+	</select>
+
+	<select id="searchHouseInfoByCommunityAndBlockAndUnit" parameterClass="map" resultMap="houseInfoResult">
+		select id, community , address , houseCode ,addressType, block, unit, room from houseInfo_$shardCode$
+		where
+		orgInternalCode like #orgCode#||'%' and community like #community#||'%' 
+		<dynamic>
+			<isEmpty  property="block">
+				and block like #block#||'%'
+			</isEmpty>
+			<isNotEmpty property="unit">
+				and unit like #unit#||'%'
+			</isNotEmpty>
+		</dynamic>
+	</select>
+
+	<select id="searchHouseInfoByCommunityAndBlockAndUnitAndRoom" parameterClass="map" resultMap="houseInfoResult">
+		select id, community , address , houseCode ,addressType, block, unit, room from houseInfo_$shardCode$
+		where
+		orgInternalCode like #orgCode# and community = #community# 
+		<dynamic>
+			<isNotEmpty property="block">
+				and block like #block#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="unit">
+				and unit like  #unit#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="room">
+				and room like #room#||'%'
+			</isNotEmpty>
+		</dynamic>
+	</select>
+</sqlMap>

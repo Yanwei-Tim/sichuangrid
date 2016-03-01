@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="statisticAnalysis">
+	<typeAlias alias="StatisticAnalysisDetailVo" type="com.tianque.plugin.weChat.vo.StatisticAnalysisDetailVo"/>
+	<typeAlias alias="StatisticAnalysisVo" type="com.tianque.plugin.weChat.vo.StatisticAnalysisVo"/>
+	<resultMap id="statisticAnalysisDetailResult" class="StatisticAnalysisDetailVo">
+		<result property="groupName" column="groupName"/>
+		<result property="reportNum" column="reportNum"/>
+		<result property="acceptNum" column="acceptNum"/>
+	</resultMap>
+	<select id="findStatisticAnalysisDetails" parameterClass="StatisticAnalysisVo" resultMap="statisticAnalysisDetailResult">
+		select 
+			a.name groupName,
+			(select count(*) from inbox i where i.group_id=a.group_id and i.to_user_name=a.wechat_user_id 
+			<isNotEmpty  property="startDate" prepend="and">
+				CREATE_TIME &gt;= #startDate#
+			</isNotEmpty>
+			<isNotEmpty  property="endDate" prepend="and">
+				CREATE_TIME &lt;= #endDate#
+			</isNotEmpty>
+			) reportNum,
+			(select count(*) from inbox i where i.group_id=a.group_id and i.to_user_name=a.wechat_user_id and i.deal_state=1 
+			<isNotEmpty  property="startDate" prepend="and">
+				CREATE_TIME &gt;= #startDate#
+			</isNotEmpty>
+			<isNotEmpty  property="endDate" prepend="and">
+				CREATE_TIME &lt;= #endDate#
+			</isNotEmpty>
+			) acceptNum
+		from (select * from wechat_group g where g.wechat_user_id=#weChatUserId#) a
+	</select> 
+
+</sqlMap>

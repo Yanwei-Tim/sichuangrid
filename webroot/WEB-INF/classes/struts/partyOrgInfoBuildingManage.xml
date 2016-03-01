@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="partyOrgInfoBuildingManage" extends="default" namespace="/partyBuilding/partyOrgInfoBuildingManage">
+		<default-class-ref class="partyOrgInfoController"></default-class-ref>
+
+		<action name="dispatchOperate" method="dispatch">
+			<result name="edit">
+				/partyBuilding/editSummary.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="findPartyOrgInfo" method="findPartyOrgInfo">
+			<result name="success">
+				/partyBuilding/orgInfo.jsp
+			</result>
+		</action>
+
+		<action name="addPartyOrgInfo" method="addPartyOrgInfo">
+			<result name="success" type="json">
+				<param name="root">partyOrgInfo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="commonTwoDimensionMapManage">
+	<typeAlias alias="CommonEntityInfoVo" type="com.tianque.openLayersMap.domian.CommonEntityInfoVo" />
+	<sql id="selectFields">
+		<isNotNull property="titleName" prepend=",">
+			'$titleName$' as titleName
+		</isNotNull> 
+		<isNotNull property="titleValue" prepend=",">
+			$titleValue$ as titleValue
+		</isNotNull>
+		<isNotNull property="fieldNameA" prepend=",">
+			'$fieldNameA$' as fieldNameA
+		</isNotNull>
+		<isNotNull property="fieldNameB" prepend=",">
+			'$fieldNameB$' as fieldNameB
+		</isNotNull>
+		<isNotNull property="fieldNameC" prepend=",">
+			'$fieldNameC$' as fieldNameC
+		</isNotNull>
+		<isNotNull property="fieldNameD" prepend=",">
+			'$fieldNameD$' as fieldNameD
+		</isNotNull>
+		<isNotNull property="fieldNameE" prepend=",">
+			'$fieldNameE$' as fieldNameE
+		</isNotNull>
+		<isNotNull property="fieldA" prepend=",">
+			$fieldA$ as fieldA 
+		</isNotNull>
+		<isNotNull property="fieldB" prepend=",">
+			$fieldB$ as fieldB 
+		</isNotNull> 
+		<isNotNull property="fieldC" prepend=",">
+			$fieldC$ as fieldC 
+		</isNotNull> 
+		<isNotNull property="fieldD" prepend=",">
+			$fieldD$ as fieldD 
+		</isNotNull> 
+		<isNotNull property="fieldE" prepend=",">
+			$fieldE$ as fieldE
+		</isNotNull> 
+		<isNotNull property="orgFiled" prepend=",">
+			$orgFiled$ as orgFiled
+		</isNotNull> 
+		<isNotNull property="detailFieldNameA" prepend=",">
+			'$detailFieldNameA$' as detailFieldNameA
+		</isNotNull>
+		<isNotNull property="detailFieldNameB" prepend=",">
+			'$detailFieldNameB$' as detailFieldNameB
+		</isNotNull>
+		<isNotNull property="detailFieldNameC" prepend=",">
+			'$detailFieldNameC$' as detailFieldNameC
+		</isNotNull>
+		<isNotNull property="detailFieldNameD" prepend=",">
+			'$detailFieldNameD$' as detailFieldNameD
+		</isNotNull>
+		<isNotNull property="detailFieldNameE" prepend=",">
+			'$detailFieldNameE$' as detailFieldNameE
+		</isNotNull>
+		<isNotNull property="detailFieldA" prepend=",">
+			$detailFieldA$ as detailFieldA 
+		</isNotNull>
+		<isNotNull property="detailFieldB" prepend=",">
+			$detailFieldB$ as detailFieldB 
+		</isNotNull> 
+		<isNotNull property="detailFieldC" prepend=",">
+			$detailFieldC$ as detailFieldC 
+		</isNotNull> 
+		<isNotNull property="detailFieldD" prepend=",">
+			$detailFieldD$ as detailFieldD 
+		</isNotNull> 
+		<isNotNull property="detailFieldE" prepend=",">
+			$detailFieldE$ as detailFieldE
+		</isNotNull> 
+	</sql>
+	
+	<sql id="sql_screenCoordinateVo">
+		<isNotNull property="searchInfoVo">
+			<isEqual property="searchInfoVo.gisType" compareValue="3D">
+				<isNotEmpty  property="screenCoordinateVo.minLon">
+					<![CDATA[ centerlon>#screenCoordinateVo.minLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+					<![CDATA[ centerlon<#screenCoordinateVo.maxLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+					<![CDATA[ centerlat>#screenCoordinateVo.minLat# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+					<![CDATA[ centerlat<#screenCoordinateVo.maxLat# ]]>
+				</isNotEmpty>
+			</isEqual>
+			<isNotEqual  property="searchInfoVo.gisType"  compareValue="3D">
+				<isNotEmpty  property="screenCoordinateVo.minLon">
+					<![CDATA[ centerlon2>#screenCoordinateVo.minLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+					<![CDATA[ centerlon2<#screenCoordinateVo.maxLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+					<![CDATA[ centerlat2>#screenCoordinateVo.minLat# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+					<![CDATA[ centerlat2<#screenCoordinateVo.maxLat# ]]>
+				</isNotEmpty>
+			</isNotEqual>
+		</isNotNull>
+	</sql>
+	
+	<update id="updateDomainByTableName" parameterClass="java.util.Map">
+		update $tableName$ set
+		<dynamic>
+			id=#id#
+			<isPropertyAvailable property="lon" prepend=",">
+				centerLon=#lon#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="lat" prepend=",">
+				centerLat=#lat#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="lon2" prepend=",">
+				centerLon2=#lon2#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="lat2" prepend=",">
+				centerLat2=#lat2#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="buildDataId" prepend=",">
+				buildDataId=#buildDataId#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="buildingId" prepend=",">
+				buildingId=#buildingId#
+			</isPropertyAvailable>
+			where id=#id#
+			<isPropertyAvailable property="type">
+				<isNotEqual property="type" compareValue="NULL">
+					<isNotNull prepend="and" property="type" >
+						type = #type#
+					</isNotNull>
+				</isNotEqual>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="allType">
+				<isNotEqual property="allType" compareValue="NULL">
+					<isNotNull prepend="and" property="allType" >
+						type in
+						<iterate open="(" close=")" property="allType" conjunction=",">
+							#allType[]#
+						</iterate>
+					</isNotNull>
+				</isNotEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</update>
+	
+	<select id="getDomainByTableNameAndFields" resultClass="com.tianque.openLayersMap.domian.CommonEntityInfoVo" parameterClass="Map" remapResults="true">
+		select id as id
+     		<include refid="selectFields"/>
+		from $tableName$ where id=#id#
+			<isPropertyAvailable property="type">
+				<isNotEqual property="type" compareValue="NULL">
+					<isNotNull prepend="and" property="type" >
+						type = #type#
+					</isNotNull>
+				</isNotEqual>
+			</isPropertyAvailable>
+	</select>	
+	
+	<sql id="sql_where2">
+		 from $tableName$ t, gisfunction gf, gismodulemanages g where gf.moduleid=g.id  
+		<isPropertyAvailable prepend="and" property="orgInternalCode">
+			<isNotNull property="orgInternalCode">
+				orgInternalCode like '$orgInternalCode$%'
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="minX">
+			 and (
+				<include refid="sql_screenCoordinateVo"/>
+				<isEqual property="isBound" compareValue="false">
+					or (centerlon is null and centerlat is null)
+				</isEqual>
+			)
+		</isPropertyAvailable>
+		<isPropertyAvailable prepend="and" property="tableName">
+			<isNotEmpty property="tableName">
+				g.tablename=#tableName#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable prepend="and" property="functionType">
+			<isNotEmpty property="functionType">
+				gf.functiontype=#functionType#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<dynamic prepend="and" open="(" close=")">
+			<isPropertyAvailable property="searchFieldA">
+				<isNotEmpty prepend="or" property="searchFieldA">
+					$searchFieldA$ like '$searchValue$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="searchFieldB">
+				<isNotEmpty prepend="or" property="searchFieldB">
+					$searchFieldB$ like '$searchValue$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="countCommonEntityInfoByGisModuleVoAndOrgCodeAndScreenCoordinate" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) 
+		<include refid="sql_where2"/>
+	</select>
+	
+	<select id="findCommonEntityInfoByGisModuleVoAndOrgCodeAndScreenCoordinate" parameterClass="java.util.Map" resultClass="com.tianque.openLayersMap.domian.CommonEntityInfoVo">
+		select  t.id ,g.id as gisModuleManageId, t.centerlon as lon, t.centerlat as lat, t.centerlon2 as lon2, t.centerlat2 as lat2
+		<include refid="selectFields"/>
+		, g.*, gf.*
+		<include refid="sql_where2"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">t.$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countBoundedTwoDimensionMapByOrgInternalCodeAndTablename" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0) from $tableName$ where centerlat is not null and centerlon is not null 
+			and orginternalcode like '$orgInternalCode$%'
+	</select>
+	
+	<select id="countTwoDimensionMapPageInfoByOrgCodeAndScreenCoordinateAndModuleTypeAndSearchValue" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0) 
+		<include refid="sql_where2"/>
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgCodeAndScreenCoordinateAndModuleTypeAndSearchValue" parameterClass="java.util.Map" resultClass="com.tianque.openLayersMap.domian.CommonEntityInfoVo">
+		select  t.id ,g.id as gisModuleManageId, t.centerlon as lon, t.centerlat as lat, t.centerlon2 as lon2, t.centerlat2 as lat2
+		<include refid="selectFields"/>
+		, g.* ,gf.*
+		<include refid="sql_where2"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">t.$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countBoundedTwoDimensionMapByOrgInternalCodeAndTablenameAndSearchValue" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0) 
+		<include refid="sql_where2"/>
+	</select>
+	
+</sqlMap>

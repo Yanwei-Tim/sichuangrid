@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		CREATEDATE as createDate ,
+		UPDATEDATE as updateDate ,
+		ORG_ID as orgId ,
+		YEAR as year ,
+		MONTH as month ,
+		NO_CRIMINAL as noCriminal ,
+		NO_DRUGS as noDrugs ,
+		NO_ACCIDENT as noAccident ,
+		NO_GROUP_EVENTS as noGroupEvents ,
+		NO_DIRTY as noDirty ,
+		HAS_ORGANIZATION as hasOrganization ,
+		HAS_MEASURES as hasMeasures ,
+		HAS_LEGAL_ADVOCACY as hasLegalAdvocacy ,
+		HAS_SOCIAL_FORCES as hasSocialForces ,
+		HAS_CULTURAL_ACTIVITIES as hasCulturalActivities ,
+		ORG_INTERNAL_CODE as orgInternalCode ,
+		CREATEUSER as createUser ,
+		UPDATEUSER as updateUser 
+	FROM PEACE_VILLAGE	
+ -->	
+<sqlMap namespace="peaceVillage">	
+	
+	<typeAlias alias="PeaceVillage" type="com.tianque.issue.domain.PeaceVillage"/>
+	<typeAlias alias="SearchPeaceVillageVo" type="com.tianque.issue.domain.vo.SearchPeaceVillageVo" />
+	
+	<resultMap id="peaceVillageResult" class="PeaceVillage">
+		<result property="id" column="ID"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="organization.id" column="ORG_ID"/>
+		<result property="year" column="YEAR"/>
+		<result property="month" column="MONTH"/>
+		<result property="noCriminal" column="NO_CRIMINAL"/>
+		<result property="noDrugs" column="NO_DRUGS"/>
+		<result property="noAccident" column="NO_ACCIDENT"/>
+		<result property="noGroupEvents" column="NO_GROUP_EVENTS"/>
+		<result property="noDirty" column="NO_DIRTY"/>
+		<result property="hasOrganization" column="HAS_ORGANIZATION"/>
+		<result property="hasMeasures" column="HAS_MEASURES"/>
+		<result property="hasLegalAdvocacy" column="HAS_LEGAL_ADVOCACY"/>
+		<result property="hasSocialForces" column="HAS_SOCIAL_FORCES"/>
+		<result property="hasCulturalActivities" column="HAS_CULTURAL_ACTIVITIES"/>
+		<result property="organization.orgInternalCode" column="ORG_INTERNAL_CODE"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+	</resultMap>
+	<resultMap id="peaceVillageListResult" class="PeaceVillage">
+		<result property="id" column="ID"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="organization.id" column="orgid"/>
+		<result property="year" column="YEAR"/>
+		<result property="month" column="MONTH"/>
+		<result property="noCriminal" column="NO_CRIMINAL"/>
+		<result property="noDrugs" column="NO_DRUGS"/>
+		<result property="noAccident" column="NO_ACCIDENT"/>
+		<result property="noGroupEvents" column="NO_GROUP_EVENTS"/>
+		<result property="noDirty" column="NO_DIRTY"/>
+		<result property="hasOrganization" column="HAS_ORGANIZATION"/>
+		<result property="hasMeasures" column="HAS_MEASURES"/>
+		<result property="hasLegalAdvocacy" column="HAS_LEGAL_ADVOCACY"/>
+		<result property="hasSocialForces" column="HAS_SOCIAL_FORCES"/>
+		<result property="hasCulturalActivities" column="HAS_CULTURAL_ACTIVITIES"/>
+		<result property="organization.orgInternalCode" column="orgInternalCode"/>
+		<result property="organization.orgName" column="orgName"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+	</resultMap>
+	
+
+
+	<select id="getPeaceVillageById" parameterClass="java.lang.Long" resultMap="peaceVillageResult">
+		select * from PEACE_VILLAGE where id=#value#
+	</select>
+	
+	<insert id="addPeaceVillage" parameterClass="PeaceVillage">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_PEACE_VILLAGE.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into PEACE_VILLAGE (ID , CREATEDATE , UPDATEDATE , ORG_ID , YEAR , MONTH , NO_CRIMINAL , NO_DRUGS , NO_ACCIDENT , NO_GROUP_EVENTS , NO_DIRTY , HAS_ORGANIZATION , HAS_MEASURES , HAS_LEGAL_ADVOCACY , HAS_SOCIAL_FORCES , HAS_CULTURAL_ACTIVITIES , ORG_INTERNAL_CODE , CREATEUSER , UPDATEUSER ) 
+		values(#id#, #createDate#, #updateDate#, #organization.id#, #year#, #month#, #noCriminal#, #noDrugs#, #noAccident#, #noGroupEvents#, #noDirty#, #hasOrganization#, #hasMeasures#, #hasLegalAdvocacy#, #hasSocialForces#, #hasCulturalActivities#, #organization.orgInternalCode#, #createUser#, #updateUser#)	
+	</insert>
+	
+	<update id="updatePeaceVillage" parameterClass="PeaceVillage">
+		update PEACE_VILLAGE set id = #id# 
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="organization.id">
+					ORG_ID = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="year">
+					YEAR = #year#
+				</isNotNull>
+				<isNotNull prepend="," property="month">
+					MONTH = #month#
+				</isNotNull>
+				<isNotNull prepend="," property="noCriminal">
+					NO_CRIMINAL = #noCriminal#
+				</isNotNull>
+				<isNotNull prepend="," property="noDrugs">
+					NO_DRUGS = #noDrugs#
+				</isNotNull>
+				<isNotNull prepend="," property="noAccident">
+					NO_ACCIDENT = #noAccident#
+				</isNotNull>
+				<isNotNull prepend="," property="noGroupEvents">
+					NO_GROUP_EVENTS = #noGroupEvents#
+				</isNotNull>
+				<isNotNull prepend="," property="noDirty">
+					NO_DIRTY = #noDirty#
+				</isNotNull>
+				<isNotNull prepend="," property="hasOrganization">
+					HAS_ORGANIZATION = #hasOrganization#
+				</isNotNull>
+				<isNotNull prepend="," property="hasMeasures">
+					HAS_MEASURES = #hasMeasures#
+				</isNotNull>
+				<isNotNull prepend="," property="hasLegalAdvocacy">
+					HAS_LEGAL_ADVOCACY = #hasLegalAdvocacy#
+				</isNotNull>
+				<isNotNull prepend="," property="hasSocialForces">
+					HAS_SOCIAL_FORCES = #hasSocialForces#
+				</isNotNull>
+				<isNotNull prepend="," property="hasCulturalActivities">
+					HAS_CULTURAL_ACTIVITIES = #hasCulturalActivities#
+				</isNotNull>
+				<isNotNull prepend="," property="organization.orgInternalCode">
+					ORG_INTERNAL_CODE = #organization.orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deletePeaceVillageById" parameterClass="java.lang.Long">	
+		delete  from PEACE_VILLAGE where id = #value#	
+	</delete>
+	
+	<sql id="findPeaceVillagesBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+				<isPropertyAvailable property="maxCreatedate">
+					<isNotEmpty prepend="and" property="maxCreatedate">
+						CREATEDATE  <![CDATA[<=]]> #maxCreatedate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minCreatedate">
+					<isNotEmpty prepend="and" property="minCreatedate">
+						CREATEDATE  <![CDATA[>=]]> #minCreatedate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="maxUpdatedate">
+					<isNotEmpty prepend="and" property="maxUpdatedate">
+						UPDATEDATE  <![CDATA[<=]]> #maxUpdatedate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minUpdatedate">
+					<isNotEmpty prepend="and" property="minUpdatedate">
+						UPDATEDATE  <![CDATA[>=]]> #minUpdatedate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="year">
+					<isNotEmpty prepend="and" property="year">
+						YEAR = #year#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="month">
+					<isNotEmpty prepend="and" property="month">
+						MONTH = #month#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="noCriminal">
+					<isNotEmpty prepend="and" property="noCriminal">
+						NO_CRIMINAL = #noCriminal#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="noDrugs">
+					<isNotEmpty prepend="and" property="noDrugs">
+						NO_DRUGS = #noDrugs#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="noAccident">
+					<isNotEmpty prepend="and" property="noAccident">
+						NO_ACCIDENT = #noAccident#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="noGroupEvents">
+					<isNotEmpty prepend="and" property="noGroupEvents">
+						NO_GROUP_EVENTS = #noGroupEvents#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="noDirty">
+					<isNotEmpty prepend="and" property="noDirty">
+						NO_DIRTY = #noDirty#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="hasOrganization">
+					<isNotEmpty prepend="and" property="hasOrganization">
+						HAS_ORGANIZATION = #hasOrganization#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="hasMeasures">
+					<isNotEmpty prepend="and" property="hasMeasures">
+						HAS_MEASURES = #hasMeasures#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="hasLegalAdvocacy">
+					<isNotEmpty prepend="and" property="hasLegalAdvocacy">
+						HAS_LEGAL_ADVOCACY = #hasLegalAdvocacy#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="hasSocialForces">
+					<isNotEmpty prepend="and" property="hasSocialForces">
+						HAS_SOCIAL_FORCES = #hasSocialForces#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="hasCulturalActivities">
+					<isNotEmpty prepend="and" property="hasCulturalActivities">
+						HAS_CULTURAL_ACTIVITIES = #hasCulturalActivities#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="organization.orgInternalCode">
+					<isNotEmpty prepend="and" property="organization.orgInternalCode">
+						ORG_INTERNAL_CODE  like #organization.orgInternalCode# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="createUser">
+					<isNotEmpty prepend="and" property="createUser">
+						CREATEUSER  like #createUser# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="updateUser">
+					<isNotEmpty prepend="and" property="updateUser">
+						UPDATEUSER  like #updateUser# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+	<select id="findPeaceVillagesBySearchVo" parameterClass="SearchPeaceVillageVo" resultMap="peaceVillageResult">
+		select * from PEACE_VILLAGE
+		<include refid="findPeaceVillagesBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countPeaceVillagesBySearchVo" parameterClass="SearchPeaceVillageVo" resultClass="java.lang.Integer">
+		select count(0) from PEACE_VILLAGE
+		<include refid="findPeaceVillagesBySearchVo_sql_where" />
+	</select>
+	
+	<select id="getPeaceVillageListBySearchVo" parameterClass="SearchPeaceVillageVo" resultMap="peaceVillageListResult">
+		select o.orgname as orgname,o.id as orgid,o.orgInternalCode as orgInternalCode, pv.*
+		from ORGANIZATIONS o, 
+		  (select * from PEACE_VILLAGE where year = #year# and month = #month#) pv
+		where o.id = pv.org_id(+)
+		   and o.parentid = #organization.id# 
+		order by o.id
+	</select>
+	<select id="getPeaceVillageByOrgAndYearMonth" parameterClass="PeaceVillage" resultMap="peaceVillageResult">
+		select * from PEACE_VILLAGE where ORG_ID = #organization.id# and YEAR = #year# and MONTH = #month#
+	</select>
+</sqlMap>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="societySecurity">
+	<typeAlias alias="SocietySecurity" type="com.tianque.working.domain.SocietySecurity" />
+	<resultMap id="societySecurityResult" class="SocietySecurity">
+		<result property="id" column="id" />
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="dailyDirectoryId" column="dailydirectoryid" />
+		<result property="content" column="content"
+			typeHandler="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+	</resultMap>
+
+	<insert id="addSocietySecurity" parameterClass="SocietySecurity">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_SocietySecurity.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into SocietySecurity
+		(id, createDate, createUser, updateDate,
+		updateUser, orgId, orgInternalCode, content,dailyDirectoryId)
+		values
+		(#id#, #createDate#,
+		#createUser#, #updateDate#, #updateUser#,
+		#organization.id#,
+		#orgInternalCode#,
+		#content:CLOB#,#dailyDirectoryId#)
+	</insert>
+
+	<sql id="sql_where">
+		from SocietySecurity
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId=#orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId in ($dailyDirectoryId$)
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="countForPageByOrgId" parameterClass="map"
+		resultClass="integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="findForPageByOrgId" parameterClass="map"
+		resultMap="societySecurityResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="getSocietySecurity" parameterClass="long" resultMap="societySecurityResult">
+		select *
+		from SocietySecurity where id=#value#
+	</select>
+
+	<delete id="deleteSocietySecurity" parameterClass="long">
+		delete from
+		SocietySecurity where id=#value#
+	</delete>
+
+	<update id="updateSocietySecurity" parameterClass="SocietySecurity">
+		update SocietySecurity set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="content">
+				content=#content:CLOB#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+		</dynamic>
+		where id=#id#
+	</update>
+</sqlMap>

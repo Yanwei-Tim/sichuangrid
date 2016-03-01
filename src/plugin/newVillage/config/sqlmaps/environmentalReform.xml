@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="environmentalReform">
+	<typeAlias alias="EnvironmentalReform" type="com.tianque.newVillage.domain.EnvironmentalReform" />
+
+	<resultMap id="environmentalReformResult" class="EnvironmentalReform" >
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgInternalCode" />
+		<result property="newVillageBasic.id" column="basicInfoID" />
+		
+		<result column="garbageTank" property="garbageTank" />
+		<result column="toilets" property="toilets" />
+		<result column="treatmentFacilities" property="treatmentFacilities" />
+		
+		<result column="garbageDisposal" property="garbageDisposal" />
+		<result column="treatmentPollution" property="treatmentPollution" />
+		<result column="sanitarySewage" property="sanitarySewage" />
+		
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+	</resultMap>
+
+	<insert id="addEnvironmentalReform" parameterClass="EnvironmentalReform">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_ENVIRONMENTALREFORM.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		INSERT INTO ENVIRONMENTALREFORM (ID, ORGID, ORGINTERNALCODE, BASICINFOID,garbageTank,toilets,treatmentFacilities,
+		garbageDisposal,treatmentPollution,sanitarySewage,createDate,createUser)
+		VALUES(
+		#id#,#organization.id#,#organization.orgInternalCode#,#newVillageBasic.id#,#garbageTank#,#toilets#,#treatmentFacilities#,
+		#garbageDisposal#,#treatmentPollution#,#sanitarySewage#,
+		#createDate#,#createUser#)	
+	</insert>
+	<update id="updateEnvironmentalReform" parameterClass="EnvironmentalReform">
+		UPDATE ENVIRONMENTALREFORM SET UPDATEDATE = #updateDate#
+		<isNotNull prepend="," property="updateUser">
+			updateUser = #updateUser#,
+		</isNotNull>
+			garbageTank=#garbageTank#,
+			toilets=#toilets#,
+			treatmentFacilities=#treatmentFacilities#,
+			garbageDisposal=#garbageDisposal#,
+			treatmentPollution=#treatmentPollution#,
+			sanitarySewage=#sanitarySewage#
+		WHERE ID=#id#
+	</update>
+	
+	<delete id="deleteEnvironmentalReform">
+		delete from  ENVIRONMENTALREFORM where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	<select id="getEnvironmentalReform" parameterClass="java.lang.Long" resultMap="environmentalReformResult">
+		<![CDATA[SELECT * FROM ENVIRONMENTALREFORM WHERE ID = #value#]]>
+	</select>
+		
+	<select id="getEnvironmentalReformByBasicId" parameterClass="java.util.Map" resultMap="environmentalReformResult">
+		select * from ENVIRONMENTALREFORM where BASICINFOID=#basicId#
+	</select>	
+</sqlMap>

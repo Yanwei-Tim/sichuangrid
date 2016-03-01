@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="statAnalysePlace" extends="default" namespace="/baseinfo/statAnalysePlace">
+		<default-class-ref class="statAnalysePlaceController"></default-class-ref>
+		<action name="findStatAnalysePlace" method="findStatAnalysePlace">
+			<result type="json">
+				<param name="root">result</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="createHistoryStatistic" method="createHistoryStatistic">
+			<result type="json">
+				<param name="root">message</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="createEnterpriseHistoryStatistic" method="createEnterpriseHistoryStatistic">
+			<result type="json">
+				<param name="root">message</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="findStatAnalysePlaceForHighchartColumnVo" method="findStatAnalysePlaceForHighchartColumnVo">
+			<result type="json">
+				<param name="root">placeColumnVo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="getStatisticsNewSocietyFederationPie" method="getStatisticsNewSocietyFederationPie">
+			<result type="json">
+				<param name="root">placePie</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="getStatisticsLettingHousePie" method="getStatisticsLettingHousePie">
+			<result type="json">
+				<param name="root">placePie</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

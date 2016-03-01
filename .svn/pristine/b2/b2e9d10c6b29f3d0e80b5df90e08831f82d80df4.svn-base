@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="druggy">
+	<typeAlias alias="Druggy" type="com.tianque.baseInfo.druggy.domain.Druggy" />
+	<typeAlias alias="SearchDruggyVo" type="com.tianque.domain.vo.SearchDruggyVo" />
+	<resultMap id="druggyResult" class="Druggy" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResult">
+		<result column="detoxicateCase" property="detoxicateCase.id" />
+		<result column="detoxicateCondition" property="detoxicateCondition.id" />
+		<result column="drugSource" property="drugSource.id" />
+		<result column="drugReason" property="drugReason.id" />
+		<result column="drugType" property="drugType" />
+		<result column="isAdanon" property="isAdanon" />
+		<result column="drugFristDate" property="drugFristDate" />
+		<result column="ferretOutDate" property="ferretOutDate" />
+		<result column="controlActuality" property="controlActuality" />
+		<result property="isUndergoTreatment" column="isUndergo_Treatment"/>
+	</resultMap>
+	<!-- 这两个resultMap内容一致，继承关系不一样 -->
+	<resultMap id="druggyResultForList" class="Druggy" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+		<result column="detoxicateCase" property="detoxicateCase.id" />
+		<result column="detoxicateCondition" property="detoxicateCondition.id" />
+		<result column="drugSource" property="drugSource.id" />
+		<result column="drugReason" property="drugReason.id" />
+		<result column="drugType" property="drugType" />
+		<result column="isAdanon" property="isAdanon" />
+		<result column="drugFristDate" property="drugFristDate" />
+		<result column="ferretOutDate" property="ferretOutDate" />
+		<result column="controlActuality" property="controlActuality" />
+		<result property="isUndergoTreatment" column="isUndergo_Treatment"/>
+	</resultMap>
+
+	<sql id="fields">
+	    uni.id,uni.baseinfoid,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.drugReason,uni.drugSource,uni.detoxicateCase,
+	    uni.detoxicateCondition,uni.isAdanon,uni.controlActuality,uni.drugType,uni.ferretOutDate,uni.drugfristDate,uni.isUndergo_Treatment,
+	    uni.isEmphasis,uni.isEmphasisReason,uni.isEmphasisDate,uni.createUser,uni.updateUser,uni.createDate,uni.updateDate,
+	    uni.sourcesState,uni.attentionExtent
+	</sql>
+
+	<insert id="addDruggy" parameterClass="Druggy">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_druggys.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into druggys
+		(
+			<include refid="populationBaseInfo.addBaseInfoFields"/>
+			,drugFristDate,ferretOutDate,detoxicateCondition,drugSource
+			,drugReason,detoxicateCase,controlActuality,drugType
+			,isAdanon,sourcesState,attentionExtent,isUndergo_Treatment,isEmphasis
+		)
+		values
+		(
+			<include refid="populationBaseInfo.addBaseInfoData"/>
+			,#drugFristDate#,#ferretOutDate#,#detoxicateCondition.id#,#drugSource.id#
+			,#drugReason.id#,#detoxicateCase.id#,#controlActuality#,#drugType#
+			,#isAdanon#,#sourcesState#,#attentionExtent.id#,#isUndergoTreatment#,#isEmphasis#
+		)
+	</insert>
+
+	<sql id="updateBusinessSql">
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>,
+		drugFristDate = #drugFristDate#
+		,ferretOutDate = #ferretOutDate#
+		,detoxicateCondition = #detoxicateCondition.id#
+		,drugSource = #drugSource.id#
+		,drugReason = #drugReason.id#
+		,detoxicateCase = #detoxicateCase.id#
+		,controlActuality = #controlActuality#
+		,drugType = #drugType#
+		,isAdanon=#isAdanon#
+		,attentionExtent=#attentionExtent.id#
+		, isUndergo_Treatment = #isUndergoTreatment#
+	</sql>
+
+	<update id="updateDruggy" parameterClass="Druggy">
+		update druggys set
+		<isNotEmpty property="isEmphasis">
+			isEmphasis = #isEmphasis#,
+		</isNotEmpty>
+		<include refid="updateBusinessSql"/>
+		where id=#id#
+	</update>
+
+
+	<delete id="deleteDruggyById" parameterClass="java.lang.Long">
+		delete from druggys
+		where id=#value#
+	</delete>
+
+	<select id="getDruggyById" parameterClass="java.lang.Long"
+		resultMap="druggyResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from druggys uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.id=#value#
+	</select>
+
+	<sql id="sql_where">
+		from druggys uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend=" and ">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty property="idCardNo" prepend=" and ">
+				upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>		
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty property="mobileNumber" prepend=" and ">
+					mobileNumber like #mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="detoxicateCase">
+				<isNotNull property="detoxicateCase.id" prepend=" and ">
+					detoxicateCase=#detoxicateCase.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="drugType">
+				<isNotEmpty property="drugType" prepend=" and ">
+					drugType like #drugType#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="controlActuality">
+				<isNotEmpty property="controlActuality" prepend=" and ">
+					controlActuality like #controlActuality#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="ferretOutDate">
+				<isNotNull property="ferretOutDate" prepend=" and ">
+					ferretOutDate <![CDATA[>=]]>
+					#ferretOutDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endFerretOutDate">
+				<isNotNull property="endFerretOutDate" prepend=" and ">
+					ferretOutDate <![CDATA[<=]]>
+					#endFerretOutDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="drugfristDate">
+				<isNotNull property="drugfristDate" prepend=" and ">
+					drugfristDate <![CDATA[>=]]>
+					#drugfristDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endDrugfristDate">
+				<isNotNull property="endDrugfristDate" prepend=" and ">
+					drugfristDate <![CDATA[<=]]>
+					#endDrugfristDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthday">
+				<isNotNull property="birthday" prepend=" and ">
+					birthday <![CDATA[>=]]>
+					#birthday#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endBirthday">
+				<isNotNull property="endBirthday" prepend=" and ">
+					birthday <![CDATA[<=]]>
+					#endBirthday#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="province">
+				<isNotEmpty property="province" prepend=" and ">
+					province like #province#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="city">
+				<isNotEmpty property="city" prepend=" and ">
+					city like #city#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="district">
+				<isNotEmpty property="district" prepend=" and ">
+					district like #district#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workUnit">
+				<isNotEmpty property="workUnit" prepend=" and ">
+					workUnit like #workUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativePlaceAddress">
+				<isNotEmpty property="nativePlaceAddress" prepend=" and ">
+					nativePlaceAddress like '$nativePlaceAddress$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentAddress">
+				<isNotEmpty property="currentAddress" prepend=" and ">
+					currentAddress like '$currentAddress$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isDeath" >
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="1">
+						isDeath = #isDeath#
+					</isEqual>
+					<isEqual property="isDeath" compareValue="0">
+						(isDeath = #isDeath# or isDeath is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="drugReason">
+				<isNotNull property="drugReason.id" prepend=" and ">
+					drugReason=#drugReason.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="drugSource">
+				<isNotNull property="drugSource.id" prepend=" and ">
+					drugSource=#drugSource.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="gender">
+				<isNotNull property="gender.id" prepend=" and ">
+					gender=#gender.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="detoxicateCondition">
+				<isNotNull property="detoxicateCondition.id" prepend=" and ">
+					detoxicateCondition=#detoxicateCondition.id#
+				</isNotNull>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="career">
+				<isNotNull property="career.id" prepend=" and ">
+					career=#career.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isNotNull property="schooling.id" prepend=" and ">
+				schooling = #schooling.id#
+			</isNotNull>
+			<include refid="attentionPopulationBaseInfo.serviceTeamInfoForSearch"/>
+		</dynamic>
+	</sql>
+
+	<select id="findDruggysBySearchVo" parameterClass="SearchDruggyVo"
+		resultMap="druggyResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countDruggysBySearchVo" parameterClass="SearchDruggyVo"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="getByIdCard" parameterClass="java.util.Map"
+		resultMap="druggyResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from druggys uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgId=#orgId# and
+		<iterate property="idCardNoList" open="("  close=")"  conjunction="or">
+		    upper(b.idCardNo) like upper(#idCardNoList[]#)
+		</iterate>
+	</select>
+
+	<select id="getByOrgIdAndIdCardNo" parameterClass="java.util.Map" resultMap="druggyResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		FROM druggys uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where upper(idCardno) = upper(#idCardNo#) and uni.orgId=#orgId#
+	</select>
+
+
+	<update id="updateBaseInfo" parameterClass="Druggy">
+		update druggys set
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>
+		<include refid="populationBaseInfo.updateBussLogoutDetail"/>
+
+		where id = #id#
+	</update>
+
+
+
+	<update id="updateBusiness" parameterClass="Druggy">
+		update druggys set
+		<isNotEmpty property="isEmphasis">
+			isEmphasis = #isEmphasis#,
+		</isNotEmpty>
+		<include refid="updateBusinessSql"/>
+		where id = #id#
+	</update>
+
+	<update id="updateDeathAndLogoutStateById" parameterClass="map">
+		update druggys set
+		<isNotEmpty property="death">
+			isdeath = #death#
+		</isNotEmpty>
+		<include refid="populationBaseInfo.updateBussLogoutDetail"/>
+		where id=#id#
+	</update>
+
+
+<!-- 移动数据需要的sql -->
+	<update id="updateDataMoveDruggyToOrg" parameterClass="java.util.Map">
+		update druggys set orgId = #orgId# , orgInternalCode = #orgInternalCode# where id = #id#
+	</update>
+	
+	<select id="getIdByBaseinfoIdAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		SELECT id from druggys  
+		where baseinfoid=#baseInfoId# and orgId=#orgId#
+	</select>
+	
+	<resultMap id="druggysResultForDefaultList" class="Druggy" 
+		extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForDefaultList">
+		<result column="detoxicateCase" property="detoxicateCase.id" />
+		<result column="detoxicateCondition" property="detoxicateCondition.id" />
+		<result column="drugSource" property="drugSource.id" />
+		<result column="drugReason" property="drugReason.id" />
+		<result column="drugType" property="drugType" />
+		<result column="isAdanon" property="isAdanon" />
+		<result column="drugFristDate" property="drugFristDate" />
+		<result column="ferretOutDate" property="ferretOutDate" />
+		<result column="controlActuality" property="controlActuality" />
+		<result property="isUndergoTreatment" column="isUndergo_Treatment"/>
+	</resultMap>
+	
+	 <resultMap id="mobileDruggyMap" class="Druggy" extends="druggyResultForList">
+     <!-- 用于手机接口返回走访数量 -->
+     <result property="interviewCount" column="interviewCount" />
+     </resultMap>
+	<sql id="default_sql_where">
+	  from druggys uni 
+	  <dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findDruggyDefaultList" resultMap="druggysResultForDefaultList" parameterClass="map">
+	  select <include refid="fields"/>
+	  <include refid="default_sql_where" />
+	  ORDER BY ID DESC
+	</select>
+	
+	<select id="countDruggyDefaultList" resultClass="java.lang.Integer" parameterClass="map">
+		<![CDATA[select count(uni.id)]]>
+		<include refid="default_sql_where" />
+	</select>
+	
+</sqlMap>

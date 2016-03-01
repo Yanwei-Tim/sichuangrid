@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="detailedRuleDailyLogRela">
+	<typeAlias alias="DetailedRuleDailyLogRela" type="com.tianque.domain.DetailedRuleDailyLogRela" />
+	<resultMap id="detailedRuleDailyLogRelaResult" class="DetailedRuleDailyLogRela">
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="detailedRule.id" column="detailedRuleId" />
+		<result property="dailyLogId" column="dailyLogId" />
+		<result property="dailyLogType" column="dailyLogType" />
+		<result property="id" column="id" />
+	</resultMap>
+	<insert id="addDetailedRuleDailyLogRela" parameterClass="DetailedRuleDailyLogRela">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_DetailedRuleDailyLogRelas.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO DetailedRuleDailyLogRelas(id,createDate,createUser,updateDate,updateUser,detailedRuleId,dailyLogId,dailyLogType)
+		VALUES(#id#,#createDate#,#createUser#,#updateDate#,#updateUser#,#detailedRule.id#,#dailyLogId#,#dailyLogType#)
+	</insert>
+	<select id="getDetailedRuleDailyLogRelaById" parameterClass="java.lang.Long" resultMap="detailedRuleDailyLogRelaResult">
+		select * from DetailedRuleDailyLogRelas where id=#value#
+	</select>
+	<delete id="deleteDetailedRuleDailyLogRelasByDetailedRuleId" parameterClass="java.lang.Long">
+		delete from DetailedRuleDailyLogRelas where detailedRuleId = #value#
+	</delete>
+	<select id="getDetailedRuleDailyLogRelaByWorkingRecordId" parameterClass="java.lang.Long" resultMap="detailedRuleDailyLogRelaResult">
+		select * from DetailedRuleDailyLogRelas where dailyLogId=#value#
+	</select>
+	<select id="getDetailedRuleDailyLogRelaByWorkingRecordIds" parameterClass="java.util.Map" resultMap="detailedRuleDailyLogRelaResult">
+		select * from DetailedRuleDailyLogRelas where 
+		dailyLogType = #dailyLogType#
+		and dailyLogId in
+		   <iterate open="(" close=")" conjunction=" , " property="dailyLogIdlist">
+		    	#dailyLogIdlist[]#
+		   </iterate>
+	</select>
+</sqlMap>

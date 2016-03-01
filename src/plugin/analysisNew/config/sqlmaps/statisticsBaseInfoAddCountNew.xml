@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="statisticsBaseInfoAddCountNew">
+	<!-- 注释说明 -->
+	<typeAlias alias="StatisticsBaseInfoAddCountNew" type="com.tianque.plugin.analyzing.domain.StatisticsBaseInfoAddCountVo" />
+	<typeAlias alias="SearchYouthsVo" type="com.tianque.baseInfo.youths.vo.SearchYouthsVo" />
+	<resultMap class="StatisticsBaseInfoAddCountNew" id="statisticsBaseInfoAddCountResult">
+	    <result property="statisticsType" column="statisticsType"/>
+		<result property="todayAddCount" column="todayAddCount"/>
+		<result property="thisMonthCount" column="thisMonthCount"/>
+		<result property="attentionCount" column="attentionCount"/>
+	    <result property="allCount" column="allCount"/>
+	</resultMap>
+	<resultMap class="StatisticsBaseInfoAddCountNew" id="StatisticsBaseInfoSummary">
+		<result property="thisMonthCount" column="thisMonthCount" nullValue="0"/>
+		<result property="attentionCount" column="attentionCount" nullValue="0"/>
+		<result property="allCount" column="allCount" nullValue="0"/>
+	</resultMap>
+	<resultMap class="StatisticsBaseInfoAddCountNew" id="AttenPopulationBaseInfoSummary" extends="StatisticsBaseInfoSummary">
+		
+	</resultMap>
+	<resultMap class="StatisticsBaseInfoAddCountNew" id="personGeneralCondition">
+		<result property="todayAddCount" column="todayAddCount"/>
+		<result property="thisMonthCount" column="thisMonthCount"/>
+		<result property="attentionCount" column="attentionCount"/>
+		<result property="allCount" column="allCount"/>
+	</resultMap>
+	<resultMap class="StatisticsBaseInfoAddCountNew" id="statisticsBaseInfoResult">
+	    <result property="statisticsType" column="orgId"/>
+		<result property="todayAddCount" column="todayAddCount"/>
+		<result property="thisMonthCount" column="thisMonthCount"/>
+		<result property="attentionCount" column="attentionCount"/>
+	    <result property="allCount" column="allCount"/>
+	</resultMap>
+	
+	<resultMap class="StatisticsBaseInfoAddCountNew" id="statisticsHasSKBaseInfoResult" extends= "statisticsBaseInfoResult">
+	    <result property="involveSinkiangCount" column="involveSinkiangCount"/>
+	</resultMap>
+	
+	<resultMap class="StatisticsBaseInfoAddCountNew" id="hasSKStatisticsBaseInfoSummary" extends="StatisticsBaseInfoSummary">
+		 <result property="involveSinkiangCount" column="involveSinkiangCount"/>
+	</resultMap>
+	<resultMap class="StatisticsBaseInfoAddCountNew" id="statisticsBaseInfoForDateResult">
+	    <result property="statisticsType" column="orginternalcode"/>
+		<result property="thisMonthCount" column="thisMonthCount"/>
+	    <result property="allCount" column="allCount"/>
+	</resultMap>
+	
+	<resultMap class="StatisticsBaseInfoAddCountNew" id="AllAttenPopBaseInfoSummary" extends="StatisticsBaseInfoSummary">
+		<result property="orgId" column="orgId"/>
+	</resultMap>
+	
+	<select id="statisticsBaseInfoSummary" parameterClass="java.util.Map" resultMap="StatisticsBaseInfoSummary">
+		select case when sum(b.monthcreate) is null then 0 else sum(b.monthcreate) end thisMonthCount,
+		       case when sum(b.objectsum) is null then 0 else sum(b.objectsum) end allCount,
+		       case when sum(b.total) is null then 0 else sum(b.total) end attentionCount
+		from baseinfostattype_$year$_$month$ b where b.orgId = #orgId# and b.year=#year# and b.month=#month#
+		<isNotEqual property="keyType" compareValue="IMPORTANTPLACE">
+		 and b.typename='$keyType$'
+		</isNotEqual>
+		<isEqual property="keyType" compareValue="IMPORTANTPLACE">
+			and b.baseinfotype = '$keyType$'
+		</isEqual> 
+	</select>
+	
+	<select id="statisticsPopulationSummary" parameterClass="java.util.Map" resultMap="hasSKStatisticsBaseInfoSummary">
+		select case when sum(b.monthcreate) is null then 0 else sum(b.monthcreate) end thisMonthCount,
+		       case when sum(b.total) is null then 0 else sum(b.total) end  attentionCount,
+		       case when sum(b.objectsum) is null then 0 else sum(b.objectsum) end allCount,
+		       case when sum(b.involveSinkiangCount) is null then 0 else sum(b.involveSinkiangCount) end involveSinkiangCount
+		from  populationstattype_$year$_$month$ b where b.orgId=#orgId# and b.year=#year# and b.month=#month# 
+		     and b.populationType='$keyType$'
+	</select>
+	
+	<select id="statisticsSummary" parameterClass="java.util.Map" resultMap="AttenPopulationBaseInfoSummary">
+ 		select sum(b.monthcreate) thisMonthCount,
+       sum(b.attentionnum) attentionCount,
+       sum(b.total) allCount
+ 	    from (
+ 		select sum(monthcreate) monthcreate, sum(attentionnum) attentionnum, sum(total) total,max(orginternalcode) orginternalcode,max(orgId) orgId
+          from statistichistory_$year$_$month$ b
+         where baseinfotype = '$keyType$'
+         group by orgInternalCode) b where b.orgId=#orgId#
+	</select>
+	
+	
+	<select id="personGeneralCondition" parameterClass="java.util.Map" resultMap="personGeneralCondition">
+		select 
+			(select count(1) from 
+			   <isEqual property="tableName" compareValue="householdStaffs">
+				$tableName$_$shardCode$ 
+			   </isEqual>
+			   <isNotEqual property="tableName" compareValue="householdStaffs">
+			   $tableName$ 
+			   </isNotEqual>
+			where createdate <![CDATA[>=]]>#today# and createdate <![CDATA[<]]>#nextDateStart# 
+			and orgInternalCode like '$orgInternalCode$%'
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					keyType <![CDATA[=]]> '$keyType$'
+				</isNotNull>
+			</isPropertyAvailable>) as todayAddCount,
+			(select count(1) from 
+			   <isEqual property="tableName" compareValue="householdStaffs">
+				$tableName$_$shardCode$ 
+			   </isEqual>
+			   <isNotEqual property="tableName" compareValue="householdStaffs">
+			   $tableName$ 
+			   </isNotEqual>
+			where createdate <![CDATA[>=]]> #monthStart# and createdate <![CDATA[<]]> #nextMonthStart#  
+			and orgInternalCode like '$orgInternalCode$%'
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					keyType <![CDATA[=]]>'$keyType$'
+				</isNotNull>
+			</isPropertyAvailable>) as thisMonthCount,
+			(select count(1) from  
+			   <isEqual property="tableName" compareValue="householdStaffs">
+				$tableName$_$shardCode$ 
+			   </isEqual>
+			   <isNotEqual property="tableName" compareValue="householdStaffs">
+			   $tableName$ 
+			   </isNotEqual>
+			where  orgInternalCode like '$orgInternalCode$%'
+			<isPropertyAvailable property="column">
+			  <isNotNull property="column" prepend="and">
+			  ($column$ = '0' or $column$ is null)
+			  </isNotNull>
+			</isPropertyAvailable>
+			        
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					keyType <![CDATA[=]]> '$keyType$'
+				</isNotNull>
+			</isPropertyAvailable>) as attentionCount,
+			(select count(1) from 
+			   <isEqual property="tableName" compareValue="householdStaffs">
+				$tableName$_$shardCode$ 
+			   </isEqual>
+			   <isNotEqual property="tableName" compareValue="householdStaffs">
+			   $tableName$ 
+			   </isNotEqual>
+			where orgInternalCode like '$orgInternalCode$%'
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					keyType <![CDATA[=]]> '$keyType$'
+				</isNotNull>
+			</isPropertyAvailable>) as allCount
+		from dual
+	</select>
+	
+	<select id="statisticsBaseInfoAddCountByOrg" parameterClass="java.util.Map" resultMap="statisticsHasSKBaseInfoResult">
+		select orgId,
+               sum(1) allCount,
+               sum(decode(#nowDate#,
+                          to_char(f.createDate, 'yyyy-mm-dd'),
+                          1,
+                          0)) todayAddCount,
+               sum(decode(#nowYearMonth#,
+                          to_char(f.createDate, 'yyyy-mm'),
+                          1,
+                          0)) thisMonthCount
+              <isPropertyAvailable property="column">
+               <isEmpty property="column" prepend=",">
+                sum(1) attentionCount
+               </isEmpty>
+              	<isNotEmpty property="column" prepend=",">
+              	  sum(decode($column$, 1, 0, 1)) attentionCount
+              	</isNotEmpty>
+              </isPropertyAvailable> 
+              
+              <isEqual property="tableName" compareValue="floatingPopulations">
+              	<!--<isNotEmpty property="involveTibet" prepend=",">
+              		sum(decode(province,#involveTibet#,1,0)) involveTibetCount
+              	</isNotEmpty>-->
+              	<isPropertyAvailable property="involveSinkiang">
+	              	<isNotEmpty property="involveSinkiang" prepend=",">
+	              		sum(decode(province,#involveSinkiang#,1,0)) involveSinkiangCount
+	              	</isNotEmpty>
+              	</isPropertyAvailable>
+              </isEqual>
+               <isNotEqual property="tableName" compareValue="floatingPopulations">
+               		,0 involveSinkiangCount
+               </isNotEqual>
+               <isEqual property="tableName" compareValue="householdStaffs">
+              		from $tableName$_$shardCode$ f 
+               </isEqual> 
+               <isNotEqual property="tableName" compareValue="householdStaffs">
+	               <isEqual property="tableName" compareValue="houseinfo">
+	              		from $tableName$_$shardCode$ f 
+	               </isEqual> 
+	                <isNotEqual property="tableName" compareValue="houseinfo">
+	                	from $tableName$ f 
+	                </isNotEqual> 
+               </isNotEqual>
+             <isEqual property="tableName" compareValue="floatingPopulations">        
+                   	left join baseinfo b on b.id=f.baseinfoid 
+              </isEqual>  
+             
+              where 1=1
+          <isPropertyAvailable property="orgInternalCode">
+			 <isNotEmpty property="orgInternalCode" prepend="and">
+				orgInternalCode like #orgInternalCode#||'%'
+		     </isNotEmpty>
+		 </isPropertyAvailable>
+		  <isPropertyAvailable property="keyType">
+			 <isNotEmpty property="keyType" prepend="and">
+				keyType =#keyType#
+		     </isNotEmpty>
+		 </isPropertyAvailable>
+         group by orgId
+	</select>
+	
+	<select id="statisticsHouseinfoAddCountByOrg" parameterClass="java.util.Map" resultMap="statisticsHasSKBaseInfoResult">
+		select orgId,
+               sum(1) allCount,
+               sum(decode(#nowDate#,
+                          to_char(f.createDate, 'yyyy-mm-dd'),
+                          1,
+                          0)) todayAddCount,
+               sum(decode(#nowYearMonth#,
+                          to_char(f.createDate, 'yyyy-mm'),
+                          1,
+                          0)) thisMonthCount
+              <isPropertyAvailable property="column">
+               <isEmpty property="column" prepend=",">
+                sum(1) attentionCount
+               </isEmpty>
+              	<isNotEmpty property="column" prepend=",">
+              	  sum(decode($column$, 1, 0, 1)) attentionCount
+              	</isNotEmpty>
+              </isPropertyAvailable> 
+             ,0 involveSinkiangCount 
+             <isEqual property="tableName" compareValue="houseinfo">
+            		from $tableName$_$shardCode$ f 
+             </isEqual> 
+             <isNotEqual property="tableName" compareValue="houseinfo">
+              	from $tableName$ f 
+             </isNotEqual>  
+             where 1=1
+          <isPropertyAvailable property="orgInternalCode">
+			 <isNotEmpty property="orgInternalCode" prepend="and">
+				orgInternalCode like #orgInternalCode#||'%'
+		     </isNotEmpty>
+		 </isPropertyAvailable>
+         group by orgId
+	</select>
+	
+	<select id="statisticsFloatingPopulationsAddCountByOrg" parameterClass="java.util.Map" resultMap="statisticsHasSKBaseInfoResult">
+		select orgId,
+               sum(1) allCount,
+               sum(decode(#nowDate#,
+                          to_char(f.createDate, 'yyyy-mm-dd'),
+                          1,
+                          0)) todayAddCount,
+               sum(decode(#nowYearMonth#,
+                          to_char(f.createDate, 'yyyy-mm'),
+                          1,
+                          0)) thisMonthCount,
+               sum(decode(logOut, 1, 0, 1)) attentionCount,
+	           sum(decode(province,'新疆维吾尔自治区',1,0)) involveSinkiangCount
+              	from floatingpopulations f left join baseinfo b on b.id=f.baseinfoid where 1=1
+         	  <isPropertyAvailable property="orgInternalCode">
+			    <isNotEmpty property="orgInternalCode" prepend="and">
+				  orgInternalCode like #orgInternalCode#||'%'
+		        </isNotEmpty>
+		     </isPropertyAvailable>
+         group by orgId
+	</select>
+	
+	<select id="statisticsYouthsCount" parameterClass="SearchYouthsVo" resultMap="statisticsBaseInfoResult">
+		select orgId,
+		               sum(1) allCount,
+		               sum(decode(#currentDate#,
+		                            to_char(y.createDate, 'yyyy-mm-dd'),
+		                            1,
+		                            0)) todayAddCount,
+		               sum(decode(#currentYearMonth#,
+		                            to_char(y.createDate, 'yyyy-mm'),
+		                            1,
+		                            0)) thisMonthCount,
+		               sum(decode(logOut,0,1,0)) attentionCount             
+		          from 
+		         <!-- 当青少年政治面貌条件是没有时 -->
+		         <isNull property="politicalBackground">
+		         	<isEqual property="tableName" compareValue="householdStaffs">
+		          		householdStaffs_$shardCode$ y 
+		         	</isEqual>
+		         	<isEqual property="tableName" compareValue="floatingPopulations">
+		          	floatingPopulations y 
+		         	</isEqual>
+		         	<isEqual property="tableName" compareValue="unsettledPopulations">
+		          		unsettledPopulations y
+		         	</isEqual>
+		         </isNull>
+		         <!-- 当青少年政治面貌条件是有时 -->
+		         <isNotNull property="politicalBackground">
+		         	<isNotNull property="politicalBackground.id">
+				         <isEqual property="tableName" compareValue="householdStaffs">
+				          	householdStaffs_$shardCode$ y left join baseinfo b on y.baseInfoId = b.id
+				         </isEqual>
+				         <isEqual property="tableName" compareValue="floatingPopulations">
+				          	floatingPopulations y left join baseinfo b on y.baseInfoId = b.id
+				         </isEqual>
+				         <isEqual property="tableName" compareValue="unsettledPopulations">
+				          	unsettledPopulations y
+				         </isEqual>
+			         </isNotNull>
+		         </isNotNull>
+		         where
+		         <!-- 当青少年政治面貌条件是没有时 -->
+		         <isNull property="politicalBackground">
+		         	<!-- 当是境外时 -->
+		         	<isEqual property="tableName" compareValue="unsettledPopulations">
+			         	<isPropertyAvailable property="startBirthday">
+							<isNotNull property="startBirthday">
+								<![CDATA[ #startBirthday# >= BIRTHDAY]]>
+					        </isNotNull>
+			           	</isPropertyAvailable>
+			           	<isPropertyAvailable property="endBirthday">
+							<isNotNull property="endBirthday" prepend=" and ">
+								<![CDATA[ #endBirthday# <= BIRTHDAY ]]>
+							</isNotNull>
+						</isPropertyAvailable>
+					</isEqual>
+					<!-- 当不是境外时 -->
+					<isNotEqual property="tableName" compareValue="unsettledPopulations">
+						<isPropertyAvailable property="startBirthday">
+							<isNotNull property="startBirthday">
+								<![CDATA[ #startBirthday# >= MARKBIRTHDAY]]>
+					        </isNotNull>
+			           	</isPropertyAvailable>
+			           	<isPropertyAvailable property="endBirthday">
+							<isNotNull property="endBirthday" prepend=" and ">
+								<![CDATA[ #endBirthday# <= MARKBIRTHDAY ]]>
+							</isNotNull>
+						</isPropertyAvailable>
+					</isNotEqual>
+		         </isNull>
+		          <!-- 当青少年政治面貌条件是有时 -->
+		         <isNotNull property="politicalBackground">
+		         		<isNotNull property="politicalBackground.id">
+				           <isPropertyAvailable property="startBirthday">
+								<isNotNull property="startBirthday">
+									<![CDATA[ #startBirthday# >= BIRTHDAY]]>
+						        </isNotNull>
+				           </isPropertyAvailable>
+				           <isPropertyAvailable property="endBirthday">
+								<isNotNull property="endBirthday" prepend=" and ">
+									<![CDATA[ #endBirthday# <= BIRTHDAY ]]>
+								</isNotNull>
+							</isPropertyAvailable>
+						</isNotNull>
+					</isNotNull>
+					<isPropertyAvailable property="orgInternalCode">
+						<isNotNull property="orgInternalCode" prepend="and">
+						  orgInternalCode like #orgInternalCode# || '%'
+						</isNotNull>
+					</isPropertyAvailable>
+					<isPropertyAvailable property="politicalBackground">
+					 	<isNotNull property="politicalBackground.id" prepend="and ">
+					 		politicalBackground = #politicalBackground.id#
+					 	</isNotNull>
+					</isPropertyAvailable>
+		         group by orgId
+	</select>
+	
+	<select id="statisticsYouthSummary" parameterClass="java.util.Map" resultMap="StatisticsBaseInfoSummary">
+		select case when sum(b.monthcreate) is null then 0 else sum(b.monthcreate) end thisMonthCount,
+		       case when sum(b.total) is null then 0 else sum(b.total) end  attentionCount,
+		       case when sum(b.objectsum) is null then 0 else sum(b.objectsum) end allCount
+		from youthStatType_$year$_$month$ b where b.orgId = #orgId#
+		     and b.populationType=#keyType#
+	</select>
+	<!--根据年月获取户籍或流口的历史月数据-->
+	<select id="getPopulationInfoByDate" parameterClass="java.util.Map" resultMap="statisticsBaseInfoForDateResult"> 
+	  select nvl(sum(monthCount),0) thisMonthCount,nvl(sum(allCount),0) allCount,max(co.orginternalcode) orginternalcode
+      	from organizations mo
+      		left join (select orginternalcode, b.monthcreate monthCount,b.objectsum allCount
+		                   from populationstattype_$year$_$month$ b where
+		                   populationType =#populationType#
+		                   and year=#year# and month=#month#
+                      ) co on co.orginternalcode like  mo.orginternalcode || '%'
+     where mo.parentid = #orgId#
+       and mo.orgtype =#orgType#
+     group by mo.id
+	</select>
+	
+	<!--根据年月获取指定type的历史月数据-->
+	<select id="getMothDataByType" parameterClass="java.util.Map" resultMap="AllAttenPopBaseInfoSummary"> 
+	select NVL(t.monthcreate,0) as thisMonthCount,NVL(t.attentionnum,0) as attentionCount,NVL(t.total,0) as allCount,o.orginternalcode,o.id as orgId 
+		from organizations o,
+		(select sum(monthcreate) monthcreate,
+               sum(attentionnum) attentionnum,
+               sum(total) total,
+               max(b.orginternalcode) orginternalcode,
+               max(orgId) orgId
+          from statistichistory_$year$_$month$ b
+          <isNotEmpty prepend="where" property="allAttenCur">
+				<iterate property="allAttenCur" open="b.baseinfotype in (" close=")" conjunction=",">
+					#allAttenCur[]#
+				</iterate>
+		  </isNotEmpty>
+         group by orgInternalCode)t
+ 	where t.orginternalcode(+)=o.orginternalcode and o.orglevel>#orglevel#
+	</select>
+
+</sqlMap>

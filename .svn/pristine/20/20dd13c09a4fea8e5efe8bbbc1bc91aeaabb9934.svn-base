@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="fourTeamsAdministrativeOrgTimeLimitStandard">
+	<!-- 注释说明 -->
+	<typeAlias alias="FourTeamsAdministrativeOrgTimeLimitStandard" type="com.tianque.fourTeams.fourTeamsIssue.domain.FourTeamsAdministrativeOrgTimeLimitStandard" />
+		
+	<resultMap class="FourTeamsAdministrativeOrgTimeLimitStandard" id="administrativeOrgTimeLimitStandardResult">
+		<result property="id" column="id"/>
+		<result property="useLevel.id" column="useLevel"/>
+		<result property="orgInternalId" column="orgInternalId"/>
+		<result property="yellowLimitAccept" column="yellowLimitAccept"/>
+		<result property="yellowLimitHandle" column="yellowLimitHandle"/>
+		<result property="redLimitAccept" column="redLimitAccept"/>
+		<result property="redLimitHandle" column="redLimitHandle"/>
+		<result property="remark" column="remark"/>
+		<result property="issueDomainId" column="issueDomainId"/>
+		<result property="issueTypeId" column="issueTypeId"/>
+		<result property="issueDomainDisplayName" column="domainname"/>
+		<result property="issueTypeDisplayName" column="issuetypename"/>
+		<result property="createOrg.id" column="createorg"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+	</resultMap>
+
+	<insert id="addAdministrativeOrgTimeLimitStandard" parameterClass="FourTeamsAdministrativeOrgTimeLimitStandard">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_administrativeStandard.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+			administrativeStandard(id,useLevel,orgInternalId,yellowLimitAccept,yellowLimitHandle,redLimitAccept,redLimitHandle,remark,issueDomainId,issueTypeId,createOrg,createUser,createDate)
+		VALUES
+			(#id#,#useLevel.id#,#orgInternalId#,#yellowLimitAccept#,#yellowLimitHandle#,#redLimitAccept#,#redLimitHandle#,#remark#,#issueDomainId#,#issueTypeId#,#createOrg.id#,#createUser#,#createDate#)
+	</insert>
+	
+	<update id="updateAdministrativeOrgTimeLimitStandard" parameterClass="FourTeamsAdministrativeOrgTimeLimitStandard"> 
+		update administrativeStandard set
+			useLevel=#useLevel.id#,
+			issueDomainId=#issueDomainId#,
+			issueTypeId=#issueTypeId#,
+			yellowLimitAccept =#yellowLimitAccept#,
+			yellowLimitHandle =#yellowLimitHandle#,
+			redLimitAccept =#redLimitAccept#,
+			redLimitHandle =#redLimitHandle#,
+			updateUser =#updateUser#,
+			updateDate =#updateDate#
+		where id = #id#
+	</update>
+	
+	<sql id="select_sql">
+		select *
+		  from (select it.domainname, ip.issuetypename, ad.*
+		          from administrativestandard ad, issuetypedomains it, issuetypes ip
+		         where ad.issuedomainid = it.id(+)
+		           and ad.issuetypeid = ip.id(+)) temp
+		 where
+	</sql>
+	
+	<select id="getAdministrativeOrgTimeLimitStandardById" parameterClass="java.lang.Long" resultMap="administrativeOrgTimeLimitStandardResult">
+		<include refid="select_sql"/>
+		id=#value#
+	</select>
+	
+	<select id="findAdministrativeOrgTimeLimitStandardByOrgInternalId" parameterClass="map" resultMap="administrativeOrgTimeLimitStandardResult">
+		<include refid="select_sql"/>
+		createorg=#createOrg# and orgInternalId<![CDATA[<]]>#orgInternalId# or orgInternalId is null
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countAdministrativeOrgTimeLimitStandardByOrgInternalId" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from administrativeStandard where createorg=#createOrg# and orgInternalId<![CDATA[<]]>#orgInternalId# or orgInternalId is null
+	</select>
+	
+	<delete id="deleteAdministrativeOrgTimeLimitStandard" parameterClass="java.lang.Long">
+		delete from administrativeStandard where id=#value# and orgInternalId is not null
+	</delete>
+	
+	<select id="getAdministrativeOrgTimeLimitStandardByUseLevelId" parameterClass="java.lang.Long" resultMap="administrativeOrgTimeLimitStandardResult">
+		<include refid="select_sql"/>
+		useLevel=#value#
+	</select>
+	
+	<select id="getDefaultAdministrativeOrgTimeLimitStandard" resultMap="administrativeOrgTimeLimitStandardResult">
+		<include refid="select_sql"/>
+		useLevel is null
+	</select>
+	
+	<select id="getAdminOrgTimeLimitStandardByOrgLevelIdAndIssueTypeId" parameterClass="java.util.Map" resultMap="administrativeOrgTimeLimitStandardResult">
+		<include refid="select_sql"/>
+		createorg=#createOrg# and useLevel=#orgLevelId# and issueTypeId=#issueTypeId#
+	</select>
+	
+	<select id="validateRepeatByUseLevelAndIssueDomainIdAndIssueTypeId" parameterClass="FourTeamsAdministrativeOrgTimeLimitStandard" resultClass="integer">
+		select count(0) from administrativeStandard where issuedomainid=#issueDomainId# and issuetypeid=#issueTypeId# and useLevel=#useLevel.id#
+		and createorg=#createOrg.id#
+		<dynamic>
+			<isNotNull prepend=" and " property="id">
+				id<![CDATA[<>]]>#id#
+			</isNotNull>
+		</dynamic>
+	</select>
+</sqlMap>

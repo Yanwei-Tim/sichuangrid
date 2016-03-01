@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="businessManage" >
+  <typeAlias alias="businessManage" type="com.tianque.serviceList.domain.BusinessManage" />
+  <resultMap id="businessManageResult" class="businessManage" extends="serviceListCommon.serviceListCommonResult" >
+    <result column="PERSONNEL" property="personnel"/>
+  </resultMap>
+  
+  <sql id="sql_where">
+  	
+  </sql>
+  
+  <select id="countBusinessManagesBySearchVo" parameterClass="businessManage" resultClass="java.lang.Integer" >
+    select count(0) from BUSINESS_MANAGE
+    <include refid="serviceListCommon.sql_where" />
+  </select>
+  
+  <select id="findBusinessManagesBySearchVo" parameterClass="businessManage" resultMap="businessManageResult">
+      	select ID, INPUT_TIME, ADDRESS, CATEGORY, DETAILS, ISSIGN,ISREPLY,PERSONNEL,
+      		SIGNDATE, SIGNPEOPLE, CREATE_DATE, CREATE_USER, UPDATE_DATE, UPDATE_USER, REMAKE, SIGNCONTENT,ORGID,ORGINTERNALCODE 
+      		from BUSINESS_MANAGE
+		<include refid="serviceListCommon.sql_where"/>
+	</select>
+  
+  <insert id="addBusinessManage" parameterClass="businessManage" >
+  	<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_food_safty.NEXTVAL as id from dual ]]>
+	</selectKey>
+    insert into BUSINESS_MANAGE (ID, INPUT_TIME, ADDRESS, CATEGORY, DETAILS, ISSIGN,ISREPLY,PERSONNEL,
+      SIGNDATE, SIGNPEOPLE, CREATE_DATE, CREATE_USER, UPDATE_DATE, UPDATE_USER, REMAKE, SIGNCONTENT,ORGID,ORGINTERNALCODE)
+    values (#id:DECIMAL#, #inputTime:DATE#, #address:VARCHAR#, #category.id:DECIMAL#,
+      #details:VARCHAR#, #isSign:DECIMAL#, #isReply:DECIMAL#,#personnel#,#signDate:DATE#, #signPeople:VARCHAR#, #createDate:DATE#,
+      #createUser:VARCHAR#, #updateDate:DATE#, #updateUser:VARCHAR#, #remake:CLOB#,
+      #signContent:CLOB#,#organization.id:DECIMAL#,#organization.orgInternalCode:VARCHAR#)
+  </insert>
+  
+  <update id="updateBusinessManageAll" parameterClass="businessManage" >
+    update BUSINESS_MANAGE
+    set INPUT_TIME = #inputTime:DATE#,
+      ADDRESS = #address:VARCHAR#,
+      CATEGORY = #category.id:DECIMAL#,
+      DETAILS = #details:VARCHAR#,
+      ISSIGN = #isSign:DECIMAL#,
+      ISREPLY = #isReply:DECIMAL#,
+      PERSONNEL= #personnel#,
+      SIGNDATE = #signDate:DATE#,
+      SIGNPEOPLE = #signPeople:VARCHAR#,
+      CREATE_DATE = #createDate:DATE#,
+      CREATE_USER = #createUser:VARCHAR#,
+      UPDATE_DATE = #updateDate:DATE#,
+      UPDATE_USER = #updateUser:VARCHAR#,
+      REMAKE = #remake:CLOB#,
+      SIGNCONTENT = #signContent:CLOB#,
+      ORGID = #organization.id:DECIMAL#,
+      ORGINTERNALCODE = #organization.orgInternalCode#
+    where ID = #id:DECIMAL#
+  </update>
+  
+  <update id="updateBusinessManage" parameterClass="businessManage" >
+    update BUSINESS_MANAGE
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="inputTime" >
+        INPUT_TIME = #inputTime:DATE#
+      </isNotNull>
+      <isNotNull prepend="," property="address" >
+        ADDRESS = #address:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="category.id" >
+        CATEGORY = #category.id:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="details" >
+        DETAILS = #details:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="isSign" >
+        ISSIGN = #isSign:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="isReply" >
+        ISREPLY = #isReply:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="personnel" >
+        PERSONNEL= #personnel#
+      </isNotNull>
+      <isNotNull prepend="," property="signDate" >
+        SIGNDATE = #signDate:DATE#
+      </isNotNull>
+      <isNotNull prepend="," property="signPeople" >
+        SIGNPEOPLE = #signPeople:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="createDate" >
+        CREATE_DATE = #createDate:DATE#
+      </isNotNull>
+      <isNotNull prepend="," property="createUser" >
+        CREATE_USER = #createUser:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="updateDate" >
+        UPDATE_DATE = #updateDate:DATE#
+      </isNotNull>
+      <isNotNull prepend="," property="updateUser" >
+        UPDATE_USER = #updateUser:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="remake" >
+        REMAKE = #remake:CLOB#
+      </isNotNull>
+      <isNotNull prepend="," property="signContent" >
+        SIGNCONTENT = #signContent:CLOB#
+      </isNotNull>
+      <isNotNull prepend="," property="organization.id" >
+        ORGID = #organization.id:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="organization.orgInternalCode" >
+        ORGINTERNALCODE = #organization.orgInternalCode#
+      </isNotNull>
+    </dynamic>
+    where ID = #id:DECIMAL#
+  </update>
+  
+  <delete id="deleteBusinessManageById" parameterClass="java.lang.Long" >
+    delete from BUSINESS_MANAGE
+    where ID = #id:DECIMAL#
+  </delete>
+  
+  <select id="getBusinessManageById" resultMap="businessManageResult" parameterClass="java.lang.Long" >
+    select ID, INPUT_TIME, ADDRESS, CATEGORY, DETAILS, ISSIGN,ISREPLY,PERSONNEL, SIGNDATE, SIGNPEOPLE, CREATE_DATE,
+      CREATE_USER, UPDATE_DATE, UPDATE_USER, REMAKE, SIGNCONTENT,ORGID,ORGINTERNALCODE
+    from BUSINESS_MANAGE
+    where ID = #id:DECIMAL#
+  </select>
+  
+</sqlMap>

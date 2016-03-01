@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="incidentType">
+	<typeAlias alias="IncidentType" type="com.tianque.incident.domain.IncidentType" />
+	<typeAlias alias="IncidentDegreeRule" type="com.tianque.incident.domain.component.IncidentDegreeRule" />
+	
+	<resultMap  id="IncidentTypeMap"  class="IncidentType"  >
+		<result column="id"           property="id"/>
+		<result column="name"         property="name"/>
+		<result column="subjection"   property="subjection.id"/>
+		<result column="description"  property="description"/>
+		<result column="degreed"      property="degreed"/>
+		<result column="id"           property="degreeRule"  select="incidentType.loadIncidentDegreeRule"/>
+		
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+	</resultMap>
+	
+	<resultMap  id="IncidentDegreeRuleMap"  class="IncidentDegreeRule" >
+			<result column="rule"		   	 property="rule"/>
+			<result column="degree"       	 property="degree.id"/>
+			<result column="incidentTypeId"  property="incidentTypeId"/>
+	</resultMap>
+	
+	
+	<insert id="addIncidentType" parameterClass="IncidentType" >
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_INCIDENTTYPES.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into  incidenttypes (id, name, subjection, description, degreed,createDate,createUser,updateUser,updateDate) 
+			values(#id#, #name#, #subjection.id#, #description#, #degreed#,#createDate#,#createUser#,#updateUser#,#updateDate#)
+	</insert>
+	<insert id="addIncidentDegreeRule" parameterClass="IncidentDegreeRule">
+		insert into incidenttypedegrees(incidentTypeId, degree, rule) values(#incidentTypeId#, #degree.id#, #rule#)
+	</insert>
+	
+	<update id="updateIncidentType" parameterClass="IncidentType">
+		update incidenttypes set
+			description = #description#,
+			subjection = #subjection.id#,
+			name = #name#,
+			degreed = #degreed#,
+			updateUser = #updateUser#,
+		    updateDate = #updateDate#
+		where id = #id#
+	</update>
+	
+	
+	<select id="getIncidentsBysubjectionTypeId"  parameterClass="Long" resultMap="IncidentTypeMap">
+		select * from  incidenttypes where subjection=#value#
+	</select>
+	
+	<select id="getIncidentTypeById"  parameterClass="Long"  resultMap="IncidentTypeMap">
+		select  * from  incidenttypes   where id=#value#
+	</select>
+	
+	<select id="loadIncidentDegreeRule"  resultMap="IncidentDegreeRuleMap">
+		select * from incidenttypedegrees  where incidenttypeId=#value# order by degree asc
+	</select>
+	
+	<select id="getIncidentTypeByNameAndSubjectTypeId" parameterClass="java.util.Map" resultMap="IncidentTypeMap">
+		select * from incidenttypes where subjection=#subjectTypeId# and name=#name#
+	</select>
+	
+	
+	<delete id="deleteIncidentDegreeRule" parameterClass="long">
+		delete  incidenttypedegrees where  incidenttypeid= #incidentTypeId# 
+	</delete>
+	<delete id="deleteIncidentTypeById" parameterClass="long">
+		delete  incidenttypes where  id= #incidentTypeId# 
+	</delete>
+	
+</sqlMap>

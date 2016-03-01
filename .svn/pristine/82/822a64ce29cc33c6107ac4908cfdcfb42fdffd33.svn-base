@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="emergencyShelter">
+	<typeAlias alias="EmergencyShelter" type="com.tianque.baseInfo.emergencyShelter.domain.EmergencyShelter"/>
+	
+	<resultMap class="EmergencyShelter" id="emergencyShelterResult">
+		<result property="id" column="id"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="name" column="name"/>
+		<result property="address" column="address"/>
+		<result property="longAititude" column="longAititude"/>
+		<result property="siteType" column="siteType"/>
+		<result property="area" column="area"/>
+		<result property="fullPersonNum" column="fullPersonNum"/>
+		<result property="aroundVillageNum" column="aroundVillageNum"/>
+		<result property="aroundPersonNum" column="aroundPersonNum"/>
+		<result property="aroundRoadCondition" column="aroundRoadCondition"/>
+		<result property="functionComplete" column="functionComplete"/>
+		<result property="identificationNum" column="identificationNum"/>
+		<result property="imageSymbolNum" column="imageSymbolNum"/>
+		<result property="pointNum" column="pointNum"/>
+		<result property="remark" column="remark"/>
+		<result property="imgUrl" column="imgUrl"/>
+		<result property="fullPinyin" column="fullPinyin"/>
+		<result property="simplePinyin" column="simplePinyin"/>
+		<result property="isEmphasis" column="isEmphasis"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>	
+		<result property="logOutTime" column="logOutTime"/>	
+		<result property="logOutReason" column="logOutReason"/>		
+	</resultMap>
+	
+	<insert id="addEmergencyShelter" parameterClass="EmergencyShelter">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+		<![CDATA[SELECT s_EmergencyShelter.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into EmergencyShelter(id,orgId,orgInternalCode,name,address,longAititude,siteType,area,fullPersonNum,aroundVillageNum,aroundPersonNum,
+		aroundRoadCondition,functionComplete,identificationNum,imageSymbolNum,pointNum,remark,imgUrl,fullPinyin,simplePinyin,isEmphasis,createUser,createDate)
+		values(#id#,#organization.id#,#orgInternalCode#,#name#,#address#,#longAititude#,#siteType#,#area#,#fullPersonNum#,#aroundVillageNum#,#aroundPersonNum#,
+		#aroundRoadCondition#,#functionComplete#,#identificationNum#,#imageSymbolNum#,#pointNum#,#remark#,#imgUrl#,#fullPinyin#,#simplePinyin#,#isEmphasis#,#createUser#,#createDate#) 
+	</insert>
+	
+	<update id="updateEmergencyShelter" parameterClass="EmergencyShelter">
+		update EmergencyShelter set
+			orgId=#organization.id#,
+			orgInternalCode=#orgInternalCode#,
+			name=#name#,
+			address=#address#,
+			longAititude=#longAititude#,
+			siteType=#siteType#,
+			area=#area#,
+			fullPersonNum=#fullPersonNum#,
+			aroundVillageNum=#aroundVillageNum#,
+			aroundPersonNum=#aroundPersonNum#,
+			aroundRoadCondition=#aroundRoadCondition#,
+			functionComplete=#functionComplete#,
+			identificationNum=#identificationNum#,
+			imageSymbolNum=#imageSymbolNum#,
+			pointNum=#pointNum#,
+			remark=#remark#,
+			imgUrl=#imgUrl#,
+			fullPinyin=#fullPinyin#,
+			simplePinyin=#simplePinyin#,
+			isEmphasis=#isEmphasis#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#,
+			logOutTime=#logOutTime#,
+			logOutReason=#logOutReason#
+		where id=#id#
+	</update>
+	
+	<delete id="deleteEmergencyShelter" parameterClass="java.lang.Long">
+		delete from EmergencyShelter where id=#value#
+	</delete>
+	
+	<delete id="deleteEmergencyShelterByIds">
+		delete from EmergencyShelter where 
+		<iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	
+	<select id="getEmergencyShelterById" parameterClass="java.lang.Long" resultMap="emergencyShelterResult">
+	    select * from EmergencyShelter where id=#value#
+	</select>
+	
+	<select id="getEmergencyShelterByName" parameterClass="java.util.Map" resultMap="emergencyShelterResult">
+	    select * from EmergencyShelter where name = #name# and orgId=#orgId#
+	</select>
+	
+	<select id="countEmergencyShelter" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from EmergencyShelter where orgInternalCode like #orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+						isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findEmergencyShelter" parameterClass="java.util.Map" resultMap="emergencyShelterResult">
+		select * from EmergencyShelter where orgInternalCode like #orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend="and">
+						isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sortField" prepend="order by">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+</sqlMap>

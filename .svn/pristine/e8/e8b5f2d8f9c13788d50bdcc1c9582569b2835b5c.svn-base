@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<sqlMap namespace="smsUplink">	
+	
+	<typeAlias alias="SmsUplink" type="com.tianque.sms.domain.SmsUplink"/>
+	<typeAlias alias="SmsSendObjectVo" type="com.tianque.sms.domain.vo.SmsSendObjectVo"/>
+	<typeAlias alias="SearchSmsUplinkVo" type="com.tianque.sms.domain.vo.SearchSmsUplinkVo" />
+	<typeAlias alias="SmsJobSqlVo" type="com.tianque.sms.domain.vo.SmsJobSqlVo" />
+	
+	<resultMap id="smsUplinkResult" class="SmsUplink">
+		<result property="id" column="id"/>
+		<result property="sendTime" column="SENDTIME"/>
+		<result property="receiveTime" column="RECEIVETIME"/>
+		<result property="receiverName" column="receiverName"/>
+		<result property="receiveTime" column="receiveTime"/>
+		<result property="receiverMobile" column="receiverMobile"/>
+		<result property="receiverOrgId" column="receiverOrgId"/>
+		<result property="receiverOrgInternalCode" column="receiverOrgInternalCode"/>
+		<result property="senderOrgId" column="senderOrgId"/>
+		<result property="senderOrgInternalCode" column="senderOrgInternalCode"/>
+		<result property="sender.id" column="SENDER"/>
+		<result property="senderName" column="senderName"/>
+		<result property="status" column="STATUS"/>
+		<result property="content" column="CONTENT"/>
+		<result property="counts" column="counts"/>
+		<result property="parentId" column="parentId"/>
+		<result property="messageId" column="messageId"/>
+		<result property="deptId" column="deptId"/>
+		<result property="smsLevel" column="smsLevel"/>
+		<result property="deleteStatus" column="deleteStatus"/>
+	</resultMap>
+	
+	<resultMap id="smsSendObjectVoResult" class="SmsSendObjectVo">
+		<result property="name" column="name"/>
+		<result property="mobile" column="mobile"/>
+		<result property="orgId.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+	</resultMap>
+	
+	<resultMap id="smsSendObjectVoPageInfoResult" class="SmsSendObjectVo">
+		<result property="id" column="id"/>
+		<result property="name" column="name"/>
+		<result property="mobile" column="mobile"/>
+		<result property="orgId.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+	</resultMap>
+	
+	<resultMap id="smsJobSqlVoResult" class="SmsJobSqlVo">
+		<result property="id" column="id"/>
+		<result property="smsLevel" column="smsLevel"/>
+		<result property="sql" column="sql"/>
+		<result property="content" column="content"/>
+		<result property="description" column="description"/>
+		<result property="sender.id" column="sender"/>
+		<result property="sendTime" column="sendTime"/>
+		<result property="smsuplinkId" column="smsuplinkId"/>
+	</resultMap>
+
+	<select id="getSmsUplinkById" parameterClass="java.lang.Long" resultMap="smsUplinkResult">
+		select * from SMSUPLINK where id=#value#
+	</select>
+	
+	<insert id="addSmsUplink" parameterClass="SmsUplink">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_SMSUPLINK.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into SMSUPLINK (ID , SENDTIME, RECEIVETIME , receiverName, receiverMobile, SENDER, senderName, CONTENT, receiverOrgId,receiverOrgInternalCode,senderOrgId,senderOrgInternalCode,counts,parentId,messageId,deptId,mobileType,smsLevel) 
+		values(#id#, #sendTime#, #receiveTime#, #receiverName#, #receiverMobile#,#sender.id#,#senderName#, #content#, #receiverOrgId#, #receiverOrgInternalCode#, #senderOrgId#, #senderOrgInternalCode#,#counts#,#parentId#,#messageId#,#deptId#,#mobileType#,#smsLevel#)	
+	</insert>
+	
+	<update id="updateSmsUplink" parameterClass="SmsUplink">
+		update SMSUPLINK set id = #id# 
+				<isNotNull prepend="," property="sendTime">
+					SENDTIME = #sendTime#
+				</isNotNull>
+				<isNotNull prepend="," property="receiveTime">
+					RECEIVETIME = #receiveTime#
+				</isNotNull>
+				<isNotNull prepend="," property="status">
+					STATUS = #status#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<update id="updateDeleteStatusByIds" parameterClass="java.lang.String" >
+		update SMSUPLINK set deleteStatus = 1 where id in ($id$)
+	</update>
+	
+	<delete id="deleteSmsUplinkById" parameterClass="java.lang.Long">	
+		delete  from SMSUPLINK where id = #value#	
+	</delete>
+	
+	<update id="updateDeleteStatusSmsUplinkByReceiverMobile" parameterClass="String">	
+		update SMSUPLINK set deleteStatus = 1 where RECEIVERMOBILE = #receiverMobile# and status <![CDATA[ > ]]> 3 
+	</update>
+	
+	<sql id="findSmsUplinksBySearchVo_sql_where">
+			<isPropertyAvailable property="senderOrgInternalCode">
+				<isNotNull property="senderOrgInternalCode" prepend=" and ">
+					senderOrgInternalCode like '$senderOrgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maxSendTime">
+				<isNotEmpty prepend="and" property="maxSendTime">
+					SENDTIME  <![CDATA[<=]]> #maxSendTime#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="minSendTime">
+				<isNotEmpty prepend="and" property="minSendTime">
+					SENDTIME  <![CDATA[>=]]> #minSendTime#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="status">
+				<isNotEmpty prepend="and" property="status">
+					STATUS = #status#
+				</isNotEmpty>
+			</isPropertyAvailable>	
+			<isPropertyAvailable property="receiverMobile">
+				<isNotEmpty prepend="and" property="receiverMobile">
+					receiverMobile  like #receiverMobile# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>	
+			<isPropertyAvailable property="receiverName">
+				<isNotEmpty prepend="and" property="receiverName">
+					receiverName  like #receiverName# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>	
+			<isPropertyAvailable property="content">
+				<isNotEmpty prepend="and" property="content">
+					CONTENT  like #content# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>			
+			<isPropertyAvailable property="senderName">
+				<isNotEmpty prepend="and" property="senderName">
+					senderName like #senderName# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>		
+	</sql>
+	<select id="findSmsUplinksBySearchVo" parameterClass="SearchSmsUplinkVo" resultMap="smsUplinkResult">
+		select * from SMSUPLINK where parentid is  null and deleteStatus != 1 and senderOrgId = #senderOrgId#
+		<include refid="findSmsUplinksBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countSmsUplinksBySearchVo" parameterClass="SearchSmsUplinkVo" resultClass="java.lang.Integer">
+		select count(0) from SMSUPLINK  where parentid is  null and deleteStatus != 1 and senderOrgId = #senderOrgId#
+		<include refid="findSmsUplinksBySearchVo_sql_where" />
+	</select>
+	
+	<select id="findSubSmsUplinksBySearchVo" parameterClass="SearchSmsUplinkVo" resultMap="smsUplinkResult">
+		select * from SMSUPLINK where parentId = #parentId# and deleteStatus != 1 
+		<include refid="findSmsUplinksBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countSubSmsUplinksBySearchVo" parameterClass="SearchSmsUplinkVo" resultClass="java.lang.Integer">
+		select count(0) from SMSUPLINK  where parentId = #parentId# and deleteStatus != 1 
+		<include refid="findSmsUplinksBySearchVo_sql_where" />
+	</select>
+	
+	
+	<select id="findSmsSendObject" parameterClass="java.lang.String" resultMap="smsSendObjectVoResult">
+		select name,mobile,orgId,orgInternalCode from ( $value$ )
+	</select>
+	
+	<select id="countSmsSendObject" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		select count(0) from ( $value$ )
+	</select>
+	
+	<insert id="addSmsJobSqlVo" parameterClass="SmsJobSqlVo">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_smsJobSql.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into smsJobSql (id , sql , description ,content, sender , sendTime,smsLevel,smsuplinkId) 
+		values(#id# , #sql#, #description#, #content#, #sender.id#, #sendTime#,#smsLevel#,#smsuplinkId#)	
+	</insert>
+	
+	<select id="getSmsJobSqlVoById" parameterClass="java.lang.Long" resultMap="smsJobSqlVoResult">
+		select * from smsJobSql where id = #value# 
+	</select>
+	
+	<update id="updateSmsJobSqlVo" parameterClass="SmsJobSqlVo">
+		update smsJobSql set id = #id# , smsLevel = #smsLevel#
+		where id = #id# 
+	</update>
+	
+	<select id="findSmsJobSqlVoBySmsLevel" resultMap="smsJobSqlVoResult">
+		select * from smsJobSql where smsLevel <![CDATA[>]]> -1
+	</select>
+	
+	<select id="getSmsUplinkByMinIdAndProcessed" resultMap="smsUplinkResult">
+		select * from smsUplink where id = (select min(id) from smsUplink where (status=2 or status=3) and messageId is not null)
+	</select>
+	
+	<select id="getSmsUplinkByMessageId" parameterClass="java.lang.Long" resultMap="smsUplinkResult">
+		select * from smsUplink where messageId = #value#
+	</select>
+	
+	<select id="getSmsUplinkListBySendStatus" parameterClass="java.lang.Integer" resultMap="smsUplinkResult">
+		select * from ( select A.*,ROWNUM as rn from smsUplink A where A.messageId is null and A.receivermobile is not null and A.status = 1 order by A.smsLevel asc ) B where  B.rn <![CDATA[ <= ]]> #value#
+	</select>
+	
+	<select id="countSmsSendPeopleInfoPager" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) from ( $sql$ )
+	</select>
+	
+	<select id="findSmsSendPeopleInfoPager" parameterClass="java.util.Map" resultMap="smsSendObjectVoPageInfoResult">
+		select name,mobile,orgId,orgInternalCode,ROWNUM as id from ( $sql$ )
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<update id="updateSmsUplinkStatusByBatch" parameterClass="SmsUplink">
+		update SMSUPLINK set id = #id# 
+				<isNotNull prepend="," property="status">
+					STATUS = #status#
+				</isNotNull>
+				<isNotNull prepend="," property="messageId">
+					messageId = #messageId#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<select id="findDifferPhoneTypeMessagesNumberByOrgIds" parameterClass="java.util.Map" resultClass="java.util.HashMap" remapResults="true" >
+		select ch.senderorgid as orgId, count(*) as total,
+			(select count(*) from smsuplink sk where  sk.senderorgid=ch.senderorgid   and  sk.mobileType=4 <![CDATA[ and sk.sendtime>=#startDate# and sk.sendtime< #endDate#  ]]> ) as hasTelecomTraffic,
+		    (select count(*) from smsuplink sk  where  sk.senderorgid=ch.senderorgid and  sk.mobiletype=1  <![CDATA[ and sk.sendtime>=#startDate# and sk.sendtime< #endDate#  ]]> ) as hasMobileTraffic,
+		    (select count(*) from smsuplink sk  where  sk.senderorgid=ch.senderorgid and  sk.mobiletype=2  <![CDATA[ and sk.sendtime>=#startDate# and sk.sendtime< #endDate#  ]]> ) as hasChinaUnicomTraffic
+		from smsuplink ch where ch.senderorgid in ($orgIds$) group by ch.senderorgid order by ch.senderorgid asc
+	</select>
+	
+	<update id="updateRestoreDeleteStatusById" parameterClass="java.lang.Long" >
+		update SMSUPLINK set deleteStatus = 0 where id = #value#
+	</update>
+
+</sqlMap>

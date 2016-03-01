@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="examinePlan">
+	<typeAlias alias="ExaminePlan" type="com.tianque.domain.ExaminePlan" />
+
+	<resultMap id="examinePlanResult" class="ExaminePlan">
+		<result property="id" column="id" />
+		<result property="year" column="year" />
+		<result property="title" column="title" />
+		<result property="draftOrganization" column="draftOrganization" />
+		<result property="fullScore" column="fullScore" />
+	</resultMap>
+
+	<insert id="addExaminePlan" parameterClass="ExaminePlan">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_ExaminePlans.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		ExaminePlans(id,year,title,draftOrganization,fullScore)
+		VALUES(#id#,#year#,#title#,#draftOrganization#,#fullScore#)
+	</insert>
+
+	<select id="getSimpleExaminePlanById" parameterClass="java.lang.Long"
+		resultMap="examinePlanResult">
+		<![CDATA[
+		select * from ExaminePlans where id=#value#
+		]]>
+	</select>
+
+	<delete id="deleteExaminePlanById" parameterClass="java.lang.Long">
+		<![CDATA[
+		delete
+		from ExaminePlans where id=#value#
+		]]>
+	</delete>
+
+	<update id="updateExaminePlan" parameterClass="ExaminePlan">
+		update ExaminePlans set
+		<dynamic>
+			year=#year#,
+			title=#title#,
+			draftOrganization=#draftOrganization#,
+			fullScore=#fullScore#
+			where
+			id=#id#
+		</dynamic>
+	</update>
+
+	<select id="findExaminePlans" resultMap="examinePlanResult">
+		<![CDATA[
+		select * from ExaminePlans
+		]]>
+	</select>
+	
+	<select id="findExaminePlanYears" resultClass="java.lang.Integer">
+		<![CDATA[
+		select year from ExaminePlans
+		]]>
+	</select>
+
+	<select id="countExsistedExaminePlanByYear" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from ExaminePlans where year like #year#||'%'
+		]]>
+	</select>
+	
+	<select id="countExaminePlansForListPage" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from ExaminePlans 
+		]]>
+	</select>
+	
+	<select id="findExaminePlansForListPage" resultMap="examinePlanResult" parameterClass="java.util.Map">
+		<![CDATA[
+		select * from ExaminePlans 
+		]]>
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>		
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+</sqlMap>

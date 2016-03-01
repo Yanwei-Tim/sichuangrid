@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="examineScoreRecordManage" extends="default" namespace="/examine/examineScoreRecordManage">
+		<default-class-ref class="examineScoreRecordController"></default-class-ref>
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/examine/examineScoreRecord/maintainExamineScoreRecordDlg.jsp
+			</result>
+			<result name="view">
+				/examine/examineScoreRecord/viewExamineScoreRecordDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="findExamineScoresList" method="findExamineScoresList">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="addExamineScoreRecord" method="addExamineScoreRecord">
+			<result name="success" type="json">
+				<param name="root">examineScores</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateExamineScoreRecord" method="updateExamineScoreRecord">
+			<result name="success" type="json">
+				<param name="root">examinePlan</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="deleteExamineScoreRecord" method="deleteExamineScoreRecord">
+			<result name="success" type="json">
+				<param name="root">examinePlan</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="findSelectedExamineVoForPage" method="findSelectedExamineVoForPage">
+			<result name="success">
+				/examine/examineScoreRecord/tableExamineScoreRecord.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="checkUnique" method="checkUnique">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+	</package>
+</struts>

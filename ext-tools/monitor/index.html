@@ -1,0 +1,142 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
+<!--
+ *
+ * AeroWindow - jQuery Plugin (v3.5)
+ * Copyright 2010, Christian Goldbach
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * 
+ * Project Website:
+ * http://www.soyos.net/aerowindow-jquery.html
+ * http://www.soyos.net
+ *
+ *
+ *
+ * Requires Easing Plugin for Window Animations:
+ * jQuery Easing v1.3 - http://gsgd.co.uk/sandbox/jquery/easing/
+ *
+ * Date: 2010-06-09
+ *
+//-->
+
+  <head>
+    <title>统一监控平台</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link href="css/jquery-ui.css" rel="stylesheet" type="text/css"/>    
+    <link href="css/AeroWindow.css?r=123" rel="stylesheet" type="text/css"/>
+    <script type="text/javascript" src="js/jquery-1.4.2.min.js"></script> 
+    <script type="text/javascript" src="js/jquery-ui-1.8.1.custom.min.js"></script> 
+    <script type="text/javascript" src="js/jquery.easing.1.3.js"></script>         
+    <script type="text/javascript" src="js/jquery-AeroWindow.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $('#f5').AeroWindow({
+          WindowTitle:          ' --F5--',
+          WindowPositionTop:    100,
+          WindowPositionLeft:   200,
+          WindowWidth:          300,
+          WindowHeight:         200,
+          WindowAnimation:      'easeOutBounce'        
+        });  
+        $('#nagios').AeroWindow({
+          WindowTitle:          'Nagios',
+          WindowPositionTop:    'center',
+          WindowPositionLeft:   'center',
+          WindowWidth:          700,
+          WindowHeight:         500,
+          WindowAnimation:      'easeOutCubic'
+        });
+        $('#logger').AeroWindow({
+          WindowTitle:          'Awstats',
+          WindowPositionTop:    'center',
+          WindowPositionLeft:   'center',
+          WindowWidth:          700,
+          WindowHeight:         500,
+          WindowAnimation:      'easeOutCubic'
+        });
+        $('#servers').AeroWindow({
+          WindowTitle:          'Servers',
+          WindowPositionTop:    'center',
+          WindowPositionLeft:   'center',
+          WindowWidth:          700,
+          WindowHeight:         500,
+          WindowAnimation:      'easeOutCubic'
+        });
+        $('#memcache').AeroWindow({
+          WindowTitle:          'Memcache',
+          WindowPositionTop:    'center',
+          WindowPositionLeft:   'center',
+          WindowWidth:          700,
+          WindowHeight:         500,
+          WindowAnimation:      'easeOutCubic'
+        });
+
+        $('#f5').click(function() {
+          $('#f5').AeroWindow({
+            WindowTitle:          'F5',
+            WindowPositionTop:    'center',
+            WindowPositionLeft:   'center',
+            WindowWidth:          700,
+            WindowHeight:         500,
+            WindowAnimation:      'easeOutCubic'
+          });
+        });
+        $('#nagios').click(function() {
+          $('#nagios').AeroWindow({
+            WindowTitle:          'Nagios',
+            WindowPositionTop:    'center',
+            WindowPositionLeft:   'center',
+            WindowWidth:          550,
+            WindowHeight:         300,
+            WindowAnimationSpeed: 1000,
+            WindowAnimation:      'easeOutCubic',
+            WindowResizable:      true,
+            WindowDraggable:      true,
+            WindowMinimize:       false,
+            WindowMaximize:       false,
+            WindowClosable:       true
+          });
+        })
+      });
+    </script>
+    <style>
+      body {
+        background: #09368b url(win7-desktop-bg.jpg);
+      }
+      #iconContainer {
+        position: absolute;
+        top:      10px;
+        left:     5px;
+        width:    auto;
+        height:   auto;
+      }
+      #iconContainer div {
+        width:    70px;
+        height:   70px;
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="nagios" style="display: none;">
+      <iframe src="http://192.168.8.20:18000/" width="100%" height="100%" style="border: 0px;" frameborder="0"></iframe>
+      <div id="iframeHelper"></div>
+    </div>
+    <div id="f5" style="display: none;">
+      <iframe src="https://192.168.8.210" width="100%" height="100%" style="border: 0px;" frameborder="0"></iframe>
+      <div id="iframeHelper"></div>
+    </div>
+    <div id="servers" style="display: none;">
+      <iframe src="http://192.168.8.20:18000/monitor/image001.png" width="100%" height="100%" style="border: 0px;" frameborder="0"></iframe>
+      <div id="iframeHelper"></div>
+    </div>
+    <div id="logger" style="display: none;">
+      <iframe src="http://192.168.8.20:18001" width="100%" height="100%" style="border: 0px;" frameborder="0"></iframe>
+      <div id="iframeHelper"></div>
+    </div>
+    <div id="memcache" style="display: none;">
+      <iframe src="http://192.168.8.20:18000/memcache.php" width="100%" height="100%" style="border: 0px;" frameborder="0"></iframe>
+      <div id="iframeHelper"></div>
+    </div>
+  </body>  
+</html>

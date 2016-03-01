@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="myDepartmentGrop">
+	<typeAlias alias="myDepartmentGrop"
+		type="com.tianque.working.domain.MyDepartmentGrop" />
+	<typeAlias
+		type="org.springframework.orm.ibatis.support.ClobStringTypeHandler"
+		alias="ClobStringTypeHandler" />
+	<resultMap id="myDepartmentGropResult" class="myDepartmentGrop">
+		<result column="id" property="id" />
+		<result column="name" property="name" />
+		<result column="groupMembers" property="groupMembers" />
+		<result column="orgId" property="organization.id" />
+		<result column="fullPinyin" property="fullPinyin" />
+		<result column="simplePinyin" property="simplePinyin" />
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+	</resultMap>
+	<insert id="addMyDepartmentGrop" parameterClass="myDepartmentGrop">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_myDepartmentGrops.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into myDepartmentGrops
+		(id,name,orgId,groupMembers,createUser,updateUser,createDate,updateDate,fullPinyin,simplePinyin)
+		values(#id#,#name#,#organization.id#,#groupMembers#,#createUser#,#updateUser#,
+		#createDate#,#updateDate#,#fullPinyin#,#simplePinyin#)
+	</insert>
+	<select id="findMyDepartmentGropById" parameterClass="java.lang.Long"
+		resultMap="myDepartmentGropResult">
+		select * from myDepartmentGrops where id=#value#
+	</select>
+
+	<select id="findMyDepartmentGropForList" parameterClass="java.lang.Long"
+		resultMap="myDepartmentGropResult">
+	    select * from myDepartmentGrops where orgId=#value#
+	</select>
+	
+	<update id="updateMyDepartmentGropMembers" parameterClass="java.util.Map">
+	    <![CDATA[
+	         update myDepartmentGrops set groupMembers=#groupMembers# where id=#id#
+	    ]]>
+	</update>
+	
+	<update id="updateMyDepartmentGropName" parameterClass="myDepartmentGrop">
+	    update myDepartmentGrops set 
+	            name=#name#,fullPinyin=#fullPinyin#,simplePinyin=#simplePinyin#
+	    where id=#id#
+	</update>
+	
+	<delete id="deleteMyDepartmentGropById" parameterClass="java.lang.Long">
+	    delete myDepartmentGrops where id=#value#
+	</delete>
+
+	<select id="nameExists" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from mydepartmentGrops where orgId=#orgId# and name=#name#
+	</select>
+</sqlMap>

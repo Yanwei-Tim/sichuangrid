@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchWorkBulletin">
+
+	<sql id="sql_where">
+		from workbulletins where orgInternalCode like '$orgInternalCode$%'
+		<dynamic>
+		<isPropertyAvailable property="createUser">
+				<isNotEmpty property="createUser" prepend="and">
+					<![CDATA[createUser like '$createUser$%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="bulletinName">
+				<isNotEmpty property="bulletinName" prepend="and">
+					<![CDATA[bulletinName like '$bulletinName$%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="bulletinDate">
+				<isNotNull property="bulletinDate" prepend=" and ">
+					bulletinDate <![CDATA[=]]>
+					#bulletinDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fillDate">
+				<isNotNull property="fillDate" prepend=" and ">
+					fillDate <![CDATA[=]]>
+					#fillDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="updateUser">
+				<isNotNull property="updateUser" prepend=" and ">
+					<![CDATA[updateUser like
+					'$updateUser$%']]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="updateDate">
+				<isNotNull property="updateDate" prepend=" and ">
+					<![CDATA[fillDate<#updateDate#+1]]>
+
+				</isNotNull>
+			</isPropertyAvailable>
+
+		</dynamic>
+	</sql>
+
+	<select id="countWorkBulletins" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="searchWorkBulletins" parameterClass="map"
+		resultMap="WORKBULLETINS.workbulletinResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+
+
+</sqlMap>

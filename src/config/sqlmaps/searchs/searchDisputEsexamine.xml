@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchDisputEsexamine">
+	<sql id="sql_where">
+		from workingRecord where 1=1
+		<dynamic>
+			<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+			</isNotNull>
+			
+			<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId in ( $dailyDirectoryId$ )
+			</isNotNull>
+			
+			<isNotNull property="seachReportTimeEnd" prepend=" and ">
+					reportTime <![CDATA[<=]]>
+					#seachReportTimeEnd#
+			</isNotNull>
+				
+			<isNotNull property="seachReportTimeStart" prepend=" and ">
+					reportTime <![CDATA[>=]]>
+					#seachReportTimeStart#
+			</isNotNull>
+		</dynamic>
+	</sql>
+
+	<select id="searchDisputEsexamineByDate" parameterClass="java.util.Map"
+		resultMap="workingRecord.reportDisputEsexamine">
+		select ID,ORGID,ORGINTERNALCODE,NAME,DAILYDIRECTORYID,DAILYYEARID,DEALDATE,SUBMITSTATE,SUBMITTIME,
+		BACKTIME,PROCEEDSITE,WORKINGUNIT,DAILYLOGTYPE,FILENO,PARTICIPANT,LISTER,DEALPERSON,CREATEUSER,
+		UPDATEUSER,CREATEDATE,UPDATEDATE,SUBJECT,FROMID,ABILITYUNIT,ABILITYLEADING,AREANAME,
+		MAINPROBLEM,POLICIESANDMEASURES,SIGNIFICANTISSUEDEALREASON
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countDisputEsexamine" parameterClass="map" resultClass="int">
+		<include refid="common.sql_count" />
+		<include refid="sql_where"/>
+	</select>
+</sqlMap>

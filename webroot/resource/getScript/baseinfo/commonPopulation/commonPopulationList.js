@@ -1,0 +1,784 @@
+TQ.commonPopulationList = function (dfop){
+	$(function(){
+		//严重精神障碍患者 服务监管措施 start wangxiaohu 20131022
+		$("#serviceSupervisionMeasures").click(function (){
+			var selectedIds = $("#"+dfop.commonPopulationLowerCaseModuleName+"List").jqGrid("getGridParam", "selarrrow");
+			if(selectedIds.length>1){
+				$.messageBox({level : 'warn',message:"同时只能操作一条记录！"});
+				 return;
+			}
+			if(selectedIds==null ||selectedIds =="" || selectedIds.length < 1){
+				$.messageBox({level : 'warn',message:"请先选择一条记录，再进行操作！"});
+				 return;
+			}
+			var selectedId = selectedIds;
+			var rowData=$("#"+dfop.commonPopulationLowerCaseModuleName+"List").getRowData(selectedId);
+			var objectNames=$(rowData.name).text();
+			if(rowData.isEmphasis==1||rowData.isEmphasis=='1'){
+				$.messageBox({level : 'warn',message:"该"+dfop.commonPopulationModuleCName+"信息已经取消关注,不能管理服务监管措施"});
+				 return;
+			}
+			var encryptIds=deleteOperatorByEncrypt(dfop.commonPopulationLowerCaseModuleName,selectedId,"encryptId");
+			$("#"+dfop.commonPopulationLowerCaseModuleName+"Dialog").createDialog({
+				width:860,
+				height:560,
+				title:dfop.commonPopulationModuleCName+'服务监管措施',
+				url:'/plugin/serviceTeam/router/routerManage/maintainServiceRecordForPopulationByEncryptId.action?dailogName='+dfop.commonPopulationLowerCaseModuleName+'Dialog&populationType='+$("#_populationType_").val()+'&name='+encodeURIComponent(objectNames)+'&id='+encryptIds+'&showRecordType=serviceSupervisionMeasures&module='+ dfop.attrModuleName,
+				buttons: {
+			   		"关闭" : function(){
+			        	$(this).dialog("close");
+			   		}
+				},
+				close: function(event, ui) {$("#"+dfop.commonPopulationLowerCaseModuleName+"List").trigger("reloadGrid");}
+			});
+		});
+		//严重精神障碍患者 服务监管措施 end
+
+		$("#superviseHistory").click(function(event){
+			var selectedIds = $("#"+dfop.commonPopulationLowerCaseModuleName+"List").jqGrid("getGridParam", "selarrrow");
+			if(selectedIds.length>1){
+				$.messageBox({level : 'warn',message:"同时只能操作一条记录！"});
+				 return;
+			}
+			if(selectedIds==null ||selectedIds =="" || selectedIds.length < 1){
+				$.messageBox({level : 'warn',message:"请先选择一条记录，再进行操作！"});
+				 return;
+			}
+			var selectedId = selectedIds;
+			var rowData=$("#"+dfop.commonPopulationLowerCaseModuleName+"List").getRowData(selectedId);
+			var objectNames=$(rowData.name).text();
+			if(rowData.isEmphasis==1||rowData.isEmphasis=='1'){
+				$.messageBox({level : 'warn',message:"该"+dfop.commonPopulationModuleCName+"信息已经取消关注,不能管理上访历史"});
+				 return;
+			}
+			
+			$("#"+dfop.commonPopulationLowerCaseModuleName+"Dialog").createDialog({
+				width:860,
+				height:600,
+				title:dfop.commonPopulationModuleCName+'上访历史',
+				url:'/baseinfo/superiorVisitHistoryManage/dispatchOperateByEncrypt.action?dailogName='+dfop.commonPopulationLowerCaseModuleName+'Dialog&populationType='+$("#_populationType_").val()+'&name='+encodeURIComponent(objectNames)+'&mode=search&id='+rowData.encryptId+'&showRecordType=2',
+				buttons: {
+			   		"关闭" : function(){
+			        	$(this).dialog("close");
+			   		}
+				},
+				close: function(event, ui) {$("#"+dfop.commonPopulationLowerCaseModuleName+"List").trigger("reloadGrid");}
+			});
+		});
+		
+		//重点青少年快速搜索  start  
+			$("#isSearch").change(function(){
+				$("#"+dfop.commonPopulationLowerCaseModuleName+"List").setGridParam({
+					url:PATH+"/baseinfo/search"+dfop.commonPopulationModuleName+"/find"+dfop.commonPopulationModuleName+"sByQueryCondition.action",
+					datatype: "json",
+					page:1,
+					mtype:"post"
+				});
+				$("#"+dfop.commonPopulationLowerCaseModuleName+"List").setPostData({
+					"staffTypeIds":$("#isSearch").val(),
+					"organizationId":getCurrentOrgId(),
+					"searchIdleYouthVo.isEmphasis":0
+			    });
+			    $("#"+dfop.commonPopulationLowerCaseModuleName+"List").trigger("reloadGrid");
+			});
+			function removeLoad(){
+				$(".click_load .click_btn").hide();
+			}
+		//重点青少年快速搜索   end
+		function toggleButtonState(){
+		  	var selectedIds=$("#"+dfop.commonPopulationLowerCaseModuleName+"List").jqGrid("getGridParam", "selarrrow");
+		  	var selectedRowCount=selectedIds.length;
+		  	setDeleteButtonEnabled(selectedRowCount>0);
+		  	setOtherButtonEnabled(selectedRowCount==1);
+		  	toggleEmphasisButton();
+		}
+		function selectedRowIsnotEmphasis(domain){
+			return 	domain.isEmphasis==1;
+		}
+		function getSelectedIdLast(){
+			var selectedId;
+			var selectedIds = $("#"+dfop.commonPopulationLowerCaseModuleName+"List").jqGrid("getGridParam", "selarrrow");
+			for(var i=0;i<selectedIds.length;i++){
+				selectedId = selectedIds[i];
+			}
+			return selectedId;
+		}
+		function isEmphasisFormatter(){
+			var idCollection = new Array();
+			idCollection=$("#"+dfop.commonPopulationLowerCaseModuleName+"List").getDataIDs();
+			for(var i=0;i<idCollection.length;i++){
+				var ent =  $("#"+dfop.commonPopulationLowerCaseModuleName+"List").getRowData(idCollection[i]);
+				if(ent.isEmphasis==1){
+					$("#"+idCollection[i]+"").css('color','#778899');
+				}
+				if(ent.isRemind==1 && ent.isEmphasis!=1){
+					$("[id="+idCollection[i]+"]").css('background','#F5DFDF');
+				}
+			}
+		}
+		function afterLoad(){
+			isEmphasisFormatter();
+			disableButtons();
+			checkExport();
+			changeColor();
+		}
+
+		function changeColor(){
+			if(notExecute==null||notExecute.length==0){
+				return;
+			}
+			for(var i=0;i<notExecute.length;i++){
+				var rowData=$("#"+dfop.commonPopulationLowerCaseModuleName+"List").getRowData(notExecute[i]);
+					//"<a href='javascript:viewFloatingPopulationInfo("+rowData.id+")'><font color='red'>"+rowData.name+"</font></a>";
+					//"<a href='javascript:viewFloatingPopulationInfo("+rowData.id+")'><font color='red'>"+rowData.idCardNo+"</font></a>";
+				$("#"+notExecute[i]).css('background','red');
+				//$("#"+notExecute[i]+"a").css('color','red');
+				$("#"+dfop.commonPopulationLowerCaseModuleName+"List").setSelection(notExecute[i])
+			}
+			notExecute.splice(0,notExecute.length);
+		}
+
+		function getSelectedIds(){
+			var selectedIds = $("#"+dfop.commonPopulationLowerCaseModuleName+"List").jqGrid("getGridParam", "selarrrow");
+			return selectedIds;
+		}
+
+		function doubleClickTable(){
+			var selectedId = getSelectedIdLast();
+			if(selectedId==null){
+				 return;
+			}
+			viewDialog(selectedId);
+		}
+
+		$("#"+dfop.commonPopulationLowerCaseModuleName+"List").jqGridFunction({
+			mtype:'post',
+			datatype: "local",
+			colModel: gridOption.colModel,
+			colNames: gridOption.colNames,
+		  	multiselect:true,
+		  	onSelectAll:function(data){if(toggleButtonState){toggleButtonState(data);}},
+	    	loadComplete: function(data){if(afterLoad){afterLoad(data);}},
+	    	ondblClickRow: function(rowId){if(dfop.hasViewModuleName == 'true' && viewDialog){viewDialog(event,rowId);}},
+			onSelectRow: function(data){if(toggleButtonState){toggleButtonState(data);}toggleEmphasisButton();}
+		});
+		jQuery("#"+dfop.commonPopulationLowerCaseModuleName+"List").jqGrid('setFrozenColumns');
+		if(getCurrentOrgId()!="" && getCurrentOrgId()!=null){
+			//onOrgChanged(getCurrentOrgId(),isGrid());
+			checkExport();
+		}
+
+		$("#add").click(function(){
+			if (!isGrid()){
+				$.messageBox({level : 'warn',message:"请先选择网格级别组织机构进行新增！"});
+				return;
+			}
+			if (getCurrentOrgId()==null||getCurrentOrgId()==""){
+				$.messageBox({level : 'warn',message:"请先选择网格级别组织机构进行新增！"});
+				return;
+			}
+			$("#"+dfop.commonPopulationLowerCaseModuleName+"Dialog").createTabDialog({
+				width:875,
+				title:'新增'+dfop.commonPopulationModuleCName,
+				mode:'add',
+				postData:{
+					type:dfop.commonPopulationLowerCaseModuleName,
+					imageType:"population"
+				},
+				tabs:[
+					{title:'基本信息',url:'/baseinfo/'+dfop.commonPopulationLowerCaseModuleName+'Manage/dispatchOperate.action?mode=add&dailogName='+dfop.commonPopulationLowerCaseModuleName+'Dialog'}
+					,{title:'业务信息',url:'/baseinfo/'+dfop.commonPopulationLowerCaseModuleName+'Manage/dispatch'+dfop.commonPopulationModuleName+'Business.action?mode=add&dailogName='+dfop.commonPopulationLowerCaseModuleName+'Dialog'}
+					/* ,{title:'服务人员',url:'/supervisorManage/supervisorInfoManage/dispatchSupervisorInfo.action?dailogName='+dfop.commonPopulationLowerCaseModuleName+'Dialog&supervisorName='+encodeURIComponent('${supervisorPerson}')+'&population.populationType='+$("#_populationType_").val()}
+					,{title:'服务记录',url:'/baseinfo/serviceRecordManage/dispatch.action?population.attentionPopulationType='+$("#_populationType_").val()} */
+					/* <pop:JugePermissionTag ename="serviceTeamMemberManagement">
+						,{title:'服务人员',url:'/plugin/serviceTeam/router/routerManage/maintainServiceMemberForPopulation.action?dailogName='+dfop.commonPopulationLowerCaseModuleName+'Dialog&populationName='+encodeURIComponent('${supervisorPerson}')+'&module='+dfop.commonPopulationLowerCaseModuleName}
+					</pop:JugePermissionTag>
+					<pop:JugePermissionTag ename="serviceRecordManagement">
+						,{title:'服务记录--插件',url:'/plugin/serviceTeam/router/routerManage/maintainServiceRecordForPopulation.action?dailogName=${l'+dfop.commonPopulationLowerCaseModuleName+'log&populationName='+encodeURIComponent('${supervisorPerson}')+'&populationType='+$("#_populationType_").val()+"&module="+dfop.commonPopulationLowerCaseModuleName}
+					</pop:JugePermissionTag>  */
+					],
+				close : function(){
+					onOrgChanged(getCurrentOrgId(),isGrid());
+					//$("#"+dfop.commonPopulationLowerCaseModuleName+"List").trigger("reloadGrid");
+				}
+			});
+		});
+		$("#contentDiv").click( function () { 
+			removeLoad();
+		});
+		$("#isLock").change(function(){
+			$("#searchText").attr("value","");
+			onOrgChanged(getCurrentOrgId(),isGrid());
+		});
+		$(".click_load .click_btn").click(function(){
+			onOrgChanged(getCurrentOrgId(),isGrid());
+			$(this).hide(100);
+		});
+		$("#refreshSearchKey").click(function(){$("#searchText").attr("value","");});
+
+		$("#cancelEmphasise").click(function(){
+			if($(this).attr("disabled")=="disabled"){
+				return;
+			}
+			var selectedId =getSelectedIds();
+			var cancelEmphasise=new Array();
+			var temp=new Array();
+			if(selectedId == null || selectedId.length<=0){
+				$.messageBox({level : 'warn',message:"请选择一条或多条数据进行取消关注!"});
+				return;
+			}
+			for(var i = 0;i<selectedId.length;i++){
+		   		var row=$("#"+dfop.commonPopulationLowerCaseModuleName+"List").getRowData(selectedId[i]);
+		   		if(row.isEmphasis==0||row.isEmphasis=='0'){
+		   			cancelEmphasise.push(selectedId[i]);
+		   		}else{
+		   			temp.push(selectedId[i]);
+			   		}
+		   	}
+			selectedId=cancelEmphasise;
+			if(selectedId==null||selectedId.length==0){
+				$.messageBox({level : 'warn',message:"没有可取消关注的数据"});
+				return;
+			}
+			var encryptIds=deleteOperatorByEncrypt(dfop.commonPopulationLowerCaseModuleName,selectedId,"encryptId");
+			$("#"+dfop.commonPopulationLowerCaseModuleName+"Dialog").createDialog({
+				width:450,
+				height:210,
+				title:'取消关注提示',
+				modal:true,
+				url:PATH+'/baseinfo/commonPopulation/populationEmphasiseConditionDlg.jsp?populationIds='+encryptIds+'&isEmphasis=1&lowerCaseModuleName='+dfop.commonPopulationLowerCaseModuleName+'&type=business&temp='+temp+"&orgId="+getCurrentOrgId(),
+				buttons: {
+				   "保存" : function(event){
+					   $("#populationEmphasisForm").submit();
+				   },
+				   "关闭" : function(){
+				        $(this).dialog("close");
+				   }
+				}
+			});
+		});
+		$("#cancelDeath").click(function(){
+			if($(this).attr("disabled")=="disabled"){
+				return;
+			}
+			var allValue = getSelectedIds();
+			var cancelDeath=new Array();
+			var temp=new Array();
+			if(allValue.length ==0){
+				$.messageBox({level : 'warn',message:"请选择一条或多条数据进行取消死亡!"});
+				 return;
+			}
+			for(var i = 0;i<allValue.length;i++){
+		   		var row=$("#"+dfop.commonPopulationLowerCaseModuleName+"List").getRowData(allValue[i]);
+		   		if(row.death==true||row.death=='true'){
+		   			cancelDeath.push(allValue[i]);
+		   		}else{
+		   			temp.push(allValue[i]);
+			   		}
+		   	}
+		   	allValue=cancelDeath;
+		   	if(allValue==null||allValue.length==0){
+				$.messageBox({level : 'warn',message:"没有可取消死亡的数据"});
+				return;
+			}
+		   	var encryptIds=deleteOperatorByEncrypt(dfop.commonPopulationLowerCaseModuleName,allValue,"encryptId");
+			$.confirm({
+					title:"确认取消死亡",
+					message:"确定要取消死亡吗?",
+					okFunc: function(){
+						$.ajax({
+							url:PATH+"/baseinfo/"+dfop.commonPopulationLowerCaseModuleName+"Manage/updateDeathByEncryptIds.action?population.death=false&populationIds="+encryptIds,
+							success:function(datas){
+									for(var i = 0;i<datas.length;i++){
+										var responseData = datas[i];
+						 				$("#"+dfop.commonPopulationLowerCaseModuleName+"List").setRowData(responseData.id,responseData);
+						 				$("#"+dfop.commonPopulationLowerCaseModuleName+"List").setSelection(responseData.id);
+									}
+								if(null==temp||temp.length==0){
+									$.messageBox({message:"已经成功取消死亡该"+dfop.commonPopulationModuleCName+"信息!"});
+								}else{
+									$.messageBox({level:'warn',message:"除选中的红色数据外,已经成功取消死亡该"+dfop.commonPopulationModuleCName+"信息!"});
+								}
+								notExecute=temp;
+								$("#"+dfop.commonPopulationLowerCaseModuleName+"List").trigger("reloadGrid");
+								disableButtons();
+								checkExport();
+							}
+					});
+				}
+			});
+		});
+		$("#reEmphasise").click(function(){
+			if($(this).attr("disabled")=="disabled"){
+				return;
+			}
+			var selectedId = getSelectedIds();
+			var reEmphasise=new Array();
+			var tempIds=new Array();
+			var messages;
+			if(selectedId == null || selectedId.length<=0){
+				$.messageBox({level : 'warn',message:"请选择一条或多条数据进行重新关注!"});
+				return;
+			}
+			for(var i = 0;i<selectedId.length;i++){
+		   		var row=$("#"+dfop.commonPopulationLowerCaseModuleName+"List").getRowData(selectedId[i]);
+		   		if((row.isEmphasis==1||row.isEmphasis=='1')&&(row.death!=true&&row.death!='true')){
+			   		if(dfop.commonPopulationModuleCName=="重点青少年"){
+			   			var birthDay = Date.parse(row.birthday);
+			   			var current = new Date();
+			   			var now = current.getTime();
+			   			var temp = now-birthDay;
+			   			if(temp>1104624000000){
+			   				tempIds.push(selectedId[i]);
+			   			}else{
+				   			reEmphasise.push(selectedId[i]);
+				   			}
+			   		}else if(dfop.commonPopulationModuleCName=="社区矫正人员"){
+				   			$.ajax({
+				   				async: false ,
+				   				url:PATH+"/baseinfo/positiveInfoManage/findPositiveInfoByIdCardNoAndOrgId.action",
+				   				data:{
+				   					"population.idCardNo":row.idCardNo,
+				   					"population.organization.id":row["organization.id"]
+				   				},
+				   				success:function(population){
+				   					if(population!=null){
+				   						tempIds.push(row.id);
+				   						messages="已经转为刑释人员暂不允许重新关注!";
+				   					}else{
+				   						reEmphasise.push(row.id);
+				   					}
+				   				}
+				   			});
+			   		}else if(dfop.commonPopulationModuleCName=="刑释人员"){
+			   			$.ajax({
+			   				async: false ,
+			   				url:PATH+"/baseinfo/rectificativePersonManage/findRectificativePersonByIdCardNoAndOrgIdAndEmphasis.action",
+			   				data:{
+			   					"population.idCardNo":row.idCardNo,
+			   					"population.organization.id":row["organization.id"]
+			   				},
+			   				success:function(population){
+			   					if(population!=null){
+			   						tempIds.push(row.id);
+			   						messages="已经在社区矫正人员中存在暂不允许重新关注!";
+			   					}else{
+			   						reEmphasise.push(row.id);
+			   					}
+			   				}
+			   			});
+			   		}else{
+			   			reEmphasise.push(selectedId[i]);
+			   		}
+		   		}else{
+		   			tempIds.push(selectedId[i]);
+			   	}
+			}
+			selectedId=reEmphasise;
+			if(selectedId==null||selectedId.length==0){
+				if(messages=="" || messages == null){
+					$.messageBox({level : 'warn',message:"没有可重新关注的数据"});
+				}else{
+					$.messageBox({level : 'warn',message:messages});
+				}
+				return;
+			}
+		   	$.confirm({
+				title:"确认重新关注",
+				message:"确定要重新关注吗?",
+				okFunc: function(){
+					if(dfop.emphasis_dependent_population_state_true=='true'){
+						reEmphasise_restraint(tempIds,dfop.commonPopulationLowerCaseModuleName+"List", selectedId);
+					}
+					if(dfop.emphasis_dependent_population_state_false=='true'){
+						doReEmphasise(tempIds,selectedId);
+					}
+				}
+			});
+		});
+
+		$("#delete").click(function(event){
+			var allValue = getSelectedIds();
+			if(allValue.length ==0){
+				$.messageBox({level : 'warn',message:"请选择一条或多条记录，再进行删除！"});
+				return;
+			}
+			deleteOperator(event,allValue);
+		});
+
+		$("#view").click(function(){
+			doubleClickTable();
+		});
+		$("#reload").click(function(){
+			$("#searchByCondition").attr("value","请输入姓名或身份证号码");
+			$("#isSearch option[value='']").attr("selected",true);
+			onOrgChanged(getCurrentOrgId(),isGrid());
+		});
+
+		$("#refreshSearchKey").click(function(){$("#searchByCondition").attr("value","请输入姓名或身份证号码");});
+
+		$("#search").click(function(event){
+			// add by zhanL at 2013/08/02 18:19
+			var conditions = $("#searchByCondition").val();
+			if(conditions == '请输入姓名或身份证号码') conditions = '';
+			$("#"+dfop.commonPopulationLowerCaseModuleName+"Dialog").createDialog({
+				width:650,
+				height:365,
+				title:dfop.commonPopulationModuleCName+'查询-请输入查询条件',
+				url:PATH+'/baseinfo/'+dfop.commonPopulationLowerCaseModuleName+'Manage/dispatchOperate.action?mode=search&organizationId='+getCurrentOrgId()+'&conditions='+conditions,
+				buttons: {
+			   		"查询" : function(event){
+						eval("search"+dfop.commonPopulationModuleName+"()");
+			        	$(this).dialog("close");
+		   			},
+			   		"关闭" : function(){
+			        	$(this).dialog("close");
+			   		}
+				}
+			});
+		});
+
+		$("#import").click(function(event){
+			$("#noticeDialog").createDialog({
+				width: 400,
+				height: 230,
+				title:"数据导入",
+				url:PATH+"/common/import.jsp?isNew=1&dataType="+dfop.commonPopulationLowerCaseModuleName+"&dialog=noticeDialog&startRow="+dfop.newStartRow+"&templates=" + getImportTemplateKey(dfop.upperCaseModuleName)+"&listName="+dfop.commonPopulationLowerCaseModuleName+"List",
+				buttons:{
+					"导入" : function(event){
+						$("#mForm").submit();
+					},
+				   	"关闭" : function(){
+				    	$(this).dialog("close");
+				   	}
+				},
+				shouldEmptyHtml:false
+			});
+		});
+
+		
+		$("#fastSearchButton").click(function(){
+			search(getCurrentOrgId());
+		});
+
+		$("#superviseMember").click(function(event){
+			var selectedIds = $("#"+dfop.commonPopulationLowerCaseModuleName+"List").jqGrid("getGridParam", "selarrrow");
+			if(selectedIds.length>1){
+				$.messageBox({level : 'warn',message:"同时只能操作一条记录！"});
+				 return;
+			}
+			if(selectedIds==null ||selectedIds =="" || selectedIds.length < 1){
+				$.messageBox({level : 'warn',message:"请先选择一条记录，再进行操作！"});
+				 return;
+			}
+			var selectedId = selectedIds;
+			var rowData=$("#"+dfop.commonPopulationLowerCaseModuleName+"List").getRowData(selectedId);
+			if(rowData.isEmphasis==1||rowData.isEmphasis=='1'){
+				$.messageBox({level : 'warn',message:"该"+dfop.commonPopulationModuleCName+"信息已经取消关注,不能管理服务成员"});
+				 return;
+			}
+			$("#"+dfop.commonPopulationLowerCaseModuleName+"Dialog").createDialog({
+				width:860,
+				height:600,
+				title:dfop.commonPopulationModuleCName+'服务成员',
+				url:'/plugin/serviceTeam/router/routerManage/maintainServiceMemberForPopulationByEncrypt.action?dailogName='+dfop.commonPopulationLowerCaseModuleName+'Dialog&module='+dfop.commonPopulationLowerCaseModuleName+'&id='+rowData.encryptId,
+				buttons: {
+			   		"关闭" : function(){
+			        	$(this).dialog("close");
+			   		}
+				},
+				close: function(event, ui) {$("#"+dfop.commonPopulationLowerCaseModuleName+"List").trigger("reloadGrid");}
+			});
+		});
+		
+		$("#superviseMembers").click(function(event){
+			var selectedIds = $("#"+dfop.commonPopulationLowerCaseModuleName+"List").jqGrid("getGridParam", "selarrrow");
+			if(selectedIds==null ||selectedIds =="" || selectedIds.length < 1){
+				$.messageBox({level : 'warn',message:"请先选择一条记录，再进行操作！"});
+				 return;
+			}
+			if(selectedIds.length > 10){
+				$.messageBox({level : 'warn',message:"一次最多选择十条记录！"});
+				 return;
+			}
+			var selectedId = selectedIds;
+			var ids=new Array();
+			ids = (selectedIds+"").split(",");
+			for(var i=0;i<ids.length;i++){
+				var rowData=$("#"+dfop.commonPopulationLowerCaseModuleName+"List").getRowData(ids[i]);
+				if(rowData.isEmphasis==1||rowData.isEmphasis=='1'){
+					$.messageBox({level : 'warn',message:"所选择"+dfop.commonPopulationModuleCName+"信息有数据已经取消关注或死亡,不能批量管理服务成员"});
+					 return;
+				}
+			}
+			
+			$("#"+dfop.commonPopulationLowerCaseModuleName+"Dialog").createDialog({
+				width:860,
+				height:600,
+				title:dfop.commonPopulationModuleCName+'服务成员',
+				url:'/plugin/serviceTeam/router/routerManage/maintainServiceMemberForPopulation.action?mode=add&dailogName=_serviceTeamMembersDialog&serviceTeamMemberVo.org.id='+getCurrentOrgId(),
+				buttons: {
+					"保存" : function(){
+			        	//$(this).dialog("close");
+						saveMembers(dfop.commonPopulationLowerCaseModuleName+"Dialog");
+			   		},
+			   		"关闭" : function(){
+			        	$(this).dialog("close");
+			   		}
+				},
+				close: function(event, ui) {$("#"+dfop.commonPopulationLowerCaseModuleName+"List").trigger("reloadGrid");}
+			});
+		});
+			
+		$("#transfer").click(function(e){
+			//获取需要转移的id
+			var allValue = getSelectedIds();
+			if(allValue.length ==0){
+				$.messageBox({level:'warn',message:"请选择一条或多条记录，再进行转移！"});
+				 return;
+			}
+			for(var i=0;i<allValue.length;i++){
+				var rowData_Popu=$("#"+dfop.commonPopulationLowerCaseModuleName+"List").getRowData(allValue[i]);
+				if(rowData_Popu.isEmphasis==1){
+					$.messageBox({level:'warn',message:"所选记录中存在已取消关注（或已注销、死亡）记录，无法转移！"});
+					 return;
+				}
+			}
+		    var id=	allValue[0];
+			//get row data 
+			var ent =  $("#"+dfop.commonPopulationLowerCaseModuleName+"List").getRowData(id);
+			//get current orgid
+		    var orgid=	ent["organization.id"];
+			if(orgid==""||orgid==null){
+				$.messageBox({level:'warn',message:"没有获取到当前的组织机构id"});
+				 return;
+			}
+			$.confirm({
+				title:"转移"+dfop.commonPopulationModuleCName,
+				message:"转移"+dfop.commonPopulationModuleCName+"时,目标网格存在相同数据,会覆盖目标网格内的数据。",
+				okFunc: function() {
+					moveOperator(e,allValue,orgid);
+				}
+			});
+		});
+
+		function moveOperator(event,allValue,orgid){
+			var encryptIds=deleteOperatorByEncrypt(dfop.commonPopulationLowerCaseModuleName,allValue,"encryptId");
+			var allOrgId = getOrgIdsByIds(dfop.commonPopulationLowerCaseModuleName,allValue,"organization.id");
+			$("#moveDataDialog").createDialog({
+				width: 500,
+				height: 300,
+				title:"数据转移",
+				url:PATH+"/transferManage/transferDispatchByEncryptId.action?orgId="+orgid+"&Ids="+encryptIds+"&type="+dfop.commonPopulationLowerCaseModuleName+"&orgIds="+allOrgId,
+				//url:PATH+"/baseinfo/"+dfop.commonPopulationLowerCaseModuleName+"Manage/shiftDispatch.action?orgId="+orgid+"&Ids="+allValue+"&currentClassName="+dfop.commonPopulationLowerCaseModuleName,
+				buttons: {
+					"保存" : function(event){
+				    $("#maintainShiftForm").submit();
+				   },
+				   "关闭" : function(){
+				        $(this).dialog("close");
+				   }
+				}
+			});
+			var evt = event || window.event;
+			if (window.event) { 
+			evt.cancelBubble=true; 
+			} else { 
+			evt.stopPropagation(); 
+			} 
+		}
+			
+		$("#superviseRecord").click(function(event){
+			var selectedIds = $("#"+dfop.commonPopulationLowerCaseModuleName+"List").jqGrid("getGridParam", "selarrrow");
+			if(selectedIds.length>1){
+				$.messageBox({level : 'warn',message:"同时只能操作一条记录！"});
+				 return;
+			}
+			if(selectedIds==null ||selectedIds =="" || selectedIds.length < 1){
+				$.messageBox({level : 'warn',message:"请先选择一条记录，再进行操作！"});
+				 return;
+			}
+			var selectedId = selectedIds;
+			var rowData=$("#"+dfop.commonPopulationLowerCaseModuleName+"List").getRowData(selectedId);
+			var objectNames=$(rowData.name).text();
+			if(rowData.isEmphasis==1||rowData.isEmphasis=='1'){
+				$.messageBox({level : 'warn',message:"该"+dfop.commonPopulationModuleCName+"信息已经取消关注,不能管理服务记录"});
+				 return;
+			}
+			$("#"+dfop.commonPopulationLowerCaseModuleName+"Dialog").createDialog({
+				width:860,
+				height:600,
+				title:dfop.commonPopulationModuleCName+'服务记录',
+				url:'/plugin/serviceTeam/router/routerManage/maintainServiceRecordForPopulationByEncryptId.action?dailogName='+dfop.commonPopulationLowerCaseModuleName+'Dialog&populationType='+$("#_populationType_").val()+'&name='+encodeURIComponent(objectNames)+'&id='+rowData.encryptId+'&showRecordType=2',
+				buttons: {
+			   		"关闭" : function(){
+			        	$(this).dialog("close");
+			   		}
+				},
+				close: function(event, ui) {$("#"+dfop.commonPopulationLowerCaseModuleName+"List").trigger("reloadGrid");}
+			});
+		});
+		
+		
+		$("#interview").click(function(event){
+			var selectedIds = $("#"+dfop.commonPopulationLowerCaseModuleName+"List").jqGrid("getGridParam", "selarrrow");
+			if(selectedIds.length>1){
+				$.messageBox({level : 'warn',message:"同时只能操作一条记录！"});
+				 return;
+			}
+			if(selectedIds==null ||selectedIds =="" || selectedIds.length < 1){
+				$.messageBox({level : 'warn',message:"请先选择一条记录，再进行操作！"});
+				 return;
+			}
+			var selectedId = selectedIds;
+			var rowData=$("#"+dfop.commonPopulationLowerCaseModuleName+"List").getRowData(selectedId);
+			var objectNames=$(rowData.name).text();
+			if(rowData.isEmphasis==1||rowData.isEmphasis=='1'){
+				$.messageBox({level : 'warn',message:"该"+dfop.commonPopulationModuleCName+"信息已经取消关注,不能管理服务记录"});
+				 return;
+			}
+			$("#"+dfop.commonPopulationLowerCaseModuleName+"Dialog").createDialog({
+				width:860,
+				height:600,
+				title:dfop.commonPopulationModuleCName+'走访记录',
+				url:'/plugin/serviceTeam/router/routerManage/maintainInterviewRecordForPopulation.action?dailogName='+dfop.commonPopulationLowerCaseModuleName+'Dialog&populationType='+$("#_populationType_").val()+'&name='+encodeURIComponent(objectNames)+'&id='+selectedId+'&showRecordType=2',
+				buttons: {
+			   		"关闭" : function(){
+			        	$(this).dialog("close");
+			   		}
+				},
+				close: function(event, ui) {$("#"+dfop.commonPopulationLowerCaseModuleName+"List").trigger("reloadGrid");}
+			});
+		});
+
+		function doReEmphasise(tempIds,selectedId){
+			var encryptIds=deleteOperatorByEncrypt(dfop.commonPopulationLowerCaseModuleName,selectedId,"encryptId");
+			$.dialogLoading("open");
+			$.ajax({
+				url:PATH+"/baseinfo/"+dfop.commonPopulationLowerCaseModuleName+"Manage/updateEmphasiseByEncryptId.action?population.logoutDetail.logout=0&populationIds="+encryptIds+"&orgId="+getCurrentOrgId(),
+				success:function(datas){
+					$.dialogLoading("close");
+					if(datas.length>0 && datas[0]>0){
+						for(var i = 0;i<datas.length;i++){
+							var responseData = datas[i];
+							if(($("#isLock").val()=='1')){
+				 				$("#"+dfop.commonPopulationLowerCaseModuleName+"List").delRowData(responseData.id);
+			 				}else{
+				 				$("#"+dfop.commonPopulationLowerCaseModuleName+"List").setRowData(responseData.id,responseData);
+				 				$("#"+responseData.id+"").css('color','#000000');
+				 				$("#"+dfop.commonPopulationLowerCaseModuleName+"List").setSelection(responseData.id);
+					 		}
+						}
+						if(null==tempIds||tempIds.length==0){
+							$.messageBox({message:"已经成功重新关注该"+dfop.commonPopulationModuleCName+"信息!"});
+						}else{
+							$.messageBox({level:'warn',message:"除选中的红色数据外,已经成功重新关注该"+dfop.commonPopulationModuleCName+"信息!"});
+						}
+						notExecute=tempIds;
+						$("#"+dfop.commonPopulationLowerCaseModuleName+"List").trigger("reloadGrid");
+						toggleButtonState();
+						checkExport();
+					}else{
+						$.messageBox({level:'warn',message:"该"+dfop.commonPopulationModuleCName+"业务人员对应的实口信息已被删除，无法重新关注!"});
+					}
+					
+				}
+		});
+	}
+
+	function reEmphasise_restraint(tempIds,dialogListId, selectedId) {
+	var params="";
+	for(var i=0;i<selectedId.length;i++){
+		var data=$("#"+dialogListId).getRowData(selectedId[i])
+		if(i==0)
+			params += "idCardNos="+data.idCardNo+"&orgId="+data["organization.id"];
+		else params += "&idCardNos="+data.idCardNo;
+
+	}
+	$.dialogLoading("open");
+	$.ajax({
+		url:PATH+'/commonPopulation/commonPopulationManage/getActualPopulationByOrgIdAndIdCardNoForList.action?'+params,
+		success:function(datas){
+			$.dialogLoading("close");
+			if(datas.length !=0){
+				var idcards="";
+				for(var i=0;i<datas.length;i++){
+					if(i == datas.length-1){
+						idcards +=datas[i].idCardNo;
+					}else{
+						idcards +=datas[i].idCardNo+",";
+					}
+				}
+				$.confirm({
+					title:"确认重新关注",
+					message:"身份证号码为"+idcards+"对应的实口已经注销，重新关注后实口一并取消注销,是否继续操作？",
+					okFunc: function(){
+						doReEmphasise(tempIds,selectedId);
+					}
+				});
+			}else{
+				doReEmphasise(tempIds,selectedId);
+			}
+		}
+	});
+	}
+		if(typeof(toPositiveInfo) != 'undefined'){
+			$("#toPositiveInfo").click(function(){
+				var selectedId = $("#"+dfop.commonPopulationLowerCaseModuleName+"List").jqGrid("getGridParam", "selarrrow");
+				if(selectedId ==0||selectedId==null){
+					$.messageBox({level : 'warn',message:"请选择一条记录，再进行操作！"});
+					return;
+				}
+				if(selectedId.length!=1){
+					$.messageBox({level : 'warn',message:"只能选择一条数据进行操作！"});
+					 return;
+				}
+				var rowData = $("#"+dfop.commonPopulationLowerCaseModuleName+"List").getRowData(selectedId[0]);
+				if(rowData.isEmphasis==1){
+					$.messageBox({level : 'warn',message:"不能操作取消关注的数据，请先关注！"});
+					 return;
+				}
+				var idCardNo=rowData.idCardNo;
+				var str="确定要将"+dfop.commonPopulationModuleCName+"转换为刑释人员吗?";
+				$.confirm({
+					title:"将"+dfop.commonPopulationModuleCName+"转换为刑释人员",
+					message:str,
+					okFunc: function() {
+						$("#toPositiveInfoDialog").createTabDialog({
+								title:dfop.commonPopulationModuleCName+"转换为刑释人员",
+								width: 840,
+								height: dialogHeight,
+								postData:{
+									type:dfop.commonPopulationLowerCaseModuleName,
+									mode:'add',
+									imageType:'population'
+								},
+								tabs:[
+									{title:'基本信息',url:PATH+'/baseinfo/positiveInfoManage/toPositiveInfoByEncrypt.action?dailogName=toPositiveInfoDialog&population.id='+rowData.encryptId},
+									{title:'业务信息',url:PATH+'/baseinfo/positiveInfoManage/dispatchPositiveInfoBusiness.action?dailogName=toPositiveInfoDialog'}
+								],
+								close : function(){
+									$("#"+dfop.commonPopulationLowerCaseModuleName+"List").trigger("reloadGrid");
+								}
+					})}
+				});
+			});
+		}
+		//重点青少年快速检索中的请选择改成全部 start
+		if(dfop.isIdleYouth == 'true'){
+			var count=$("#isSearch").get(0).options.length;
+			for(var i=0;i<count;i++){
+				if($("#isSearch").get(0).options[i].text == "请选择"){
+				    $("#isSearch").get(0).options[i].text="全部";
+					break;  
+				}  
+			}
+		}
+		//重点青少年快速检索中的请选择改成全部 end
+	})
+
+	function getImportTemplateKey(key) {
+		var attachKey = dfop.business_dependent_actual_population;
+		return key+attachKey;
+	}
+}

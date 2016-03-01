@@ -1,0 +1,47 @@
+package com.tianque.plugin.weChat.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.base.AbstractBaseService;
+import com.tianque.plugin.weChat.dao.StatisticAnalysisDao;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+import com.tianque.plugin.weChat.service.StatisticAnalysisService;
+import com.tianque.plugin.weChat.service.TencentUserService;
+import com.tianque.plugin.weChat.util.TimeUtil;
+import com.tianque.plugin.weChat.vo.StatisticAnalysisDetailVo;
+import com.tianque.plugin.weChat.vo.StatisticAnalysisVo;
+
+/**统计分析服务类*/
+@Service("statisticAnalysisService")
+@Transactional
+public class StatisticAnalysisServiceImpl extends AbstractBaseService implements
+		StatisticAnalysisService {
+	@Autowired
+	private StatisticAnalysisDao statisticAnalysisDao;
+	@Autowired
+	private TencentUserService tencentUserService;
+
+	@Override
+	public List<StatisticAnalysisVo> findStatisticAnalysis(StatisticAnalysisVo statisticAnalysisVo) {
+		statisticAnalysisVo.setEndDate(TimeUtil.getDateBefore(statisticAnalysisVo.getEndDate(), 1));
+		List<StatisticAnalysisVo> mainList = new ArrayList<StatisticAnalysisVo>();
+		List<TencentUser> userList = tencentUserService
+				.getTencentUserListByOrgId(statisticAnalysisVo.getOrg().getId());
+		for (TencentUser tencentUser : userList) {
+			StatisticAnalysisVo vo = new StatisticAnalysisVo();
+			vo.setWeChatUserId(tencentUser.getWeChatUserId());
+			vo.setWeChatUserName(tencentUser.getName());
+			statisticAnalysisVo.setWeChatUserId(tencentUser.getWeChatUserId());
+			List<StatisticAnalysisDetailVo> detailList = statisticAnalysisDao
+					.findStatisticAnalysisDetails(statisticAnalysisVo);
+			vo.setStatisticList(detailList);
+			mainList.add(vo);
+		}
+		return mainList;
+	}
+}

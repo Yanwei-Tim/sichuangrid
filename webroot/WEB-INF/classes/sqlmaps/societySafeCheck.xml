@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="societySafeCheck">
+	<typeAlias alias="SocietySafeCheck" type="com.tianque.domain.SocietySafeCheck" />
+	<typeAlias alias="IssueSubmitInfoVo" type="com.tianque.domain.vo.IssueSubmitInfoVo" />
+	<resultMap id="issSubmitInfoResult" class="IssueSubmitInfoVo">
+		<result property="id" column="id" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="orgName" column="orgName" />
+		<result property="january" column="january" />
+		<result property="february" column="february" />
+		<result property="march" column="march" />
+		<result property="april" column="april" />
+		<result property="may" column="may" />
+		<result property="june" column="june" />
+		<result property="july" column="july" />
+		<result property="august" column="august" />
+		<result property="september" column="september" />
+		<result property="october" column="october" />
+		<result property="november" column="november" />
+		<result property="december" column="december" />
+	</resultMap>
+
+	<resultMap id="societySafeCheckResult" class="SocietySafeCheck">
+		<result property="id" column="id" />
+		<result property="dailyLogId" column="dailyLogId" />
+		<result property="checkEngineSum" column="checkEngineSum" />
+		<result property="publicitySum" column="publicitySum" />
+		<result property="hitFerretSum" column="hitFerretSum" />
+		<result property="hitArrestSum" column="hitArrestSum" />
+		<result property="hitDestroySum" column="hitDestroySum" />
+		<result property="checkEngineCadre" column="checkEngineCadre" />
+		<result property="checkEnginePeople" column="checkEnginePeople" />
+		<result property="checkEngineWork" column="checkEngineWork" />
+		<result property="checkOther" column="checkOther" />
+		<result property="publicityIssueReport" column="publicityIssueReport" />
+		<result property="publicityMeeting" column="publicityMeeting" />
+		<result property="publicityPeopleAccuse" column="publicityPeopleAccuse" />
+		<result property="publicityFerretPenal" column="publicityFerretPenal" />
+		<result property="publicityArrestOffender" column="publicityArrestOffender" />
+		<result property="findCounty" column="findCounty" />
+		<result property="findTown" column="findTown" />
+		<result property="findVillage" column="findVillage" />
+		<result property="findOther" column="findOther" />
+		<result property="findBlackArea" column="findBlackArea" />
+		<result property="findDangerCrime" column="findDangerCrime" />
+		<result property="findRobAndSteal" column="findRobAndSteal" />
+		<result property="findYellowBetBane" column="findYellowBetBane" />
+		<result property="findHeresy" column="findHeresy" />
+		<result property="finishCounty" column="finishCounty" />
+		<result property="finishTown" column="finishTown" />
+		<result property="finishVillage" column="finishVillage" />
+		<result property="finishOther" column="finishOther" />
+		<result property="justCounty" column="justCounty" />
+		<result property="justTown" column="justTown" />
+		<result property="justVillage" column="justVillage" />
+		<result property="justOher" column="justOher" />
+		<result property="hitFerretDangerCrime" column="hitFerretDangerCrime" />
+		<result property="hitFerretRobAndSteal" column="hitFerretRobAndSteal" />
+		<result property="hitFerretYellowBetBane" column="hitFerretYellowBetBane" />
+		<result property="hitArrestFlowCrime" column="hitArrestFlowCrime" />
+		<result property="hitArrestExternalPeople" column="hitArrestExternalPeople" />
+		<result property="hitArrestNoWork" column="hitArrestNoWork" />
+		<result property="hitArrestLiberate" column="hitArrestLiberate" />
+		<result property="hitArrestYouth" column="hitArrestYouth" />
+		<result property="hitDestroyOrganization" column="hitDestroyOrganization" />
+		<result property="hitDestroyForce" column="hitDestroyForce" />
+		<result property="cautionProvince" column="cautionProvince" />
+		<result property="cautionCity" column="cautionCity" />
+		<result property="cautionCounty" column="cautionCounty" />
+		<result property="urgeProvince" column="urgeProvince" />
+		<result property="urgeCity" column="urgeCity" />
+		<result property="urgeCounty" column="urgeCounty" />
+		<result property="createTabUser" column="createTabUser" />
+		<result property="checkUser" column="checkUser" />
+		<result property="reportDate" column="reportDate" />
+		<result property="reportState" column="reportState" />
+		<result property="orgCode" column="orgCode" />
+		<result property="reportYear" column="reportYear" />
+		<result property="reportMonth" column="reportMonth" />
+		<result property="reportName" column="reportName" />
+		<result property="reportType" column="reportType" />
+		<result property="quarter" column="quarter" />
+		<result property="signCode" column="signCode" />
+		<result property="directoryNameSign" column="directoryNameSign" />
+		<result property="orgId" column="orgId" />
+
+	</resultMap>
+
+	<resultMap class="SocietySafeCheck" id="baseSocietySafeCheckResult">
+		<result property="id" column="id" />
+	</resultMap>
+
+	<insert id="addSocietySafeCheck" parameterClass="SocietySafeCheck">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_societySafeCheck.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		SocietySafeCheck(id,dailyLogId,checkEngineSum,publicitySum,hitFerretSum,hitArrestSum,hitDestroySum,checkEngineCadre,checkEnginePeople,checkEngineWork,checkOther,publicityIssueReport,publicityMeeting,publicityPeopleAccuse,publicityFerretPenal,publicityArrestOffender,findCounty,findTown,findVillage,findOther,findBlackArea,findDangerCrime,findRobAndSteal,findYellowBetBane,findHeresy,finishCounty,finishTown,finishVillage,finishOther,justCounty,justTown,justVillage,justOher,hitFerretDangerCrime,hitFerretRobAndSteal,hitFerretYellowBetBane,hitArrestFlowCrime,hitArrestExternalPeople,hitArrestNoWork,hitArrestLiberate,hitArrestYouth,hitDestroyOrganization,hitDestroyForce,cautionProvince,cautionCity,cautionCounty,urgeProvince,urgeCity,urgeCounty,createTabUser,checkUser,reportDate,reportState,orgCode,reportYear,reportMonth,reportName,reportType,quarter,signCode,directoryNameSign,orgId)
+		VALUES(#id#,#dailyLogId#,#checkEngineSum#,#publicitySum#,#hitFerretSum#,#hitArrestSum#,#hitDestroySum#,#checkEngineCadre#,#checkEnginePeople#,#checkEngineWork#,#checkOther#,#publicityIssueReport#,#publicityMeeting#,#publicityPeopleAccuse#,#publicityFerretPenal#,#publicityArrestOffender#,#findCounty#,#findTown#,#findVillage#,#findOther#,#findBlackArea#,#findDangerCrime#,#findRobAndSteal#,#findYellowBetBane#,#findHeresy#,#finishCounty#,#finishTown#,#finishVillage#,#finishOther#,#justCounty#,#justTown#,#justVillage#,#justOher#,#hitFerretDangerCrime#,#hitFerretRobAndSteal#,#hitFerretYellowBetBane#,#hitArrestFlowCrime#,#hitArrestExternalPeople#,#hitArrestNoWork#,#hitArrestLiberate#,#hitArrestYouth#,#hitDestroyOrganization#,#hitDestroyForce#,#cautionProvince#,#cautionCity#,#cautionCounty#,#urgeProvince#,#urgeCity#,#urgeCounty#,#createTabUser#,#checkUser#,#reportDate#,#reportState#,#orgCode#,#reportYear#,#reportMonth#,#reportName#,#reportType#,#quarter#,#signCode#,#directoryNameSign#,#orgId#)
+	</insert>
+	<update id="updateSocietySafeCheck" parameterClass="SocietySafeCheck">
+		update SocietySafeCheck set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="checkEngineSum">
+				checkEngineSum=#checkEngineSum#
+			</isNotNull>
+			<isNotNull prepend="," property="publicitySum">
+				publicitySum=#publicitySum#
+			</isNotNull>
+			<isNotNull prepend="," property="hitFerretSum">
+				hitFerretSum=#hitFerretSum#
+			</isNotNull>
+			<isNotNull prepend="," property="hitArrestSum">
+				hitArrestSum=#hitArrestSum#
+			</isNotNull>
+			<isNotNull prepend="," property="hitDestroySum">
+				hitDestroySum=#hitDestroySum#
+			</isNotNull>
+			<isNotNull prepend="," property="checkEngineCadre">
+				checkEngineCadre=#checkEngineCadre#
+			</isNotNull>
+			<isNotNull prepend="," property="checkEnginePeople">
+				checkEnginePeople=#checkEnginePeople#
+			</isNotNull>
+			<isNotNull prepend="," property="checkEngineWork">
+				checkEngineWork=#checkEngineWork#
+			</isNotNull>
+			<isNotNull prepend="," property="checkOther">
+				checkOther=#checkOther#
+			</isNotNull>
+			<isNotNull prepend="," property="publicityIssueReport">
+				publicityIssueReport=#publicityIssueReport#
+			</isNotNull>
+			<isNotNull prepend="," property="publicityMeeting">
+				publicityMeeting=#publicityMeeting#
+			</isNotNull>
+			<isNotNull prepend="," property="publicityPeopleAccuse">
+				publicityPeopleAccuse=#publicityPeopleAccuse#
+			</isNotNull>
+			<isNotNull prepend="," property="publicityFerretPenal">
+				publicityFerretPenal=#publicityFerretPenal#
+			</isNotNull>
+			<isNotNull prepend="," property="publicityArrestOffender">
+				publicityArrestOffender=#publicityArrestOffender#
+			</isNotNull>
+			<isNotNull prepend="," property="findCounty">
+				findCounty=#findCounty#
+			</isNotNull>
+			<isNotNull prepend="," property="findTown">
+				findTown=#findTown#
+			</isNotNull>
+			<isNotNull prepend="," property="findVillage">
+				findVillage=#findVillage#
+			</isNotNull>
+			<isNotNull prepend="," property="findOther">
+				findOther=#findOther#
+			</isNotNull>
+			<isNotNull prepend="," property="findBlackArea">
+				findBlackArea=#findBlackArea#
+			</isNotNull>
+			<isNotNull prepend="," property="findDangerCrime">
+				findDangerCrime=#findDangerCrime#
+			</isNotNull>
+			<isNotNull prepend="," property="findRobAndSteal">
+				findRobAndSteal=#findRobAndSteal#
+			</isNotNull>
+			<isNotNull prepend="," property="findYellowBetBane">
+				findYellowBetBane=#findYellowBetBane#
+			</isNotNull>
+			<isNotNull prepend="," property="findHeresy">
+				findHeresy=#findHeresy#
+			</isNotNull>
+			<isNotNull prepend="," property="finishCounty">
+				finishCounty=#finishCounty#
+			</isNotNull>
+			<isNotNull prepend="," property="finishTown">
+				finishTown=#finishTown#
+			</isNotNull>
+			<isNotNull prepend="," property="finishVillage">
+				finishVillage=#finishVillage#
+			</isNotNull>
+			<isNotNull prepend="," property="finishOther">
+				finishOther=#finishOther#
+			</isNotNull>
+			<isNotNull prepend="," property="justCounty">
+				justCounty=#justCounty#
+			</isNotNull>
+			<isNotNull prepend="," property="justTown">
+				justTown=#justTown#
+			</isNotNull>
+			<isNotNull prepend="," property="justVillage">
+				justVillage=#justVillage#
+			</isNotNull>
+			<isNotNull prepend="," property="justOher">
+				justOher=#justOher#
+			</isNotNull>
+			<isNotNull prepend="," property="hitFerretDangerCrime">
+				hitFerretDangerCrime=#hitFerretDangerCrime#
+			</isNotNull>
+			<isNotNull prepend="," property="hitFerretRobAndSteal">
+				hitFerretRobAndSteal=#hitFerretRobAndSteal#
+			</isNotNull>
+			<isNotNull prepend="," property="hitFerretYellowBetBane">
+				hitFerretYellowBetBane=#hitFerretYellowBetBane#
+			</isNotNull>
+			<isNotNull prepend="," property="hitArrestFlowCrime">
+				hitArrestFlowCrime=#hitArrestFlowCrime#
+			</isNotNull>
+			<isNotNull prepend="," property="hitArrestExternalPeople">
+				hitArrestExternalPeople=#hitArrestExternalPeople#
+			</isNotNull>
+			<isNotNull prepend="," property="hitArrestNoWork">
+				hitArrestNoWork=#hitArrestNoWork#
+			</isNotNull>
+			<isNotNull prepend="," property="hitArrestLiberate">
+				hitArrestLiberate=#hitArrestLiberate#
+			</isNotNull>
+			<isNotNull prepend="," property="hitArrestYouth">
+				hitArrestYouth=#hitArrestYouth#
+			</isNotNull>
+			<isNotNull prepend="," property="hitDestroyOrganization">
+				hitDestroyOrganization=#hitDestroyOrganization#
+			</isNotNull>
+			<isNotNull prepend="," property="hitDestroyForce">
+				hitDestroyForce=#hitDestroyForce#
+			</isNotNull>
+			<isNotNull prepend="," property="cautionProvince">
+				cautionProvince=#cautionProvince#
+			</isNotNull>
+			<isNotNull prepend="," property="cautionCity">
+				cautionCity=#cautionCity#
+			</isNotNull>
+			<isNotNull prepend="," property="cautionCounty">
+				cautionCounty=#cautionCounty#
+			</isNotNull>
+			<isNotNull prepend="," property="urgeProvince">
+				urgeProvince=#urgeProvince#
+			</isNotNull>
+			<isNotNull prepend="," property="urgeCity">
+				urgeCity=#urgeCity#
+			</isNotNull>
+			<isNotNull prepend="," property="urgeCounty">
+				urgeCounty=#urgeCounty#
+			</isNotNull>
+			<isNotNull prepend="," property="createTabUser">
+				createTabUser=#createTabUser#
+			</isNotNull>
+			<isPropertyAvailable property="checkUser"
+				prepend=",">
+				checkUser = #checkUser#
+			</isPropertyAvailable>
+			<isNotNull prepend="," property="reportState">
+				reportState=#reportState#
+			</isNotNull>
+			<isPropertyAvailable property="reportDate"
+				prepend=","> reportDate = #reportDate#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="reportType"
+				prepend=",">
+				reportType = #reportType#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="quarter" prepend=",">
+				quarter = #quarter#
+			</isPropertyAvailable>
+			<isNotNull prepend="," property="orgId">
+				orgId=#orgId#
+			</isNotNull>
+		</dynamic>
+		where dailyLogId=#dailyLogId#
+	</update>
+
+	<update id="backReport" parameterClass="java.lang.Long">
+		<![CDATA[update dailylogs d set d.updateDate=null where id=#value#]]>
+	</update>
+
+	<delete id="deleteSocietySafeCheckById" parameterClass="java.lang.Long">
+		delete
+		from
+		SocietySafeCheck
+		where dailyLogId=#value#
+	</delete>
+	<select id="getSocietySafeCheckById" parameterClass="java.lang.Long"
+		resultMap="societySafeCheckResult">
+	<![CDATA[select * from SocietySafeCheck where id=#value#]]>
+	</select>
+	<select id="getSocietySafeCheckByDailyLogId" parameterClass="java.lang.Long"
+		resultMap="societySafeCheckResult">
+	<![CDATA[select * from SocietySafeCheck where dailyLogId=#value#]]>
+	</select>
+	<select id="getSocietySafeCheckBySignCode" parameterClass="java.lang.String"
+		resultMap="baseSocietySafeCheckResult">
+		select id from SocietySafeCheck where signCode=#value#
+	</select>
+
+	<select id="findAllSocietySafeCheck" resultMap="societySafeCheckResult">
+	<![CDATA[select * from SocietySafeCheck]]>
+	</select>
+	<!-- 方法没有显式调用
+	<select id="issueSubmitInfoCount" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+	<![CDATA[
+	select count(1) from organizations t where exists (select 1  from organizations t1 where t.parentid = t1.id  and t1.id = #orgId#)	
+			]]>
+	</select>-->
+
+
+	<!-- 查询下辖单位的上报情况 -->
+	<!-- 方法没有显式调用
+	<select id="findIssueSubmitInfo" parameterClass="java.util.Map"
+		resultMap="issSubmitInfoResult">
+	<![CDATA[
+	select t.id,t.orginternalcode,t.orgname,
+       case when (select count(1) from SocietySafeCheck ssc where ssc.orgId= t.id and ssc.reportState=1 and reportType=1 and reportyear=#reportYear# and directoryNameSign=#directoryNameSign# and reportmonth=1)>0 then '√' when (to_number(to_char(sysdate,'mm'))-1)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-1=1 or to_number(to_char(sysdate,'mm'))-1=0 then 'c' end January,
+       case when (select count(1) from SocietySafeCheck ssc where ssc.orgId= t.id and ssc.reportState=1 and reportType=1 and reportyear=#reportYear# and directoryNameSign=#directoryNameSign# and reportmonth=2)>0 then '√' when (to_number(to_char(sysdate,'mm'))-2)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-2=1 or to_number(to_char(sysdate,'mm'))-2=0 then 'c' end February,
+       case when (select count(1) from SocietySafeCheck ssc where ssc.orgId= t.id and ssc.reportState=1 and reportType=1 and reportyear=#reportYear# and directoryNameSign=#directoryNameSign# and reportmonth=3)>0 then '√' when (to_number(to_char(sysdate,'mm'))-3)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-3=1 or to_number(to_char(sysdate,'mm'))-3=0 then 'c' end March,
+       case when (select count(1) from SocietySafeCheck ssc where ssc.orgId= t.id and ssc.reportState=1 and reportType=1 and reportyear=#reportYear# and directoryNameSign=#directoryNameSign# and reportmonth=4)>0 then '√' when (to_number(to_char(sysdate,'mm'))-4)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-4=1 or to_number(to_char(sysdate,'mm'))-4=0 then 'c' end April,
+       case when (select count(1) from SocietySafeCheck ssc where ssc.orgId= t.id and ssc.reportState=1 and reportType=1 and reportyear=#reportYear# and directoryNameSign=#directoryNameSign# and reportmonth=5)>0 then '√' when (to_number(to_char(sysdate,'mm'))-5)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-5=1 or to_number(to_char(sysdate,'mm'))-5=0 then 'c' end  May,
+       case when (select count(1) from SocietySafeCheck ssc where ssc.orgId= t.id and ssc.reportState=1 and reportType=1 and reportyear=#reportYear# and directoryNameSign=#directoryNameSign# and reportmonth=6)>0 then '√' when (to_number(to_char(sysdate,'mm'))-6)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-6=1 or to_number(to_char(sysdate,'mm'))-6=0 then 'c' end June,
+       case when (select count(1) from SocietySafeCheck ssc where ssc.orgId= t.id and ssc.reportState=1 and reportType=1 and reportyear=#reportYear# and directoryNameSign=#directoryNameSign# and reportmonth=7)>0 then '√' when (to_number(to_char(sysdate,'mm'))-7)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-7=1 or to_number(to_char(sysdate,'mm'))-7=0 then 'c' end July,
+       case when (select count(1) from SocietySafeCheck ssc where ssc.orgId= t.id and ssc.reportState=1 and reportType=1 and reportyear=#reportYear# and directoryNameSign=#directoryNameSign# and reportmonth=8)>0 then '√' when (to_number(to_char(sysdate,'mm'))-8)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-8=1 or to_number(to_char(sysdate,'mm'))-8=0 then 'c' end August,
+       case when (select count(1) from SocietySafeCheck ssc where ssc.orgId= t.id and ssc.reportState=1 and reportType=1 and reportyear=#reportYear# and directoryNameSign=#directoryNameSign# and reportmonth=9)>0 then '√' when (to_number(to_char(sysdate,'mm'))-8)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-8=1 or to_number(to_char(sysdate,'mm'))-9=0 then 'c' end September,
+       case when (select count(1) from SocietySafeCheck ssc where ssc.orgId= t.id and ssc.reportState=1 and reportType=1 and reportyear=#reportYear# and directoryNameSign=#directoryNameSign# and reportmonth=10)>0 then '√' when (to_number(to_char(sysdate,'mm'))-10)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-10=1 or to_number(to_char(sysdate,'mm'))-10=0 then 'c' end October,
+       case when (select count(1) from SocietySafeCheck ssc where ssc.orgId= t.id and ssc.reportState=1 and reportType=1 and reportyear=#reportYear# and directoryNameSign=#directoryNameSign# and reportmonth=11)>0 then '√' when (to_number(to_char(sysdate,'mm'))-11)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-11=1 or to_number(to_char(sysdate,'mm'))-11=0 then 'c' end November,
+       case when (select count(1) from SocietySafeCheck ssc where ssc.orgId= t.id and ssc.reportState=1 and reportType=1 and reportyear=#reportYear# and directoryNameSign=#directoryNameSign# and reportmonth=12)>0 then '√' when  (to_number(to_char(sysdate,'mm'))-12)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-12=0 then 'c' end December
+  	from organizations t,propertydicts p where  p.id = t.orgtype and p.internalid = 0 and p.propertydomainid = 14 and
+  	 exists (select count(1) from organizations t1 where t.parentid = t1.id  and t1.id = #orgId#) and t.parentid =#orgId# order by t.seq
+			]]>
+	</select>-->
+
+	<select id="findCollectionData" parameterClass="java.util.Map"
+		resultMap="societySafeCheckResult">
+		<![CDATA[select * from SocietySafeCheck]]>
+		<dynamic prepend="where">
+			<isNotNull property="reportState" prepend="and">
+				reportState =
+				#reportState#
+			</isNotNull>
+			<isNotNull property="reportYear" prepend="and">
+				reportYear =
+				#reportYear#
+			</isNotNull>
+			<isNotEmpty property="reportMonth" prepend="and">
+				reportMonth =
+				#reportMonth#
+			</isNotEmpty>
+			<isNotEmpty property="orgCode" prepend="and">
+				orgCode = #orgCode#
+			</isNotEmpty>
+			<isNotEmpty property="reportType" prepend="and">
+				reportType =
+				#reportType#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	<select id="findQuarterData" parameterClass="java.util.Map"
+		resultMap="societySafeCheckResult">
+		<![CDATA[select * from SocietySafeCheck]]>
+		<dynamic prepend="where">
+			<isNotNull property="reportState" prepend="and">
+				reportState =
+				#reportState#
+			</isNotNull>
+			<isNotNull property="reportYear" prepend="and">
+				reportYear =
+				#reportYear#
+			</isNotNull>
+			<isNotEmpty property="quarter" prepend="and">
+				quarter =
+				#quarter#
+			</isNotEmpty>
+			<isNotEmpty property="orgCode" prepend="and">
+				orgCode = #orgCode#
+			</isNotEmpty>
+			and reportType=2
+		</dynamic>
+	</select>
+</sqlMap>

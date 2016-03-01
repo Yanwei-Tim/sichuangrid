@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="myGroupManage" extends="default"
+		namespace="/contact/myGroupManage">
+		<default-class-ref class="myGroupController"></default-class-ref>
+		<action name="findMyGroupsForPage" method="findMyGroupsForPage">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+			
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/interaction/contact/myGroup/maintainMyGroupDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="dispatchMyGroup" method="dispatchMyGroup">
+			<result name="success">
+				/interaction/contact/myGroup/dispatchMyGroupList.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="dispatchMyGroupHasContacter" method="dispatchMyGroupHasContacter">
+			<result name="success">
+				/interaction/contact/myGroup/maintainMyGroupHasContacterDlg.jsp
+			</result>
+			<result name="myGroupEditMember">
+				/interaction/contact/myGroup/primaryMyGroupMemeberList.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findMyGroupHasContactersToSelectPersion" method="findMyGroupHasContactersToSelectPersion">
+			<result name="success">
+				/interaction/platformMessage/outbox/viewMyGroupMemberList.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="addMyGroup" method="addMyGroup">
+			<result name="success" type="json">
+				<param name="root">myGroup</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="deleteMyGroupContater" method="deleteMyGroupContater">
+			<result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="searchMyGroupByCondition" method="searchMyGroupByCondition">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		
+		<action name="addMyGroupHasContacter" method="addMyGroupHasContacter">
+			<result name="success" type="json">
+				<param name="root">myGroup</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateMyGroup" method="updateMyGroup">
+			<result  name="success" type="json">
+				<param name="root">myGroup</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateMyGroupHasContacter" method="updateMyGroupHasContacter">
+			<result  name="success" type="json">
+				<param name="root">myGroup</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="deleteMyGroup" method="deleteMyGroup" >
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="deleteMyGroupHasContacter" method="deleteMyGroupHasContacter" >
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="findMyGroupHasContacters" method="findMyGroupHasContacters" >
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="loadContacterList" method="loadContacterList" >
+			<result name="success" type="json">
+				<param name="root">ajaxContacters</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="deleteAllGroup" method="deleteAllGroup">
+			<result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+	</package>
+	<package name="hotModuelMyGroupManage" extends="myGroupManage" namespace="/hotModuel/contact/myGroupManage"></package>
+</struts>

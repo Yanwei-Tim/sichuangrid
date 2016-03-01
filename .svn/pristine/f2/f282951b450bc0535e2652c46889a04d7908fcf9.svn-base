@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="supervisionAdministration">
+	<!-- 注释说明 -->
+	<typeAlias alias="SupervisionAdministration" type="com.tianque.issue.domain.SupervisionAdministration" />
+		
+	<resultMap class="SupervisionAdministration" id="supervisionAdministrationResult">
+		<result property="id" column="id"/>
+		<result property="orgId" column="orgId"/>
+		<result property="orgCode" column="orgCode"/>
+		<result property="content" column="content"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+	</resultMap>
+
+	<insert id="addSupervisionAdministration" parameterClass="SupervisionAdministration">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_SupervisionAdministration.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		SupervisionAdministration(id,orgId,orgCode,content,createUser,createDate)
+		VALUES(#id#,#orgId#,#orgCode#,#content#,#createUser#,#createDate#)
+	</insert>
+	
+	<update id="updateSupervisionAdministration" parameterClass="SupervisionAdministration"> 
+		update SupervisionAdministration set 
+			orgId =#orgId#,
+			orgCode =#orgCode#,
+			content =#content#,
+			updateUser =#updateUser#,
+			updateDate =#updateDate#
+		where id = #id#
+	</update>
+	
+	<select id="getSupervisionAdministrationByOrgId" parameterClass="java.lang.Long" resultMap="supervisionAdministrationResult">
+		select * from SupervisionAdministration where orgId=#value#
+	</select>
+	
+	<select id="getSupervisionAdministrationById" parameterClass="java.lang.Long" resultMap="supervisionAdministrationResult">
+		select * from SupervisionAdministration where id=#value#
+	</select>
+	
+	<select id="getSupervisionAdministrationByIssueId" parameterClass="java.lang.Long" resultMap="supervisionAdministrationResult">
+		select * from SupervisionAdministration where issueId=#value#
+	</select>
+	
+</sqlMap>

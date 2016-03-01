@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="issueAccessConfig">
+
+	<typeAlias alias="IssueAccessConfig" type="com.tianque.issue.domain.IssueAccessConfig" />
+
+	<resultMap id="issueAccessConfigResult" class="IssueAccessConfig">
+		<result property="yellowCardScores" column="yellowCardScores" />
+		<result property="redCardScores" column="redCardScores" />
+		<result property="yellowCardAccepted" column="yellowCardAccepted" />
+		<result property="redCardAccepted" column="redCardAccepted" />
+		<result property="yellowCardHandle" column="yellowCardHandle" />
+		<result property="redCardHandle" column="redCardHandle" />
+		<result property="normalScores" column="normalHandle" />
+	</resultMap>
+	
+	
+	<insert id="addIssueAccessConfig" parameterClass="IssueAccessConfig">
+		INSERT INTO 
+		issueAccessConfig(yellowCardScores,redCardScores,yellowCardAccepted,redCardAccepted,yellowCardHandle,redCardHandle,normalHandle) 
+		VALUES(#yellowCardScores#,#redCardScores#,#yellowCardAccepted#,#redCardAccepted#,#yellowCardHandle#,#redCardHandle#,#normalScores#) 
+	</insert>
+	
+	<update id="updateIssueAccessConfig" parameterClass="IssueAccessConfig"> 
+		update issueAccessConfig 
+		set 
+			yellowCardScores =#yellowCardScores#,
+			redCardScores =#redCardScores#,
+			yellowCardAccepted =#yellowCardAccepted#,
+			redCardAccepted =#redCardAccepted#,
+			yellowCardHandle =#yellowCardHandle#,
+			redCardHandle =#redCardHandle#,
+			normalHandle =#normalScores#
+	</update>
+	
+	<select id="getIssueAccessConfig" resultMap="issueAccessConfigResult">
+		select * from issueAccessConfig 
+	</select>
+	
+</sqlMap>

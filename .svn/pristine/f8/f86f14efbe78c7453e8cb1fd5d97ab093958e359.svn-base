@@ -1,0 +1,37 @@
+--之前开发人员开发的时候，没有将createUser和createDate数据增加进去
+update mentalpatienttask set createDate = time ,createUser = 'admin';
+
+insert into PERMISSIONS
+  (ID,
+   CNAME,
+   ENAME,
+   PERMISSIONTYPE,
+   MODULENAME,
+   ENABLE,
+   PARENTID,
+   DESCRIPTION,
+   NORMALURL,
+   LEADERURL,
+   INDEXID)
+values
+  (s_permissions.NEXTVAL,
+   '任务清单研判',
+   'taskListJudgeManage',
+   1,
+   '任务清单',
+   1,
+   (select id from permissions where ename = 'taskListVisitManagement'),
+   null,
+   '/hotModuel/task/judge/generalSituation.ftl',
+   null,
+   7);
+   
+create sequence s_taskListGeneralSituation
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+update druggytask set createDate=time,createUser='admin';
+commit;

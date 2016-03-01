@@ -1,0 +1,277 @@
+package com.tianque.plugin.weChat.controller;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.util.Date;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.struts2.ServletActionContext;
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.alibaba.fastjson.JSON;
+import com.tianque.baseInfo.primaryOrg.domain.RedCuffTeam;
+import com.tianque.baseInfo.primaryOrg.service.RedCuffTeamService;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.cache.service.CacheService;
+import com.tianque.core.exception.ServiceException;
+import com.tianque.domain.PropertyDict;
+import com.tianque.job.JobHelper;
+import com.tianque.plugin.weChat.dao.WeChatResponseDao;
+import com.tianque.plugin.weChat.domain.WeChatResponse;
+import com.tianque.plugin.weChat.domain.sendMessage.TextMessage;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+import com.tianque.plugin.weChat.service.MenuServiceByWeixin;
+import com.tianque.plugin.weChat.service.TencentUserService;
+import com.tianque.plugin.weChat.service.WeChatGroupService;
+import com.tianque.plugin.weChat.service.WeChatService;
+import com.tianque.plugin.weChat.util.Constants;
+import com.tianque.plugin.weChat.util.MessageUtil;
+import com.tianque.plugin.weChat.util.SignUtil;
+import com.tianque.sysadmin.service.PropertyDictService;
+
+/** 接收来自代理的消息控制类 */
+@Namespace("/weChat")
+@Scope("prototype")
+@Controller("weChatController")
+public class WeChatController extends BaseAction {
+	private static Logger logger = LoggerFactory.getLogger(WeChatController.class);
+	@Autowired
+	private WeChatService weChatService;
+	@Autowired
+	private MenuServiceByWeixin menuServiceByWeixin;
+	@Autowired
+	private RedCuffTeamService redCuffTeamService;
+	@Autowired
+	private WeChatResponseDao weChatResponseDao;
+
+	@Autowired
+	private TencentUserService tencentUserService;
+	@Autowired
+	private CacheService cacheService;
+	@Autowired
+	private WeChatGroupService weChatGroupService;
+	@Autowired
+	private PropertyDictService propertyDictService;
+	
+	/** 来自微信的xm格式信息（包括文本信息、图片音频信息、用户关注事件推送等等） */
+	private String xmlStr;
+	/** 标记来自微信的是什么方法 */
+	private String method;
+	/** 微信加密签名 */
+	private String signature;
+	/** 时间戳 */
+	private String timestamp;
+	/** 随机数 */
+	private String nonce;
+	/** 随机字符串 */
+	private String echostr;
+	/**红袖套对象*/
+	private RedCuffTeam redCuffTeam;
+
+	// 接受微信发送的消息 - 代理请求WEB端
+	@Action(value = "messageFromWeChat", results = {
+			@Result(name = "success", type = "json", params = { "root", "true" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String messageFromWeChat() {
+		PrintWriter out = null;
+		String fromUserName = null;
+		String toUserName = null;
+		JobHelper.createMockAdminSession();
+		try {
+			HttpServletResponse response = ServletActionContext.getResponse();
+			response.setCharacterEncoding("UTF-8");
+			if (method == null && xmlStr == null) {
+				errorMessage = "ERROR:请求参数异常";
+				logger.error("ERROR:请求参数异常");
+				return ERROR;
+			}
+			logger.info("接受:" + xmlStr);
+			if (Constants.GET.equals(method)) {
+				out = response.getWriter();
+				/** 通过检验signature对请求进行校验，若校验成功则原样返回echostr，表示接入成功，否则接入失败 */
+				if (SignUtil.checkSignature(signature, timestamp, nonce)) {
+					out.print(echostr);
+				}
+			} else {
+				InputStream iStream = new ByteArrayInputStream(xmlStr.getBytes());
+				Map<String, String> messageMap = MessageUtil.parseXml(iStream);
+				String event = messageMap.get("Event");
+				if ("LOCATION".equals(event)) {//微信用户地理位置通知
+					redCuffTeamService.bindingRedCuffTeamCoordinate(messageMap.get("Latitude"),
+							messageMap.get("Longitude"), messageMap.get("Precision"),
+							messageMap.get("FromUserName"));
+				} else if ("MASSSENDJOBFINISH".equals(event)) {//群发消息结果回调通知
+					String msgId = messageMap.get("MsgID");
+					WeChatResponse weChatResponse = weChatResponseDao.getByMsgId(msgId);
+					if (weChatResponse == null) {
+						logger.error("微信群发消息未找到，微信服务器消息：" + JSON.toJSONString(messageMap));
+					} else if (weChatResponse.getResultDate() == null) {
+						weChatResponse.setResultDate(new Date());
+						weChatResponse.setStatus(messageMap.get("Status"));
+						weChatResponse
+								.setTotalCount(Integer.parseInt(messageMap.get("TotalCount")));
+						weChatResponse.setFilterCount(Integer.parseInt(messageMap
+								.get("FilterCount")));
+						weChatResponse.setSentCount(Integer.parseInt(messageMap.get("SentCount")));
+						weChatResponse
+								.setErrorCount(Integer.parseInt(messageMap.get("ErrorCount")));
+						weChatResponseDao.updateWeChatResponse(weChatResponse);
+					}
+				} else {
+					
+					fromUserName = messageMap.get("FromUserName");
+					toUserName = messageMap.get("ToUserName");
+					String createTime = messageMap.get("CreateTime");
+					
+					if("subscribe".equals(event)){
+						
+						if(fromUserName!=null&&toUserName!=null){
+							redCuffTeam = redCuffTeamService.getRedCuffTeamByWechatno(fromUserName);
+							if(redCuffTeam!=null&&redCuffTeam.getSubTeamType()!=null&&redCuffTeam.getSubTeamType().getId()!=null){
+								
+								PropertyDict propertyDict = propertyDictService.getPropertyDictById(redCuffTeam.getSubTeamType().getId());
+								 //获取公众账号对象
+								 TencentUser tencentUser = tencentUserService.getTencentUserByWeChatUserId(toUserName);								 
+								 if(tencentUser!=null&&propertyDict.getDisplayName()!=null){						
+									 Long groupId = weChatGroupService.getGroupListByName(propertyDict.getDisplayName());
+									 if(groupId!=null){
+										 weChatGroupService.removeUserForGroup(tencentUser, fromUserName, groupId.intValue());
+										 weChatGroupService.saveWeChatGroup(tencentUser);
+									 }									 
+								 }									
+							}
+						}		
+					}
+					
+
+					out = response.getWriter();
+					/** 接收消息（存入数据库） */
+					String respMessage = weChatService.receiveMessage(messageMap);
+					if (respMessage != null) {
+						out.print(respMessage);
+					}
+					if (cacheService.get(fromUserName + createTime) != null)
+						cacheService.remove(fromUserName + createTime);
+					// 获取公众账号对象
+					// TencentUser tencentUser = tencentUserService
+					// .getTencentUserByWeChatUserId(messageMap.get("ToUserName"));
+					// //创建菜单
+					// String respMenuMessage =
+					// menuServiceByWeixin.createMenu(tencentUser,
+					// MenuUtils.getTestMenu());
+					// System.out.println(respMenuMessage);
+				}
+			}
+			return SUCCESS;
+		} catch (IOException i) {
+			logger.error("ERROR:", i);
+			if (out != null) {
+				out.print(MessageUtil.textMessageToXml(createErrorMessage(toUserName, fromUserName,
+						"亲，请求出了一丁点的问题， 请稍后在试！")));
+			}
+			return ERROR;
+		} catch (ServiceException s) {
+			logger.error("ERROR:", s);
+			if (out != null)
+				out.print(MessageUtil.textMessageToXml(createErrorMessage(toUserName, fromUserName,
+						"亲，请求出了一丁点的问题， 请稍后在试！")));
+			return ERROR;
+		} catch (Exception e) {
+			logger.error("ERROR:", e);
+			if (out != null)
+				out.print(MessageUtil.textMessageToXml(createErrorMessage(toUserName, fromUserName,
+						"亲，请求出了一丁点的问题， 请稍后在试！")));
+			return ERROR;
+		} finally {
+			if (out != null) {
+				out.close();
+				out = null;
+			}
+		}
+	}
+
+	/**
+	 * 创建缺省消息
+	 * 
+	 * @param toUserName
+	 * @param fromUserName
+	 * @return
+	 */
+	public TextMessage createErrorMessage(String toUserName, String fromUserName, String content) {
+		TextMessage textMessage = new TextMessage();
+		textMessage.setToUserName(fromUserName);
+		textMessage.setFromUserName(toUserName);
+		textMessage.setCreateTime(new Date().getTime());
+		textMessage.setMsgType(Constants.RESP_MESSAGE_TYPE_TEXT);
+		textMessage.setContent(content);
+		return textMessage;
+	}
+
+	public String getXmlStr() {
+		return xmlStr;
+	}
+
+	public void setXmlStr(String xmlStr) {
+		this.xmlStr = xmlStr;
+	}
+
+	public String getMethod() {
+		return method;
+	}
+
+	public void setMethod(String method) {
+		this.method = method;
+	}
+
+	public String getSignature() {
+		return signature;
+	}
+
+	public void setSignature(String signature) {
+		this.signature = signature;
+	}
+
+	public String getTimestamp() {
+		return timestamp;
+	}
+
+	public void setTimestamp(String timestamp) {
+		this.timestamp = timestamp;
+	}
+
+	public String getNonce() {
+		return nonce;
+	}
+
+	public void setNonce(String nonce) {
+		this.nonce = nonce;
+	}
+
+	public String getEchostr() {
+		return echostr;
+	}
+
+	public void setEchostr(String echostr) {
+		this.echostr = echostr;
+	}
+
+	public RedCuffTeam getRedCuffTeam() {
+		return redCuffTeam;
+	}
+
+	public void setRedCuffTeam(RedCuffTeam redCuffTeam) {
+		this.redCuffTeam = redCuffTeam;
+	}
+
+}

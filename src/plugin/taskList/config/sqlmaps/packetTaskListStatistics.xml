@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="packetTaskListStatistics">
+	<insert id="generalsituationStatistics" parameterClass="java.util.Map" >
+		 insert into $tableName$(id,orgcode,year,month,basesictype,detailtype,subtype,monthcreatesign,policestationsign,
+			clinicsign,allcountsign,monthcreatecount,allcount,createuser,createdate)
+			select s_taskListGeneralSituation.NEXTVAL,t2.*
+			from (select orgInternalCode,max(year),max(month),basesictype,detailtype,subtype,sum(monthcreatesign),sum(policestationsign),
+			sum(clinicsign),sum(allcountsign),sum(monthcreatecount),sum(allcount),max(createuser),max(createdate)
+			from (select p.*,substr(p.orgCode,1,instr(p.orgCode, '.', 1, #orgLevel#)) orgInternalCode
+			              from $tableName$ p) t1 where t1.orgCode is not null group by (t1.orgInternalCode, t1.basesictype,t1.detailtype,t1.subtype)
+			) t2
+
+	</insert>
+	
+	<update id="fullOrgIdByOrgCode" parameterClass="java.util.Map" >
+		update  $tableName$ p set orgId = (select id from organizations o where o.orginternalcode = p.orgCode),
+		orgName = (select orgName from organizations o where o.orginternalcode = p.orgCode)
+	</update>
+	
+	<delete id="deleteOrgIdIsNull" parameterClass="java.util.Map">
+		delete from $tableName$ where orgid is null
+	</delete>
+	
+	<delete id="deleteSubTypeIsNull" parameterClass="java.util.Map">
+		delete from $tableName$ where basesicType in('floating','hiddendanger') and subType is null
+	</delete>
+  
+</sqlMap>

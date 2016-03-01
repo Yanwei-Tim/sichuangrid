@@ -1,0 +1,191 @@
+<#assign pop=JspTaglibs["/WEB-INF/taglib/pop-taglib.tld"]>
+<#assign s=JspTaglibs["/WEB-INF/taglib/struts-tags.tld"]>
+<@s.include value="/includes/baseInclude.jsp"/> 
+
+<form action="${path}/plugin/taskListManage/common/signRecord.action" method="post" id="maintainForm">
+	<@pop.token />
+<div class="container container_24">
+	<input type="hidden" name="mode" id="mode" value="${(mode)!}" />
+	<input type="hidden" name="mentalPatientTask.organization.id" id="orgId" value="${(mentalPatientTask.organization.id)!}"/>
+	<input type="hidden" name="signType" id="signType" value="${(mentalPatientTask.signType)!}"/>
+	<input type="hidden" name="receipt.id" id="mentalPatientTaskId" value="${(mentalPatientTask.id)!}" />
+	<input type="hidden" name="receipt.objectType" id="objectType" value="<@s.property value='@com.tianque.plugin.taskList.constants.Constants@MENTALPATIENTTASK_KEY' />"/>
+	<div class="grid_5 lable-right">
+		<em class="form-req">*</em>
+		<label class="form-lb1>">姓名：</label>
+	</div>
+	<div class="grid_7">
+		<input type="text"  id="name"  name="mentalPatientTask.name"   value="${(mentalPatientTask.name)!}" readonly  class="form-txt" />
+	</div>
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">身份证号码：</label>
+	</div>
+	<div class="grid_7">
+		<input name="mentalPatientTask.idCard" value="${(mentalPatientTask.idCard)!}" readOnly class="form-txt " />
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+		
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">电话号码：</label>
+	</div>
+	<div class="grid_7">
+		<input name="mentalPatientTask.phone" value="${(mentalPatientTask.phone)!}" readOnly class="form-txt" />
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">帮扶人员：</label>
+	</div>
+	<div class="grid_19 heightAuto" style="margin-top:5px;">
+		<input type="text" id="helpPeople" name="mentalPatientTask.helpPeople" value="${(mentalPatientTask.helpPeople)!}" readOnly class='form-txt' />
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">时间：</label>
+	</div>
+	<div class="grid_7">
+	    <input type="text" name="mentalPatientTask.time" id="time"  value="<@s.date name="mentalPatientTask.time" format="yyyy-MM-dd HH:mm:ss" />" class="form-txt" readonly/>
+	</div>
+	
+	<div class='clearLine'>&nbsp;</div>
+	
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">地点：</label>
+	</div>
+	<div class="grid_7">
+		<input type="text" name="mentalPatientTask.place"  id="place" value="${(mentalPatientTask.place)!}" <@s.if test='"sign".equals(mode)'>readonly</@s.if> class="form-txt"/>
+	</div>
+	
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">监护人电话：</label>
+	</div>
+	<div class="grid_7">
+		<input type="text" name="mentalPatientTask.guardianTel"  id="place" value="${(mentalPatientTask.guardianTel)!}"  <@s.if test='"sign".equals(mode)'>readonly</@s.if> class="form-txt"/>
+	</div>
+	
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">网格员联系电话：</label>
+	</div>
+	<div class="grid_7">
+		<input type="text" name="mentalPatientTask.reporterTel" id="reporterTel"  value="${(mentalPatientTask.reporterTel) ! }" <@s.if test='"sign".equals(mode)'>readonly</@s.if> class="form-txt" />
+	</div>
+	
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">所属网格：</label>
+	</div>
+	<div class="grid_18">
+		<input type="text" name="mentalPatientTask.organization.fullOrgName" id="orgname"  value="${(mentalPatientTask.organization.fullOrgName) ! }" <@s.if test='"sign".equals(mode)'>readonly</@s.if> class="form-txt" />
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">有无异常：</label>
+	</div>
+	<div class="grid_18">
+		<@s.if test="mentalPatientTask.hasException==1">有</@s.if> 
+		<@s.if test="mentalPatientTask.hasException==0">无</@s.if> 
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">异常详情：</label>
+	</div>
+	<div class="grid_18">
+		${(mentalPatientTask.exception)!}
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">备注：</label>
+	</div>
+	<div class="grid_18">
+		<input type="text" name="mentalPatientTask.remark" id="remark"  value="${(mentalPatientTask.remark) ! }" <@s.if test='"sign".equals(mode)'>readonly</@s.if> class="form-txt" />
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+	
+	<@pop.JugePermissionTag ename="mentalPatientPoliceTask">
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">派出所签收人：</label>
+	</div>
+	<div class="grid_18">
+		<input type="text" id="signMemberNamePolice"  name="receipt.signMemberNamePolice" <@s.if test='mentalPatientTask.statusPolice == 1'>value="${(mentalPatientTask.signMemberNamePolice) ! }" </@s.if><@s.else> value='<@s.property value="@com.tianque.core.util.ThreadVariable@getUser().getName()"/>'</@s.else> <@s.if test='"sign".equals(mode)'>readonly</@s.if> class="form-txt" />	
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">派出所签收时间：</label>
+	</div>
+	<div class="grid_18">
+		<input type="text" id="signDatePolice"  name="receipt.signDatePolice" <@s.if test='mentalPatientTask.statusPolice == 1'>value="${(mentalPatientTask.signDatePolice?string('yyyy-MM-dd HH:mm:ss'))!}"</@s.if><@s.else>value="${(mentalPatientTask.currentDate?string('yyyy-MM-dd HH:mm:ss'))!}"</@s.else>  <@s.if test='"sign".equals(mode)'>readonly</@s.if> class="form-txt" />
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">派出所签收意见：</label>
+	</div>
+	<div class="grid_18 heightAuto">
+	    <textarea rows="3" name="receipt.attitudePolice" maxlength="200"  cols="" <@s.if test='mentalPatientTask.statusPolice == 1'>readonly</@s.if> class="form-txt"><@s.if test='mentalPatientTask.statusPolice == 1'>${(mentalPatientTask.attitudePolice)!}</@s.if></textarea>
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+	</@pop.JugePermissionTag>
+	
+	<@pop.JugePermissionTag ename="mentalPatientJusticeTask">
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">卫生所签收人：</label>
+	</div>
+	<div class="grid_18">
+		<input type="text" id="signMemberNameJustice"  name="receipt.singMemberNameJustice" <@s.if test='mentalPatientTask.statusJustice == 1'>value="${(mentalPatientTask.signMemberNameJustice) ! }"</@s.if><@s.else> value='<@s.property value="@com.tianque.core.util.ThreadVariable@getUser().getName()"/>'</@s.else> <@s.if test='"sign".equals(mode)'>readonly</@s.if> class="form-txt" />	
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">卫生所签收时间：</label>
+	</div>
+	<div class="grid_18">
+		<input type="text" id="signDateJustice"  name="receipt.signDateJustice" <@s.if test='mentalPatientTask.statusJustice == 1'>value="${(mentalPatientTask.signDateJustice?string('yyyy-MM-dd HH:mm:ss'))!}"</@s.if><@s.else>value="${(mentalPatientTask.currentDate?string('yyyy-MM-dd HH:mm:ss'))!}"</@s.else>  <@s.if test='"sign".equals(mode)'>readonly</@s.if> class="form-txt" />
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+	
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">卫生所签收意见：</label>
+	</div>
+
+	<div class="grid_18 heightAuto">
+	    <textarea rows="3" name="receipt.attitudeJustice" maxlength="200" cols="" <@s.if test='mentalPatientTask.statusJustice == 1'>readonly</@s.if> class="form-txt"><@s.if test='mentalPatientTask.statusJustice == 1'>${(mentalPatientTask.attitudeJustice)!}</@s.if></textarea>
+	</div>
+	</@pop.JugePermissionTag>
+	<div class="grid_5 lable-right">
+		<label class="form-lbl">附件上传：</label>
+	</div>
+	<div class="grid_19" id="custom-queue" colspan="3" >
+	</div>
+</div>	
+</form>
+
+<script type="text/javascript">
+$(document).ready(function(){
+	$("#maintainForm").formValidate({
+		promptPosition:"bottomLeft",
+		submitHandler: function(form){
+			 $("#maintainForm").ajaxSubmit({
+					success : function(data) {
+						if("sign"=="${mode}"){
+							$.messageBox({message:"签收成功！"});
+						}
+						$("#mentalPatientTaskDialog").dialog('close');
+						$("#mentalPatientTaskList").trigger("reloadGrid");
+					},
+					error : function(XMLHttpRequest, textStatus, errorThrown) {
+						alert("提交错误");
+					}
+			 });
+		},
+	});
+	var  fileNames="";
+	    <@s.if test="mentalPatientTask.annexFiles!=null && mentalPatientTask.annexFiles.size > 0">
+				<@s.iterator value="mentalPatientTask.annexFiles" var="att">
+				 fileNames += "<a href='${path}/plugin/taskListManage/common/downLoadAttachFile.action?attachFileId=${(att.id)!}'>${(att.fileName)!}</a><br/>";
+				</@s.iterator>
+			</@s.if>
+			<@s.else>
+			$("#fatesonid").hide();  
+			</@s.else>
+	$("#custom-queue").html(fileNames);	
+});
+	
+</script>

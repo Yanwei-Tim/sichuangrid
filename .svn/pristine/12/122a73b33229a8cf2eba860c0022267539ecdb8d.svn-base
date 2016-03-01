@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" 
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="mobileDictionary">
+
+    <typeAlias alias="MobileDictionary" type="com.tianque.mobile.mobileDictionary.domain.MobileDictionary" />
+    <typeAlias alias="MobileDictionaryVo" type="com.tianque.mobile.mobileDictionary.domain.vo.MobileDictionaryVo" />
+
+    <resultMap id="mobileDictionaryResult" class="MobileDictionary">
+		<result column="id" property="id" />
+		<result column="version" property="version" />
+		<result column="fileUrl" property="fileUrl" />
+		<result column="renewDate" property="renewDate" />
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+	</resultMap>
+	
+	<resultMap class="MobileDictionaryVo" id="MobileDictionaryVoResult">
+		<result property="id" column="id"/>
+		<result property="domainName" column="domainName"/>
+		<result property="fullPinyin" column="fullPinyin"/>
+		<result property="simplePinyin" column="simplePinyin"/>
+		<result property="internalId" column="internalId"/>
+		<result property="displayName" column="displayName"/>
+		<result property="domainId" column="domainId"/>
+		
+	</resultMap>
+	
+	<select id="countMobileDictionary" resultClass="java.lang.Integer">
+		select count(*) from MOBILEDICTIONARY
+	</select>
+	
+	<select id="findMobileDictionary" resultMap="mobileDictionaryResult">
+		select * from MOBILEDICTIONARY
+	</select>
+	
+	<select id="findAllDictsForList" resultMap="MobileDictionaryVoResult">
+		select pdm.id			as domainId,
+      		pdm.domainName,
+       		pdc.fullPinyin,
+       		pdc.simplePinyin,
+       		pdc.internalId,
+       		pdc.id          	as id,
+       		pdc.displayName
+		from propertydomains pdm
+		left join propertydicts pdc on pdm.id = pdc.propertydomainid
+	</select>
+	
+	<insert id="addMobileDictionary" parameterClass="MobileDictionary">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_MOBILEDICTIONARY.NEXTVAL as id from dual ]]>
+	    </selectKey>
+	    insert into MOBILEDICTIONARY(id,fileurl,renewdate,version,createdate,createuser,updatedate,updateuser) 
+			values(#id#,#fileUrl#,#renewDate#,#version#,#createDate#,#createUser#,#updateDate#,#updateUser#)
+	</insert>
+	
+	<update id="updateMobileDictionary" parameterClass="MobileDictionary">
+		update MOBILEDICTIONARY set fileUrl=#fileUrl#,renewDate=#renewDate#,version=#version#,updateDate=#updateDate#,updateUser=#updateUser#
+		where id=#id#
+	</update>
+
+</sqlMap>
+

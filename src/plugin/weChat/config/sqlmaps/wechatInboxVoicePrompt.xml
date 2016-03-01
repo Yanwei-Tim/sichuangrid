@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="wechatInboxVoicePrompt">
+	<typeAlias alias="WechatInboxVoicePrompt"
+		type="com.tianque.plugin.weChat.domain.inbox.WechatInboxVoicePrompt" />
+
+	<resultMap id="wechatInboxVoicePromptResult" class="WechatInboxVoicePrompt">
+		<result property="id" column="id" />
+		<result property="org.id" column="orgId"/>
+		<result property="org.orgInternalCode" column="orgCode"/>
+		<result property="toUserName" column="toUserName" />	
+		<result property="voicePromptStatus.id" column="voicePromptStatus" />
+		<result property="voicePromptStatus.displayName" column="displayName" />
+		<result property="voiceUrl" column="voiceUrl" />
+
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+ 
+	<insert id="addWechatInboxVoicePrompt" parameterClass="WechatInboxVoicePrompt">
+	     <selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_wechat_inbox_voice_prompt.NEXTVAL AS id FROM DUAL
+			]]>
+         </selectKey>
+		     insert into wechat_inbox_voice_prompt
+		     (id,orgId,orgCode,toUserName,voicePromptStatus,displayName,voiceUrl,createUser,updateUser,createDate,updateDate)
+		     values
+		     (#id#,#org.id#,#org.orgInternalCode#,#toUserName#,#voicePromptStatus.id#,#voicePromptStatus.displayName#,#voiceUrl#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	 </insert>
+	 <select id="getWechatInboxVoicePrompt" parameterClass="WechatInboxVoicePrompt"
+		     resultMap="wechatInboxVoicePromptResult">
+		     select * from wechat_inbox_voice_prompt w
+		     <dynamic prepend="where">
+                <isNotEmpty property="org.id" prepend="and">
+				   w.orgId = #org.id#
+			    </isNotEmpty>
+			    <isNotEmpty property="toUserName" prepend="and">
+				   w.toUserName = #toUserName#
+			    </isNotEmpty>
+			    <isNotNull property="id" prepend="and">
+				   w.id = #id#
+			    </isNotNull>
+		      </dynamic> 	     
+	</select>
+	
+	<select id="findWechatInboxVoicePrompts" parameterClass="java.util.Map" resultMap="wechatInboxVoicePromptResult">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_start" />
+			</isNotNull>
+		</isPropertyAvailable>
+		select * from wechat_inbox_voice_prompt w where w.orgCode = #wechatInboxVoicePrompt.org.orgInternalCode#
+		<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+		</dynamic>
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_end" />
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	
+	<select id="countFindWechatInboxVoicePrompts" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(1) from wechat_inbox_voice_prompt where orgCode=#wechatInboxVoicePrompt.org.orgInternalCode#
+	</select>
+	
+		<!-- 更新-->
+	<update id="updateWechatInboxVoicePromptById" parameterClass="WechatInboxVoicePrompt">
+	
+		update wechat_inbox_voice_prompt set
+		<dynamic>
+		   id=#id#
+			<isNotNull prepend="," property="org.id">
+				orgId=#org.id#
+			</isNotNull>
+			<isNotNull prepend="," property="toUserName">
+				toUserName=#toUserName#
+			</isNotNull>
+			<isNotNull prepend="," property="voicePromptStatus.id">
+				voicePromptStatus=#voicePromptStatus.id#
+			</isNotNull>
+			<isNotNull prepend="," property="voicePromptStatus.displayName">
+				displayName=#voicePromptStatus.displayName#
+			</isNotNull>
+			<isNotNull prepend="," property="voiceUrl">
+				voiceUrl=#voiceUrl#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+		</dynamic>
+		where id=#id#
+	</update>
+</sqlMap>

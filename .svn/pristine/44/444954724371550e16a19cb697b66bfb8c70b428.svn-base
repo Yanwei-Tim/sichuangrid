@@ -1,0 +1,308 @@
+<%@page import="com.tianque.plugin.account.property.PropertyTypes"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" import="java.util.*,com.tianque.plugin.account.domain.LedgerFeedBack,com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib"%>
+<%@ include file="/includes/baseInclude.jsp"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<%
+	List<LedgerFeedBack> feedbacks = (List) request
+			.getAttribute("feedbacks");
+	if (feedbacks != null && feedbacks.size() > 0) {
+		request.setAttribute("feedback", feedbacks.get(0));
+	}
+%>
+<input disabled type="hidden" id="steadyWorkPeopleInfoSize" value="${fn:length(ledgerSteadyWork.ledgerSteadyWorkPeopleInfos)}" />
+
+<div id="steadyWorkPrint" style="overflow:hidden;overflow-y:auto;">
+	<style>
+	.tablelist{margin-top: 5px;width:96%; border-left:1px solid #CCC; border-top:1px solid #CCC; border-collapse:collapse;background:#fff;}
+	.tablelist td{height:26px;line-height:26px;text-indent:5px;border-right:1px solid #ccc;border-bottom:1px solid #ccc; border-collapse:collapse; word-break:break-all; word-warp:break-word;}
+	.tablelist .btitle{background:#ECF1F8; font:bold 12px/26px ""; padding:0 0 0 5px;}
+	.tablelist .title{width:14%;font:normal 12px/26px ""; color:#000; padding:0 0 0 5px;}
+	.propertyMulSelect{overflow:hidden;}
+	.propertyMulSelect li{float:left;list-style: outside none none;}
+	</style>
+	
+	<table id="issueAccordingPrint" width="100%" border="0" align="center" cellpadding="0" cellspacing="0">
+    	<jsp:include page="${path}/account/difficultPeopleRecord/printPoorPeopleHeadDlg.jsp"/>
+    	
+    	 <table width="96%" border="0" cellpadding="10" cellspacing="0" style="margin:0 0 0 0;text-align:center;border-collapse:collapse;width:96%;" class="tablelist">
+        	<tr class="tr1">
+        		<td id="involvingSteadyType" width="24%" style="text-align: center;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;" colspan=3 rowspan=2>
+        		   <pop:PropertyDictMultiCheckbox name="involvingSteadyType"
+					column="1" readOnly="true"
+					domainName="@com.tianque.plugin.account.property.PropertyTypes@STEADY_RECORD_WORK_INVOLVING_STEADY_TYPE"/>
+        		</td>
+        		
+        		<td width="6%" style="text-align: left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" rowspan=2>姓名</td>
+	            <td width="7%" style="text-align: left;font-Size:10px; height:20px;white-space: nowrap;" rowspan=2 >${ledgerSteadyWork.name}</td>
+	            <td width="6%" style="text-align:left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;">性别</td>
+	            <td id="_gender" width="13%" style="text-align: left;font-Size:10px;height:20px;white-space: nowrap;" ></td>
+	            <td width="8%" style="text-align:left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" >反映群体</br>人数</td>
+	            <td width="9%" style="text-align:left;font-Size:10px; height:20px;white-space: nowrap;">${ledgerSteadyWork.involvingSteadyNum}</td>
+	            <td width="6%" style="text-align:left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" >联系电话</td>
+	            <td width="9%" style="text-align:left;font-Size:10px; height:20px;white-space: nowrap;">${ledgerSteadyWork.mobileNumber}</td>
+        	</tr>
+        	<tr class="tr1">
+        		<td width="8%" style="text-align:left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" >出生年月</td>
+	            <td width="9%" style="text-align:left;font-Size:10px; height:20px;white-space: nowrap;"><s:date name="ledgerSteadyWork.birthDay" format="yyyy-MM-dd" /></td>
+	            <td style="text-align: left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" >住址</td>
+	            <td style="text-align: left;font-Size:10px; height:20px;" colspan="4">${ledgerSteadyWork.permanentAddress}</td>
+        	</tr>
+        	
+        <div id="copyAddFamilyMembersParent">
+        	<tr class="tr1">
+        		<td width="6%" id="ledgerSteadyWorkPeopleInfos" style="text-align: center;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;" rowspan=4>
+        		涉稳</br>人员</br>或涉</br>稳群</br>体代</br>表
+        		</td>
+        		<c:forEach items="${ledgerSteadyWork.ledgerSteadyWorkPeopleInfos}" var="ledgerSteadyWorkPeopleInfos" varStatus="remember">
+        		<c:if test="remember.index > 0"><tr class="tr1" ></c:if>
+        		<td width="6%" id = "membersName" style="text-align: left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" rowspan=4>姓名</td>
+	            <td id = "membersNameValue" style="text-align: left;font-Size:10px; height:20px;" rowspan=4>${ledgerSteadyWorkPeopleInfos.name }</td>
+	            <td style="text-align: left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;">是否党员</td>
+        		<td style="text-align: left;font-Size:10px; height:20px;white-space: nowrap;" >是
+        		<input disabled type="checkbox" name="isPartyMember" value="1" <c:if test="${ledgerSteadyWorkPeopleInfos.partyMember == true}">checked</c:if> disabled/>
+        		否
+        		<input disabled type="checkbox" name="isPartyMember" value="0" <c:if test="${ledgerSteadyWorkPeopleInfos.partyMember == false}">checked</c:if> disabled/>
+        		</td>
+        		<td style="text-align: left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;">性别</td>
+	            <td style="text-align: left;font-Size:10px; height:20px;white-space: nowrap;">
+	                                          男<input disabled type="checkbox" name="members_gender" value="男" <c:if test="${ledgerSteadyWorkPeopleInfos.gender.displayName == '男'}">checked</c:if>>  
+	                                          女<input disabled type="checkbox" name="members_gender" value="女" <c:if test="${ledgerSteadyWorkPeopleInfos.gender.displayName == '女'}">checked</c:if>> 
+	                                          不明<input disabled type="checkbox" name="members_gender" value="不明" <c:if test="${ledgerSteadyWorkPeopleInfos.gender.displayName == '不明'}">checked</c:if> > 
+	            </td>
+	         	<td style="text-align: left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" >联系电话</td>
+	            <td style="text-align: left;font-Size:10px; height:20px;" colspan=3>${ledgerSteadyWorkPeopleInfos.mobileNumber}</td>
+	        </tr>
+        	<tr class="tr1" >
+	            <td style="text-align:left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" >出生年月</td>
+	            <td style="text-align:left;font-Size:10px; height:20px;white-space: nowrap;"><fmt:formatDate value="${ledgerSteadyWorkPeopleInfos.birthDay }" pattern='yyyy-MM-dd'/></td>        		
+	            <td style="text-align: left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" >住址</td>
+	            <td style="text-align: left;font-Size:10px; height:20px;" colspan="5" >${ledgerSteadyWorkPeopleInfos.permanentAddress}</td>
+        	</tr>
+        	<tr class="tr1" >
+        		<td style="text-align: left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" colspan="3">身份证号码</td>
+	            <td style="text-align: left;font-Size:10px; height:20px;" colspan="5" >${ledgerSteadyWorkPeopleInfos.idCardNo}</td>
+        	</tr>
+        	<tr class="tr1" >
+        		<td style="text-align:left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;">&nbsp;&nbsp;职业</br>&nbsp;或身份</td>
+	            <td id="_position" style="text-align:left;font-Size:10px; height:20px;" colspan="7">
+	                                      教师<input disabled type="checkbox" name="position" value="教师" <c:if test="${ledgerSteadyWorkPeopleInfos.position.displayName == '教师'}">checked</c:if>> 医生<input disabled type="checkbox" name="position" value="医生" <c:if test="${ledgerSteadyWorkPeopleInfos.position.displayName == '医生'}">checked</c:if>> 
+	                                      公务人员<input disabled type="checkbox" name="position" value="公务人员" <c:if test="${ledgerSteadyWorkPeopleInfos.position.displayName == '公务人员'}">checked</c:if>>  企业人员 <input disabled type="checkbox" name="position" value="企业人员 " <c:if test="${ledgerSteadyWorkPeopleInfos.position.displayName == '企业人员'}">checked</c:if>>
+	                                      学生<input disabled type="checkbox" name="position" value="学生" <c:if test="${ledgerSteadyWorkPeopleInfos.position.displayName == '学生'}">checked</c:if>>  城镇居民<input disabled type="checkbox" name="position" value="城镇居民" <c:if test="${ledgerSteadyWorkPeopleInfos.position.displayName == '城镇居民'}">checked</c:if>>             
+	    		      在家农民 <input disabled type="checkbox" name="position" value="在家农民" <c:if test="${ledgerSteadyWorkPeopleInfos.position.displayName == '在家农民'}">checked</c:if>>外出农民 <input disabled type="checkbox" name="position" value="外出农民" <c:if test="${ledgerSteadyWorkPeopleInfos.position.displayName == '外出农民'}">checked</c:if>>
+	    		      其他<input disabled type="checkbox" name="position" value="其他" <c:if test="${ledgerSteadyWorkPeopleInfos.position.displayName == '其他'}">checked</c:if>></td>
+        	</tr>
+        	</c:forEach>
+        </div>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" colspan = "2">涉稳事项</br>(描述简洁，文</br>字控制在20字</br>以内)</td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan="7" >${ledgerSteadyWork.involvingSteadyInfo}</td>
+        		 <td width="6%" style="text-align:left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" >涉稳群体</br>人数</td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" >${ledgerSteadyWork.involvingSteadyNum}</td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align:left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" colspan = "2">稳控责任单位</td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">${ledgerSteadyWork.steadyUnit}</td>
+        		 <td style="text-align:left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" >稳控责任人</td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" >${ledgerSteadyWork.steadyUser}</td>
+        		 <td style="text-align:left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;">化解责任部门</td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">${ledgerSteadyWork.resolveUnit}</td>
+             	 <td width="6%" style="text-align:left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;">化解责任</br>人</td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;">${ledgerSteadyWork.resolveUser}</td>   		 
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align:left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" colspan = "2">涉稳类别</td>
+        		 <td style="text-align:center;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" colspan = "9">问题类型</td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">
+        		  涉法涉诉<input disabled type="checkbox" name="steadyWorkType" value="涉法涉诉"></td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">
+        		  社会治安<input disabled type="checkbox" name="steadyWorkProblemType" value="社会治安"> 民事申诉<input disabled type="checkbox" name="steadyWorkProblemType" value="民事申诉"> 刑事申诉<input disabled type="checkbox" name="steadyWorkProblemType" value="刑事申诉">
+        		  行政申诉<input disabled type="checkbox" name="steadyWorkProblemType" value="行政申诉"> 诉讼执行<input disabled type="checkbox" name="steadyWorkProblemType" value="诉讼执行"> 刑事案件侦破<input disabled type="checkbox" name="steadyWorkProblemType" value="刑事案件侦破">
+        		  民事经济纠纷调解<input disabled type="checkbox" name="steadyWorkProblemType" value="民事经济纠纷调解">司法作风<input disabled type="checkbox" name="steadyWorkProblemType" value="司法作风"> 立案<input disabled type="checkbox" name="steadyWorkProblemType" value="立案">其他<input disabled type="checkbox" name="steadyWorkProblemType" value="其他"></td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">
+        		  林水土<input disabled type="checkbox" name="steadyWorkType" value="林水土"></td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">
+        		  土地征用<input disabled type="checkbox" name="steadyWorkProblemType" value="土地征用">土地承包<input disabled type="checkbox" name="steadyWorkProblemType" value="土地承包">土地纠纷<input disabled type="checkbox" name="steadyWorkProblemType" value="土地纠纷">
+        		  水库水电移民<input disabled type="checkbox" name="steadyWorkProblemType" value="水库水电移民">宅基地<input disabled type="checkbox" name="steadyWorkProblemType" value="宅基地">退耕还林<input disabled type="checkbox" name="steadyWorkProblemType" value="退耕还林">
+        		  地质灾害<input disabled type="checkbox" name="steadyWorkProblemType" value="地质灾害">其他<input disabled type="checkbox" name="steadyWorkProblemType" value="其他"></td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">
+        		 惠农政策及村（社区）政务、财务<input disabled type="checkbox" name="steadyWorkType" value="惠农政策及村（社区）政务、财务"></td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">
+        		  村社政务、财务<input disabled type="checkbox" name="steadyWorkProblemType" value="村社政务、财务">集体收入分配<input disabled type="checkbox" name="steadyWorkProblemType" value="集体收入分配">集体工程项目<input disabled type="checkbox" name="steadyWorkProblemType" value="集体工程项目">
+        		  农民负担<input disabled type="checkbox" name="steadyWorkProblemType" value="农民负担">政策性直补<input disabled type="checkbox" name="steadyWorkProblemType" value="政策性直补">危房改造<input disabled type="checkbox" name="steadyWorkProblemType" value="危房改造">
+                                            其他<input disabled type="checkbox" name="steadyWorkProblemType" value="其他"></td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">
+        		  民政问题<input disabled type="checkbox" name="steadyWorkType" value="民政问题"></td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">
+        		  城镇和农村低保<input disabled type="checkbox" name="steadyWorkProblemType" value="城镇和农村低保">复员退伍军人安置<input disabled type="checkbox" name="steadyWorkProblemType" value="复员退伍军人安置">退伍军人<input disabled type="checkbox" name="steadyWorkProblemType" value="退伍军人">
+        		  伤残军人<input disabled type="checkbox" name="steadyWorkProblemType" value="伤残军人">优抚政策<input disabled type="checkbox" name="steadyWorkProblemType" value="优抚政策">村社选举<input disabled type="checkbox" name="steadyWorkProblemType" value="村社选举">
+        		  救灾和灾后安置<input disabled type="checkbox" name="steadyWorkProblemType" value="救灾和灾后安置">特困人员救助<input disabled type="checkbox" name="steadyWorkProblemType" value="特困人员救助">其他<input disabled type="checkbox" name="steadyWorkProblemType" value="其他"></td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">
+        		  人口与医疗卫生<input disabled type="checkbox" name="steadyWorkType" value="人口与医疗卫生"></td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">
+        		  医政管理<input disabled type="checkbox" name="steadyWorkProblemType" value="医政管理">食品管理<input disabled type="checkbox" name="steadyWorkProblemType" value="食品管理">药品管理<input disabled type="checkbox" name="steadyWorkProblemType" value="药品管理">
+        		  医患纠纷<input disabled type="checkbox" name="steadyWorkProblemType" value="医患纠纷">新农合<input disabled type="checkbox" name="steadyWorkProblemType" value="新农合">传染病控制<input disabled type="checkbox" name="steadyWorkProblemType" value="传染病控制">
+        		  计生优抚政策<input disabled type="checkbox" name="steadyWorkProblemType" value="计生优抚政策">再生育审批<input disabled type="checkbox" name="steadyWorkProblemType" value="再生育审批">违法生育处理<input disabled type="checkbox" name="steadyWorkProblemType" value="违法生育处理">其他<input disabled type="checkbox" name="steadyWorkProblemType" value="其他"></td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">
+        		  劳动保障<input disabled type="checkbox" name="steadyWorkType" value="劳动保障"></td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">
+        		  城镇企业职工养老保险<input disabled type="checkbox" name="steadyWorkProblemType" value="城镇企业职工养老保险">城镇居民养老保险<input disabled type="checkbox" name="steadyWorkProblemType" value="城镇居民养老保险">农村居民养老保险<input disabled type="checkbox" name="steadyWorkProblemType" value="农村居民养老保险">
+        		  城镇职工医疗保险<input disabled type="checkbox" name="steadyWorkProblemType" value="城镇职工医疗保险">城镇居民医疗保险<input disabled type="checkbox" name="steadyWorkProblemType" value="城镇居民医疗保险">失业保险<input disabled type="checkbox" name="steadyWorkProblemType" value="失业保险">
+        		  工伤保险<input disabled type="checkbox" name="steadyWorkProblemType" value="工伤保险">生育保险<input disabled type="checkbox" name="steadyWorkProblemType" value="生育保险">就业促进<input disabled type="checkbox" name="steadyWorkProblemType" value="就业促进">
+        		  农民工工资<input disabled type="checkbox" name="steadyWorkProblemType" value="农民工工资">特种行业保护<input disabled type="checkbox" name="steadyWorkProblemType" value="特种行业保护">劳动仲裁<input disabled type="checkbox" name="steadyWorkProblemType" value="劳动仲裁">其他<input disabled type="checkbox" name="steadyWorkProblemType" value="其他"></td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">
+        		  交通运输<input disabled type="checkbox" name="steadyWorkType" value="交通运输"></td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">
+        		  道路运输安全<input disabled type="checkbox" name="steadyWorkProblemType" value="道路运输安全">交通施工<input disabled type="checkbox" name="steadyWorkProblemType" value="交通施工">运政管理<input disabled type="checkbox" name="steadyWorkProblemType" value="运政管理">
+        		  公路收费<input disabled type="checkbox" name="steadyWorkProblemType" value="公路收费">水上安全<input disabled type="checkbox" name="steadyWorkProblemType" value="水上安全">其他<input disabled type="checkbox" name="steadyWorkProblemType" value="其他"></td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">
+        		  城建及综合执法<input disabled type="checkbox" name="steadyWorkType" value="城建及综合执法"></td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">
+        		  征地拆迁<input disabled type="checkbox" name="steadyWorkProblemType" value="征地拆迁">城乡规划及实施<input disabled type="checkbox" name="steadyWorkProblemType" value="城乡规划及实施">房产纠纷<input disabled type="checkbox" name="steadyWorkProblemType" value="房产纠纷">
+        		  工程质量<input disabled type="checkbox" name="steadyWorkProblemType" value="工程质量">城乡环境综合执法<input disabled type="checkbox" name="steadyWorkProblemType" value="城乡环境综合执法">市政建设<input disabled type="checkbox" name="steadyWorkProblemType" value="市政建设">其他<input disabled type="checkbox" name="steadyWorkProblemType" value="其他"></td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">
+        		  党纪政纪<input disabled type="checkbox" name="steadyWorkType" value="党纪政纪"></td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">
+        		  干部作风<input disabled type="checkbox" name="steadyWorkProblemType" value="干部作风">贪污受贿<input disabled type="checkbox" name="steadyWorkProblemType" value="贪污受贿">违法违规<input disabled type="checkbox" name="steadyWorkProblemType" value="违法违规">
+        		  干部处分<input disabled type="checkbox" name="steadyWorkProblemType" value="干部处分">其他<input disabled type="checkbox" name="steadyWorkProblemType" value="其他"></td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">
+        		  教  育<input disabled type="checkbox" name="steadyWorkType" value="教  育"></td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">
+        		  学校及在职教职工管理<input disabled type="checkbox" name="steadyWorkProblemType" value="学校及在职教职工管理">退休教师<input disabled type="checkbox" name="steadyWorkProblemType" value="退休教师">学生安全<input disabled type="checkbox" name="steadyWorkProblemType" value="学生安全">
+        		  教育布局<input disabled type="checkbox" name="steadyWorkProblemType" value="教育布局">民办、代课教师及其他临聘人员<input disabled type="checkbox" name="steadyWorkProblemType" value="民办、代课教师及其他临聘人员">教师待遇<input disabled type="checkbox" name="steadyWorkProblemType" value="教师待遇">
+        		  教育收费<input disabled type="checkbox" name="steadyWorkProblemType" value="教育收费">其他<input disabled type="checkbox" name="steadyWorkProblemType" value="其他"></td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">
+        		  企业改制<input disabled type="checkbox" name="steadyWorkType" value="企业改制"></td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">
+        		  企业破产<input disabled type="checkbox" name="steadyWorkProblemType" value="企业破产">资产清算<input disabled type="checkbox" name="steadyWorkProblemType" value="资产清算">职工安置<input disabled type="checkbox" name="steadyWorkProblemType" value="职工安置">其他<input disabled type="checkbox" name="steadyWorkProblemType" value="其他"></td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">
+        		  环境保护<input disabled type="checkbox" name="steadyWorkType" value="环境保护"></td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">
+        		  水、空气、噪音污染<input disabled type="checkbox" name="steadyWorkProblemType" value="水、空气、噪音污染">污染物排放<input disabled type="checkbox" name="steadyWorkProblemType" value="污染物排放">其他<input disabled type="checkbox" name="steadyWorkProblemType" value="其他"></td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">
+        		  组织人事<input disabled type="checkbox" name="steadyWorkType" value="组织人事"></td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">
+        		  离退休人员待遇<input disabled type="checkbox" name="steadyWorkProblemType" value="离退休人员待遇">工资福利待遇<input disabled type="checkbox" name="steadyWorkProblemType" value="工资福利待遇">干部身份<input disabled type="checkbox" name="steadyWorkProblemType" value="干部身份">
+        		  军转干部<input disabled type="checkbox" name="steadyWorkProblemType" value="军转干部">提拔任用<input disabled type="checkbox" name="steadyWorkProblemType" value="提拔任用">临聘人员<input disabled type="checkbox" name="steadyWorkProblemType" value="临聘人员">
+        		  机构改革<input disabled type="checkbox" name="steadyWorkProblemType" value="机构改革">其他<input disabled type="checkbox" name="steadyWorkProblemType" value="其他"></td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">
+        		  其他类<input disabled type="checkbox" name="steadyWorkType" value="其他类"></td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">
+        		  精简下放<input disabled type="checkbox" name="steadyWorkProblemType" value="精简下放">公私合营<input disabled type="checkbox" name="steadyWorkProblemType" value="公私合营">经租房<input disabled type="checkbox" name="steadyWorkProblemType" value="经租房">
+        		  乡镇债务<input disabled type="checkbox" name="steadyWorkProblemType" value="乡镇债务">民间纠纷<input disabled type="checkbox" name="steadyWorkProblemType" value="民间纠纷">其他<input disabled type="checkbox" name="steadyWorkProblemType" value="其他"></td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">
+        		  重点人员<input disabled type="checkbox" name="steadyWorkType" value="重点人员"></td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">
+        		  社区矫正人员<input disabled type="checkbox" name="steadyWorkProblemType" value="社区矫正人员">易肇事肇祸精神病人<input disabled type="checkbox" name="steadyWorkProblemType" value="易肇事肇祸精神病人">重点青少年或群体<input disabled type="checkbox" name="steadyWorkProblemType" value="重点青少年或群体">
+        		  吸毒人员<input disabled type="checkbox" name="steadyWorkProblemType" value="吸毒人员">吞食异物违法犯罪嫌疑人员<input disabled type="checkbox" name="steadyWorkProblemType" value="吞食异物违法犯罪嫌疑人员">邪教及其他组织人员<input disabled type="checkbox" name="steadyWorkProblemType" value="邪教及其他组织人员">其他应重点监管人员<input disabled type="checkbox" name="steadyWorkProblemType" value="其他应重点监管人员"></td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2">
+        		  其  他<input disabled type="checkbox" name="steadyWorkType" value="其  他"></td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">详情：</td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align:left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" colspan = "2">涉稳人员或</br>群体稳定现状</td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "9">${ledgerSteadyWork.steadyInfo}</td>
+        	</tr>
+        	<tr class="tr1">
+        		 <td style="text-align:left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" colspan = "2">服务联系人</td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2"></td>
+        		 <td style="text-align:left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" >单位及职务</td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "3"></td>
+        		 <td style="text-align:left;font-Size:16px; font-family:'黑体';height:20px;font-weight:750;white-space: nowrap;" >联系电话</td>
+        		 <td style="text-align: left;font-Size:10px; height:20px;" colspan = "2"></td>
+        	</tr>
+        	
+    </table>
+       
+      <jsp:include page="${path}/account/peopleAspiration/printWorkLogDlg.jsp"/>
+    
+</table>
+</div>
+<%
+    String involvingSteadyType = PropertyTypes.STEADY_RECORD_WORK_INVOLVING_STEADY_TYPE;
+    String genderType = PropertyTypes.GENDER;
+%>
+
+<script type="text/javascript">
+var createType='${ledgerSteadyWork.createTableType.displayName}';
+var gender='${ledgerSteadyWork.gender.id}';
+var steadyWorkType = '${ledgerSteadyWork.steadyWorkType.displayName}';
+var steadyWorkProblemType = '${ledgerSteadyWork.steadyWorkProblemType.displayName}';
+var involvingSteadyType = '${ledgerSteadyWork.involvingSteadyType.id}';
+
+
+var involvingSteadyTypeConstant = "<%=involvingSteadyType %>";
+var genderTypeConstant = "<%=genderType %>";
+
+
+$(document).ready(function(){
+	initTitleShowValue("中江县稳定信息登记卡");
+//	appendInputCheckbox(involvingSteadyTypeConstant, "involvingSteadyType", "#involvingSteadyType",0,"disabled");
+	appendInputCheckbox(genderTypeConstant, "gender", "#_gender",0,"disabled");
+   $("input[name='createType']").each(function(){
+        if($(this).val() == createType) 
+           $(this).attr('checked',"checked");
+   });
+   $("input[name='gender']").each(function(){
+        if($(this).val() == gender) 
+           $(this).attr('checked',"checked");
+   }); 
+   $("input[name='steadyWorkType']").each(function(){
+       if($(this).val() == steadyWorkType) 
+          $(this).attr('checked',"checked");
+  }); 
+   $("input[name='steadyWorkProblemType']").each(function(){
+       if($(this).val() == steadyWorkProblemType) 
+          $(this).attr('checked',"checked");
+  }); 
+   $("input[name='involvingSteadyType']").each(function(){
+       if($(this).val() == involvingSteadyType) 
+          $(this).attr('checked',"checked");
+  }); 
+ 
+   var steadyWorkPeopleInfoSize =  $("#steadyWorkPeopleInfoSize").val();
+   if(null != steadyWorkPeopleInfoSize && steadyWorkPeopleInfoSize >= 1){
+	 var rowspan = parseInt($("#ledgerSteadyWorkPeopleInfos").attr("rowspan")) * steadyWorkPeopleInfoSize ;
+	 $("#ledgerSteadyWorkPeopleInfos").attr("rowspan", rowspan);
+   }
+   $("#intoOtherParameter").empty();
+   $("#intoOtherParameter").append("民生工作台账 </br>困难群众工作台账 </br>");
+});
+
+</script>
+

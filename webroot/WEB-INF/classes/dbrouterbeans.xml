@@ -1,0 +1,15 @@
+<beans>
+	<bean id="routerManager" name="routerManager" scope="singleton"
+		class="com.tianque.dbrouter.impl.RouterManagerImpl">
+		<property name="balance">
+			<ref id="shardBalanceDefault" />
+		</property>
+		<property name="statementProcessorList">
+			<list>
+				<ref id="sqlProcessorFunction" />
+			</list>
+		</property>
+	</bean>
+	<bean id="shardBalanceDefault" scope="singleton" class="com.tianque.dbrouter.balance.ShardBalanceDefault" />
+	<bean id="sqlProcessorFunction" scope="singleton" class="com.tianque.dbrouterjdbc4.sqlprocessor.SqlProcessorFunction" />
+</beans>

@@ -1,0 +1,190 @@
+package com.tianque.controller;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLDecoder;
+import java.util.Calendar;
+import java.util.Date;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.companyPlace.constacts.ModulTypes;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.util.FileUtil;
+import com.tianque.core.util.GridProperties;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.customLog.CustomLoggerFactory;
+import com.tianque.customLog.domain.CustomLogger;
+import com.tianque.logger.constant.CustomLoggerTypes;
+import com.tianque.logger.domain.RecordFileUpload;
+import com.tianque.sysAttachment.domain.SysAttachment;
+import com.tianque.sysAttachment.service.SysAttachmentService;
+import com.tianque.util.FileContentType;
+
+@Controller("enclosureController")
+@Scope("request")
+@Transactional
+public class EnclosureController extends BaseAction {
+
+	private static final CustomLogger customLogger = CustomLoggerFactory
+			.getCustomLogger(EnclosureController.class);
+	private File uploadFile;
+	private String uploadFileFileName;
+	private String targetType;
+	private Long targetId;
+
+	@Autowired
+	private SysAttachmentService sysAttachmentService;
+
+	public String enclosureUpload() throws Exception {
+		long start = System.currentTimeMillis();
+		InputStream inputStream = new FileInputStream(uploadFile);
+		File upLoadFile = null;
+		if (StringUtils.isNotBlank(targetType)
+				&& (targetType.equals(ModulTypes.SAFETYPRODUCTIONKEY_KEY)
+						|| targetType.equals(ModulTypes.FIRESAFETYKEY_KEY)
+						|| targetType.equals(ModulTypes.SECURITYKEY_KEY) || targetType
+							.equals(ModulTypes.POLLUTIONSOURCE_KEY))) {
+			String storedFileName = createStoreFileName(uploadFileFileName);
+			copyFile(inputStream, storedFileName);
+			upLoadFile = new File(FileUtil.getWebRoot() + File.separator
+					+ GridProperties.TMP + File.separator
+					+ ThreadVariable.getUser().getId() + File.separator
+					+ storedFileName);
+			addSysAttachment(storedFileName, uploadFileFileName, upLoadFile);
+		} else {
+			copyFile(inputStream, uploadFileFileName);
+			upLoadFile = new File(FileUtil.getWebRoot() + File.separator
+					+ GridProperties.TMP + File.separator
+					+ ThreadVariable.getUser().getId() + File.separator
+					+ uploadFileFileName);
+		}
+		if (!FileContentType.upLoadFileVerification(upLoadFile)) {
+			upLoadFile.delete();
+			return ERROR;
+		}
+		long processTime = System.currentTimeMillis() - start;
+		customLogger.log(buildLogDomain(upLoadFile, processTime));
+		return SUCCESS;
+	}
+
+	private RecordFileUpload buildLogDomain(File upLoadFile, long processTime) {
+		RecordFileUpload recordFileUpload = new RecordFileUpload();
+		recordFileUpload.setFileSize(upLoadFile.length());
+		recordFileUpload.setFileType(uploadFileFileName
+				.substring(uploadFileFileName.lastIndexOf('.') + 1));
+		recordFileUpload.setLogType(CustomLoggerTypes.RECORD_FILE_UPLOAD);
+		recordFileUpload.setOpreateDate(CalendarUtil.format(
+				"yyyy-MM-dd HH:mm:ss", new Date()));
+		recordFileUpload.setOpreateOrgName(ThreadVariable.getOrganization()
+				.getOrgName());
+		recordFileUpload.setOpreateUser(ThreadVariable.getUser().getUserName());
+		recordFileUpload.setProcessTime(processTime);
+		return recordFileUpload;
+	}
+
+	private void copyFile(InputStream inputStream, String fileName)
+			throws Exception, FileNotFoundException, IOException {
+		File file = FileUtil.createTmpStoreFile(fileName);
+		FileOutputStream fileOutputStream = new FileOutputStream(file);
+		IOUtils.copy(inputStream, fileOutputStream);
+		fileOutputStream.close();
+		inputStream.close();
+	}
+
+	/**
+	 * 
+	 * @Title: enclosureUploadForMobile
+	 * @Description: TODO为手机端提取上传中文名附件方法
+	 * @param @return 设定文件
+	 * @return String 返回类型
+	 * @author wanggz
+	 * @date 2014-7-10 下午04:43:51
+	 */
+	public String enclosureUploadForMobile() throws Exception {
+		if (uploadFileFileName != null && !"".equals(uploadFileFileName)) {
+			uploadFileFileName = URLDecoder.decode(uploadFileFileName, "UTF-8");
+		}
+		InputStream inputStream = new FileInputStream(uploadFile);
+		copyFile(inputStream, uploadFileFileName);
+		File upLoadFile = new File(FileUtil.getWebRoot() + File.separator
+				+ GridProperties.TMP + File.separator
+				+ ThreadVariable.getUser().getId() + File.separator
+				+ uploadFileFileName);
+		if (!FileContentType.upLoadFileVerification(upLoadFile)) {
+			upLoadFile.delete();
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	public static String createStoreFileName(String fileName) {
+		String storedFileName = new StringBuffer()
+				.append(Calendar.getInstance().get(Calendar.HOUR_OF_DAY))
+				.append(Calendar.getInstance().get(Calendar.MINUTE))
+				.append(Calendar.getInstance().get(Calendar.SECOND))
+				.append(Calendar.getInstance().get(Calendar.MILLISECOND))
+				.append((int) (Math.random() * 1000))
+				.append(getFileSuffix(fileName)).toString();
+		return storedFileName;
+	}
+
+	private static String getFileSuffix(String uploadFileName) {
+		return uploadFileName.substring(uploadFileName.lastIndexOf("."));
+	}
+
+	private SysAttachment addSysAttachment(String storedFileName,
+			String uploadFileFileName, File upLoadFile) throws Exception,
+			FileNotFoundException, IOException {
+		SysAttachment sysAttachment = new SysAttachment();
+		sysAttachment.setFileName(storedFileName);
+		sysAttachment.setFilePath(upLoadFile.getPath());
+		sysAttachment.setRealName(uploadFileFileName);
+		sysAttachment.setTargetType(targetType);
+		sysAttachment.setTragetId(targetId);
+		Long id = sysAttachmentService.addSysAttachment(sysAttachment);
+		return sysAttachmentService.getSysAttachment(id);
+	}
+
+	public File getUploadFile() {
+		return uploadFile;
+	}
+
+	public void setUploadFile(File uploadFile) {
+		this.uploadFile = uploadFile;
+	}
+
+	public String getUploadFileFileName() {
+		return uploadFileFileName;
+	}
+
+	public void setUploadFileFileName(String uploadFileFileName) {
+		this.uploadFileFileName = uploadFileFileName;
+	}
+
+	public String getTargetType() {
+		return targetType;
+	}
+
+	public void setTargetType(String targetType) {
+		this.targetType = targetType;
+	}
+
+	public Long getTargetId() {
+		return targetId;
+	}
+
+	public void setTargetId(Long targetId) {
+		this.targetId = targetId;
+	}
+}

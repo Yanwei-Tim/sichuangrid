@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="keyAreasOfInvestigationInfo">
+	<typeAlias alias="KeyAreasOfInvestigationInfo" type="com.tianque.domain.KeyAreasOfInvestigationInfo" />
+	<typeAlias alias="KeyAreasOfInvestigationInfoVo" type="com.tianque.domain.vo.KeyAreasOfInvestigationInfoVo" />
+	<parameterMap id="keyAreasOfInvestigationInfoParams" class="KeyAreasOfInvestigationInfo">
+		<parameter property="id"/>
+		<parameter property="createDate" />
+		<parameter property="createUser" />
+		<parameter property="updateDate" />
+		<parameter property="updateUser" />
+		<parameter property="organization"/>
+		<parameter property="orgInternalCode"/>
+		<parameter property="investigationOrg"/>
+		<parameter property="fromKeyAreasOfInvestigationInfo"/>
+		<parameter property="dailyDirectory"/>
+		<parameter property="areaName"/>
+		<parameter property="mainProblem"/>
+		<parameter property="policiesAndMeasures"/>
+		<parameter property="warningOrListing"/>
+		<parameter property="remark"/>
+		<parameter property="status"/>
+		<parameter property="investigationDate"/>
+		<parameter property="reportedDate"/>
+	</parameterMap>
+	<resultMap id="keyAreasOfInvestigationInfoResult" class="KeyAreasOfInvestigationInfo">
+		<result property="id" column="id"/>
+		<result property="dailyDirectory.id" column="directoryId"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="investigationOrg.id" column="investigationOrgId"/>
+		<result property="fromKeyAreasOfInvestigationInfo.id" column="fromId"/>
+		<result property="areaName" column="areaName"/>
+		<result property="mainProblem" column="mainProblem"/>
+		<result property="policiesAndMeasures" column="policiesAndMeasures"/>
+		<result property="warningOrListing" column="warningOrListing"/>
+		<result property="remark" column="remark"/>
+		<result property="status" column="status"/>
+		<result property="subOrgid" column="subOrgid"/>
+		<result property="investigationDate" column="investigationDate"/>
+		<result property="reportedDate" column="reportedDate"/>
+		<result column="expiredEntering" property="expiredEntering" />
+	</resultMap>
+
+	<insert id="addKeyAreasOfInvestigationInfo" parameterClass="KeyAreasOfInvestigationInfo">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_keyAreasOfInvestigationInfos.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into keyAreasOfInvestigationInfos
+		(id, warningOrListing, directoryId, createDate, createUser, updateDate, updateUser, fromId, orgId, orgInternalCode, investigationOrgId, areaName,
+			mainProblem, policiesAndMeasures, remark, status, investigationDate, reportedDate,suborgid,expiredEntering)
+		values
+		(#id#, #warningOrListing#, #dailyDirectory.id#, #createDate#, #createUser#, #updateDate#, #updateUser#, #fromKeyAreasOfInvestigationInfo.id#,
+			#organization.id#, #orgInternalCode#, #investigationOrg.id#,#areaName#,
+			#mainProblem#, #policiesAndMeasures#, #remark#, #status#, #investigationDate#, #reportedDate#,#subOrgid#,#expiredEntering#)
+	</insert>
+
+	<select id="getKeyAreasOfInvestigationInfosById" parameterClass="java.lang.Long" resultMap="keyAreasOfInvestigationInfoResult">
+		select * from keyAreasOfInvestigationInfos where id = #value#
+	</select>
+		<select id="countKeyAreasOfInvestigationInfosByInvestigationDate" parameterClass="KeyAreasOfInvestigationInfoVo" resultClass="java.lang.Integer">
+		select count(1) from keyAreasOfInvestigationInfos t
+		 <dynamic prepend="where">
+		 	orgid=#organization.id# and directoryid=#dailyDirectory.id#
+			<isNotNull property="investigationMinDate" >
+				<![CDATA[ and to_char(t.investigationDate,'yyyy-mm-dd')>= #investigationMinDate#]]>
+			</isNotNull>
+			<isNotNull property="investigationMaxDate">
+				<![CDATA[ and to_char(t.investigationDate,'yyyy-mm-dd') <= #investigationMaxDate#]]>
+			</isNotNull>
+		</dynamic>
+	</select>
+	<select id="getKeyAreasOfInvestigationInfosByInvestigationDate" parameterClass="KeyAreasOfInvestigationInfoVo" resultMap="keyAreasOfInvestigationInfoResult">
+		select * from keyAreasOfInvestigationInfos t
+	 <dynamic prepend="where">
+		 	orgid=#organization.id# and directoryid=#dailyDirectory.id#
+			<isNotNull property="investigationMinDate" >
+				<![CDATA[ and to_char(t.investigationDate,'yyyy-mm-dd')>= #investigationMinDate#]]>
+			</isNotNull>
+			<isNotNull property="investigationMaxDate">
+				<![CDATA[ and to_char(t.investigationDate,'yyyy-mm-dd') <= #investigationMaxDate#]]>
+			</isNotNull>
+		</dynamic>
+	</select>
+	<sql id="sql_where">
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="directoryId">
+				<isNotNull property="directoryId" prepend=" and ">
+					directoryId in ( $directoryId$)
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<sql id="sql_where_directoryParentId">
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="directoryId">
+				<isNotNull property="directoryId" prepend=" and ">
+					directoryid in (select id from dailydirectorys d where d.parentid = #directoryId#)
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="countKeyAreasOfInvestigationInfos" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from keyAreasOfInvestigationInfos
+		<include refid="sql_where"/>
+	</select>
+	
+	<select id="countKeyAreasOfInvestigationInfoById" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from keyAreasOfInvestigationInfos
+		where orgId = #orgId#
+		and directoryid = #id#
+	</select>
+
+	<select id="findKeyAreasOfInvestigationInfos" parameterClass="map" resultMap="keyAreasOfInvestigationInfoResult">
+		select * from keyAreasOfInvestigationInfos
+		<include refid="sql_where"/>
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countKeyAreasOfInvestigationInfosByOrgIdAndDirectoryParentId" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from keyAreasOfInvestigationInfos
+		<include refid="sql_where_directoryParentId"/>
+	</select>
+
+	<select id="findKeyAreasOfInvestigationInfosByOrgIdAndDirectoryParentId" parameterClass="map" resultMap="keyAreasOfInvestigationInfoResult">
+		select * from keyAreasOfInvestigationInfos
+		<include refid="sql_where_directoryParentId"/>
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<delete id="deleteKeyAreasOfInvestigationInfoById" parameterClass="java.lang.Long">
+		delete keyAreasOfInvestigationInfos where id = #value#
+	</delete>
+
+	<update id="updateKeyAreasOfInvestigationInfo" parameterClass="KeyAreasOfInvestigationInfo">
+		update keyAreasOfInvestigationInfos set
+			mainProblem = #mainProblem#,warningOrListing = #warningOrListing#,
+			policiesAndMeasures = #policiesAndMeasures#,
+			remark = #remark#, areaName = #areaName#,
+			investigationDate = #investigationDate#
+		where id = #id#
+	</update>
+
+	<update id="updateKeyAreasOfInvestigationInfoForStautsAndReportTimeById" parameterClass="map">
+		update keyAreasOfInvestigationInfos set
+			status = #status#
+			<isPropertyAvailable property="reportedDate" >
+				<isNotNull property="reportedDate" prepend=" , ">
+					reportedDate = #reportedDate#
+				</isNotNull>
+				<isNull property="reportedDate" prepend=" , ">
+					reportedDate = null
+				</isNull>
+				<isNotNull property="expiredEntering" prepend=" , ">
+					expiredEntering = #expiredEntering#
+				</isNotNull>
+			</isPropertyAvailable>
+		where id = #id#
+	</update>
+	<select id="findKeyAreasOfInvestigationInfosForPrint" parameterClass="map" resultMap="keyAreasOfInvestigationInfoResult">
+		select * from keyAreasOfInvestigationInfos
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="keyAreasOfInvestigationInfoIds">
+				<isNotNull property="keyAreasOfInvestigationInfoIds" prepend=" and ">
+					id in ( $keyAreasOfInvestigationInfoIds$)
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<sql id="searchSQL_where">
+		from keyAreasOfInvestigationInfos where orgid = #orgId#
+		<dynamic>
+			<isPropertyAvailable property="areaName">
+				<isNotEmpty property="areaName" prepend=" and ">
+					areaName like '$areaName$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgIdsList">
+				<isNotEmpty property="orgIdsList">
+					<iterate prepend=" and "  property="orgIdsList" conjunction="or" open="(" close=")">
+						investigationorgid in ($orgIdsList[]$)
+					</iterate>
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					directoryid in($dailyDirectoryId$)
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="investigationMinDate">
+				<isNotNull property="investigationMinDate" prepend=" and ">
+					investigationDate <![CDATA[>=]]>
+					#investigationMinDate#
+				</isNotNull>
+
+			</isPropertyAvailable>
+				<isPropertyAvailable property="investigationMaxDate">
+				<isNotNull property="investigationMaxDate" prepend=" and ">
+					investigationDate <![CDATA[<=]]>
+					#investigationMaxDate#
+				</isNotNull>
+
+			</isPropertyAvailable>
+			<isPropertyAvailable property="policiesAndMeasures">
+				<isNotEmpty property="policiesAndMeasures" prepend=" and ">
+					policiesAndMeasures like '$policiesAndMeasures$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="remark">
+				<isNotEmpty property="remark" prepend=" and ">
+					remark like '$remark$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="warningOrListing">
+				<isNotEmpty property="warningOrListing" prepend=" and ">
+					warningOrListing like '$warningOrListing$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mainProblem">
+				<isNotEmpty property="mainProblem" prepend=" and ">
+					mainProblem like
+					'$mainProblem$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="searchKeyAreasOfInvestigationInfoWorkingRecordByDate" parameterClass="java.util.Map"
+		resultMap="keyAreasOfInvestigationInfo.keyAreasOfInvestigationInfoResult">
+		<include refid="common.sql_select" />
+		<include refid="searchSQL_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countSearchKeyAreasOfInvestigationInfoWorkingRecord" parameterClass="map" resultClass="int">
+		<include refid="common.sql_count" />
+		<include refid="searchSQL_where"/>
+	</select>
+	
+</sqlMap>

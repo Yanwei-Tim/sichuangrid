@@ -1,0 +1,210 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" import="java.util.*,com.tianque.core.util.GridProperties" pageEncoding="utf-8"%>
+<%@taglib prefix="s" uri="/struts-tags" %>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%
+String path2 = request.getContextPath();
+String proxyIp = GridProperties.PROXY_SERVER_DOMAIN_NAME;
+String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path2+"/";
+String orgId = (String)request.getAttribute("orgId");
+String weChatUserId = (String)request.getAttribute("weChatUserId");
+String openId = (String)request.getAttribute("openId");
+%>
+<html>
+
+   <head>
+        <title>消息报送>发现流动人口</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="<%=proxyIp%>/resource/weChat/weui.min.css" media="all" rel="stylesheet"/>
+		<script type="text/javascript" src="<%=proxyIp%>/resource/desktop/js/jquery.js"></script>
+    <style>
+    .page_title {
+			text-align: center;
+			font-size: 34px;
+			color: #225FBA;
+			font-weight: 400;
+			margin: 0 15%;
+		}
+    </style>     
+    </head>
+
+    <body>
+        <div class="page cell">
+            <h1 class="page_title" style="color:black">发现流动人口报送</h1>
+            <input id="proxyIp"  type="hidden" value="<%=proxyIp%>" />
+            <!--  消息类型 -->
+            <input id="inboxType" name="preciseInbox.inboxType"  type="hidden" value="0" />
+            <input id="orgId" name="preciseInbox.org.id"  type="hidden" value="<%=orgId%>" />
+            <input id="toUserName" name="preciseInbox.toUserName"  type="hidden" value="<%=weChatUserId%>" />
+            <input id="openId"  type="hidden" value="<%=openId%>" />
+            <form id = "floatingPopulation" action="<%=proxyIp%>/weChat/preciseInbox/addPreciseInbox.action" method="post">
+            <div class="weui_cells weui_cells_form">
+            
+            <div class="weui_cell">
+               <div class="weui_cell_hd"><label style="color:red;">*</label><span style="color:black;">填报人姓名:</span></div>
+               <div class="weui_cell_bd weui_cell_primary">
+                      <input class="weui_input" id="reportPeopleName" name="preciseInbox.reportPeopleName" placeholder="请输入姓名" value="${redCuffTeam.memeberName}" oninvalid="这是必填选项">
+               </div>
+             </div>
+            <div class="weui_cell">
+               <div class="weui_cell_hd"><label style="color:red;">*</label><span style="color:black;">手机号码:</span></div>
+               <div class="weui_cell_bd weui_cell_primary">
+                   <input class="weui_input" id="reportPeoplePhoneNumber" name="preciseInbox.reportPeoplePhoneNumber" value="${redCuffTeam.phoneNumber}" type="number" placeholder="请输入手机号码">
+               </div>
+            </div>
+      
+            <div class="weui_cells_title"><label style="color:red;">*</label><span style="color:black;">发生地点:</span></div>
+            <div class="weui_cells weui_cells_form">
+                <div class="weui_cell">
+                    <div class="weui_cell_bd weui_cell_primary">
+                        <textarea class="weui_textarea" id="occurLocation" name="preciseInbox.occurLocation" placeholder="请输入发生地点" oninvalid="这是必填选项" ></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="weui_cells_title"><label style="color:red;">*</label><span style="color:black;">简介:</span></div>
+            <div class="weui_cells weui_cells_form">
+                <div class="weui_cell">
+                    <div class="weui_cell_bd weui_cell_primary">
+                        <textarea class="weui_textarea"  id="profile" name="preciseInbox.profile" placeholder="请输入简介" oninvalid="这是必填选项" ></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="weui_cell">  
+                 <div class="weui_cell_hd"><label class="weui_label">验证码</label></div>
+                 <div class="weui_cell_bd weui_cell_primary">
+                      <input id="verificationCode" class="weui_input" type="text" placeholder="请输入验证码">
+                 </div>
+                 <div class="weui_cell_hd weui_cell_primary" >
+                      <div style="width:3em;color:red;font-style:italic;font-size:20px;background-color:#99ff99;"  id="code" onclick="createCodeClick()"></div>
+                 </div>                                   
+            </div>
+
+                <button type="button" id="submitForm" class="weui_btn weui_btn_primary">提交</button>
+                </div>
+            </form>
+        </div> 
+        <script type="text/javascript">
+        var multipleClicks=true;
+        var code;
+    	$(function(){
+    		createCodeClick();
+    		$("#submitForm").click(function(){
+    		if(multipleClicks){
+    			multipleClicks=false;
+  			var orgId = $('#orgId').val();
+  			var toUserName = $('#toUserName').val();
+  			var inboxType = $('#inboxType').val();
+  			var reportPeopleName = $('#reportPeopleName').val();
+  			var reportPeoplePhoneNumber = $('#reportPeoplePhoneNumber').val();
+  			var occurLocation = $('#occurLocation').val();
+  			var profile = $('#profile').val();
+  			var openId = $('#openId').val();//用户openId
+  			
+  			if(openId.length==0){
+            	alert("获取openId失败!");
+           	    multipleClicks=true;
+           	 return;
+  			}else if(orgId.length==0){
+            	alert("未获取打组织ID,请重新进入该界面!");
+            	 multipleClicks=true;
+            	 return;
+            }else if(toUserName.length==0){
+            	alert("未获取微信号,请重新进入该界面!");
+            	 multipleClicks=true;
+            	 return;
+            }else if(inboxType.length==0){
+            	alert("未获取消息类型,请重新进入该界面!");
+            	 multipleClicks=true;
+            	 return;
+            }else if(reportPeopleName.length==0){
+        		   alert("姓名不能为空");
+        		   multipleClicks=true;
+        		   return;
+        	}else if(reportPeoplePhoneNumber.length==0||reportPeoplePhoneNumber.length<11||reportPeoplePhoneNumber.length>11){
+        		if(reportPeoplePhoneNumber.length==0){
+        			alert("电话号码不能为空");
+        			multipleClicks=true;
+        			return;
+        		}else if(reportPeoplePhoneNumber.length<11||reportPeoplePhoneNumber.length>11){
+        			alert("手机号码必选为11位数字");
+        			 multipleClicks=true;
+        			 return;
+        		}	
+        	}else if(occurLocation.length==0){
+        		alert("发生地点不能为空");
+        		 multipleClicks=true;
+        		 return;
+        	}else if(profile.length==0){
+        		alert("简介不能为空");
+        		 multipleClicks=true;
+        		 return;
+        	}else{
+        		
+        		//验证码判断
+        		 var inputCode = $("#verificationCode").val().toUpperCase(); //取得输入的验证码并转化为大写 
+    	   
+    	         if(inputCode.length <= 0) { //若输入的验证码长度为0  
+    	            alert("请输入验证码!"); //则弹出请输入验证码  
+    	            multipleClicks=true;
+    			    return;
+    	         }else if(inputCode != code ) { //若输入的验证码与产生的验证码不一致时  
+    	            alert("验证码输入错误!"); //则弹出验证码输入错误  
+    	            createCodeClick();//刷新验证码  
+    	            $("#verificationCode").val() = "";//清空文本框  
+    	            multipleClicks=true;
+    			    return;
+    	         }         
+  			  var dataList = "preciseInbox.org.id="+orgId+
+			  "&preciseInbox.toUserName="+toUserName+
+			  "&preciseInbox.inboxType="+inboxType+
+			  "&preciseInbox.reportPeopleName="+reportPeopleName+
+			  "&preciseInbox.reportPeoplePhoneNumber="+reportPeoplePhoneNumber+
+			  "&preciseInbox.occurLocation="+occurLocation+
+			  "&preciseInbox.profile="+profile+
+			  "&openId="+openId;		
+        	  url=$("#proxyIp").val()+"/weChat/preciseInbox/addPreciseInbox.action";
+        	  
+            	$.ajax({
+            		  type:'post',
+            		  url:url,
+            		  async:false,
+            		  data:dataList,
+            		  dataType:'json',
+            		   success:function(data){
+            			   if (data ==true||data=="true") {
+            				   reset();
+            				   createCodeClick();
+            				   alert("恭喜你!消息上报成功，如果是有效消息将产生服务单号并反馈给您，可以根据服务单号事件跟踪进度。");            				   
+            				   multipleClicks=true;
+            			   }else{
+            				   reset();
+            				   createCodeClick();
+            				   alert(data)
+            				   multipleClicks=true;
+            			   }
+            		  }
+            	  });
+        	}
+    		}
+  	      });
+  		
+        });
+        function reset(){
+        	document.getElementById("floatingPopulation").reset();
+        }
+        
+    	function createCodeClick(){ 
+    		code = "";
+    	     var codeLength = 4;//验证码的长度  
+    	     var random = new Array(0,1,2,3,4,5,6,7,8,9);//随机数  
+    	     for(var i = 0; i < codeLength; i++) {//循环操作  
+    	        var index = Math.floor(Math.random()*10);//取得随机数的索引（0~35）  
+    	        code += random[index];//根据索引取得随机数加到code上  
+    	    }  
+    	     $("#code").text(code);//把code值赋给验证码  
+    	}
+    	
+        </script>
+    </body>
+</html>

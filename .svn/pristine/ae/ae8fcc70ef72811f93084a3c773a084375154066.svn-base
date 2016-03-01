@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="dangerousChemicalsUnitTemp">
+	<typeAlias alias="DangerousChemicalsUnitTemp" type="com.tianque.plugin.dataManage.location.dangerousChemicalsUnitTemp.domain.DangerousChemicalsUnitTemp" />
+	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+	
+	<resultMap id="dangerousChemicalsUnitTempResultForBase" class="DangerousChemicalsUnitTemp" extends="locationTempBaseDomain.placeCommonTempResultForBase">
+		<result property="telephone" column="telephone"/>
+		<result property="unitType" column="unitType"/>
+		<result property="commodityType" column="commodityType"/>
+		<result property="copyScope" column="copyScope"/>
+		<result property="storageDevice" column="storageDevice"/>
+	</resultMap>
+
+    <resultMap id="dangerousChemicalsUnitTempResultForList" class="DangerousChemicalsUnitTemp" extends="dangerousChemicalsUnitTemp.dangerousChemicalsUnitTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<sql id="claim_sql_where">
+		from DM_dangeCUnit_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	<sql id="updateBusinessSql">
+		telephone = #telephone#
+		,unitType = #unitType#
+		,commodityType = #commodityType#
+		,copyScope = #copyScope#
+		,storageDevice = #storageDevice#
+		,attentionExtent=#attentionExtent.id#
+	</sql>
+	<insert id="addDangerousChemicalsUnitTemp" parameterClass="DangerousChemicalsUnitTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_dangeCUnit_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_dangeCUnit_Temp
+		(id,orgId,orgInternalCode,Name,Address,manager,telephone,unitType,commodityType,copyScope,
+		storageDevice,attentionExtent,remark,createDate,createUser,
+		<include refid="dataManage.addDataManage"/>
+		)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#name#,#address#,#manager#,#telephone#,#unitType#,
+		#commodityType#,#copyScope#,#storageDevice#,#attentionExtent.id#,#remark#,#createDate#,#createUser#,
+		<include refid="dataManage.addValueDataManage"/>
+		)
+    </insert>
+    
+    <select id="findTempPageList" resultMap="dangerousChemicalsUnitTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="getDangerousChemicalsUnitTempById" parameterClass="long" resultMap="dangerousChemicalsUnitTempResultForList">
+		select * from DM_dangeCUnit_Temp where id=#value#
+	</select>
+	 <update id="updateDangerousChemicalsUnitTempInIdById"  parameterClass="java.util.Map">
+		update DM_dangeCUnit_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<update id="updateDangerousChemicalsUnitTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_dangeCUnit_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	
+	<update id="updateDangerousChemicalsUnitTemp" parameterClass="DangerousChemicalsUnitTemp">
+		update DM_dangeCUnit_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="dangerousChemicalsUnitTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+
+<!-- 新写内容 -->
+	<select id="countFindTemps" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	<select id="findTemps" resultMap="dangerousChemicalsUnitTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<update id="updatedDangerousChemicalsUnitTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_dangeCUnit_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	<update id="updateDangerousChemicalsUnitTempBase" parameterClass="DangerousChemicalsUnitTemp">
+		update DM_dangeCUnit_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updateDangerousChemicalsUnitTempBusiness" parameterClass="DangerousChemicalsUnitTemp">
+		update DM_dangeCUnit_Temp set
+		<include refid="dangerousChemicalsUnitTemp.updateBusinessSql" />
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<!-- 修改场所信息 -->
+	<update id="updateDangerousChemicalsUnitTempInfo" parameterClass="DangerousChemicalsUnitTemp">
+		update DM_dangeCUnit_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="dangerousChemicalsUnitTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<delete id="deleteDangerousChemicalsUnitTempById" parameterClass="Long">
+	   delete DM_dangeCUnit_Temp where id = #value#
+	</delete>
+</sqlMap>

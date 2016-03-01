@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="fourTeamsIssueStep">
+	<typeAlias alias="FourTeamsIssueStep" type="com.tianque.fourTeams.fourTeamsIssue.domain.FourTeamsIssueStep" />
+	<typeAlias alias="FourTeamsIssueStepGroup" type="com.tianque.fourTeams.fourTeamsIssue.state.FourTeamsIssueStepGroup" />
+	<typeAlias alias="FourTeamsIssueMap" type="com.tianque.fourTeams.fourTeamsIssue.domain.FourTeamsIssueMap" />
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization" />
+	<typeAlias alias="AutoCompleteData" type="com.tianque.core.vo.AutoCompleteData" />
+	<resultMap id="simpleOrganization" class="Organization">
+		<result property="id" column="id" />
+		<result property="orgName" column="orgName"/>
+		<result property="remark" column="remark"  />
+	</resultMap>
+	
+	<resultMap class="AutoCompleteData" id="OrgAutoCompleteDataResult">
+		<result property="value" column="id" />
+		<result property="label" column="orgName"/>
+		<result property="desc" column="remark"  />
+	</resultMap>
+
+	<resultMap id="simpleStepResult" class="FourTeamsIssueStep">
+		<result property="id" column="id" />
+		<result property="source.id" column="source" />
+		<result property="target.id" column="target" />
+		<result property="state" column="state" />
+		<result property="stateCode" column="stateCode" />
+		<result property="entryDate" column="entryDate" />
+		<result property="endDate" column="endDate" />
+		<result property="lastDealDate" column="lastDealDate" />
+		<result property="issue.id" column="issue" />
+		<result property="superviseLevel" column="superviseLevel" />
+		<result property="backTo.id" column="backTo" />
+		<result property="itemTypeId" column="itemType" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<resultMap id="simpleStepResultForJob" class="FourTeamsIssueStep" extends="simpleStepResult">
+		<result property="delayWorkday" column="delayWorkday" />
+	</resultMap>
+	
+	<resultMap id="simpleStepGroupResult" class="FourTeamsIssueStepGroup">
+		<result property="id" column="id" />
+		<result property="issue.id" column="issue" />
+		<result property="keyStep.id" column="keyStep" />
+		<result property="entyLog.id" column="entyLog" />
+		<result property="outLog.id" column="outLog" />
+	</resultMap>
+
+	<resultMap id="issueMapResult" class="FourTeamsIssueMap">
+		<result property="name" column="orgname" />
+		<result property="orgLevelInternalId" column="internalid" />
+		<result property="dealType" column="dealtype" />
+		<result property="superviselevel" column="superviselevel" />
+		<result property="urgent" column="urgent" />
+		<result property="orgId" column="orgId" />
+	</resultMap>
+	<!-- 新增事件处理步骤 -->
+	<insert id="addIssueStep" parameterClass="FourTeamsIssueStep">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_issueStep.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO issueSteps
+		(id,source,sourceInternalCode,target,targetInternalCode,entryDate,lastDealDate,superviseLevel,itemType,
+		backTo,state,stateCode,issue,createUser,createDate,assign)
+		VALUES
+		(#id#,#source.id#,#source.orgInternalCode#,#target.id#,#target.orgInternalCode#,#entryDate#,#lastDealDate#,#superviseLevel#,#itemTypeId#,
+		#backTo.id#,#state#,#stateCode#,#issue.id#,#createUser#,#createDate#,#assign#)
+	</insert>
+	
+	<update id="updateIssueStepExceptOrg" parameterClass="FourTeamsIssueStep">
+		update issueSteps set
+			entryDate=#entryDate#,
+			endDate=#endDate#,
+			lastDealDate=#lastDealDate#,
+			superviseLevel=#superviseLevel#,
+			state=#state#,
+			itemType=#itemTypeId#,
+			stateCode=#stateCode#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#,
+			submit=#submit#,
+			isExtended=#isExtended#
+		where id=#id#
+	</update>
+	
+	<delete id="deleteIssueStepsByIssueId" parameterClass="long">
+		delete from issueSteps where issue=#value#
+	</delete>
+	<!-- 根据id查询事件步骤 -->
+	<select id="loadSimpleStep" parameterClass="long" resultMap="simpleStepResult">
+		select * from issueSteps where id=#value#
+	</select>
+	
+	<select id="findLastNotCompleteIssueStepByOrg" parameterClass="map" resultMap="simpleStepResult">
+		<![CDATA[
+		select * from (select * from issueSteps  where issue=#issue# and target=#orgId# and stateCode < #stateCode# order by id desc)
+		where rownum=1
+		]]>
+	</select>
+	
+	<select id="findChildOrgsByOrgcodeAndName" parameterClass="map" resultMap="simpleOrganization">
+		<![CDATA[
+		select * from organizations where orginternalcode like #parentCode#||'%'
+		]]>
+		<dynamic>
+			<isNotEmpty property="orgType" prepend=" and ">
+				orgtype = #orgType.id#
+			</isNotEmpty>
+			<isNotEmpty property="tag" prepend=" and ">
+				(orgname like #tag#||'%' or simplepinyin like #tag#||'%' or fullpinyin like #tag#||'%')
+			</isNotEmpty>
+			<isNotEmpty property="exceptOrgIds" prepend=" and ">
+				id not in( $exceptOrgIds$)
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	<select id="findChildOrgsByParentIdAndName" parameterClass="map" resultMap="simpleOrganization">
+		<![CDATA[
+		select * from organizations where parentid = #parentId#
+		]]>
+		<dynamic>
+			<isNotEmpty property="orgType" prepend=" and ">
+				orgtype = #orgType.id#
+			</isNotEmpty>
+			<isNotEmpty property="tag" prepend=" and ">
+				(orgname like #tag#||'%' or simplepinyin like #tag#||'%' or fullpinyin like #tag#||'%')
+			</isNotEmpty>
+			<isNotEmpty property="exceptOrgIds" prepend=" and ">
+				id not in( $exceptOrgIds$)
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	<select id="findChildOrgsByParentFunIdAndName" parameterClass="map" resultMap="simpleOrganization">
+		<![CDATA[
+		select * from organizations where parentfunorgid = #parentFunId#
+		]]>
+		<dynamic>
+			<isNotEmpty property="tag" prepend=" and ">
+				(orgname like #tag#||'%' or simplepinyin like #tag#||'%' or fullpinyin like #tag#||'%')
+			</isNotEmpty>
+			<isNotEmpty property="exceptOrgIds" prepend=" and ">
+				id not in( $exceptOrgIds$)
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="countChildOrgs" parameterClass="map" resultClass="int">
+		select count(id) from  organizations where 
+		orginternalcode like #orgCode#||'%' and orginternalcode<![CDATA[ <> ]]>#orgCode#
+		and (orgname like #tag#||'%' or simplepinyin like  #tag#||'%' or fullpinyin like  #tag#||'%')
+		<dynamic>
+			<isNotEmpty prepend=" and " property="orgType">
+				orgtype = #orgType.id#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="exceptIds">
+				id not in 
+				<iterate open="(" close=")" conjunction="," property="exceptIds">
+					#exceptIds[]#
+				</iterate>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="findChildOrgs" parameterClass="map" resultMap="OrgAutoCompleteDataResult">
+		select id,orgName,remark from  organizations where 
+		orginternalcode like #orgCode#||'%' and orginternalcode<![CDATA[ <> ]]>#orgCode#
+		and (orgname like #tag#||'%' or simplepinyin like  #tag#||'%' or fullpinyin like  #tag#||'%')
+		<dynamic>
+			<isNotEmpty prepend=" and " property="orgType">
+				orgtype = #orgType.id#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="exceptIds">
+				id not in 
+				<iterate open="(" close=")" conjunction="," property="exceptIds">
+					#exceptIds[]#
+				</iterate>
+			</isNotEmpty>
+		</dynamic>
+		order by orgtype,orgLevel
+	</select>
+
+	<select id="findChildFunOrgsByParentFunIdAndName" parameterClass="map" resultMap="OrgAutoCompleteDataResult">
+		select id,orgName,remark from  organizations where 
+		parentfunorgid = #parentId# 
+		and (orgname like #tag#||'%' or simplepinyin like  #tag#||'%' or fullpinyin like  #tag#||'%')
+		<dynamic>
+			<isNotEmpty prepend=" and " property="exceptIds">
+				id not in 
+				<iterate open="(" close=")" conjunction="," property="exceptIds">
+					#exceptIds[]#
+				</iterate>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="countfindChildOrgsByParentIdAndNameAndType" parameterClass="map" resultClass="int">
+		select count(*) from  organizations where 
+		parentid = #parentId# 
+		and (orgname like #tag#||'%' or simplepinyin like  #tag#||'%' or fullpinyin like  #tag#||'%')
+		<dynamic>
+			<isNotEmpty prepend=" and " property="orgType">
+				orgtype = #orgType.id#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="exceptIds">
+				id not in 
+				<iterate open="(" close=")" conjunction="," property="exceptIds">
+					#exceptIds[]#
+				</iterate>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	
+	<select id="findChildOrgsByParentIdAndNameAndType" parameterClass="map" resultMap="OrgAutoCompleteDataResult">
+		select id,orgName,remark from  organizations where 
+		parentid = #parentId# 
+		and (orgname like #tag#||'%' or simplepinyin like  #tag#||'%' or fullpinyin like  #tag#||'%')
+		<dynamic>
+			<isNotEmpty prepend=" and " property="orgType">
+				orgtype = #orgType.id#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="exceptIds">
+				id not in 
+				<iterate open="(" close=")" conjunction="," property="exceptIds">
+					#exceptIds[]#
+				</iterate>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="findParentFunOrgsByIdAndName" parameterClass="map" resultMap="OrgAutoCompleteDataResult">
+		select id,orgName,remark from  organizations where 
+		id = (select parentfunorgid from organizations where id= #id#) 
+		and (orgname like #tag#||'%' or simplepinyin like  #tag#||'%' or fullpinyin like  #tag#||'%')
+		<dynamic>
+			<isNotEmpty prepend=" and " property="exceptIds">
+				id not in 
+				<iterate open="(" close=")" conjunction="," property="exceptIds">
+					#exceptIds[]#
+				</iterate>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	<update id="updateGroupIdAndKeyStep" parameterClass="FourTeamsIssueStep">
+		update issueSteps set
+			groupid=#groupId#
+		where id=#id#
+	</update>
+	
+	<insert id="addIssueStepGroup" parameterClass="FourTeamsIssueStepGroup">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_issueStepGroups.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO issueStepGroups
+		(id,issue,keyStep,entyLog,outLog)
+		VALUES
+		(#id#,#issue.id#,#keyStep.id#,#entyLog.id#,#outLog.id#)
+	</insert>
+	
+	<select id="loadSimpleStepGroup" parameterClass="long" resultMap="simpleStepGroupResult">
+		select * from issueStepGroups where id=#value#
+	</select>
+	
+	<!-- 根据事件id 获取该事件所有的处理步骤组 -->
+	<select id="getIssueStepGroupByIssueId" parameterClass="long" resultMap="simpleStepGroupResult">
+		select * from issueStepGroups where issue=#value# order by id
+	</select>
+	
+	<update id="updateOutLog" parameterClass="FourTeamsIssueStepGroup">
+		update issueStepGroups set outLog=#outLog.id# where id=#id#
+	</update>
+	<!-- 根据事件IssueStepGroup issuemap -->
+	<select id="getIssueMapByStepGroup" parameterClass="FourTeamsIssueStepGroup" resultMap="issueMapResult">
+		select o.id orgId ,o.orgname,p.internalid,il.dealType,i.superviselevel,iu.urgent from issues iu,issuesteps i,organizations o,propertydicts p,issuelogs il 
+		where i.target=o.id and o.orglevel=p.id and il.id =#outLog.id# and i.id=#keyStep.id# and iu.id=#issue.id#
+	</select>
+	
+	<select id="findIssueStepListByIssueState" parameterClass="java.util.Map" resultMap="simpleStepResultForJob">
+		<![CDATA[
+			select * from issueSteps s 
+      			where s.superviselevel <> 200 and s.statecode in 
+		]]>
+		<iterate property="issueStates" open="(" close=")" conjunction=",">
+			#issueStates[]#
+		</iterate>
+	</select>
+	<!-- 
+	<update id="updateDelayStateOrLastEndDateById" parameterClass="map">
+		update issueSteps set id=#id#
+		<dynamic>
+			<isPropertyAvailable property="delayState" prepend=",">
+				delayState=#delayState#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="lastEndDate" prepend=",">
+				lastEndDate=#lastEndDate#
+			</isPropertyAvailable>
+		</dynamic>
+		where id=#id#
+	</update>
+	 -->
+	<update id="updateDelayStateOrDelayDateByIssueStepId" parameterClass="map">
+		update issueSteps set id=#id#
+		<dynamic>
+			<isPropertyAvailable property="delayState" prepend=",">
+				delayState=#delayState#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="delayWorkday" prepend=",">
+				delayWorkday=#delayWorkday#
+			</isPropertyAvailable>
+		</dynamic>
+		where id=#id#
+	</update>
+	
+	<select id="getIssueStepCountByIssueId" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		select count(0) from issuesteps where issue=#value#
+	</select>
+</sqlMap>

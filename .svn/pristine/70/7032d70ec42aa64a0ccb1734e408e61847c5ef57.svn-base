@@ -1,0 +1,258 @@
+package com.tianque.plugin.weChat.service.impl;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.base.AbstractBaseService;
+import com.tianque.core.cache.service.CacheService;
+import com.tianque.core.util.FileUtil;
+import com.tianque.plugin.weChat.domain.receiveMessage.TextReceiveMessage;
+import com.tianque.plugin.weChat.domain.sendMessage.text.TextSendMessage;
+import com.tianque.plugin.weChat.domain.user.Fan;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+import com.tianque.plugin.weChat.domain.user.WeChatGroup;
+import com.tianque.plugin.weChat.proxy.service.BaseHttpClientService;
+import com.tianque.plugin.weChat.service.FanService;
+import com.tianque.plugin.weChat.service.InboxService;
+import com.tianque.plugin.weChat.service.TencentUserService;
+import com.tianque.plugin.weChat.service.WeChatService;
+import com.tianque.plugin.weChat.util.Constants;
+import com.tianque.plugin.weChat.util.MessageUtil;
+
+/**所有向代理发送请求的方法所在服务类*/
+@Service("weChatService")
+@Transactional
+public class WeChatServiceImpl extends AbstractBaseService implements WeChatService {
+	private static Logger logger = Logger.getLogger(WeChatServiceImpl.class);
+	@Autowired
+	private InboxService inboxService;
+	@Autowired
+	private BaseHttpClientService baseHttpClientService;
+	@Autowired
+	private FanService fanService;
+	@Autowired
+	private CacheService cacheService;
+	@Autowired
+	private TencentUserService tencentUserService;
+
+	/**
+	 * 回复客服消息
+	 */
+	@Override
+	public int replyMessage(TextSendMessage textSendMessage, TencentUser tencentUser) {
+		int resultCode = 0;
+		try {
+			String accessToken = getAccessToken(tencentUser);
+			/**拼装发送消息的url*/
+			//		String url = Constants.SEND_MESSAGE_URL.replace("ACCESS_TOKEN", accessToken)
+			//				+ "&requestType=replyMessage&content="
+			//				+ URLEncoder.encode(textSendMessage.getText().getContent()) + "&touser="
+			//				+ textSendMessage.getTouser();
+			String url = Constants.SEND_MESSAGE_URL.replace("ACCESS_TOKEN", accessToken)
+					+ "&requestType=replyMessage&content="
+					+ URLEncoder.encode(MessageUtil.makeTextCustomMessage(
+							textSendMessage.getTouser(), textSendMessage.getText().getContent()));
+			baseHttpClientService.postMethod(url);
+		} catch (Exception e) {
+			logger.error("发送客服消息失败" + e.getMessage());
+			resultCode = 1;
+		}
+
+		return resultCode;
+	}
+
+	/**
+	 * 接受消息
+	 */
+	@Override
+	public String receiveMessage(Map<String, String> messageMap) {
+		try {
+			String toUserName = messageMap.get("ToUserName");
+			String fromUserName = messageMap.get("FromUserName");
+			String msgType = messageMap.get("MsgType");
+			//获取公众账号对象
+			TencentUser tencentUser = tencentUserService.getTencentUserByWeChatUserId(messageMap
+					.get("ToUserName"));
+
+			if (tencentUser == null) {
+				TextReceiveMessage textMessage = new TextReceiveMessage();
+				//TextMessage textMessage = new TextMessage();
+				textMessage.setToUserName(fromUserName);
+				textMessage.setFromUserName(toUserName);
+				textMessage.setCreateTime(new Date().getTime());
+				textMessage.setMsgType(Constants.RESP_MESSAGE_TYPE_TEXT);
+				textMessage.setContent("获取公众账号对象失败,请与管理员联系！！！");
+				return MessageUtil.textMessageToXml(textMessage);
+			}
+			if (msgType.equals(Constants.REQ_MESSAGE_TYPE_TEXT)
+					|| msgType.equals(Constants.REQ_MESSAGE_TYPE_IMAGE)
+					|| msgType.equals(Constants.REQ_MESSAGE_TYPE_VOICE)) {
+				inboxService.saveInbox(messageMap, tencentUser);
+			} else if (msgType.equals(Constants.REQ_MESSAGE_TYPE_EVENT)) {
+				String eventType = messageMap.get("Event");
+				// 订阅  
+				if (eventType.equals(Constants.EVENT_TYPE_SUBSCRIBE)) {
+					fanService.saveFan(messageMap, tencentUser);
+				}
+				// 取消订阅  
+				else if (eventType.equals(Constants.EVENT_TYPE_UNSUBSCRIBE)) {
+					fanService.deleteFanByOpenId(messageMap.get("FromUserName"));
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("receiveMessageERROR:", e);
+			return e.getMessage();
+		}
+		return null;
+	}
+
+	/**
+	 * 下载媒体文件
+	 */
+	@Override
+	public String downloadMedia(String mediaId, TencentUser tencentUser) {
+		String fileName = "default.jpg";
+		String accessToken = getAccessToken(tencentUser);
+		/**拼装发送消息的url*/
+		String url = Constants.DOWNLOAD_MEDIA_URL.replace("ACCESS_TOKEN", accessToken).replace(
+				"MEDIA_ID", mediaId)
+				+ "&requestType=downloadMedia";
+		Map map = baseHttpClientService.postMethodAsInputStream(url);
+		InputStream inputStream = (InputStream) map.get("inputStream");
+		fileName = (String) map.get("fileName");
+		File file = new File(FileUtil.getWebRoot() + File.separator + "uploadFile" + File.separator
+				+ "weChat");
+		if (!file.exists()) {
+			file.mkdirs();
+		}
+		String fileUrl = FileUtil.getWebRoot() + File.separator + "uploadFile" + File.separator
+				+ "weChat" + File.separator + fileName;
+		try {
+			FileOutputStream fileOutputStream;
+			fileOutputStream = new FileOutputStream(fileUrl);
+			IOUtils.copy(inputStream, fileOutputStream);
+			fileOutputStream.close();
+			inputStream.close();
+			String extFileName = fileName.substring(fileName.indexOf(".") + 1);
+			if ("amr".equals(extFileName)) {
+				Runtime.getRuntime().exec(
+						" ffmpeg -i " + fileUrl + " " + fileUrl.replace(".amr", ".mp3"));
+				return fileName.replace(".amr", ".mp3");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("downloadMediaERROR", e);
+		}
+		return fileName;
+	}
+
+	/**
+	 * 获取公众号的全局唯一票据
+	 */
+	public String getAccessToken(TencentUser tencentUser) {
+		String accessToken = (String) cacheService.get("weChatAccessToken"
+				+ tencentUser.getWeChatUserId());
+		if (accessToken == null) {
+			String appid = tencentUser.getAppId();
+			String secret = tencentUser.getAppSecret();
+			String url = Constants.ACCESS_TOKEN_URL.replace("APPID", appid).replace("APPSECRET",
+					secret)
+					+ "&requestType=getAccessToken";
+			accessToken = baseHttpClientService.postMethod(url);
+			cacheService
+					.set("weChatAccessToken" + tencentUser.getWeChatUserId(), 7100, accessToken);
+		}
+		return accessToken;
+
+	}
+
+	@Override
+	public Fan getFanByOpenId(String openId, TencentUser tencentUser) {
+		String accessToken = getAccessToken(tencentUser);
+		String url = Constants.GET_FANINFO_URL.replace("ACCESS_TOKEN", accessToken).replace(
+				"OPENID", openId)
+				+ "&requestType=getFanInfo";
+		String jsonText = baseHttpClientService.postMethod(url);
+		JSONObject jsonObject = null;
+		Fan fan = new Fan();
+		try {
+			jsonObject = JSONObject.fromObject(URLDecoder.decode(jsonText, "UTF-8"));
+			logger.info("*******fanJson*******" + jsonObject.toString());
+			fan.setOpenId(jsonObject.getString("openid"));
+			fan.setName(jsonObject.getString("nickname"));
+		} catch (UnsupportedEncodingException e) {
+			logger.error("getFanByOpenIdERROR", e);
+		}
+		return fan;
+	}
+
+	/**
+	 * 查询所有分组
+	 */
+	@Override
+	public List<WeChatGroup> getWeChatGroupList(TencentUser tencentUser) {
+		String accessToken = getAccessToken(tencentUser);
+		String url = Constants.GET_GROUPLIST_URL.replace("ACCESS_TOKEN", accessToken)
+				+ "&requestType=getGroupList";
+		String jsonText = baseHttpClientService.postMethod(url);
+		JSONObject jsonObject = null;
+		List<WeChatGroup> groupList = new ArrayList<WeChatGroup>();
+		try {
+			jsonObject = JSONObject.fromObject(URLDecoder.decode(jsonText, "UTF-8"));
+			if (jsonObject.toString().startsWith("{\"groups\"")) {
+				JSONArray array = jsonObject.getJSONArray("groups");
+				for (int i = 0; i < array.size(); i++) {
+					JSONObject object = (JSONObject) array.get(i);
+					WeChatGroup weChatGroup = new WeChatGroup();
+					weChatGroup.setName(object.getString("name"));
+					weChatGroup.setGroupId(object.getLong("id"));
+					weChatGroup.setWeChatUserId(tencentUser.getWeChatUserId());
+					groupList.add(weChatGroup);
+				}
+			} else {
+				logger.error("获取公共账号用户分组信息失败" + jsonObject.toString());
+				return null;
+			}
+		} catch (UnsupportedEncodingException e) {
+			logger.error("获取公共账号用户分组信息失败" + jsonObject.toString());
+			return null;
+		}
+		return groupList;
+	}
+
+	/**
+	 * 获取用户所在分组
+	 */
+	@Override
+	public Long getGroupIdByOpenId(String openId, TencentUser tencentUser) {
+		String accessToken = getAccessToken(tencentUser);
+		String url = Constants.GET_GROUPID_URL.replace("ACCESS_TOKEN", accessToken) + "&openid="
+				+ openId + "&requestType=getGroupId";
+		String jsonText = baseHttpClientService.postMethod(url);
+		JSONObject jsonObject = null;
+		try {
+			jsonObject = JSONObject.fromObject(URLDecoder.decode(jsonText, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			logger.error("getGroupIdByOpenIdERROR", e);
+		}
+		return jsonObject.getLong("groupid");
+	}
+}

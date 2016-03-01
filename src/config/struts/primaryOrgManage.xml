@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="primaryOrgManage" extends="default" namespace="/baseinfo/primaryOrgManage">
+		<default-class-ref class="primaryOrgController"></default-class-ref>
+			<action name="dispatch" method="dispatch">
+			<result name="maintain">/baseinfo/primaryOrganization/primaryOrgMaintainDlg.jsp</result>
+			<result name="search">/baseinfo/primaryOrganization/primaryOrgSearchDlg.jsp</result>
+			<result name="view">/baseinfo/primaryOrganization/primaryOrgViewDlg.jsp</result>
+		</action>
+		<action name="dispatchByEncrypt" method="dispatchByEncrypt">
+			<result name="maintain">/baseinfo/primaryOrganization/primaryOrgMaintainDlg.jsp</result>
+			<result name="view">/baseinfo/primaryOrganization/primaryOrgViewDlg.jsp</result>
+		</action>
+		<action name="findPrimaryOrgs" method="findPrimaryOrgs">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="deletePrimaryOrg" method="deletePrimaryOrg">
+			<result name="success" type="json">
+				<param name="root">deleteCount</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">deleteCount</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="viewPrimaryOrg" method="viewPrimaryOrg">
+			<result name="primaryOrg">/</result>
+		</action>
+		<action name="addPrimaryOrg" method="addPrimaryOrg">
+			<result name="success" type="json">
+				<param name="root">primaryOrgVo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="editPrimaryOrg" method="updatePrimaryOrg">
+			<result name="success" type="json">
+				<param name="root">primaryOrgVo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="downloadPrimaryOrg" method="downloadPrimaryOrg">
+			<result name="success" type="stream">
+                <param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>
+                <param name="inputName">inputStream</param>
+                <!-- 下载时候提示的文件名 -->
+                <param name="contentDisposition">attachment;filename="${downloadFileName}"</param>
+                <param name="bufferSize">4096</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="downloadPrimaryOrgAll" method="downloadPrimaryOrgAll">
+		</action>
+		<!-- 设置排序 -->
+		<action name="setSeq" method="setSeq">
+			<result name="success" type="json">
+				<param name="root">primaryOrgVo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<!-- 同步群防群治 -->
+		<action name="synchronizePrimaryOrgMembersToMasseduty" method="synchronizePrimaryOrgMembersToMasseduty">
+			<result name="success" type="json">
+				<param name="root">deleteCount</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">deleteCount</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+	</package>
+	                    											    
+	<package name="primaryOrgMemberManage" extends="default" namespace="/baseinfo/primaryOrgMemberManage">
+		<default-class-ref class="primaryOrgMemberController"></default-class-ref>
+		<action name="dispatch" method="dispatch">
+			<result name="maintainPrimaryOrgMembers">/baseinfo/primaryOrgMember/primaryOrgMemersDlg.jsp</result>
+			<result name="primaryOrgMemberList">/baseinfo/primaryOrgMember/primaryOrgMemberList.jsp</result>
+			<result name="viewPrimaryOrgMemberList">/baseinfo/primaryOrgMember/viewPrimaryOrgMemberList.jsp</result>
+			<result name="maintain">/baseinfo/primaryOrgMember/primaryOrgMemberMaintainDlg.jsp</result>
+			<result name="platformMembersList">/baseinfo/fourLevelPlatformManage/fourLevelPlatformMembersList.jsp</result>
+		</action>
+		<action name="dispatchByEncrypt" method="dispatchByEncrypt">
+			<result name="viewPrimaryOrgMemberList">/baseinfo/primaryOrgMember/viewPrimaryOrgMemberList.jsp</result>
+		</action>
+		<action name="findPrimaryOrgMembers" method="findPrimaryOrgMembers">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="deletePrimaryOrgMember" method="deletePrimaryOrgMember">
+			<result name="success" type="json">
+				<param name="root">deleteCount</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">deleteCount</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="addPrimaryOrgMember" method="addPrimaryOrgMember">
+			<result name="success" type="json">
+				<param name="root">primaryOrgMemberVo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+			
+			
+		</action>
+			<action name="findOrgMembersByName" method="findOrgMembersByMemberName">
+			<result name="success" type="json">
+				<param name="root">primaryOrgMemberVoList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="editPrimaryOrgMember" method="updatePrimaryOrgMember">
+			<result name="success" type="json">
+				<param name="root">primaryOrgMemberVo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="havajobPrimaryOrgMember" method="havajobPrimaryOrgMember">
+			<result name="success" type="json">
+				<param name="root">deleteCount</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">deleteCount</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<!-- 设置排序 -->
+		<action name="setSeq" method="setSeq">
+			<result name="success" type="json">
+				<param name="root">primaryOrgMemberVo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

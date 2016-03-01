@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="keyAreasRecordManage" extends="default"
+		namespace="/workingRecord/keyAreasWorkingRecordManage">
+		<default-class-ref class="keyAreasController"></default-class-ref>
+		<action name="addKeyAreaWorkingRecord" method="addKeyAreaWorkingRecord">
+			<result type="json">
+				<param name="root">keyAreasOfInvestigationInfoWorkingRecord</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="updateKeyAreaWorkingRecord" method="updateKeyAreaWorkingRecord">
+			<result type="json">
+				<param name="root">keyAreasOfInvestigationInfoWorkingRecord</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="deleteKeyAreaWorkingRecord" method="deleteKeyAreaWorkingRecord">
+			<result type="json">
+				<param name="root">true</param>
+			</result>
+		</action>
+		<action name="keyAreasList" method="keyAreasList">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/workingRecord/keyAreasOfInvestigationInfo/maintainKeyAreasOfInvestigationInfoDlg.jsp
+			</result>
+			<result name="print">
+				/workingRecord/keyAreasOfInvestigationInfo/keyAreasOfInvestigationInfoDlgPrint.jsp
+			</result>
+		</action>
+	</package>
+</struts>

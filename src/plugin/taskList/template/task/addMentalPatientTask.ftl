@@ -1,0 +1,217 @@
+<#assign pop=JspTaglibs["/WEB-INF/taglib/pop-taglib.tld"]>
+<#assign s=JspTaglibs["/WEB-INF/taglib/struts-tags.tld"]>
+<@s.include value="/includes/baseInclude.jsp"/> 
+
+<form action="${path}/baseInfo/mentalPatientTaskManage/addMentalPatientTask.action" method="post" id="maintainForm">
+	<@pop.token />
+<div class="container container_24">
+	<input type="hidden" name="mode" id="mode" value="${(mode)!}" />
+	<input type="hidden" name="addFlag" id="addFlag" value="${(addFlag)!}" />
+	<input type="hidden" name="mentalPatientTask.mentalPatientId" id="mentalPatientId" value='${(population.id)!}'/>
+	<input type="hidden" name="mentalPatientTask.organization.id" id="orgId" value='${(orgId)!}'/>
+	<input type="hidden" name="receipt.id" id="mentalPatientTaskId" value="${(mentalPatientTask.id)!}" />
+	<input type="hidden" name="receipt.objectType" id="objectType" value="<@s.property value='@com.tianque.plugin.common.constant.Constants@MentalPatientTASK_KEY' />"/>
+	<input id="memberId" name="serviceRecord.memberId" type="hidden" value="${(serviceRecordVo.memberId)!}" />
+	<div class="grid_6 lable-right">
+		<em class="form-req">*</em>
+		<label class="form-lb1>">姓名：</label>
+	</div>
+	<div class="grid_4">
+		<input type="text"  id="name"  name="mentalPatientTask.name"   value="${(population.name)!}"  maxlength="10" <@s.if test="!'false'.equals(addFlag)">readOnly</@s.if> class="form-txt {required:true,exculdeParticalChar:true,messages:{required:'姓名不能为空',exculdeParticalChar:'不能输入非法字符'}}" />
+	</div>
+	<div class="grid_6 lable-right">
+		<label class="form-lbl">身份证号码：</label>
+	</div>
+	<div class="grid_5">
+		<input name="mentalPatientTask.idCard" value="${(population.idCardNo)!}"  <@s.if test="!'false'.equals(addFlag)">readOnly</@s.if> class="form-txt {idCard:true,messages:{idCard:$.format('请输入一个合法的身份证号码')}}" />
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+		
+	<div class="grid_6 lable-right">
+		<label class="form-lbl">电话号码：</label>
+	</div>
+	<div class="grid_4">
+		<input name="mentalPatientTask.phone" value="${(population.mobileNumber)!}"  class="form-txt {phoneAndMobile:true,messages:{phoneAndMobile:$.format('请输入以固定电话：028-87653333或者手机：15102888888为格式的号码')}}" />
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_6 lable-right">
+		<label class="form-lbl">帮扶人员：</label>
+	</div>
+	<div class="grid_15 heightAuto" style="margin-top:5px;">
+		<input type="text" id="helpPeople" name="mentalPatientTask.helpPeople" style="height:70px;"  class='form-txt' />
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_6 lable-right">
+	    <em class="form-req">*&nbsp;</em>
+		<label class="form-lbl">地点：</label>
+	</div>
+	<div class="grid_15">
+		<input type="text" name="mentalPatientTask.place" maxlength="50" id="place" value="${(population.currentAddress)!}" style="width:99%"   class="form-txt {required:true,exculdeParticalChar:true,messages:{required:'地址不能为空',exculdeParticalChar:'不能输入非法字符'}}"/>
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+	
+	<div class="grid_6 lable-right">
+		<em class="form-req">*&nbsp;</em>
+		<label class="form-lbl">监护人电话：</label>
+	</div>
+	<div class="grid_4">
+		<input type="text" name="mentalPatientTask.guardianTel" maxlength="20" id="guardianTel" value="${(mentalPatientTask.guardianTel)!}" style="width:99%"  class="form-txt {required:true,phoneAndMobile:true,messages:{required:'监护人电话不能为空',phoneAndMobile:$.format('请输入以固定电话：028-87653333或者手机：15102888888为格式的号码')}}"/>
+	</div>
+	<div class="grid_6 lable-right">
+		<em class="form-req">*&nbsp;</em>
+		<label class="form-lbl">监护人姓名：</label>
+	</div>
+	<div class="grid_5">
+		<input type="text" name="mentalPatientTask.guardianName" maxlength="10" id="guardianTel" value="${(mentalPatientTask.guardianName)!}" style="width:99%"  class="form-txt {required:true,exculdeParticalChar:true,messages:{required:'监护人姓名不能为空',mobile:'监护人姓名不合法'}}"/>
+	</div>
+	
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_6 lable-right">
+		<label class="form-lbl">外出：</label>
+	</div>
+	<div class="grid_4">
+	     <input type="radio" class="form-btn" name="mentalPatientTask.isout" value='1'/>&nbsp;&nbsp;是&nbsp;&nbsp;&nbsp;&nbsp;
+	     <input type="radio" class="form-btn" name="mentalPatientTask.isout" value='0'/>&nbsp;&nbsp;否
+	</div>
+	<div class="grid_6 lable-right" class="form_txt {required:true,exculdeParticalChar:true,messages:{required:'服药情况不能为空'}}">
+		<em class="form-req">*&nbsp;</em>
+		<label class="form-lbl">已经服药：</label>
+	</div>
+	<div class="grid_7">
+	      <input type="radio" class="form-btn" name="mentalPatientTask.isDriinked" value='1'/>&nbsp;&nbsp;已服药&nbsp;&nbsp;
+	   <input type="radio" class="form-btn" name="mentalPatientTask.isDriinked" value='0'/>&nbsp;&nbsp;未服药
+	
+	</div>	
+	
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_6 lable-right">
+		<em class="form-req">*&nbsp;</em>
+		<label class="form-lbl">有无异常：</label>
+	</div>
+	<div class="grid_15 ">
+		<input type="radio" name="mentalPatientTask.hasException" checked="checked" value="1" onclick="s(this.value)" />有 <input name="mentalPatientTask.hasException" type="radio" value="0" onclick="s(this.value)" />无
+	</div>
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_6 lable-right" id="a">
+	  <em class="form-req">*&nbsp;</em>
+		<label class="form-lbl">异常情况：</label>
+	</div>
+	<div class="grid_15 heightAuto" id="b">
+            <textarea rows="4" name="mentalPatientTask.exception"  maxlength="250" cols="" class="form-txt"></textarea>
+    </div>
+	
+	<div class='clearLine'>&nbsp;</div>
+	<div class="grid_6 lable-right">
+		<label class="form-lbl">备注：</label>
+	</div>
+	<div class="grid_15 heightAuto">
+            <textarea rows="4" name="mentalPatientTask.remark" maxlength="200" cols="" class="form-txt"></textarea>
+    </div>
+	<div class='clearLine'>&nbsp;</div>
+	<select id="attachFileNames" name="mentalPatientTask.attachFileNames" multiple="multiple" style="width:200px;display:none"></select>
+</div>	
+</form>
+<div class="container container_24 filePanel">
+			<div class="grid_6 lable-right">
+				<label class="form-lbl">附件上传：</label>
+			</div>
+			<div id="attachFilesDiv" class="grid_15 heightAuto">
+				<@s.if test='!"view".equals(mode)'>
+				<input id="custom_file_upload" name="uploadFile" type="file" />
+				</@s.if>
+				<div id="custom-queue" style="clear:both;border:1px solid #ccc;overflow-x:hidden;height:100px;"></div>
+			</div>
+</div>
+		
+<script type="text/javascript">
+jQuery.validator.addMethod("phoneAndMobile", function(value, element){
+	if(value==null||value==undefined||value=="" ){return true};
+	var mobile = /^(1[3|4|5|7|8][0-9])+\d{8}$/;
+	var length = value.length;
+	if(length == 11 && mobile.test(value)){return true;}
+	var phone = /^([0-9]{3,4}-)+[0-9]{7,8}$/;	
+	if (value.match(phone)==null) {return false;}
+	return true
+});
+$(document).ready(function(){
+	$("#maintainForm").formValidate({
+		promptPosition:"bottomLeft",
+		submitHandler: function(form){
+			 $("#maintainForm").ajaxSubmit({
+					success : function(data) {
+					if(!data.id){
+           	 			$.messageBox({ 
+							level: "error",
+							message:data
+			 			});
+            			return;
+					}
+						if("add"=="${mode}"){
+							$.messageBox({message:"新增成功！"});
+						}
+						$("#mentalPatientTaskDialog").dialog('close');
+						$("#mentalPatientTaskList").trigger("reloadGrid");
+					},
+					error : function(XMLHttpRequest, textStatus, errorThrown) {
+						alert("提交错误");
+					}
+			 });
+		}
+	});
+	$('#signDate').datePicker({
+		yearRange:'1900:2030',
+		dateFormat:'yy-mm-dd',
+		maxDate:'+0d'
+	});
+    $('#custom_file_upload').uploadFile({
+		queueID : 'custom-queue',
+		selectInputId : "attachFileNames"
+	});
+
+	<@s.if test='!"add".equals(mode)'>	
+		<@s.if test="mentalPatientTask.annexFiles!=null && mentalPatientTask.annexFiles.size > 0">
+			<@s.iterator value="mentalPatientTask.annexFiles" var="file">
+		
+			    var itemHtml = '<div id="item'+$(this).attr("id")+'${(file.id)!}'
+					+'" class="uploadifyQueueItem completed">'+'<a href="'+'${path}/plugin/taskListManage/common/downLoadAttachFile.action?attachFileId=${(file.id)!}'
+					+'" target="_blank"><span class="fileName">'+'${(file.fileName)!}'+'</span></a></div>';
+			    $("#custom-queue").append($(itemHtml));
+			    $("<option>").attr("id","${file.id}").val("${file.fileName}").attr("selected",true).appendTo($("#attachFileNames"));
+			</@s.iterator>
+		</@s.if>	
+	</@s.if>
+	
+	$("#helpPeople").personnelComplete({
+		multiple: true,
+		height:70,
+		param:"serviceTeamMemberVo.name",
+		url:"/plugin/serviceTeam/serviceRecord/findServiceMembers.action",
+		postDataFunction: function(){
+			return {
+				"serviceTeamMemberVo.org.id":selectConfigTaskOrg(),
+				"serviceTeamMemberVo.memberId":$("#memberId").val(),
+				"serviceTeamMemberVo.searchType":"allSearch"
+			};
+		},
+		select: function(data){
+				$("#memberId").val(data.split("-")[0]);
+		},
+		itemClose: function(data){
+				if($("#helpPeople").val()==""){
+					$("#memberId").val("");
+				}
+		}
+	});	
+});
+
+function s(va) {
+   if(va=="1"){
+       document.getElementById('a').style.display='block';
+       document.getElementById('b').style.display='block';
+      }else if(va="0"){
+       document.getElementById('a').style.display='none';
+        document.getElementById('b').style.display='none';
+   }
+}
+	
+</script>

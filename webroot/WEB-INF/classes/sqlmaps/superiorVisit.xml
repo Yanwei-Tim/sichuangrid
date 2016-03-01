@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="superiorVisit">
+	<typeAlias alias="SuperiorVisit" type="com.tianque.baseInfo.superiorVisit.domain.SuperiorVisit" />
+	<typeAlias alias="visitType" type="com.tianque.domain.vo.VisitTypeVo"/>
+	<typeAlias alias="SearchSuperiorVisitVo" type="com.tianque.domain.vo.SearchSuperiorVisitVo" />
+	<resultMap id="superiorVisitResult" class="SuperiorVisit" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResult">
+		<result column="visitState" property="visitState.id" />
+		<result column="visitType" property="visitType" />
+		<result column="visitReason" property="visitReason" />
+	</resultMap>
+	
+	<!-- 这两个resultMap内容一致，继承关系不一样 -->
+	<resultMap id="superiorVisitResultForList" class="SuperiorVisit" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+		<result column="visitState" property="visitState.id" />
+		<result column="visitType" property="visitType" />
+		<result column="visitReason" property="visitReason" />
+		<result column="sourcesState" property="sourcesState" />
+	</resultMap>
+
+	<resultMap id="vusitResult" class="visitType">
+		<result property="superiorVisitId" column="superiorVisitId" />
+		<result property="superiorVisitType" column="superiorVisitType" />
+	</resultMap>
+
+	<resultMap id="visitTypesResult" class="visitType">
+		<result property="superiorVisitId" column="superiorVisitId" />
+		<result property="superiorVisitType" column="superiorVisitType" />
+	</resultMap>
+	
+	<sql id="fields">
+		uni.id,uni.baseinfoid,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.attentionExtent,uni.visitState,uni.visitType,uni.visitReason,uni.isEmphasis,
+   		uni.isEmphasisReason,uni.isEmphasisDate,uni.createUser,uni.updateUser,uni.createDate,uni.updateDate,uni.sourcesState	
+	</sql>
+
+	<insert id="addSuperiorVisit" parameterClass="SuperiorVisit">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_superiorVisits.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into superiorVisits
+		(
+			<include refid="populationBaseInfo.addBaseInfoFields"/>
+			,visitState,visitType,visitReason,attentionExtent,sourcesState,isEmphasis
+		)
+		values
+		(
+			<include refid="populationBaseInfo.addBaseInfoData"/>
+			,#visitState.id#,#visitType#,#visitReason#,#attentionExtent.id#,#sourcesState#,#isEmphasis#
+		)
+	</insert>
+
+	<sql id="updateBusinessSql">
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>,
+		visitState = #visitState.id#
+		,visitType = #visitType#
+		,visitReason = #visitReason#
+		,attentionExtent=#attentionExtent.id#
+		<isNotEmpty property="isEmphasis">
+			,isEmphasis = #isEmphasis#
+		</isNotEmpty>
+	</sql>
+
+	<update id="updateSuperiorVisit" parameterClass="SuperiorVisit">
+		update superiorVisits set
+		<include refid="updateBusinessSql"/>
+		where id=#id#
+	</update>
+
+	<update id="updateEmphasiseById" parameterClass="map">
+		update superiorVisits set isEmphasis=#isEmphasis# where id=#id#
+	</update>
+
+	<delete id="deleteSuperiorVisitById" parameterClass="java.lang.Long">
+		delete from superiorVisits
+		where id=#value#
+	</delete>
+
+	<select id="getSuperiorVisitById" parameterClass="java.lang.Long" resultMap="superiorVisitResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from superiorVisits uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.id=#value#
+	</select>
+
+	<sql id="sql_where">
+		from superiorVisits uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findSuperiorVisits" parameterClass="SuperiorVisit" resultMap="superiorVisitResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countSuperiorVisits" parameterClass="SuperiorVisit" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="findSuperiorVisitsBySearchVo" parameterClass="SearchSuperiorVisitVo" resultMap="superiorVisitResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countSuperiorVisitsBySearchVo" parameterClass="SearchSuperiorVisitVo" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="getByIdCard" parameterClass="java.util.Map" resultMap="superiorVisitResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from superiorVisits uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgId=#orgId# 
+		and
+		<iterate property="idCardNoList" open="("  close=")"  conjunction="or">
+		    upper(idCardNo) = upper(#idCardNoList[]#)
+		</iterate>
+	</select>
+
+	<select id="getByOrgIdAndIdCardNo" parameterClass="java.util.Map" resultMap="superiorVisitResult">
+			select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+			FROM superiorVisits uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+			where upper(idCardno) = upper(#idCardNo#) and uni.orgId=#orgId#
+	</select>
+
+	<update id="updateBusiness" parameterClass="SuperiorVisit">
+		update superiorVisits set
+		<include refid="updateBusinessSql"/>
+		where id = #id#
+	</update>
+
+	<insert id="addSuperiorVisitType" parameterClass="java.util.Map">
+		INSERT INTO visitTypes
+			(superiorVisitId,superiorVisitType)
+		values
+			(#superiorVisitId#,#superiorVisitType#)
+	</insert>
+
+	<select id="getSimpleVisitTypeById" resultMap="visitTypesResult"
+		parameterClass="java.lang.Long">
+			<![CDATA[select * from visitTypes where superiorVisitId=#id# ]]>
+	</select>
+
+	<select id="findVisitTypes" resultMap="visitTypesResult">
+			<![CDATA[select * from visitTypes]]>
+	</select>
+
+	<delete id="deleteVisitTypeById" parameterClass="java.lang.Long">
+		delete from
+		visitTypes where superiorVisitId=#id#
+	</delete>
+
+<!-- 移动数据需要的sql -->
+	<update id="updateDataMoveSuperiorVisitToOrg" parameterClass="java.util.Map">
+		update superiorVisits set orgId = #orgId# , orgInternalCode = #orgInternalCode# where id = #id#
+	</update>
+	
+<!-- 以下sql已经过时，用到时请先修改  -->
+
+	<update id="updateBaseInfo" parameterClass="SuperiorVisit">
+		update superiorVisits set
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>
+		<include refid="populationBaseInfo.updateBussLogoutDetail"/>
+		where id = #id#
+	</update>
+
+	<update id="updateDeathAndLogoutStateById" parameterClass="map">
+		update superiorVisits set
+		       isEmphasis=#isEmphasis#,
+		       isdeath=#death#
+		where id=#id#
+	</update>
+	
+	<select id="getIdByBaseinfoIdAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		SELECT id from superiorVisits  
+		where baseinfoid=#baseInfoId# and orgId=#orgId#
+	</select>
+	
+	<resultMap id="superiorVisitsResultForDefaultList" class="SuperiorVisit" 
+		extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForDefaultList">
+		<result column="visitState" property="visitState.id" />
+		<result column="visitType" property="visitType" />
+		<result column="visitReason" property="visitReason" />
+		<result column="sourcesState" property="sourcesState" />
+	</resultMap>
+	<sql id="default_sql_where">
+	  from superiorVisits uni 
+	  <dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findSuperiorVisitDefaultList" resultMap="superiorVisitsResultForDefaultList" parameterClass="map">
+	  select <include refid="fields"/>
+	  <include refid="default_sql_where" />
+	  ORDER BY ID DESC
+	</select>
+	
+	<select id="countSuperiorVisitDefaultList" resultClass="java.lang.Integer" parameterClass="map">
+		<![CDATA[select count(uni.id)]]>
+		<include refid="default_sql_where" />
+	</select>
+	
+
+</sqlMap>

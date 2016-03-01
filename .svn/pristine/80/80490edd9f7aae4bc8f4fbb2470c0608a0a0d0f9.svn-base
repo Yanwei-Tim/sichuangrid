@@ -1,0 +1,882 @@
+package com.tianque.baseInfo.optimalObject.service;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.beanutils.PropertyUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.actualHouse.domain.HouseInfo;
+import com.tianque.baseInfo.actualHouse.service.ActualHouseService;
+import com.tianque.baseInfo.base.domain.ActualPopulation;
+import com.tianque.baseInfo.base.domain.Countrymen;
+import com.tianque.baseInfo.base.domain.LogoutDetail;
+import com.tianque.baseInfo.base.service.BaseInfoPopulationTemplateImpl;
+import com.tianque.baseInfo.base.service.BaseInfoService;
+import com.tianque.baseInfo.base.service.PopulationRelationService;
+import com.tianque.baseInfo.optimalObject.dao.OptimalObjectDao;
+import com.tianque.baseInfo.optimalObject.domain.OptimalObject;
+import com.tianque.cache.PageInfoCacheThreadLocal;
+import com.tianque.cache.UpdateType;
+import com.tianque.core.cache.constant.MemCacheConstant;
+import com.tianque.core.datatransfer.ExcelImportHelper;
+import com.tianque.core.globalSetting.service.GlobalSettingService;
+import com.tianque.core.globalSetting.util.GlobalSetting;
+import com.tianque.core.systemLog.util.OperatorType;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.Chinese2pinyin;
+import com.tianque.core.util.NewBaseInfoTables;
+import com.tianque.core.util.ObjectToJSON;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.domain.vo.SearchOptimalObjectVo;
+import com.tianque.excel.definition.SpecialGroupsContext;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.service.ActualPopulationProcessorService;
+import com.tianque.service.HousePopulationMaintanceService;
+import com.tianque.service.PopulationProccessorService;
+import com.tianque.service.helper.ManagePopulationByHouseHelper;
+import com.tianque.service.util.PopulationCatalog;
+import com.tianque.service.util.PopulationType;
+import com.tianque.service.vo.IsEmphasis;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.util.Arrays;
+import com.tianque.util.IdCardUtil;
+import com.tianque.util.PluginServiceHelpUtil;
+import com.tianque.validate.AbstractCountrymenValidator;
+
+@Service("optimalObjectService")
+@Transactional
+public class OptimalObjectServiceImpl extends BaseInfoPopulationTemplateImpl
+		implements OptimalObjectService, PopulationProccessorService {
+
+	private static final String CACHE_ADDOPTIMALOBJECT_VALUE = "CACHE_ADDOPTIMALOBJECT";
+	private static final String CACHE_ADDOPTIMALOBJECTBASEINFO_VALUE = "CACHE_ADDOPTIMALOBJECTBASEINFO";
+
+	@Qualifier("optimalObjectValidator")
+	@Autowired
+	private AbstractCountrymenValidator<OptimalObject> updateValidator;
+
+	@Autowired
+	private OptimalObjectDao optimalObjectDao;
+
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+
+	@Autowired
+	private GlobalSettingService globalSettingService;
+	@Autowired
+	private ActualPopulationProcessorService actualPopulationProcessorService;
+	@Autowired
+	private PropertyDictService propertyDictService;
+	@Autowired
+	private ActualHouseService actualHouseService;
+	@Autowired
+	private ManagePopulationByHouseHelper managePopulationByHouseHelper;
+	@Autowired
+	private HousePopulationMaintanceService housePopulationMaintanceService;
+	@Autowired
+	private PopulationRelationService populationRelationService;
+	@Autowired
+	private BaseInfoService baseInfoService;
+
+	// @Autowired
+	// private CacheService cacheService;
+
+	@Resource(name = "optimalObjectDao")
+	public void setBaseInfoPopulationBaseDao(OptimalObjectDao optimalObjectDao) {
+		super.setBaseInfoPopulationBaseDao(optimalObjectDao);
+	}
+
+	@Override
+	public OptimalObject addOptimalObject(OptimalObject optimalObject) {
+		try {
+			if (!ExcelImportHelper.isImport.get()) {
+				this.optimalObjectvalidator(optimalObject);
+			}
+			if (checkDataExitInCache(optimalObject,
+					MemCacheConstant.CACHE_ADDOPTIMALOBJECT,
+					CACHE_ADDOPTIMALOBJECT_VALUE)) {
+				return optimalObject;
+			}
+			return add(optimalObject);
+		} catch (Exception e) {
+			logger.error("", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(optimalObject,
+					MemCacheConstant.CACHE_ADDOPTIMALOBJECT);
+		}
+	}
+
+	private OptimalObject add(OptimalObject optimalObject) {
+		optimalObject.setIdCardNo(optimalObject.getIdCardNo().toUpperCase());
+		autoFillOrganizationInternalCode(optimalObject);
+		autoFillBirthday(optimalObject);
+		autoFillChinesePinyin(optimalObject);
+		autoIsDeath(optimalObject);
+		contructCurrentAddress(optimalObject);
+		try {
+			Countrymen temp = populationRelationService.businessOption(
+					optimalObject, optimalObject.getActualPopulationType());
+			optimalObject.setBaseInfoId(temp.getBaseInfoId());
+			optimalObject.setAddressInfoId(temp.getAddressInfoId());
+			optimalObject.setSourcesState(null);
+			optimalObject = optimalObjectDao.add(optimalObject);
+			populationRelationService.addPopulationRelation(temp.getId(),
+					optimalObject.getActualPopulationType(),
+					optimalObject.getId(), BaseInfoTables.OPTIMALOBJECT_KEY);
+			optimalObject.setHouseId(temp.getHouseId());
+			rebuildHouseAddress(optimalObject);
+
+			if (IsEmphasis.Emphasis.equals(optimalObject.getIsEmphasis())) {
+				// 缓存计数器
+				PageInfoCacheThreadLocal.increment(MemCacheConstant
+						.getCachePageKey(OptimalObject.class.getSimpleName()),
+						optimalObject, 1);
+			}
+			return optimalObject;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类OptimalObjectServiceImpl的addOptimalObject方法出现异常，原因：",
+					"新增优抚对象信息出现错误", e);
+		}
+	}
+
+	/**
+	 * 如果人口的房屋信息（CurrentAddress）不为空，并且房屋id不存在，新增一个房屋，并且建立关联关系, 如果房屋id不为空直接建立关联关系
+	 * 如果房屋信息为空,并且有房屋id不为空，则删除人房关系
+	 * 
+	 * @param householdStaff
+	 */
+	private void rebuildHouseAddress(OptimalObject householdStaff) {
+
+		if (householdStaff.getIsHaveHouse() != null
+				&& householdStaff.getIsHaveHouse()
+				&& householdStaff.getCurrentAddress() != null) {
+
+			if (null == householdStaff.getHouseId()
+					|| householdStaff.getHouseId().equals(01L)) {
+				// 新增一个实有房屋,并且建立人房关系
+				HouseInfo houseInfo = new HouseInfo();
+				houseInfo.setAddress(householdStaff.getCurrentAddress());
+				houseInfo.setAddressType(propertyDictService
+						.findPropertyDictByDomainNameAndDictDisplayName(
+								PropertyTypes.CURRENT_ADDRESS_TYPE, "其他"));
+				houseInfo.setOrganization(householdStaff.getOrganization());
+				houseInfo
+						.setHouseOperateSource(NewBaseInfoTables.OPTIMALOBJECT_KEY);
+				houseInfo = actualHouseService.addHouseInfo(houseInfo);
+
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.OPTIMAL_OBJECT, householdStaff,
+						houseInfo.getId());
+			} else if (householdStaff.getHouseId() != null) {
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.OPTIMAL_OBJECT, householdStaff,
+						householdStaff.getHouseId());
+			}
+		} else {
+			housePopulationMaintanceService.releaseHouse(
+					PopulationCatalog.OPTIMAL_OBJECT, householdStaff.getId(),
+					householdStaff.getHouseId());
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.tianque.service.OptimalObjectService#deleteOptimalObjectById(java
+	 * .lang.Long)
+	 */
+	@Override
+	public void deleteOptimalObjectById(Long id) {
+		if (null == id || id < 0L) {
+			throw new BusinessValidationException("id没有获得");
+		}
+		this.optimalObjectDao.delete(id);
+		this.deletePopulationTypeByPopulationIdAndType(id,
+				PopulationType.OPTIMAL_OBJECT);
+	}
+
+	private void delectOptimalObject(Long id) {
+		OptimalObject optimalObject = this.optimalObjectDao.get(id);
+		if (null != optimalObject) {
+			log(WARN, OPTIMALOBJECT, ThreadVariable.getSession().getUserName()
+					+ "删除优抚对象人员" + optimalObject.getName(),
+					OperatorType.DELETE,
+					ObjectToJSON.convertJSON(optimalObject));
+
+			optimalObject.setPopulationTypeBean(getPopulationRelationService()
+					.getBusinessPopulationTypeBean(id,
+							PopulationType.OPTIMAL_OBJECT));
+			getRecoverDatasService().deleteActualPopulation(optimalObject);
+			populationRelationService.businessDeletePopulationRelation(id,
+					PopulationType.OPTIMAL_OBJECT);
+
+			this.optimalObjectDao.delete(id);
+			try {
+				PluginServiceHelpUtil.doService("routerService",
+						"deleteServiceTeamHasObjectsAndServiceMemberHasObject",
+						new Class[] { String.class, Long.class },
+						PopulationType.OPTIMAL_OBJECT, id);
+				/** 删除时对关联的事件和服务记录进行orgId和idCardNo赋值 */
+				PluginServiceHelpUtil.doService("routerService",
+						"setOrgIdAndCardNoOrName", new Class[] { Long.class,
+								String.class, String.class, Long.class },
+						optimalObject.getOrganization().getId(),
+						optimalObject.getIdCardNo(),
+						PopulationType.OPTIMAL_OBJECT, id);
+
+				if (IsEmphasis.Emphasis.equals(optimalObject.getIsEmphasis())) {
+					// 缓存计数器
+					PageInfoCacheThreadLocal.decrease(MemCacheConstant
+							.getCachePageKey(OptimalObject.class
+									.getSimpleName()), optimalObject, 1);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.tianque.service.OptimalObjectService#getOptimalObjectById(java.lang
+	 * .Long)
+	 */
+	@Override
+	public OptimalObject getOptimalObjectById(Long id) {
+		if (null == id) {
+			throw new BusinessValidationException("id没有获得");
+		}
+		return this.optimalObjectDao.get(id);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.tianque.service.OptimalObjectService#updateOptimalObject(com.tianque
+	 * .domain.OptimalObject)
+	 */
+	@Override
+	public OptimalObject updateOptimalObject(OptimalObject optimalObject) {
+		optimalObject.setIdCardNo(optimalObject.getIdCardNo().toUpperCase());
+		this.optimalObjectvalidator(optimalObject);
+		if (optimalObject.isDeath()) {
+			this.updateEmphasiseById(optimalObject.getId(),
+					IsEmphasis.IsNotEmphasis);
+		}
+		try {
+			contructCurrentAddress(optimalObject);
+			updateOptimalObjectBaseInfo(optimalObject);
+			updateOptimalObjectBusiness(optimalObject);
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类OptimalObjectServiceImpl的updateOptimalObject方法出现异常，原因：",
+					"修改优抚对象信息出现错误", e);
+		}
+		return optimalObject;
+	}
+
+	private LogoutDetail buildLogoutDetail(Boolean death) {
+		LogoutDetail result = new LogoutDetail();
+		if (death) {
+			result.setLogoutDate(new Date());
+			result.setLogoutReason(LogoutDetail.LOGOUT_REASON_FOR_DEATH);
+			result.setLogout(IsEmphasis.IsNotEmphasis);
+		} else if (!death) {
+			result.setLogout(IsEmphasis.Emphasis);
+		}
+
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.tianque.service.OptimalObjectService#updateOptimalObjectBusiness(
+	 * com.tianque.domain.OptimalObject)
+	 */
+	@Override
+	public OptimalObject updateOptimalObjectBusiness(OptimalObject optimalObject) {
+		optimalObject = optimalObjectDao.updateBusiness(optimalObject);
+		PageInfoCacheThreadLocal.update(MemCacheConstant
+				.getCachePageKey(OptimalObject.class.getSimpleName()),
+				optimalObject, UpdateType.BUSINESS);
+		return optimalObject;
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.tianque.service.OptimalObjectService#
+	 * findOptimalObjectForPageByOrgInternalCode(java.lang.Long,
+	 * java.lang.Integer, java.lang.Integer, java.lang.String, java.lang.String,
+	 * java.lang.Long)
+	 */
+	@Override
+	public PageInfo<OptimalObject> findOptimalObjectForPageByOrgInternalCode(
+			Long orgId, Integer pageNum, Integer pageSize, String sidx,
+			String sord, Long isEmphasis) {
+		if (null == orgId) {
+			return constructEmptyPageInfo();
+		} else {
+			Organization organization = organizationDubboService
+					.getSimpleOrgById(orgId);
+			if (null == organization) {
+				return constructEmptyPageInfo();
+			} else {
+				/*
+				 * OptimalObject optimalObject = new OptimalObject();
+				 * optimalObject.setOrgInternalCode(organization
+				 * .getOrgInternalCode());
+				 * optimalObject.setIsEmphasis(isEmphasis);
+				 * optimalObject.setSortField(sidx);
+				 * optimalObject.setOrder(sord); return
+				 * optimalObjectDao.findPagerUsingCacheBySearchVo(orgId,
+				 * optimalObject, pageNum, pageSize, "OptimalObjects",
+				 * MemCacheConstant.getCachePageKey(OptimalObject.class
+				 * .getSimpleName()));
+				 */
+				// return this.optimalObjectDao
+				// .findOptimalObjectForPageByOrgInternalCode(
+				// organization.getOrgInternalCode(), pageNum,
+				// pageSize, sidx, sord, isEmphasis);
+				Map<String, Object> query = new HashMap<String, Object>();
+				query.put("orgInternalCode", organization.getOrgInternalCode());
+				query.put("isEmphasis", isEmphasis);
+				PageInfo<OptimalObject> pageInfos = optimalObjectDao
+						.findPagerUsingCacheBySearchVo(orgId, query, pageNum,
+								pageSize, "OptimalObjectDefaultList",
+								MemCacheConstant
+										.getCachePageKey(OptimalObject.class));
+				fitCountrymen(pageInfos);
+				fitServiceMemberHasObject(BaseInfoTables.OPTIMALOBJECT_KEY,
+						pageInfos);
+
+				return pageInfos;
+			}
+		}
+	}
+
+	private PageInfo<OptimalObject> constructEmptyPageInfo() {
+		PageInfo<OptimalObject> optimalObjPageInfo = new PageInfo<OptimalObject>();
+		optimalObjPageInfo.setResult(new ArrayList<OptimalObject>());
+		return optimalObjPageInfo;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.tianque.service.OptimalObjectService#hasDuplicateOptimalObject(java
+	 * .lang.Long, java.lang.String, java.lang.Long)
+	 */
+	@Override
+	public boolean hasDuplicateOptimalObject(Long orgId, String idCardNo,
+			Long exceptedId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return false;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		// String idCardNo15 = "";
+		// String idCardNo18 = "";
+		// if (idCardNo.length() == 15) {
+		// idCardNo15 = idCardNo;
+		// idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		// } else if (idCardNo.length() == 18) {
+		// idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+		// idCardNo18 = idCardNo;
+		// }
+		Countrymen countrymen = baseInfoService.getBaseInfoByIdCardNo(idCardNo);
+		if (countrymen == null) {
+			return false;
+		}
+		Long exsited = optimalObjectDao.getIdByBaseinfoIdAndOrgId(
+				countrymen.getId(), orgId);
+		return exceptedId == null ? exsited != null
+				: (exsited != null && !exceptedId.equals(exsited));
+	}
+
+	@Override
+	public OptimalObject hasDuplicateOptimalObject(Long orgId, String idCardNo) {
+		idCardNo = idCardNo.toUpperCase();
+
+		return this.optimalObjectDao.getByIdCard(procIdCardNo(idCardNo), orgId);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.tianque.service.OptimalObjectService#getOptimalObjectIdCardNo(java
+	 * .lang.String, java.lang.Long)
+	 */
+	@Override
+	public OptimalObject getOptimalObjectIdCardNo(String idCardNo, Long orgId) {
+		idCardNo = idCardNo.toUpperCase();
+		return this.optimalObjectDao.getByIdCard(this.procIdCardNo(idCardNo),
+				orgId);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.tianque.service.OptimalObjectService#updateOptimalObjectByIdCardNo
+	 * (java.lang.String, java.lang.Long, com.tianque.domain.OptimalObject)
+	 */
+	@Override
+	public OptimalObject updateOptimalObjectByIdCardNo(String idCardNo,
+			Long orgId, OptimalObject optimalObject) {
+		try {
+			OptimalObject older = this
+					.getOptimalObjectIdCardNo(idCardNo, orgId);
+			optimalObject.setId(older.getId());
+			optimalObject.setCreateDate(older.getCreateDate());
+			optimalObject.setCreateUser(older.getCreateUser());
+			return this.updateOptimalObject(optimalObject);
+		} catch (Exception e) {
+			logger.error("", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("修改信息出现错误");
+			} else {
+				return null;
+			}
+		}
+	}
+
+	@Override
+	public void deletePopulationByPopulationId(Long populationId) {
+		if (null != populationId) {
+			this.deleteOptimalObjectById(populationId);
+			this.deletePopulationTypeByPopulationIdAndType(populationId,
+					PopulationType.OPTIMAL_OBJECT);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @seecom.tianque.service.PopulationProccessor#
+	 * getPopulationSpecializedInfoByOrgIdAndIdCardNo(java.lang.Long,
+	 * java.lang.String)
+	 */
+	@Override
+	public Map<String, Map<String, Object>> getPopulationSpecializedInfoByOrgIdAndIdCardNo(
+			Long orgId, String idCardNo) {
+		Map<String, Map<String, Object>> map = new HashMap<String, Map<String, Object>>();
+		try {
+			OptimalObject optimalObject = optimalObjectDao
+					.getByOrgIdAndIdCardNo(orgId, idCardNo);
+			if (null != optimalObject) {
+				Map<String, Object> optimalObjectMap = new HashMap<String, Object>();
+				optimalObjectMap.put("id", optimalObject.getId());
+				optimalObjectMap.put("isEmphasis",
+						optimalObject.getIsEmphasis());
+				optimalObjectMap.put("optimalCardNo",
+						optimalObject.getOptimalCardNo());
+				optimalObjectMap.put("optimalCardType",
+						optimalObject.getOptimalCardType());
+				optimalObjectMap.put("laborAbility",
+						optimalObject.getLaborAbility());
+				optimalObjectMap.put("abilityLiving",
+						optimalObject.getAbilityLiving());
+				optimalObjectMap.put("employmentSituation",
+						optimalObject.getEmploymentSituation());
+				optimalObjectMap.put("supportSituation",
+						optimalObject.getSupportSituation());
+				optimalObjectMap.put("monthLivingExpenses",
+						optimalObject.getMonthLivingExpenses());
+				optimalObjectMap.put("attentionExtent",
+						optimalObject.getAttentionExtent());
+				map.put(PopulationType.OPTIMALOBJECT, optimalObjectMap);
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类OptimalObjectServiceImpl的getPopulationSpecializedInfoByOrgIdAndIdCardNo方法出现异常，原因：",
+					"获取优抚对象信息出现错误", e);
+		}
+		return map;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.tianque.service.PopulationProccessor#proccessPopulationSpecializedInfo
+	 * (com.tianque.domain.ActualPopulation, java.lang.String[], java.util.Map)
+	 */
+	@Override
+	public Long proccessPopulationSpecializedInfo(
+			ActualPopulation actualPopulation, String[] populationType,
+			Map<String, Object> population) {
+		actualPopulation
+				.setAttentionPopulationType(NewBaseInfoTables.OPTIMALOBJECT_KEY);
+		Long orgId = Long
+				.valueOf(((String[]) population.get("organization.id"))[0]);
+		String idCardNo = ((String[]) population.get("idCardNo"))[0];
+		List idCardNoList = new ArrayList();
+		idCardNoList.add(idCardNo);
+		OptimalObject optimalObject = this.optimalObjectDao.getByIdCard(
+				idCardNoList, orgId);
+		if (!com.tianque.util.Arrays.hasObjectInArray(populationType,
+				PopulationType.OPTIMALOBJECT)) {
+			if (null != optimalObject) {
+				optimalObject.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+				updateEmphasiseById(optimalObject.getId(),
+						IsEmphasis.IsNotEmphasis);
+			}
+		} else {
+			if (null == optimalObject) {
+				optimalObject = new OptimalObject();
+				copyProperty(actualPopulation, population, optimalObject);
+				optimalObject.setIsEmphasis(IsEmphasis.Emphasis);
+				this.addOptimalObject(optimalObject);
+			} else {
+				Long id = optimalObject.getId();
+				copyProperty(actualPopulation, population, optimalObject);
+				optimalObject.setId(id);
+				optimalObject.setIsEmphasis(IsEmphasis.Emphasis);
+				this.updateOptimalObjectBusiness(optimalObject);
+				updateEmphasiseById(optimalObject.getId(), IsEmphasis.Emphasis);
+			}
+		}
+		return optimalObject == null
+				|| optimalObject.getIsEmphasis() == IsEmphasis.IsNotEmphasis
+						.longValue() ? null : optimalObject.getId();
+	}
+
+	private void copyProperty(ActualPopulation actualPopulation,
+			Map<String, Object> population, OptimalObject optimalObject) {
+		copyProperties(optimalObject, actualPopulation);
+		optimalObject.setOptimalCardNo(Arrays.getStringValueFromArray(
+				population, "optimalCardNo"));
+		optimalObject.setOptimalCardType(Arrays.getPropertyDictFromArray(
+				population, "optimalCardType.id"));
+		optimalObject.setLaborAbility(Arrays.getPropertyDictFromArray(
+				population, "laborAbility.id"));
+		optimalObject.setAbilityLiving(Arrays.getPropertyDictFromArray(
+				population, "abilityLiving.id"));
+		optimalObject.setEmploymentSituation(Arrays.getPropertyDictFromArray(
+				population, "employmentSituation.id"));
+		optimalObject.setSupportSituation(Arrays.getPropertyDictFromArray(
+				population, "supportSituation.id"));
+		optimalObject.setMonthLivingExpenses(Arrays.getDoubleValueFromArray(
+				population, "monthLivingExpenses"));
+		optimalObject.setAttentionExtent(Arrays.getPropertyDictFromArray(
+				population, "attentionExtent.id"));
+		optimalObject
+				.setAttentionPopulationType(BaseInfoTables.OPTIMALOBJECT_KEY);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.tianque.service.PopulationProccessor#updatePopulationBaseInfo(com
+	 * .tianque.domain.ActualPopulation)
+	 */
+	@Override
+	public void updatePopulationBaseInfo(ActualPopulation actualPopulation) {
+		try {
+			OptimalObject optimalObject = this.optimalObjectDao
+					.getByOrgIdAndIdCardNo(actualPopulation.getOrganization()
+							.getId(), actualPopulation.getIdCardNo());
+			if (null != optimalObject) {
+				Long id = optimalObject.getId();
+				PropertyUtils.copyProperties(optimalObject, actualPopulation);
+				optimalObject.setId(id);
+
+				this.updateOptimalObject(optimalObject);
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类OptimalObjectServiceImpl的updatePopulationBaseInfo方法出现异常，原因：",
+					"修改优抚对象基本信息出现错误", e);
+		}
+
+	}
+
+	/**
+	 * 数据校验
+	 * 
+	 * @param optimalObject
+	 */
+	private void optimalObjectvalidator(OptimalObject optimalObject) {
+		ValidateResult optimalObjectValidator = updateValidator
+				.validate(optimalObject);
+		if (optimalObjectValidator.hasError()) {
+			throw new BusinessValidationException(
+					optimalObjectValidator.getErrorMessages());
+		} else if (hasDuplicateOptimalObject(optimalObject.getOrganization()
+				.getId(), optimalObject.getIdCardNo(), optimalObject.getId())) {
+			throw new BusinessValidationException("该网格下已存在相同身份证号码");
+		}
+	}
+
+	/**
+	 * 身份证号码处理
+	 * 
+	 * @param idCardNo
+	 * @return
+	 */
+	private List<String> procIdCardNo(String idCardNo) {
+		List<String> list = new ArrayList<String>();
+		list.add(idCardNo);
+		if (idCardNo.length() == 18) {
+			list.add(IdCardUtil.idCardNo18to15(idCardNo));
+		} else if (idCardNo.length() == 15) {
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+		}
+		return list;
+	}
+
+	private void autoFillOrganizationInternalCode(OptimalObject optimalObject) {
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(optimalObject.getOrganization().getId());
+		if (null == organization) {
+			throw new BusinessValidationException("找不到指定的网格");
+		}
+		optimalObject.setOrgInternalCode(organization.getOrgInternalCode());
+	}
+
+	private void autoFillBirthday(OptimalObject optimalObject) {
+		if (StringUtil.isStringAvaliable(optimalObject.getIdCardNo())) {
+			optimalObject.setBirthday(IdCardUtil.parseBirthday(optimalObject
+					.getIdCardNo()));
+		}
+	}
+
+	private void autoFillChinesePinyin(OptimalObject optimalObject) {
+		Map<String, String> pinyin = Chinese2pinyin
+				.changeChinese2Pinyin(optimalObject.getName());
+		optimalObject.setSimplePinyin(pinyin.get("simplePinyin"));
+		optimalObject.setFullPinyin(pinyin.get("fullPinyin"));
+	}
+
+	private void autoIsDeath(OptimalObject optimalObject) {
+		if (optimalObject.isDeath()) {
+			optimalObject.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+		} else {
+			optimalObject.setIsEmphasis(IsEmphasis.Emphasis);
+		}
+	}
+
+	@Override
+	public OptimalObject updateOptimalObjectBaseInfo(OptimalObject population) {
+		try {
+			if (!ExcelImportHelper.isImport.get()) {
+				ValidateResult baseDataValidator = updateValidator
+						.validateBaseInfo(population);
+				if (baseDataValidator.hasError()) {
+					throw new BusinessValidationException(
+							baseDataValidator.getErrorMessages());
+				}
+			}
+			population.setIdCardNo(population.getIdCardNo().toUpperCase());
+			autoFillBirthday(population);
+			autoFillChinesePinyin(population);
+			autoFillOrganizationInternalCode(population);
+			if (population.isDeath()) {
+				population.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+				population.setLogoutDetail(buildLogoutDetail(population
+						.isDeath()));
+				// 缓存计数器
+				PageInfoCacheThreadLocal.decrease(MemCacheConstant
+						.getCachePageKey(OptimalObject.class.getSimpleName()),
+						population, 1);
+			}
+			Countrymen temp = populationRelationService.businessOption(
+					population, population.getActualPopulationType());
+			population.setHouseId(temp.getHouseId());
+			rebuildHouseAddress(population);
+			optimalObjectDao.updateTableUpdateDateById(population.getId());
+			return population;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类OptimalObjectServiceImpl的updateOptimalObjectBaseInfo方法出现异常，原因：",
+					"修改优抚对象基本信息出现错误", e);
+		}
+	}
+
+	private void updateEmphasiseById(Long id, Long isEmphasis) {
+		LogoutDetail logoutDetail = new LogoutDetail();
+		logoutDetail.setLogout(isEmphasis);
+		updateLogOutByPopulationTypeAndId(logoutDetail,
+				BaseInfoTables.OPTIMALOBJECT_KEY, id);
+	}
+
+	@Override
+	public void deleteOptimalObjectByIds(Long[] ids) {
+		if (ids == null || ids.length == 0) {
+			throw new BusinessValidationException("传入参数为空");
+		}
+		try {
+			for (int i = 0; i < ids.length; i++) {
+				delectOptimalObject(ids[i]);
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类OptimalObjectServiceImpl的deleteOptimalObjectByIds方法出现异常，原因：",
+					"删除优抚对象信息出现错误", e);
+		}
+	}
+
+	@Override
+	public PageInfo searchOptimalObjects(
+			SearchOptimalObjectVo searchOptimalObjectVo, Integer page,
+			Integer rows, String sidx, String sord) {
+		searchOptimalObjectVo.setSortField(sidx);
+		searchOptimalObjectVo.setOrder(sord);
+		return optimalObjectDao.searchOptimalObjects(page, rows,
+				searchOptimalObjectVo);
+	}
+
+	@Override
+	public PageInfo fastSearchOptimalObject(
+			SearchOptimalObjectVo searchOptimalObjectVo, Integer page,
+			Integer rows, String sidx, String sord) {
+		return optimalObjectDao.fastSearchOptimalObject(searchOptimalObjectVo,
+				page, rows, sidx, sord);
+	}
+
+	public String[][] getExportPopertyArray() {
+		if (GlobalSetting.NOT_DEPENDENT
+				.equals(globalSettingService
+						.getGlobalValue(GlobalSetting.BUSINESS_DEPENDENT_ACTUAL_POPULATION))) {
+			return SpecialGroupsContext.getOptimalObjectPropertyArraySlf();
+		} else {
+			return SpecialGroupsContext.getOptimalObjectPropertyArrayRla();
+		}
+
+	}
+
+	public List<OptimalObject> searchOptimalObjectsForExport(
+			SearchOptimalObjectVo searchOptimalObjectVo, Integer pageNum,
+			Integer pageSize, String sidx, String sord) {
+		searchOptimalObjectVo.setSortField(sidx);
+		searchOptimalObjectVo.setOrder(sord);
+		List<OptimalObject> list = null;
+		if (pageNum == null) {
+			list = optimalObjectDao
+					.searchAllOptimalObjects(searchOptimalObjectVo);
+		} else {
+			list = optimalObjectDao.searchOptimalObjects(pageNum, pageSize,
+					searchOptimalObjectVo).getResult();
+		}
+		if (GlobalSetting.NOT_DEPENDENT
+				.equals(globalSettingService
+						.getGlobalValue(GlobalSetting.BUSINESS_DEPENDENT_ACTUAL_POPULATION))) {
+			return list;
+		} else {
+			if (null != list && list.size() > 0) {
+				ActualPopulation actualPopulation = null;
+				for (OptimalObject domain : list) {
+					actualPopulation = actualPopulationProcessorService
+							.getActualPopulationbyOrgIdAndIdCardNo(domain
+									.getOrganization().getId(), domain
+									.getIdCardNo());
+					if (null != actualPopulation) {
+						domain.setHouseCode(actualPopulation.getHouseCode());
+						domain.setNoHouseReason(actualPopulation
+								.getNoHouseReason());
+					}
+				}
+			}
+			return list;
+		}
+	}
+
+	@Override
+	public List<OptimalObject> updateDeathByIds(Long[] analyzePopulationIds,
+			boolean death) {
+		List<OptimalObject> returnList = new ArrayList<OptimalObject>();
+		for (int i = 0; i < analyzePopulationIds.length; i++) {
+			OptimalObject optimalObject = this
+					.getOptimalObjectById(analyzePopulationIds[i]);
+			updateLogOutByPopulationTypeAndId(
+					LogoutDetail.buildLogoutDetail(death),
+					BaseInfoTables.OPTIMALOBJECT_KEY, optimalObject.getId());
+			baseInfoService.updateDeathStateById(optimalObject.getBaseInfoId(),
+					death, optimalObject.getIdCardNo(), optimalObject
+							.getOrganization().getId(), optimalObject
+							.getOrgInternalCode(),
+					NewBaseInfoTables.OPTIMALOBJECT_KEY);
+			returnList.add(optimalObject);
+			// 缓存计数器
+			PageInfoCacheThreadLocal.increment(MemCacheConstant
+					.getCachePageKey(OptimalObject.class.getSimpleName()),
+					optimalObject, 1);
+		}
+		return returnList;
+
+	}
+
+	@Override
+	public OptimalObject addOptimalObjectBaseInfo(OptimalObject optimalObject) {
+		ValidateResult optimalObjectValidator = updateValidator
+				.validateBaseInfo(optimalObject);
+		if (optimalObjectValidator.hasError()) {
+			throw new BusinessValidationException(
+					optimalObjectValidator.getErrorMessages());
+		} else if (hasDuplicateOptimalObject(optimalObject.getOrganization()
+				.getId(), optimalObject.getIdCardNo(), optimalObject.getId())) {
+			throw new BusinessValidationException("该网格下已存在相同身份证号码");
+		}
+		try {
+			if (checkDataExitInCache(optimalObject,
+					MemCacheConstant.CACHE_ADDOPTIMALOBJECTBASEINFO,
+					CACHE_ADDOPTIMALOBJECTBASEINFO_VALUE)) {
+				return optimalObject;
+			}
+			return add(optimalObject);
+		} catch (Exception e) {
+			logger.error("", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(optimalObject,
+					MemCacheConstant.CACHE_ADDOPTIMALOBJECTBASEINFO);
+		}
+	}
+
+	@Override
+	public Integer getCount(SearchOptimalObjectVo searchOptimalObjectVo) {
+		return optimalObjectDao.getCount(searchOptimalObjectVo);
+	}
+
+	@Override
+	public void deleteBusinessPopulationDuplicate(Long id) {
+		this.deleteOptimalObjectById(id);
+	}
+}

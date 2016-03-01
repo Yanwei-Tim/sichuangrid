@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="school">
+    <typeAlias alias="School" type="com.tianque.domain.School"/>
+	<parameterMap class="School" id="schoolParameterMap">
+		<parameter property="id"/>
+		<parameter property="chineseName"/>
+		<parameter property="organization.id"/>
+		<parameter property="orgInternalCode"/>
+		<parameter property="englishName"/>
+		<parameter property="kind.id"/>
+		<parameter property="address"/>
+		<parameter property="type.id"/>
+		<parameter property="webSite"/>
+		<parameter property="president"/>
+		<parameter property="contactName"/>
+		<parameter property="telephone"/>
+		<parameter property="mobileNumber"/>
+		<parameter property="email"/>
+		<parameter property="fax"/>
+		<parameter property="remark"/>
+		<parameter property="imgUrl"/>
+		<parameter property="fullPinyin"/>
+		<parameter property="simplePinyin"/>
+		<parameter property="createUser"/>
+		<parameter property="updateUser"/>
+		<parameter property="createDate"/>
+		<parameter property="updateDate"/>
+		<parameter property="atSchoolHeadcount"/>
+		<parameter property="personLiable"/>
+		<parameter property="personLiableTelephone"/>
+		<parameter property="personLiableMobileNumber"/>
+		<parameter property="isEmphasis"/>
+		<parameter property="logOutReason"/>
+		<parameter property="logOutTime"/>
+		<parameter property="attentionExtent"/>
+	</parameterMap>
+	<resultMap class="School" id="schoolResultMap" extends="locationBaseInfo.locationBaseInfoResult">
+		<result property="chineseName" column="chineseName"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="englishName" column="englishName"/>
+		<result property="kind.id" column="kind"/>
+		<result property="address" column="address"/>
+		<result property="type.id" column="type"/>
+		<result property="webSite" column="webSite"/>
+		<result property="president" column="president"/>
+		<result property="contactName" column="contactName"/>
+		<result property="telephone" column="telephone"/>
+		<result property="mobileNumber" column="mobileNumber"/>
+		<result property="email" column="email"/>
+		<result property="fax" column="fax"/>
+		<result property="remark" column="remark"/>
+		<result property="imgUrl" column="imgUrl" />
+		<result property="fullPinyin" column="fullPinyin"/>
+		<result property="simplePinyin" column="simplePinyin"/>
+		<result property="atSchoolHeadcount" column="atSchoolHeadcount"/>
+		<result property="personLiable" column="personLiable"/>
+		<result property="personLiableTelephone" column="personLiableTelephone"/>
+		<result property="personLiableMobileNumber" column="personLiableMobileNumber"/>
+		<result column="isEmphasisReason" property="logOutReason" />
+		<result column="isEmphasisDate" property="logOutTime" />
+		<result column="attentionExtent" property="attentionExtent.id"/>
+	</resultMap>
+	<!-- 为列表显示准备的返回值 -->
+	<resultMap class="School" id="schoolResultMapForList" extends="locationBaseInfo.locationBaseInfoResultForList">
+		<result property="chineseName" column="chineseName"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="englishName" column="englishName"/>
+		<result property="kind.id" column="kind"/>
+		<result property="address" column="address"/>
+		<result property="type.id" column="type"/>
+		<result property="webSite" column="webSite"/>
+		<result property="president" column="president"/>
+		<result property="contactName" column="contactName"/>
+		<result property="telephone" column="telephone"/>
+		<result property="mobileNumber" column="mobileNumber"/>
+		<result property="email" column="email"/>
+		<result property="fax" column="fax"/>
+		<result property="remark" column="remark"/>
+		<result property="imgUrl" column="imgUrl" />
+		<result property="fullPinyin" column="fullPinyin"/>
+		<result property="simplePinyin" column="simplePinyin"/>
+		<result property="atSchoolHeadcount" column="atSchoolHeadcount"/>
+		<result property="personLiable" column="personLiable"/>
+		<result property="personLiableTelephone" column="personLiableTelephone"/>
+		<result property="personLiableMobileNumber" column="personLiableMobileNumber"/>
+		<result column="isEmphasisReason" property="logOutReason" />
+		<result column="isEmphasisDate" property="logOutTime" />
+		<result column="attentionExtent" property="attentionExtent.id"/>
+		<result property="sourcesState" column="sourcesState"/>
+	</resultMap>
+	    <sql id="sql_where">
+			from  schools where 1=1
+			<dynamic>
+				<isNotEmpty prepend="and" property="orgInternalCode">
+				     <![CDATA[orgInternalCode like #orgInternalCode#||'%']]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="chineseName">
+				    <![CDATA[chineseName like #chineseName#||'%']]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="kind.id">
+				    kind=#kind.id#
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="type.id">
+				   type=#type.id#
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="address">
+				    <![CDATA[address like #address#||'%']]>
+				</isNotEmpty>
+				<isNotEmpty prepend=" and " property="englishName">
+					<![CDATA[englishName like #englishName#||'%']]>
+				</isNotEmpty>
+				<isNotEmpty prepend=" and " property="webSite">
+					<![CDATA[webSite like #webSite#||'%']]>
+				</isNotEmpty>
+				<isNotEmpty prepend=" and " property="president">
+					<![CDATA[president like #president#||'%']]>
+				</isNotEmpty>
+				<isNotEmpty prepend=" and " property="fax">
+					<![CDATA[fax like #fax#||'%']]>
+				</isNotEmpty>
+				<isNotEmpty prepend=" and " property="email">
+					<![CDATA[email like #email#||'%']]>
+				</isNotEmpty>
+				<isNotEmpty prepend=" and " property="personLiable">
+					<![CDATA[personLiable like #personLiable#||'%']]>
+				</isNotEmpty>
+				<isNotEmpty prepend=" and " property="personLiableTelephone">
+					<![CDATA[personLiableTelephone like '$personLiableTelephone$%']]>
+				</isNotEmpty>
+				<isNotEmpty prepend=" and " property="personLiableMobileNumber">
+					<![CDATA[personLiableMobileNumber like '$personLiableMobileNumber$%']]>
+				</isNotEmpty>
+				<isNotNull prepend=" and " property="minAtSchoolHeadcount">
+					<![CDATA[atSchoolHeadcount >= #minAtSchoolHeadcount#]]>
+				</isNotNull>
+				<isNotNull prepend=" and " property="maxAtSchoolHeadcount">
+					<![CDATA[atSchoolHeadcount <= #maxAtSchoolHeadcount#]]>
+				</isNotNull>
+				<isPropertyAvailable property="isLogOut">
+				<isNotNull property="isLogOut" prepend=" and ">
+					<isEqual property="isLogOut" compareValue="0">
+						(isEmphasis = #isLogOut# or isEmphasis is null)
+					</isEqual>
+					<isEqual property="isLogOut" compareValue="1">
+						isEmphasis = #isLogOut#
+					</isEqual>
+					<isEqual property="isLogOut" compareValue="-1">
+						1=1
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="attentionExtentId" >
+				<isNotEmpty property="attentionExtentId" prepend=" and ">
+					attentionExtentId = #attentionExtentId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isNotEmpty property="hasServiceTeamMember" prepend=" and ">
+				<isEqual property="hasServiceTeamMember" compareValue="0">
+					id in (select objectId from serviceMemberHasObject where objectType='SCHOOL')
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="1">
+					id not in (select objectId from serviceMemberHasObject where objectType='SCHOOL')	 
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="-1">
+					1=1	 
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="hasServiceRecord" prepend=" and ">
+				<isEqual property="hasServiceRecord" compareValue="0">
+					 id in (select objectId from serviceRecordRelyObject where objectType='SCHOOL')
+				</isEqual>
+				<isEqual property="hasServiceRecord" compareValue="1">
+					 id not in (select objectId from serviceRecordRelyObject where objectType='SCHOOL')	 
+				</isEqual>
+				<isEqual property="hasServiceRecord" compareValue="-1">
+					1=1	 
+				</isEqual>
+			</isNotEmpty>
+	     </dynamic>
+	  </sql>
+
+	<select id="findSchoolList" parameterClass="School" resultMap="schoolResultMapForList">
+			select schools.*,'$importantLocationType$' as locationType 
+			<include refid="sql_where" />
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotEmpty property="sortField">$sortField$</isNotEmpty>
+					<isNotEmpty property="order">$order$</isNotEmpty>
+				</isPropertyAvailable>
+		   </dynamic>
+	</select>
+
+	<select id="countSchool" parameterClass="School"  resultClass="java.lang.Integer">
+			<include refid="common.sql_count" />
+			<include refid="sql_where" />
+	</select>
+
+	<insert id="addSchool" parameterClass="School">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_schools.NEXTVAL as id from dual ]]>
+	    </selectKey>
+         <![CDATA[
+	    insert into schools(id,chineseName,orgId,orgInternalCode,englishName,kind,address,type,webSite,president,contactName,telephone,mobileNumber,email,fax,remark,fullPinyin,simplePinyin,createUser,createDate,atSchoolHeadcount,personLiable,personLiableTelephone,personLiableMobileNumber,isEmphasis,imgUrl,attentionExtent,sourcesState,updateDate,updateUser)
+	    values(#id#,#chineseName#,#organization.id#,#orgInternalCode#,#englishName#,#kind.id#,#address#,#type.id#,#webSite#,#president#,#contactName#,#telephone#,#mobileNumber#,#email#,#fax#,#remark#,#fullPinyin#,#simplePinyin#,#createUser#,#createDate#,#atSchoolHeadcount#,#personLiable#,#personLiableTelephone#,#personLiableMobileNumber#,#isEmphasis#,#imgUrl#,#attentionExtent.id#,#sourcesState#,#updateDate#,#updateUser#)
+	     ]]>
+	</insert>
+
+	<delete id="deleteSchoolById" parameterClass="java.lang.Long">
+	    delete schools where id=#value#
+	</delete>
+
+	<update id="updateSchool" parameterClass="School">
+	  update schools set
+	  <dynamic>
+	       id=#id#
+	     <isNotNull prepend="," property="chineseName">
+	       chineseName=#chineseName#
+	     </isNotNull>
+	      <isNotNull prepend="," property="organization">
+	       orgId=#organization.id#
+	     </isNotNull>
+	      <isNotNull prepend="," property="orgInternalCode">
+	       orgInternalCode=#orgInternalCode#
+	     </isNotNull>
+	      <isNotNull prepend="," property="englishName">
+	       englishName=#englishName#
+	     </isNotNull>
+	      <isNotNull prepend="," property="kind">
+	       kind=#kind.id#
+	     </isNotNull>
+	      <isNotNull prepend="," property="address">
+	       address=#address#
+	     </isNotNull>
+	      <isNotNull prepend="," property="type">
+	       type=#type.id#
+	     </isNotNull>
+	      <isNotNull prepend="," property="webSite">
+	       webSite=#webSite#
+	     </isNotNull>
+	      <isNotNull prepend="," property="president">
+	       president=#president#
+	     </isNotNull>
+	      <isNotNull prepend="," property="contactName">
+	       contactName=#contactName#
+	     </isNotNull>
+	      <isNotNull prepend="," property="telephone">
+	       telephone=#telephone#
+	     </isNotNull>
+	      <isNotNull prepend="," property="mobileNumber">
+	       mobileNumber=#mobileNumber#
+	     </isNotNull>
+	      <isNotNull prepend="," property="email">
+	       email=#email#
+	     </isNotNull>
+	      <isNotNull prepend="," property="fax">
+	       fax=#fax#
+	     </isNotNull>
+	     <isNotNull prepend="," property="imgUrl">
+	       imgUrl=#imgUrl#
+	     </isNotNull>
+	      <isNotNull prepend="," property="remark">
+	       remark=#remark#
+	     </isNotNull>
+	     <isNotNull prepend="," property="fullPinyin">
+	     fullPinyin=#fullPinyin#
+	     </isNotNull>
+	     <isNotNull prepend="," property="simplePinyin">
+	     simplePinyin=#simplePinyin#
+	     </isNotNull>
+	     <isNotNull prepend="," property="createUser">
+	     createUser=#createUser#
+	     </isNotNull>
+	     <isNotNull prepend="," property="createDate">
+	     createDate=#createDate#
+	     </isNotNull>
+	     <isPropertyAvailable prepend="," property="updateUser">
+            updateUser=#updateUser#
+         </isPropertyAvailable>
+         <isPropertyAvailable prepend="," property="updateDate">
+            updateDate=#updateDate#
+         </isPropertyAvailable>
+	     <isPropertyAvailable  prepend=","  property="atSchoolHeadcount">
+	     	atSchoolHeadcount=#atSchoolHeadcount#
+	     </isPropertyAvailable>
+	    <isNotNull prepend="," property="personLiable">
+	          personLiable=#personLiable#
+	     </isNotNull>
+	      <isNotNull prepend="," property="personLiableTelephone">
+	          personLiableTelephone=#personLiableTelephone#
+	     </isNotNull>
+	    <isNotNull prepend="," property="personLiableMobileNumber">
+	          personLiableMobileNumber=#personLiableMobileNumber#
+	     </isNotNull>
+	      <isNotNull prepend="," property="isEmphasis">
+	          isEmphasis=#isEmphasis#
+	     </isNotNull>
+	     <isNotNull prepend="," property="attentionExtent">
+			attentionExtent = #attentionExtent.id#
+		</isNotNull>
+	     where id=#id#
+	  </dynamic>
+	</update>
+	<select id="getSchoolByName" parameterClass="java.util.Map"
+		resultMap="schoolResultMap">
+		select * from schools where  chineseName=#name# and orgId=#id#
+	</select>
+	<select id="getSimpleSchoolById" parameterClass="java.lang.Long" resultMap="schoolResultMap">
+	     select * from schools where id=#value#
+	</select>
+
+	<select id="findSchoolByChineseNameAndOrgId" parameterClass="map" resultMap="schoolResultMap">
+		select * from schools where chineseName = #chineseName# and orgId = #orgId#
+	</select>
+	<select id="findSchoolNameAndPinyinAndOrgInternalCode" parameterClass="java.util.Map" resultMap="schoolResultMap">
+		select * from schools where (chineseName like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%' ) and orgInternalCode like '$orgInternalCode$%' order by id
+	</select>
+	<select id="countExsistedSchool" parameterClass="map" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM schools WHERE chineseName=#chineseName# AND
+		orgId=#orgId#
+		<isNotNull property="id" prepend=" AND ">
+			<![CDATA[
+				id!=#id#
+			]]>
+		</isNotNull>
+	</select>
+	<update id="updateEmphasiseById" parameterClass="map">
+		update schools set isEmphasis=#isEmphasis#,isEmphasisReason=#logOutReason# ,isEmphasisDate = #logOutTime#
+		where id=#id#
+	</update>
+	
+	<!-- JEFFREY add for autoComplete -->
+	<select id="autoCompleteSchoolName" parameterClass="java.lang.String" resultClass="java.lang.String">
+		select chineseName from schools 
+		where chineseName like #schoolName#||'%'
+	</select>
+</sqlMap>

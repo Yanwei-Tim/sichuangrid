@@ -1,0 +1,56 @@
+<#assign pop=JspTaglibs["/WEB-INF/taglib/pop-taglib.tld"]>
+<#assign s=JspTaglibs["/WEB-INF/taglib/struts-tags.tld"]>
+<@s.include value="/includes/baseInclude.jsp" />
+<table width="200" class="tablelist">
+
+
+ <tr>
+  <td class="title"><label>时间</label></td>
+  <td class="content"><@s.date name="workingSituation.occurrenceDate" format="yyyy-MM-dd HH:mm:ss" /></td>
+ 
+ </tr>
+ <tr>
+  <td class="title"><label>民警姓名</label></td>
+  <td class="content" id="workingSituationPoliceName">${(workingSituation.policeName)!}</td>
+ </tr>
+  <tr>
+  <td class="title"><label>身份证号码</label></td>
+  <td class="content" id="idCard">${(workingSituation.idCard)!}</td>
+ </tr>
+  <tr>
+  <td class="title"><label>电话号码</label></td>
+  <td class="content" id="phone">${(workingSituation.phone)!}</td>
+ </tr>
+  <tr>
+    <td class="title"><label>工作内容</label></td>
+    <td class="content"><@pop.PropertyDictViewTag name="@com.tianque.domain.property.PropertyTypes@WORKING_CONTENT_TYPE" defaultValue="${(workingSituation.workcontent.id)!}" /></td>
+    </tr>
+  <tr>
+  </tr>
+    <td class="title"><label>网格员电话</label></td>
+    <td  class="content" id="workingSituationTelePhone">${(workingSituation.telephone)!}</td>
+  
+  <tr>
+    <td class="title"><label>所属网格</label></td>
+    <td  class="content" id="workingSituationOrgName">${(workingSituation.organization.orgName)!}</td>
+    </tr>
+   <tr>
+   <td class="title"><label>签收人</label></td>
+    <td class="content" colspan="3">${(workingSituation.signUserName)!}</td>
+  </tr>
+   <tr>
+    <td class="title"><label>签收意见</label></td>
+    <td class="content" colspan="3">${(workingSituation.advice)!}</td>
+  </tr>
+  <tr>
+    <td class="title"><label>签收时间</label></td>
+    <td class="content" colspan="3"><@s.date name="workingSituation.signDate" format="yyyy-MM-dd HH:mm:ss" /></td>
+  </tr>
+  <tr>
+    <td class="title"><label>备注</label></td>
+    <td class="content" colspan="3" >${(workingSituation.remark)!}</td>
+  </tr>
+  
+  
+ </table>
+   

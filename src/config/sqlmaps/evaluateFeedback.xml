@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="evaluateFeedbacks">
+	<typeAlias alias="evaluateFeedbacks" type="com.tianque.xichang.working.flow.domain.EvaluateFeedbacks" />
+	<resultMap class="evaluateFeedbacks" id="evaluateFeedbacksMap">
+		<result property="id" column="ID"/>
+		<result property="accountId" column="ACCOUNTID"/>
+		<result property="accountType" column="ACCOUNTTYPE"/>
+		<result property="evaluateOrganization.id" column="ORGID"/>
+		<result property="evaluateOrganization.orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="evaluateUser" column="EVALUATEUSER"/>
+		<result property="feedbacksType" column="FEEDBACKSTYPE"/>
+		<result property="feedbacksOpinion" column="FEEDBACKSOPINION"/>
+		<result property="remark" column="REMARK"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+	</resultMap>
+	<insert id="addEvaluateFeedbacks" parameterClass="evaluateFeedbacks">
+		<selectKey keyProperty="id" resultClass="long">
+			<![CDATA[SELECT S_EVALUATEFEEDBACKS.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into EVALUATEFEEDBACKS(
+			id,accountid,accounttype,orgId,orgInternalCode,evaluateUser,feedbacksType,feedbacksOpinion,remark,createuser,createdate) 
+		values
+		(#id#,#accountId#,#accountType#,#evaluateOrganization.id#,#evaluateOrganization.orgInternalCode#,#evaluateUser#,#feedbacksType#,#feedbacksOpinion#,#remark#,#createUser#,#createDate#)
+	</insert>
+	<sql id="search_sql_where">
+		<dynamic>
+			<!--
+			<isNotNull prepend="and" property="accountId">
+		  		orgId=#orgId#
+		  	</isNotNull>
+		  	<isNotNull prepend="and" property="evaluateUser">
+		  		evaluateUser=#evaluateUser#
+		  	</isNotNull>
+		  	-->
+		  	<isNotNull prepend="and" property="accountId">
+		  		accountId=#accountId#
+		 	</isNotNull>
+		  	<isNotEmpty prepend="and" property="accountType">
+		  		accountType=#accountType#
+		  	</isNotEmpty>
+		</dynamic>
+	</sql>
+	<select id="countEvaluateFeedbacks" parameterClass="map" resultClass="java.lang.Integer">
+		select count(id) from evaluateFeedbacks where 1=1
+		<include refid="evaluateFeedbacks.search_sql_where"/>
+	</select>
+	<select id="getEvaluateFeedbacksByAccountIdAndType" parameterClass="map" resultMap="evaluateFeedbacksMap">
+		select * from evaluateFeedbacks where 1=1
+		<include refid="evaluateFeedbacks.search_sql_where"/>
+	</select>
+	<delete id="deleteEvaluateFeedbacksByAccountIdAndType" parameterClass="map">
+		delete from evaluateFeedbacks where 1=1
+		<include refid="evaluateFeedbacks.search_sql_where"/>
+	</delete>
+</sqlMap>

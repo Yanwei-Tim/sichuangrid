@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="SendMsgInfo">
+	<typeAlias alias="sendMsgInfo"
+		type="com.tianque.tenHouseholdsJoint.domain.SendMsgInfo" />
+		<typeAlias alias="messageInfoVo"
+		type="com.tianque.tenHouseholdsJoint.domain.MessageInfoVo" />
+	<typeAlias alias="organization" type="com.tianque.domain.Organization" />
+
+	<resultMap id="sendMsgInfoResult" class="sendMsgInfo">
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgCode" />
+		<result property="userId" column="userId" />
+		<result property="teamId" column="teamId" />
+		<result property="sendDate" column="sendDate" />
+		<result property="isReport" column="isReport" />
+		<result property="message.id" column="messageId" />
+		<result property="message.text" column="text" />
+		<result property="message.requestIdentifier" column="requestIdentifier" />
+		<result property="message.sendAddress" column="sendAddress" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<resultMap id="sendMsgInfosResult" class="sendMsgInfo" extends="sendMsgInfoResult">
+		<result property="message.messageType.id" column="messageType" />
+	</resultMap>
+	
+	<sql id="sql_where">
+		<dynamic>
+			<isNotEmpty property="orgCode" prepend="and">
+				orgCode like #orgCode#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="messageId" prepend="and">
+				messageId = #messageId#
+			</isNotEmpty>
+			<isNotEmpty property="teamId" prepend="and">
+				teamId = #teamId#
+			</isNotEmpty>
+			<isNotEmpty property="userId" prepend="and">
+				userId = #userId#
+			</isNotEmpty>
+			<isNotEmpty property="userIds" prepend="and">
+				userId in ($userIds$)
+			</isNotEmpty>
+			<isNotEmpty property="teamIds" prepend="and">
+				teamId in ($teamIds$)
+			</isNotEmpty>
+			<isNotEmpty property="startSendDate" prepend="and">
+				sendDate <![CDATA[>= ]]> #startSendDate#
+			</isNotEmpty>
+			<isNotEmpty property="endSendDate" prepend="and">
+				sendDate <![CDATA[<= ]]> #endSendDate#
+			</isNotEmpty>
+			<isNotEmpty property="text" prepend="and">
+				text like #text#||'%'
+			</isNotEmpty>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<insert id="addSendMsgInfo" parameterClass="sendMsgInfo">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_sendMsgInfo.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO sendMsgInfo
+		(id,orgId,orgCode,messageId,userId,teamId,sendDate,isReport,createUser,createDate)
+		VALUES(#id#,#organization.id#,#organization.orgInternalCode#,#message.id#,#userId#,#teamId#,#sendDate#,#isReport#,#createUser#,#createDate#)
+	</insert>
+
+	<delete id="deleteSendMsgInfo" parameterClass="java.lang.Long">
+		delete from
+		sendMsgInfo where id=#value#
+	</delete>
+	<update id="updateSendMsgInfo" parameterClass="sendMsgInfo">
+		update sendMsgInfo set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgCode=#organization.orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="userId">
+				userId=#userId#
+			</isNotNull>
+			<isNotNull prepend="," property="teamId">
+				teamId=#teamId#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="isReport">
+				isReport=#isReport#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+	<select id="querySendMsgInfosForPageResult" parameterClass="messageInfoVo" resultMap="sendMsgInfosResult">
+		select
+		r.id,orgId,orgCode,userId,teamId,m.messagetype messageType,sendDate,messageId,isReport,text,requestIdentifier,sendAddress,r.createUser,r.createDate,r.updateUser,r.updateDate
+		from sendMsgInfo r,message m where r.messageId = m.id 
+		<include refid="sql_where"/>
+	</select>
+	<select id="querySendMsgInfosForPageResultCount" parameterClass="messageInfoVo" resultClass="java.lang.Integer">
+		select count(id) from sendMsgInfo where orgCode like #orgCode# || '%'
+	</select>
+	<select id="querySendMsgInfosForList" parameterClass="messageInfoVo" resultMap="sendMsgInfoResult">
+		select
+		r.id,orgId,orgCode,userId,teamId,sendDate,messageId,isReport,text,requestIdentifier,sendAddress,r.createUser,r.createDate,r.updateUser,r.updateDate
+		from sendMsgInfo r,message m where r.messageId = m.id 
+		<include refid="sql_where"/>
+	</select>
+	<select id="getSendMsgInfoById" parameterClass="java.lang.Long" resultMap="sendMsgInfoResult">
+		select
+		r.id,orgId,orgCode,userId,teamId,sendDate,messageId,isReport,text,requestIdentifier,sendAddress,r.createUser,r.createDate,r.updateUser,r.updateDate
+		from sendMsgInfo r,message m where r.messageId = m.id and r.id=#id#
+	</select>
+</sqlMap>

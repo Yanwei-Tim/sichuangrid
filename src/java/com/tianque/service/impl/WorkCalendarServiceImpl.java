@@ -1,0 +1,633 @@
+package com.tianque.service.impl;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.tianque.core.base.AbstractBaseService;
+import com.tianque.core.cache.service.CacheService;
+import com.tianque.core.systemLog.service.SystemLogService;
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.dao.WorkCalendarDao;
+import com.tianque.domain.Organization;
+import com.tianque.domain.WorkCalendar;
+import com.tianque.domain.vo.OrganizationVo;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.service.WorkCalendarService;
+import com.tianque.service.vo.MonthAndWeekWorkDayInfo;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.userAuth.api.UserSignDubboService;
+import com.tianque.util.DateFormat;
+import com.tianque.util.ParametersConvertUtil;
+
+@Service("workCalendarService")
+public class WorkCalendarServiceImpl extends AbstractBaseService implements WorkCalendarService {
+	private final static int SAME_YEAR_HAS = 0;// 同一年而且这一年的对应的组织机构有特色日历
+	private final static int SAME_YEAR_NOT_HAS = 1;// 同一年而且这一年的对应的组织机构没有特色日历
+	private final static int DIF_YEAR_ALL_HAS = 2;// 跨年而且前后两年的对应的组织机构都有特色日历
+	private final static int DIF_YEAR_PRE_HAS = 3;// 跨年而且前一年的对应的组织机构有特色日历，后一年没有
+	private final static int DIF_YEAR_NEXT_HAS = 4;// 跨年而且后一年的对应的组织机构有特色日历，前一年没有
+	private final static int DIF_YEAR_NOT_HAS = 5;// 跨年而且前后两年的对应的组织机构都没有特色日历
+	@Autowired
+	private WorkCalendarDao workCalendarDao;
+	@Autowired
+	private SystemLogService systemLogService;
+	@Autowired
+	private CacheService cacheService;
+	@Autowired
+	private UserSignDubboService userSignDubboService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+
+	@SuppressWarnings("static-access")
+	@Override
+	public boolean addCalendar(WorkCalendar workcalendars) {
+		Calendar can = Calendar.getInstance();
+		if (workcalendars.getYear().intValue() >= can.get(can.YEAR) + 2) {
+			throw new BusinessValidationException("初始化年份不允许跳年度");
+		}
+		boolean flag;
+		if (workcalendars.getCalendarType() == 0) {
+			flag = workCalendarDao.addCalendar(workcalendars);
+		} else {
+			flag = workCalendarDao.addDefaultCalendar(workcalendars);
+		}
+		return flag;
+	}
+
+	@Override
+	public List<Organization> findFeatureOrgs(WorkCalendar workcalendar) {
+		List<Organization> orgList = new ArrayList<Organization>();
+		if (cacheService.get("findFeatureOrgs" + workcalendar.getYear()) != null) {
+			orgList = (List<Organization>) cacheService.get("findFeatureOrgs" + workcalendar.getYear());
+			return orgList;
+		}
+		List<Long> orgIds = workCalendarDao.findFeatureOrgIds(workcalendar);
+		if (orgIds != null && orgIds.size() > 0) {
+			OrganizationVo organizationVo = new OrganizationVo();
+			organizationVo.setOrgIdsList(ParametersConvertUtil.convertToListString(orgIds));
+			orgList = organizationDubboService.findOrgsBySearchVo(organizationVo);
+		}
+		cacheService.set("findFeatureOrgs" + workcalendar.getYear(), orgList);
+		return orgList;
+	}
+
+	@Override
+	public List<List<WorkCalendar>> findCalendar(Long year, int calendarType, Long orgId) {
+		return workCalendarDao.findCalendar(year, calendarType, orgId);
+	}
+
+	@Override
+	public boolean updateCalendarIsWeek(String[] idCount, Long year, int calendarType, Long orgId) {
+		if (idCount == null || idCount.length == 0) {
+			throw new BusinessValidationException("没有指定需要编辑的日期");
+		}
+		return workCalendarDao.updateCalendarIsWeek(idCount, year, calendarType, orgId);
+	}
+
+	@Override
+	public boolean updateCalendarIsWork(String[] idCount, Long year, int calendarType, Long orgId) {
+		if (idCount == null || idCount.length == 0) {
+			throw new BusinessValidationException("没有指定需要编辑的日期");
+		}
+		return workCalendarDao.updateCalendarIsWork(idCount, year, calendarType, orgId);
+	}
+
+	@Override
+	public void deleteCalendar(WorkCalendar workcalendar) {
+		Calendar can = Calendar.getInstance();
+		if (workcalendar.getYear().intValue() <= can.get(Calendar.YEAR)) {
+			throw new BusinessValidationException("不能删除已经开始使用的日历");
+		}
+		workCalendarDao.deleteCalendar(workcalendar);
+	}
+
+	@Override
+	public Set<Long> getWorkCalendarByYear(Long year) {
+		return workCalendarDao.getWorkCalendarByYear(year);
+	}
+
+	@Override
+	public Set<Long> getWorkCalendarByYear(Long year, int calendarType, Long orgId) {
+		return workCalendarDao.getWorkCalendarByYear(year, calendarType, orgId);
+	}
+
+	@Override
+	public Date getFutureDate(Date dateTime, int days) {
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String time = simpleDateFormat.format(dateTime);
+		String[] times = time.split(" ");
+		String dateTimes = workCalendarDao.getFutureDate(times[0], days) + " " + times[1];
+		try {
+			dateTime = simpleDateFormat.parse(dateTimes);
+		} catch (ParseException e) {
+			throw new BusinessValidationException("日期获取出现异常");
+		}
+		return dateTime;
+	}
+
+	@Override
+	public Date getFutureDateByCityOrgId(Date dateTime, int days, Long cityOrgId) {
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String time = simpleDateFormat.format(dateTime);
+		String[] times = time.split(" ");
+		String dateTimes = workCalendarDao.getFutureDateByCityOrgId(times[0], days, cityOrgId) + " " + times[1];
+		try {
+			dateTime = simpleDateFormat.parse(dateTimes);
+		} catch (ParseException e) {
+			throw new BusinessValidationException("日期获取出现异常");
+		}
+		return dateTime;
+	}
+
+	@Override
+	public boolean isWorkDayByDate(String dateStr) {
+		WorkCalendar workCalendar = workCalendarDao.getWorkCalendarByDateString(dateStr);
+		if (workCalendar != null && !workCalendar.getHoliday().equals(1L) && !workCalendar.getHoliday().equals(7L))
+			return true;
+		return false;
+	}
+
+	/**
+	 * 获取对应orgId的组织机构的某年的某月的详细信息
+	 * 
+	 * @param year
+	 *            （年）
+	 * @param month
+	 *            （月）
+	 * @param orgId
+	 *            （组织机构ID）
+	 */
+	@Override
+	public MonthAndWeekWorkDayInfo getMonthAndWeekWorkDays(int year, int month, Long orgId) {
+		MonthAndWeekWorkDayInfo monthAndWeekWorkDayInfo = new MonthAndWeekWorkDayInfo();
+		// 每个月的日期集合
+		List<Date> weekdatelist = getWeekDayByCalendar(year, month);
+		// 将每周的集合拆分成数个周的list
+		List<Date[]> workdatelistByWeek = getWorkdayByWeekList(weekdatelist);
+		int monthWorkDays = 0;
+		int[] weekWorkDays = new int[workdatelistByWeek.size()];
+		List<List<String>> objectList = new ArrayList<List<String>>();
+		List<String> weekWorkDayList;
+		Long startYear = new Long(year);
+		/*
+		 * // 获取对应市级的组织机构ID Long cityOrgId =
+		 * organizationDubboService.getCityOrganizationId(orgId) .getId();
+		 */
+		// Boolean hasFeatureCalendar = checkHasFeatureCalendar(startYear,
+		// orgId);
+		orgId = checkAboveHasFeatureCalendar(startYear, orgId);
+		if (null == orgId) {
+			for (int i = 0; i < workdatelistByWeek.size(); i++) {
+				weekWorkDayList = workCalendarDao.getWorkDaysInfoFromStartTimeToEndTime(workdatelistByWeek.get(i)[0],
+						workdatelistByWeek.get(i)[1]);
+				objectList.add(weekWorkDayList);
+				weekWorkDays[i] = weekWorkDayList.size();
+				monthWorkDays += weekWorkDays[i];
+			}
+		} else {
+			for (int i = 0; i < workdatelistByWeek.size(); i++) {
+				weekWorkDayList = workCalendarDao.getWorkDaysInfoFromStartTimeToEndTimeByFeature(
+						workdatelistByWeek.get(i)[0], workdatelistByWeek.get(i)[1], orgId);
+				objectList.add(weekWorkDayList);
+				weekWorkDays[i] = weekWorkDayList.size();
+				monthWorkDays += weekWorkDays[i];
+			}
+		}
+		monthAndWeekWorkDayInfo.setMonthWorkDays(monthWorkDays);
+		monthAndWeekWorkDayInfo.setWeekWorkDays(weekWorkDays);
+		monthAndWeekWorkDayInfo.setWeekWorkDayList(objectList);
+		return monthAndWeekWorkDayInfo;
+	}
+
+	@Override
+	public List<Date> getWeekDayByCalendar(int year, int month) {
+		List<Date> datelist = new ArrayList<Date>();
+
+		Calendar calendar = Calendar.getInstance();
+		calendar.clear();
+		calendar.set(Calendar.YEAR, year);
+		calendar.set(Calendar.MONTH, month - 1);
+		calendar.setFirstDayOfWeek(Calendar.MONDAY);
+		int maxDays = calendar.getActualMaximum(Calendar.DATE);
+		int maxWeeks = calendar.getActualMaximum(Calendar.WEEK_OF_MONTH);
+
+		boolean isfirst = true;
+		for (int n = 1; n <= maxDays; n++) {
+
+			calendar.set(Calendar.DAY_OF_MONTH, n);
+			int weekOfMonth = calendar.get(Calendar.WEEK_OF_MONTH);
+			int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1;
+			if (dayOfWeek == 0)
+				dayOfWeek = 7;
+
+			if (dayOfWeek != 1 && isfirst) {
+				for (int i = dayOfWeek - 2; i >= 0; i--) {
+					Calendar tempCal = Calendar.getInstance();
+					tempCal.clear();
+					if (month == 1)
+						tempCal.set(Calendar.YEAR, year - 1);
+					else
+						tempCal.set(Calendar.YEAR, year);
+
+					if (month == 1)
+						tempCal.set(Calendar.MONTH, 12 - 1);
+					else
+						tempCal.set(Calendar.MONTH, month - 1 - 1);
+					tempCal.set(Calendar.DAY_OF_MONTH, tempCal.getActualMaximum(Calendar.DATE) - i);
+					int dayOfWeek1 = tempCal.get(Calendar.DAY_OF_WEEK) - 1;
+					if (dayOfWeek1 == 0)
+						dayOfWeek1 = 7;
+					datelist.add(tempCal.getTime());
+				}
+				isfirst = false;
+			} else if (dayOfWeek == 1 && isfirst) {
+				for (int i = dayOfWeek - 2; i >= 0; i--) {
+					Calendar tempCal1 = Calendar.getInstance();
+					tempCal1.clear();
+					if (month == 1)
+						tempCal1.set(Calendar.YEAR, year - 1);
+					else
+						tempCal1.set(Calendar.YEAR, year);
+
+					if (month == 1)
+						tempCal1.set(Calendar.MONTH, 12 - 1);
+					else
+						tempCal1.set(Calendar.MONTH, month - 1 - 1);
+					tempCal1.set(Calendar.DAY_OF_MONTH, tempCal1.getActualMaximum(Calendar.DATE) - i);
+					int dayOfWeek1 = tempCal1.get(Calendar.DAY_OF_WEEK) - 1;
+					if (dayOfWeek1 == 0)
+						dayOfWeek1 = 7;
+					datelist.add(tempCal1.getTime());
+				}
+				isfirst = false;
+			}
+			Date date = calendar.getTime();
+			// 判断最后一天是不是星期天，如果不是就放到下个月
+			if (weekOfMonth == maxWeeks) {
+				calendar.set(Calendar.DAY_OF_MONTH, maxDays);
+				int lastweekdays = calendar.get(Calendar.DAY_OF_WEEK) - 1;
+				if (lastweekdays == 0)
+					lastweekdays = 7;
+				if (lastweekdays != 7) {
+					maxWeeks = maxWeeks - 1;
+					break;
+				}
+			}
+			datelist.add(date);
+		}
+
+		return datelist;
+	}
+
+	@Override
+	public WorkCalendar getWorkCalendarByDateString(String dateStr) {
+		return workCalendarDao.getWorkCalendarByDateString(dateStr);
+	}
+
+	@Override
+	public Integer getWorkDaysFromStartTimeToEndTime(Date startTime, Date endTime) {
+		if (null == startTime || null == endTime) {
+			throw new BusinessValidationException("参数错误");
+		}
+		return workCalendarDao.getWorkDaysFromStartTimeToEndTime(startTime, endTime);
+	}
+
+	/**
+	 * 统计从startTime到endTime的工作天数，如果orgId对应的市级有特色日历应从特色日历中统计，如果没有从默认日历统计
+	 * 
+	 * @param startTime
+	 *            （起始时间）
+	 * @param endTime
+	 *            （截止时间）
+	 * @param orgId
+	 *            （组织机构ID）
+	 */
+	@Override
+	public Integer getWorkDaysFromStartTimeToEndTimeByFeature(Date startTime, Date endTime, Long orgId) {
+		if (null == startTime || null == endTime) {
+			throw new BusinessValidationException("参数错误");
+		}
+		if (null == orgId) {
+			return workCalendarDao.getWorkDaysFromStartTimeToEndTime(startTime, endTime);
+		}
+		int startYearInt = CalendarUtil.getYear(startTime);
+		int endYearInt = CalendarUtil.getYear(endTime);
+		Long startYear = (long) startYearInt;
+		Long endYear = (long) endYearInt;
+		Integer startWorkDays = 0;
+		Integer endWorkDays = 0;
+		Map<String, Long> map = checkAboveHasFeatureCalendar(startYear, endYear, orgId);
+		int status=map.get("flag").intValue();
+		orgId=map.get("startOrgId");
+		/*if(orgId==null){
+			return new Integer(startWorkDays.intValue() + endWorkDays.intValue());
+		}*/
+		switch (status) {
+		case SAME_YEAR_HAS:
+			startWorkDays = workCalendarDao.getWorkDaysFromStartTimeToEndTimeByFeature(startTime, endTime, orgId);
+			break;
+		case DIF_YEAR_ALL_HAS:
+			startWorkDays = workCalendarDao.getWorkDaysFromStartTimeToEndTimeByFeature(startTime, endTime, orgId);
+			break;
+		case DIF_YEAR_PRE_HAS:
+			startWorkDays = workCalendarDao.getWorkDaysFromStartTimeToEndTimeByFeature(startTime,
+					DateFormat.getYearLast(startYearInt), orgId);
+			endWorkDays = workCalendarDao.getWorkDaysFromStartTimeToEndTime(DateFormat.getYearFirst(endYearInt),
+					endTime);
+			break;
+		case DIF_YEAR_NEXT_HAS:
+			startWorkDays = workCalendarDao.getWorkDaysFromStartTimeToEndTime(startTime,
+					DateFormat.getYearLast(startYearInt));
+			endWorkDays = workCalendarDao.getWorkDaysFromStartTimeToEndTimeByFeature(
+					DateFormat.getYearFirst(endYearInt), endTime, orgId);
+			break;
+		default:
+			startWorkDays = workCalendarDao.getWorkDaysFromStartTimeToEndTime(startTime, endTime);
+			break;
+		}
+		return new Integer(startWorkDays.intValue() + endWorkDays.intValue());
+	}
+
+	@Override
+	public boolean updateWorkTime(String[] date, WorkCalendar workCalendar) {
+		if (date == null || date.length == 0) {
+			throw new BusinessValidationException("没有指定需要编辑的日期");
+		}
+		return workCalendarDao.updateWorkTime(date, workCalendar);
+	}
+
+	/**
+	 * 获取当前周的日历详情及登陆情况
+	 */
+	@Override
+	public List<WorkCalendar> findLoginOfCurrentWeek(String OrgCode, Date startDate, Date endDate, String modelName,
+			Integer operationType, String operationUserName) {
+		try {
+			// 用户这一周的登录日期列表
+			// List<String> loginDateList = systemLogService
+			// .findLoginOfCurrentWeek(OrgCode, modelName, operationType,
+			// operationUserName);
+			Long userId = ThreadVariable.getSession().getUserId();
+			List<String> loginDateList = userSignDubboService.getUserSignOfCurrentWeek(userId);
+
+			Long userOrgId = ThreadVariable.getSession().getOrganization().getId();
+			Long cityOrgId = organizationDubboService.getCityOrganizationId(userOrgId).getId();
+			int startYearInt = CalendarUtil.getYear(startDate);
+			int endYearInt = CalendarUtil.getYear(endDate);
+			Long startYear = (long) startYearInt;
+			Long endYear = (long) endYearInt;
+			List<WorkCalendar> currentWeekList = new ArrayList<WorkCalendar>();
+			List<WorkCalendar> endWeekList = new ArrayList<WorkCalendar>();
+			int status = checkHasFeatureCalendar(startYear, endYear, cityOrgId);
+			switch (status) {
+			case SAME_YEAR_HAS:
+				currentWeekList = workCalendarDao.findCurrentWeekByFeature(startDate, endDate, cityOrgId);
+				break;
+			// case SAME_YEAR_NOT_HAS:
+			// currentWeekList = workCalendarDao.findCurrentWeek(startDate,
+			// endDate);
+			// break;
+			case DIF_YEAR_ALL_HAS:
+				currentWeekList = workCalendarDao.findCurrentWeekByFeature(startDate, endDate, cityOrgId);
+				break;
+			case DIF_YEAR_PRE_HAS:
+				currentWeekList = workCalendarDao.findCurrentWeekByFeature(startDate,
+						DateFormat.getYearLast(startYearInt), cityOrgId);
+				endWeekList = workCalendarDao.findCurrentWeek(DateFormat.getYearFirst(endYearInt), endDate);
+				currentWeekList.addAll(endWeekList);
+				break;
+			case DIF_YEAR_NEXT_HAS:
+				currentWeekList = workCalendarDao.findCurrentWeek(startDate, DateFormat.getYearLast(startYearInt));
+				endWeekList = workCalendarDao.findCurrentWeekByFeature(DateFormat.getYearFirst(endYearInt), endDate,
+						cityOrgId);
+				currentWeekList.addAll(endWeekList);
+				break;
+			// case DIF_YEAR_NOT_HAS:
+			// currentWeekList = workCalendarDao.findCurrentWeek(startDate,
+			// endDate);
+			// break;
+
+			default:
+				currentWeekList = workCalendarDao.findCurrentWeek(startDate, endDate);
+				break;
+			}
+			return getWeekOfLogin(loginDateList, currentWeekList);
+		} catch (Exception e) {
+			throw new ServiceValidationException("类WorkCalendarServiceImpl的findLoginOfCurrentWeek方法出现异常，原因：",
+					"获取当前周的登录情况出错", e);
+		}
+	}
+
+	/**
+	 * 获取当前周用户登录信息，以及节假日判断
+	 * 
+	 * @param loginDateList
+	 *            （当前周用户登录的日期）
+	 * @param currentWeekList
+	 *            （日历中，当前周的节假日信息）
+	 * @return
+	 */
+	private List<WorkCalendar> getWeekOfLogin(List<String> loginDateList, List<WorkCalendar> currentWeekList) {
+		java.util.Date nowdate = new java.util.Date();// 当前日期
+		for (WorkCalendar workCalendar : currentWeekList) {
+			workCalendar.setWeekday(DateFormat.dayForWeek(workCalendar.getActualDate()));
+
+			if (workCalendar.getActualDate().after(nowdate)) {// 工作日历的日期大于当前日期
+				workCalendar.setIsLogin(2);// 2代表该日期是将来的日期
+				continue;
+			}
+			if (checkLoginDate(loginDateList, DateFormat.toString(workCalendar.getActualDate()))) {
+				workCalendar.setIsLogin(1);// 1代表该日期用户登录过
+				continue;
+			}
+			workCalendar.setIsLogin(0);// 0代表该日期用户未登录
+		}
+		return currentWeekList;
+
+	}
+
+	/**
+	 * 检测是否为登录日期
+	 * 
+	 * @param loginDateList
+	 * @param dateStr
+	 * @return
+	 */
+	private boolean checkLoginDate(List<String> loginDateList, String dateStr) {
+		for (String loginDate : loginDateList) {
+			if (loginDate.equals(dateStr)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * 检测是否存在特色日历
+	 * 
+	 * @param year
+	 * @param orgId
+	 * @return
+	 */
+	@Override
+	public boolean checkHasFeatureCalendar(Long year, Long orgId) {
+		int calendarType = 1;// 1代表特色日历，0代表默认日历
+		if (null == getWorkCalendarByYear(year, calendarType, orgId)
+				|| getWorkCalendarByYear(year, calendarType, orgId).size() == 0) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 检测是否存在特色日历
+	 * 
+	 * @param startYear
+	 * @param endYear
+	 * @param orgId
+	 * @return
+	 */
+	private int checkHasFeatureCalendar(Long startYear, Long endYear, Long orgId) {
+		Boolean startHasFeatureCalendar = checkHasFeatureCalendar(startYear, orgId);
+		Boolean endHasFeatureCalendar = checkHasFeatureCalendar(endYear, orgId);
+		if (startYear.intValue() == endYear.intValue()) {
+			if (startHasFeatureCalendar) {
+				return SAME_YEAR_HAS;
+			}
+		} else {
+			if (startHasFeatureCalendar && endHasFeatureCalendar) {
+				return DIF_YEAR_ALL_HAS;
+			} else if (startHasFeatureCalendar && !endHasFeatureCalendar) {
+				return DIF_YEAR_PRE_HAS;
+			} else if (!startHasFeatureCalendar && endHasFeatureCalendar) {
+				return DIF_YEAR_NEXT_HAS;
+			} else {
+				return DIF_YEAR_NOT_HAS;
+			}
+
+		}
+		return SAME_YEAR_NOT_HAS;
+	}
+	/**
+	 * 检查本组织及上级是否存在特色日历
+	 * @param startYear
+	 * @param endYear
+	 * @param orgId
+	 * @return
+	 */
+	private Map<String, Long> checkAboveHasFeatureCalendar(Long startYear, Long endYear, Long orgId) {
+		Long startOrgId = checkAboveHasFeatureCalendar(startYear, orgId);
+		Long endOrgId = checkAboveHasFeatureCalendar(endYear, orgId);
+		Map<String, Long> map=new HashMap<String, Long>();
+		map.put("startOrgId", startOrgId);
+		map.put("flag", (long) SAME_YEAR_NOT_HAS);
+		if (startYear.intValue() == endYear.intValue()) {
+			if (startOrgId!=null) {
+				map.put("flag", (long) SAME_YEAR_HAS);
+				return map;
+			}
+		} else {
+			if (startOrgId!=null && endOrgId!=null) {
+				map.put("flag", (long) DIF_YEAR_ALL_HAS);
+				return map;
+			} else if (startOrgId!=null && endOrgId==null) {
+				map.put("flag", (long) DIF_YEAR_PRE_HAS);
+				return map;
+			} else if (startOrgId==null && endOrgId!=null) {
+				map.put("flag", (long) DIF_YEAR_NEXT_HAS);
+				return map;
+			} else {
+				map.put("flag", (long) DIF_YEAR_NOT_HAS);
+				return map;
+			}
+
+		}
+		return map;
+	}
+
+	/** 获得每周开始时间和结束时间 的集合 */
+	private List<Date[]> getWorkdayByWeekList(List<Date> workdatelist) {
+		List<Date[]> workdayByWeekList = new ArrayList<Date[]>();
+
+		if (workdatelist == null || workdatelist.size() == 0)
+			return null;
+		Date[] startAndEndDay = new Date[2];
+		Date startdate = workdatelist.get(0);
+		Date enddate = workdatelist.get(workdatelist.size() - 1);
+
+		long firstweek = startdate.getTime() + 24 * 60 * 60 * 1000 * 6 * 1;
+		startAndEndDay[0] = (startdate);
+		startAndEndDay[1] = (new Date(firstweek));
+		workdayByWeekList.add(startAndEndDay);
+		startAndEndDay = new Date[2];
+
+		firstweek = firstweek + 24 * 60 * 60 * 1000 * 7 * 1;
+		startAndEndDay[0] = (new Date(firstweek - 6 * 24 * 60 * 60 * 1000));
+		startAndEndDay[1] = (new Date(firstweek));
+		workdayByWeekList.add(startAndEndDay);
+		startAndEndDay = new Date[2];
+
+		firstweek = firstweek + 24 * 60 * 60 * 1000 * 7 * 1;
+		startAndEndDay[0] = (new Date(firstweek - 6 * 24 * 60 * 60 * 1000));
+		startAndEndDay[1] = (new Date(firstweek));
+		workdayByWeekList.add(startAndEndDay);
+		startAndEndDay = new Date[2];
+
+		firstweek = firstweek + 24 * 60 * 60 * 1000 * 7 * 1;
+		startAndEndDay[0] = (new Date(firstweek - 6 * 24 * 60 * 60 * 1000));
+		startAndEndDay[1] = (new Date(firstweek));
+		workdayByWeekList.add(startAndEndDay);
+		startAndEndDay = new Date[2];
+		if (workdatelist.size() > 28) {
+			startAndEndDay[0] = (new Date(firstweek + 1 * 24 * 60 * 60 * 1000));
+			startAndEndDay[1] = (enddate);
+			workdayByWeekList.add(startAndEndDay);
+		}
+		return workdayByWeekList;
+	}
+
+	@Override
+	public Integer getWorkDaysByFeature(Date startTime, Date endTime, Long orgId) {
+		if (null == startTime || null == endTime || orgId == null) {
+			throw new BusinessValidationException("参数错误");
+		}
+		return workCalendarDao.getWorkDaysFromStartTimeToEndTimeByFeature(startTime, endTime, orgId);
+	}
+
+	/**
+	 * 判断当前层级组织有无特色日历，若无，往上面层级接着查
+	 * 
+	 * @param year
+	 * @param orgId
+	 * @return
+	 */
+	public Long checkAboveHasFeatureCalendar(Long year, Long orgId) {
+		// 判断当前组织是否有特色日历
+		Boolean flag = checkHasFeatureCalendar(year, orgId);
+		if (!flag) {
+			for (; !flag;) {
+				Organization org = organizationDubboService.getFullOrgById(orgId);
+				if (org.getOrgName().equals("中国")) {
+					flag = true;
+					orgId = null;
+				} else {
+					orgId = org.getParentOrg().getId();
+					flag = checkHasFeatureCalendar(year, orgId);
+				}
+			}
+		}
+		return orgId;
+	}
+}

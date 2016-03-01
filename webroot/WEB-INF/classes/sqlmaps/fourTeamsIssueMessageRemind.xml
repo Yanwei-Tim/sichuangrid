@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<sqlMap namespace="fourTeamsIssueMessageRemind">	
+	
+	<typeAlias alias="FourTeamsIssueMessageRemind" type="com.tianque.fourTeams.fourTeamsIssue.domain.FourTeamsIssueMessageRemind"/>
+	<typeAlias alias="SearchFourTeamsIssueMessageRemindVo" type="com.tianque.fourTeams.fourTeamsIssue.domain.vo.SearchFourTeamsIssueMessageRemindVo" />
+	
+	<resultMap id="fourTeamsIssueMessageRemindResult" class="FourTeamsIssueMessageRemind">
+		<result property="id" column="ID"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="contactsMobile" column="CONTACTS_MOBILE"/>
+		<result property="issueSkipruleId" column="ISSUE_SKIPRULE_ID"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="contactsName" column="CONTACTS_NAME"/>
+	</resultMap>
+	
+
+
+	<select id="getFourTeamsIssueMessageRemindById" parameterClass="java.lang.Long" resultMap="fourTeamsIssueMessageRemindResult">
+		select * from FOURTEAMS_ISSUEMESSAGEREMIND where id=#value#
+	</select>
+	
+	<select id="findFourTeamsIssueMessageRemindListBySkipRuleId" parameterClass="java.lang.Long" resultMap="fourTeamsIssueMessageRemindResult">
+		select * from FOURTEAMS_ISSUEMESSAGEREMIND where ISSUE_SKIPRULE_ID = #value#
+	</select>
+	
+	<insert id="addFourTeamsIssueMessageRemind" parameterClass="FourTeamsIssueMessageRemind">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_FOURTEAMS_ISSUEMESSAGEREMIND.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into FOURTEAMS_ISSUEMESSAGEREMIND (ID , CREATEDATE , UPDATEDATE , CONTACTS_MOBILE , ISSUE_SKIPRULE_ID , CREATEUSER , UPDATEUSER , CONTACTS_NAME ) 
+		values(#id#, #createDate#, #updateDate#, #contactsMobile#, #issueSkipruleId#, #createUser#, #updateUser#, #contactsName#)	
+	</insert>
+	
+	<update id="updateFourTeamsIssueMessageRemind" parameterClass="FourTeamsIssueMessageRemind">
+		update FOURTEAMS_ISSUEMESSAGEREMIND set id = #id# 
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="contactsMobile">
+					CONTACTS_MOBILE = #contactsMobile#
+				</isNotNull>
+				<isNotNull prepend="," property="issueSkipruleId">
+					ISSUE_SKIPRULE_ID = #issueSkipruleId#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="contactsName">
+					CONTACTS_NAME = #contactsName#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteFourTeamsIssueMessageRemindById" parameterClass="java.lang.Long">	
+		delete  from FOURTEAMS_ISSUEMESSAGEREMIND where id = #value#	
+	</delete>
+	<delete id="deleteFourTeamsIssueMessageRemindBySkipRuleId" parameterClass="java.lang.Long">	
+		delete  from FOURTEAMS_ISSUEMESSAGEREMIND where ISSUE_SKIPRULE_ID = #value# 
+	</delete>
+	
+	<sql id="findFourTeamsIssueMessageRemindsBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="maxCreatedate">
+					<isNotEmpty prepend="and" property="maxCreatedate">
+						CREATEDATE  <![CDATA[<=]]> #maxCreatedate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minCreatedate">
+					<isNotEmpty prepend="and" property="minCreatedate">
+						CREATEDATE  <![CDATA[>=]]> #minCreatedate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="maxUpdatedate">
+					<isNotEmpty prepend="and" property="maxUpdatedate">
+						UPDATEDATE  <![CDATA[<=]]> #maxUpdatedate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minUpdatedate">
+					<isNotEmpty prepend="and" property="minUpdatedate">
+						UPDATEDATE  <![CDATA[>=]]> #minUpdatedate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="contactsMobile">
+					<isNotEmpty prepend="and" property="contactsMobile">
+						CONTACTS_MOBILE  like #contactsMobile# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="issueSkipruleId">
+					<isNotEmpty prepend="and" property="issueSkipruleId">
+						ISSUE_SKIPRULE_ID = #issueSkipruleId#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="createuser">
+					<isNotEmpty prepend="and" property="createuser">
+						CREATEUSER  like #createuser# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="updateuser">
+					<isNotEmpty prepend="and" property="updateuser">
+						UPDATEUSER  like #updateuser# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="contactsName">
+					<isNotEmpty prepend="and" property="contactsName">
+						CONTACTS_NAME  like #contactsName# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+	<select id="findFourTeamsIssueMessageRemindsBySearchVo" parameterClass="SearchFourTeamsIssueMessageRemindVo" resultMap="fourTeamsIssueMessageRemindResult">
+		select * from FOURTEAMS_ISSUEMESSAGEREMIND
+		<include refid="findFourTeamsIssueMessageRemindsBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countFourTeamsIssueMessageRemindsBySearchVo" parameterClass="SearchFourTeamsIssueMessageRemindVo" resultClass="java.lang.Integer">
+		select count(0) from FOURTEAMS_ISSUEMESSAGEREMIND
+		<include refid="findFourTeamsIssueMessageRemindsBySearchVo_sql_where" />
+	</select>
+
+</sqlMap>

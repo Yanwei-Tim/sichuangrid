@@ -1,0 +1,192 @@
+package com.tianque.plugin.weChat.util;
+
+import java.io.InputStream;
+import java.io.Writer;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
+
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.core.util.QuickWriter;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
+import com.thoughtworks.xstream.io.xml.XppDriver;
+import com.tianque.plugin.weChat.domain.receiveMessage.TextReceiveMessage;
+
+/** 消息工具类 */
+public class MessageUtil {
+	static Logger logger = Logger.getLogger(MessageUtil.class);
+
+	/**发起https请求*/
+	//	public static JSONObject httpsRequest(String requestUrl, String requestMethod, String outputStr) {
+	//		JSONObject jsonObject = null;
+	//		StringBuffer buffer = new StringBuffer();
+	//		try {
+	//			URL url = new URL(requestUrl);
+	//			HttpsURLConnection httpUrlConn = (HttpsURLConnection) url.openConnection();
+	//			/**创建SSLContext对象，并使用我们指定的信任管理器初始化*/
+	//			TrustManager[] tm = { new MyTrustManager() };
+	//			SSLContext sslContext = SSLContext.getInstance("SSL", "SunJSSE");
+	//			sslContext.init(null, tm, new java.security.SecureRandom());
+	//			/**从上述SSLContext对象中得到SSLSocketFactory对象*/
+	//			SSLSocketFactory ssf = sslContext.getSocketFactory();
+	//			httpUrlConn.setSSLSocketFactory(ssf);
+	//			httpUrlConn.setDoOutput(true);
+	//			httpUrlConn.setDoInput(true);
+	//			httpUrlConn.setUseCaches(false);
+	//			/**设置请求方式（GET/POST）*/
+	//			httpUrlConn.setRequestMethod(requestMethod);
+	//
+	//			if (Constants.GET.equalsIgnoreCase(requestMethod)) {
+	//				httpUrlConn.connect();
+	//			}
+	//			/**当有数据需要提交时*/
+	//			if (null != outputStr) {
+	//				OutputStream outputStream = httpUrlConn.getOutputStream();
+	//				outputStream.write(outputStr.getBytes("UTF-8"));
+	//				outputStream.close();
+	//			}
+	//
+	//			/**将返回的输入流转换成字符串*/
+	//			InputStream inputStream = httpUrlConn.getInputStream();
+	//			InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "utf-8");
+	//			BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+	//
+	//			String str = null;
+	//			while ((str = bufferedReader.readLine()) != null) {
+	//				buffer.append(str);
+	//			}
+	//			bufferedReader.close();
+	//			inputStreamReader.close();
+	//			/**释放资源*/
+	//			inputStream.close();
+	//			inputStream = null;
+	//			httpUrlConn.disconnect();
+	//			jsonObject = JSONObject.fromObject(buffer.toString());
+	//		} catch (ConnectException ce) {
+	//			logger.error("Weixin server connection timed out.");
+	//		} catch (Exception e) {
+	//			logger.error("https request error:" + e);
+	//		}
+	//		return jsonObject;
+	//	}
+
+	//	/**发起http请求*/
+	//	public static JSONObject httpRequest(String requestUrl, String requestMethod, String outputStr) {
+	//		JSONObject jsonObject = null;
+	//		StringBuffer buffer = new StringBuffer();
+	//		try {
+	//			URL url = new URL(requestUrl);
+	//			HttpURLConnection httpUrlConn = (HttpURLConnection) url.openConnection();
+	//			httpUrlConn.setDoOutput(true);
+	//			httpUrlConn.setDoInput(true);
+	//			httpUrlConn.setUseCaches(false);
+	//
+	//			if (Constants.GET.equalsIgnoreCase(requestMethod)) {
+	//				httpUrlConn.connect();
+	//			}
+	//			/**当有数据需要提交时*/
+	//			if (null != outputStr) {
+	//				OutputStream outputStream = httpUrlConn.getOutputStream();
+	//				outputStream.write(outputStr.getBytes("UTF-8"));
+	//				outputStream.close();
+	//			}
+	//			/**将返回的输入流转换成字符串*/
+	//			InputStream inputStream = httpUrlConn.getInputStream();
+	//			InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "utf-8");
+	//			BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+	//
+	//			String str = null;
+	//			while ((str = bufferedReader.readLine()) != null) {
+	//				buffer.append(str);
+	//			}
+	//			bufferedReader.close();
+	//			inputStreamReader.close();
+	//			/**释放资源*/
+	//			inputStream.close();
+	//			inputStream = null;
+	//			httpUrlConn.disconnect();
+	//			jsonObject = JSONObject.fromObject(buffer.toString());
+	//		} catch (ConnectException ce) {
+	//			logger.error("Weixin server connection timed out.");
+	//		} catch (Exception e) {
+	//			logger.error("http request error:" + e);
+	//		}
+	//		return jsonObject;
+	//	}
+
+	/**解析微信发来的请求（XML）*/
+	@SuppressWarnings("unchecked")
+	public static Map<String, String> parseXml(InputStream inputStream) throws Exception {
+
+		Map<String, String> map = new HashMap<String, String>();
+		SAXReader reader = new SAXReader();
+		Document document = reader.read(inputStream);
+		/**得到xml根元素*/
+		Element root = document.getRootElement();
+		/** 得到根元素的所有子节点*/
+		List<Element> elementList = root.elements();
+		/**遍历所有子节点*/
+		for (Element e : elementList) {
+			map.put(e.getName(), e.getText());
+		}
+		/**释放资源*/
+		inputStream.close();
+		inputStream = null;
+		return map;
+	}
+
+	/** 
+	 * 文本消息对象转换成xml (响应（回复）微信发来的消息发送格式：xml)
+	 *  
+	 * @param textMessage 文本消息对象 
+	 * @return xml 
+	 */
+	public static String textMessageToXml(TextReceiveMessage textMessage) {
+		xstream.alias("xml", textMessage.getClass());
+		return xstream.toXML(textMessage);
+	}
+
+	/**
+	 * 组装文本客服消息（web--微信service）
+	 * @param openId
+	 * @param content
+	 * @return
+	 */
+	public static String makeTextCustomMessage(String openId, String content) {
+		content = content.replace("\"", "\\\"");
+		String jsonMsg = "{\"touser\":\"%s\",\"msgtype\":\"text\",\"text\":{\"content\":\"%s\"}}";
+		return String.format(jsonMsg, openId, content);
+
+	}
+
+	/**扩展xstream，使其支持CDATA块*/
+	private static XStream xstream = new XStream(new XppDriver() {
+		public HierarchicalStreamWriter createWriter(Writer out) {
+			return new PrettyPrintWriter(out) {
+				// 对所有xml节点的转换都增加CDATA标记
+				boolean cdata = true;
+
+				@SuppressWarnings("unchecked")
+				public void startNode(String name, Class clazz) {
+					super.startNode(name, clazz);
+				}
+
+				protected void writeText(QuickWriter writer, String text) {
+					if (cdata) {
+						writer.write("<![CDATA[");
+						writer.write(text);
+						writer.write("]]>");
+					} else {
+						writer.write(text);
+					}
+				}
+			};
+		}
+	});
+}

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="hospitalTemp">
+	<typeAlias alias="HospitalTemp" type="com.tianque.plugin.dataManage.location.hospitalTemp.domain.HospitalTemp" />
+	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+	
+	<resultMap id="hospitalTempResultForBase" class="HospitalTemp" extends="locationTempBaseDomain.placeCommonTempResultForBase">
+		<result property="kind.id" column="kind"/>
+		<result property="type.id" column="type"/>
+		<result property="name" column="name"/>
+		<result property="address" column="address"/>
+		<result property="director" column="director"/>
+		<result property="affiliatedUnit" column="affiliatedUnit"/>
+		<result property="mobileNumber" column="mobileNumber"/>
+		<result property="telephone" column="telephone"/>
+		<result property="fax" column="fax"/>
+		<result property="email" column="email"/>
+		<result property="remark" column="remark"/>
+	</resultMap>
+    <resultMap id="hospitalTempResultForList" class="HospitalTemp" extends="hospitalTemp.hospitalTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<sql id="claim_sql_where">
+		from DM_hospitals_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	<sql id="updateBusinessSql">
+		kind = #kind.id#
+		,type = #type.id#
+		,telephone = #telephone#
+		,mobileNumber = #mobileNumber#
+		,director = #director#
+		,affiliatedUnit = #affiliatedUnit#
+		,fax=#fax#
+		,email=#email#
+		,attentionExtent=#attentionExtent.id#
+	</sql>
+	<insert id="addHospitalTemp" parameterClass="HospitalTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_hospitals_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_hospitals_Temp
+		(id,orgid,orgInternalCode,name,kind,address,type,director,telephone,mobileNumber,
+		affiliatedUnit,fax,email,attentionExtent,remark,createDate,createUser,
+		<include refid="dataManage.addDataManage"/>
+		)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#name#,#kind.id#,#address#,#type.id#,#director#,#telephone#,#mobileNumber#,
+		#affiliatedUnit#,#fax#,#email#,#attentionExtent.id#,#remark#,#createDate#,#createUser#,
+		<include refid="dataManage.addValueDataManage"/>
+		)
+    </insert>
+	
+	<select id="findTempPageList" resultMap="hospitalTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	 <update id="updateHospitalTempInIdById"  parameterClass="java.util.Map">
+		update DM_hospitals_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<update id="updateHospitalTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_hospitals_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+
+	<update id="updateHospitalTemp" parameterClass="HospitalTemp">
+		update DM_hospitals_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="hospitalTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	
+	<select id="findTemps" resultMap="hospitalTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countFindTemps" resultClass="java.lang.Integer"
+		parameterClass="searchVo">
+			select count(id)  <include refid="claim_sql_where" />
+	</select>
+	<select id="getHospitalTempById" parameterClass="long" resultMap="hospitalTempResultForList">
+		select * from DM_hospitals_Temp where id=#value#
+	</select>
+	<!-- 修改场所信息 -->
+	<update id="updateHospitalTempInfo" parameterClass="HospitalTemp">
+		update DM_hospitals_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="hospitalTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<delete id="deleteHospitalTempById" parameterClass="Long">
+	   delete DM_hospitals_Temp where id = #value#
+	</delete>
+</sqlMap>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="serviceTeamGuarders">
+	<typeAlias alias="ServiceTeamGuarders"  type="com.tianque.plugin.serviceTeam.serviceTeamGuarders.domain.ServiceTeamGuarders" />
+	<typeAlias alias="ServiceTeamGuardersVo"  type="com.tianque.plugin.serviceTeam.serviceTeamGuarders.vo.ServiceTeamGuardersVo" />
+	
+	<resultMap class="ServiceTeamGuardersVo" id="serviceTeamGuardersVoResult">
+		<result property="guardersId" column="id" />
+		<result property="guarderName" column="guarderName" />
+		<result property="gender.id" column="gender" />
+		<result property="relation" column="relation" />
+		<result property="idCardNo" column="idCardNo" />
+		<result property="phone" column="phone" />
+		<result property="mobile" column="mobile" />
+		<result property="remark" column="remark" />
+	</resultMap>
+	
+	<select id="getServiceTeamGuardersById" parameterClass="long" resultMap="serviceTeamGuardersVoResult">
+		<![CDATA[ select * from serviceTeamGuarders where id = #value# ]]>	
+	</select>
+	
+	<insert id="addServiceTeamGuarders" parameterClass="ServiceTeamGuarders">
+	<selectKey resultClass="java.lang.Long" keyProperty="id">
+    	<![CDATA[ SELECT s_serviceTeamGuarders.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+	<![CDATA[
+		insert into serviceTeamGuarders (id,guarderName, gender, relation,idCardNo,phone,mobile,remark )
+		VALUES (#id#,#guarderName#, #gender.id#, #relation#,#idCardNo#,#phone#,#mobile#,#remark#) 
+	]]>
+	</insert>
+	
+	<update id="updateServiceTeamGuarders" parameterClass="ServiceTeamGuarders">
+		update serviceTeamGuarders set
+			guarderName=#guarderName#,
+			gender=#gender.id#,
+			relation=#relation#,
+			idCardNo=#idCardNo#,
+			phone=#phone#,
+			mobile=#mobile#,
+			remark=#remark#
+		where id=#id#
+	</update>
+	
+</sqlMap>

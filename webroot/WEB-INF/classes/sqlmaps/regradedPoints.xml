@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="regradedPoints">
+    <typeAlias type="com.tianque.domain.RegradedPoints" alias="RegradedPoints"/>
+    <resultMap class="RegradedPoints" id="regradedPointsResult">
+        <result property="id" column="id"/>
+        <result property="content" column="content"/>
+        <result property="regradedOrg.id" column="regradedOrg"/>
+        <result property="regradedOrgInternalCode" column="regradedOrgInternalCode"/>
+        <result property="regradedUser" column="regradedUser"/>
+        <result property="regradedUserRealName" column="regradedUserRealName"/>
+        <result property="regradedDate" column="regradedDate"/>
+        <result property="regradeReason" column="regradeReason"/>
+        <result property="pointType" column="pointType"/>
+        <result property="points" column="points"/>
+        <result property="targeOrg.id" column="targeOrg"/>
+        <result property="targeOrgInternalCode" column="targeOrgInternalCode"/>
+        <result property="regradedType" column="regradedType"/>
+        <result property="keyString" column="keyString"/>
+        <result property="applicationDate" column="applicationDate"/>
+        <result property="createDate" column="createDate"/>
+        <result property="createUser" column="createUser"/>
+        <result property="updateDate" column="updateDate"/>
+        <result property="updateUser" column="updateUser"/>
+        <result property="logId" column="logId"/>
+    </resultMap>
+    <insert id="regradedPoints" parameterClass="RegradedPoints">
+       <selectKey keyProperty="id" resultClass="java.lang.Long">
+           <![CDATA[select s_regradedPoints.NEXTVAL as id from dual]]>
+       </selectKey>
+       insert into regradedPoints (id,content,regradedOrg,regradedOrgInternalCode,regradedUser,regradedUserRealName,regradedDate,
+                regradeReason,pointType,points,targeOrg,targeOrgInternalCode,regradedType,keyString,applicationDate,createDate,createUser,updateDate,updateUser, logId)
+       values
+       (#id#,#content#,#regradedOrg.id#,#regradedOrgInternalCode#,#regradedUser#,#regradedUserRealName#,#regradedDate#,
+                #regradeReason#,#pointType#,#points#,#targeOrg.id#,#targeOrgInternalCode#,#regradedType#,#keyString#,#applicationDate#,#createDate#,#createUser#,#updateDate#,#updateUser#, #logId#)
+    </insert>
+    <delete id="deleteRegradedPointsByIssueId" parameterClass="java.lang.Long">
+       delete from regradedPoints where keyString like 'issueId:'||'$value$'||';%'
+    </delete>
+    <sql id="sql_where">
+        <isNotEmpty prepend="and" property="statDate">
+            to_char(applicationDate,'yyyyMM') = #statDate#
+        </isNotEmpty>
+    </sql>
+    <select id="queryRegradedPointsForListByIds" parameterClass="java.util.List" resultMap="regradedPointsResult">
+    	select * from regradedpoints where logId in
+    	<iterate open="(" close=")" conjunction=",">
+    		#list[]#
+    	</iterate>
+    </select>
+    <sql id="sql_queryIssueGradeHistoryForPageResultByIssueId">
+    	SELECT R.* FROM REGRADEDPOINTS R, ISSUELOGS L WHERE L.ISSUEID = #keyId# AND L.ID=R.LOGID
+    </sql>
+    <select id="queryIssueGradeHistoryForPageResultByIssueIdCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    	SELECT COUNT(*) FROM (<include refid="sql_queryIssueGradeHistoryForPageResultByIssueId"/>)
+    </select>
+    <select id="queryIssueGradeHistoryForPageResultByIssueId" parameterClass="java.util.Map" resultMap="regradedPointsResult">
+    	<include refid="sql_queryIssueGradeHistoryForPageResultByIssueId"/>
+    	 <dynamic prepend="order by">
+            <isPropertyAvailable property="sortField">
+                <isNotNull property="sortField">R.$sortField$</isNotNull>
+                <isNotNull property="order">$order$</isNotNull>
+            </isPropertyAvailable>
+        </dynamic>
+    </select>
+    
+    <sql id="sql_queryIssueGradeHistoryForPageResultByHistoryIssueId">
+    	SELECT R.* FROM REGRADEDPOINTS R, Issuelogs_History L WHERE L.ISSUEID = #keyId# AND L.ID=R.LOGID
+    </sql>
+    
+    <select id="queryIssueGradeHistoryForPageResultByHistoryIssueIdCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    	SELECT COUNT(*) FROM (<include refid="sql_queryIssueGradeHistoryForPageResultByHistoryIssueId"/>)
+    </select>
+    <select id="queryIssueGradeHistoryForPageResultByHistoryIssueId" parameterClass="java.util.Map" resultMap="regradedPointsResult">
+    	<include refid="sql_queryIssueGradeHistoryForPageResultByHistoryIssueId"/>
+    	 <dynamic prepend="order by">
+            <isPropertyAvailable property="sortField">
+                <isNotNull property="sortField">R.$sortField$</isNotNull>
+                <isNotNull property="order">$order$</isNotNull>
+            </isPropertyAvailable>
+        </dynamic>
+    </select>
+    <select id="issueGradeIsVisabled" parameterClass="java.util.Map" resultClass="java.lang.String">
+    	SELECT COUNT(*) FROM ISSUESTEPS WHERE ISSUE = #keyId# AND STATECODE = '1000' AND #sysDate#
+    	<![CDATA[<]]>
+    	TO_DATE(TO_CHAR(TRUNC(ADD_MONTHS(ENDDATE, 1)), 'YYYY-MM') || '-15', 'YYYY-MM-DD')
+    </select>
+    <delete id="deleteRegradedPointByLogId" parameterClass="java.util.HashMap">
+    	DELETE FROM REGRADEDPOINTS WHERE LOGID = #logId# AND REGRADEDTYPE = #regradedbyperson#
+    </delete>
+    <select id="findRegradedPointsByOrgIdAndStatDate" parameterClass="java.util.Map" resultMap="regradedPointsResult">
+        <![CDATA[
+            select * from regradedpoints where targeOrg = #orgId# 
+        ]]>
+        <include refid="sql_where"/>
+        <dynamic prepend="order by">
+            <isPropertyAvailable property="sortField">
+                <isNotNull property="sortField">$sortField$</isNotNull>
+                <isNotNull property="order">$order$</isNotNull>
+            </isPropertyAvailable>
+        </dynamic>
+    </select>
+    <select id="countRegradedPoints" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+        <![CDATA[
+            select count(0) from regradedpoints where targeOrg = #orgId#
+        ]]>
+        <include refid="sql_where"/>
+    </select>
+    <select id="getRegradedPointsById" parameterClass="java.lang.Long" resultMap="regradedPointsResult">
+        select * from regradedpoints where id = #value#
+    </select>
+    
+    <sql id="sql_where2">
+        <isNotNull property="startDate" prepend="and">
+        	applicationDate <![CDATA[>=]]> #startDate#
+    	</isNotNull>
+       <isNotNull prepend="and" property="endDate">
+           applicationDate <![CDATA[<]]> #endDate#
+       </isNotNull>
+    </sql>
+    <select id="findRegradedPointsByOrgIdAndIntervalDate" parameterClass="java.util.Map" resultMap="regradedPointsResult">
+        <![CDATA[
+            select * from regradedpoints where targeOrg = #orgId# 
+        ]]>
+        <include refid="sql_where2"/>
+        <dynamic prepend="order by">
+            <isPropertyAvailable property="sortField">
+                <isNotNull property="sortField">$sortField$</isNotNull>
+                <isNotNull property="order">$order$</isNotNull>
+            </isPropertyAvailable>
+        </dynamic>
+    </select>
+    <select id="countRegradedPointsByOrgIdAndIntervalDate" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+        <![CDATA[
+            select count(0) from regradedpoints where targeOrg = #orgId#
+        ]]>
+        <include refid="sql_where2"/>
+    </select>
+</sqlMap>

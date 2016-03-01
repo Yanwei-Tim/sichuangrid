@@ -1,0 +1,909 @@
+package com.tianque.plugin.weChat.service.impl;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.apache.commons.httpclient.util.DateUtil;
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.base.AbstractBaseService;
+import com.tianque.core.cache.service.CacheService;
+import com.tianque.core.exception.ServiceException;
+import com.tianque.core.util.FileUtil;
+import com.tianque.core.util.GridProperties;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.jms.sender.ActiveMQMessageSender;
+import com.tianque.plugin.weChat.constant.RedEnvelopeConstant;
+import com.tianque.plugin.weChat.dao.InboxDao;
+import com.tianque.plugin.weChat.domain.WeiXinMedia;
+import com.tianque.plugin.weChat.domain.redEnvelopeManagement.RedEnvelope;
+import com.tianque.plugin.weChat.domain.redEnvelopeManagement.RedEnvelopesPaymentRecords;
+import com.tianque.plugin.weChat.domain.sendMessage.Article;
+import com.tianque.plugin.weChat.domain.sendMessage.News;
+import com.tianque.plugin.weChat.domain.sendMessage.TextMessage;
+import com.tianque.plugin.weChat.domain.sendMessage.text.TextSendMessage;
+import com.tianque.plugin.weChat.domain.user.Fan;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+import com.tianque.plugin.weChat.domain.user.WeChatGroup;
+import com.tianque.plugin.weChat.domain.user.WeChatSource;
+import com.tianque.plugin.weChat.proxy.service.BaseHttpClientService;
+import com.tianque.plugin.weChat.service.EventService;
+import com.tianque.plugin.weChat.service.FanService;
+import com.tianque.plugin.weChat.service.InboxService;
+import com.tianque.plugin.weChat.service.KeyWordService;
+import com.tianque.plugin.weChat.service.RedEnvelopeService;
+import com.tianque.plugin.weChat.service.RedEnvelopesPaymentRecordsService;
+import com.tianque.plugin.weChat.service.TencentUserService;
+import com.tianque.plugin.weChat.service.UploadFileService;
+import com.tianque.plugin.weChat.service.WeChatService;
+import com.tianque.plugin.weChat.service.WeChatSourceService;
+import com.tianque.plugin.weChat.util.Constants;
+import com.tianque.plugin.weChat.util.MessageUtil;
+import com.tianque.plugin.weChat.util.RedEnvelopeUtils;
+import com.tianque.plugin.weChat.vo.RedEnvelopeObjectVo;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+/**所有向代理发送请求的方法所在服务类*/
+@Service("weChatService")
+@Transactional
+public class WeChatServiceImpl extends AbstractBaseService implements WeChatService {
+	private static Logger logger = Logger.getLogger(WeChatServiceImpl.class);
+	@Autowired
+	private InboxService inboxService;
+	@Autowired
+	private BaseHttpClientService baseHttpClientService;
+	@Autowired
+	private FanService fanService;
+	@Autowired
+	private CacheService cacheService;
+	@Autowired
+	private TencentUserService tencentUserService;
+	@Autowired
+	private EventService eventService;
+	@Autowired
+	private UploadFileService uploadFileService;
+	@Autowired
+	private KeyWordService keyWordService;
+	@Autowired
+	private RedEnvelopeService redEnvelopeService;
+	@Autowired
+	private RedEnvelopesPaymentRecordsService redEnvelopesPaymentRecordsService;
+	@Autowired
+	private OrganizationDubboService organizationService;
+	@Autowired
+	private WeChatSourceService weChatSourceService;
+
+	private String tempMessage = null;
+
+	@Autowired
+	private ActiveMQMessageSender activeMQMessageSender;
+	@Autowired
+	private InboxDao inboxDao;
+
+	/**
+	 * 回复客服消息
+	 */
+	@Override
+	public int replyMessage(TextSendMessage textSendMessage, TencentUser tencentUser) {
+		int resultCode = 0;
+		try {
+			String accessToken = getAccessToken(tencentUser);
+			/**拼装发送消息的url*/
+			String url = Constants.SEND_MESSAGE_URL.replace("ACCESS_TOKEN", accessToken)
+					+ "&requestType=replyMessage&content="
+					+ URLEncoder.encode(MessageUtil.makeTextCustomMessage(
+							textSendMessage.getTouser(), textSendMessage.getText().getContent()));
+			baseHttpClientService.postMethod(url);
+		} catch (Exception e) {
+			logger.error("发送客服消息失败" + e.getMessage());
+			resultCode = 1;
+		}
+
+		return resultCode;
+	}
+
+	/**
+	 * 回复文本消息
+	 */
+	@Override
+	public String replyTextMessage(List<TextMessage> listTextMessage, TencentUser tencentUser) {
+		try {
+			String accessToken = getAccessToken(tencentUser);
+			for (int i = 0; i < listTextMessage.size(); i++) {
+				/**拼装发送消息的url*/
+				String url = Constants.SEND_MESSAGE_URL.replace("ACCESS_TOKEN", accessToken)
+						+ "&requestType=replyMessage&content="
+						+ URLEncoder.encode(MessageUtil.makeTextCustomMessage(listTextMessage
+								.get(i).getToUserName(), listTextMessage.get(i).getContent()));
+				baseHttpClientService.postMethod(url);
+			}
+			return null;
+		} catch (Exception e) {
+			logger.error("发送文本消息失败" + e.getMessage());
+			return "发送文本消息失败" + e.getMessage();
+		}
+	}
+
+	@Override
+	public String replyMoreFortyEightTextMessage(List<TextMessage> listTextMessage,
+			TencentUser tencentUser) {
+		try {
+			String accessToken = getAccessToken(tencentUser);
+			String fixedOpenId = "";
+			for (int i = 0; i < listTextMessage.size(); i++) {
+				/**拼装发送消息的url*/
+				String url = Constants.SEND_MESSAGE_BYOPENID_URL.replace("ACCESS_TOKEN",
+						accessToken)
+						+ "&requestType=replyMessage&content="
+						+ URLEncoder.encode(MessageUtil.makeTextCustomMessageForMass(
+								listTextMessage.get(i).getToUserName(), fixedOpenId,
+								listTextMessage.get(i).getContent()));
+				baseHttpClientService.postMethod(url);
+			}
+			return null;
+		} catch (Exception e) {
+			logger.error("发送文本消息失败" + e.getMessage());
+			return "发送文本消息失败" + e.getMessage();
+		}
+	}
+
+	/**
+	 * 回复图片消息
+	 */
+	@Override
+	public String replyImageMessage(List<TextMessage> listTextMessage, TencentUser tencentUser,
+			String imagePath) {
+		try {
+			String accessToken = getAccessToken(tencentUser);
+			//上传图片
+			WeiXinMedia media = uploadFileService.uploadMedia(accessToken, "image", imagePath);
+			if (media == null) {
+				logger.error("发送图片消息时上传图片失败");
+				return "发送图片消息时上传图片失败";
+			}
+			/*****模拟群发**/
+			for (int i = 0; i < listTextMessage.size(); i++) {
+				/**拼装发送消息的url*/
+				String url = Constants.SEND_MESSAGE_URL.replace("ACCESS_TOKEN", accessToken)
+						+ "&requestType=replyMessage&content="
+						+ URLEncoder.encode(MessageUtil.makeImageCustomMessage(
+								listTextMessage.get(i).getToUserName(), media.getMediaId()));
+				baseHttpClientService.postMethod(url);
+			}
+			return null;
+		} catch (Exception e) {
+			logger.error("发送图片消息失败" + e.getMessage());
+			return "发送图片消息失败" + e.getMessage();
+		}
+	}
+
+	@Override
+	public String replyMoreFortyEightImageMessage(List<TextMessage> listTextMessage,
+			TencentUser tencentUser, String imagePath) {
+		try {
+			String accessToken = getAccessToken(tencentUser);
+			//上传图片
+			WeiXinMedia media = uploadFileService.uploadMedia(accessToken, "image", imagePath);
+			if (media == null) {
+				logger.error("发送图片消息时上传图片失败");
+				return "发送图片消息时上传图片失败";
+			}
+			/*****模拟群发**/
+			for (int i = 0; i < listTextMessage.size(); i++) {
+				/**拼装发送消息的url*/
+				String url = Constants.SEND_MESSAGE_BYOPENID_URL.replace("ACCESS_TOKEN",
+						accessToken)
+						+ "&requestType=replyMessage&content="
+						+ URLEncoder.encode(MessageUtil.makeImageCustomMessageForMass(
+								listTextMessage.get(i).getToUserName(), "", media.getMediaId()));
+				baseHttpClientService.postMethod(url);
+			}
+			return null;
+		} catch (Exception e) {
+			logger.error("发送图片消息失败" + e.getMessage());
+			return "发送图片消息失败" + e.getMessage();
+		}
+	}
+
+	/**
+	 * 回复语音消息
+	 */
+	@Override
+	public String replyVoiceMessage(List<TextMessage> listTextMessage, TencentUser tencentUser,
+			String imagePath) {
+		try {
+			String accessToken = getAccessToken(tencentUser);
+			//上传语音
+			WeiXinMedia media = uploadFileService.uploadMedia(accessToken, "voice", imagePath);
+			if (media == null) {
+				logger.error("发送语音消息时上传语音文件失败！");
+				return "发送语音消息时上传语音文件失败！";
+			}
+			for (int i = 0; i < listTextMessage.size(); i++) {
+				/**拼装发送消息的url*/
+				String url = Constants.SEND_MESSAGE_URL.replace("ACCESS_TOKEN", accessToken)
+						+ "&requestType=replyMessage&content="
+						+ URLEncoder.encode(MessageUtil.makeVoiceCustomMessage(
+								listTextMessage.get(i).getToUserName(), media.getMediaId()));
+				baseHttpClientService.postMethod(url);
+			}
+			return null;
+		} catch (Exception e) {
+			logger.error("发送语音消息失败" + e.getMessage());
+			return "发送语音消息失败" + e.getMessage();
+		}
+	}
+
+	@Override
+	public String replyMoreFortyEightVoiceMessage(List<TextMessage> listTextMessage,
+			TencentUser tencentUser, String imagePath) {
+		try {
+			String accessToken = getAccessToken(tencentUser);
+			//上传语音
+			WeiXinMedia media = uploadFileService.uploadMedia(accessToken, "voice", imagePath);
+			if (media == null) {
+				logger.error("发送语音消息时上传语音文件失败！");
+				return "发送语音消息时上传语音文件失败！";
+			}
+			for (int i = 0; i < listTextMessage.size(); i++) {
+				/**拼装发送消息的url*/
+				String url = Constants.SEND_MESSAGE_BYOPENID_URL.replace("ACCESS_TOKEN",
+						accessToken)
+						+ "&requestType=replyMessage&content="
+						+ URLEncoder.encode(MessageUtil.makeVoiceCustomMessageForMass(
+								listTextMessage.get(i).getToUserName(), "", media.getMediaId()));
+				baseHttpClientService.postMethod(url);
+			}
+			return null;
+		} catch (Exception e) {
+			logger.error("发送语音消息失败" + e.getMessage());
+			return "发送语音消息失败" + e.getMessage();
+		}
+	}
+
+	/**
+	 * 回复图文消息
+	 */
+	@Override
+	public String replyNewsMessage(List<TextMessage> listTextMessage, TencentUser tencentUser,
+			List<Article> articleList) {
+		try {
+			String accessToken = getAccessToken(tencentUser);
+			for (int i = 0; i < listTextMessage.size(); i++) {
+				/**拼装发送消息的url*/
+				String url = Constants.SEND_MESSAGE_URL.replace("ACCESS_TOKEN", accessToken)
+						+ "&requestType=replyMessage&content="
+						+ URLEncoder.encode(MessageUtil.makeNewsCustomMessage(listTextMessage
+								.get(i).getToUserName(), articleList));
+				baseHttpClientService.postMethod(url);
+			}
+			return null;
+		} catch (Exception e) {
+			logger.error("发送图文消息失败" + e.getMessage());
+			return "发送图文消息失败" + e.getMessage();
+		}
+	}
+
+	@Override
+	public String replyMoreFortyEightNewsMessage(List<TextMessage> listTextMessage,
+			TencentUser tencentUser, List<News> list) {
+		try {
+			String accessToken = getAccessToken(tencentUser);
+
+			WeiXinMedia media = uploadFileService.uploadNews(accessToken, list);
+			if (media == null) {
+				logger.error("发送图片消息时上传图片失败");
+				return "发送图片消息时上传图片失败";
+			}
+			for (int i = 0; i < listTextMessage.size(); i++) {
+				/**拼装发送消息的url*/
+				String url = Constants.SEND_MESSAGE_BYOPENID_URL.replace("ACCESS_TOKEN",
+						accessToken)
+						+ "&requestType=replyMessage&content="
+						+ URLEncoder.encode(MessageUtil.makeNewsCustomMessageForMass(
+								listTextMessage.get(i).getToUserName(), "", media.getMediaId()));
+				baseHttpClientService.postMethod(url);
+			}
+			return null;
+		} catch (Exception e) {
+			logger.error("发送图文消息失败" + e.getMessage());
+			return "发送图文消息失败" + e.getMessage();
+		}
+	}
+
+	/**
+	 * 接受消息(入口)
+	 */
+	@Override
+	public String receiveMessage(Map<String, String> messageMap) {
+		String toUserName = messageMap.get("ToUserName");
+		String fromUserName = messageMap.get("FromUserName");
+		String msgType = messageMap.get("MsgType");
+		String content = messageMap.get("Content");
+		String msgId = messageMap.get("MsgId");
+		String createTime = messageMap.get("CreateTime");
+		//获取公众账号对象
+		TencentUser tencentUser = tencentUserService.getTencentUserByWeChatUserId(toUserName);
+		if (tencentUser == null) {
+			return MessageUtil.textMessageToXml(createErrorMessage(toUserName, fromUserName,
+					"获取公众账号对象失败,请与管理员联系！！！"));
+		}
+		if (msgType.equals(Constants.REQ_MESSAGE_TYPE_TEXT)
+				|| msgType.equals(Constants.REQ_MESSAGE_TYPE_IMAGE)
+				|| msgType.equals(Constants.REQ_MESSAGE_TYPE_VOICE)) {
+			String messageId = (String) cacheService.get(fromUserName + createTime);
+			if (messageId == null) {
+				cacheService.set(fromUserName + createTime, 17, msgId);
+				if (msgType.equals(Constants.REQ_MESSAGE_TYPE_TEXT)) {
+					//文本 图片 语音
+					tempMessage = keyWordService.receiveMessageByKeyWord(content, toUserName,
+							fromUserName);
+				}
+				if (GridProperties.USE_MQ.equals("true")) {
+					Fan fan = fanService.getFanByOpenIdAndWeChatUserId(
+							messageMap.get("FromUserName"), tencentUser.getWeChatUserId());
+					if (fan == null) {
+						fanService.saveFan(messageMap, tencentUser);
+					}
+					inboxDao.saveMsgByMq(messageMap, tencentUser, msgType,
+							getAccessToken(tencentUser));
+				} else {
+					inboxService.saveInbox(messageMap, tencentUser);
+				}
+
+				return tempMessage;
+			} else {
+				//文本 图片 语音
+				//				if (tempMessage == null || "".equals(tempMessage))
+				//					if (msgType.equals(Constants.REQ_MESSAGE_TYPE_TEXT))
+				//						tempMessage = keyWordService.receiveMessageByKeyWord(content, toUserName,
+				//								fromUserName);
+				if (tempMessage != null && !"".equals(tempMessage))
+					return tempMessage;
+				else {
+					//					if (msgType.equals(Constants.REQ_MESSAGE_TYPE_TEXT))
+					//						return MessageUtil.textMessageToXml(createErrorMessage(toUserName,
+					//								fromUserName, "亲，网络有点不给力， 请稍后在试！"));
+					if (msgType.equals(Constants.REQ_MESSAGE_TYPE_TEXT))
+						return keyWordService.receiveMessageByKeyWord(content, toUserName,
+								fromUserName);
+					else
+						return null;
+				}
+			}
+		} else if (msgType.equals(Constants.REQ_MESSAGE_TYPE_VIDEO)) {
+			//TODO视频！
+			return MessageUtil.textMessageToXml(createErrorMessage(toUserName, fromUserName,
+					"亲，视频功能还在开发中， 请稍后在试！"));
+		} else if (msgType.equals(Constants.REQ_MESSAGE_TYPE_LOCATION)) {
+			String messageId = (String) cacheService.get(fromUserName + createTime);
+			if (messageId == null) {//消息排重
+				cacheService.set(fromUserName + createTime, 17, msgId);
+				inboxService.saveInbox(messageMap, tencentUser);
+			}
+			//TODO地理位置消息！
+			//			return MessageUtil.textMessageToXml(createErrorMessage(toUserName, fromUserName,
+			//					"亲，地理位置功能还在开发中， 请稍后在试！"));
+			return null;
+
+		} else if (msgType.equals(Constants.REQ_MESSAGE_TYPE_LINK)) {
+			//TODO链接消息！
+			return MessageUtil.textMessageToXml(createErrorMessage(toUserName, fromUserName,
+					"亲，网站链接功能还在开发中， 请稍后在试！"));
+		} else if (msgType.equals(Constants.REQ_MESSAGE_TYPE_EVENT)) {
+			//事件处理
+			return eventService.eventHandler(messageMap, tencentUser);
+
+		} else {
+			return MessageUtil.textMessageToXml(createErrorMessage(toUserName, fromUserName,
+					"亲，请求出了一丁点的问题， 请稍后在试！"));
+		}
+	}
+
+	/**
+	 * 创建缺省消息
+	 * @param toUserName
+	 * @param fromUserName
+	 * @return
+	 */
+	public TextMessage createErrorMessage(String toUserName, String fromUserName, String content) {
+		TextMessage textMessage = new TextMessage();
+		textMessage.setToUserName(fromUserName);
+		textMessage.setFromUserName(toUserName);
+		textMessage.setCreateTime(new Date().getTime());
+		textMessage.setMsgType(Constants.RESP_MESSAGE_TYPE_TEXT);
+		textMessage.setContent(content);
+		return textMessage;
+	}
+
+	/**
+	 * 下载媒体文件
+	 */
+	@Override
+	public String downloadMedia(String mediaId, TencentUser tencentUser) {
+		String fileName = "default.jpg";
+		String accessToken = getAccessToken(tencentUser);
+		/**拼装发送消息的url*/
+		String url = Constants.DOWNLOAD_MEDIA_URL.replace("ACCESS_TOKEN", accessToken).replace(
+				"MEDIA_ID", mediaId)
+				+ "&requestType=downloadMedia";
+		Map map = baseHttpClientService.postMethodAsInputStream(url);
+		InputStream inputStream = (InputStream) map.get("inputStream");
+		fileName = (String) map.get("fileName");
+		File f = new File(FileUtil.getWebRoot() + File.separator + "uploadFile" + File.separator
+				+ "weChat");
+		if (!f.exists()) {
+			f.mkdirs();
+		}
+		String fileUrl = FileUtil.getWebRoot() + File.separator + "uploadFile" + File.separator
+				+ "weChat" + File.separator + fileName;
+		try {
+			FileOutputStream fileOutputStream;
+			fileOutputStream = new FileOutputStream(fileUrl);
+			IOUtils.copy(inputStream, fileOutputStream);
+			fileOutputStream.close();
+			inputStream.close();
+			String extFileName = fileName.substring(fileName.indexOf(".") + 1);
+			if ("amr".equals(extFileName)) {
+				Runtime.getRuntime().exec(
+						" ffmpeg -i " + fileUrl + " " + fileUrl.replace(".amr", ".mp3"));
+				return fileName.replace(".amr", ".mp3");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("downloadMediaERROR", e);
+		}
+		return fileName;
+	}
+
+	/**
+	 * 获取公众号的全局唯一票据
+	 */
+	public String getAccessToken(TencentUser tencentUser) {
+		String accessToken = (String) cacheService.get("weChatAccessToken"
+				+ tencentUser.getWeChatUserId());
+		if (accessToken != null && "代理错误".equals(accessToken)) {
+			accessToken = null;
+			cacheService.remove("weChatAccessToken" + tencentUser.getWeChatUserId());
+		}
+		if (accessToken == null) {
+			String appid = tencentUser.getAppId();
+			String secret = tencentUser.getAppSecret();
+			String url = Constants.ACCESS_TOKEN_URL.replace("APPID", appid).replace("APPSECRET",
+					secret)
+					+ "&requestType=getAccessToken";
+			accessToken = baseHttpClientService.postMethod(url);
+			cacheService
+					.set("weChatAccessToken" + tencentUser.getWeChatUserId(), 7100, accessToken);
+		}
+		return accessToken;
+
+	}
+
+	/**
+	 * 获取该公共号粉丝用户信息
+	 */
+	@Override
+	public Fan getFanByOpenId(String openId, TencentUser tencentUser) {
+		String accessToken = getAccessToken(tencentUser);
+		String url = Constants.GET_FANINFO_URL.replace("ACCESS_TOKEN", accessToken).replace(
+				"OPENID", openId)
+				+ "&requestType=getFanInfo";
+		String jsonText = baseHttpClientService.postMethod(url);
+		JSONObject jsonObject = null;
+		Fan fan = new Fan();
+		try {
+			jsonObject = JSONObject.fromObject(URLDecoder.decode(jsonText, "UTF-8"));
+			logger.info("*******fanJson*******" + jsonObject.toString());
+			fan.setOpenId(jsonObject.getString("openid"));
+			fan.setName(jsonObject.getString("nickname"));
+			fan.setGroupId(Long.parseLong(jsonObject.getString("groupid")));
+		} catch (UnsupportedEncodingException e) {
+			logger.error("getFanByOpenIdERROR", e);
+		}
+		return fan;
+	}
+
+	/**
+	 * 根据微信公众号获取群组列表
+	 */
+	@Override
+	public List<WeChatGroup> getWeChatGroupList(TencentUser tencentUser) {
+		String accessToken = getAccessToken(tencentUser);
+		String url = Constants.GET_GROUPLIST_URL.replace("ACCESS_TOKEN", accessToken)
+				+ "&requestType=getGroupList";
+		String jsonText = baseHttpClientService.postMethod(url);
+		JSONObject jsonObject = null;
+		List<WeChatGroup> groupList = new ArrayList<WeChatGroup>();
+		try {
+			jsonObject = JSONObject.fromObject(URLDecoder.decode(jsonText, "UTF-8"));
+			if (jsonObject.toString().startsWith("{\"groups\"")) {
+				JSONArray array = jsonObject.getJSONArray("groups");
+				for (int i = 0; i < array.size(); i++) {
+					JSONObject object = (JSONObject) array.get(i);
+					WeChatGroup weChatGroup = new WeChatGroup();
+					weChatGroup.setName(object.getString("name"));
+					weChatGroup.setGroupId(object.getLong("id"));
+					weChatGroup.setWeChatUserId(tencentUser.getWeChatUserId());
+					weChatGroup.setCountFan(object.getLong("count"));
+					groupList.add(weChatGroup);
+				}
+			} else {
+				logger.error("获取公共账号用户分组信息失败" + jsonObject.toString());
+				return null;
+			}
+		} catch (UnsupportedEncodingException e) {
+			logger.error("获取公共账号用户分组信息失败" + e.getMessage());
+			return null;
+		}
+		return groupList;
+	}
+
+	/**
+	 * 根据openId获取他所在群组的groupId(微信方的id)
+	 */
+	@Override
+	public Long getGroupIdByOpenId(String openId, TencentUser tencentUser) {
+		String accessToken = getAccessToken(tencentUser);
+		String url = Constants.GET_GROUPID_URL.replace("ACCESS_TOKEN", accessToken) + "&openid="
+				+ openId + "&requestType=getGroupId";
+		String jsonText = baseHttpClientService.postMethod(url);
+		JSONObject jsonObject = null;
+		try {
+			jsonObject = JSONObject.fromObject(URLDecoder.decode(jsonText, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			logger.error("getGroupIdByOpenIdERROR", e);
+		}
+		return jsonObject.getLong("groupid");
+	}
+
+	public WeiXinMedia localMediaIdUploadToWeChat(Long sourceId, TencentUser tencentUser) {
+		WeChatSource weChatSource = weChatSourceService.getWeChatSource(sourceId);
+		if (weChatSource == null) {
+			throw new BusinessValidationException("未找到该素材");
+		}
+		String accessToken = getAccessToken(tencentUser);
+		//图片上传
+		WeiXinMedia picMedia = uploadFileService.uploadMedia(accessToken, "image",
+				GridProperties.PROXY_SERVER_DOMAIN_NAME + weChatSource.getPath());
+		if (picMedia == null) {
+			throw new BusinessValidationException("素材图片上传失败");
+		}
+		List<News> lists = new ArrayList<News>();
+		News news = new News();
+		news.setAuthor(tencentUser.getName());
+		news.setContent(weChatSource.getContent());
+		news.setContentSourceUrl(weChatSource.getUrl());
+		news.setTitle(weChatSource.getTitle());
+		news.setDigest(weChatSource.getSourceDescription());
+		news.setThumbMediaId(picMedia.getMediaId());
+		lists.add(news);
+
+		//上传图文
+		WeiXinMedia picAndTextMedia = uploadFileService.uploadNews(accessToken, lists);
+		return picAndTextMedia;
+	}
+	/**
+	 * 按组群发
+	 * @param list
+	 * @param tencentUser
+	 * @param groupId
+	 * @return
+	 */
+	public boolean sendNewsToGroup(List<News> list, TencentUser tencentUser, String groupId) {
+		String accessToken = getAccessToken(tencentUser);
+		//图片上传
+		WeiXinMedia media = uploadFileService.uploadMedia(accessToken, "image",
+				"http://localhost:8090/resource/winxin/bb.jpg");
+		if (media != null) {
+
+			/**************开始按组群发消息********************/
+			String jsonStr = MessageUtil.makeNewsByGroupMessage(groupId, media.getMediaId());
+			//按组群发
+			String url = Constants.SEND_MESSAGE_BYGROUP_URL.replace("ACCESS_TOKEN", accessToken)
+					+ "&requestType=sendMessageByGroup&content=" + URLEncoder.encode(jsonStr);
+			String jsonText = baseHttpClientService.postMethod(url);
+			JSONObject jsonObject = null;
+			try {
+				jsonObject = JSONObject.fromObject(URLDecoder.decode(jsonText, "UTF-8"));
+				if (jsonObject.getInt("errcode") == 0) {
+					logger.info("群发组消息上报成功!");
+					return true;
+				} else {
+					logger.error("群发组消息上报失败!" + jsonObject.toString());
+					return false;
+				}
+			} catch (Exception e) {
+				logger.error("群发组消息上报失败!" + jsonObject.toString());
+				return false;
+			}
+		} else {
+			logger.error("群发消息时，图文信息上传失败！");
+			return false;
+		}
+	}
+
+	@Override
+	public boolean sendNewsToMassUser(List<News> list, TencentUser tencentUser, String[] tousers) {
+		String accessToken = getAccessToken(tencentUser);
+		//图片上传
+		WeiXinMedia media = uploadFileService.uploadMedia(accessToken, "image",
+				"http://localhost:8090/resource/winxin/bb.jpg");
+		if (media != null) {
+			List<News> lists = new ArrayList<News>();
+			News news = new News();
+			news.setAuthor("karomi");
+			news.setContent("测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试！！！！");
+			news.setContentSourceUrl("http://www.baidu.com");
+			news.setTitle("图文用户列表群发测试");
+			news.setDigest("描述！！！");
+			news.setThumbMediaId(media.getMediaId());
+			lists.add(news);
+
+			//上传图文
+			WeiXinMedia media2 = uploadFileService.uploadNews(accessToken, lists);
+
+			if (media2 != null) {
+				String jsonStr = MessageUtil.makeNewsByMassUser(tousers, media2.getMediaId());
+
+				/**拼装发送消息的url*/
+				String url = Constants.SEND_MESSAGE_BYOPENID_URL.replace("ACCESS_TOKEN",
+						accessToken)
+						+ "&requestType=replyMessage&content="
+						+ URLEncoder.encode(jsonStr);
+				String resultStr = baseHttpClientService.postMethod(url);
+				try {
+					JSONObject jsonObject = JSONObject.fromObject(URLDecoder.decode(resultStr,
+							"UTF-8"));
+					if (jsonObject.getInt("errcode") == 0) {
+						logger.info("群发组消息上报成功!");
+						return true;
+					} else {
+						logger.error("群发组消息上报失败!" + jsonObject.toString());
+						return false;
+					}
+				} catch (Exception e) {
+					logger.error("群发组消息上报失败!", e);
+					return false;
+				}
+			} else {
+				logger.error("群发消息时，图文信息上传失败！");
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public String sendNewsToMassUserByMediaId(String mediaId, TencentUser tencentUser,
+			String[] tousers) {
+		String accessToken = getAccessToken(tencentUser);
+		String jsonStr = MessageUtil.makeNewsByMassUser(tousers, mediaId);
+
+		/**拼装发送消息的url*/
+		String url = Constants.SEND_MESSAGE_BYOPENID_URL.replace("ACCESS_TOKEN", accessToken)
+				+ "&requestType=sendMessageByGroup&content=" + URLEncoder.encode(jsonStr);
+		String resultStr = baseHttpClientService.postMethod(url);
+		JSONObject jsonObject;
+		try {
+			jsonObject = JSONObject.fromObject(URLDecoder.decode(resultStr, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			logger.error("编码转换错误", e);
+			return null;
+		}
+		String errorcode = jsonObject.getString("errcode");
+		if ("0".equals(errorcode)) {
+			return jsonObject.getString("msg_id");
+		} else {
+			throw new BusinessValidationException("微信群发消息失败-" + errorcode + ":"
+					+ jsonObject.getString("errmsg"));
+		}
+	}
+
+	@Override
+	public String sendTextToMassUser(String text, TencentUser tencentUser, String[] tousers) {
+		String accessToken = getAccessToken(tencentUser);
+		String jsonStr = MessageUtil.makeTextByMassUser(tousers, text);
+
+		/**拼装发送消息的url*/
+		String url = Constants.SEND_MESSAGE_BYOPENID_URL.replace("ACCESS_TOKEN", accessToken)
+				+ "&requestType=sendMessageByGroup&content=" + URLEncoder.encode(jsonStr);
+		String resultStr = baseHttpClientService.postMethod(url);
+		JSONObject jsonObject;
+		try {
+			jsonObject = JSONObject.fromObject(URLDecoder.decode(resultStr, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			logger.error("编码转换错误", e);
+			return null;
+		}
+		String errorcode = jsonObject.getString("errcode");
+		if ("0".equals(errorcode)) {
+			return jsonObject.getString("msg_id");
+		} else {
+			throw new BusinessValidationException("微信群发消息失败-" + errorcode + ":"
+					+ jsonObject.getString("errmsg"));
+		}
+	}
+
+	@Override
+	public String sendRedEnvelope(Long redEnvelopeId, String re_openid, String weChatUserId) {
+		RedEnvelopeObjectVo redEnvelopeObjectVo = null;
+		Map<String, String> redEnvelopeMap = null;
+		Map<String, String> messageMap = null;
+		String result_code = null;
+		String return_msg = null;
+		String mch_billno = null;
+		String nonce_str = null;
+		String filePath = null;
+		String backInfo = null;
+		String xmlStr = null;
+		String sign = null;
+		String key = null;
+		String url = null;
+		try {
+			RedEnvelope redEnvelope = redEnvelopeService.getRedEnvelopeById(redEnvelopeId);
+			//32位随机字符串
+			nonce_str = RedEnvelopeUtils.getRandomString(
+					RedEnvelopeConstant.LETTERANDDIGITAL_STRING,
+					RedEnvelopeConstant.THIRTYTWO_LENGTH);
+			//商户订单号(商户订单号组成： mch_id+yyyymmdd+10位一天内不能重复的数字 )
+			mch_billno = redEnvelope.getMch_id()
+					+ DateUtil.formatDate(new Date(), "yyyyMMdd")
+					+ RedEnvelopeUtils.getRandomString(RedEnvelopeConstant.DIGITAL_STRING,
+							RedEnvelopeConstant.TEN_LENGTH);
+			//设置签名map参数
+			redEnvelopeMap = setSignatureParmMap(re_openid, redEnvelope, nonce_str, mch_billno);
+			key = redEnvelope.getApiKey();
+			//生成签名
+			sign = RedEnvelopeUtils.getSignature(redEnvelopeMap, key);
+			//配置红包对象
+			redEnvelopeObjectVo = configurationRedEnvelopeObject(re_openid, redEnvelope, nonce_str,
+					mch_billno, sign);
+			//生成xml格式,满足微信接口xml格式需要
+			xmlStr = redEnvelopeBeanToXml(redEnvelopeObjectVo);
+
+			filePath = GridProperties.CERTIFICATE_STORE_DIRECTORY;
+			//			filePath = RedEnvelopeConstant.REDENVELOPE_APICLIENT_CERT;
+			url = Constants.REDENVELOPE_URL + "&requestType=sendRedEnvelope&content="
+					+ URLEncoder.encode(xmlStr) + "&filePath=" + filePath + "&merchantID="
+					+ redEnvelope.getMch_id();
+			//请求微信代理,并返回相应信息
+			backInfo = baseHttpClientService.postMethod(url);
+			//处理微信代理，返回的信息
+			backInfo = URLDecoder.decode(backInfo, "UTF-8");
+			InputStream iStream = new ByteArrayInputStream(backInfo.getBytes());
+			messageMap = MessageUtil.parseXml(iStream);
+			return_msg = messageMap.get("return_msg");
+			result_code = messageMap.get("result_code");
+			if (StringUtil.isStringAvaliable(result_code)
+					&& result_code.equals(RedEnvelopeConstant.RETURN_CODE_SUCCESS)) {
+				//返回发送交易成功时,则在数据库中插入一条发放记录
+				addRedEnvelopPayRecords(messageMap, key, weChatUserId);
+				return RedEnvelopeConstant.RETURN_CODE_SUCCESS;
+			}
+			logger.error("代理端返回：" + messageMap);
+			//logger.error("代理端返回：" + return_msg);
+			return return_msg;
+		} catch (Exception e) {
+			logger.error("发送红包失败" + e.getMessage());
+			throw new ServiceException("发送红包失败!");
+		}
+	}
+
+	/**
+	 * 添加一条红包发放记录
+	 */
+	private void addRedEnvelopPayRecords(Map<String, String> messageMap, String key,
+			String weChatUserId) {
+		RedEnvelopesPaymentRecords records = new RedEnvelopesPaymentRecords();
+		records.setMch_billno(messageMap.get("mch_billno"));
+		records.setMch_id(messageMap.get("mch_id"));
+		records.setWxappid(messageMap.get("wxappid"));
+		String re_openid = messageMap.get("re_openid");
+		records.setRe_openid(re_openid);
+		if (StringUtil.isStringAvaliable(weChatUserId) && StringUtil.isStringAvaliable(re_openid)
+				&& !weChatUserId.equalsIgnoreCase("null") && !re_openid.equalsIgnoreCase("null")) {
+			Fan fan = fanService.getFanByOpenIdAndWeChatUserId(re_openid, weChatUserId);
+			if (fan != null) {
+				records.setFanName(fan.getName());
+			}
+		}
+		String total_amount_str = messageMap.get("total_amount");
+		if (StringUtil.isStringAvaliable(total_amount_str)
+				&& !total_amount_str.equalsIgnoreCase("null")) {
+			records.setTotal_amount(Integer.valueOf(total_amount_str));
+		}
+		records.setSend_listid(messageMap.get("send_listid"));
+		String send_time_str = messageMap.get("send_time");
+		records.setSend_time(sendTimeFormatter(send_time_str));
+		records.setOrg(organizationService.getFullOrgById(ThreadVariable.getOrganization().getId()));
+		records.setApiKey(key);
+		redEnvelopesPaymentRecordsService.addRedEnvelopesPaymentRecords(records);
+	}
+
+	/**
+	 * 时间转换:20150520102602 - 2015-05-20 10:26:02
+	 */
+	private String sendTimeFormatter(String send_time_str) {
+		return send_time_str = send_time_str.substring(0, 4) + "-" + send_time_str.substring(4, 6)
+				+ "-" + send_time_str.substring(6, 8) + " " + send_time_str.substring(8, 10) + ":"
+				+ send_time_str.substring(10, 12) + ":" + send_time_str.substring(12, 14);
+	}
+
+	/**
+	 * 转化为微信接口规定的xml格式
+	 */
+	private String redEnvelopeBeanToXml(RedEnvelopeObjectVo redEnvelopeObjectVo) {
+		String xmlStr = MessageUtil.redEnvelopeToXml(redEnvelopeObjectVo);
+		xmlStr = xmlStr.replaceAll("__", "_");
+		return xmlStr;
+	}
+
+	/**
+	 * 配置(发放)红包对象
+	 */
+	private RedEnvelopeObjectVo configurationRedEnvelopeObject(String re_openid,
+			RedEnvelope redEnvelope, String nonce_str, String mch_billno, String sign) {
+		RedEnvelopeObjectVo redEnvelopeObjectVo = new RedEnvelopeObjectVo();
+		redEnvelopeObjectVo.setNonce_str(nonce_str);
+		redEnvelopeObjectVo.setMch_id(redEnvelope.getMch_id());
+		redEnvelopeObjectVo.setMch_billno(mch_billno);
+		redEnvelopeObjectVo.setWxappid(redEnvelope.getWxappid());
+		redEnvelopeObjectVo.setNick_name(redEnvelope.getNick_name());
+		redEnvelopeObjectVo.setSend_name(redEnvelope.getSend_name());
+		redEnvelopeObjectVo.setRe_openid(re_openid);
+		redEnvelopeObjectVo.setMax_value(redEnvelope.getSingleEnvelope_value());
+		redEnvelopeObjectVo.setMin_value(redEnvelope.getSingleEnvelope_value());
+		redEnvelopeObjectVo.setTotal_amount(redEnvelope.getSingleEnvelope_value());
+		redEnvelopeObjectVo.setTotal_num(RedEnvelopeConstant.TOTAL_NUM);
+		redEnvelopeObjectVo.setWishing(redEnvelope.getWishing());
+		redEnvelopeObjectVo.setClient_ip(GridProperties.WECHAT_HOST);
+		redEnvelopeObjectVo.setAct_name(redEnvelope.getAct_name());
+		redEnvelopeObjectVo.setRemark(redEnvelope.getRemark());
+		redEnvelopeObjectVo.setSign(sign);
+		return redEnvelopeObjectVo;
+	}
+
+	/**
+	 * 设置签名参数，用于获取签名
+	 */
+	private Map<String, String> setSignatureParmMap(String re_openid, RedEnvelope redEnvelope,
+			String nonce_str, String mch_billno) {
+		Map<String, String> redEnvelopeMap = new HashMap<String, String>();
+		redEnvelopeMap.put("act_name", redEnvelope.getAct_name());
+		redEnvelopeMap.put("client_ip", GridProperties.WECHAT_HOST);
+		redEnvelopeMap.put("max_value", redEnvelope.getSingleEnvelope_value() + "");
+		redEnvelopeMap.put("mch_billno", mch_billno);
+		redEnvelopeMap.put("mch_id", redEnvelope.getMch_id());
+		redEnvelopeMap.put("min_value", redEnvelope.getSingleEnvelope_value() + "");
+		redEnvelopeMap.put("nonce_str", nonce_str);
+		redEnvelopeMap.put("nick_name", redEnvelope.getNick_name());
+		redEnvelopeMap.put("remark", redEnvelope.getRemark());
+		redEnvelopeMap.put("re_openid", re_openid);
+		redEnvelopeMap.put("send_name", redEnvelope.getSend_name());
+		redEnvelopeMap.put("total_amount", redEnvelope.getSingleEnvelope_value() + "");
+		redEnvelopeMap.put("total_num", RedEnvelopeConstant.TOTAL_NUM + "");
+		redEnvelopeMap.put("wishing", redEnvelope.getWishing());
+		redEnvelopeMap.put("wxappid", redEnvelope.getWxappid());
+		return redEnvelopeMap;
+	}
+
+}

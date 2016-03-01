@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="partyMemberInfo">
+	<typeAlias alias="partyMemberInfo" type="com.tianque.domain.PartyMemberInfo" />
+	<typeAlias alias="partyOrgInfos" type="com.tianque.domain.PartyOrgInfo" />
+	<typeAlias alias="searchPartyMemberInfoVo" type="com.tianque.domain.vo.SearchPartyMemberInfoVo" />
+
+	<resultMap id="partyMemberInfoResult" class="partyMemberInfo">
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="partyOrgId" property="partyOrgInfo" select="partyMemberInfo.getPartyOrgInfoById"/>
+		<result column="joinPartyBranchDate" property="joinPartyBranchDate" />
+		<result column="partyMemberType" property="partyMemberType.id" />
+		<result column="joinPartyDate" property="joinPartyDate" />
+		<result column="joinPartyBranch" property="joinPartyBranch" />
+		<result column="becomesDate" property="becomesDate" />
+		<result column="becomesState" property="becomesState.id" />
+		<result column="partyPosition" property="partyPosition" />
+		<result column="officeDate" property="officeDate" />
+		<result column="trainingState" property="trainingState.id" />
+		<result column="rewardsPunishment" property="rewardsPunishment" />
+		<result column="expertise" property="expertise" />
+		<result column="isFlowPartyCard" property="isFlowPartyCard" />
+		<result column="flowPartyBranch" property="flowPartyBranch" />
+		<result column="flowPartyBranchDate" property="flowPartyBranchDate" />
+		<result column="partyBranchContacts" property="partyBranchContacts" />
+		<result column="branchTelephone" property="branchTelephone" />
+		<result column="branchMobileNumber" property="branchMobileNumber" />
+		<result column="gender" property="gender.id" />
+		<result column="currentAddress" property="currentAddress" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="name" property="name" />
+		<result column="usedName" property="usedName"/>
+		<result column="fullPinyin" property="fullPinyin" />
+		<result column="simplePinyin" property="simplePinyin" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="telephone" property="telephone" />
+		<result column="mobileNumber" property="mobileNumber" />
+		<result column="province" property="province" />
+		<result column="city" property="city" />
+		<result column="district" property="district" />
+		<result column="nativePlaceAddress" property="nativePlaceAddress" />
+		<result column="birthday" property="birthday" />
+		<result column="workUnit" property="workUnit" />
+		<result column="remark" property="remark" />
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+		<result column="isDeath" property="isDeath"/>
+		<result column="currentAddressType" property="currentAddressType.id"/>
+		<result column="nation" property="nation.id" />
+		<result column="politicalBackground" property="politicalBackground.id" />
+		<result column="schooling" property="schooling.id" />
+		<result column="career" property="career.id" />
+		<result column="maritalState" property="maritalState.id" />
+		<result column="bloodType" property="bloodType.id" />
+		<result column="faith" property="faith.id" />
+		<result column="residenceType" property="residenceType.id" />
+		<result column="otherAddress" property="otherAddress" />
+		<result column="stature" property="stature" />
+		<result column="imgUrl" property="imgUrl" />
+		<result column="email" property="email" />
+		<result column="community" property="community" />
+		<result column="block" property="block" />
+		<result column="unit" property="unit" />
+		<result column="room" property="room" />
+		<result property="isEmphasis" column="isEmphasis" />
+	</resultMap>
+
+	<select id="getPartyOrgInfoById" parameterClass="int"
+		resultClass="partyOrgInfos">
+		<![CDATA[select s.id, s.partyBranchName from partyOrgInfos s where id=#value# ]]>
+	</select>
+
+	<insert id="addPartyMemberInfo" parameterClass="partyMemberInfo">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_partyMemberInfos.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into partyMemberInfos
+		(id,orgId,partyOrgId,joinPartyBranchDate,partyMemberType,joinPartyDate,joinPartyBranch,becomesDate,
+		becomesState,partyPosition,officeDate,trainingState,rewardsPunishment,expertise,isFlowPartyCard,flowPartyBranch,
+		flowPartyBranchDate,partyBranchContacts,branchTelephone,branchMobileNumber,
+		gender,workunit,province,city,district,nativeplaceaddress,currentaddress,name,usedname,
+		idcardno,telephone,mobilenumber,orginternalcode,fullpinyin,simplepinyin,remark,createuser,createdate,
+		birthday,imgurl,email,isEmphasis,isdeath,currentaddresstype,community,
+		block,unit,room,nation,politicalbackground,schooling,career,maritalstate,bloodtype,faith,residencetype,otheraddress,stature)
+		values
+		(#id#,#organization.id#,#partyOrgInfo.id#,#joinPartyBranchDate#,#partyMemberType.id#,#joinPartyDate#,#joinPartyBranch#,#becomesDate#,
+		#becomesState.id#,#partyPosition#,#officeDate#,#trainingState.id#,#rewardsPunishment#,#expertise#,#isFlowPartyCard#,#flowPartyBranch#,
+		#flowPartyBranchDate#,#partyBranchContacts#,#branchTelephone#,#branchMobileNumber#,#gender.id#,#workUnit#,#province#,#city#,#district#,#nativePlaceAddress#,#currentAddress#,#name#,#usedName#,
+		#idCardNo#,#telephone#,#mobileNumber#,#orgInternalCode#,#fullPinyin#,#simplePinyin#,#remark#,#createUser#,#createDate#,
+		#birthday#,#imgUrl#,#email#,#isEmphasis#,#isDeath#,#currentAddressType.id#,#community#,
+		#block#,#unit#,#room#,#nation.id#,#politicalBackground.id#,#schooling.id#,#career.id#,#maritalState.id#,#bloodType.id#,#faith.id#,
+		#residenceType.id#,#otherAddress#,#stature#
+		)
+	</insert>
+
+	<update id="updatePartyMemberInfo" parameterClass="partyMemberInfo">
+		update partyMemberInfos set
+				orgId=#organization.id#,
+				partyOrgId=#partyOrgInfo.id#,
+				joinPartyBranchDate=#joinPartyBranchDate#,
+				partyMemberType=#partyMemberType.id#,
+				joinPartyDate=#joinPartyDate#,
+				joinPartyBranch=#joinPartyBranch#,
+				becomesDate=#becomesDate#,
+				becomesState=#becomesState.id#,
+				partyPosition=#partyPosition#,
+				officeDate=#officeDate#,
+				trainingState=#trainingState.id#,
+				rewardsPunishment=#rewardsPunishment#,
+				expertise=#expertise#,
+				isFlowPartyCard=#isFlowPartyCard#,
+				flowPartyBranch=#flowPartyBranch#,
+				flowPartyBranchDate=#flowPartyBranchDate#,
+				partyBranchContacts=#partyBranchContacts#,
+				branchTelephone=#branchTelephone#,
+				branchMobileNumber=#branchMobileNumber#,
+				gender=#gender.id#,
+				workUnit=#workUnit#,
+				province=#province#,
+				city=#city#,
+				district=#district#,
+				nativePlaceAddress=#nativePlaceAddress#,
+				currentAddress=#currentAddress#,
+				name=#name#,
+				usedName=#usedName#,
+				idCardNo=#idCardNo#,
+				telephone=#telephone#,
+				mobileNumber=#mobileNumber#,
+				orgInternalCode=#orgInternalCode#,
+				fullPinyin=#fullPinyin#,
+				simplePinyin=#simplePinyin#,
+				remark=#remark#,
+				birthday=#birthday#,
+				imgUrl=#imgUrl#,
+				email=#email#,
+				isEmphasis=#isEmphasis#,
+				isDeath=#isDeath#,
+				currentAddressType=#currentAddressType.id#,
+				community=#community#,
+				block=#block#,
+				unit=#unit#,
+				room=#room#,
+				nation=#nation.id#,
+				politicalBackground=#politicalBackground.id#,
+				schooling=#schooling.id#,
+				career=#career.id#,
+				maritalState=#maritalState.id#,
+				bloodType=#bloodType.id#,
+				faith=#faith.id#,
+				residenceType=#residenceType.id#,
+				otherAddress=#otherAddress#,
+				stature=#stature#,
+				updateDate=#updateDate#,
+				updateUser=#updateUser#
+			where id=#id#
+	</update>
+
+	<delete id="deletePartyMemberInfoById" parameterClass="java.lang.Long">
+		delete from partyMemberInfos
+		where id=#value#
+	</delete>
+
+	<select id="getPartyMemberInfoById" parameterClass="java.lang.Long"
+		resultMap="partyMemberInfoResult">
+		select * from partyMemberInfos where id=#value#
+	</select>
+
+	<select id="getPartyMemberInfoByPartyOrgId" parameterClass="java.lang.Long"
+		resultMap="partyMemberInfoResult">
+		select * from partyMemberInfos where partyOrgId=#value# order by id
+	</select>
+
+	<sql id="sql_where">
+		from partyMemberInfos
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId=#orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty prepend=" and " property="idCardNo">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty prepend=" and " property="name">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						(isEmphasis = #isEmphasis# or isEmphasis is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<sql id="search_sql_where">
+		from partyMemberInfos
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+						(name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' or upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%')
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="organization">
+				<isNotNull property="organization" prepend=" and ">
+					orgId=#organization.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty prepend=" and " property="idCardNo">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty prepend=" and " property="name">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthday" >
+				<isNotNull prepend=" and " property="birthday">
+					<![CDATA[ birthday >= #birthday# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endBirthday">
+				<isNotNull prepend=" and " property="endBirthday">
+					<![CDATA[ birthday <= #endBirthday# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="gender">
+				<isNotNull prepend=" and " property="gender.id">
+					gender = #gender.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="joinPartyBranchDate" >
+				<isNotNull prepend=" and " property="joinPartyBranchDate">
+					<![CDATA[ joinPartyBranchDate >= #joinPartyBranchDate# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endJoinPartyBranchDate">
+				<isNotNull prepend=" and " property="endJoinPartyBranchDate">
+					<![CDATA[ joinPartyBranchDate <= #endJoinPartyBranchDate# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="partyMemberType">
+				<isNotNull prepend=" and " property="partyMemberType.id">
+					partyMemberType=#partyMemberType.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="joinPartyDate" >
+				<isNotNull prepend=" and " property="joinPartyDate">
+					<![CDATA[ joinPartyDate >= #joinPartyDate# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endJoinPartyDate">
+				<isNotNull prepend=" and " property="endJoinPartyDate">
+					<![CDATA[ joinPartyDate <= #endJoinPartyDate# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="trainingState">
+				<isNotNull prepend=" and " property="trainingState.id">
+					trainingState=#trainingState.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isFlowPartyCard">
+				<isNotNull property="isFlowPartyCard" prepend=" and ">
+					<isEqual property="isFlowPartyCard" compareValue="1">
+						isFlowPartyCard = #isFlowPartyCard#
+					</isEqual>
+					<isEqual property="isFlowPartyCard" compareValue="0">
+						(isFlowPartyCard = #isFlowPartyCard# or isFlowPartyCard is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="flowPartyBranch">
+				<isNotEmpty prepend=" and " property="flowPartyBranch">
+					flowPartyBranch like #flowPartyBranch#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="flowPartyBranchDate" >
+				<isNotNull prepend=" and " property="flowPartyBranchDate">
+					<![CDATA[ flowPartyBranchDate >= #flowPartyBranchDate# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endFlowPartyBranchDate">
+				<isNotNull prepend=" and " property="endFlowPartyBranchDate">
+					<![CDATA[ flowPartyBranchDate <= #endFlowPartyBranchDate# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="province">
+				<isNotEmpty prepend=" and " property="province">
+					province = #province#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="city">
+				<isNotEmpty prepend=" and " property="city">
+					city = #city#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="district">
+				<isNotEmpty prepend=" and " property="district">
+					district = #district#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativePlaceAddress">
+				<isNotEmpty prepend=" and " property="nativePlaceAddress">
+					nativePlaceAddress like '%'||#nativePlaceAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentAddress">
+				<isNotEmpty prepend=" and " property="currentAddress">
+					currentAddress like '%'||#currentAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentAddress">
+				<isNotEmpty prepend=" and " property="currentAddress">
+					currentAddress like '%'||#currentAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nation">
+				<isNotNull prepend=" and " property="nation.id">
+					nation = #nation.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="politicalbackground">
+				<isNotNull prepend=" and " property="politicalbackground.id">
+					politicalbackground = #politicalbackground.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maritalstate">
+				<isNotNull prepend=" and " property="maritalstate.id">
+					maritalstate = #maritalstate.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="schooling">
+				<isNotNull prepend=" and " property="schooling.id">
+					schooling = #schooling.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="career">
+				<isNotNull prepend=" and " property="career.id">
+					career = #career.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workUnit">
+				<isNotEmpty prepend=" and " property="workUnit">
+					workUnit = #workUnit#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="stature">
+				<isNotNull prepend=" and " property="stature">
+					stature = #stature#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="stature" >
+				<isNotEmpty prepend=" and " property="stature">
+					<![CDATA[ stature >= #stature# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endStature">
+				<isNotEmpty prepend=" and " property="endStature">
+					<![CDATA[ stature <= #endStature# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="bloodtype">
+				<isNotNull prepend=" and " property="bloodtype.id">
+					bloodtype = #bloodtype.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="faith">
+				<isNotNull prepend=" and " property="faith.id">
+					faith = #faith.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="email">
+				<isNotEmpty prepend=" and " property="email">
+					email = #email#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="residencetype">
+				<isNotNull prepend=" and " property="residencetype.id">
+					residencetype = #residencetype.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty prepend=" and " property="mobileNumber">
+					mobileNumber = #mobileNumber#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="telephone">
+				<isNotEmpty prepend=" and " property="telephone">
+					telephone = #telephone#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						(isEmphasis = #isEmphasis# or isEmphasis is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findPartyMemberInfos" parameterClass="java.util.Map"
+		resultMap="partyMemberInfoResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countPartyMemberInfos" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="getPartyMemberInfoByOrgIdAndCardNo" parameterClass="java.util.Map"
+		resultMap="partyMemberInfoResult">
+		select * from partymemberinfos where orgId=#orgId# and
+		<iterate property="idCardNoList" open="("  close=")"  conjunction="or">
+		    upper(idCardNo) like upper(#idCardNoList[]#)||'%'
+		</iterate>
+	</select>
+
+	<select id="countSearchPartyMemberInfo" parameterClass="searchPartyMemberInfoVo" resultClass="int">
+		select count(*)
+		<include refid="search_sql_where" />
+	</select>
+
+	<select id="searchPartyMemberInfo" parameterClass="searchPartyMemberInfoVo" resultMap="partyMemberInfoResult">
+		select *
+		<include refid="search_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="getPartyMemberInfoByIdAndIdCard" parameterClass="java.util.Map"
+		resultMap="partyMemberInfoResult">
+		select * from partyMemberInfos where id!=#id# and orgId=#orgId# and
+		<iterate property="idCardNoList" open="("  close=")"  conjunction="or">
+		    upper(idCardNo) like upper(#idCardNoList[]#)||'%'
+		</iterate>
+	</select>
+
+	<select id="findPartyMembersByBranchId" parameterClass="long" resultMap="partyMemberInfoResult">
+		select * from partyMemberInfos where orgId=#value# order by id
+	</select>
+
+</sqlMap>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="dailyLogAttachFile">
+	<typeAlias alias="DailyLogAttachFile" type="com.tianque.working.domain.DailyLogAttachFile" />
+	<parameterMap id="dailyLogAttachFileParams" class="DailyLogAttachFile">
+		<parameter property="createDate" />
+		<parameter property="createUser" />
+		<parameter property="dailyLog" />
+		<parameter property="dailyYear" />
+		<parameter property="fileActualUrl" />
+		<parameter property="fileName" />
+		<parameter property="fileSize" />
+		<parameter property="id" />
+		<parameter property="updateDate" />
+		<parameter property="updateUser" />
+	</parameterMap>
+
+	<resultMap id="dailyLogAttachFileResult" class="DailyLogAttachFile">
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="dailyLog.id" column="dailyLogId" />
+		<result property="dailyYear.id" column="dailyYearId" />
+		<result property="workingRecord.id" column="workingRecordId" />
+		<result property="fileActualUrl" column="fileActualUrl" />
+		<result property="fileName" column="fileName" />
+		<result property="fileSize" column="fileSize" />
+		<result property="id" column="id" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+	</resultMap>
+
+	<insert id="addDailyLogAttachFile" parameterClass="DailyLogAttachFile">
+	<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_DailyLogAttachFiles.NEXTVAL AS ID FROM DUAL ]]>
+	</selectKey>
+	INSERT INTO DailyLogAttachFiles(workingRecordId,createDate,createUser,dailyLogId,dailyYearId,fileActualUrl,fileName,fileSize,id,updateDate,updateUser)
+	VALUES(#workingRecord.id#,#createDate#,#createUser#,#dailyLog.id#,#dailyYear.id#,#fileActualUrl#,#fileName#,#fileSize#,#id#,#updateDate#,#updateUser#)
+	</insert>
+
+	<update id="updateDailyLogAttachFile" parameterClass="DailyLogAttachFile">
+		update DailyLogAttachFiles set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="createDate">
+				createDate=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="createUser">
+				createUser=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="workingRecord">
+				workingRecordId=#workingRecord.id#
+			</isNotNull>
+			<isNotNull prepend="," property="dailyLog">
+				dailyLogId=#dailyLog.id#
+			</isNotNull>
+			<isNotNull prepend="," property="dailyYear">
+				dailyYearId=#dailyYear.id#
+			</isNotNull>
+			<isNotNull prepend="," property="fileActualUrl">
+				fileActualUrl=#fileActualUrl#
+			</isNotNull>
+			<isNotNull prepend="," property="fileName">
+				fileName=#fileName#
+			</isNotNull>
+			<isNotNull prepend="," property="fileSize">
+				fileSize=#fileSize#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+		 where id=#id#
+		</dynamic>
+	</update>
+
+	<delete id="deleteDailyLogAttachFileById" parameterClass="java.lang.Long">
+ 	 delete from DailyLogAttachFiles where id=#value#
+	</delete>
+
+	<delete id="deleteDailyLogAttachFileByDailyLogId" parameterClass="java.lang.Long">
+ 	 delete from DailyLogAttachFiles where workingRecordId=#value#
+	</delete>
+
+	<delete id="deleteDailyLogAttachFileByYearId" parameterClass="java.lang.Long">
+ 	 delete from DailyLogAttachFiles where dailyYearId=#value#
+	</delete>
+
+	<select id="getSimpleDailyLogAttachFileById" parameterClass="java.lang.Long" resultMap="dailyLogAttachFileResult">
+	<![CDATA[select * from DailyLogAttachFiles where id=#value#]]>
+	</select>
+
+	<select id="getSimpleDailyLogAttachFileByDailyLogId" parameterClass="java.lang.Long" resultMap="dailyLogAttachFileResult">
+	<![CDATA[select * from DailyLogAttachFiles where workingRecordId=#value#]]>
+	</select>
+
+	<select id="sumAllFileSizeByDailyLogId" parameterClass="java.lang.Long" resultClass="java.lang.Long">
+	<![CDATA[select sum(filesize) from DailyLogAttachFiles where workingRecordId=#value#]]>
+	</select>
+
+</sqlMap>

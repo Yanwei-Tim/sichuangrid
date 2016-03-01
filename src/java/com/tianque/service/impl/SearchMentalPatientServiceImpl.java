@@ -1,0 +1,449 @@
+package com.tianque.service.impl;
+
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.tianque.baseInfo.base.domain.ActualPopulation;
+import com.tianque.baseInfo.mentalPatient.dao.SearchMentalPatientDao;
+import com.tianque.baseInfo.mentalPatient.domain.MentalPatient;
+import com.tianque.baseInfo.mentalPatient.domain.MentalPatientTypeCount;
+import com.tianque.core.globalSetting.service.GlobalSettingService;
+import com.tianque.core.globalSetting.util.GlobalSetting;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.domain.vo.SearchMentalPatientVo;
+import com.tianque.excel.definition.SpecialGroupsContext;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.plugin.analyzing.domain.HighchartColumnVo;
+import com.tianque.plugin.analyzing.domain.HighchartDataColumnVo;
+import com.tianque.plugin.analyzing.domain.PersonnelAreaDataVo;
+import com.tianque.plugin.analyzing.domain.PersonnelDetailDataVo;
+import com.tianque.service.ActualPopulationProcessorService;
+import com.tianque.service.SearchMentalPatientService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.sysadmin.service.PropertyDomainService;
+import com.tianque.userAuth.api.PermissionDubboService;
+import com.tianque.util.IdCardUtil;
+
+@Service("searchMentalPatientService")
+public class SearchMentalPatientServiceImpl implements
+		SearchMentalPatientService {
+	@Autowired
+	SearchMentalPatientDao searchMentalPatientDao;
+	@Autowired
+	OrganizationDubboService organizationDubboService;
+	@Autowired
+	PropertyDomainService propertyDomainService;
+	@Autowired
+	PropertyDictService propertyDictService;
+	@Autowired
+	private GlobalSettingService globalSettingService;
+	@Autowired
+	private ActualPopulationProcessorService actualPopulationProcessorService;
+	@Autowired
+	private PermissionDubboService permissionDubboService;
+
+	@Override
+	public List<PersonnelAreaDataVo> returnDataList(Long orgId) {
+		List<Organization> organizations = organizationDubboService
+				.findAdminOrgsByParentId(orgId);
+		List<PersonnelAreaDataVo> list = new ArrayList<PersonnelAreaDataVo>();
+		PersonnelAreaDataVo mentalPatientCountVo;
+		List<PropertyDict> propertyDicts = propertyDictService
+				.findPropertyDictByPropertyDomainId(propertyDomainService
+						.getPropertyDomainByDomainName(
+								PropertyTypes.MENTALPATIENT_DANGEROUS_LEVEL)
+						.getId());
+		for (Organization organization : organizations) {
+			mentalPatientCountVo = new PersonnelAreaDataVo();
+			List<MentalPatientTypeCount> listType = setDisplayNameForList(searchMentalPatientDao
+					.findMentalPatientCountList(organization
+							.getOrgInternalCode()));
+			List<MentalPatientTypeCount> listHelp = setDisplayNameForList(searchMentalPatientDao
+					.findHelped(organization.getOrgInternalCode()));
+			List<PersonnelDetailDataVo> listDetail = new ArrayList<PersonnelDetailDataVo>();
+			PersonnelDetailDataVo PersonnelDetailDataVo = null;
+
+			for (MentalPatientTypeCount mentalPatientTypeCount : listType) {
+				PersonnelDetailDataVo = new PersonnelDetailDataVo();
+				PersonnelDetailDataVo.setName(mentalPatientTypeCount
+						.getDisplayName());
+				PersonnelDetailDataVo.setAmount(mentalPatientTypeCount
+						.getCount().intValue());
+				int i = 0;
+				for (MentalPatientTypeCount mentalPatientTypeCount2 : listHelp) {
+					if (PersonnelDetailDataVo.getName().equals(
+							mentalPatientTypeCount2.getDisplayName())) {
+						i++;
+						PersonnelDetailDataVo.setHelped(mentalPatientTypeCount2
+								.getCount().intValue());
+						PersonnelDetailDataVo
+								.setNoHelp(PersonnelDetailDataVo.getAmount()
+										- mentalPatientTypeCount2.getCount()
+												.intValue());
+					}
+				}
+				if (i == 0) {
+					PersonnelDetailDataVo.setHelped(0);
+					PersonnelDetailDataVo.setNoHelp(PersonnelDetailDataVo
+							.getAmount());
+					i = 0;
+				}
+				listDetail.add(PersonnelDetailDataVo);
+			}
+			int o;// 判断状态
+			for (PropertyDict propertyDict : propertyDicts) {
+				o = 0;
+				for (int i = 0; i < listDetail.size(); i++) {
+					PersonnelDetailDataVo mental = listDetail.get(i);
+					if (propertyDict.getDisplayName().equals(mental.getName())) {
+						o++;
+						if (0 == mental.getHelped()) {
+							mental.setHelped(0);
+						}
+						if (0 == mental.getNoHelp()) {
+							mental.setNoHelp(mental.getAmount());
+						}
+						listDetail.set(i, mental);
+					}
+				}
+				// 如果o=0则就证明此DisplayName在mentalPatient中不存在
+				if (o == 0) {
+					PersonnelDetailDataVo m = new PersonnelDetailDataVo();
+					m.setAmount(0);
+					m.setHelped(0);
+					m.setName(propertyDict.getDisplayName());
+					m.setNoHelp(0);
+					listDetail.add(m);
+				}
+			}
+
+			Long helpSum = 0L;
+			Long noHelpSum = 0L;
+			Long amountSum = 0L;
+
+			for (MentalPatientTypeCount sumMental : listType) {
+				amountSum = amountSum + sumMental.getCount();
+			}
+			for (MentalPatientTypeCount sumMental1 : listHelp) {
+				helpSum = helpSum + sumMental1.getCount();
+			}
+			noHelpSum = amountSum - helpSum;
+			PersonnelDetailDataVo mpdc = new PersonnelDetailDataVo();
+			mpdc.setName("合计");
+			mpdc.setAmount(amountSum.intValue());
+			mpdc.setHelped(helpSum.intValue());
+			mpdc.setNoHelp(noHelpSum.intValue());
+			listDetail.add(mpdc);
+
+			mentalPatientCountVo.setPersonnelDetailDatas(listDetail);
+			mentalPatientCountVo.setAmount(searchMentalPatientDao.getCount(
+					organization.getOrgInternalCode()).intValue());
+			mentalPatientCountVo.setOrg(organization);
+
+			list.add(mentalPatientCountVo);
+		}
+		return list;
+	}
+
+	@Override
+	public HighchartColumnVo returnColumnList(Long orgId) {
+		if (orgId == null) {
+			throw new BusinessValidationException("orgId不能为空");
+		}
+		HighchartColumnVo RectificativeColumn = new HighchartColumnVo();
+		RectificativeColumn.setModuleName(BaseInfoTables
+				.getTypeDisplayNames(BaseInfoTables.RECTIFICATIVEPERSON_KEY));
+		RectificativeColumn.setCategories(getOrgArraysByParentId(orgId));
+		RectificativeColumn.setSeries(getRectificativeColumnDataByOrgId(orgId));
+		return RectificativeColumn;
+	}
+
+	private String[] getOrgArraysByParentId(Long orgId) {
+		List<Organization> organizations = organizationDubboService
+				.findAdminOrgsByParentId(orgId);
+		String[] orgNames = new String[organizations.size()];
+		for (int i = 0; i < organizations.size(); i++) {
+			orgNames[i] = organizations.get(i).getOrgName();
+		}
+		return orgNames;
+	}
+
+	private List<HighchartDataColumnVo> getRectificativeColumnDataByOrgId(
+			Long orgId) {
+		List<HighchartDataColumnVo> RectificativeColumnDatas = new ArrayList<HighchartDataColumnVo>();
+		List<Organization> organizations = organizationDubboService
+				.findAdminOrgsByParentId(orgId);
+
+		HighchartDataColumnVo RectificativeColumnDataHelp = new HighchartDataColumnVo();
+		RectificativeColumnDataHelp.setName("帮教");
+		int[] dataHelp = new int[organizations.size()];
+		for (int i = 0; i < organizations.size(); i++) {
+			dataHelp[i] = getHelp(organizations.get(i).getOrgInternalCode());
+		}
+		RectificativeColumnDataHelp.setData(dataHelp);
+		RectificativeColumnDatas.add(RectificativeColumnDataHelp);
+
+		HighchartDataColumnVo RectificativeColumnDataNoHelp = new HighchartDataColumnVo();
+		RectificativeColumnDataNoHelp.setName("未帮教");
+		int[] dataNoHelp = new int[organizations.size()];
+		for (int i = 0; i < organizations.size(); i++) {
+			dataNoHelp[i] = getNoHelp(organizations.get(i).getOrgInternalCode());
+		}
+		RectificativeColumnDataNoHelp.setData(dataNoHelp);
+		RectificativeColumnDatas.add(RectificativeColumnDataNoHelp);
+
+		return RectificativeColumnDatas;
+	}
+
+	private int getHelp(String org) {
+		int sum = 0;
+		// List<PropertyDict> propertyDicts = propertyDictDao.
+		// findPropertyDictByPropertyDomainId(propertyDomainDao.
+		// getPropertyDomainByDomainName(PropertyTypes.DETOXICATE_CASE).getId());
+		// List<MentalPatientTypeCount> listType =
+		// searchMentalPatientDao.findMentalPatientCountList(org);
+		List<MentalPatientTypeCount> listHelp = setDisplayNameForList(searchMentalPatientDao
+				.findHelped(org));
+		for (MentalPatientTypeCount sumMental : listHelp) {
+			sum = sum + (sumMental.getCount().intValue());
+		}
+		return sum;
+	}
+
+	private int getNoHelp(String org) {
+		int sum = 0;
+		int helpSum = 0;
+		// List<PropertyDict> propertyDicts = propertyDictDao.
+		// findPropertyDictByPropertyDomainId(propertyDomainDao.
+		// getPropertyDomainByDomainName(PropertyTypes.DETOXICATE_CASE).getId());
+		List<MentalPatientTypeCount> listType = setDisplayNameForList(searchMentalPatientDao
+				.findMentalPatientCountList(org));
+		List<MentalPatientTypeCount> listHelp = setDisplayNameForList(searchMentalPatientDao
+				.findHelped(org));
+		for (MentalPatientTypeCount sumMental : listType) {
+			sum = sum + sumMental.getCount().intValue();
+		}
+		for (MentalPatientTypeCount sumMental1 : listHelp) {
+			helpSum = helpSum + sumMental1.getCount().intValue();
+		}
+		return sum - helpSum;
+	}
+
+	// private void addHelpColumn(List<HighchartDataColumnVo>
+	// listHighchartDataColumnVo , PersonnelAreaDataVo PersonnelAreaDataVo ,Long
+	// help , Long noHelp ,int i){
+	// for(PersonnelDetailDataVo personnelDetailDataVo :
+	// PersonnelAreaDataVo.getPersonnelDetailDatas()){
+	// help = personnelDetailDataVo.getHelped() + help;
+	// noHelp = personnelDetailDataVo.getNoHelp() + noHelp;
+	// for(HighchartDataColumnVo hi : listHighchartDataColumnVo){
+	// if(hi.getName().equals(personnelDetailDataVo.getName())){
+	// int[] data = hi.getData();
+	// data[i] = personnelDetailDataVo.getAmount();
+	// hi.setData(data);
+	// break;
+	// }
+	// }
+	// }
+	// for(HighchartDataColumnVo hi : listHighchartDataColumnVo){
+	// if(hi.getName().equals("监护")){
+	// int[] dataHelp = hi.getData();
+	// dataHelp[i] = Integer.parseInt(help.toString());
+	// hi.setData(dataHelp);
+	// }
+	// if(hi.getName().equals("未监护")){
+	// int[] dataNoHelp = hi.getData();
+	// dataNoHelp[i] = Integer.parseInt(noHelp.toString());
+	// hi.setData(dataNoHelp);
+	// }
+	// }
+	// }
+	// private void addHelpVo(List<PersonnelAreaDataVo>
+	// list,List<HighchartDataColumnVo> listHighchartDataColumnVo , int i , Long
+	// help , Long noHelp){
+	// HighchartDataColumnVo helpVo = new HighchartDataColumnVo();
+	// HighchartDataColumnVo noHelpVo = new HighchartDataColumnVo();
+	//
+	// int[] dataHelp = new int[list.size()];
+	// int[] dataNoHelp = new int[list.size()];
+	//
+	// dataHelp[i] = Integer.parseInt(help.toString());
+	// dataNoHelp[i] = Integer.parseInt(noHelp.toString());
+	//
+	// helpVo.setName("监护");
+	// helpVo.setStack("是否已监护");
+	// helpVo.setData(dataHelp);
+	//
+	// noHelpVo.setName("未监护");
+	// noHelpVo.setStack("是否已监护");
+	// noHelpVo.setData(dataNoHelp);
+	//
+	//
+	// listHighchartDataColumnVo.add(helpVo);
+	// listHighchartDataColumnVo.add(noHelpVo);
+	// }
+
+	@Override
+	public List<Object[]> returnPieList(Long orgId) {
+		Organization organization = organizationDubboService
+				.getFullOrgById(orgId);
+		List<PropertyDict> propertyDicts = propertyDictService
+				.findPropertyDictByPropertyDomainId(propertyDomainService
+						.getPropertyDomainByDomainName(
+								PropertyTypes.MENTALPATIENT_DANGEROUS_LEVEL)
+						.getId());
+		Object[] objects;
+		List<Object[]> listObjects = new ArrayList<Object[]>();
+		searchMentalPatientDao.findMentalPatientCountList(organization
+				.getOrgInternalCode());
+		List<MentalPatientTypeCount> list = setDisplayNameForList(searchMentalPatientDao
+				.findMentalPatientCountList(organization.getOrgInternalCode()));
+		for (PropertyDict propertyDict : propertyDicts) {
+			int i = 0;
+			for (MentalPatientTypeCount mentalPatientTypeCount : list) {
+				if (mentalPatientTypeCount.getDisplayName().equals(
+						propertyDict.getDisplayName())) {
+					i++;
+					objects = new Object[2];
+
+					Long mentalType = ((null == mentalPatientTypeCount
+							.getCount()) ? 0L : mentalPatientTypeCount
+							.getCount()) * 100;
+					Double doubleMentaType = Double.parseDouble(mentalType
+							.toString());
+					objects[1] = Double.parseDouble(new DecimalFormat("0.00")
+							.format(doubleMentaType
+									/ searchMentalPatientDao
+											.getCount(organization
+													.getOrgInternalCode()
+													.toString())));
+					objects[0] = mentalPatientTypeCount.getDisplayName() + "( "
+							+ mentalType / 100 + " ) ";
+					listObjects.add(objects);
+				}
+			}
+			if (i == 0) {
+				objects = new Object[2];
+				objects[0] = propertyDict.getDisplayName() + "( 0 )";
+				objects[1] = 0;
+				listObjects.add(objects);
+			}
+		}
+		return listObjects;
+	}
+
+	@Override
+	public PageInfo<MentalPatient> searchMentalPatient(
+			SearchMentalPatientVo condition, int pageNum, int pageSize,
+			String sortField, String order) {
+		PageInfo<MentalPatient> mentalPatientPageInfos = searchMentalPatientDao.searchMentalPatient(condition, pageNum,
+				pageSize, sortField, order);
+		//隐藏身份证中间4位
+		mentalPatientPageInfos=hiddenIdCard(mentalPatientPageInfos);
+		return mentalPatientPageInfos;
+	}
+	
+	//隐藏身份证中间4位
+		private PageInfo<MentalPatient> hiddenIdCard(PageInfo<MentalPatient> pageInfo){
+						//判断权限，有权限不隐藏
+						if(permissionDubboService.
+								isUserHasPermission(ThreadVariable.getUser().getId(), "isMentalPatientManagementNotHidCard")){
+							return pageInfo;
+						}
+						List<MentalPatient> list = pageInfo.getResult();
+						int index=0;
+						for (MentalPatient verification:list) {
+							verification.setIdCardNo(IdCardUtil.hiddenIdCard(verification.getIdCardNo()));
+							list.set(index, verification);
+							index++;
+						}
+						pageInfo.setResult(list);
+						return pageInfo;
+		}
+
+	@Override
+	public List<MentalPatient> searchMentalPatientForExport(
+			SearchMentalPatientVo mentalPatientCondition, Integer page,
+			Integer rows, String sidx, String sord) {
+		List<MentalPatient> list = searchMentalPatientDao
+				.searchMentalPatientForExport(mentalPatientCondition, page,
+						rows, sidx, sord);
+		if (GlobalSetting.NOT_DEPENDENT
+				.equals(globalSettingService
+						.getGlobalValue(GlobalSetting.BUSINESS_DEPENDENT_ACTUAL_POPULATION))) {
+			return list;
+		} else {
+			if (null != list && list.size() > 0) {
+				ActualPopulation actualPopulation = null;
+				for (MentalPatient mentalPatient : list) {
+					actualPopulation = actualPopulationProcessorService
+							.getActualPopulationbyOrgIdAndIdCardNo(
+									mentalPatient.getOrganization().getId(),
+									mentalPatient.getIdCardNo());
+					if (null != actualPopulation) {
+						mentalPatient.setHouseCode(actualPopulation
+								.getHouseCode());
+						mentalPatient.setNoHouseReason(actualPopulation
+								.getNoHouseReason());
+					}
+				}
+			}
+			return list;
+		}
+	}
+
+	@Override
+	public List findSuperiorVisitByNameAndPinyinAndOrgInternalCode(String name,
+			String orgInternalCode) {
+		return searchMentalPatientDao
+				.findSuperiorVisitByNameAndPinyinAndOrgInternalCode(name,
+						orgInternalCode);
+	}
+
+	@Override
+	public String[][] getExportPopertyArray() {
+		if (GlobalSetting.NOT_DEPENDENT
+				.equals(globalSettingService
+						.getGlobalValue(GlobalSetting.BUSINESS_DEPENDENT_ACTUAL_POPULATION))) {
+			return SpecialGroupsContext.getMentalPatientPropertyArraySlf();
+		} else {
+			return SpecialGroupsContext.getMentalPatientPropertyArrayRla();
+		}
+	}
+
+	@Override
+	public Long getCount(String orgInternalCode) {
+		// TODO Auto-generated method stub
+		return searchMentalPatientDao.getCount(orgInternalCode);
+	}
+
+	@Override
+	public Integer getCount(SearchMentalPatientVo searchMentalPatientVo) {
+		// TODO Auto-generated method stub
+		return searchMentalPatientDao.getCounts(searchMentalPatientVo);
+	}
+
+	// 填充字典项displayName
+	private List<MentalPatientTypeCount> setDisplayNameForList(
+			List<MentalPatientTypeCount> mentalPatientTypeCountList) {
+		if (mentalPatientTypeCountList != null
+				&& mentalPatientTypeCountList.size() > 0) {
+			for (MentalPatientTypeCount mentalPatientTypeCount : mentalPatientTypeCountList) {
+				mentalPatientTypeCount.setDisplayName(propertyDictService
+						.getPropertyDictById(mentalPatientTypeCount.getType())
+						.getDisplayName());
+			}
+		}
+		return mentalPatientTypeCountList;
+	}
+}

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="permanentAddress">
+	<typeAlias alias="PermanentAddress" type="com.tianque.baseInfo.permanentAddress.domain.PermanentAddress" />
+	<resultMap id="permanentAddressResult" class="PermanentAddress">
+		<result property="addressNo" column="addressNo" />
+		<result property="addressName" column="addressName" />
+		<result property="parentid" column="parentid" />
+		<result property="addressLevel" column="addressLevel" />
+	</resultMap>
+	<resultMap id="permanentAddressNameResult" class="java.lang.String">
+		<result property="addressName" column="addressName" />
+	</resultMap>
+	
+	<sql id="search_permanentAddress_sql_where">
+		from PermanentAddress p
+		<dynamic prepend="where"> 
+			<isPropertyAvailable property="str">
+				<isNotEmpty property="str" prepend="and ">
+					p.addressNo like #str# || '%' or p.addressName like #str# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<insert id="addPermanentAddress" parameterClass="PermanentAddress">
+		insert into PermanentAddress
+		(addressNo,addressName,parentid,addressLevel)
+		values
+		(#addressNo#,#addressName#,#parentid#,#addressLevel#)
+	</insert>
+	
+	<select id="findPermanentAddress" resultMap="permanentAddressResult">
+		select * from PermanentAddress
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findPermanentAddressCount" resultClass="java.lang.Integer">
+		select count(*) from PermanentAddress
+	</select>
+	<select id="getPermanentAddressByNo" parameterClass="PermanentAddress" resultMap="permanentAddressResult">
+		select * from PermanentAddress where addressNo=#addressNo#
+	</select>
+	<select id="getPermanentAddressByAddressNo" parameterClass="java.lang.String" resultMap="permanentAddressResult">
+		select * from PermanentAddress where addressNo=#addressNo#
+	</select>
+	
+	<select id="getPermanentAddressByParentNames" parameterClass="java.util.Map" resultClass="java.lang.String">
+		<isPropertyAvailable property="city">
+			select addressNo from PermanentAddress 
+				where parentid = (
+		</isPropertyAvailable>
+			<isPropertyAvailable property="province">
+				select addressNo from PermanentAddress where addressName = #province#
+			</isPropertyAvailable>
+		<isPropertyAvailable property="city">
+			) and addressName = #city#
+		</isPropertyAvailable>
+	</select>
+	
+	<select id="getPermanentAddressByLevel" parameterClass="java.util.Map" resultMap="permanentAddressResult">
+		select * from PermanentAddress where addressLevel = #level#
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getPermanentAddressByLevelCount" resultClass="java.lang.Integer">
+		select count(*) from PermanentAddress where addressLevel = #level#
+	</select>
+	
+	<select id="getPermanentAddressByParentid" parameterClass="java.lang.String" resultMap="permanentAddressResult">
+		select * from PermanentAddress where parentid = #parentid#
+	</select>
+	
+	<select id="getPermanentAddressByParentName" parameterClass="java.lang.String" resultMap="permanentAddressResult">
+		select * from PermanentAddress where parentid = (select addressNo from PermanentAddress where addressName = #value#)
+	</select>
+	<select id="getPermanentAddressByParentNameAndAddressLevel" parameterClass="java.util.Map" resultMap="permanentAddressNameResult">
+		select addressName from PermanentAddress where parentid = (select addressNo from PermanentAddress where addressName = #addressName# and addresslevel=#addresslevel#)
+	</select>
+	<select id="getPermanentAddressByParentNameAndAddressNameAndAddressLevel" parameterClass="java.util.Map" resultMap="permanentAddressNameResult">
+	   select addressName
+             from PermanentAddress
+            where parentid =
+                  (select addressNo
+                     from PermanentAddress
+                    where addressName = #addressName#
+                      and addresslevel = #addressLevel# and parentid=(select addressNo from PermanentAddress where addressname=#parentName#))
+	</select>
+	<select id="getPermanentAddressByParentNameAndPId" parameterClass="java.util.Map" resultMap="permanentAddressResult">
+		select * from PermanentAddress where parentid = (select addressNo from PermanentAddress where parentid = (select addressNo from PermanentAddress where addressName = #province#) 
+		and addressName = #address#)
+	</select>
+	
+	<select id="getPermanentAddressByAddressNameAndPIdAndAddressNo" parameterClass="PermanentAddress" resultMap="permanentAddressResult">
+		select * from PermanentAddress where addressName=#addressName# and parentid=#parentid# and  addressno !=#addressNo#
+	</select>
+	
+	<select id="getPermanentAddressByAddressNameAndAddressLevel" parameterClass="java.util.Map" resultMap="permanentAddressResult">
+		select * from PermanentAddress where addressName=#addressName# and addressLevel=#addressLevel#
+	</select>
+	
+	
+	<select id="searchPermanentAddress"  resultMap="permanentAddressResult" parameterClass="java.util.Map">
+		<include refid="common.sql_select" />
+		<include refid="search_permanentAddress_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="searchPermanentAddressCount"  resultClass="java.lang.Integer" parameterClass="java.util.Map">
+		<include refid="common.sql_count" />
+		<include refid="search_permanentAddress_sql_where" />
+	</select>
+	
+	<update id="updatePermanentAddress" parameterClass="PermanentAddress">
+		update permanentAddress set addressName=#addressName# where addressNo=#addressNo#
+		
+	</update>
+	
+	<delete id="deletePermanentAddress" parameterClass="java.lang.String">
+		delete from permanentAddress where addressNo=#addressNo#
+	</delete>
+	
+</sqlMap>

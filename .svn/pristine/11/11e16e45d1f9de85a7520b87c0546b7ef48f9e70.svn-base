@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchRectificativePerson">
+	<typeAlias alias="SearchRectificativePersonVo" type="com.tianque.domain.vo.SearchRectificativePersonVo"/>
+	<typeAlias alias="RectificativePersonExecuteTypeCount" type="com.tianque.baseInfo.rectificativePerson.domain.RectificativePersonExecuteTypeCount" />
+	<resultMap id="rectificativePersonExecuteTypeCountResult" class="RectificativePersonExecuteTypeCount">
+		<result property="type" column="type" />
+		<result property="count" column="count" />
+	</resultMap>
+	<!--使用rectificativePerson文件里的fiels防止修改时漏改不一致  -->
+	<!-- <sql id="fields">
+		uni.id,uni.baseinfoid,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.executeType,uni.penaltyTerm,uni.rectifyStartDate,uni.rectifyEndDate,
+		uni.recentSituation,uni.sourcesState,uni.attentionExtent,uni.createUser,uni.updateUser,uni.createDate,uni.updateDate,
+		uni.isEmphasis,uni.isEmphasisReason,uni.isEmphasisDate,uni.bussinessRemark,uni.accusation,uni.accusationuni.isRemind
+	</sql> -->
+	<sql id="sql_where">
+		from rectificativePersons uni left join baseinfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/>
+		<dynamic prepend="WHERE">
+		<isPropertyAvailable property="fastSearchKeyWords">
+			<isNotNull property="fastSearchKeyWords" prepend=" and ">
+				(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+			</isNotNull>
+		</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="genderId" >
+				<isNotNull property="genderId" prepend=" and ">
+					gender = #genderId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo" >
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name" >
+				<isNotEmpty property="name" prepend=" and ">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentAddress" >
+				<isNotEmpty property="currentAddress" prepend=" and ">
+					currentAddress like #currentAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endBirthday" >
+				<isNotEmpty property="endBirthday" prepend=" and ">
+				<![CDATA[ birthday <= #endBirthday# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startBirthday" >
+				<isNotEmpty property="startBirthday" prepend=" and ">
+					<![CDATA[ birthday >= #startBirthday# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="helpEducator" >
+				<isNotEmpty property="helpEducator" prepend=" and ">
+					helpEducator  like '#helpEducator#%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="educatorTelephone" >
+				<isNotEmpty property="educatorTelephone" prepend=" and ">
+					educatorTelephone  like '#educatorTelephone#%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="educatorMobileNumber" >
+				<isNotEmpty property="educatorMobileNumber" prepend=" and ">
+					educatorMobileNumber  like #educatorMobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="province" >
+				<isNotEmpty property="province" prepend=" and ">
+					province  = #province#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="city" >
+				<isNotEmpty property="city" prepend=" and ">
+					city  = #city#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="district" >
+				<isNotEmpty property="district" prepend=" and ">
+					district = #district#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativePlaceAddress" >
+				<isNotEmpty property="nativePlaceAddress" prepend=" and ">
+					nativePlaceAddress like #nativePlaceAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="telephone" >
+				<isNotEmpty property="telephone" prepend=" and ">
+					telephone  = #telephone#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber" >
+				<isNotEmpty property="mobileNumber" prepend=" and ">
+					mobileNumber  like #mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="executeTypeId" >
+				<isNotNull property="executeTypeId" prepend=" and ">
+					executeType = #executeTypeId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="guardianTelephone" >
+				<isNotEmpty property="guardianTelephone" prepend=" and ">
+					guardianTelephone  = #guardianTelephone#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="guardianMobileNumber" >
+				<isNotEmpty property="guardianMobileNumber" prepend=" and ">
+					guardianMobileNumber  = #guardianMobileNumber#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="penaltyTerm" >
+				<isNotEmpty property="penaltyTerm" prepend=" and ">
+					penaltyTerm like #penaltyTerm#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="rectifyStartDate" >
+				<isNotEmpty property="rectifyStartDate" prepend=" and ">
+				<![CDATA[ rectifyStartDate >= #rectifyStartDate# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="rectifyEndDate" >
+				<isNotEmpty property="rectifyEndDate" prepend=" and ">
+					<![CDATA[ rectifyEndDate <= #rectifyEndDate# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isDeath" >
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="1">
+						isDeath = #isDeath#
+					</isEqual>
+					<isEqual property="isDeath" compareValue="0">
+						(isDeath = #isDeath# or isDeath is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isNotNull property="schooling.id" prepend=" and ">
+				schooling = #schooling.id#
+			</isNotNull>
+			<include refid="attentionPopulationBaseInfo.serviceTeamInfoForSearch"/>
+		</dynamic>
+	</sql>
+	<select id="countSearchRectificativePerson" parameterClass="SearchRectificativePersonVo" resultClass="int">
+		select count(*)
+		<include refid="sql_where" />
+	</select>
+	<select id="countFastSearchRectificativePerson" parameterClass="java.util.Map" resultClass="int">
+		select count(*)
+		from rectificativePersons uni left join baseinfo b on uni.baseInfoId = b.id where uni.orgInternalCode like '#orgInternalCode#%'
+		<isPropertyAvailable property="name">
+				<isNotNull property="name">
+					<isNotEmpty property="name" prepend=" and ">
+						(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+					</isNotEmpty>
+				</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="idCardNo" >
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	<select id="searchFastRectificativePerson" parameterClass="java.util.Map" resultMap="rectificativePerson.rectificativePersonResult">
+		select <include refid="rectificativePerson.fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from rectificativePersons uni left join baseinfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgInternalCode like '#orgInternalCode#%'
+		<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend=" and ">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="idCardNo" >
+				<isNotEmpty property="idCardNo" prepend=" and ">
+				upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isPropertyAvailable property="sortField">$sortField$
+			  </isPropertyAvailable>
+				<isPropertyAvailable property="order">$order$</isPropertyAvailable>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+
+	<select id="searchRectificativePerson" parameterClass="SearchRectificativePersonVo" resultMap="rectificativePerson.mobileRectificativePersonMap">
+		select <include refid="rectificativePerson.fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		,(select count(1) from termerRecord m where m.termerid=uni.id ) as interviewCount 
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findRectificativePersonAndPinyinAndOrgInternalCode" parameterClass="java.util.Map" resultMap="rectificativePerson.rectificativePersonResult">
+		select <include refid="rectificativePerson.fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from rectificativepersons uni left join baseinfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where (name like '#name#%' or fullPinyin like '#name#%' or simplePinyin like '#name#%' ) and uni.orgInternalCode like '#orgInternalCode#%' order by id
+	</select>
+
+	<select id="findRectificativePersonEndDate" parameterClass="java.util.Map" resultMap="rectificativePerson.rectificativePersonResult">
+		select <include refid="rectificativePerson.fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from rectificativepersons uni left join baseinfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where rectifyEndDate <![CDATA[<=]]>#endDate#  and isEmphasis =0  order by id 
+	</select>
+
+	<select id="getExecuteTypeCountList" parameterClass="java.util.Map" resultMap="rectificativePersonExecuteTypeCountResult">
+		select count(uni.id) count,uni.executetype type from rectificativepersons uni where and uni.isEmphasis =0 and uni.orgInternalCode like #orgInternalCode#||'%' group by uni.executetype
+	</select>
+
+	<select id="getExecuteTypeCount" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(uni.id) count,uni.executetype type from rectificativepersons uni where uni.orgInternalCode like '#orgInternalCode#%' and uni.executetype=#type# and uni.isEmphasis =0  group by uni.executetype
+	</select>
+
+	<select id="getHelpedCount" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(id) from rectificativepersons uni 
+       		where uni.id in(select distinct h.personid
+             	from helppersonnels h where h.persontype='rectificativePerson') and orgInternalCode like '#orgInternalCode#%' and uni.executetype=#type# and uni.isEmphasis =0
+	</select>
+
+	<select id="getCount" parameterClass="java.lang.String" resultClass="java.lang.Long">
+		select count(id) from rectificativepersons uni where uni.orgInternalCode like #orgInternalCode#||'%' and uni.isEmphasis =0
+	</select>
+
+	<select id="getNotHelpedCount" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(id) from rectificativepersons uni 
+       		where uni.id not in(select distinct h.personid
+             	from helppersonnels h where h.persontype='rectificativePerson') and orgInternalCode like '#orgInternalCode#%' and uni.executetype=#type# and uni.isEmphasis =0
+	</select>
+
+		<select id="getNotHelpedCountNullType" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(id) from rectificativepersons uni 
+       		where uni.id not in(select distinct h.personid
+             	from helppersonnels h where h.persontype='rectificativePerson') and orgInternalCode like '#orgInternalCode#%' and uni.executetype is null and uni.isEmphasis =0
+	</select>
+
+	<select id="getHelpedCountNullType" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(id) from rectificativepersons uni 
+       		where uni.id in(select distinct h.personid
+             	from helppersonnels h where h.persontype='rectificativePerson') and orgInternalCode like '#orgInternalCode#%' and uni.executetype is null and uni.isEmphasis =0
+	</select>
+
+</sqlMap>

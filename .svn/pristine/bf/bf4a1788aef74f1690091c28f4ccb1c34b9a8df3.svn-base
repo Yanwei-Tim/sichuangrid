@@ -1,0 +1,171 @@
+package com.tianque.service.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.oproject.framework.orm.PageResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.dao.AccountLoginDetailsDAO;
+import com.tianque.domain.AccountLoginDetails;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.WorkCalendar;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.plugin.analyzing.util.AnalyseUtil;
+import com.tianque.service.AccountLoginDetailsService;
+import com.tianque.service.WorkCalendarService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.tableManage.service.TableManageService;
+
+@Service("accountLoginDetailsService")
+@Transactional
+public class AccountLoginDetailsServiceImpl implements
+		AccountLoginDetailsService {
+
+	private static final Integer SEARCH_DIRECTLY_VAL = 1;
+
+	@Autowired
+	private WorkCalendarService workCalendarService;
+	@Autowired
+	private TableManageService tableService;
+	@Autowired
+	private AccountLoginDetailsDAO accountLoginDetailsDAO;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private PropertyDictService propertyDictService;
+
+	@Override
+	public PageResult<AccountLoginDetails> getAccountLoginDetailsList(
+			Long year, Long month, Long orgId, Integer searchType,
+			Integer page, Integer rows, String sidx, String sord) {
+		if (year == null || month == null || orgId == null
+				|| searchType == null) {
+			throw new BusinessValidationException("查询列表失败，参数不正确");
+		}
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(orgId);
+		if (organization == null) {
+			throw new BusinessValidationException("组织机构信息未获得");
+		}
+		Map<String, Object> map = new HashMap<String, Object>();
+		// 如果是查询直属下辖，那么就将直属下辖的ORGID查询出来
+		if (SEARCH_DIRECTLY_VAL.equals(searchType)) {
+			List<Long> childOrgIds = organizationDubboService
+					.findOrgIdByParentId(orgId);
+			if (childOrgIds != null && childOrgIds.size() != 0) {
+				map.put("childOrgIds", childOrgIds);
+			}
+		}
+		map.put("year", year);
+		map.put("month", month);
+		map.put("orgId", orgId);
+		map.put("orgCode", organization.getOrgInternalCode());
+		map.put("searchType", searchType);
+		map.put("sortField", sidx);
+		map.put("order", sord);
+		return accountLoginDetailsDAO.queryAccountDetailsForPageResult(map,
+				page, rows);
+	}
+
+	/***
+	 * 判断历史表是否创建
+	 */
+	private boolean isCreateHistoryTable(Integer year, Integer month) {
+		return tableService.createAnalyseTable(
+				AnalyseUtil.USER_LOGIN_DETAILS_NAME,
+				AnalyseUtil.USER_LOGIN_DETAILS_SQL, year, month);
+	}
+
+	@Override
+	public void createAccountDetails(Long year, Long month) {
+		// 参数校验
+		if (year == null || month == null) {
+			throw new BusinessValidationException("查询数据失败，未获得正确查询参数");
+		}
+		try {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("year", year);
+			map.put("month", month);
+			// 判断本月历史表是否创建，如果没有则创建
+			boolean isCreate = isCreateHistoryTable(
+					Integer.parseInt(String.valueOf(year)),
+					Integer.parseInt(String.valueOf(month)));
+			if (!isCreate) {
+				// 清空历史数据
+				accountLoginDetailsDAO.deleteAccountDetails(map);
+			}
+			// 查询获得每月工作天数
+			Date startTime = CalendarUtil.getBeforeMonthFirstDayByTime(
+					Integer.parseInt(String.valueOf(year)),
+					Integer.parseInt(String.valueOf(month)));
+			Date endTime = CalendarUtil.getNextDate(
+					Integer.parseInt(String.valueOf(year)),
+					Integer.parseInt(String.valueOf(month)));
+			endTime = CalendarUtil.getBeforDayEndDate(endTime);
+			Integer currentWorkDay = workCalendarService
+					.getWorkDaysFromStartTimeToEndTime(startTime, endTime);
+
+			// 封装参数
+			map.put("currentWorkDay", currentWorkDay);
+			map.put("startTime", startTime);
+			map.put("endTime", endTime);
+			accountLoginDetailsDAO.addAccountDetails(map);
+
+			// 遍历组织机构，判断地区是否存在特色日历，有则修改记录
+			// 跟唐杰确认过，特色日历只在市州层级，所以查询所有市州层级组织机构，遍历查询看是否存在特色日历
+			// 查询得到市层级组织机构
+			WorkCalendar workcalendars = new WorkCalendar();
+			workcalendars.setYear(year);
+			List<Organization> orgList = workCalendarService
+					.findFeatureOrgs(workcalendars);
+			/*
+			 * Long orgLevelId = findPropertyDictByDomainNameAndInternalId(
+			 * PropertyTypes.ORGANIZATION_LEVEL, OrganizationLevel.CITY);
+			 * List<Organization> orgList = organizationDubboService
+			 * .fingOrganizationforLevel(orgLevelId);
+			 */
+			if (orgList != null && orgList.size() != 0) {
+				// endTime = CalendarUtil.getBeforDayEndDate(endTime);
+				map.put("endTime", endTime);
+				for (Organization org : orgList) {
+					if (workCalendarService.checkHasFeatureCalendar(year,
+							org.getId())) {
+						Integer featureDay = workCalendarService
+								.getWorkDaysByFeature(startTime, endTime,
+										org.getId());
+						map.put("featureDay", featureDay);
+						map.put("orgCode", org.getOrgInternalCode());
+						accountLoginDetailsDAO.updateHasFeatureDay(map);
+					}
+				}
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException("生成报表失败", e);
+		}
+	}
+
+	private Long findPropertyDictByDomainNameAndInternalId(String domainName,
+			int internalId) {
+		Long dictId = null;
+		List<PropertyDict> propertyDictList = propertyDictService
+				.findPropertyDictByDomainNameAndInternalId(domainName,
+						internalId);
+		if (propertyDictList != null && propertyDictList.size() > 0) {
+			PropertyDict dict = propertyDictList.get(0);
+			if (dict != null && dict.getId() != null) {
+				dictId = dict.getId();
+			}
+		}
+		return dictId;
+	}
+
+}

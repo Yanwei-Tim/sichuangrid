@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="serviceRecordRelyMember">
+	<typeAlias alias="ServiceRecordRelyMember" type="com.tianque.plugin.serviceTeam.serviceRecord.domain.ServiceRecordRelyMember"/>
+	<resultMap id="ServiceRecordRelyMember" class="ServiceRecordRelyMember">
+		<result property="id" column="id"/>
+		<result property="recordId" column="recordId"/>
+		<!-- <result property="teamId" column="teamId"/> -->
+		<result property="memberId" column="memberId"/>
+		<result property="memberName" column="memberName"/>
+	</resultMap>
+	
+	<insert id="addServiceRecordRelyMember" parameterClass="ServiceRecordRelyMember">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_serviceRecordRelyMember.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		<![CDATA[
+			insert into serviceRecordRelyMember
+			(id, recordId,memberId,memberName)
+			values(#id#, #recordId#,#memberId#,#memberName#)
+		]]>
+	</insert>
+	
+	<select id="findServiceMembers"  parameterClass="long" resultClass="ServiceRecordRelyMember">
+		<![CDATA[ select srrm.* from serviceRecordRelyMember srrm where recordid = #value# ]]>
+	</select>
+	
+	<delete id="deleteServiceRecordRelyMembers" parameterClass="java.lang.Long">
+    	delete from serviceRecordRelyMember where recordId=#value#
+    </delete>
+    <delete id="deleteServiceRecordRelyMembersById" parameterClass="java.lang.Long">
+    	delete from serviceRecordRelyMember where id=#value#
+    </delete>
+    
+    <select id="findServiceRecordsInServiceTeam" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+    	select recordId from servicerecordrelymember where memberId = #value#
+    </select>
+    
+    <update id="updateRepeatData" parameterClass="ServiceRecordRelyMember">
+    	update servicerecordrelymember set memberId=#standardMemberId# where recordId=#recordId# and memberId=#memberId#
+    </update>
+    <select id="getServiceRecordRelyMembersByMemberIdAndRecordId" parameterClass="ServiceRecordRelyMember" resultClass="ServiceRecordRelyMember">
+    	select * from serviceRecordRelyMember where recordId=#recordId# and memberId=#memberId#
+    </select>
+</sqlMap>

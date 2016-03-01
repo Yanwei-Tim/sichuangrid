@@ -1,0 +1,303 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ include file="/includes/baseInclude.jsp"%>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib" %>
+<div id="dialog-form" title="红袖套成员维护" class="container container_24">
+	 <form id="maintainForm" method="post"	action="${path }/baseinfo/redCuffTeamManage/maintainRedCuffInfo.action" >
+	 	 <pop:token/>
+	 
+         <input name="redCuffTeam.id"  type="hidden" value="${redCuffTeam.id}" />
+          <input name="redCuffTeam.organization.id"  type="hidden" value="${redCuffTeam.organization.id}" />
+           <input name="redCuffTeam.organization.orgInternalCode"  type="hidden" value="${redCuffTeam.organization.orgInternalCode}" />
+        
+		<div class="grid_4 lable-right">
+			<label class="form-lbl">所属区域： </label>
+		</div>
+		<div class="grid_20 heightAuto">
+		    <input  name="redCuffTeam.organization.orgName"  class="form-txt" style="float:left;" value="${redCuffTeam.organization.orgName }" readonly="readonly"/>
+  		</div>
+  		<div class='clearLine'>&nbsp;</div>
+  		<div class="grid_4 lable-right">
+  			<em class="form-req" id="maritalStateStat"  >*</em>
+			<label class="form-lbl">姓名： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+		    <input  name="redCuffTeam.memeberName" maxlength="10" class="form-txt {required:true,messages:{required:'姓名必须填写'}}" style="float:left;" value="${redCuffTeam.memeberName }" <s:if test="'view'.equals(mode)">readonly="readonly"</s:if>/>
+  		</div>
+  		<div class="grid_4 lable-right">
+  			<em class="form-req" id="maritalStateStat"  >*</em>
+			<label class="form-lbl">身份证号码： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+		    <input  name="redCuffTeam.idCardNo" id="idCardNo" maxlength="20" class="form-txt {required:true,idCard:true,messages:{required:'身份证号码必须填写',idCard:'请输入一个合法的身份证号码'}}" style="float:left;" value="${redCuffTeam.idCardNo}" <s:if test="'view'.equals(mode)">readonly="readonly"</s:if>/>
+  		</div>
+  		<div class='clearLine'>&nbsp;</div>
+  		
+  		<div class="grid_4 lable-right">
+  			<em class="form-req" id="maritalStateStat"  >*</em>
+			<label class="form-lbl">性别： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+		    <select name="" id="gender" class="form-txt {required:true,messages:{required:'性别必须选择'}}" style="width: 246px;" disabled>
+		     	<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@GENDER" defaultValue="${redCuffTeam.gender.id }"/>
+		    </select>
+		    <input type="hidden" name="redCuffTeam.gender.id" id="redCuffTeamGender" value="${redCuffTeam.gender.id}"/>
+  		</div>
+  		<div class="grid_4 lable-right">
+  			<em class="form-req" id="maritalStateStat"  >*</em>
+			<label class="form-lbl">出生年月： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+		    <input  name="redCuffTeam.birthDate" id="birthDate"  class="form-txt {required:true,messages:{required:'出生年月必须选择'}}" style="float:left;" value="<s:date name='redCuffTeam.birthDate' format='yyyy-MM-dd'/>" readonly="readonly" <s:if test="'view'.equals(mode)">disabled</s:if> />
+  		</div>
+  		<div class='clearLine'>&nbsp;</div>
+  		<div class="grid_4 lable-right">
+  			<em class="form-req" id="maritalStateStat"  >*</em>
+			<label class="form-lbl">手机号码： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+		    <input  name="redCuffTeam.phoneNumber" maxlength="15"  class="form-txt {required:true,telephone:true,messages:{required:'联系电话必须输入',telephone:$.format('联系电话不合法，只能输数字和横杠(-)')}}" style="float:left;" value="${redCuffTeam.phoneNumber }" <s:if test="'view'.equals(mode)">readonly="readonly"</s:if>/>
+  		</div>
+  		
+  		<div class="grid_4 lable-right">
+  			<em class="form-req" id="maritalStateStat"  >*</em>
+			<label class="form-lbl">民族： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+		    <select name="redCuffTeam.nation.id" class="form-txt {required:true,messages:{required:'民族必须选择'}}" style="width: 246px;" <s:if test="'view'.equals(mode)">disabled</s:if>>
+		     	<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@NATION" defaultValue="${redCuffTeam.nation.id }"/>
+		    </select>
+  		</div>
+  		<div class='clearLine'>&nbsp;</div>
+  		
+  		<div class="grid_4 lable-right">
+  			<em class="form-req" id="maritalStateStat"  >*</em>
+			<label class="form-lbl">队伍类型： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+		  <select name="redCuffTeam.teamType.id" <s:if test="'view'.equals(mode)">disabled</s:if> class="form-txt" id="teamType">
+			  <pop:PropertyDictReleationSelectTag name="@com.tianque.domain.property.PropertyTypes@RED_CUFF_TEAM_TYPE" defaultValue="${redCuffTeam.teamType.id}" 
+			   		reletionId="subTeamType" reletionName="@com.tianque.domain.property.PropertyTypes@RED_CUFF_TEAM_SUB_TYPE" id="teamType" />
+		  </select>
+  		</div>
+  		
+  		<div class="grid_4 lable-right">
+  			<em class="form-req" id="maritalStateStat"  >*</em>
+			<label class="form-lbl">队伍类别： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+			<select id="subTeamType" name="redCuffTeam.subTeamType.id" class="form-txt" <s:if test="'view'.equals(mode)">disabled</s:if>>
+			</select>
+  		</div>
+  		
+  		<div class='clearLine'>&nbsp;</div>
+  		
+  		
+  		<div class="grid_4 lable-right">
+  			<em class="form-req" id="maritalStateStat"  >*</em>
+			<label class="form-lbl">政治面貌： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+		    <select name="redCuffTeam.political.id" class="form-txt {required:true,messages:{required:'政治面貌必须选择'}}" style="width: 246px;" <s:if test="'view'.equals(mode)">disabled</s:if>>
+		     	<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@POLITICAL_BACKGROUND" defaultValue="${redCuffTeam.political.id }"/>
+		    </select>
+  		</div>
+  		
+  		<div class="grid_4 lable-right">
+  			<em class="form-req" id="maritalStateStat"  >*</em>
+			<label class="form-lbl">文化程度： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+		    <select name="redCuffTeam.education.id" class="form-txt {required:true,messages:{required:'文化程度必须选择'}}" style="width: 246px;" <s:if test="'view'.equals(mode)">disabled</s:if>>
+		     	<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@SCHOOLING" defaultValue="${redCuffTeam.education.id}"/>
+		    </select>
+  		</div>
+  		<div class='clearLine'>&nbsp;</div>
+  		<div class="grid_4 lable-right">
+			<label class="form-lbl">职业： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+		    <input  name="redCuffTeam.occupation" maxlength="20" class="form-txt" style="float:left;" value="${redCuffTeam.occupation }" <s:if test="'view'.equals(mode)">readonly="readonly"</s:if>/>
+  		</div>
+  		<div class="grid_4 lable-right">
+			<label class="form-lbl">家庭住址： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+		    <input  name="redCuffTeam.fimalyAddress" maxlength="40" class="form-txt" style="float:left;" value="${redCuffTeam.fimalyAddress }" <s:if test="'view'.equals(mode)">readonly="readonly"</s:if>/>
+  		</div>
+  		<div class='clearLine'>&nbsp;</div>
+  		<div class="grid_4 lable-right">
+  			<em class="form-req" id="maritalStateStat"  >*</em>
+			<label class="form-lbl">登记人： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+		    <input  name="redCuffTeam.registeredPerson" maxlength="10"  class="form-txt" style="float:left;" value="${redCuffTeam.registeredPerson }" readonly="readonly"/>
+  		</div>
+  		<div class="grid_4 lable-right">
+  			<em class="form-req" id="maritalStateStat"  >*</em>
+			<label class="form-lbl">登记时间： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+		    <input  name="redCuffTeam.registeredDate"  id="registeredDate" class="form-txt {required:true,messages:{required:'登记时间必须选择'}}" style="float:left;" value="<s:date name='redCuffTeam.registeredDate' format='yyyy-MM-dd'/>" readonly="readonly" <s:if test="'view'.equals(mode)">disabled</s:if>/>
+  		</div>
+  		
+  		<div class='clearLine'>&nbsp;</div> 		
+  		<div class="grid_4 lable-right">
+			<label class="form-lbl">是否绑定认证： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+		    <input type="radio" name="redCuffTeam.isCertification" value="0" id = "notCertification" disabled/>否&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" value="1" id = "yesCertification" name="redCuffTeam.isCertification" disabled/>是
+  		</div>
+  		
+  		<div class="grid_4 lable-right">
+			<label class="form-lbl">微信号： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+		    <input  name=""  id="" class="form-txt" style="float:left;" value="${redCuffTeam.wechatNo }" readonly="readonly"/>
+  		</div>
+  		
+  		<div class='clearLine'>&nbsp;</div> 		
+<!--   		<div class="grid_4 lable-right" <s:if test="'add'.equals(mode)">style="display:none"</s:if>>
+			<label class="form-lbl">是否退出红袖套： </label>
+		</div>
+		<div class="grid_8 heightAuto" <s:if test="'add'.equals(mode)">style="display:none"</s:if>>
+		    <input type="radio" name="redCuffTeam.exitRedCuffTeam" value="0" id = "notExitRedCuffTeam" <s:if test="'view'.equals(mode)">disabled</s:if>/>否&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" value="1" id = "yesExitRedCuffTeam" name="redCuffTeam.exitRedCuffTeam" <s:if test="'view'.equals(mode)">disabled</s:if>/>是
+  		</div> -->
+  		<div class="grid_4 lable-right">
+			<label class="form-lbl">固定电话： </label>
+		</div>
+		<div class="grid_8 heightAuto">
+		    <input  name="redCuffTeam.telephone" maxlength="15"  class="form-txt" style="float:left;" value="${redCuffTeam.telephone }" <s:if test="'view'.equals(mode)">readonly="readonly"</s:if>/>
+  		</div>
+  		
+  		<div class='clearLine'>&nbsp;</div>  		
+  		<div class="grid_4 lable-right">
+			<label class="form-lbl">备注： </label>
+		</div>
+		<div class="grid_20 heightAuto">
+   			<textarea rows="5" cols="77" name="redCuffTeam.remark" id="comments"  maxlength="100" class="form-txt" <s:if test="'view'.equals(mode)">readonly="readonly"</s:if>>${redCuffTeam.remark }</textarea>
+   		</div>
+	</form>
+</div>	
+<script type="text/javascript">
+function changeType(){
+	$("#redCuffTeamType_realy").val($("#redCuffTeamTypeId").val());
+}
+function changeSubType(){
+	$("#redCuffSubTeamType_realy").val($("#redCuffSubTeamTypeId").val());
+}
+function dealCertification(){
+	var isCertification = "${redCuffTeam.isCertification}";
+	if(isCertification==1 || isCertification=='1'){
+		$("#yesCertification").attr("checked","checked");
+	}else{
+		$("#notCertification").attr("checked","checked");
+	}
+}
+$(document).ready(function(){
+	dealCertification();
+$("#idCardNo").blur(function(){
+	fillGenderByIdCardNo($("#idCardNo").val(),"gender","redCuffTeamGender",true);
+	if($("#idCardNo").val()!=null && $("#idCardNo").val()!=""){
+		$("#birthDate").val(getBirthDayTextFromIdCard($("#idCardNo").val()));
+	}
+});
+$('#registeredDate').datePicker({
+			yearRange:'1930:2030',
+			dateFormat:'yy-mm-dd',
+	    	maxDate:'+0d'
+});
+$("#maintainForm").formValidate({
+			promptPosition: "bottomLeft",
+			submitHandler: function(form) {
+	         $(form).ajaxSubmit({
+	             success: function(data){
+			        	 if(!data.id){
+		                	 $.messageBox({
+								message:data,
+								level: "error"
+							 });
+		                 	return;
+		                 }
+			        	 
+			        	 <c:if test="${mode=='add'}">
+			        	 $.messageBox({message:"成功保存信息!"});
+			        	 </c:if>
+			        	 <c:if test="${mode=='edit'}">
+			        	 $.messageBox({message:"成功保存修改信息!"});
+			        	 </c:if>
+					     $("#redCuffMemeberDialog").dialog("close");
+					     $("#redCuffMemeberList").trigger("reloadGrid");
+	      	   },
+	      	   error: function(XMLHttpRequest, textStatus, errorThrown){
+	      	      alert("提交错误");
+	      	   }
+	      	  });
+		},
+			rules:{
+
+			},
+			messages:{
+			}
+		});
+});
+
+function getBirthDayTextFromIdCard(idCard){
+	if(idCard!=null&&idCard.length==18){
+		idCard=idCard.substring(6,14);
+		if(idCard.substring(4,6)<=0||idCard.substring(4,6)>12){
+			return "";
+		}else if(idCard.substring(6,8)<=0||idCard.substring(6,8)>31){
+			return "";
+		}else{
+			return idCard.substring(0,4)+"-"+idCard.substring(4,6)+"-"+idCard.substring(6,8);
+		}
+	}else if(idCard!=null&&idCard.length==15){
+		idCard=idCard.substring(6,12);
+		if(idCard.substring(2,4)<=0||idCard.substring(2,4)>12){
+			return "";
+		}else if(idCard.substring(4,6)<=0||idCard.substring(4,6)>31){
+			return "";
+		}else{
+			return "19"+idCard.substring(0,2)+"-"+idCard.substring(2,4)+"-"+idCard.substring(4,6);
+		}
+	}
+	return "";
+}
+
+function fillGenderByIdCardNo(idCardNo,dictFieldName,fieldName,isDict){
+    var sex;
+    if(idCardNo==null||idCardNo=="" || typeof(idCardNo)=="undefined"){
+        return;
+    }
+    if(idCardNo.length!=15 && idCardNo.length!=18){
+        return;
+    }
+
+    if (15 == idCardNo.length) { //15位身份证号码
+        if (parseInt(idCardNo.charAt(14) / 2) * 2 != idCardNo.charAt(14))
+            sex = '男';
+        else
+            sex = '女';
+     }
+    if (18 == idCardNo.length) { //18位身份证号码
+        if (parseInt(idCardNo.charAt(16) / 2) * 2 != idCardNo.charAt(16))
+           sex = '男';
+        else
+          sex = '女';
+    }
+    showGender(sex,dictFieldName,fieldName,isDict);
+}
+
+function showGender(gender,dictFieldName,fieldName,isDict){
+    if(isDict){
+        $("#"+dictFieldName + " option").each(function(value){
+            if($(this).text()==gender)  {
+                $(this).attr("selected",true);
+                $("#"+fieldName).val($(this).val())
+            }
+        });
+    }
+}
+</script>

@@ -1,0 +1,1102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="householdStaff">
+	<typeAlias alias="HouseholdStaff" type="com.tianque.baseInfo.householdStaff.domain.HouseholdStaff"/>
+	<typeAlias alias="Countrymen" type="com.tianque.baseInfo.base.domain.Countrymen"/>
+
+	<resultMap id="householdStaffForJob" class="HouseholdStaff">
+		<result column="id" property="id" />
+		<result column="baseInfoId" property="baseInfoId" />
+		<result column="addressInfoId" property="addressInfoId" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+	</resultMap>
+
+	<resultMap id="householdStaffNoAddress" class="HouseholdStaff" extends="baseInfo.populationBaseInfoResult">
+		<result column="baseInfoId" property="baseInfoId" />
+		<result column="addressInfoId" property="addressInfoId" />
+		<result column="relationShipWithHead" property="relationShipWithHead.id" />
+		<result column="logOut" property="logOut" />
+		<result column="familyId" property="censusRegisterFamily.id" />
+		<result column="residenceType" property="residenceType.id" />
+		<result column="accountNumber" property="accountNumber" />
+		<result column="outGone" property="outGone" />
+		<result column="outReasons" property="outReasons.id" />
+		<result column="reasonsDate" property="reasonsDate" />
+		<result column="outProvince" property="outProvince" />
+		<result column="outCity" property="outCity" />
+		<result column="outDistrict" property="outDistrict" />
+		<result column="goOutDetailedAddress" property="goOutDetailedAddress" />
+		<result column="residentStatus" property="residentStatus.id" />
+		<result column="logOutDate" property="logoutDetail.logoutDate"/>
+		<result column="logOutReason" property="logoutDetail.logoutReason"/>
+		<result column="logOut" property="logoutDetail.logout" />
+		<result column="settleTime" property="settleTime" />
+		<result property="sourcesState" column="sourcesState"/>
+		<result property="homePhone" column="homePhone"/>
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+	</resultMap>
+
+	<resultMap id="householdStaff" class="HouseholdStaff"  extends="addressInfo.attentionPopulationGetAddressInfoResult">
+		<result column="baseInfoId" property="baseInfoId" />
+		<result column="addressInfoId" property="addressInfoId" />
+		<result column="relationShipWithHead" property="relationShipWithHead.id" />
+		<result column="relationShipWithHeadText" property="relationShipWithHeadText" />
+		<result column="logOut" property="logOut" />
+		<result column="familyId" property="censusRegisterFamily.id" />
+		<result column="residenceType" property="residenceType.id" />
+		<result column="accountNumber" property="accountNumber" />
+		<result column="outGone" property="outGone" />
+		<result column="outReasons" property="outReasons.id" />
+		<result column="reasonsDate" property="reasonsDate" />
+		<result column="outProvince" property="outProvince" />
+		<result column="outCity" property="outCity" />
+		<result column="outDistrict" property="outDistrict" />
+		<result column="goOutDetailedAddress" property="goOutDetailedAddress" />
+		<result column="residentStatus" property="residentStatus.id" />
+		<result column="logOutDate" property="logoutDetail.logoutDate"/>
+		<result column="logOutReason" property="logoutDetail.logoutReason"/>
+		<result column="logOut" property="logoutDetail.logout" />
+		<result column="settleTime" property="settleTime" />
+		<result property="sourcesState" column="sourcesState"/>
+		<result property="homePhone" column="homePhone"/>
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+    </resultMap>
+    
+	<resultMap id="householdStaffDefaultList" class="HouseholdStaff" >
+		<result column="id" property="id"  nullValue="0"/>
+		<result column="baseInfoId" property="baseInfoId" />
+		<result column="addressInfoId" property="addressInfoId" />
+		<result column="relationShipWithHead" property="relationShipWithHead.id" />
+		<result column="logOut" property="logOut" />
+		<result column="familyId" property="censusRegisterFamily.id" />
+		<result column="residenceType" property="residenceType.id" />
+		<result column="accountNumber" property="accountNumber" />
+		<result column="outGone" property="outGone" />
+		<result column="outReasons" property="outReasons.id" />
+		<result column="reasonsDate" property="reasonsDate" />
+		<result column="outProvince" property="outProvince" />
+		<result column="outCity" property="outCity" />
+		<result column="outDistrict" property="outDistrict" />
+		<result column="goOutDetailedAddress" property="goOutDetailedAddress" />
+		<result column="residentStatus" property="residentStatus.id" />
+		<result column="logOutDate" property="logoutDetail.logoutDate"/>
+		<result column="logOutReason" property="logoutDetail.logoutReason"/>
+		<result column="logOut" property="logoutDetail.logout" />
+		<result column="settleTime" property="settleTime" />
+		<result property="sourcesState" column="sourcesState"/>
+		<result property="homePhone" column="homePhone"/>
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+    </resultMap>
+
+	<resultMap id="GishouseholdStaff" extends="householdStaff"  class="HouseholdStaff">
+		<result column="populationtype" property="populationType" />
+		<result column="actualtype" property="actualtype"/>
+	</resultMap>
+
+	<resultMap id="houseMarchTypeResult" class="com.tianque.domain.PropertyDict">
+		<result property="id" column="id"/>
+		<result property="displayName" column="displayName"/>
+	</resultMap>
+
+	<update id="updateActualPopulationToHasHouseState" parameterClass="java.util.Map">
+		update addressInfo set 
+		isHaveHouse = #isHaveHouse#,
+		noHouseReason = #noHouseReason#,
+		currentAddress = #currentAddress# where id = 
+		(select addressInfoId from HouseholdStaffs_$shardCode$ where id=#id#) 
+	</update>
+
+	<sql id="selectColumn">
+		f.homePhone,b.id as baseInfoId,f.addressInfoId,f.relationShipWithHead,f.relationShipWithHeadText,f.logOut,f.FAMILYID,f.ACCOUNTNUMBER,f.RESIDENCETYPE,
+		f.updateDate,f.updateUser,f.outGone,f.outReasons,f.reasonsDate,f.outProvince,f.outCity,f.outDistrict,f.goOutDetailedAddress,
+		f.residentStatus,f.id,f.createDate,f.createUser,f.logOutReason,f.logOutDate,f.sourcesState,f.settleTime,f.orgId,f.orgInternalCode
+	</sql>
+	<sql id="householdStaffBusinessInfo">
+			homePhone=#homePhone#,
+            relationShipWithHead=#relationShipWithHead.id#,
+            relationShipWithHeadText=#relationShipWithHeadText#,
+            familyid=#censusRegisterFamily.id#,
+            accountnumber=#accountNumber#,
+    		residencetype=#residenceType.id#,
+			updatedate=#updateDate#,
+			updateuser=#updateUser#,
+			outgone=#outGone#,
+			outReasons=#outReasons.id#,
+			reasonsDate=#reasonsDate#,
+			outProvince=#outProvince#,
+			outCity=#outCity#,
+			outDistrict=#outDistrict#,
+			<isNotNull property="logOut">
+			logOut=#logOut#,
+			logOutDate=#logoutDetail.logoutDate#,
+			logOutReason=#logoutDetail.logoutReason#,
+			</isNotNull>
+			goOutDetailedAddress=#goOutDetailedAddress#,
+            residentStatus=#residentStatus.id#
+	</sql>
+	
+	<select id="findhouseholdStaffWhenIsOldFetchHouseIdForMark" resultMap="householdStaffForJob" parameterClass="java.util.Map">
+		SELECT f.id,f.baseinfoid,f.addressinfoid,f.orgid,f.orginternalcode from HouseholdStaffs_$shardCode$ f 
+	    <![CDATA[ where #whenOldDate# >= MARKBIRTHDAY ]]>  
+	   	and logout=0 and not exists(select 1 from elderlypeople_$shardCode$ e where f.baseinfoId = e.baseinfoid AND f.orgId = e.orgId) 
+	    <![CDATA[and rownum <=#endRow#]]>
+	</select>
+	
+	<select id="countHouseholdStaffWhenIsOldFetchHouseIdForMark" resultClass="java.lang.Integer" parameterClass="java.util.Map">
+		SELECT count(f.id)  
+	    	from HouseholdStaffs_$shardCode$ f 
+  	<![CDATA[ where #whenOldDate# >= MARKBIRTHDAY ]]>  
+	   and logout=0 
+	   and not exists(select 1 from elderlypeople_$shardCode$ e where f.baseinfoId = e.baseinfoid AND f.orgId = e.orgId)
+	</select>
+	
+		<select id="findhouseholdStaffWhenIsNurturesWomenForMark" resultMap="householdStaffForJob" parameterClass="java.util.Map">
+		SELECT f.id,f.baseinfoid,f.addressinfoid,f.orgid,f.orginternalcode from HouseholdStaffs_$shardCode$ f 
+	    <![CDATA[ where #minDate# >= MARKBIRTHDAY  and #maxDate# <= MARKBIRTHDAY ]]>  
+		and logout=0 and f.markgender = 89 
+	    and not exists(select 1 from nurtureswomen_$shardCode$ n where f.baseinfoId = n.baseinfoid AND f.orgId = n.orgId) 
+	   <![CDATA[and rownum <=#endRow#]]>
+	</select>
+	<select id="countHouseholdStaffWhenIsNurturesWomenForMark" resultClass="java.lang.Integer" parameterClass="java.util.Map">
+		SELECT count(f.id)  
+	    	from HouseholdStaffs_$shardCode$ f 
+	    		 <![CDATA[ where #minDate# >= MARKBIRTHDAY  and #maxDate# <= MARKBIRTHDAY ]]>  
+		and  logout=0  and f.markgender = 89 
+				and not exists(select 1 from nurtureswomen_$shardCode$ n where f.baseinfoId = n.baseinfoid AND f.orgId = n.orgId)
+	</select>
+	<!-- 未被使用的sql -->
+	<select id="findHouseholdStaffsByCardNoAndNameAndOrgId" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from HouseholdStaffs f 
+			left join baseinfo b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		where f.orgInternalCode like #orgInternalCode#||'%'
+		<isNotNull prepend="and" property="name">
+			name=#name#
+		</isNotNull>
+		<isNotNull prepend="and" property="idCardNo">
+			upper(idCardNo) = upper(#idCardNo#)
+		</isNotNull>
+	</select>
+	
+	<select id="getId" resultClass="java.lang.Long">
+		<![CDATA[SELECT S_HOUSEHOLDSTAFF.NEXTVAL as id from dual ]]>
+	</select>
+	
+	<insert id="addHouseholdStaff" parameterClass="HouseholdStaff">
+		INSERT INTO HOUSEHOLDSTAFFS_$shardCode$
+		(id,baseInfoId,relationShipWithHead,relationShipWithHeadText,logOut,FAMILYID,homePhone,RESIDENCETYPE,updateDate,updateUser,
+		ACCOUNTNUMBER,createDate,createUser,outGone,outReasons,reasonsDate,outProvince,outCity,outDistrict,
+		goOutDetailedAddress,residentStatus,sourcesState,orgId,orgInternalCode,addressInfoId,MARKBIRTHDAY,MARKGENDER
+		<isNotNull prepend="," property="settleTime">
+			settleTime
+		</isNotNull>
+		)
+		VALUES(#id#,#baseInfoId#,#relationShipWithHead.id#,#relationShipWithHeadText#,#logOut#,#censusRegisterFamily.id#,#homePhone#,
+		#residenceType.id#,#updateDate#,#updateUser#,#accountNumber#,#createDate#,#createUser#,
+		#outGone#,#outReasons.id#,#reasonsDate#,#outProvince#,#outCity#,#outDistrict#,#goOutDetailedAddress#,
+		#residentStatus.id#,#sourcesState#,#organization.id#,#orgInternalCode#,#addressInfoId#,#birthday#,#gender.id#
+		<isNotNull prepend="," property="settleTime">
+			#settleTime#
+		</isNotNull>
+		)
+	</insert>
+	
+	<!-- 未被使用的sql -->
+	<select id="getByIdCard" parameterClass="java.util.Map"
+		resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from householdStaffs f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+			where f.orgId=#orgId# and
+		<iterate property="idCardNoList" open="("  close=")"  conjunction="or">
+		    upper(idCardNo) like upper(#idCardNoList[]#)
+		</iterate>
+	</select>
+
+	<update id="updateBaseHouseInfoAndRemark" parameterClass="HouseholdStaff">
+		update HOUSEHOLDSTAFFS_$shardCode$ set
+			isHaveHouse = #isHaveHouse#,
+			noHouseReason = #noHouseReason#,
+			currentAddress = #currentAddress#,
+			otherAddress = #otherAddress#,
+			remark = #remark#
+		where id=#id#
+	</update>
+
+
+	<update id="updateAccountNumberByFamilyIdAndOrgId" parameterClass="java.util.Map">
+		update HOUSEHOLDSTAFFS_$shardCode$ set
+			<dynamic>
+				 ACCOUNTNUMBER=#accountNumber#
+				 where FAMILYID=#familyId#
+			</dynamic>
+	</update>
+
+<!-- 没被显式调用 -->
+	<update id="updateBaseInfo" parameterClass="HouseholdStaff">
+	update HOUSEHOLDSTAFFS_$shardCode$ set 
+	<isNotEmpty property="logOut">
+		logOut = #logOut#,
+	</isNotEmpty>
+	<include refid="populationBaseInfo.updateCountrymenBaseInfo"/>
+<!-- 	<isNotNull  prepend=","  property="nativePoliceStation"> -->
+<!-- 		  nativePoliceStation=#nativePoliceStation# -->
+<!-- 	</isNotNull> -->
+	where id=#id#
+	</update>
+	
+	<update id="setRelationShipWithHeadNull" parameterClass="map">
+	update HOUSEHOLDSTAFFS_$shardCode$ set relationShipWithHead=#relationShipWithHeadId#
+	where id=#id#
+	</update>
+
+	<update id="updateHouseholdStaff" parameterClass="HouseholdStaff">
+		update householdstaffs_$shardCode$ set
+            <include refid="householdStaffBusinessInfo"/>
+         where id=#id#
+	</update>
+	
+	<!-- 转移时候用到 -->
+	<update id="updateBusiness" parameterClass="HouseholdStaff">
+		update HOUSEHOLDSTAFFS_$shardCode$ set
+		<include refid="householdStaffBusinessInfo"/>
+		where id=#id#
+	</update>
+
+
+	<select id="getActualPopulationByOrgIdAndIdCardNoExcludePopulationId" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from householdStaffs_$shardCode$ f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					f.id != #id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					f.orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo15">
+				<isNotEmpty property="idCardNo15" prepend=" and ">
+					(upper(idCardno) like upper(#idCardNo15#)||'%' or upper(idCardno) like upper(#idCardNo18#)||'%' )
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+		 and f.LOGOUT!=1
+	</select>
+	
+	<select id="getActualPopulationByOrgIdAndIdCardNoExcludePopulationIdIncludeLogout" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from householdStaffs_$shardCode$ f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					f.id != #id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					f.orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo15">
+				<isNotEmpty property="idCardNo15" prepend=" and ">
+					(upper(idCardno) like upper(#idCardNo15#)||'%' or upper(idCardno) like upper(#idCardNo18#)||'%' )
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+
+	<delete id="deleteHouseholdStaffById" parameterClass="java.util.Map">
+		delete from HOUSEHOLDSTAFFS_$shardCode$ where id=#id#
+	</delete>
+	<!-- 未被使用的sql -->
+	<delete id="deleteHouseholdStaffByIds" parameterClass="java.util.Map">
+		delete from HOUSEHOLDSTAFFS where id in
+		<iterate close=")" open="(" conjunction="," property="id">
+	    	#id[]#
+	    </iterate>
+	</delete>
+	<!-- 未被使用的sql -->
+	<delete id="deleteHouseholdStaffByFamilyId" parameterClass="java.lang.Long">
+		delete from HOUSEHOLDSTAFFS where FAMILYID=#value#
+	</delete>
+
+
+	<select id="getHouseholdStaffById" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from householdStaffs_$shardCode$ f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		where f.id=#id#
+	</select>
+	<!-- 未被使用的sql 
+	<select id="findHouseholdStaffByIds" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from householdStaffs f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		where f.id in
+		<iterate close=")" open="(" conjunction="," property="id">
+	    	#id[]#
+	    </iterate>
+	</select>
+-->
+	<select id="findHouseholdIdByFamilyId" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from householdStaffs_$shardCode$ f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		where familyId in
+		<iterate close=")" open="(" conjunction="," property="id">
+	    	#id[]#
+	    </iterate>
+	</select>
+
+	<!-- 未被使用的sql -->
+	<select id="findHouseholdStaffByCardNoAndOrgId" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from householdStaffs f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		where f.ORGID=#orgId#
+		and
+		<iterate close=")" open="(" property="idCardNoList" conjunction="or">
+			upper(idCardNo) = upper(#idCardNoList[]#)
+		</iterate>
+	</select>
+
+	<sql id="sql_where">
+		from householdStaffs_$shardCode$ f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		<dynamic prepend="WHERE">
+				<isPropertyAvailable property="fastSearchKeyWords">
+					<isNotEmpty  property="fastSearchKeyWords"  prepend=" and ">
+						<isEqual property="conditionType" compareValue="numeralType">
+							(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' )
+						</isEqual>
+						<isEqual property="conditionType" compareValue="characterType">
+							( fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' ) 
+						</isEqual>
+						<isEqual property="conditionType" compareValue="otherType">
+							 name like #fastSearchKeyWords#||'%'
+						</isEqual>
+					</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					f.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotNull property="name" prepend=" and ">
+				(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotNull property="idCardNo" prepend=" and ">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="gender">
+				<isNotNull property="gender" prepend=" and ">
+					gender = #gender#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="telephone">
+				<isNotNull property="telephone" prepend=" and ">
+					telephone like '%$telephone$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber">
+				<isNotNull property="mobileNumber" prepend=" and ">
+					mobileNumber like '%$mobileNumber$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="schooling">
+				<isNotNull property="schooling" prepend=" and ">
+					schooling = #schooling#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="province">
+				<isNotNull property="province" prepend=" and ">
+					province = #province#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="city">
+				<isNotNull property="city" prepend=" and ">
+					city = #city#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="district">
+				<isNotNull property="district" prepend=" and ">
+					district = #district#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentAddress">
+				<isNotNull property="currentAddress" prepend=" and ">
+					currentAddress like '%$currentAddress$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativePlaceAddress">
+				<isNotNull property="nativePlaceAddress" prepend=" and ">
+					nativePlaceAddress like '%$nativePlaceAddress$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isDeath">
+				<isNotNull property="isDeath" prepend=" and ">
+					isDeath = #isDeath#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logOut">
+				<isNotNull property="logOut" prepend=" and ">
+					logOut = #logOut#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workUnit">
+				<isNotNull property="workUnit" prepend=" and ">
+					workUnit like '%$workUnit$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthday">
+				<isNotNull property="birthday" prepend=" and ">
+					<![CDATA[birthday >= to_date(#birthday#,'yyyy-MM-dd') ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endBirthday">
+				<isNotNull property="endBirthday" prepend=" and ">
+					<![CDATA[birthday <= to_date(#endBirthday#,'yyyy-MM-dd') ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="accountNumber">
+				<isNotNull property="accountNumber" prepend=" and ">
+					accountNumber like '%$accountNumber$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="otherAddress">
+				<isNotNull property="otherAddress" prepend=" and ">
+					otherAddress like '%$otherAddress$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="usedName">
+				<isNotNull property="usedName" prepend=" and ">
+					usedName like '%$usedName$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="career">
+				<isNotNull property="career" prepend=" and ">
+					career=#career#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="politicalBackground">
+				<isNotNull property="politicalBackground" prepend=" and ">
+					politicalBackground=#politicalBackground#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maritalState">
+				<isNotNull property="maritalState" prepend=" and ">
+					maritalState=#maritalState#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="residenceType">
+				<isNotNull property="residenceType" prepend=" and ">
+					residenceType=#residenceType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nation">
+				<isNotNull property="nation" prepend=" and ">
+					nation=#nation#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="faith">
+				<isNotNull property="faith" prepend=" and ">
+					faith=#faith#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="residentStatus">
+				<isNotNull property="residentStatus" prepend=" and ">
+					residentStatus=#residentStatus#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="bloodType">
+				<isNotNull property="bloodType" prepend=" and ">
+					bloodType=#bloodType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="email">
+				<isNotNull property="email" prepend=" and ">
+					email like '%$email$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<!-- 新加的查询 -->
+			<isPropertyAvailable property="outProvince">
+				<isNotNull property="outProvince" prepend=" and ">
+					outProvince = #outProvince#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="outCity">
+				<isNotNull property="outCity" prepend=" and ">
+					outCity = #outCity#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="outDistrict">
+				<isNotNull property="outDistrict" prepend=" and ">
+					outDistrict = #outDistrict#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="outGoneBoolean">
+				<isEqual property="outGoneBoolean" compareValue="1" prepend="and">
+					outGone = #outGoneBoolean#
+				</isEqual>
+				<isEqual property="outGoneBoolean" compareValue="0" prepend="and">
+					outGone = #outGoneBoolean# or outGone is null
+				</isEqual>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="outReasonsId">
+				<isNotNull property="outReasonsId" prepend=" and ">
+					outreasons = #outReasonsId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logoutDateStart">
+				<isNotNull property="logoutDateStart" prepend=" and ">
+					logoutDate <![CDATA[ >= ]]> #logoutDateStart# 
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logoutDateEnd">
+				<isNotNull property="logoutDateEnd" prepend=" and ">
+					logoutDate <![CDATA[ <= ]]>#logoutDateEnd# 
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logoutReason">
+				<isNotEmpty property="logoutReason" prepend=" and ">
+					logoutReason like #logoutReason#||'%' 
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findHouseholdStaffList" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		<include refid="sql_where" />
+	</select>
+
+	<select id="countHouseholdStaff" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(f.id)
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="countHouseholdStaffDefaultList" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(f.id) from householdStaffs_$shardCode$ f 
+		<dynamic prepend=" WHERE ">
+			<isPropertyAvailable property="logOut">
+				<isNotNull property="logOut" prepend=" and ">
+					logOut = #logOut#
+				</isNotNull>
+			</isPropertyAvailable><!-- 
+			<isPropertyAvailable property="isDeath">
+				<isNotNull property="isDeath" prepend=" and ">
+					isDeath = #isDeath#
+				</isNotNull>
+			</isPropertyAvailable> -->
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					f.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findHouseholdStaffDefaultList" parameterClass="java.util.Map" resultMap="householdStaffDefaultList">
+	<include refid="common.sql_page_start"/>
+		SELECT 
+		f.homePhone,baseInfoId,f.addressInfoId,f.relationShipWithHead,f.logOut,f.FAMILYID,f.ACCOUNTNUMBER,f.RESIDENCETYPE,
+		f.updateDate,f.updateUser,f.outGone,f.outReasons,f.reasonsDate,f.outProvince,f.outCity,f.outDistrict,f.goOutDetailedAddress,
+		f.residentStatus,f.id,f.createDate,f.createUser,f.logOutReason,f.logOutDate,f.sourcesState,f.settleTime,f.orgId,f.orgInternalCode
+		 from householdStaffs_$shardCode$ f 
+		<dynamic prepend=" WHERE ">
+			<isPropertyAvailable property="logOut">
+				<isNotNull property="logOut" prepend=" and ">
+					logOut = #logOut#
+				</isNotNull>
+			</isPropertyAvailable><!-- 
+			<isPropertyAvailable property="isDeath">
+				<isNotNull property="isDeath" prepend=" and ">
+					isDeath = #isDeath#
+				</isNotNull>
+			</isPropertyAvailable> -->
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					f.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	<include refid="common.sql_page_end"/>
+	</select>
+<!--  cacheModel="householdStaffCacheModel" -->
+	<select id="findHouseholdStaff" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<sql id="fast_search_sql_where">
+		from householdStaffs_$shardCode$ f left join baseinfo  b on f.baseinfoid=b.id 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="fastSearchKeyWords">
+					<isNotEmpty  property="fastSearchKeyWords"  prepend=" and ">
+						<isEqual property="conditionType" compareValue="numeralType">
+							(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' )
+						</isEqual>
+						<isEqual property="conditionType" compareValue="characterType">
+							 (fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%') 
+						</isEqual>
+						<isEqual property="conditionType" compareValue="otherType">
+							 name like #fastSearchKeyWords#||'%'
+						</isEqual>
+					</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					f.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotNull property="name" prepend=" and ">
+				(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotNull property="idCardNo" prepend=" and ">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isDeath">
+				<isNotNull property="isDeath" prepend=" and ">
+					isDeath = #isDeath#
+				</isNotNull>
+			</isPropertyAvailable>
+			and logOut = 0
+		</dynamic>
+	</sql>
+	
+	<select id="countFastFindHouseholdStaff" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(f.id)
+		<include refid="fast_search_sql_where" />
+	</select>
+	
+	<select id="fastFindHouseholdStaff" parameterClass="java.util.Map" resultMap="householdStaffNoAddress">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>
+		<include refid="fast_search_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countHouseholdStaffByOrgInternalCodeAndId" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(f.id)
+		from houseHoldStaffs_$shardCode$ f left join baseinfo  b on f.baseinfoid=b.id where f.logout=0
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					f.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="familyId">
+				<isNotNull property="familyId" prepend=" and ">
+					familyId = #familyId#
+				</isNotNull>
+				<isNull property="familyId" prepend=" and ">
+					familyId = -1
+				</isNull>
+			</isPropertyAvailable>
+			
+			
+		</dynamic>
+	</select>
+	
+	<select id="countHouseholdStaffByOrgInternalCodeAndIdExceptHead" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*)
+		from houseHoldStaffs_$shardCode$ f left join baseinfo  b on f.baseinfoid=b.id where f.logout=0
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					f.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="familyId">
+				<isNotNull property="familyId" prepend=" and ">
+					familyId = #familyId#
+				</isNotNull>
+				<isNull property="familyId" prepend=" and ">
+					familyId = -1
+				</isNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseHold">
+				<isNotNull property="houseHold" prepend=" and ">
+					<![CDATA[relationshipWithHead not in ($houseHold$)]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			
+		</dynamic>
+	</select>
+	
+	<select id="findHouseholdStaffByOrgInternalCodeAndIdExceptHead" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from householdStaffs_$shardCode$ f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		where (f.logout=0 or f.logout=1)
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					f.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="familyId">
+				<isNotNull property="familyId" prepend=" and ">
+					familyId = #familyId#
+				</isNotNull>
+				<isNull property="familyId" prepend=" and ">
+					familyId = -1
+				</isNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseHold">
+				<isNotNull property="houseHold" prepend=" and ">
+					<![CDATA[relationshipWithHead not in ($houseHold$)]]>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findHouseholdStaffByOrgInternalCodeAndId" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from householdStaffs_$shardCode$ f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		where (f.logout=0 or f.logout=1)
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					f.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="familyId">
+				<isNotNull property="familyId" prepend=" and ">
+					familyId = #familyId#
+				</isNotNull>
+				<isNull property="familyId" prepend=" and ">
+					familyId = -1
+				</isNull>
+			</isPropertyAvailable>
+			
+			
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findHouseholdStaffByAccountNumberAndOrgId" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from householdStaffs_$shardCode$ f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		where accountNumber=#accountNumber# and f.orgId=#orgId#
+	</select>
+
+	<select id="findHouseholdStaffByAccountNumberAndorgIdAndInternalId" parameterClass="java.util.Map" resultMap="householdStaff">
+		select * from (SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+						from householdStaffs_$shardCode$ f 
+							left join baseinfo  b on f.baseinfoid=b.id 
+							left join addressInfo adds on f.addressInfoId = adds.id) f 
+			where f.orginternalcode like '%' || #orgInternalCode# || '%'
+			    and f.orgid!=#orgId# and f.accountnumber=#accountNumber#
+	</select>
+	<select id="findGisHouseHoldStaffById" parameterClass="java.util.Map" resultMap="GishouseholdStaff">
+	 select distinct(ps.populationtype) ,'householdStaff' as actualtype, ps.populationtype, hs.*  from populationtypes ps, householdstaffs_$shardCode$ hs
+       where ps.actualid(+) = hs.id  and ps.actualtype(+) = 'householdStaff'  and hs.id =#id#
+	</select>
+
+	<select id="countFurtherStepGisByPopulationType" parameterClass="map" resultClass="java.lang.Integer">
+	  select count(*) from (
+	  	select ps.populationtype from populationtypes ps, householdStaffs_$shardCode$ hs
+             where ps.actualid = hs.id  and hs.isDeath=0 and hs.logout=0
+       and ps.actualtype(+) = 'householdStaff' and hs.orginternalcode like #orgInternalCode#||'%' and ps.populationtype=#populationType#
+      )
+	</select>
+	<select id="findFurtherStepGisByPopulationType" parameterClass="map" resultMap="GishouseholdStaff">
+		select  ps.populationtype, 'householdStaff' as actualtype, hs.*  from populationtypes ps, householdStaffs_$shardCode$  hs
+		where  ps.actualid = hs.id  and ps.actualtype(+) = 'householdStaff' and hs.isDeath=0 and hs.logout=0 and hs.orginternalcode like #orgInternalCode#||'%' and ps.populationtype=#populationType#
+	</select>
+
+	<select id="countFurtherStepGisByPopulationTypeList" parameterClass="map" resultClass="java.lang.Integer">
+	 select count(*) from (
+	  	select ps.populationtype from populationtypes ps, householdStaffs_$shardCode$ hs
+             where ps.actualid = hs.id  and hs.isDeath=0 and hs.logout=0
+       and ps.actualtype(+) = 'householdStaff' and hs.orginternalcode like #orgInternalCode#||'%'
+             <iterate prepend = "and" property = "populationType" open = "(" close = ")" conjunction = "or" >
+      			  	 ps.populationtype = #populationType[]#
+   			 </iterate >
+      )
+	</select>
+	<select id="findFurtherStepGisByPopulationTypeList" parameterClass="map" resultMap="GishouseholdStaff">
+		select ps.populationtype, 'householdStaff' as actualtype, hs.* from populationtypes ps, householdStaffs_$shardCode$ hs
+		where  ps.actualid = hs.id  and ps.actualtype(+) = 'householdStaff' and hs.isDeath=0 and hs.logout=0 and hs.orginternalcode like #orgInternalCode#||'%'
+		<iterate prepend="and" property="populationType" open="(" close=")" conjunction="or">
+			 ps.populationtype=#populationType[]#
+		</iterate>
+	</select>
+
+	<select id="findHouseholdStaffByorgCodeForGis"  parameterClass="map"  resultMap="GishouseholdStaff">
+		select 'householdStaff' as actualtype, 0 as populationtype, hs.* from householdStaffs_$shardCode$ hs where hs.orginternalcode like #orgInternalCode#||'%'
+	</select>
+
+    <select id="findAllBindingHouseholdStaffByorgCodeForGis" parameterClass="map" resultMap="GishouseholdStaff">
+		select 'householdStaff' as actualtype, 0 as populationtype, hs.*
+		  from householdStaffs_$shardCode$ hs, houseHasActualPopulation ph
+		 where hs.id = ph.populationid
+		   and hs.orginternalcode like #orgInternalCode#||'%'
+		   and ph.persontype = #personType#
+		   and ph.populationType = #populationType#
+		   and ph.defaultLivingHouse = #defaultLivingHouse#
+		   and exists (select *
+		          from houseinfo hi
+		         where hi.centerx is not null
+		           and hi.id = ph.houseid)
+	</select>
+	<!-- 未被显式调用 -->
+	<update id="updateLogOutPopulationById" parameterClass="map">
+		update HOUSEHOLDSTAFFS_$shardCode$ set 
+		<isNotEmpty property="logoutDetail.logout">
+		 logout=#logoutDetail.logout#,
+		</isNotEmpty>
+		logoutDate=#logoutDetail.logoutDate#,
+		logoutReason=#logoutDetail.logoutReason#,
+		updateDate=sysdate
+		where id=#id#
+	</update>
+<!-- 未被显式调用 -->
+	<update id="updateLogoutStateById" parameterClass="map">
+		update HOUSEHOLDSTAFFS_$shardCode$ set logout=#logout#,updateDate=sysdate where id=#id#
+	</update>
+	<update id="updateDeathAndLogoutStateById" parameterClass="map">
+		update HOUSEHOLDSTAFFS_$shardCode$ set logout=#logout# , isDeath = #death# where id=#id#
+	</update>
+
+	<select id="getHouseMarchType"  parameterClass="java.lang.Long" resultMap="houseMarchTypeResult">
+	   <![CDATA[
+	     select p.* from propertyDicts p
+	     where p.id in(select f.propertydictid from familyhonors f where f.familyid = #value#)
+	   ]]>
+	</select>
+	
+	<!-- 未被使用的sql -->
+	<select id="countHouseFamilyMembersByOrgIdAndId1" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(h.id) 
+			from (SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>
+					from householdStaffs f 
+						left join baseinfo  b on f.baseinfoid=b.id) h,
+				censusRegisterFamilys c 
+			where  c.id = h.familyid 
+				and h.familyid =#id# 
+				and h.orgId=#orgId# 
+				and upper(h.idcardno) not in (select upper(idCardNo) from censusRegisterFamilys)
+	</select>
+	<!-- 未被使用的sql -->
+	<select id="findHouseFamilyMembersByOrgIdAndId1" parameterClass="java.util.Map" resultMap="householdStaff">
+		select h.* from (SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from householdStaffs f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id) h,
+			censusRegisterFamilys c
+		where  c.id = h.familyid and h.familyid =#id# and h.orgId=#orgId# and upper(h.idcardno) not in (select upper(idCardNo) from censusRegisterFamilys)
+	</select>
+	<!-- 未被使用的sql -->
+	<select id="countHouseFamilyMembersByOrgIdAndId" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(id) from houseHoldstaffs
+	</select>
+	<!-- 未被使用的sql -->
+	<select id="findHouseFamilyMembersByOrgIdAndId" parameterClass="java.util.Map" resultMap="householdStaff">
+		select id from houseHoldstaffs
+	</select>
+	
+	<select id="findHouseholdStaffsExceptHeadByFamilyId" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from householdStaffs_$shardCode$ f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id 
+		where familyId=#familyId# and relationshipWithHead not in ($houseHold$)
+	</select>
+	
+	<update id="changeOldHouseHold" parameterClass="java.util.Map">
+		update householdStaffs_$shardCode$ set relationShipWithHead=#relationShipWithHead#  where baseInfoid in (select id from baseinfo where idCardNo=#idCardNo#)
+	</update>
+	
+	<update id="changeNewHouseHold" parameterClass="java.util.Map">
+		update householdStaffs_$shardCode$ set relationShipWithHead=#relationShipWithHead#  where id = #id#
+	</update>
+	
+	<update id="addFamilyMemberByIdCardNo" parameterClass="java.util.Map">
+		update householdStaffs_$shardCode$ set accountNumber=#accountNumber#,familyId=#familyId#,relationShipWithHead=#relationshipWithHeadId#  where baseinfoid in (select id from baseinfo where idCardNo=#idCardNo#) and orgInternalCode like #orgCode#||'%' 
+	</update>
+	
+	<select id="getByOrgInternalCodeAndIdCardNo" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from householdStaffs_$shardCode$ f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id 
+		where upper(idCardNo) =upper(#idCardNo#) and f.orgInternalCode like #orgInternalCode#||'%'
+	</select>
+	
+	<select id="getHouseholdStaffByIdAndBusinessType" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from householdStaffs_$shardCode$ f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		where f.id=(select actualid from populationtypes where populationid=#populationId# and populationtype=#populationType# and actualType=#actualType#)
+	</select>
+	
+	<update id="moveHouseMember">
+		update householdStaffs_$shardCode$ set accountNumber=#accountNumber#,familyId=#familyId#,relationShipWithHead=#relationshipWithHeadId#  where  orgInternalCode like #orgCode#||'%' and baseinfoid in (select id from baseinfo where idCardNo=#idCardNo#)
+	</update>
+
+	<select id="haveRepatCardOrNo" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		select count(*) from baseinfo  where idCardNo =#value#
+	</select>
+	<!-- 转移的时候用到 -->
+	<select id="getByOrgIdAndIdCardNo" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from householdStaffs_$shardCode$ f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		where b.idcardno=#idCardNo# and f.orgid=#orgId#
+	</select>
+	
+	<select id="getHouseholdStaffByBaseInfoIdAndOrgId" parameterClass="java.util.Map" resultMap="householdStaff">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from householdStaffs_$shardCode$ f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		where f.baseinfoid=#baseInfoId# and f.orgId=#orgId#
+	</select>
+	
+	<select id="getHouseholdStaffByBaseInfoId" parameterClass="java.util.Map" resultMap="householdStaffNoAddress">
+		SELECT <include refid="selectColumn"/>,<include refid="baseInfo.baseInfoFields"/>  
+		from householdStaffs_$shardCode$ f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+		where f.baseinfoid=#baseInfoId#
+	</select>
+	<!-- 根据户籍信息id清空户籍信息-->
+	<update id="deleteHouseholdStaffHouseFamilyInfo" parameterClass="java.util.Map">
+		update householdStaffs_$shardCode$ hf set 
+		hf.familyid=null,
+		<!--户口号-->
+		hf.accountnumber=null,
+		<!--与户主关系-->
+		hf.relationshipwithhead=null,
+		<!--人户状态-->
+		hf.residentstatus=null,
+		<!--住宅电话-->
+		hf.homephone=null,
+		<!--是否外出-->
+		hf.outgone=null,
+		<!--户口类别-->
+		hf.residencetype=null,
+		<!--外出原因-->
+		hf.outreasons=null,
+		<!--外出时间-->
+		hf.reasonsdate=null,
+		hf.outprovince=null,
+		hf.outcity=null,
+		hf.outdistrict=null,
+		<!--外出详址-->
+		hf.gooutdetailedaddress=null
+		where hf.familyid=#houseFamilyId#
+	</update>
+	<update id="updateBirthdayAndGender" parameterClass="java.util.Map">
+		update householdStaffs_$shardCode$ hf set hf.markbirthday=#birthday#,hf.markgender=#genderId# where hf.baseinfoId=#baseInfoId#
+	</update>
+	
+	<select id="findAllcount" resultClass="java.lang.Long">
+		select S_HOUSEHOLDSTAFF.Nextval num from dual
+	</select>
+	<!--mongoDb导数据使用,已经不使用,暂未改造分表-->
+	<select id="findAllHouseholdStaffList" parameterClass="java.util.Map" resultMap="householdStaffDefaultList">
+		SELECT 
+		f.homePhone,baseInfoId,f.addressInfoId,f.relationShipWithHead,f.logOut,f.FAMILYID,f.ACCOUNTNUMBER,f.RESIDENCETYPE,
+		f.updateDate,f.updateUser,f.outGone,f.outReasons,f.reasonsDate,f.outProvince,f.outCity,f.outDistrict,f.goOutDetailedAddress,
+		f.residentStatus,f.id,f.createDate,f.createUser,f.logOutReason,f.logOutDate,f.sourcesState,f.settleTime,f.orgId,f.orgInternalCode
+		from householdStaffs f where id between #start# and #end#
+	</select>
+	
+	<select id="findHouseholdStaffByIds" parameterClass="java.util.Map" resultMap="householdStaffDefaultList">
+		SELECT 
+		f.homePhone,baseInfoId,f.addressInfoId,f.relationShipWithHead,f.logOut,f.FAMILYID,f.ACCOUNTNUMBER,f.RESIDENCETYPE,
+		f.updateDate,f.updateUser,f.outGone,f.outReasons,f.reasonsDate,f.outProvince,f.outCity,f.outDistrict,f.goOutDetailedAddress,
+		f.residentStatus,f.id,f.createDate,f.createUser,f.logOutReason,f.logOutDate,f.sourcesState,f.settleTime,f.orgId,f.orgInternalCode
+		 from householdStaffs_$shardCode$ f where id in
+		 <iterate close=")" open="(" conjunction="," property="ids">
+	    	#ids[]#
+	    </iterate>
+	</select>
+	
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization"/>
+
+	<resultMap id="findOrgByAddressResult" class="Organization">
+		<result column="orgId" property="id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+	</resultMap>
+	
+	<select id="findOrgByAddress" parameterClass="java.util.Map" resultMap="findOrgByAddressResult">
+	  select orgid,orginternalcode from  householdstaffs_$shardCode$ where addressinfoid = #addressId#
+	</select>
+	
+	<!-- 按户口号查询baseinfoid （用于房屋/出租屋住户管理按户口号查询） -->
+	<select id="findBaseinfoIdByAccountNumber" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select hs.baseinfoid from HOUSEHOLDSTAFFS_$shardCode$ hs where hs.accountNumber = #accountNumber#
+	</select>
+	
+</sqlMap>

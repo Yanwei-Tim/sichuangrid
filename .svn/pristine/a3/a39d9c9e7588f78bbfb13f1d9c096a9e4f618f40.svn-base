@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="primaryMembers">
+	<typeAlias alias="PrimaryMembers"  type="com.tianque.baseInfo.primaryOrg.primaryMembers.domain.PrimaryMembers" />
+	<typeAlias alias="PrimaryMemberVo"  type="com.tianque.baseInfo.primaryOrg.primaryMembers.domain.PrimaryMemberVo" /> 
+	<typeAlias alias="PrimaryOrganizations"  type="com.tianque.baseInfo.primaryOrg.domain.PrimaryOrganizations" />
+
+	<resultMap class="primaryMembers" id="primaryMembers_result">
+		<result property="id" column="id"/>
+		<result property="org.id" column="orgid"/>
+		<result property="org.orgInternalCode" column="orgCode"/>
+		<result property="orgCode" column="orgCode"/>
+		<result property="name" column="name"/>
+		<result property="org.orgName" column="orgName"/>
+		<result property="gender.id" column="gender"/>
+		<result property="birthday" column="birthday"/>
+		<result property="dutyId.id" column="dutyId"/>
+		<result property="position" column="position"/>
+		<result property="mobile" column="mobile"/>
+		<result property="telephone" column="telephone"/>
+		<result property="isHaveJob" column="isHaveJob"/>
+		<result property="remark" column="remark"/>
+		<result property="idcardNo" column="idcardNo"/>
+		<result property="seq" column="seq"/>
+		<result property="nation.id" column="nation"/>
+		<result property="politicalBackground.id" column="politicalBackground"/>
+		<result property="schooling.id" column="schooling"/>
+		<result property="departmentPartyLevel.id" column="departmentPartyLevel"/>
+	</resultMap>
+	
+	<resultMap class="primaryMembers" id="primaryMembers_result_years" extends="primaryMembers_result">
+		<result property="years" column="years"/>
+	</resultMap>
+	<resultMap class="primaryMembers" id="primaryMembers_result_years_By_org" extends="primaryMembers_result_years">
+		<result property="relevantId" column="relevantId"/>
+	</resultMap>
+	
+
+
+	<insert id="addPrimaryMembers" parameterClass="PrimaryMembers">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+    	<![CDATA[ SELECT s_primarymembers.NEXTVAL AS id FROM dual ]]>
+		</selectKey>
+		<![CDATA[ insert into primaryMembers
+		(id,orgId,orgCode,name,gender,birthday,dutyId,mobile,telephone,createUser,createDate,remark,idcardNo,seq,orgname,nation,politicalBackground,schooling,departmentPartyLevel,updateUser,updateDate)
+		values
+		(#id#,#org.id#,#orgCode#,#name#,#gender.id#,#birthday#,#dutyId.id#,#mobile#,#telephone#,#createUser#,#createDate#,#remark#,#idcardNo#,#seq#,#org.orgName#,#nation.id#,#politicalBackground.id#,#schooling.id#,#departmentPartyLevel.id#,#updateUser#,#updateDate#) ]]>
+	</insert>
+	
+	<sql id="sql_select_forMemberList">
+		select pm.* ,floor(MONTHS_BETWEEN(sysdate,birthday)/12) as years
+	</sql>
+	
+	<sql id="sql_where">
+		from primaryMembers pm where 1=1
+		<dynamic>
+			<isNotEmpty property="fastSearchKeyWords" prepend="and">
+				(pm.name like #fastSearchKeyWords#||'%' )
+			</isNotEmpty>
+			<isNotEmpty property="isHaveJob" prepend="and">
+				 pm.isHaveJob=#isHaveJob# 
+			</isNotEmpty>
+			<isNotEmpty property="name" prepend="and">
+				 pm.name like #name# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="mobile" prepend="and">
+				 pm.mobile like #mobile# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="telephone" prepend="and">
+				 pm.telephone like #telephone# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="idcardNo" prepend="and">
+				 pm.idcardNo like #idcardNo# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="gender.id" prepend="and">
+				 pm.gender=#gender.id#
+			</isNotEmpty>
+			<isNotEmpty property="nation.id" prepend="and">
+				 pm.nation=#nation.id#
+			</isNotEmpty>
+			<isNotEmpty property="birthday" prepend="and">
+				 pm.birthday=#birthday#
+			</isNotEmpty>
+			<isNotEmpty property="politicalBackground.id" prepend="and">
+				 pm.politicalBackground=#politicalBackground.id#
+			</isNotEmpty>
+			<isNotEmpty property="schooling.id" prepend="and">
+				 pm.schooling=#schooling.id#
+			</isNotEmpty> 
+			<!-- 下拉搜索 -->
+			<isNotEmpty  property="displayLevel" prepend="and">
+				<isEqual property="displayLevel" compareValue="sameGrade">
+					 pm.orgCode = #org.orgInternalCode# 	
+				</isEqual>	
+				<isEqual property="displayLevel" compareValue="directJurisdiction">
+					  pm.orgCode like #org.orgInternalCode#||'__' 	
+				</isEqual>	
+				<isEqual property="displayLevel" compareValue="allJurisdiction">
+					  pm.orgCode like #org.orgInternalCode#||'%' 	
+				</isEqual>	
+			</isNotEmpty>
+			<isNotEmpty property="primaryOrgId" prepend="and">
+				pm.id in
+               			(select pt.primarymembersid
+						  from primarymembersorgtype pt,
+				<isEqual property="isFourLevelPlatform"  compareValue="0">
+					 primaryorganizations po
+				</isEqual>
+				<isEqual property="isFourLevelPlatform"  compareValue="1">
+					fourlevelplatform po
+				</isEqual>
+						 where pt.primaryorgid = po.id  and po.id=#primaryOrgId#
+				and pt.isFourLevelPlatform=#isFourLevelPlatform#
+				)
+			</isNotEmpty>
+			<isNotEmpty property="primaryOrgIds" prepend="and">
+				pm.id in
+               			(
+						select orginfo.memberId 
+						from 
+						(select pt.primarymembersid memberId,to_char(wm_concat(pt.primaryorgid)) porgId
+						  from (select * from primarymembersorgtype order by primaryorgid ) pt
+						 group by pt.primarymembersid ) orginfo,
+						(select pt.primarymembersid memberId, 
+						 to_char(wm_concat(pt.isfourlevelplatform)) isFourLevelPlatforms
+						  from (select * from primarymembersorgtype order by isfourlevelplatform ) pt
+						 group by pt.primarymembersid) isfourlevelinfo
+					 where orginfo.memberId=isfourlevelinfo.memberId
+					 and porgId=#primaryOrgIds# and  isFourLevelPlatforms=#isFourLevelPlatforms#
+					)
+			</isNotEmpty>
+			<!-- 根据组织类型大类搜索 （默认全部，全部的时候不需要加这个条件）-->
+			<isNotNull property="teamClazz">
+				<isNotNull property="teamClazz.internalId">
+					<!-- 非四级平台 -->
+					<isNotEqual property="teamClazz.internalId"  compareValue="-1">
+						<isNotEqual property="teamClazz.internalId"  compareValue="100" prepend="and">
+								pm.id in
+               						(select pmt.primarymembersid
+						 			 from primarymembersorgtype pmt,primaryorganizations pos
+						 				where pmt.primaryorgid = pos.id  and pos.teamclass=#teamClazz.id#
+						 			)	
+						</isNotEqual>
+						<isEqual property="teamClazz.internalId"  compareValue="100" prepend="and">
+							pm.id in 
+               						(select pmst.primarymembersid 
+						 			 from primarymembersorgtype pmst,fourlevelplatform flpt 
+						 				where pmst.primaryorgid = flpt.id
+						 			)	
+						</isEqual>
+					</isNotEqual>
+				</isNotNull>
+			</isNotNull>
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_where_by_org">
+		from primaryMembers pm  
+		<isNotNull property="primaryOrgId">
+			left join primarymembersorgtype primt on pm.id=primt.primarymembersid and primt.primaryorgid = #primaryOrgId# and primt.isFourLevelPlatform=#isFourLevelPlatform#
+		</isNotNull>
+		where 1=1
+		<dynamic>
+			<isNotEmpty property="fastSearchKeyWords" prepend="and">
+				(pm.name like #fastSearchKeyWords#||'%' )
+			</isNotEmpty>
+			<isNotEmpty property="isHaveJob" prepend="and">
+				 pm.isHaveJob=#isHaveJob# 
+			</isNotEmpty>
+			<isNotEmpty property="name" prepend="and">
+				 pm.name like #name# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="mobile" prepend="and">
+				 pm.mobile like #mobile# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="telephone" prepend="and">
+				 pm.telephone like #telephone# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="idcardNo" prepend="and">
+				 pm.idcardNo like #idcardNo# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="gender.id" prepend="and">
+				 pm.gender=#gender.id#
+			</isNotEmpty>
+			<isNotEmpty property="nation.id" prepend="and">
+				 pm.nation=#nation.id#
+			</isNotEmpty>
+			<isNotEmpty property="birthday" prepend="and">
+				 pm.birthday=#birthday#
+			</isNotEmpty>
+			<isNotEmpty property="politicalBackground.id" prepend="and">
+				 pm.politicalBackground=#politicalBackground.id#
+			</isNotEmpty>
+			<isNotEmpty property="schooling.id" prepend="and">
+				 pm.schooling=#schooling.id#
+			</isNotEmpty> 
+			
+			<isNotEmpty property="primaryOrgId" prepend="and">
+				pm.id in
+               			(select pt.primarymembersid
+						  from primarymembersorgtype pt,
+				<isEqual property="isFourLevelPlatform"  compareValue="0">
+					 primaryorganizations po
+				</isEqual>
+				<isEqual property="isFourLevelPlatform"  compareValue="1">
+					fourlevelplatform po
+				</isEqual>
+						 where pt.primaryorgid = po.id  and po.id=#primaryOrgId#
+				and pt.isFourLevelPlatform=#isFourLevelPlatform#
+				)
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	<select id="findPrimaryMembers" parameterClass="PrimaryMemberVo"
+		resultMap="primaryMembers_result_years">
+		<include refid="sql_select_forMemberList" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<!--组织维护成员列表显示成员 -->
+	<select id="findPrimaryMembersByOrg" parameterClass="PrimaryMemberVo"
+		resultMap="primaryMembers_result_years_By_org">
+			select 
+			pm.id as id,
+			pm.orgid as orgid,
+			pm.orgcode as orgcode,
+			pm.name as name,
+			pm.ORGNAME as ORGNAME,
+			pm.gender as gender,
+			pm.birthday as birthday,
+			pm.dutyid as dutyid,
+			pm.position as position,
+			pm.mobile as mobile,
+			pm.telephone as telephone,
+			pm.ishavejob as ishavejob,
+			pm.remark as remark,
+			pm.idcardno as idcardno,
+			pm.nation as nation,
+			pm.politicalbackground as politicalbackground,
+			pm.schooling as schooling,
+			pm.departmentpartylevel as departmentpartylevel,
+			primt.seq as seq,
+			primt.id as relevantId,
+			floor(MONTHS_BETWEEN(sysdate,pm.birthday)/12) as years
+		<include refid="sql_where_by_org" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<sql id="sql_select_forMember">
+		select primaryMembers.* 
+	</sql>
+	
+  <sql id="search_primaryMembers_sql_where">
+		from PrimaryMembers p
+		<dynamic prepend="where">
+			<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend="and ">
+					p.name like #name# || '%' 
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="getPrimaryMembersById" parameterClass="java.lang.Long"
+		resultMap="primaryMembers_result">
+		<include refid="sql_select_forMember" />
+		  from primaryMembers where id=#value# 
+	</select>
+	<!-- 为查重准备的列表显示查询方法 -->
+	<!--逻辑有问题 -->
+	<select id="countFindPrimaryMembersByNameOrMobile" parameterClass="primaryMembers" resultClass="java.lang.Integer">
+		select count(*) from primaryMembers 
+		<dynamic prepend="where" open="(" close=")">
+			<isNotEmpty  property="name" prepend="or">
+				name = #name#
+			</isNotEmpty>
+			<isNotEmpty  property="mobile" prepend=" or ">
+				mobile = #mobile# 
+			</isNotEmpty>
+			<isNotEmpty  property="idcardNo" prepend=" or ">
+				idcardNo = #idcardNo#
+			</isNotEmpty>
+		</dynamic>
+		<![CDATA[  and orgCode like #orgCode#||'%' and id!=#id# ]]>
+	</select>
+	<select id="findPrimaryMembersByNameOrMobile" parameterClass="primaryMembers" resultMap="primaryMembers_result">
+		select * from primaryMembers
+		<dynamic prepend="where" open="(" close=")">
+			<isNotEmpty  property="name" prepend="or">
+				name = #name#
+			</isNotEmpty>
+			<isNotEmpty  property="mobile" prepend=" or ">
+				mobile = #mobile# 
+			</isNotEmpty>
+			<isNotEmpty  property="idcardNo" prepend=" or ">
+				idcardNo = #idcardNo#
+			</isNotEmpty>
+		</dynamic>
+		<![CDATA[ and ishavejob = 0 and orgCode like #orgCode#||'%' and id != #id# ]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<select id="countFindPrimaryMembers" parameterClass="PrimaryMemberVo"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	<!--组织维护成员列表显示成员 -->
+	<select id="countFindPrimaryMembersByOrg" parameterClass="PrimaryMemberVo"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where_by_org" />
+	</select>
+
+
+	<select id="searchPrimaryMembersByName"  resultMap="primaryMembers_result" parameterClass="java.util.Map">
+		<include refid="common.sql_select" />
+		<include refid="search_primaryMembers_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countSearchPrimaryMembersByName">
+	<include refid="common.sql_count" />
+		<include refid="search_primaryMembers_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findPrimaryMembersByIds"  resultMap="primaryMembers_result" parameterClass="java.util.Map">
+		<include refid="sql_select_forMember" />
+		 from primaryMembers where 1=1
+		 <dynamic>
+			<isNotNull property="ids">
+				and id in
+				<iterate property="ids" conjunction="," open="(" close=")">
+					#ids[]#
+				</iterate>
+			</isNotNull>
+		</dynamic>
+	</select>
+	
+	<delete id="deletePrimaryMembersById">
+		delete primaryMembers where id=#id#
+	</delete>
+	
+	<delete id="deletePrimaryMembersByIds" parameterClass="java.util.Map">
+		delete primaryMembers 
+		<dynamic prepend="where">
+			<isNotNull property="ids">
+				id in
+				<iterate property="ids" conjunction="," open="(" close=")">
+					#ids[]#
+				</iterate>
+			</isNotNull>
+			<isNull property="ids">
+				id = ''
+			</isNull>
+		</dynamic>
+	</delete>
+
+	<update id="updatePrimaryMembers" parameterClass="primaryMembers">
+		update primaryMembers p set id=#id# , p.idcardno=#idcardNo#
+		 <isNotEmpty prepend="," property="org.id">
+			 p.orgId=#org.id#
+		 </isNotEmpty>
+		  <isNotEmpty prepend="," property="isHaveJob">
+			p.isHaveJob=#isHaveJob#
+		  </isNotEmpty>
+		 <isNotEmpty prepend="," property="orgCode">
+			p.orgCode=#orgCode#
+		  </isNotEmpty>
+		  <isNotEmpty prepend="," property="name">
+			p.name=#name#
+		  </isNotEmpty>
+		   <isNotEmpty prepend="," property="gender.id">
+			p.gender=#gender.id#
+		  </isNotEmpty>
+		   <isNotEmpty prepend="," property="birthday">
+			p.birthday=#birthday#
+		  </isNotEmpty>
+		   <isNotEmpty prepend="," property="dutyId.id">
+			p.dutyId=#dutyId.id#
+		  </isNotEmpty>
+		  <isNotEmpty prepend="," property="position">
+			p.position=#position#
+		  </isNotEmpty>
+		  <isNotEmpty prepend="," property="mobile">
+			p.mobile=#mobile#
+		  </isNotEmpty>
+		   <isNotEmpty prepend="," property="telephone">
+			p.telephone=#telephone#
+		  </isNotEmpty>
+		   <isNotEmpty prepend="," property="seq">
+			p.seq=#seq#
+		  </isNotEmpty>
+		  <isNotEmpty prepend="," property="remark">
+			p.remark=#remark#
+		  </isNotEmpty>
+		   <isNotEmpty prepend="," property="nation.id">
+			p.nation=#nation.id#
+		  </isNotEmpty>
+		   <isNotEmpty prepend="," property="politicalBackground.id">
+			p.politicalBackground=#politicalBackground.id#
+		  </isNotEmpty>
+		   <isNotEmpty prepend="," property="schooling.id">
+			p.schooling=#schooling.id#
+		  </isNotEmpty>
+		   <isNotEmpty prepend="," property="departmentPartyLevel.id">
+			p.departmentPartyLevel=#departmentPartyLevel.id#
+		  </isNotEmpty>
+		  <isNotEmpty prepend="," property="updateUser">
+			p.updateUser=#updateUser#
+		  </isNotEmpty>
+		  <isNotEmpty prepend="," property="updateDate">
+			p.updateDate=#updateDate#
+		  </isNotEmpty>
+			where id=#id#
+	</update> 
+	<update id="setPrimaryOrgSeq" parameterClass="map">
+		update primarymembersorgtype set seq=#seq# where id=#id#
+	</update>
+</sqlMap>

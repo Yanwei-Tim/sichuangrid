@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="WORKBULLETINS" >
+  <typeAlias alias="workBulletins" type="com.tianque.working.domain.WorkBulletin" />
+  <resultMap id="workBulletinsResult" class="workBulletins" >
+    <result column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="ORGID" property="orgId" jdbcType="DECIMAL" />
+    <result column="USEID" property="user.id" jdbcType="DECIMAL" />
+    <result column="BULLETINNAME" property="bulletinName" jdbcType="VARCHAR" />
+    <result column="BULLETINDATE" property="bulletinDate" jdbcType="DATE" />
+    <result column="FILLDATE" property="fillDate" jdbcType="DATE" />
+    <result column="ORGINTERNALCODE" property="orgInternalCode" jdbcType="VARCHAR" />
+    <result column="CREATEUSER" property="createUser" jdbcType="VARCHAR" />
+    <result column="UPDATEUSER" property="updateUser" jdbcType="VARCHAR" />
+    <result column="CREATEDATE" property="createDate" jdbcType="DATE" />
+    <result column="UPDATEDATE" property="updateDate" jdbcType="DATE" />
+  </resultMap>
+  <resultMap class="workBulletins" id="workBulletinsResult.extend" extends="workBulletinsResult">
+       <result column="USERNAME" property="userName" jdbcType="VARCHAR" />
+  </resultMap>
+  <resultMap class="workBulletins" id="workbulletinResult">
+	<result property="id" column="id"/>
+	<result property="organization.id" column="orgId"/>
+	<result property="user" column="useId" select="WORKBULLETINS.getFullUserById"/>
+	<result property="bulletinName" column="bulletinName"/>
+	<result property="bulletinDate" column="bulletinDate"/>
+	<result property="fillDate" column="fillDate"/>
+	<result property="orgInternalCode" column="orgInternalCode"/>
+	<result property="createUser" column="createUser"/>
+	<result property="updateUser" column="updateUser"/>
+	<result property="createDate" column="createDate"/>
+	<result property="updateDate" column="updateDate"/>
+
+</resultMap>
+  <select id="workBulletin.findByWorkBulletinId" resultMap="workBulletinsResult" parameterClass="workBulletins" >
+
+    select A.ID, A.ORGID, A.USEID, A.BULLETINNAME, A.BULLETINDATE, A.FILLDATE, A.ORGINTERNALCODE, A.CREATEUSER,
+      A.UPDATEUSER, A.CREATEDATE, A.UPDATEDATE 
+    from WORKBULLETINS A
+    where A.ID = #id:DECIMAL#
+  </select>
+  <delete id="workBulletin.deleteWorkBulletinById" parameterClass="workBulletins" >
+
+    delete from WORKBULLETINS
+    where ID = #id:DECIMAL#
+  </delete>
+  <insert id="workBulletin.addWorkBulletins" parameterClass="workBulletins" >
+        <selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_WorkBulletins.NEXTVAL as id from dual ]]>
+		</selectKey>
+    insert into WORKBULLETINS (ID, ORGID, USEID, BULLETINNAME, BULLETINDATE, FILLDATE,
+      ORGINTERNALCODE, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+    values (#id:DECIMAL#, #orgId:DECIMAL#, #useId:DECIMAL#, #bulletinName:VARCHAR#,
+      #bulletinDate:DATE#, #fillDate:DATE#, #orgInternalCode:VARCHAR#, #createUser:VARCHAR#,
+      #updateUser:VARCHAR#, #createDate:DATE#, #updateDate:DATE#)
+  </insert>
+
+  <update id="workBulletin.updateWorkBulletin" parameterClass="workBulletins" >
+
+    update WORKBULLETINS
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="orgId" >
+        ORGID = #orgId:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="useId" >
+        USEID = #useId:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="bulletinName" >
+        BULLETINNAME = #bulletinName:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="bulletinDate" >
+        BULLETINDATE = #bulletinDate:DATE#
+      </isNotNull>
+      <isNotNull prepend="," property="fillDate" >
+        FILLDATE = #fillDate:DATE#
+      </isNotNull>
+      <isNotNull prepend="," property="orgInternalCode" >
+        ORGINTERNALCODE = #orgInternalCode:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="createUser" >
+        CREATEUSER = #createUser:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="updateUser" >
+        UPDATEUSER = #updateUser:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="createDate" >
+        CREATEDATE = #createDate:DATE#
+      </isNotNull>
+      <isNotNull prepend="," property="updateDate" >
+        UPDATEDATE = #updateDate:DATE#
+      </isNotNull>
+    </dynamic>
+    where ID = #id:DECIMAL#
+  </update>
+
+	<select id="findWorkBulletins" parameterClass="java.util.Map" resultMap="workbulletinResult">
+	<include refid="common.sql_select" />
+		from workBulletins where orgInternalCode like '$orgInternalCode$%'
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countWorkBulletins" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	<include refid="common.sql_count" />
+		from workBulletins where orgInternalCode like '$orgInternalCode$%'
+	</select>
+	<delete id="deleteWorkBulletinById" parameterClass="java.lang.Long">
+		<![CDATA[
+		delete from workBulletins where id=#value#
+		]]>
+	</delete>
+
+</sqlMap>

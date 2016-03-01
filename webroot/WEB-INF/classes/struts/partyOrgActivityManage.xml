@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="partyOrgActivityManage" extends="default" namespace="/baseinfo/partyOrgActivityManage">
+		<default-class-ref class="partyOrgActivityController"></default-class-ref>
+
+		<action name="dispatchOperate" method="dispatch">
+			<result name="success">
+				/baseinfo/partyConstruction/currentParty/addPartyOrgActivity.jsp
+			</result>
+			<result name="search">
+				/baseinfo/partyConstruction/currentParty/searchPartyOrgActivityDlg.jsp
+			</result>
+			<result name="print">
+				/baseinfo/partyConstruction/currentParty/maintainPartyMemberInfoPrintDlg.jsp
+			</result>
+			<result name="view">
+				/baseinfo/partyConstruction/currentParty/partyOrgActivityView.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="addPartyOrgActivity" method="addPartyOrgActivity">
+			<result name="success" type="json">
+				<param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="partyOrgActivityList" method="findPartyOrgActivityForPageByOrgId">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="getPartyOrgActivityById" method="getPartyOrgActivityById">
+			<result type="json" name="success">
+				<param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="searchPartyOrgActivity" method="searchPartyOrgActivity">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="deletePartyOrgActivity" method="deletePartyOrgActivity">
+			<result name="success"  type="json">
+				<param name="root">noRelatePersonIds</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="deletePartyOrgActivityAttachFile" method="deletePartyOrgActivityAttachFile">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="downloadPartyOrgActivityFile" method="downloadPartyOrgActivityFile">
+			<result name="success" type="stream">
+				<param name="inputName">inputStream</param>
+				<param name="contentType">application/octet-stream;charset=GBK</param>
+				<param name="contentDisposition">inline;filename="${downloadFileName}"</param>
+				<param name="bufferSize">4096</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="downloadPartyOrgActivity" method="downloadPartyOrgActivity">
+			<result name="success" type="stream">
+                <param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>
+                <param name="inputName">inputStream</param>
+                <param name="contentDisposition">attachment;filename="${downloadFileName}"</param>
+                <param name="bufferSize">4096</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="downloadPartyOrgActivityAll" method="downloadPartyOrgActivityAll">
+		</action>
+		
+	</package>
+</struts>

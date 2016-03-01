@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="membersEnroll">
+	<typeAlias alias="MembersEnroll" type="com.tianque.partyBuilding.doubleRegActivities.domain.MembersEnroll" />
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization" />
+	<!--<typeAlias alias="SearchMembersEnrollVO" type="com.tianque.partyBuilding.doubleRegActivities.domain.Vo.SearchMembersEnrollVO" />-->
+	
+	<resultMap class="MembersEnroll" id="membersEnrollResult">
+		<result property="id" column="id"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="member.id" column="memberId"/>
+		<result property="regActivitiesType" column="regActivitiesType"/>
+		<result property="isEnroll" column="isEnroll"/>
+		<result property="isTurnOut" column="isTurnOut"/>
+		<result property="logoutStatus" column="logoutStatus"/>
+	</resultMap>
+	<resultMap id="fullMembersEnrollResult" extends="membersEnrollResult" class="MembersEnroll">
+		<result property="member.name" column="name" />
+		<result property="member.gender.id" column="gender" />
+		<result property="member.idCardNo" column="idcardno" />
+		<result property="member.telephone" column="Telephone" />
+		<result property="member.belongOrg.id" column="belongorg" />
+		<result property="member.imgUrl" column="imgUrl" />
+		<result property="member.nativePlaceAddress" column="nativeplaceaddress" />
+		<result property="organization.orgName" column="orgName" />
+	</resultMap>
+	
+	<insert id="addMembersEnroll" parameterClass="MembersEnroll">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_party_members_enroll.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into party_members_enroll 
+		(id,orgId,orgInternalCode,memberId,regActivitiesType,isEnroll,isTurnOut,logoutStatus,createDate,createUser,updateDate,updateUser) 
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#member.id#,#regActivitiesType#,#isEnroll#,#isTurnOut#,#logoutStatus#,#createDate#,#createUser#,#updateDate#,#updateUser#)
+	</insert>
+	
+	<update id="updateMembersEnroll" parameterClass="MembersEnroll">
+		update party_members_enroll set id = #id#
+		<isNotNull prepend="," property="member.id">
+					memberId = #member.id#
+		</isNotNull>
+		<isNotNull prepend="," property="organization.id">
+					orgId = #organization.id#
+		</isNotNull>
+		<isNotNull prepend="," property="orgInternalCode">
+					orgInternalCode = #orgInternalCode#
+		</isNotNull>
+		<isNotNull prepend="," property="regActivitiesType">
+					regActivitiesType = #regActivitiesType#
+		</isNotNull>
+		<isNotNull prepend="," property="isTurnOut">
+					isTurnOut = #isTurnOut#
+		</isNotNull>
+		<isNotNull prepend="," property="logoutStatus">
+					logoutStatus = #logoutStatus#
+		</isNotNull>
+		,isEnroll = #isEnroll# 
+		where id=#id# 
+	</update>
+	
+	<select id="getMembersEnroll" parameterClass="map" resultMap="fullMembersEnrollResult">
+		select pm.id memberId,pm.name name,pm.gender gender,pm.idcardno idcardno,pm.Telephone Telephone,pm.belongorg belongorg,pm.imgurl imgUrl,pm.nativeplaceaddress nativeplaceaddress,
+		pme.id id,pme.isenroll,pme.isTurnOut,pme.logoutStatus,pme.orgid,pme.orginternalcode,'' orgName,pme.regActivitiesType regActivitiesType
+		from party_members_enroll pme,party_members pm 
+		where pme.memberid = pm.id 
+		and pme.id = #id# and pme.regActivitiesType = #regActivitiesType# and pme.isTurnOut is null
+	</select>
+	
+	<select id="getMembersEnrollByMemberID" parameterClass="map" resultMap="membersEnrollResult">
+		select pme.* from party_members_enroll pme
+		where pme.memberId = #id#
+		<isPropertyAvailable property="regActivitiesType">
+			<isNotEmpty prepend="and" property="regActivitiesType">
+				pme.regActivitiesType= #regActivitiesType#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		and pme.isTurnOut is null
+	</select>
+	<select id="getMembersEnrollByMemberIDs" parameterClass="map" resultMap="membersEnrollResult">
+		select pme.* from party_members_enroll pme
+		where pme.memberId 
+				<iterate close=")" open="(" prepend=" in " conjunction="," property="memberIdList">
+					#memberIdList[]#
+				</iterate>
+		<isPropertyAvailable property="regActivitiesType">
+			<isNotEmpty prepend="and" property="regActivitiesType">
+				pme.regActivitiesType= #regActivitiesType#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		and pme.isTurnOut is null
+	</select>
+	
+	<select id="getMembersEnrollById" parameterClass="long" resultMap="membersEnrollResult">
+		select * from party_members_enroll where id=#value# and isTurnOut is null
+	</select>
+	
+	<select id="getMembersEnrollByIdCardNo" parameterClass="map" resultMap="membersEnrollResult">
+		select * from party_members_enroll pme,party_members pm
+		where pme.memberid = pm.id and pm.idcardno=#idcardno# 
+		and pme.isTurnOut is null
+	</select>
+	
+	<sql id="MembersEnrollsBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			pme.memberid = pm.id and pme.isTurnOut is null and 
+			<isPropertyAvailable property="orgId">
+				<isNotEmpty prepend="and" property="orgId">
+					pme.orgid = #orgId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty prepend="and" property="orgInternalCode">
+					pme.orgInternalCode like #orgInternalCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="regActivitiesType">
+				<isNotEmpty prepend="and" property="regActivitiesType">
+					pme.regActivitiesType = #regActivitiesType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logoutStatus">
+				<isNotEmpty prepend="and" property="logoutStatus">
+					pme.logoutStatus = #logoutStatus#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idcardno">
+				<isNotEmpty prepend="and" property="idcardno">
+					upper(pm.idcardno) like upper(#idcardno#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="countMembersEnrollForPage" parameterClass="map" resultClass="integer">
+		   select count(pme.id)
+		  from party_members_enroll pme,party_members pm 
+		  <include refid="MembersEnrollsBySearchVo_sql_where" />
+	</select>
+	
+	<select id="findMembersEnrollForPage" parameterClass="map" resultMap="fullMembersEnrollResult">
+		select pm.id memberId,pm.name name,pm.gender gender,pm.idcardno idcardno,pm.Telephone Telephone,pm.belongorg belongorg,pm.imgurl imgUrl,pm.nativeplaceaddress nativeplaceaddress,
+		pme.id id,pme.isenroll,pme.isTurnOut,pme.logoutStatus,pme.orgid,pme.orginternalcode,'' orgName,pme.regActivitiesType regActivitiesType
+		from party_members_enroll pme,party_members pm 
+	   <include refid="MembersEnrollsBySearchVo_sql_where" />
+	   <dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+	   </dynamic>
+	</select>
+	
+	<delete id="deleteMembersEnroll" parameterClass="map">
+		delete from party_members_enroll mp where mp.regActivitiesType=#regActivitiesType#
+		<dynamic>
+			<isNotNull property="ids">
+				and mp.id in
+				<iterate property="ids" conjunction="," open="(" close=")">
+					#ids[]#
+				</iterate>
+			</isNotNull>
+		</dynamic>
+	</delete>
+</sqlMap>

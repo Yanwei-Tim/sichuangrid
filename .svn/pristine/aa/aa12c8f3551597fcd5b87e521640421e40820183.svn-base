@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+
+<sqlMap namespace="fourTeamsIssueSkiprule">	
+	
+	<typeAlias alias="FourTeamsIssueSkiprule" type="com.tianque.fourTeams.fourTeamsIssue.domain.FourTeamsIssueSkiprule"/>
+	<typeAlias alias="SearchFourTeamsIssueSkipruleVo" type="com.tianque.fourTeams.fourTeamsIssue.domain.vo.SearchFourTeamsIssueSkipruleVo" />
+	
+	<resultMap id="fourTeamsIssueSkipruleResult" class="FourTeamsIssueSkiprule">
+		<result property="id" column="ID"/>
+		<result property="messageFlag" column="MESSAGE_FLAG"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="orgId" column="ORG_ID"/>
+		<result property="issueTypeId" column="ISSUE_TYPE_ID"/>
+		<result property="issueTypeDomainId" column="ISSUE_TYPE_DOMAIN_ID"/>
+		<result property="issueUrgentLevel.id" column="ISSUE_URGENT_LEVEL"/>
+		<result property="orgInternalCode" column="ORG_INTERNAL_CODE"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="ccOrgIds" column="CC_ORG_IDS"/>
+		<result property="submitLevel.id" column="SUBMIT_LEVEL"/>
+	</resultMap>
+	<resultMap id="fourTeamsIssueSkipruleResultDetail" class="FourTeamsIssueSkiprule" extends="fourTeamsIssueSkipruleResult">
+		<result property="issueTypeDomainName" column="DOMAINNAME"/>
+		<result property="issueTypeName" column="ISSUETYPENAME"/>
+	</resultMap>
+
+
+	<select id="getFourTeamsIssueSkipruleById" parameterClass="java.lang.Long" resultMap="fourTeamsIssueSkipruleResultDetail">
+		select IR.*,ITD.DOMAINNAME,IT.ISSUETYPENAME 
+		from FOURTEAMS_ISSUE_SKIPRULE IR,
+		ISSUETYPEDOMAINS ITD,
+		ISSUETYPES IT 
+		WHERE IR.ISSUE_TYPE_DOMAIN_ID = ITD.ID 
+		AND IR.ISSUE_TYPE_ID = IT.ID 
+		AND IR.id=#value#
+	</select>
+	
+	<insert id="addFourTeamsIssueSkiprule" parameterClass="FourTeamsIssueSkiprule">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_ISSUE_SKIPRULE.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into FOURTEAMS_ISSUE_SKIPRULE (ID , MESSAGE_FLAG , CREATEDATE , UPDATEDATE , ORG_ID , ISSUE_TYPE_ID , ISSUE_TYPE_DOMAIN_ID , ISSUE_URGENT_LEVEL , SUBMIT_LEVEL , ORG_INTERNAL_CODE , CREATEUSER , UPDATEUSER , CC_ORG_IDS ) 
+		values(#id#, #messageFlag#, #createDate#, #updateDate#, #orgId#, #issueTypeId#, #issueTypeDomainId#, #issueUrgentLevel.id#, #submitLevel.id#, #orgInternalCode#, #createUser#, #updateUser#, #ccOrgIds#)	
+	</insert>
+	
+	<update id="updateFourTeamsIssueSkiprule" parameterClass="FourTeamsIssueSkiprule">
+		update FOURTEAMS_ISSUE_SKIPRULE set id = #id# 
+				<isNotNull prepend="," property="messageFlag">
+					MESSAGE_FLAG = #messageFlag#
+				</isNotNull>
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="orgId">
+					ORG_ID = #orgId#
+				</isNotNull>
+				<isNotNull prepend="," property="issueTypeId">
+					ISSUE_TYPE_ID = #issueTypeId#
+				</isNotNull>
+				<isNotNull prepend="," property="issueTypeDomainId">
+					ISSUE_TYPE_DOMAIN_ID = #issueTypeDomainId#
+				</isNotNull>
+				<isNotNull prepend="," property="issueUrgentLevel">
+					ISSUE_URGENT_LEVEL = #issueUrgentLevel.id#
+				</isNotNull>
+				<isNotNull prepend="," property="submitLevel">
+					SUBMIT_LEVEL = #submitLevel.id#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					ORG_INTERNAL_CODE = #orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="ccOrgIds">
+					CC_ORG_IDS = #ccOrgIds#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteFourTeamsIssueSkipruleById" parameterClass="java.lang.Long">	
+		delete  from FOURTEAMS_ISSUE_SKIPRULE where id = #value#	
+	</delete>
+	
+	<sql id="findFourTeamsIssueSkiprulesBySearchVo_sql_where">
+		<dynamic >
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					IR.ORG_INTERNAL_CODE like #orgInternalCode# || '%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					IR.ORG_ID = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="messageFlag">
+				<isNotEmpty prepend="and" property="messageFlag">
+					IR.MESSAGE_FLAG  like #messageFlag# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="maxCreatedate">
+				<isNotEmpty prepend="and" property="maxCreatedate">
+					IR.CREATEDATE  <![CDATA[<=]]> #maxCreatedate#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="minCreatedate">
+				<isNotEmpty prepend="and" property="minCreatedate">
+					IR.CREATEDATE  <![CDATA[>=]]> #minCreatedate#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maxUpdatedate">
+				<isNotEmpty prepend="and" property="maxUpdatedate">
+					IR.UPDATEDATE  <![CDATA[<=]]> #maxUpdatedate#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="minUpdatedate">
+				<isNotEmpty prepend="and" property="minUpdatedate">
+					IR.UPDATEDATE  <![CDATA[>=]]> #minUpdatedate#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueTypeId">
+				<isNotEmpty prepend="and" property="issueTypeId">
+					IR.ISSUE_TYPE_ID = #issueTypeId#
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="issueTypeDomainId">
+				<isNotEmpty prepend="and" property="issueTypeDomainId">
+					IR.ISSUE_TYPE_DOMAIN_ID = #issueTypeDomainId#
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="issueUrgentLevel">
+				<isNotEmpty prepend="and" property="issueUrgentLevel">
+					IR.ISSUE_URGENT_LEVEL = #issueUrgentLevel.id#
+				</isNotEmpty>
+			</isPropertyAvailable>		
+			<isPropertyAvailable property="issueUrgentLevels">	
+				<isNotEmpty property="issueUrgentLevels">
+		          <iterate property="issueUrgentLevels"  open=" and (" close=")" conjunction=" or ">
+		          	IR.ISSUE_URGENT_LEVEL = #issueUrgentLevels[]#
+		          </iterate>
+		 		</isNotEmpty>
+	 		</isPropertyAvailable>			
+			<isPropertyAvailable property="submitLevel">
+				<isNotEmpty prepend="and" property="submitLevel">
+					IR.SUBMIT_LEVEL = #submitLevel.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="createuser">
+				<isNotEmpty prepend="and" property="createuser">
+					IR.CREATEUSER  like #createuser# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="updateuser">
+				<isNotEmpty prepend="and" property="updateuser">
+					IR.UPDATEUSER  like #updateuser# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="ccOrgIds">
+				<isNotEmpty prepend="and" property="ccOrgIds">
+					IR.CC_ORG_IDS  like #ccOrgIds# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+	<select id="findFourTeamsIssueSkiprulesBySearchVo" parameterClass="SearchFourTeamsIssueSkipruleVo" resultMap="fourTeamsIssueSkipruleResultDetail">
+		select IR.*,ITD.DOMAINNAME,IT.ISSUETYPENAME 
+		from FOURTEAMS_ISSUE_SKIPRULE IR,
+		ISSUETYPEDOMAINS ITD,
+		ISSUETYPES IT 
+		WHERE IR.ISSUE_TYPE_DOMAIN_ID = ITD.ID AND IR.ISSUE_TYPE_ID = IT.ID 
+		<include refid="findFourTeamsIssueSkiprulesBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">IR.$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countFourTeamsIssueSkiprulesBySearchVo" parameterClass="SearchFourTeamsIssueSkipruleVo" resultClass="java.lang.Integer">
+		select count(0) from FOURTEAMS_ISSUE_SKIPRULE IR 
+		WHERE 1 = 1
+		<include refid="findFourTeamsIssueSkiprulesBySearchVo_sql_where" />
+	</select>
+	<select id="getFourTeamsIssueSkipruleByRules" parameterClass="FourTeamsIssueSkiprule" resultMap="fourTeamsIssueSkipruleResult">
+		select * from FOURTEAMS_ISSUE_SKIPRULE IR 
+		WHERE IR.ORG_ID = #orgId# 
+		AND IR.ISSUE_TYPE_DOMAIN_ID = #issueTypeDomainId# 
+		AND IR.ISSUE_TYPE_ID = #issueTypeId#
+		AND IR.ISSUE_URGENT_LEVEL = #issueUrgentLevel.id#
+		
+	</select>
+	
+	<select id="findFourTeamsIssueSkiprulesByRules" parameterClass="FourTeamsIssueSkiprule" resultMap="fourTeamsIssueSkipruleResult">
+		select * from FOURTEAMS_ISSUE_SKIPRULE IR 
+		WHERE IR.ORG_ID = #orgId# 
+		AND IR.ISSUE_TYPE_DOMAIN_ID = #issueTypeDomainId# 
+		AND IR.ISSUE_TYPE_ID = #issueTypeId#
+		order by IR.ISSUE_URGENT_LEVEL
+	</select>
+</sqlMap>

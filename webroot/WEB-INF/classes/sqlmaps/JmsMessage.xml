@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="JmsMessage">
+	<typeAlias alias="JmsMessage" type="com.tianque.jms.domain.JmsMessage" />
+
+	<resultMap id="jmsMessageResult" class="JmsMessage">
+		<result property="id" column="id" />
+		<result property="jmsUrl" column="jmsUrl" />
+		<result property="jmsQueue" column="jmsQueue" />
+		<result property="messageType" column="messageType" />
+		<result property="isSenderMessage" column="isSenderMessage" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<insert id="addJmsMessage" parameterClass="JmsMessage">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_jmsMessage.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO jmsMessage
+		(id,jmsUrl,jmsQueue,messageType,isSenderMessage,createUser,createDate,updateDate)
+		VALUES(#id#,#jmsUrl#,#jmsQueue#,#messageType#,#isSenderMessage#,#createUser#,#createDate#,#updateDate#)
+	</insert>
+	<delete id="deleteJmsMessage" parameterClass="java.lang.Long">
+		delete from jmsMessage where id=#value#
+	</delete>
+	<update id="updateJmsMessage" parameterClass="JmsMessage">
+	update jmsMessage set
+	<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="jmsUrl">
+				jmsUrl=#jmsUrl#
+			</isNotNull>
+			<isNotNull prepend="," property="jmsQueue">
+				jmsQueue=#jmsQueue#
+			</isNotNull>
+			<isNotNull prepend="," property="messageType">
+				messageType=#messageType#
+			</isNotNull>
+			<isNotNull prepend="," property="isSenderMessage">
+				isSenderMessage=#isSenderMessage#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+	
+	<select id="getJmsMessageById" parameterClass="java.lang.Long" resultMap="jmsMessageResult">
+		select * from jmsMessage where id=#value#
+	</select>
+	
+	<select id="queryJmsMessageForList" resultMap="jmsMessageResult">
+		select * from jmsMessage
+	</select>
+	
+	<select id="getJmsMessageByType" parameterClass="java.lang.String" resultMap="jmsMessageResult">
+		select * from jmsMessage where messageType=#jmsMessageType#
+	</select>
+
+</sqlMap>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="callCenterCase" extends="default" namespace="/callCenter/issueManage">
+		<default-class-ref class="callCenterController"></default-class-ref>
+
+		<action name="dispatch" method="dispatch">
+			<result name="mantainceForCity">
+				/digitalCity/caseManage/maintainCaseDlg.jsp
+			</result>
+			<result name="mantainceForCallCenter">
+				/callCenter/caseManage/maintainCaseDlg.jsp
+			</result>
+		</action>
+
+		<action name="addCase" method="addCase">
+			<result name="success" type="json">
+				<param name="root">issueViewObject</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateCase" method="updateCase">
+			<result name="success" type="json">
+				<param name="root">issueViewObject</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="viewDetail" method="viewDetail">
+			<result name="viewForCity">
+				/digitalCity/caseManage/viewCase.jsp
+			</result>
+			<result name="viewForCallCenter">
+				/callCenter/caseManage/viewCase.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="findNeedDo" method="findNeedDo">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="findDone" method="findDone">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+	</package>
+</struts>

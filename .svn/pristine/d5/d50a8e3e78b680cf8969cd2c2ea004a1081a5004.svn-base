@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="floatingPopulationTemp">
+    <typeAlias alias="FloatingPopulationTemp" type="com.tianque.plugin.dataManage.population.floatingPopulationTemp.domain.FloatingPopulationTemp" />
+   <resultMap id="floatingPopulationTempResultForBase" class="FloatingPopulationTemp" extends="populationTempBaseInfo.populationBaseInfoResult">
+		<result property="isInflowing" column="isInflowing" />
+		<result property="inflowingReason.id" column="inflowingReason" /> 
+		<result property="inflowingDate" column="inflowingDate" />
+		<result property="inflowingProvince" column="inflowingProvince" />
+		<result property="inflowingCity" column="inflowingCity" />
+		<result property="inflowingDistrict" column="inflowingDistrict" />
+		<result property="registrationType.id" column="registrationType" />
+		<result property="registerDate" column="registerDate" />
+		<result property="expectedDatedue" column="expectedDatedue" />
+		<result property="logOut" column="logOut" />
+		<result property="logoutDetail.logout" column="logOut" />
+		<result property="logoutDetail.logoutReason" column="logoutReason"/>
+		<result property="logoutDetail.logoutDate" column="logoutDate"/>
+		<!-- 西宁 -->
+		<result property="certificateNumber" column="certificateNumber" />
+		<result property="stayLocationType.id" column="stayLocationTypeId" />
+		<result property="economySource.id" column="economySourceId" />
+		<result property="stayTimeLimit.id" column="stayTimeLimitId" />
+		<result property="preparedStayTimeLimit.id" column="preparedStayTimeLimitId" />
+		<result property="hasMarriedProve" column="hasMarriedProve" />
+		<result column="isHaveHouse" property="isHaveHouse" />
+		<result column="noHouseReason" property="noHouseReason" />
+	</resultMap>
+    <resultMap id="floatingPopulationTempResultForList" class="FloatingPopulationTemp" extends="floatingPopulationTemp.floatingPopulationTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	<sql id="claim_sql_where">
+		from DM_floatingPopulations_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	
+	<sql id="updateBusinessSql">
+		isInflowing = #isInflowing#
+		,inflowingReason = #inflowingReason.id#
+		,inflowingDate = #inflowingDate#
+		,inflowingProvince = #inflowingProvince#
+		,inflowingCity = #inflowingCity#
+		,inflowingDistrict = #inflowingDistrict#
+		,registrationType = #registrationType.id#
+		,certificateNumber = #certificateNumber#
+		,registerDate = #registerDate#
+		,expectedDatedue=#expectedDatedue#
+		,stayLocationTypeid = #stayLocationType.id#
+		,economySourceid = #economySource.id#
+		,stayTimeLimitid = #stayTimeLimit.id#
+		,preparedStayTimeLimitid = #preparedStayTimeLimit.id#
+		,hasMarriedProve = #hasMarriedProve#
+		,logOut=#logOut#
+		,logoutReason=#logoutDetail.logoutReason#
+		,logoutDate=#logoutDetail.logoutDate#
+	</sql>
+	
+	<select id="findGridPageByParameter" resultMap="floatingPopulationTempResultForList"
+		parameterClass="java.util.Map">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countGridPageByParameter" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	
+	<insert id="addFloatingPopulationTemp" parameterClass="FloatingPopulationTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_floatingPopulations_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_floatingPopulations_Temp
+		(
+		<include refid="populationTempBaseInfo.addBaseInfoFields"/>
+		,<include refid="dataManage.addDataManage"/>
+		,isInflowing,inflowingReason,inflowingDate,inflowingProvince,inflowingCity,inflowingDistrict,registrationType,registerDate,expectedDatedue,residenceType
+			,certificateNumber,stayLocationTypeId,economySourceId,stayTimeLimitId,preparedStayTimeLimitId,hasMarriedProve
+			)
+		values
+		(
+		<include refid="populationTempBaseInfo.addBaseInfoData"/>
+		,<include refid="dataManage.addValueDataManage"/>
+		,#isInflowing#,#inflowingReason.id#,#inflowingDate#,#inflowingProvince#,#inflowingCity#,#inflowingDistrict#,#registrationType.id#,#registerDate#,#expectedDatedue#,#residenceType.id#
+			,#certificateNumber#,#stayLocationType.id#,#economySource.id#,#stayTimeLimit.id#,#preparedStayTimeLimit.id#,#hasMarriedProve#
+			)
+    </insert>
+    <select id="getFloatingPopulationTempById" parameterClass="Long"
+		resultMap="floatingPopulationTempResultForList">
+	  <![CDATA[
+	  	select * from DM_floatingPopulations_Temp where id = #value#
+	  ]]>
+	</select>
+	<delete id="deleteFloatingPopulationTempById" parameterClass="Long">
+	   delete DM_floatingPopulations_Temp where id = #value#
+	</delete>
+	<select id="findFloatingPopulationTempsByIdcardAndOrgInternalCode" resultMap="floatingPopulationTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_floatingPopulations_Temp where  1=1 and 
+			(orgInternalCode like #orgInternalCode#||'%' or 
+						#orgInternalCode# like orgInternalCode||'%')
+				and(
+				<iterate property="idCardNo" conjunction="or">
+						upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+	</select>
+	<update id="updateFloatingPopulationTempInIdByIdCardAndIdList"  parameterClass="java.util.Map">
+		update DM_floatingPopulations_Temp set inid = #id# where idcardno = #idCardNo# and
+			(orgInternalCode like #orgInternalCode#||'%' or 
+						#orgInternalCode# like orgInternalCode||'%') and
+		 (claimstate = 1 or claimstate is null or 
+			<iterate property="idList" conjunction="or">
+						id = #idList[]#
+			</iterate>
+		 )
+	</update>
+	<update id="updateFloatingPopulationTempForCliamById"  parameterClass="java.util.Map">
+		update DM_floatingPopulations_Temp set CLAIMSTATE = #claimState#, CLAIMDATE = #claimDate#, CLAIMUSERNAME = #claimUserName#, CLAIMUSERID = #claimUserId#, CLAIMORGID = #claimOrgId#, ORGID = #orgId#, ORGINTERNALCODE = #orgInternalCode#  where id = #id#
+	</update>
+	<update id="updateFloatingPopulationTempForUnClaimById" parameterClass="java.util.Map">
+	    update DM_floatingPopulations_Temp set CLAIMSTATE = #claimState#, CLAIMDATE = null, CLAIMUSERNAME = null, CLAIMUSERID = null, CLAIMORGID = null, ORGID = #orgId#, ORGINTERNALCODE = #orgInternalCode#,inid = null  where id = #id# 
+	</update>
+	<select id="getFloatingPopulationTempByInId" parameterClass="Long"
+		resultMap="floatingPopulationTempResultForList">
+	  <![CDATA[
+	  	select * from DM_floatingPopulations_Temp where inid = #value#
+	  ]]>
+	</select>
+	<sql id="floatingPopulationBusinessInfo">
+		isInflowing=#isInflowing#,
+		inflowingReason=#inflowingReason.id#,
+		inflowingDate=#inflowingDate#,
+		inflowingProvince=#inflowingProvince#,
+		inflowingCity=#inflowingCity#,
+		inflowingDistrict=#inflowingDistrict#,
+		registrationType=#registrationType.id#,
+		registerDate=#registerDate#,
+		expectedDatedue=#expectedDatedue#,
+		certificateNumber=#certificateNumber#,
+		stayLocationTypeId=#stayLocationType.id#,
+		economySourceId=#economySource.id#,
+		stayTimeLimitId=#stayTimeLimit.id#,
+		preparedStayTimeLimitId=#preparedStayTimeLimit.id#,
+		hasMarriedProve=#hasMarriedProve#
+	</sql>
+	<update id="updateFloatingPopulationTemp" parameterClass="FloatingPopulationTemp">
+		update DM_floatingPopulations_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="floatingPopulationTemp.updateBusinessSql"/>		
+		where id=#id#
+	</update>
+	<update id="updateFloatingPopulationTempByOrgId" parameterClass="java.util.Map">
+		update DM_floatingPopulations_Temp set repeatState=#repeatState#  where id=#id#
+	</update>
+	<select id="findFloatingPopulationTempsByIdcardAndImportOrgId" resultMap="floatingPopulationTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_floatingPopulations_Temp where  1=1
+		<dynamic>
+			<isPropertyAvailable property="importOrganizationId">
+				<isNotNull property="importOrganizationId" prepend=" and ">
+					oldOrgId=#importOrganizationId#
+				</isNotNull>
+			</isPropertyAvailable>
+				and(
+				<iterate property="idCardNo" conjunction="or">
+						upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+		</dynamic>
+	</select>
+	
+	<!-- 新写内容 -->
+	<select id="countFindTemps" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	<select id="findTemps" resultMap="floatingPopulationTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<update id="updateFloatingPopulationTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_floatingPopulations_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	<update id="updateFloatingPopulationTempBase" parameterClass="FloatingPopulationTemp">
+		update DM_floatingPopulations_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updateFloatingPopulationTempBusiness" parameterClass="FloatingPopulationTemp">
+		update DM_floatingPopulations_Temp set
+		<include refid="floatingPopulationTemp.updateBusinessSql" />
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+</sqlMap>

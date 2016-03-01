@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="approvalItem">
+	<typeAlias alias="ApprovalItem" type="com.tianque.approval.domain.ApprovalItem" />
+	<typeAlias alias="ApprovalItemVo" type="com.tianque.approval.domain.vo.ApprovalItemVo" />
+	
+	<resultMap class="ApprovalItemVo" id="approvalItemVoResult">
+		<result property="id" column="id" />
+		<result property="approvalNumber" column="approvalNumber" />
+		<result property="itemName" column="itemName" />
+		<result property="status" column="status" />
+		<result property="name" column="name" />
+		<result property="idCardNo" column="idCardNo" />
+		<result property="currentAddress" column="currentAddress" />
+	</resultMap>
+	
+	<resultMap class="ApprovalItem" id="approvalItemResult">
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="createOrg.id" column="createOrg" />
+		<result property="createOrgCode" column="createOrgCode" />
+		<result property="approvalNumber" column="approvalNumber" />
+		<result property="item.id" column="itemId" />
+		<result property="status" column="status" />
+		<result property="name" column="name" />
+		<result property="idCardNo" column="idCardNo" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="currentAddress" column="currentAddress" />
+		<result property="remark" column="remark" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<insert id="addApprovalItem" parameterClass="ApprovalItem">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_APPROVALITEM.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into approvalitems(id,orgId,orgInternalCode,createOrg,createOrgCode,status,approvalNumber,name,itemId,idCardNo,mobileNumber,currentAddress,createUser,createDate,remark)
+		values (#id#,#organization.id#,#orgInternalCode#,#createOrg.id#,#createOrgCode#,#status#,#approvalNumber#,#name#,#item.id#,#idCardNo#,#mobileNumber#,#currentAddress#,#createUser#,#createDate#,#remark#)
+	</insert>
+	
+	<select id="getApprovalItemById" parameterClass="java.lang.Long" resultMap="approvalItemResult">
+		<![CDATA[select * from approvalitems where id=#value#]]>
+	</select>	
+	
+	<select id="findApprovalItemByItemId" parameterClass="java.lang.Long" resultMap="approvalItemResult">
+		<![CDATA[select * from approvalitems where itemId=#value#]]>
+	</select>
+	
+	<select id="getApprovalItemByApprovalNumber" parameterClass="java.lang.String" resultMap="approvalItemResult">
+		<![CDATA[select * from approvalitems where approvalNumber=#value#]]>
+	</select>	
+
+	<delete id="deleteApprovalItemById" parameterClass="java.lang.Long">
+		delete from approvalitems where id = #value#
+	</delete>
+	
+	<update id="updateApprovalItem" parameterClass="ApprovalItem">
+		update approvalitems set
+		 <dynamic>
+            id=#id#
+            <isPropertyAvailable prepend="," property="organization.id">
+            	orgId=#organization.id#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="orgInternalCode">
+            	orgInternalCode=#orgInternalCode#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="approvalNumber">
+            	approvalNumber=#approvalNumber#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="item">
+            	itemId=#item.id#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="name">
+            	name=#name#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="idCardNo">
+            	idCardNo=#idCardNo#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="mobileNumber">
+            	mobileNumber=#mobileNumber#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="currentAddress">
+            	currentAddress=#currentAddress#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="updateUser">
+            	updateUser=#updateUser#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="updateDate">
+            	updateDate=#updateDate#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="remark">
+            	remark=#remark#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="status">
+            	status=#status#
+            </isPropertyAvailable>
+            
+            where id=#id#
+         </dynamic>
+	</update>
+	
+	<sql id="sql_select">
+		where 
+		<isEqual property="status" compareValue="20">
+			(ap.status=#status# or ap.status=#orStatus#)
+		</isEqual>
+		<isNotEqual property="status" compareValue="20">
+			ap.status=#status#
+		</isNotEqual>
+		<isPropertyAvailable property="approvalNumber">
+			<isNotEmpty property="approvalNumber" prepend="and">
+				ap.approvalNumber like #approvalNumber#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="itemName">
+			<isNotEmpty property="itemName" prepend="and">
+				(s.itemName like #itemName#||'%' or  or s.fullPinyin like #itemName#||'%' or
+            	s.simplePinyin like #itemName#||'%')
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="orgId">
+			<isNotEmpty property="orgId" prepend="and">
+				orgId = #orgId#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="createOrg">
+			<isNotEmpty property="createOrg" prepend="and">
+				createOrg = #createOrg#
+			</isNotEmpty>
+		</isPropertyAvailable>
+	</sql>
+	
+	<select id="countApprovalItemPage" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(ap.id) from approvalitems ap left join items s on ap.itemId=s.id
+		<include refid="sql_select"/>
+		<isPropertyAvailable property="searchtxt">
+			<isNotEmpty property="searchtxt" prepend="and">
+				(s.itemName like #searchtxt#||'%' or s.fullPinyin like #searchtxt#||'%' or
+            	s.simplePinyin like #searchtxt#||'%' or ap.approvalNumber like #searchtxt#||'%' )
+			</isNotEmpty>
+		</isPropertyAvailable>
+	</select>
+	
+	<select id="findApprovalItemPage" parameterClass="java.util.Map" resultMap="approvalItemVoResult">
+		select ap.id as id,ap.approvalNumber,s.itemName,ap.status,ap.name,ap.idCardNo,ap.currentAddress from approvalitems ap left join items s on ap.itemId=s.id
+		<include refid="sql_select"/>
+		<isPropertyAvailable property="searchtxt">
+			<isNotEmpty property="searchtxt" prepend="and">
+				(s.itemName like #searchtxt#||'%' or s.fullPinyin like #searchtxt#||'%' or
+            	s.simplePinyin like #searchtxt#||'%' or ap.approvalNumber like #searchtxt#||'%' )
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">ap.$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<update id="updateApprovalItemByApprovalNumber" parameterClass="java.util.Map">
+		update approvalitems set status=#status# where approvalNumber=#approvalNumber#
+	</update>
+	<delete id="deleteApprovalItemByApprovalNumber" parameterClass="java.lang.String">
+		delete from approvalitems where approvalNumber = #value#
+	</delete>
+	
+</sqlMap>

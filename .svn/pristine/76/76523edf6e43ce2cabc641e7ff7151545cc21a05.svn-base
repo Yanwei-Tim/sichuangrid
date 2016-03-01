@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="taskListCommon">
+<typeAlias alias="BaseTaskVisit" type="com.tianque.plugin.taskList.domain.BaseTaskVisit" />
+<typeAlias alias="FloatingPopulationTask" type="com.tianque.plugin.taskList.domain.FloatingPopulationTask" />
+<typeAlias alias="HiddenDangerTask" type="com.tianque.plugin.taskList.domain.HiddenDangerTask" />
+	<resultMap id="taskListResult" class="BaseTaskVisit">
+	  <result column="id" property="id"/>
+	  <result column="orgname" property="orgname" />
+	  <result column="druggySum" property="druggySum" />
+	  <result column="mentalPatientSum" property="mentalPatientSum" />
+	  <result column="rectificativeSum" property="rectificativeSum" />
+	  <result column="publicSum" property="publicSum" />
+	  <result column="policeSum" property="policeSum" />
+	  <result column="positiveSum" property="positiveSum" />
+	  <result column="hiddenDangerSum" property="hiddenDangerSum" />
+	  <result column="druggyVisit" property="druggyVisit" />
+	  <result column="mentalPatientPoliceVisit" property="mentalPatientPoliceVisit" />
+	  <result column="mentalPatientJusticeVisit" property="mentalPatientJusticeVisit" />
+	  <result column="rectificativeVisit" property="rectificativeVisit" />
+	  <result column="publicVisit" property="publicVisit" />
+	  <result column="policeVisit" property="policeVisit" />
+	  <result column="positiveVisit" property="positiveVisit" />
+	  <result column="hiddenDangerVisit" property="hiddenDangerVisit" />
+	  <result column="exceptionSum" property="exceptionSum" />
+	  <result column="exceptionVisit" property="exceptionVisit" />
+	</resultMap>
+	
+	<resultMap id="floatingPopulationResult" class="FloatingPopulationTask">
+	  <result column="id" property="id"/>
+	  <result column="orgname" property="orgname" />
+	  <result column="policeSum" property="policeSum" />
+	  <result column="policeVisit" property="policeVisit" />
+	  <result column="publicSum" property="publicSum" />
+	  <result column="publicVisit" property="publicVisit" />
+	  <result column="gatherSum" property="gatherSum" />
+	  <result column="gatherVisit" property="gatherVisit" />
+	  <result column="smellSum" property="smellSum" />
+	  <result column="smellVisit" property="smellVisit" />
+	  <result column="noiseSum" property="noiseSum" />
+	  <result column="noiseVisit" property="noiseVisit" />
+	  <result column="noIdcardSum" property="noIdcardSum" />
+	  <result column="noIdcardVisit" property="noIdcardVisit" />
+	  <result column="groupLiveSum" property="groupLiveSum" />
+	  <result column="groupLiveVisit" property="groupLiveVisit" />
+	  <result column="liveSum" property="liveSum" />
+	  <result column="liveVisit" property="liveVisit" />
+	</resultMap>
+	
+	<resultMap id="hiddenDangerResult" class="HiddenDangerTask">
+	  <result column="id" property="id"/>
+	  <result column="orgname" property="orgname" />
+	  <result column="hiddenDangerSum" property="hiddenDangerSum" />
+	  <result column="hiddenDangerVisit" property="hiddenDangerVisit" />
+	  <result column="explosion" property="explosion" />
+	  <result column="gunAndExplosion" property="gunAndExplosion" />
+	  <result column="makeDruggy" property="makeDruggy" />
+	  <result column="sellDruggy" property="sellDruggy" />
+	  <result column="drinkDruggy" property="drinkDruggy" />
+	  <result column="cultActive" property="cultActive" />
+	  <result column="fake" property="fake" />
+	  <result column="yellow" property="yellow" />
+	  <result column="drink" property="drink" />
+	  <result column="pyramidSelling" property="pyramidSelling" />
+	  <result column="fire" property="fire" />
+	  <result column="receiveGood" property="receiveGood" />
+	  <result column="destroyGood" property="destroyGood" />
+	  <result column="noGuard" property="noGuard" />
+	  <result column="otherException" property="otherException" />
+	</resultMap>
+	
+	<resultMap id="specialGroupResult" class="BaseTaskVisit">
+	  <result column="id" property="id"/>
+	  <result column="orgname" property="orgname" />
+	  <result column="druggySum" property="druggySum" />
+	  <result column="mentalPatientSum" property="mentalPatientSum" />
+	  <result column="rectificativeSum" property="rectificativeSum" />
+	  <result column="positiveSum" property="positiveSum" />
+	  
+	  <result column="druggyVisit" property="druggyVisit" />
+	  <result column="mentalPatientPoliceVisit" property="mentalPatientPoliceVisit" />
+	  <result column="mentalPatientJusticeVisit" property="mentalPatientJusticeVisit" />
+	  <result column="rectificativeVisit" property="rectificativeVisit" />
+	  <result column="positiveVisit" property="positiveVisit" />
+	</resultMap>
+	
+	<select id="getTaskSumAndVisitByOrgId" resultMap="taskListResult" parameterClass="map">
+	select org.orgname,org.id ,
+(select count(1)  from hiddenDanger   r where r.orginternalcode like org.orginternalcode ||'%' ) hiddenDangerSum,
+(select count(1)  from workingSituation  r where r.orginternalcode like org.orginternalcode ||'%' ) publicSum,
+(select count(1)  from exceptionalSituationRecord  r where r.orgCode like org.orginternalcode ||'%' ) exceptionSum,
+(select count(1)  from propagandaAndVerification m where m.orginternalcode like org.orginternalcode ||'%' ) policeSum,
+(select count(1)  from termerRecord d where d.ORGCODE like org.orginternalcode ||'%' ) rectificativeSum,
+(select count(1)  from positiveInfoRecord d where d.ORGCODE like org.orginternalcode ||'%' ) positiveSum,
+(select count(1)  from druggyTask d where d.orginternalcode like org.orginternalcode ||'%' ) druggySum,
+(select count(1)  from mentalPatientTask d where d.orginternalcode like org.orginternalcode ||'%' ) mentalPatientSum,
+(select nvl(count(distinct r.id),0) from hiddenDanger r where r.ishandle=1 and r.orginternalcode like org.orginternalcode ||'%') hiddenDangerVisit,
+(select nvl(count(distinct r.id),0) from workingSituation  r where r.ishandle=1 and r.orginternalcode like org.orginternalcode ||'%') publicVisit,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.status=1 and r.orgCode like org.orginternalcode ||'%') exceptionVisit,
+(select nvl(count(distinct r.id),0) from propagandaAndVerification r where r.ishandle=1 and r.orginternalcode like org.orginternalcode ||'%') policeVisit,
+(select nvl(count(distinct r.id),0) from termerRecord r where r.status=1 and r.ORGCODE like org.orginternalcode ||'%') rectificativeVisit,
+(select nvl(count(distinct r.id),0) from positiveInfoRecord r where r.status=1 and r.ORGCODE like org.orginternalcode ||'%') positiveVisit,
+(select nvl(count(distinct r.id),0) from druggyTask r where r.status=1 and r.orginternalcode like org.orginternalcode ||'%') druggyVisit,
+(select nvl(count(distinct r.id),0) from mentalPatientTask r where r.statuspolice=1 and r.orginternalcode like org.orginternalcode ||'%') mentalPatientPoliceVisit,
+(select nvl(count(distinct r.id),0) from mentalPatientTask r where r.statusjustice=1 and r.orginternalcode like org.orginternalcode ||'%') mentalPatientJusticeVisit
+ from organizations org where org.Orgtype=#orgType# 
+        <dynamic >
+			<isPropertyAvailable property="parentOrgId">
+				<isNotEmpty property="parentOrgId" prepend=" and ">
+					org.PARENTID=#parentOrgId#
+				</isNotEmpty>
+				<isNotEmpty property="parentOrgId" prepend=" or ">
+					org.ID=#parentOrgId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+		order by org.seq
+	</select>
+	
+	<select id="getFloatingPopulationVisitByOrgId" resultMap="floatingPopulationResult" parameterClass="map">
+	select org.orgname,org.id ,
+(select count(1)  from propagandaAndVerification   r where r.orginternalcode like org.orginternalcode ||'%' ) policeSum,
+(select count(1)  from workingSituation  r where r.orginternalcode like org.orginternalcode ||'%' ) publicSum,
+(select count(1)  from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=
+     (select id from propertydicts where displayname='大量聚集' and propertydomainid=(select id from propertydomains where domainname='宣传核查异常情况') ) and  r.orgCode like org.orginternalcode ||'%' ) gatherSum,
+(select count(1)  from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=
+     (select id from propertydicts where displayname='异常气味' and propertydomainid=(select id from propertydomains where domainname='宣传核查异常情况') ) and  r.orgCode like org.orginternalcode ||'%' ) smellSum,
+(select count(1)  from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=
+     (select id from propertydicts where displayname='异常声音' and propertydomainid=(select id from propertydomains where domainname='宣传核查异常情况') ) and  r.orgCode like org.orginternalcode ||'%' ) noiseSum,
+(select count(1)  from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=
+     (select id from propertydicts where displayname='无身份证' and propertydomainid=(select id from propertydomains where domainname='宣传核查异常情况') ) and  r.orgCode like org.orginternalcode ||'%' ) noIdcardSum,
+(select count(1)  from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=
+     (select id from propertydicts where displayname='群租房人员来往复杂' and propertydomainid=(select id from propertydomains where domainname='宣传核查异常情况') ) and  r.orgCode like org.orginternalcode ||'%' ) groupLiveSum,
+(select count(1)  from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=
+     (select id from propertydicts where displayname='已搬走' and propertydomainid=(select id from propertydomains where domainname='宣传核查异常情况') ) and  r.orgCode like org.orginternalcode ||'%' ) liveSum,
+(select nvl(count(distinct r.id),0) from propagandaAndVerification r where r.ishandle=1 and r.orginternalcode like org.orginternalcode ||'%') policeVisit,
+(select nvl(count(distinct r.id),0) from workingSituation  r where r.ishandle=1 and r.orginternalcode like org.orginternalcode ||'%') publicVisit,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=
+     (select id from propertydicts where displayname='大量聚集' and propertydomainid=(select id from propertydomains where domainname='宣传核查异常情况') ) and r.status=1 and  r.orgCode like org.orginternalcode ||'%' ) gatherVisit,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=
+     (select id from propertydicts where displayname='异常气味' and propertydomainid=(select id from propertydomains where domainname='宣传核查异常情况') ) and r.status=1 and  r.orgCode like org.orginternalcode ||'%' ) smellVisit,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=
+     (select id from propertydicts where displayname='异常声音' and propertydomainid=(select id from propertydomains where domainname='宣传核查异常情况') ) and r.status=1 and  r.orgCode like org.orginternalcode ||'%' ) noiseVisit,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=
+     (select id from propertydicts where displayname='无身份证' and propertydomainid=(select id from propertydomains where domainname='宣传核查异常情况') ) and r.status=1 and  r.orgCode like org.orginternalcode ||'%' ) noIdcardVisit,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=
+     (select id from propertydicts where displayname='群租房人员来往复杂' and propertydomainid=(select id from propertydomains where domainname='宣传核查异常情况') ) and r.status=1 and  r.orgCode like org.orginternalcode ||'%' ) groupLiveVisit,
+(select nvl(count(distinct r.id),0) from exceptionalSituationRecord  r where r.EXCEPTIONSITUATION=
+     (select id from propertydicts where displayname='已搬走' and propertydomainid=(select id from propertydomains where domainname='宣传核查异常情况') ) and r.status=1 and  r.orgCode like org.orginternalcode ||'%' ) liveVisit
+ 
+ from organizations org where org.Orgtype=#orgType# 
+        <dynamic >
+			<isPropertyAvailable property="parentOrgId">
+				<isNotEmpty property="parentOrgId" prepend=" and ">
+					org.PARENTID=#parentOrgId#
+				</isNotEmpty>
+				<isNotEmpty property="parentOrgId" prepend=" or ">
+					org.ID=#parentOrgId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+		order by org.seq
+	</select>
+	
+	<select id="getHiddenDangerVisitByOrgId" resultMap="hiddenDangerResult" parameterClass="map">
+	select org.orgname,org.id ,
+(select count(1)  from hiddendanger   r where r.orginternalcode like org.orginternalcode ||'%' ) hiddenDangerSum,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.ishandle=1 and r.orginternalcode like org.orginternalcode ||'%' ) hiddenDangerVisit,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=
+     (select id from propertydicts where displayname='涉暴恐' and propertydomainid=(select id from propertydomains where domainname='治安隐患异常类型') ) and  r.ORGINTERNALCODE like org.orginternalcode ||'%' ) explosion,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=
+     (select id from propertydicts where displayname='涉枪涉爆' and propertydomainid=(select id from propertydomains where domainname='治安隐患异常类型') ) and  r.ORGINTERNALCODE like org.orginternalcode ||'%' ) gunAndExplosion,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=
+     (select id from propertydicts where displayname='涉制毒' and propertydomainid=(select id from propertydomains where domainname='治安隐患异常类型') ) and  r.ORGINTERNALCODE like org.orginternalcode ||'%' ) makeDruggy,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=
+     (select id from propertydicts where displayname='涉贩毒' and propertydomainid=(select id from propertydomains where domainname='治安隐患异常类型') ) and  r.ORGINTERNALCODE like org.orginternalcode ||'%' ) sellDruggy,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=
+     (select id from propertydicts where displayname='涉吸毒' and propertydomainid=(select id from propertydomains where domainname='治安隐患异常类型') ) and  r.ORGINTERNALCODE like org.orginternalcode ||'%' ) drinkDruggy,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=
+     (select id from propertydicts where displayname='邪教活动' and propertydomainid=(select id from propertydomains where domainname='治安隐患异常类型') ) and  r.ORGINTERNALCODE like org.orginternalcode ||'%' ) cultActive,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=
+     (select id from propertydicts where displayname='制假贩假' and propertydomainid=(select id from propertydomains where domainname='治安隐患异常类型') ) and  r.ORGINTERNALCODE like org.orginternalcode ||'%' ) fake,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=
+     (select id from propertydicts where displayname='涉黄' and propertydomainid=(select id from propertydomains where domainname='治安隐患异常类型') ) and  r.ORGINTERNALCODE like org.orginternalcode ||'%' ) yellow,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=
+     (select id from propertydicts where displayname='涉赌' and propertydomainid=(select id from propertydomains where domainname='治安隐患异常类型') ) and  r.ORGINTERNALCODE like org.orginternalcode ||'%' ) drink,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=
+     (select id from propertydicts where displayname='传销' and propertydomainid=(select id from propertydomains where domainname='治安隐患异常类型') ) and  r.ORGINTERNALCODE like org.orginternalcode ||'%' ) pyramidSelling,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=
+     (select id from propertydicts where displayname='火灾隐患' and propertydomainid=(select id from propertydomains where domainname='治安隐患异常类型') ) and  r.ORGINTERNALCODE like org.orginternalcode ||'%' ) fire,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=
+     (select id from propertydicts where displayname='收赃' and propertydomainid=(select id from propertydomains where domainname='治安隐患异常类型') ) and  r.ORGINTERNALCODE like org.orginternalcode ||'%' ) receiveGood,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=
+     (select id from propertydicts where displayname='销赃' and propertydomainid=(select id from propertydomains where domainname='治安隐患异常类型') ) and  r.ORGINTERNALCODE like org.orginternalcode ||'%' ) destroyGood,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=
+     (select id from propertydicts where displayname='无守楼护院人员' and propertydomainid=(select id from propertydomains where domainname='治安隐患异常类型') ) and  r.ORGINTERNALCODE like org.orginternalcode ||'%' ) noGuard,
+(select nvl(count(distinct r.id),0)  from hiddendanger  r where r.exceptionType=
+     (select id from propertydicts where displayname='其他异常事件' and propertydomainid=(select id from propertydomains where domainname='治安隐患异常类型') ) and  r.ORGINTERNALCODE like org.orginternalcode ||'%' ) otherException
+
+ from organizations org where org.Orgtype=#orgType# 
+        <dynamic >
+			<isPropertyAvailable property="parentOrgId">
+				<isNotEmpty property="parentOrgId" prepend=" and ">
+					org.PARENTID=#parentOrgId#
+				</isNotEmpty>
+				<isNotEmpty property="parentOrgId" prepend=" or ">
+					org.ID=#parentOrgId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+		order by org.seq
+	</select>
+	
+		<select id="getSpecialGroupSumAndVisitByOrgId" resultMap="specialGroupResult" parameterClass="map">
+			select org.orgname,org.id,
+				(select count(1)  from termerRecord d where d.ORGCODE like org.orginternalcode ||'%' ) rectificativeSum,
+				(select count(1)  from druggyTask d where d.orginternalcode like org.orginternalcode ||'%' ) druggySum,
+				(select count(1)  from mentalPatientTask d where d.orginternalcode like org.orginternalcode ||'%' ) mentalPatientSum,
+				(select count(1)  from positiveInfoRecord d where d.ORGCODE like org.orginternalcode ||'%' ) positiveSum,
+				(select nvl(count(distinct h.id),0) from termerRecord h where h.status=1 and h.ORGCODE like org.orginternalcode ||'%') rectificativeVisit,
+				(select nvl(count(distinct h.id),0) from positiveInfoRecord h where h.status=1 and h.ORGCODE like org.orginternalcode ||'%') positiveVisit,
+				(select nvl(count(distinct h.id),0) from druggyTask h where h.status=1 and h.orginternalcode like org.orginternalcode ||'%') druggyVisit,
+				(select nvl(count(distinct h.id),0) from mentalPatientTask h where h.statuspolice=1 and h.orginternalcode like org.orginternalcode ||'%') mentalPatientPoliceVisit,
+				(select nvl(count(distinct h.id),0) from mentalPatientTask h where h.statusjustice=1 and h.orginternalcode like org.orginternalcode ||'%') mentalPatientJusticeVisit
+		 	from organizations org where org.Orgtype=#orgType# 
+	        <dynamic >
+				<isPropertyAvailable property="parentOrgId">
+					<isNotEmpty property="parentOrgId" prepend=" and ">
+						org.PARENTID=#parentOrgId#
+					</isNotEmpty>
+					<isNotEmpty property="parentOrgId" prepend=" or ">
+						org.ID=#parentOrgId#
+					</isNotEmpty>
+				</isPropertyAvailable>
+			</dynamic>
+			order by org.seq
+	</select>
+	
+	<update id="updateReceiptStatus" parameterClass="java.util.Map">
+	        update $tableName$ set
+	   <isEqual property="signType" compareValue="police">
+			STATUSPOLICE=1,
+			attitudepolice=#attitude#,
+			signDatepolice=#signDate#,
+			signMemberNamepolice=#signMemberName#
+		</isEqual>
+		<isEqual property="signType" compareValue="justice">
+			STATUSJUSTICE=1,
+			attitudejustice=#attitude#,
+			signDatejustice=#signDate#,
+			signMemberNamejustice=#signMemberName#
+		</isEqual>
+		<isNull property="signType" >
+			status=1,
+			attitude=#attitude#,
+			signDate=#signDate#,
+			signMemberName=#signMemberName#
+		 </isNull>
+		  where id=#id#
+	</update>
+	
+</sqlMap>

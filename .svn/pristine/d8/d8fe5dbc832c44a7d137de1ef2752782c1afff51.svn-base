@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mentalPatient">
+
+	<typeAlias alias="MentalPatient" type="com.tianque.baseInfo.mentalPatient.domain.MentalPatient" />
+	<typeAlias alias="serviceSupervisionMeasures" type="com.tianque.baseInfo.mentalPatient.domain.ServiceSupervisionMeasures" />
+	<typeAlias alias="SearchMentalPatientVo" type="com.tianque.domain.vo.SearchMentalPatientVo" />
+	<resultMap id="mentalPatientResult"  class="MentalPatient" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResult">
+		<result property="psychosisName" column="psychosisName" />
+		<result property="dangerLevel.id" column="dangerLevel" />
+		<result property="isTreat" column="isTreat" />
+		<result property="cureDepartment" column="cureDepartment" />
+		<result property="businessRemark" column="businessRemark" />
+		<result property="guardian" column="guardian" />
+		<result property="guardianMobileNumber" column="guardianMobileNumber" />
+		<result property="guardianTelephone" column="guardianTelephone" />
+		<result property="isUndergoTreatment" column="isUndergo_Treatment"/>
+		<result property="psychosisType.id" column="psychosisType"/>
+		<result property="treatmentState.id" column="treatmentState"/>
+		<result property="diseaseTime" column="diseaseTime"/>	
+		<result property="recoveryTime" column="recoveryTime"/>	
+	</resultMap>
+	<!-- 这两个resultMap内容一致，继承关系不一样 -->
+	<resultMap id="mentalPatientResultForList"  class="MentalPatient" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+		<result property="psychosisName" column="psychosisName" />
+		<result property="dangerLevel.id" column="dangerLevel" />
+		<result property="isTreat" column="isTreat" />
+		<result property="cureDepartment" column="cureDepartment" />
+		<result property="businessRemark" column="businessRemark" />
+		<result property="guardian" column="guardian" />
+		<result property="guardianMobileNumber" column="guardianMobileNumber" />
+		<result property="guardianTelephone" column="guardianTelephone" />
+		<result property="isUndergoTreatment" column="isUndergo_Treatment"/>
+		<result property="psychosisType.id" column="psychosisType"/>
+		<result property="treatmentState.id" column="treatmentState"/>
+		<result property="diseaseTime" column="diseaseTime"/>	
+		<result property="recoveryTime" column="recoveryTime"/>		
+	</resultMap>
+	
+	<resultMap id="mentalPatientResultForDefaultList" class="MentalPatient" 
+		extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForDefaultList">
+		<result property="psychosisName" column="psychosisName" />
+		<result property="dangerLevel.id" column="dangerLevel" />
+		<result property="isTreat" column="isTreat" />
+		<result property="cureDepartment" column="cureDepartment" />
+		<result property="businessRemark" column="businessRemark" />
+		<result property="guardian" column="guardian" />
+		<result property="guardianMobileNumber" column="guardianMobileNumber" />
+		<result property="guardianTelephone" column="guardianTelephone" />
+		<result property="isUndergoTreatment" column="isUndergo_Treatment"/>
+		<result property="psychosisType.id" column="psychosisType"/>
+		<result property="treatmentState.id" column="treatmentState"/>
+		<result property="diseaseTime" column="diseaseTime"/>	
+		<result property="recoveryTime" column="recoveryTime"/>		
+	</resultMap>
+	
+	<resultMap id="mobileMentalPatientMap" class="MentalPatient" extends="mentalPatientResultForDefaultList">
+      <!-- 用于手机接口返回走访数量 -->
+     <result property="interviewCount" column="interviewCount" />
+    </resultMap>
+
+    <resultMap id="mobileMentalPatientMapNew" class="MentalPatient" extends="mentalPatientResultForList">
+      <!-- 用于手机接口返回走访数量 -->
+     <result property="interviewCount" column="interviewCount" />
+    </resultMap>
+	<sql id="fields">
+		uni.id,uni.baseinfoid,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.dangerLevel,uni.psychosisName,uni.psychosisType,uni.treatmentState,uni.isUndergo_Treatment,
+	    uni.isTreat,uni.cureDepartment,uni.businessRemark,uni.guardian,uni.guardianMobileNumber,uni.guardianTelephone,uni.diseaseTime,uni.recoveryTime,
+	    uni.createUser,uni.createDate,uni.updateUser,uni.updateDate,uni.sourcesState,uni.isEmphasis,uni.isEmphasisReason,uni.isEmphasisDate
+	</sql>
+	
+	<sql id="updateBusinessSql">
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>
+		<isNotEmpty property="isEmphasis">
+			,isEmphasis = #isEmphasis#
+		</isNotEmpty>
+		, psychosisName = #psychosisName#
+		, psychosisType = #psychosisType.id#
+		, dangerLevel = #dangerLevel.id#
+		, isTreat = #isTreat#
+		, cureDepartment = #cureDepartment#
+		, businessRemark = #businessRemark#
+		, guardian = #guardian#
+		, guardianMobileNumber = #guardianMobileNumber#
+		, guardianTelephone = #guardianTelephone#
+		, isUndergo_Treatment = #isUndergoTreatment#
+		,treatmentState = #treatmentState.id#
+		,diseaseTime = #diseaseTime#
+		,recoveryTime = #recoveryTime#
+	</sql>
+
+	<insert id="addMentalPatient" parameterClass="MentalPatient">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_mentalPatients.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO mentalPatients
+		(
+			<include refid="populationBaseInfo.addBaseInfoFields"/>
+			, psychosisName, psychosisType, dangerLevel, isTreat, cureDepartment, businessRemark, guardian, guardianMobileNumber, guardianTelephone,sourcesState,isUndergo_Treatment,treatmentState,diseaseTime,recoveryTime,isEmphasis
+		)
+		VALUES
+		(
+			 <include refid="populationBaseInfo.addBaseInfoData"/>
+			 , #psychosisName#, #psychosisType.id#, #dangerLevel.id#, #isTreat#, #cureDepartment#, #businessRemark#, #guardian#, #guardianMobileNumber#, #guardianTelephone#,#sourcesState#,#isUndergoTreatment#,#treatmentState.id#,#diseaseTime#,#recoveryTime#,#isEmphasis#
+		)
+	</insert>
+
+	<select id="getMentalPatientById" parameterClass="java.lang.Long" resultMap="mentalPatientResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,uni.dangerLevel as attentionExtent 
+		FROM mentalPatients uni left join baseinfo b on uni.baseinfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		WHERE uni.id=#value#
+	</select>
+
+	<update id="updateEmphasiseById" parameterClass="map">
+		UPDATE mentalPatients SET isEmphasis=#isEmphasis# where id=#id#
+	</update>
+
+	<update id="updateDeathAndLogoutStateById" parameterClass="map">
+		update mentalPatients set
+		<isNotEmpty property="death">
+			isdeath = #death#
+		</isNotEmpty>
+		<isNotEmpty property="isEmphasis" prepend=",">
+			isEmphasis = #isEmphasis#
+		</isNotEmpty>
+<!-- 		  <isNotNull  prepend=","  property="nativePoliceStation"> -->
+<!-- 		  nativePoliceStation=#nativePoliceStation# -->
+<!-- 		</isNotNull> -->
+		where id = #id#
+	</update>
+
+	<update id="updateMentalPatient" parameterClass="MentalPatient">
+		UPDATE mentalPatients SET
+		<include refid="updateBusinessSql"/>
+		where id=#id#
+	</update>
+
+
+
+	<delete id="deleteMentalPatientById" parameterClass="java.lang.Long">
+		DELETE FROM mentalPatients WHERE id=#value#
+	</delete>
+	<select id="getByOrgIdAndIdCardNo" parameterClass="map" resultMap="mentalPatientResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,uni.dangerLevel as attentionExtent 
+		FROM mentalPatients uni left join baseinfo b on uni.baseinfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		WHERE upper(idCardNo)=upper(#idCardNo#) and uni.orgId=#orgId#
+	</select>
+
+	<select id="countMentalPatientsForPage" parameterClass="MentalPatient"
+		resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM mentalPatients WHERE orgInternalCode LIKE #orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findMentalPatientsForPage" parameterClass="MentalPatient" resultMap="mentalPatientResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,uni.dangerLevel as attentionExtent,'$attentionPopulationType$' as populationType 
+		FROM mentalPatients uni left join baseinfo b on uni.baseinfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		WHERE uni.orgInternalCode LIKE #orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="ORDER BY">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countMentalPatientsBySearchVo" parameterClass="SearchMentalPatientVo"
+		resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM mentalPatients WHERE orgInternalCode LIKE #orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<sql id="default_sql_where">
+	  from mentalPatients uni 
+	  <dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findMentalPatientDefaultList" resultMap="mobileMentalPatientMap" parameterClass="map">
+	  select <include refid="fields"/>,uni.dangerLevel as attentionExtent
+	  ,(select count(1) from mentalPatientTask m where m.mentalPatientid=uni.id ) as interviewCount 
+	  <include refid="default_sql_where" />
+	  ORDER BY ID DESC
+	</select>
+	
+	<select id="countMentalPatientDefaultList" resultClass="java.lang.Integer" parameterClass="map">
+		<![CDATA[select count(uni.id)]]>
+		<include refid="default_sql_where" />
+	</select>
+	
+	<select id="findMentalPatientsBySearchVo" parameterClass="SearchMentalPatientVo" resultMap="mentalPatientResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,uni.dangerLevel as attentionExtent,'$attentionPopulationType$' as populationType 
+		FROM mentalPatients uni left join baseinfo b on uni.baseinfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		WHERE uni.orgInternalCode LIKE #orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="ORDER BY">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="getByIdCard" parameterClass="map"
+	    resultMap="mentalPatientResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,uni.dangerLevel as attentionExtent 
+		FROM mentalPatients uni left join baseinfo b on uni.baseinfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgId=#orgId# 
+		and
+		<iterate property="idCardNoList" open="("  close=")"  conjunction="or">
+		    upper(idCardNo) = upper(#idCardNoList[]#)
+		</iterate>
+	</select>
+
+	<update id="updateBaseInfo" parameterClass="MentalPatient">
+		update mentalPatients set
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>
+		<include refid="populationBaseInfo.updateBussLogoutDetail"/>
+		where id = #id#
+	</update>
+
+	<update id="updateBusiness" parameterClass="MentalPatient">
+		update mentalPatients set
+		<include refid="updateBusinessSql"/>
+		where id = #id#
+	</update>
+	
+	<!-- 移动数据需要的sql -->
+	<update id="updateDataMoveMentalPatientToOrg" parameterClass="java.util.Map">
+		update mentalPatients set orgId = #orgId# , orgInternalCode = #orgInternalCode# where id = #id#
+	</update>
+	
+	
+	<resultMap id="serviceSupervisionMeasuresMap" class="serviceSupervisionMeasures">
+		<result property="id" column="id" />
+		<result property="mentalPatient.id" column="MENTALPATIENTID" />
+		<result property="upTime" column="upTime" />
+		<result property="supervisepersonnel" column="supervisepersonnel" />
+		<result property="superviseinfo" column="superviseinfo" />
+		<result property="type" column="type" />
+	</resultMap>
+	<sql id="sql_findServiceSupervisionMeasuresPatientForList">
+		SELECT * FROM SERVICESUPERVISIONMEASURES WHERE MENTALPATIENTID = #mentalPatient.id# AND TYPE = #type#
+		<dynamic prepend="ORDER BY">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<select id="findServiceSupervisionMeasuresPatientForList" parameterClass="serviceSupervisionMeasures" resultMap="serviceSupervisionMeasuresMap">
+		<include refid="sql_findServiceSupervisionMeasuresPatientForList"/>
+	</select>
+	<select id="findServiceSupervisionMeasuresPatientForListCount" parameterClass="serviceSupervisionMeasures" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM(<include refid="sql_findServiceSupervisionMeasuresPatientForList"/>)
+	</select>
+	<select id="getServiceSupervisionMeasuresById" parameterClass="java.lang.Long" resultMap="serviceSupervisionMeasuresMap">
+		SELECT * FROM SERVICESUPERVISIONMEASURES WHERE ID = #id#
+	</select>
+	<insert id="addServiceSupervisionMeasures" parameterClass="serviceSupervisionMeasures">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_SERVICESUPERVISIONMEASURES.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO SERVICESUPERVISIONMEASURES(ID, MENTALPATIENTID, UPTIME, SUPERVISEPERSONNEL, SUPERVISEINFO, TYPE) VALUES
+		(#id#, #mentalPatient.id#, #upTime#, #supervisepersonnel#, #superviseinfo#, #type#)
+	</insert>
+	<update id="updateServiceSupervisionMeasures" parameterClass="serviceSupervisionMeasures">
+		UPDATE SERVICESUPERVISIONMEASURES SET UPTIME = #upTime#, SUPERVISEPERSONNEL = #supervisepersonnel#, SUPERVISEINFO = #superviseinfo#, TYPE = #type#
+		WHERE ID = #id#
+	</update>
+	<delete id="deleteServiceSupervisionMeasuresById" parameterClass="java.lang.Long">
+		DELETE FROM SERVICESUPERVISIONMEASURES WHERE ID = #id#
+	</delete>
+	<delete id="deleteServiceSupervisionMeasuresByIdAndType" parameterClass="java.util.Map">
+		DELETE FROM SERVICESUPERVISIONMEASURES WHERE MENTALPATIENTID = #id# AND TYPE = #type#
+	</delete>
+	<select id="getIdByBaseinfoIdAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		SELECT id from mentalPatients  
+		where baseinfoid=#baseInfoId# and orgId=#orgId#
+	</select>
+</sqlMap>

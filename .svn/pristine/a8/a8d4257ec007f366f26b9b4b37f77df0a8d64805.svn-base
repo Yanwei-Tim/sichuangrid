@@ -1,0 +1,79 @@
+<%@ page language="java" pageEncoding="UTF-8"%>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib" %>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<div id="slideBar" class="slideBar">
+    <h2 class="sTit"><span class="icon_ypfx" style="margin-right:5px;"></span>研判分析</h2>
+    <ul class="slideItems" id="accordion">
+<!--         <li class="item on"> -->
+<%--             <a class="subTit on" href="#chartPageAnalysisManage-totalSituationManagement"  baseurl="/hotModuel/judgmentAnalysis/chartPage/totalSituation/index.ftl"><span class="icon_up"></span>总况</a> --%>
+<!--         </li> -->
+<!--         <li class="item"> -->
+<%--             <a class="subTit" href="javascript:;"><span class="icon_down"></span>人口信息</a> --%>
+<!--             <ul class="subItem"> -->
+<!--                 <li><a  href="#chartPageAnalysisManage-houseHoldStaffManagement"  baseurl="/hotModuel/judgmentAnalysis/chartPage/populationInfo/houseHoldStaff/index.ftl">户籍人口</a></li> -->
+<!--                 <li><a href="#chartPageAnalysisManage-floatPopulationManagement" baseurl="/hotModuel/judgmentAnalysis/chartPage/populationInfo/floatingPopulation/index.ftl">流动人口</a></li> -->
+<!--                 <li><a href="#chartPageAnalysisManage-importantPopulation" baseurl="/hotModuel/judgmentAnalysis/chartPage/populationInfo/importantPopulation/index.ftl" >特殊人群</a></li> -->
+<!--             </ul> -->
+<!--         </li> -->
+        <li class="item on">
+            <a class="subTit" href="javascript:;" ><span class="icon_up"></span>任务清单</a>
+            <ul class="subItem">
+	            <li><a href="#chartPageAnalysisManage-chartMap" class="cur" baseurl="/hotModuel/task/statistics/taskListAnalysis.ftl" >任务清单总览</a></li>
+	            <li><a href="#chartPageAnalysisManage-chartMap" baseurl="/hotModuel/task/statistics/floatSituation.ftl" >流动人口</a></li>
+	            <li><a href="#chartPageAnalysisManage-chartMap" baseurl="/hotModuel/task/statistics/policeStatistics.ftl" >民警带领下开展工作</a></li>
+	            <li><a href="#chartPageAnalysisManage-chartMap" baseurl="/hotModuel/task/statistics/exceptionStatistics.ftl" >异常情况报告</a></li>
+	            <li><a href="#chartPageAnalysisManage-chartMap" baseurl="/hotModuel/task/statistics/specialPopulations.ftl" >特殊人群</a></li>
+	            <li><a href="#chartPageAnalysisManage-chartMap" baseurl="/hotModuel/task/statistics/hiddengerStatistics.ftl" >发现治安隐患</a></li>
+            	<li><a href="#chartPageAnalysisManage-chartMap" baseurl="/hotModuel/judgmentAnalysis/chartPage/map/index.ftl" >地图分析</a></li>
+            </ul>
+        </li>
+    </ul>
+</div>
+<script type="text/javascript">
+	function baseLoad(that,baseUrl,leaderUrl){
+		asyncOpen(that, baseUrl);
+		$.resetHeight()
+	}
+
+	$(function() {
+		$("#accordion a").click(function(){
+			$('#accordion a').removeClass("on");
+			$('#accordion a').removeClass("cur");
+			$(this).addClass("on").closest('.item').addClass('on').siblings().removeClass('on');
+			$(this).addClass("cur");
+			
+			var baseUrl=$(this).attr("baseurl");
+			var leaderUrl=$(this).attr("leaderUrl");
+			if(baseUrl==undefined && leaderUrl==undefined){
+				return false;
+			}
+			var ename=$(this).attr("id");
+			if(ename=="gridIntroductionManagement"){
+				if(isCountryDownOrganization()){
+					if(isGrid()){
+						baseUrl='${path}/hotModuel/baseinfo/villageProfile/gridProfileComplete.jsp';
+					}else{
+						baseUrl='${path}/hotModuel/baseinfo/villageProfile/villageProfileComplete.jsp';
+					}
+				}else{
+					baseUrl='${path}/hotModuel/baseinfo/villageProfile/introduction.jsp';
+				}
+			}
+			baseLoad(this,baseUrl,leaderUrl);
+		});		
+
+         var flag = '<s:property value='#parameters.flag'/>';
+         if(flag == 'show'){
+         	 var jsflag='<s:property value='#parameters.urlflag'/>';
+      		if(jsflag==undefined || jsflag=='' || !$("#"+jsflag)[0]){     			
+      			//$('#accordion a').eq(0).click().closest(".subItem:hidden").prev().addClass("sssssssssssssssssssss").click();
+      			$('#accordion a').eq(0).click();
+      			$('#accordion .subItem').eq(0).find("a:first").click();
+      		}else{
+     			$('#accordion a#'+jsflag).click().closest(".subItem:hidden").prev().click();
+      		}
+         }
+	});
+	
+		
+</script>

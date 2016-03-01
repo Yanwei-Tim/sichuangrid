@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="directorySetting">
+	<typeAlias alias="directorySetting"
+		type="com.tianque.resourcePool.domain.DirectorySetting" />
+	<resultMap id="directorySettingResult" class="directorySetting">
+		<result column="ID" property="id" />
+		<result property="resourcePoolType" column="resourcePoolType" />
+		<result property="parentPersonalDirectory.id" column="parentId" />
+		<result property="name" column="name" />
+		<result property="userId" column="USERID" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="indexId" column="indexId" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+		<result property="level" column="rank" />
+		<result property="directoryType" column="directoryType" />
+
+	</resultMap>
+	<insert id="addDirectorySetting" parameterClass="directorySetting">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_directorySettings.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into directorySettings
+		(ID,RESOURCEPOOLTYPE,PARENTID,NAME,
+		USERID,fullPinyin,simplePinyin,indexId,createUser,
+		UPDATEUSER,CREATEDATE,UPDATEDATE,rank,directoryType)
+		values(#id#,#resourcePoolType#,#parentPersonalDirectory.id#,#name#,
+		#userId#,#fullPinyin#,#simplePinyin#,#indexId#,#createUser#,#updateUser#,
+		#createDate#,#updateDate#,#level#,#directoryType#)
+	</insert>
+	<update id="updateDirectorySetting" parameterClass="directorySetting">
+    <![CDATA[
+        update directorySettings set
+                   name = #name#,
+                   fullPinyin=#fullPinyin#,
+                   simplePinyin=#simplePinyin#,
+                   updateUser=#updateUser#,
+                   updateDate=#updateDate#
+        where id = #id#
+    ]]>
+	</update>
+
+	<update id="updateMove" parameterClass="java.util.Map">
+    <![CDATA[
+        update directorySettings set
+                   indexId=#indexId#
+        where id = #id#
+    ]]>
+	</update>
+
+	<delete id="deleteDirectorySettingById" parameterClass="java.lang.Long">
+		delete
+		from
+		directorySettings
+		where id=#id#
+	</delete>
+
+	<sql id="sql_where">
+		from directorySettings
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="userId">
+				<isNotNull property="userId" prepend=" and ">
+					userId=#userId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotNull property="name" prepend=" and ">
+					name=#name#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="trunkDirectory">
+				<isNotNull property="trunkDirectory" prepend=" and ">
+					parentId is
+					null
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="parentId">
+				<isNotNull property="parentId" prepend=" and ">
+					parentId=#parentId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="directoryType">
+				<isNotNull property="directoryType" prepend=" and ">
+					directoryType=#directoryType#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<select id="findDirectorySettingByIdArray" parameterClass="java.util.List"
+		resultMap="directorySettingResult">
+		select * from directorySettings where id
+		<iterate prepend="in" conjunction="," open="(" close=")">
+			#value[]#
+		</iterate>
+	</select>
+	<select id="getDirectorySettingById" parameterClass="java.lang.Long"
+		resultMap="directorySettingResult">
+		select * from directorySettings where id=#id#
+	</select>
+	<select id="findDirectorySettingForList" parameterClass="java.lang.Long"
+		resultMap="directorySettingResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+	</select>
+	<select id="findchildByparentId" parameterClass="java.util.Map"
+		resultMap="directorySettingResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+				</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findTrunkDirectoryByUserId" parameterClass="java.util.Map"
+		resultMap="directorySettingResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+				</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+
+	</select>
+
+	<select id="searchDirectorySettings" parameterClass="java.util.Map"
+		resultMap="directorySettingResult">
+		select * from directorySettings where userId=#userId#
+		<isPropertyAvailable property="name">
+			<isNotEmpty property="name" prepend=" and ">
+				name like '$name$%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="fullPinyin">
+			<isNotEmpty property="fullPinyin" prepend=" and ">
+				fullPinyin like
+				'$fullPinyin$%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="simplePinyin">
+			<isNotEmpty property="simplePinyin" prepend=" and ">
+				simplePinyin
+				like '$simplePinyin$%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+	</select>
+
+	<select id="getMaxIndexId" parameterClass="java.lang.Long"
+		resultClass="java.lang.Integer">
+		select Max(indexId) from directorySettings where
+		parentId=#parentId#
+	</select>
+	<select id="getCountByResourcePoolType" parameterClass="java.lang.Long"
+		resultClass="java.lang.Integer">
+		select count(*) from myProfiles where
+		resourcePoolType=#resourcePoolType#
+	</select>
+	<select id="getDirectoryIdByparentIdAndindexId" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		select Max(id) from directorySettings where userId=#userId# and parentId=#parentId# and
+		indexId <![CDATA[<]]>
+		#indexId#
+	</select>
+	<select id="getMinIdByparentIdAndindexId" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		select Min(id) from directorySettings where userId=#userId# and parentId=#parentId# and
+		indexId <![CDATA[>]]>
+		#indexId#
+	</select>
+	<select id="searchDirectorySetting" parameterClass="java.util.Map"
+		resultMap="directorySettingResult">
+		select * from directorySettings where (resourcePoolType=1 or userId=#userId#) and (name like
+		#searchText#||'%' or fullPinyin like #searchText#||'%' or
+		simplePinyin like #searchText#||'%')
+	</select>
+
+</sqlMap>

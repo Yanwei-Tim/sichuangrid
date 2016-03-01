@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project  name="tianqueGrid" basedir="." default="build">
+
+	<!--引用属性文件-->
+	<property file=".properties">
+	</property>
+	<property file="${config.dir}/jdbc.properties">
+	</property>
+
+	<path id="build.lib">
+		<fileset dir="${build.lib.dir}" includes="*.jar,*/*.jar" />
+	</path>
+
+	<path id="runtime.lib">
+		<fileset dir="${runtime.lib.dir}" includes="*.jar,*/*.jar" />
+	</path>
+	<path id="all.lib">
+		<path refid="build.lib">
+		</path>
+		<path refid="runtime.lib">
+		</path>
+	</path>
+
+	<path id="instr.classes.dir">
+		<pathelement location="${instr.classes.dir}" />
+	</path>
+
+	<taskdef resource="emma_ant.properties" classpathref="all.lib" />
+	<taskdef resource="checkstyletask.properties" classpathref="all.lib" />
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties" classpathref="all.lib"/>
+
+	<target name="clean">
+		<delete dir="${coverage.report}" quiet="true" />
+		<delete dir="${checkStyle.report}" quiet="true" />
+		<delete dir="${junit.report}" quiet="true" />
+		<delete dir="${classes.dir}" quiet="true" />
+		<mkdir dir="${coverage.dir}" />
+		<mkdir dir="${classes.dir}" />
+		<mkdir dir="${coverage.report}" />
+		<mkdir dir="${checkStyle.report}" />
+		<mkdir dir="${junit.report}" />
+	</target>
+
+	<!-- 利用checkstyle检查代码 -->
+	<target name="check">
+		<checkstyle config="checkstyle.xml" failOnViolation="false">
+			<formatter type="xml" tofile="${checkStyle.report}/check-style.xml"/>
+			<fileset dir="${src.dir}" includes=" **/*.java" />
+			<fileset dir="${test.dir}" includes=" **/*.java" />
+		</checkstyle>
+	</target>
+	<!-- 编译源代码 -->
+	<target name="compile">
+		<javac destdir="${classes.dir}" srcdir="${src.dir}:${config.dir}:${test.dir}:${core.dir}:${src.plugin.dirs}" encoding="UTF-8" fork="true" memorymaximumsize="256m">
+			<classpath refid="build.lib" />
+			<classpath refid="runtime.lib" />
+		</javac>
+		<foreach target="compilePlugin" param="plugin.name">
+			<path>
+				<dirset dir="${src.plugin.dir}">
+					<include name="*"/>
+				</dirset>
+			</path>
+		</foreach>
+		<copy todir="${classes.dir}">
+			<fileset dir="${src.dir}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<copy todir="${classes.dir}">
+			<fileset dir="${config.dir}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<copy todir="${classes.dir}">
+			<fileset dir="${database.dir}">
+			</fileset>
+		</copy>
+		<copy todir="${classes.dir}">
+			<fileset dir="${taskJob.dir}">
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="compilePlugin" >
+		<echo message="compile -> ${plugin.name}"/>
+		<script language="javascript">
+		    propname = project.getProperty("plugin.name");
+		    project.setProperty("pluginFolerName", propname.substring(propname.lastIndexOf(java.io.File.separator)+1));
+		</script>
+		<delete dir="target/bin/${pluginFolerName}" quiet="true" />
+		<mkdir dir="target/bin/${pluginFolerName}" />
+		<javac destdir="target/bin/${pluginFolerName}" srcdir="${plugin.name}" classpath="${classes.dir}" encoding="UTF-8" fork="true" memorymaximumsize="256m">
+			<classpath refid="build.lib" />
+			<classpath refid="runtime.lib" />
+		</javac>
+		<copy todir="target/bin/${pluginFolerName}">
+			<fileset dir="${plugin.name}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<xmlproperty file="${plugin.name}/${pluginFolerName}-tq-plugin.xml"/>
+		<jar destfile="target/dist/com.tianque-${pluginFolerName}-${plugin.version}.jar" basedir="target/bin/${pluginFolerName}">
+		</jar>
+		<copy todir="${classes.dir}">
+			<fileset dir="target/bin/${pluginFolerName}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<jar destfile="target/dist/com.tianque-${pluginFolerName}-${plugin.version}-source.jar" basedir="${plugin.name}">
+		</jar>
+	</target>
+
+	<target name="build" depends="clean,compile" />
+
+	<!--初始化应用-->
+	<target name="initApp" depends="">
+		<java  fork="true" classname="com.tianque.init.AppInitialization"  maxmemory="512m" classpath="${classes.dir}" classpathref="all.lib">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<jvmarg value="-XX:MaxPermSize=512m" />
+			<arg value="development" />
+		</java>
+	</target>
+
+	<!--数据迁移-->
+	<target name="moveDataApp" depends="">
+		<java  fork="true" classname="com.tianque.init.MoveDatasInitialization"  maxmemory="256m" classpath="${classes.dir}" classpathref="all.lib">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<jvmarg value="-XX:MaxPermSize=512m" />
+			<arg value="development" />
+		</java>
+	</target>
+
+	<!--重点场所数据迁移-->
+	<target name="moveCompanyPlaceDataApp" depends="">
+		<java  fork="true" classname="com.tianque.init.MoveCompanyPlaceDatasInitialization"  maxmemory="256m" classpath="${classes.dir}" classpathref="all.lib">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<jvmarg value="-XX:MaxPermSize=512m" />
+			<arg value="development" />
+		</java>
+	</target>
+
+	<!--重点场所数据迁移二次 7月19日后的数据-->
+	<target name="moveCompanyPlaceDataTwoApp" depends="">
+		<java  fork="true" classname="com.tianque.init.MoveCompanyPlaceDatasTwoInitialization"  maxmemory="256m" classpath="${classes.dir}" classpathref="all.lib">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<jvmarg value="-XX:MaxPermSize=512m" />
+			<arg value="development" />
+		</java>
+	</target>
+
+	<target name="systemOperateLogToHbase" depends="">
+		<java  fork="true" classname="com.tianque.systemOperateLog.util.SystemOperateLogToHbase"  maxmemory="256m" classpath="${classes.dir}" classpathref="all.lib">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<jvmarg value="-XX:MaxPermSize=512m" />
+			<arg value="${env}" />
+		</java>
+	</target>
+
+	<target name="deploy" depends="startJetty"/>
+
+	<target name="stopJetty" >
+		<java classname="com.tianque.JettyStop"  classpath="${classes.dir}" classpathref="all.lib" fork="true"/>
+	</target>
+
+	<target name="startJetty" >
+		<java classname="com.tianque.Jetty"  spawn="true" classpath="${classes.dir}" classpathref="all.lib" fork="true">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<jvmarg value="-Xms256m" />
+			<jvmarg value="-Xmx4096m" />
+			<jvmarg value="-XX:MaxPermSize=512M" />
+		</java>
+	</target>
+
+	<target name="runUiTest" depends="stopJetty,initApp,startJetty">
+		<sleep seconds="30"/>
+		<copy todir="../product-ui-test">
+			<fileset dir="./">
+			</fileset>
+		</copy>
+		<ant antfile="../product-ui-test/build.xml" target="ci.testUi">
+		</ant>
+	</target>
+
+	<target name="installJetty" >
+		<java classname="com.tianque.InstallJetty"  spawn="true" classpath="${classes.dir}" classpathref="all.lib" fork="true">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<arg value="${env}"/>
+		</java>
+	</target>
+
+	<!-- 压缩js文件 -->
+	<target name="js.compress">
+		<propertyfile file="${config.dir}/grid.properties">
+			<entry key="tianqueGridJsVersion"  value="0"/>
+		</propertyfile>
+		<delete dir="${web.dir}/resource/js/widget" includes="tianqueGrid*.js">
+		</delete>
+		<delete dir="${web.dir}/resource/js/widget" includes="*-min.js">
+		</delete>
+		<apply executable="java" parallel="false" failonerror="true">
+			<fileset dir="${web.dir}/resource/js/widget" includes="*.js" />
+			<arg line="-jar" />
+			<arg path="lib/yuicompressor-2.4.2.jar" />
+			<arg line="--charset utf-8" />
+			<srcfile />
+			<arg line="-o" />
+			<mapper type="glob" from="*.js" to="${web.dir}/resource/js/widget/*-min.js" />
+			<targetfile />
+		</apply>
+		<property file="${config.dir}/grid.properties">
+		</property>
+		<concat destfile="${web.dir}/resource/js/widget/tianqueGrid-${tianqueGridJsVersion}.js" encoding="utf-8" append="false" >
+			<path>
+				<fileset dir="${web.dir}/resource/js/widget" includes="*-min.js" />
+			</path>
+		</concat>
+		<delete dir="${web.dir}/resource/js/widget" includes="*-min.js">
+		</delete>
+	</target>
+
+	<!-- ci编译源代码 -->
+	<target name="ci.compile" depends="clean,check">
+		<delete dir="${instr.classes.dir}" quiet="true" />
+		<mkdir dir="${instr.classes.dir}" />
+		<javac destdir="${instr.classes.dir}"  debug="true" srcdir="${src.dir}:${config.dir}:${core.dir}" encoding="UTF-8" fork="true" memorymaximumsize="256m">
+			<classpath refid="build.lib" />
+			<classpath refid="runtime.lib" />
+		</javac>
+
+		<emma enabled="true">
+			<instr instrpathref="instr.classes.dir" destdir="${classes.dir}" metadatafile="${coverage.dir}/metadata.emma" merge="false">
+			</instr>
+		</emma>
+
+		<javac destdir="${classes.dir}"   debug="true" srcdir="${src.dir}:${config.dir}:${test.dir}:${test.resource.dir}:${core.dir}" encoding="UTF-8">
+			<classpath location="${instr.classes.dir}" />
+			<classpath refid="build.lib" />
+			<classpath refid="runtime.lib" />
+		</javac>
+		<copy todir="${classes.dir}">
+			<fileset dir="${src.dir}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<copy todir="${classes.dir}">
+			<fileset dir="${config.dir}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<copy todir="${classes.dir}">
+			<fileset dir="${test.resource.dir}">
+				<exclude name="**/*.java" />
+				<exclude name="**/unitils-local.properties" />
+			</fileset>
+		</copy>
+	</target>
+
+
+	<!-- 执行单元测试-->
+	<target name="ci.test" depends="ci.compile">
+		<junit printsummary="yes" fork="true"  haltonerror="true" haltonfailure="true" >
+			<jvmarg value="-Dfile.encoding=utf-8"/>
+			<jvmarg value="-Demma.coverage.out.file=${basedir}/${coverage.dir}/coverage.emma" />
+			<jvmarg value="-Demma.coverage.out.merge=true" />
+			<jvmarg value="-Djava.compiler=NONE"/>
+			<jvmarg value="-Xms64m" />
+			<jvmarg value="-Xmx1024m" />
+			<jvmarg value="-XX:MaxPermSize=512M" />
+
+			<classpath location="${classes.dir}" />
+			<classpath location="${instr.classes.dir}" />
+			<classpath refid="all.lib" />
+
+			<formatter type="xml" />
+			<!-- 执行所有以Test结尾的junit测试用例-->
+			<batchtest todir="${junit.report}">
+				<fileset dir="${classes.dir}">
+					<!-- 
+					<include name="**/DaoTestSuit.class" />
+						<include name="**/dao/*DaoTest.class" /> 
+					<include name="**/common/util/*Test.class" />
+					-->
+					<include name="**/*Test.class" />
+					<exclude name="**/*TestSuit.class" />
+					<exclude name="**/Base*Test.class" />
+				</fileset>
+			</batchtest>
+		</junit>
+		<delete dir="${instr.classes.dir}" quiet="true" />
+	</target>
+
+	<!-- 生成junit测试报告-->
+	<target name="ci.junit.report">
+		<junitreport todir="${junit.report}">
+			<fileset dir="${junit.report}">
+				<include name="*" />
+			</fileset>
+			<report format="frames" todir="${junit.report}" />
+		</junitreport>
+	</target>
+
+
+
+
+	<!-- 生成代码覆盖率报告-->
+	<target name="ci.coverage.report">
+		<emma enabled="true">
+			<report sourcepath="${src.dir}">
+				<fileset dir="${coverage.dir}">
+					<include name="*.emma" />
+				</fileset>
+				<xml outfile="${coverage.report}/coverage.xml" />
+				<html outfile="${coverage.report}/coverage.html" />
+			</report>
+		</emma>
+	</target>
+
+
+	<target name="ci.testUi">
+		<junit printsummary="yes"  fork="yes" haltonerror="true" clonevm="true" haltonfailure="true">
+			<jvmarg value="-Dfile.encoding=UTF-8"/>
+			<jvmarg value="-Djava.compiler=NONE"/>
+			<jvmarg value="-Xms256m" />
+			<jvmarg value="-Xmx1024m" />
+			<jvmarg value="-XX:MaxPermSize=256M" />
+
+			<classpath location="${classes.dir}" />
+			<classpath location="${instr.classes.dir}" />
+			<classpath refid="all.lib" />
+
+			<formatter type="xml" />
+			<!-- 执行所有以Test结尾的junit测试用例-->
+			<batchtest todir="${junit.report}">
+				<fileset dir="${classes.dir}">
+					<!-- 
+					<include name="**/DaoTestSuit.class" />
+					-->
+					<include name="**/test/tianque/ui/*/*.class" />
+				</fileset>
+			</batchtest>
+		</junit>
+		<delete dir="${instr.classes.dir}" quiet="true" />
+	</target>
+
+	<target name="ci" depends="ci.test,ci.junit.report,ci.coverage.report"/>
+</project>
+

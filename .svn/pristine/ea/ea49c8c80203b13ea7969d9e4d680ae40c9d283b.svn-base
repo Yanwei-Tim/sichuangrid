@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="basicYearInfo">
+	<typeAlias alias="BasicYearInfo"
+		type="com.tianque.newVillage.domain.BasicYearInfo" />
+
+	<resultMap id="basicYearInfoResult" class="BasicYearInfo">
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgInternalCode" />
+		<result property="newVillageBasic.id" column="basicInfoID" />
+
+		<result property="totalArea" column="totalArea" />
+		<result property="cultivatedLandArea" column="cultivatedLandArea" />
+		<result column="woodlandArea" property="woodlandArea" />
+		<result property="wastelandArea" column="wastelandArea" />
+		<result column="landTransfer" property="landTransfer" />
+		<result column="totalHouseholdsNum" property="totalHouseholdsNum" />
+		<result column="totalPeopleNum" property="totalPeopleNum" />
+		<result column="outWorkNum" property="outWorkNum" />
+		
+		<result column="collectiveFunds" property="collectiveFunds" />
+		<result column="collectiveAssets" property="collectiveAssets" />
+		<result column="assetsDescribe" property="assetsDescribe" />
+
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+
+	<insert id="addBasicYearInfo" parameterClass="BasicYearInfo">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_BASICYEARINFO.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		INSERT INTO BASICYEARINFO (ID, ORGID, ORGINTERNALCODE, BASICINFOID,
+		TOTALAREA, CULTIVATEDLANDAREA,
+		WOODLANDAREA,WASTELANDAREA,LANDTRANSFER,TOTALHOUSEHOLDSNUM,TOTALPEOPLENUM,OUTWORKNUM,
+		collectiveFunds,collectiveAssets,assetsDescribe,
+		CREATEUSER,CREATEDATE, UPDATEDATE, UPDATEUSER)VALUES(
+		#id#,#organization.id#,#organization.orgInternalCode#,#newVillageBasic.id#,
+		#totalArea#, #cultivatedLandArea#,
+		#woodlandArea#,#wastelandArea#,#landTransfer#,#totalHouseholdsNum#,#totalPeopleNum#,#outWorkNum#,
+		#collectiveFunds#,#collectiveAssets#,#assetsDescribe#,
+		#createUser#,
+		#createDate#, #updateDate#, #updateUser#)
+	</insert>
+	<update id="updateBasicYearInfo" parameterClass="BasicYearInfo">
+		UPDATE BASICYEARINFO SET UPDATEDATE = #updateDate#
+		<isNotNull prepend="," property="updateUser">
+			updateUser = #updateUser#,
+		</isNotNull>
+		totalArea=#totalArea#,
+		cultivatedLandArea=#cultivatedLandArea#,
+		woodlandArea=#woodlandArea#,
+		wastelandArea=#wastelandArea#,
+		landTransfer=#landTransfer#,
+		totalHouseholdsNum=#totalHouseholdsNum#,
+		totalPeopleNum=#totalPeopleNum#,
+		outWorkNum=#outWorkNum#,
+		collectiveFunds=#collectiveFunds#,
+		collectiveAssets=#collectiveAssets#,
+		assetsDescribe=#assetsDescribe#
+		WHERE ID=#id#
+	</update>
+
+
+	<delete id="deleteBasicYearInfo">
+		delete from BASICYEARINFO where
+		<iterate conjunction="," open="id in (" close=")">
+			#[]#
+		</iterate>
+	</delete>
+	<select id="getBasicYearInfo" parameterClass="java.lang.Long"
+		resultMap="basicYearInfoResult">
+		<![CDATA[SELECT * FROM BASICYEARINFO WHERE ID = #value#]]>
+	</select>
+
+	<select id="getBasicYearInfoByBasicId" parameterClass="java.util.Map"
+		resultMap="basicYearInfoResult">
+		select * from BASICYEARINFO where BASICINFOID=#basicId#
+	</select>
+
+	<select id="getBasicYearInfoByYearAndOrgId" parameterClass="java.util.Map"
+		resultMap="basicYearInfoResult">
+		select b.* from BASICYEARINFO b
+		JOIN (select * from NEWVILLAGEBASIC where YEAR=#year# and ORGID=#orgId# and isPlaning=0) n ON b.BASICINFOID=n.id
+	</select>
+
+</sqlMap>

@@ -1,0 +1,66 @@
+package com.tianque.mobile.mobileDictionary.dao.impl;
+
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.core.util.StringUtil;
+import com.tianque.mobile.mobileDictionary.dao.MobileDictionaryDao;
+import com.tianque.mobile.mobileDictionary.domain.MobileDictionary;
+import com.tianque.mobile.mobileDictionary.domain.vo.MobileDictionaryVo;
+
+@Repository("mobileDictionaryDao")
+public class MobileDictionaryDaoImpl extends AbstractBaseDao implements
+		MobileDictionaryDao {
+
+	@Override
+	public Integer countMobileDictionary() throws Exception {
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"mobileDictionary.countMobileDictionary");
+	}
+
+	@Override
+	public List<MobileDictionary> findMobileDictionaryLists() throws Exception {
+		return getSqlMapClientTemplate().queryForList(
+				"mobileDictionary.findMobileDictionary");
+	}
+
+	@Override
+	public void addMobileDictionary(MobileDictionary mobileDictionary)
+			throws Exception {
+		if (!StringUtil.isStringAvaliable(mobileDictionary.getCreateUser())) {
+			mobileDictionary.setCreateUser("admin");
+		}
+		if (mobileDictionary.getCreateDate() == null) {
+			mobileDictionary.setCreateDate(new Date());
+		}
+
+		getSqlMapClientTemplate().insert(
+				"mobileDictionary.addMobileDictionary", mobileDictionary);
+	}
+
+	@Override
+	public void updateMobileDictionary(MobileDictionary mobileDictionary)
+			throws Exception {
+		if (mobileDictionary != null
+				&& !StringUtil.isStringAvaliable(mobileDictionary
+						.getUpdateUser())) {
+			mobileDictionary.setUpdateUser("admin");
+		}
+		if (mobileDictionary != null
+				&& mobileDictionary.getUpdateDate() == null) {
+			mobileDictionary.setUpdateDate(new Date());
+		}
+
+		getSqlMapClientTemplate().update(
+				"mobileDictionary.updateMobileDictionary", mobileDictionary);
+	}
+
+	@Override
+	public List<MobileDictionaryVo> findAllDictsForList() {
+		return getSqlMapClientTemplate().queryForList(
+				"mobileDictionary.findAllDictsForList");
+	}
+}

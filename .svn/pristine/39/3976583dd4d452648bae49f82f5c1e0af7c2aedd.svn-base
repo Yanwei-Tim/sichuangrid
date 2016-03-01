@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd 
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx-2.5.xsd 
+	http://www.springframework.org/schema/jee 
+	http://www.springframework.org/schema/jee/spring-jee-2.5.xsd 
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-2.5.xsd"
+	>
+	
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:jdbc.properties</value>
+				<value>classpath*:grid.properties</value>
+				<value>classpath*:hbaseJdbc.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="dataSource" class="org.unitils.database.UnitilsDataSourceFactoryBean" /> 	
+	
+	<context:component-scan base-package="com.tianque" />
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+	
+	<!-- Spring提供的iBatis的SqlMap配置-->
+	<bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		 <property name="configLocations">   
+                <list>   
+                        <value>classpath:/SqlMapConfig.xml</value>
+                        <value>classpath:/config/plugin/*_SqlMapConfig.xml</value>
+                        
+                </list>    
+        </property>
+		<property name="mappingLocations">
+			<list>
+				<value>classpath*:/sqlmaps/*.xml</value>
+				<value>classpath*:/sqlmaps/searchs/*.xml</value>
+				<value>classpath*:/sqlmaps/issue/*.xml</value>
+				<value>classpath*:/sqlmaps/temps/*.xml</value>
+				<value>classpath*:/sqlmaps/after/*.xml</value>
+				<value>classpath*:/config/sqlmaps/*.xml</value>
+				<value>classpath*:/sqlmaps/openLayersMap/*.xml</value>
+				<value>classpath*:/sqlmaps/sms/*.xml</value>
+			</list>
+		</property>
+		<property name="dataSource" ref="dataSource" />
+		<property name="lobHandler" ref="lobHandler" />
+	</bean>
+
+<!-- Spring提供的iBatis的大字段处理-->
+	<bean id="lobHandler" class="org.springframework.jdbc.support.lob.DefaultLobHandler" />
+
+
+	<bean name="memcachedClient" class="net.rubyeye.xmemcached.utils.XMemcachedClientFactoryBean" destroy-method="shutdown" >
+        <property name="servers" value="${test.memcached.servers}"></property>
+        <property name="commandFactory">
+           <bean class="net.rubyeye.xmemcached.command.BinaryCommandFactory"></bean>
+        </property>
+        <property name="sessionLocator">
+                <bean class="net.rubyeye.xmemcached.impl.KetamaMemcachedSessionLocator"></bean>
+        </property>
+   </bean>
+   
+   <bean id="memCachedManage" class="com.tianque.core.cache.util.MemCachedManage" init-method="init" scope="singleton">
+   		<property name="servers" value="${test.memcached.servers}"></property>
+   </bean>
+   
+   <bean class="com.tianque.core.util.GlobalValue">
+   		<property name="environment" value="test"></property>
+   </bean>
+   
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource"><ref bean="dataSource"/></property>
+    </bean>	
+     <bean id="schedulerFactoryBean"	class="org.springframework.scheduling.quartz.SchedulerFactoryBean" lazy-init="false">
+		<property name="applicationContextSchedulerContextKey" value="applicationContext" />
+	</bean>
+	
+	 <bean id="dataSourceHbase"
+		class="com.tianque.hbase.HbaseDataSource" >
+		<property name="driverName" value="${hbase.driverClassName}" />
+		<property name="jdbcUrl" value="${hbse.url}" />
+	 </bean>
+	 
+	  <!-- Spring提供的hbase的iBatis的SqlMap配置-->
+	<bean id="sqlMapClientHbase" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		 <property name="configLocations">   
+                <list>   
+                         <value>classpath:/SqlMapConfig.xml</value>
+                </list>    
+        </property>
+		<property name="mappingLocations">
+			<list>
+				<value>classpath*:/sqlmaps/hbase/*.xml</value>
+			</list>
+		</property>
+		<property name="dataSource" ref="dataSourceHbase" />
+		<property name="lobHandler" ref="lobHandler" />
+	</bean>
+	
+	<!--ibatis 字节码编程-->
+    <bean id="nativeQueryForOracle" class="org.oproject.framework.orm.ibatis.query.OracleNativeQuery"/>
+	<!-- 自定义SQL执行器-->
+	<bean id="customizedSQLExecutor" class="org.oproject.framework.orm.ibatis.CustomizedSQLExecutor" init-method="init" lazy-init="false">
+	   <property name="nativeQuery" ref="nativeQueryForOracle" />
+	   <property name="sqlMapClient" ref="sqlMapClient"/>
+	</bean>  
+    
+    <bean id="sqlMapClientTemplate" class="org.springframework.orm.ibatis.SqlMapClientTemplate">
+    	<property name="sqlMapClient" ref="sqlMapClient"></property>
+    </bean>
+    
+    <bean class="org.oproject.framework.orm.ibatis.bytecode.codegenerator.method.impl.InsertHandler"/>
+    <bean class="org.oproject.framework.orm.ibatis.bytecode.codegenerator.method.impl.UpdateHandler"/>
+    <bean class="org.oproject.framework.orm.ibatis.bytecode.codegenerator.method.impl.DeleteHandle"/>
+    <bean class="org.oproject.framework.orm.ibatis.bytecode.codegenerator.method.impl.BatchInsertHandle"/>
+    <bean class="org.oproject.framework.orm.ibatis.bytecode.codegenerator.method.impl.BatchUpdateHandle"/>
+    <bean class="org.oproject.framework.orm.ibatis.bytecode.codegenerator.method.impl.BatchDeleteHandle"/>
+    <bean class="org.oproject.framework.orm.ibatis.bytecode.codegenerator.method.impl.QueryForObjectHandle"/>
+    <bean class="org.oproject.framework.orm.ibatis.bytecode.codegenerator.method.impl.QueryForListHandle"/>
+    <bean class="org.oproject.framework.orm.ibatis.bytecode.codegenerator.method.impl.QueryForPageResultHandle"/>
+    
+    <!--配置启动后，扫描@DynamicIbatisDAO原注解-->
+    <bean class="org.oproject.framework.orm.ibatis.config.DynamicIbatisBeanFactoryPostProcessor">
+    	<property name="scanPath">
+    		<list>
+    			<value>com.tianque.**.dao</value>
+    		</list>
+    	</property>
+    </bean>
+   
+
+	<bean id="defaultIssueListeners" class="java.util.ArrayList">
+   		<constructor-arg>
+   			<list>
+   				<ref bean="adjustCurrentStepAndOrg"/>
+   				<ref bean="savingOperationLog"/>
+   				<ref bean="appendToWorkDaily"/>
+   				<ref bean="sendPlatformMessage"/>
+   				<ref bean="sendSmsMessage"/>
+   				<ref bean="scoreForOrganization"/>
+   				<ref bean="deleteTopIssue"/>
+   				<ref bean="eventSourceStatChange"/>
+   			</list>
+   		</constructor-arg>
+   </bean>
+   <bean id="defaultFourTeamsIssueListeners" class="java.util.ArrayList">
+   		<constructor-arg>
+   			<list>
+   				<ref bean="fourTeamsAdjustCurrentStepAndOrg"/>
+   				<ref bean="fourTeamsSavingOperationLog"/>
+   				<ref bean="fourTeamsAppendToWorkDaily"/>
+   				<ref bean="fourTeamsSendPlatformMessage"/>
+   				<ref bean="fourTeamsSendSmsMessage"/>
+   				<ref bean="fourTeamsScoreForOrganization"/>
+   				<ref bean="fourTeamsDeleteTopIssue"/>
+   				<ref bean="fourTeamsEventSourceStatChange"/>
+   			</list>
+   		</constructor-arg>
+   </bean>
+   
+   <bean id="SpringBeanUtil " class="com.tianque.core.util.SpringBeanUtil " scope="singleton" lazy-init="false"/>
+
+    <import resource="applicationContext-user-local.xml"/>
+</beans>

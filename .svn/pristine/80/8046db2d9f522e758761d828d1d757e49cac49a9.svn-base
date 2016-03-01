@@ -1,0 +1,25 @@
+package com.tianque.plugin.weChat.dao;
+
+import java.util.List;
+import java.util.Map;
+
+import com.tianque.core.vo.PageInfo;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+
+public interface TencentUserDao {
+
+	public PageInfo getTencentUserList(Map<String, Object> parameterMap, Integer pageNum,
+			Integer pageSize);
+
+	Long addTencentUser(TencentUser tencentUser);
+
+	TencentUser getTencentUserByTencentUserId(Long tencentUserId);
+
+	void deleteTencentUserById(Long id);
+
+	TencentUser getTencentUserByWeChatUserId(String weChatUserId);
+
+	/**根据组织机构获取微信公众账号列表*/
+	public List<TencentUser> getTencentUserListByOrgId(Long orgId);
+
+}

@@ -1,0 +1,77 @@
+<#assign pop=JspTaglibs["/WEB-INF/taglib/pop-taglib.tld"]>
+<#assign s=JspTaglibs["/WEB-INF/taglib/struts-tags.tld"]>
+<@s.include value="/includes/baseInclude.jsp"/> 
+<table class="tablelist">
+	<tr>
+		 <td class="title"><label>姓名</label></td>
+		 <td class="content" colspan="3"><span>${(druggyTask.name)!}</span></td>
+	</tr>
+	
+	<tr>
+		 <td class="title"><label>生活来源方式</label></td>
+		 <td class="content" colspan="3"><span><@pop.PropertyDictViewTag name="@com.tianque.domain.property.PropertyTypes@DRUGGY_LIFE_RESOURCE" defaultValue="${(druggyTask.lifeResource.id)!}" /></span></td>
+	</tr>
+	<tr>
+		 <td class="title"><label>异常详情</label></td>
+		 <td class="content" colspan="3"><span>${(druggyTask.exception)!}</span></td>
+	</tr>
+	<tr>
+		 <td class="title"><label>时间</label></td>
+		 <td class="content" colspan="3"><span><@s.date name="druggyTask.time" format="yyyy-MM-dd HH:mm:ss" /></span></td>
+	</tr>
+	<tr>
+		 <td class="title"><label>地点</label></td>
+		 <td class="content" colspan="3"><span>${(druggyTask.place)!}</span></td>
+	</tr>
+	<tr>
+		 <td class="title"><label>家属联系电话</label></td>
+		 <td class="content" colspan="3"><span>${(druggyTask.familyTel)!}</span></td>
+	</tr>
+	<tr>
+		 <td class="title"><label>网格员联系电话</label></td>
+		 <td class="content" colspan="3"><span>${(druggyTask.reporterTel)!}</span></td>
+	</tr>
+	<tr>
+		 <td class="title"><label>所属网格</label></td>
+		 <td class="content" colspan="3"><span>${(druggyTask.organization.fullOrgName)!}</span></td>
+	</tr>
+	<tr>
+		 <td class="title"><label>备注</label></td>
+		 <td class="content" colspan="3"><span>${(druggyTask.remark)!}</span></td>
+	</tr>
+	
+	<#if druggyTask.status == 1>
+	<tr>
+		 <td class="title"><label>签收人</label></td>
+		 <td class="content" colspan="3"><span>${(druggyTask.signMemberName)!}</span></td>
+	</tr>
+	<tr>
+		 <td class="title"><label>签收时间</label></td>
+		 <td class="content" colspan="3"><span><@s.date name="druggyTask.signDate" format="yyyy-MM-dd HH:mm:ss" /></span></td>
+	</tr>
+	<tr>
+		 <td class="title"><label>签收意见</label></td>
+		 <td class="content" colspan="3"><span>${(druggyTask.attitude)!}</span></td>
+	</tr>
+	</#if>
+	<tr id="fatesonid">
+		<td class="title"><label>附件上传</label></td>
+		<td class="content" colspan="3">
+		    <div id="custom-queue"></div>
+		</td>
+	</tr>
+</table>
+<script type="text/javascript">
+	$(document).ready(function(){
+	var  fileNames="";
+	    <@s.if test="druggyTask.annexFiles!=null && druggyTask.annexFiles.size > 0">
+				<@s.iterator value="druggyTask.annexFiles" var="att">
+				 fileNames += "<a href='${path}/plugin/taskListManage/common/downLoadAttachFile.action?attachFileId=${(att.id)!}'>${(att.fileName)!}</a><br/>";
+				</@s.iterator>
+			</@s.if>
+			<@s.else>
+			$("#fatesonid").hide();  
+			</@s.else>
+	$("#custom-queue").html(fileNames);		
+	});
+</script>

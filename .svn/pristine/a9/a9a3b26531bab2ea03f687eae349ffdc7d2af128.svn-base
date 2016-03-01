@@ -1,0 +1,358 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib"%>
+<%@ taglib uri="/struts-tags" prefix="s"%>
+<%@ include file="/includes/baseInclude.jsp"%>
+<jsp:include page="/baseinfo/commonPopulation/jsFunctionInclude.jsp">
+	<jsp:param value="HouseholdStaff" name="moduleName"/>
+</jsp:include>
+<script type="text/javascript">
+var dialogWidth=800;
+var dialogHeight=600;
+<pop:formatterProperty name="career" domainName="@com.tianque.domain.property.PropertyTypes@CAREER"  />
+<pop:formatterProperty name="gender" domainName="@com.tianque.domain.property.PropertyTypes@GENDER" />
+<pop:formatterProperty name="schooling" domainName="@com.tianque.domain.property.PropertyTypes@SCHOOLING" />
+<pop:formatterProperty name="politicalBackground" domainName="@com.tianque.domain.property.PropertyTypes@POLITICAL_BACKGROUND" />
+<pop:formatterProperty name="maritalState" domainName="@com.tianque.domain.property.PropertyTypes@MARITAL_STATUS" />
+<pop:formatterProperty name="residenceType" domainName="@com.tianque.domain.property.PropertyTypes@RESIDENCE_TYPE" />
+<pop:formatterProperty name="bloodType" domainName="@com.tianque.domain.property.PropertyTypes@BLOOD_TYPE" />
+<pop:formatterProperty name="nation" domainName="@com.tianque.domain.property.PropertyTypes@NATION" />
+<pop:formatterProperty name="faith" domainName="@com.tianque.domain.property.PropertyTypes@FAITH" />
+<pop:formatterProperty name="relationShipWithHead" domainName="@com.tianque.domain.property.PropertyTypes@RELATION_SHIP_WITH_HEAD" />
+<pop:formatterProperty name="outReasons" domainName="@com.tianque.domain.property.PropertyTypes@OUT_REASON" />
+
+var token = "<s:property value='@com.tianque.core.util.CreateTokenUtil@getToken()'/>";
+
+var notExecute=new Array();
+var org=getCurrentOrgId();
+var isgridBol = false;
+var title=$("#title").html();
+function deleteOperator(event,value){
+	var encryptIds = deleteOperatorByEncrypt("householdStaff",value,"encryptId");
+	$.confirm({
+		title:"确认删除",
+		message:"确定要删除吗?一经删除将无法恢复",
+		okFunc: function() {
+			$.ajax({
+				async:false,
+				url:PATH+"/baseinfo/householdStaff/getActualPopulationHasTypes.action",
+				type:"post",
+				data:{
+					"population.id":encryptIds
+				},
+				success:function(data){
+					if(data == true){
+						$.confirm({
+							title:"确认删除",
+							message:"有关联数据，是否确认删除？",
+							okFunc: function() {
+								deletePopulationById(value);
+							}
+						});
+					}else{
+						deletePopulationById(value);
+					}
+				}
+			});
+		}
+	});
+	var evt = event || window.event;
+	if(typeof evt!="object"){return false;}
+	if (window.event) { 
+	evt.cancelBubble=true; 
+	} else { 
+	evt.stopPropagation(); 
+	} 
+}
+function deletePopulationById(value) {
+	var encryptIds = deleteOperatorByEncrypt("householdStaff",value,"encryptId");
+	$.dialogLoading("open");
+	$.ajax({
+		url:PATH+"/baseinfo/householdStaff/deleteHouseholdStaff.action",
+		type:"post",
+		data:{
+			"struts.token":token,
+			"householdStaffVo.idStr":encryptIds
+		},
+		success:function(data){
+			$.dialogLoading("close");
+			if(data == true){
+				try{for(var ids=0;ids<value.toString().split(',').length;ids++){
+					$("#$householdStaffList").delRowData(value.toString().split(',')[ids]);
+				}}catch(e){}
+				$("#householdStaffList").trigger("reloadGrid");
+			    disableButtons();
+			    checkExport();
+			    $.messageBox({message:"已经成功删除该"+title+"信息!"});
+			}else{
+				$.messageBox({
+					message:data,
+					level: "error"
+				});
+			}
+		}
+	});
+}
+
+function updateOperator(event,selectedId){
+	var ent =  $("#householdStaffList").getRowData(selectedId);
+	if(ent.death==true || ent.death=='true'){
+		$.messageBox({level : 'warn',message:"该"+title+"信息已经是死亡状态，不能修改!"});
+		 return;
+	}
+	if(ent.logOut==1||ent.logOut=='1'){
+		 $.messageBox({level : 'warn',message:"该"+title+"信息已经注销，不能修改!"});
+		 return;
+	}
+	$("#householdStaffPopulationDialog").createTabDialog({
+		title:"修改户籍人口",
+		width: 810,
+		height: dialogHeight,
+		postData:{
+			id : ent.encryptId,
+			mode:'edit',
+			imageType:"population",
+			type:"householdStaff"
+		},
+		tabs:[
+			{title:'基本信息',url:'/baseinfo/householdStaff/dispathByEncrypt.action?mode=edit&dailogName=householdStaffPopulationDialog&actionName=householdStaffBaseInfo&population.id='+ent.encryptId},
+			//{title:'住房信息',url:'/baseinfo/houseInfoForPopulation/dispathHouseInfoForPopulation.action?dailogName=householdStaffPopulationDialog'},
+			{title:'户籍信息',url:'/baseinfo/householdStaff/dispathInHouseholdStaffInfomation.action?mode=edit&dailogName=householdStaffPopulationDialog'}
+			<pop:JugePermissionTag ename="groupFamilyInfo">
+			,{title:'家庭信息',url:'/baseinfo/familyInfo/getGroupFamilyByPopulationId.action?mode=edit&dailogName=householdStaffPopulationDialog&populationType=<s:property value="@com.tianque.service.util.PopulationType@HOUSEHOLD_STAFF"/>'}
+			</pop:JugePermissionTag>
+			/**
+			<pop:GlobalSettingTag key="@com.tianque.core.globalSetting.util.GlobalSetting@CAN_MAINTAIN_BUSINESS_POPULATION" value="true">
+			,{title:'业务信息',url:'/baseinfo/commonPopulation/populationSpecializedInfo.jsp?mode=edit&dailogName=householdStaffPopulationDialog&populationType=<s:property value="@com.tianque.service.util.PopulationType@HOUSEHOLD_STAFF"/>'}
+			</pop:GlobalSettingTag>
+			*/
+		],
+		close : function(){
+			$("#householdStaffList").trigger("reloadGrid");
+		}
+	});
+	var evt = event || window.event;
+	if(typeof evt!="object"){return false;}
+	if (window.event) { 
+	evt.cancelBubble=true; 
+	} else { 
+	evt.stopPropagation(); 
+	} 
+}
+
+function viewDialog(event,rowid){
+	if(rowid==null){
+ 		return;
+	}
+	var houseStaff =  $("#householdStaffList").getRowData(rowid);
+	$("#householdStaffPopulationDialog").createDialog({
+		width: 800,
+		height: 600,
+		title:'查看'+title+'信息',
+		modal : true,
+		url:PATH+'/baseinfo/householdStaff/dispathByEncrypt.action?mode=view&id='+houseStaff.encryptId,
+		buttons: {
+			"打印" : function(){
+				printChoose(houseStaff.id);
+	  	   	},
+		   "关闭" : function(){
+		        $(this).dialog("close");
+		   }
+		}
+	});
+	var evt = event || window.event;
+	if(typeof evt!="object"){return false;}
+	if (window.event) { 
+	evt.cancelBubble=true; 
+	} else { 
+	evt.stopPropagation(); 
+	} 
+}
+
+function printChoose(rowid){
+	$("#printOptionsDialog").createDialog({
+		width: 300,
+		height: 200,
+		title:'选择打印内容',
+		modal : true,
+		url:PATH+'/baseinfo/commonPopulation/printTabChooseDlg.jsp',
+		buttons: {
+			"确定" : function(){
+				print(rowid);
+	   		},
+		   "关闭" : function(){	
+		        $(this).dialog("close");
+		   }
+		}
+	});
+}
+
+var printTitleStr='';
+function print(rowid){
+	printTitleStr=title;
+	if(rowid==null){
+ 		return;
+	}
+	var houseStaff =  $("#householdStaffList").getRowData(rowid);
+	$("#householdStaffPopulationDialog").createDialog({
+		width: dialogWidth,
+		height: dialogHeight,
+		title:'打印'+title+'信息',
+		modal : true,
+		url:PATH+'/baseinfo/householdStaff/dispathByEncrypt.action?mode=print&id='+houseStaff.encryptId,
+		buttons: {
+			  "打印" : function(){
+				$("#printSpaceDiv").printArea();
+	        	$(this).dialog("close");
+	   		},
+		   "关闭" : function(){
+		        $(this).dialog("close");
+		   }
+		}
+	});
+}
+function onOrgChanged(orgId,isgrid){
+	org=orgId;
+	isgridBol = isgrid;
+	var initParam = {
+		"orgId": orgId,
+		"householdStaffVo.logout":0,
+		"householdStaffVo.isDeath":0  //默认查 活人 fateson add
+	}
+	$("#householdStaffList").setGridParam({
+		url:PATH+'/baseinfo/householdStaff/findHouseholdStaffByOrgIdDefaultList.action',
+		datatype: "json",
+		page:1
+	});
+	$("#householdStaffList").setPostData(initParam);
+	$("#householdStaffList").trigger("reloadGrid");
+}
+function disableButtons(){
+}
+function checkExport(){
+}
+function callback(){
+    var dfop = {
+       	hasViewHouseholdStaff: '<pop:JugePermissionTag ename="viewHouseholdStaff">true</pop:JugePermissionTag>',
+       	templates:'<s:property value="@com.tianque.datatransfer.ImportTemplatesSetting@HOUSEHOLD_STAFF"/>',
+       	actualPopulationType:'<s:property value="@com.tianque.service.util.PopulationType@HOUSEHOLD_STAFF" />',
+        moduleCName:'${moduleCName}',
+        tabs:[
+				{title:'基本信息',url:'/baseinfo/householdStaff/dispath.action?mode=add&dailogName=householdStaffPopulationDialog&actionName=householdStaffBaseInfo'},
+				//{title:'住房信息',url:'/baseinfo/houseInfoForPopulation/dispathHouseInfoForPopulation.action?dailogName=householdStaffPopulationDialog'},
+				{title:'户籍信息',url:'/baseinfo/householdStaff/dispathInHouseholdStaffInfomation.action?mode=add&dailogName=householdStaffPopulationDialog'}
+				<pop:JugePermissionTag ename="groupFamilyInfo">
+				,{title:'家庭信息',url:'/baseinfo/familyInfo/getGroupFamilyByPopulationId.action?mode=add&dailogName=householdStaffPopulationDialog&populationType=<s:property value="@com.tianque.service.util.PopulationType@HOUSEHOLD_STAFF"/>'}
+				</pop:JugePermissionTag>
+				<pop:GlobalSettingTag key="@com.tianque.core.globalSetting.util.GlobalSetting@CAN_MAINTAIN_BUSINESS_POPULATION" value="true">
+				,{title:'业务信息',url:'/baseinfo/commonPopulation/populationSpecializedInfo.jsp?mode=add&dailogName=householdStaffPopulationDialog&populationType=<s:property value="@com.tianque.service.util.PopulationType@HOUSEHOLD_STAFF"/>'}
+				</pop:GlobalSettingTag>
+			]
+    }
+    TQ.household_list(dfop)
+}
+
+$.cacheScript({
+	url:'/resource/getScript/baseinfo/householdPopulation/householdStaffList.js',
+    callback: callback
+})
+
+</script>
+
+<div class="content">
+	<div class="ui-corner-all" id="nav">
+<div class="btnbanner btnbannerData">
+<jsp:include page="/common/orgSelectedComponent.jsp"/>
+
+	<div class="ui-widget autosearch">
+	    <input class="basic-input" type="text" value="请输入姓名或身份证号码" name="searchText" id="searchText" maxlength="18" class="searchtxt" onblur="value=(this.value=='')?'请输入姓名或身份证号码':this.value;" onfocus="value=(this.value=='请输入姓名或身份证号码')?'':this.value;"/>
+		<button id="refreshSearchKey" class="ui-icon ui-icon-refresh searchbtnico"></button>
+	</div>
+	<a href="javascript:;" id="fastSearchButton"><span>搜索</span></a>
+	<pop:JugePermissionTag ename="searchHouseholdStaff">
+		<a id="search" href="javascript:void(0)"><span><strong
+				class="ui-ico-cx"></strong>高级搜索</span></a>
+	</pop:JugePermissionTag>
+</div>
+
+        <span class="lineBetween "></span>
+		<pop:JugePermissionTag ename="addHouseholdStaff">
+			<a id="add" href="javascript:void(0)"><span><strong
+					class="ui-ico-xz"></strong>新增</span></a>
+		</pop:JugePermissionTag>
+<%-- 		<pop:JugePermissionTag ename="updateHouseholdStaff"> --%>
+<%-- 			<a id="update" href="javascript:void(0)"><span><strong --%>
+<%-- 					class="ui-ico-xg"></strong>修改</span></a> --%>
+<%-- 		</pop:JugePermissionTag> --%>
+<%-- 		<pop:JugePermissionTag ename="viewHouseholdStaff"> --%>
+<%-- 			<a id="view" href="javascript:void(0)"><span><strong --%>
+<%-- 					class="ui-ico-cakan"></strong>查看</span></a> --%>
+<%-- 		</pop:JugePermissionTag> --%>
+		<pop:JugePermissionTag ename="deleteHouseholdStaff">
+			<a id="delete" href="javascript:void(0)"><span><strong
+					class="ui-ico-sc"></strong>批量删除</span></a>
+		</pop:JugePermissionTag>
+		
+		<pop:JugePermissionTag ename="importHouseholdStaff,downHouseholdStaff">
+		<a href="javascript:;" class="nav-dropdownBtn"><span>导入|导出</span><b class="nav-dropdownBtn-arr"><b class="nav-ico-dArr"></b></b></a>
+		</pop:JugePermissionTag>
+		<div class="nav-sub-buttons">
+			<pop:JugePermissionTag ename="importHouseholdStaff">
+				<a id="import" href="javascript:void(0)"><span><strong
+						class="ui-ico-dr"></strong>Excel导入</span></a>
+			</pop:JugePermissionTag>
+			<pop:JugePermissionTag ename="downHouseholdStaff">
+				<a id="export" href="javascript:void(0)"><span><strong
+						class="ui-ico-dc"></strong>导出Excel</span></a>
+			</pop:JugePermissionTag>
+		</div>
+		<pop:JugePermissionTag ename="isLogOutHouseholdStaff,cancelLogOutHouseholdStaff,cancelDeathHouseholdStaff">
+	   		<a href="javascript:;" class="nav-dropdownBtn"><span>设置状态</span><b class="nav-dropdownBtn-arr"><b class="nav-ico-dArr"></b></b></a>
+	   	</pop:JugePermissionTag>
+		<div class="nav-sub-buttons">
+			<pop:JugePermissionTag ename="isLogOutHouseholdStaff">
+	   			<a id="isLogOut" href="javascript:void(0)"><span>注销</span></a>
+	   		</pop:JugePermissionTag>
+	   		<pop:JugePermissionTag ename="cancelLogOutHouseholdStaff">
+	   			<a id="cancelLogOut" href="javascript:void(0)"><span>取消注销</span></a>
+	   		</pop:JugePermissionTag>
+			<pop:JugePermissionTag ename="cancelDeathHouseholdStaff">
+	   			<a id="cancelDeath" href="javascript:void(0)"><span>取消死亡</span></a>
+	   		</pop:JugePermissionTag>
+   		</div>
+		<a id="reload" href="javascript:void(0)"><span><strong
+				class="ui-ico-refresh"></strong>刷新</span></a>
+		<pop:JugePermissionTag ename="toFloatingPopulation">
+			<a id="toFloatingPopulation" href="javascript:void(0)"><span>转为流动人口</span></a>
+		</pop:JugePermissionTag>
+		<pop:JugePermissionTag ename="transferHouseholdStaff">
+			<a id="transfer" href="javascript:void(0)"><span>转移</span></a>
+		</pop:JugePermissionTag>
+		<s:if test="@com.tianque.core.util.ThreadVariable@getUser().getUserName().equals('longzhendong')||
+		   @com.tianque.core.util.ThreadVariable@getUser().getUserName().equals('admin')">
+			<a id="updateIdCardNo" href="javascript:void(0)"><span>修改身份证号码</span></a>
+		</s:if>
+		<s:if test="@com.tianque.core.util.ThreadVariable@getUser().getUserName().equals('longzhendong')||
+		   @com.tianque.core.util.ThreadVariable@getUser().getUserName().equals('wulili')">
+		   <a id="testTime" href="javascript:void(0)"><span>测试</span></a>
+		   <!-- 
+		   <a id="moveToShardTable" href="javascript:void(0)"><span>增量迁移</span></a> -->
+		</s:if>	
+	</div>
+	<div style="width: 100%;" class="click_load">
+	    <a href="javascript:;" class="click_btn">点击加载数据</a>
+		<table id="householdStaffList"></table>
+		<div id="householdStaffListPager"></div>
+	</div>
+	<div id="householdStaffPopulationDialog"></div>
+	<div id="householdStaffDialog"></div>
+	<div id="helpPersonnelDialog"></div>
+	<div id="helpPrecordDialog"></div>
+	<div id="scanHeaderImage"></div>
+	<div id="toFloatingPopulationDialog"></div>
+</div>
+
+<div style="display: none;">
+	<pop:JugePermissionTag ename="householdStaffManagement">
+		<span id="title"><s:property value="#request.name" /></span>
+	</pop:JugePermissionTag>
+</div>

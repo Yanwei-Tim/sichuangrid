@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="rentalHouseManage" extends="default" namespace="/baseinfo/rentalHouseManage">
+		<default-class-ref class="rentalHouseController"></default-class-ref>
+
+		<action name="addHouseInfoAndRentalHouse" method="addHouseInfoAndRentalHouse">
+			<result name="success" type="json">
+				<param name="root">houseInfo</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="dispatchOperate" method="dispatch">
+			<result name="success">
+				/baseinfo/houseInfo/rentalhouse/rentalHouseDlg.jsp
+			</result>
+			<result name="view">
+				/baseinfo/houseInfo/rentalhouse/viewRentalHouse.jsp
+			</result>
+			<result name="print">
+				/baseinfo/commonPopulation/printTabPreviewDlg.jsp
+			</result>
+			<result name="search">
+				/baseinfo/houseInfo/rentalhouse/searchRentalHouseDlg.jsp
+			</result>
+
+			<result name="statistic">
+				/baseinfo/houseInfo/rentalhouse/statisticRentalHouseList.jsp
+			</result>
+
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<!--add , update-->
+		<action name="prepareDispatch" method="prepareDispatch">
+			<result name="success">
+				/baseinfo/houseInfo/rentalhouse/rentalHouseDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<!--id加密修改（实有房屋修改有用到）  -->
+		<action name="prepareDispatchByEncrypt" method="prepareDispatchByEncrypt">
+			<result name="success">
+				/baseinfo/houseInfo/rentalhouse/rentalHouseDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="dispatchRentalHouseByHouseId" method="dispatchRentalHouseByHouseId">
+			<result name="success">
+				/baseinfo/houseInfo/rentalhouse/viewRentalHouse.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<!-- id加密查看 -->
+		<action name="dispatchRentalHouseByHouseIdByEncrypt" method="dispatchRentalHouseByHouseIdByEncrypt">
+			<result name="success">
+				/baseinfo/houseInfo/rentalhouse/viewRentalHouse.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="viewHouseInfo" method="viewHouseInfo">
+			<result name="success">
+				/baseinfo/houseInfo/rentalhouse/viewRentalHouseDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="downloadRentalHouse" method="downloadRentalHouse">
+			<result name="success" type="stream">
+				<param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>
+				<param name="inputName">inputStream</param>
+				<param name="contentDisposition">attachment;filename="${downloadFileName}"</param>
+				<param name="bufferSize">4096</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="downloadRentalHouseAll" 
+			method="downloadExcelExportAll">
+		</action>
+		<action name="houseInfoList" method="findHouseInfosForPage">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="addHouseInfo" method="addHouseInfo">
+			<result name="success" type="json">
+				<param name="root">houseInfo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="maintainRentalHouse" method="maintainRentalHouse">
+			<result name="success" type="json">
+				<param name="root">houseInfo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateEmphasiseById" method="updateEmphasiseById">
+			<result name="success" type="json">
+				<param name="root">houseInfo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateEmphasiseByEncryptId" method="updateEmphasiseByEncryptId">
+			<result name="success" type="json">
+				<param name="root">houseInfo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateHouseInfo" method="updateHouseInfo">
+			<result name="success" type="json">
+				<param name="root">houseInfo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="hasDuplicateHouseInfo" method="hasDuplicateHouseInfo">
+			<result name="success" type="json">
+				<param name="root">hasDuplicateHouseInfo</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="hasDuplicateHouseInfoForAddress" method="hasDuplicateHouseInfoForAddress">
+			<result name="success" type="json">
+				<param name="root">hasDuplicateHouseInfo</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="searchHouseInfo" method="searchHouseInfo">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		  <action name="deleteHouseInfo" method="deleteHouseInfo">
+		  <result name="success" type="json">
+                <param name="root">true</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+	  <action name="houseHasActualPopulation" method="houseHasActualPopulation">
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+            <result name="success" type="json">
+                <param name="root">hasActualPopulation</param>
+            </result>
+        </action>
+        <action name="addHouseForMobile" method="addHouseForMobile">
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+            <result name="success" type="json">
+                <param name="root">true</param>
+                <param name="ignoreHierarchy">false</param>
+                <param name="excludeNullProperties">true</param>
+            </result>
+            <result name="actualHouse" type="json">
+                <param name="root">true</param>
+                <param name="ignoreHierarchy">false</param>
+                <param name="excludeNullProperties">true</param>
+            </result>
+        </action>
+         <action name="updateHouseForMobile" method="updateHouseForMobile">
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+            <result name="success" type="json">
+                <param name="root">true</param>
+                <param name="ignoreHierarchy">false</param>
+                <param name="excludeNullProperties">true</param>
+            </result>
+            <result name="actualHouse" type="json">
+                <param name="root">true</param>
+                <param name="ignoreHierarchy">false</param>
+                <param name="excludeNullProperties">true</param>
+            </result>
+        </action>
+        <action name="shiftDispatch"  method="shiftDispatch">
+			<result name="success">
+				/common/shiftTree.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action> 
+		<!-- id加密房屋转移（实有房屋用到） -->   
+		<action name="shiftDispatchByEncrypt"  method="shiftDispatchByEncrypt">
+			<result name="success">
+				/common/shiftTree.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>  
+		<action name="shiftPerson" method="shiftHouse">
+			<result type="json">
+				<param name="root"></param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>	
+    </package>
+</struts>

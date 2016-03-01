@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="systemhighLog">
+   <typeAlias alias="SystemhighLog" type="com.tianque.domain.SystemhighLog"/>
+
+   <resultMap class="SystemhighLog" id="systemhighLogResult">
+      <result property="id" column="id"/>
+      <result property="organization.id" column="OrgId"/>
+      <result property="modelId" column="modelId"/>
+      <result property="orgInternalCode" column="orgInternalCode"/>
+      <result property="modelName" column="modelName"/>
+      <result property="name" column="name"/>
+      <result property="operationUserName" column="operationUserName"/>
+      <result property="operationType" column="operationType"/>
+      <result property="operationContent" column="operationContent"/>
+      <result property="clientIp" column="clientIp"/>
+      <result property="operationDate" column="operationDate"/>
+   </resultMap>
+
+   <insert id="addSystemhighLog" parameterClass="SystemhighLog" >
+      <selectKey resultClass="java.lang.Long" keyProperty="id">
+         <![CDATA[SELECT s_systemhighlogs.NEXTVAL AS ID FROM DUAL]]>
+      </selectKey>
+      insert into systemhighlogs(id,OrgId,modelId,orgInternalCode,modelName,name,operationUserName,operationType,operationContent,clientIp,operationDate)
+      values(#id#,#organization.id#,#modelId#,#orgInternalCode#,#modelName#,#name#,#operationUserName#,#operationType#,#operationContent#,#clientIp#,#operationDate#)
+   </insert>
+
+   <select id="getSystemhighLogById" parameterClass="java.lang.Long" resultMap="systemhighLogResult">
+      <![CDATA[select * from systemhighlogs where id=#value#]]>
+
+   </select>
+
+
+   <!-- 系统日志查询条件   -->
+	<sql id="sql_where">
+		from systemhighlogs where orgInternalCode like '$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="modelName">
+				<isNotEmpty prepend="AND" property="modelName">
+					modelName = #modelName#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="operationType">
+				<isNotEmpty prepend="AND" property="operationType">
+					operationType = #operationType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="operationUserName">
+				<isNotEmpty prepend="AND" property="operationUserName">
+					operationUserName like '$operationUserName$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startDate">
+				<isNotNull prepend="AND" property="startDate">
+					<![CDATA[
+						operationDate > #startDate#
+					]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endDate">
+				<isNotNull prepend="AND" property="endDate">
+					<![CDATA[
+						operationDate < #endDate#
+					]]>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+   <select id="findAllSystemhighLogsForPage" parameterClass="java.util.Map" resultMap="systemhighLogResult">
+      select *
+      <include refid="sql_where" />
+      or (
+			<![CDATA[
+				operationDate > #startDate#
+				AND
+				operationDate < #endDate#
+			]]>
+		AND orgInternalCode is null )
+      <dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+   </select>
+   <select id="countAllSystemhighlogs"  parameterClass="map"
+		resultClass="java.lang.Integer">
+		 select count(*)
+		 <include refid="sql_where" />
+		 or (
+			<![CDATA[
+				operationDate > #startDate#
+				AND
+				operationDate < #endDate#
+			]]>
+		AND orgInternalCode is null )
+		</select>
+</sqlMap>

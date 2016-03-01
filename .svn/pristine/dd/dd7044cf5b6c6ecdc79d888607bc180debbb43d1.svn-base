@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="issueInspect">
+	<typeAlias alias="IssueInspect" type="com.tianque.domain.IssueInspect" />
+	<typeAlias alias="IssueSubmitInfoVo" type="com.tianque.domain.vo.IssueSubmitInfoVo" />
+	<resultMap id="issSubmitInfoResult" class="IssueSubmitInfoVo">
+		<result property="id" column="id" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="orgName" column="orgName" />
+		<result property="january" column="january" />
+		<result property="february" column="february" />
+		<result property="march" column="march" />
+		<result property="april" column="april" />
+		<result property="may" column="may" />
+		<result property="june" column="june" />
+		<result property="july" column="july" />
+		<result property="august" column="august" />
+		<result property="september" column="september" />
+		<result property="october" column="october" />
+		<result property="november" column="november" />
+		<result property="december" column="december" />
+	</resultMap>
+	<resultMap id="issueInspectResult" class="IssueInspect">
+		<result property="id" column="id" />
+		<result property="createrepDate" column="createrepDate" />
+		<result property="createrepUnion" column="createrepUnion" />
+		<result property="createrepPerson" column="createrepPerson" />
+		<result property="auditPerson" column="auditPerson" />
+		<result property="repdate" column="repdate" />
+		<result property="issueType" column="issueType" />
+		<result property="issueCount" column="issueCount" />
+		<result property="dealCount" column="dealCount" />
+		<result property="finishCount" column="finishCount" />
+	</resultMap>
+	<resultMap id="issueResult" class="IssueInspect">
+		<result property="id" column="id" />
+		<result property="createrepDate" column="createrepDate" />
+		<result property="createrepUnion" column="createrepUnion" />
+		<result property="createrepPerson" column="createrepPerson" />
+		<result property="auditPerson" column="auditPerson" />
+		<result property="remark" column="remark" />
+		<result property="repdate" column="repdate" />
+		<result property="repname" column="repname" />
+		<result property="issueLevel" column="issueLevel" />
+		<result property="submitState" column="submitState" />
+		<result property="dailyDirectoryId" column="dailyDirectoryId" />
+	</resultMap>
+	<resultMap id="issueResultByLevel" class="IssueInspect">
+		<result property="id" column="id" />
+		<result property="createrepDate" column="createrepDate" />
+		<result property="createrepUnion" column="createrepUnion" />
+		<result property="createrepPerson" column="createrepPerson" />
+		<result property="auditPerson" column="auditPerson" />
+		<result property="repdate" column="repdate" />
+		<result property="issueType" column="issueType" />
+		<result property="cityIssueCount" column="cityIssueCount" />
+		<result property="cityDealCount" column="cityDealCount" />
+		<result property="cityFinishcount" column="cityFinishcount" />
+		<result property="districtIssueCount" column="districtIssueCount" />
+		<result property="districtDealCount" column="districtDealCount" />
+		<result property="districtFinishCount" column="districtFinishCount" />
+		<result property="townIssueCount" column="townIssueCount" />
+		<result property="townDealCount" column="townDealCount" />
+		<result property="townFinishCount" column="townFinishCount" />
+	</resultMap>
+	<resultMap class="java.util.HashMap" id="issueDetailResult">
+		<result property="c_6_issuecount" column="c_6_issuecount" />
+		<result property="c_6_dealcount" column="c_6_dealcount" />
+		<result property="c_6_finishcount" column="c_6_finishcount" />
+		<result property="c_8_issuecount" column="c_8_issuecount" />
+		<result property="c_8_dealcount" column="c_8_dealcount" />
+		<result property="c_8_finishcount" column="c_8_finishcount" />
+		<result property="c_10_issuecount" column="c_10_issuecount" />
+		<result property="c_10_dealcount" column="c_10_dealcount" />
+		<result property="c_10_finishcount" column="c_10_finishcount" />
+		<result property="c_12_issuecount" column="c_12_issuecount" />
+		<result property="c_12_dealcount" column="c_12_dealcount" />
+		<result property="c_12_finishcount" column="c_12_finishcount" />
+		<result property="c_99_issuecount" column="c_99_issuecount" />
+		<result property="c_99_dealcount" column="c_99_dealcount" />
+		<result property="c_99_finishcount" column="c_99_finishcount" />
+		<result property="issuetype" column="issuetype" />
+	</resultMap>
+	<resultMap class="java.util.HashMap" id="issueDetailFullyearResult">
+		<result property="c_100_issuecount" column="c_100_issuecount" />
+		<result property="c_100_dealcount" column="c_100_dealcount" />
+		<result property="c_100_finishcount" column="c_100_finishcount" />
+		<result property="issuetype" column="issuetype" />
+	</resultMap>
+	<select id="findIssueInspects" parameterClass="java.util.Map"
+		resultMap="issueDetailResult">
+	<![CDATA[	select sum(nvl(issd.CITYISSUECOUNT, 0)) c_6_issuecount,sum(nvl(issd.CITYDEALCOUNT, 0)) c_6_dealcount,sum(nvl(issd.CITYFINISHCOUNT, 0)) c_6_finishcount,
+	 sum(nvl(issd.DISTRICTISSUECOUNT, 0)) c_8_issuecount,sum(nvl(issd.DISTRICTDEALCOUNT, 0))  c_8_dealcount,sum(nvl(issd.DISTRICTFINISHCOUNT, 0))  c_8_finishcount,
+	sum(nvl(issd.TOWNISSUECOUNT, 0))  c_10_issuecount,sum(nvl(issd.TOWNDEALCOUNT, 0)) c_10_dealcount,sum(nvl(issd.TOWNFINISHCOUNT, 0)) c_10_finishcount,
+	sum(nvl(issd.VILLAGEISSUECOUNT, 0))c_12_issuecount,sum(nvl(issd.VILLAGEDEALCOUNT, 0)) c_12_dealcount,sum(nvl(issd.VILLAGEFINISHCOUNT, 0)) c_12_finishcount,sum(nvl(issd.ISSUEMONTHSUM, 0)) c_99_issuecount,sum(nvl(issd.DEALMONTHSUM, 0)) c_99_dealcount,
+	sum(nvl(issd.FINISHMONTHSUM, 0)) c_99_finishcount,
+	issd.ISSUETYPE issuetype
+	  from issueinspect iss, issueinspectDetail issd,(select * from organizations t where exists(select 1 from organizations t1 where t.parentid=t1.id and t1.orginternalcode=#orginternalcode#)) org
+	 where iss.id=issd.inssueid and org.orginternalcode = iss.createrepunion and to_char(iss.repdate,'yyyy-mm') between #begindate# and #enddate# and iss.issuelevel=1 and iss.SUBMITSTATE=2 group by issd.issuetype
+			]]>
+	</select>
+	<select id="findIssueSubmitInfo" parameterClass="java.util.Map"
+		resultMap="issSubmitInfoResult">
+	<![CDATA[
+	select t.id,t.orginternalcode,t.orgname,
+       case when (select count(1) from issueinspect iss where iss.CREATEREPUNION= t.ORGINTERNALCODE and iss.SUBMITSTATE=2 and to_char(iss.repdate,'yyyy-mm')=#iyear#||'-01')>0 then '√'  when (to_number(to_char(sysdate,'mm'))-1)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-1=1 or to_number(to_char(sysdate,'mm'))-1=0 then 'c' end January,
+       case when (select count(1) from issueinspect iss where iss.CREATEREPUNION= t.ORGINTERNALCODE and iss.SUBMITSTATE=2 and to_char(iss.repdate,'yyyy-mm')=#iyear#||'-02')>0 then '√'  when (to_number(to_char(sysdate,'mm'))-2)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-2=1 or to_number(to_char(sysdate,'mm'))-2=0 then 'c' end February,
+       case when (select count(1) from issueinspect iss where iss.CREATEREPUNION= t.ORGINTERNALCODE and iss.SUBMITSTATE=2 and to_char(iss.repdate,'yyyy-mm')=#iyear#||'-03')>0 then '√'  when (to_number(to_char(sysdate,'mm'))-3)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-3=1 or to_number(to_char(sysdate,'mm'))-3=0 then 'c' end March,
+       case when (select count(1) from issueinspect iss where iss.CREATEREPUNION= t.ORGINTERNALCODE and iss.SUBMITSTATE=2 and to_char(iss.repdate,'yyyy-mm')=#iyear#||'-04')>0 then '√'  when (to_number(to_char(sysdate,'mm'))-4)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-4=1 or to_number(to_char(sysdate,'mm'))-4=0 then 'c' end April,
+       case when (select count(1) from issueinspect iss where iss.CREATEREPUNION= t.ORGINTERNALCODE and iss.SUBMITSTATE=2 and to_char(iss.repdate,'yyyy-mm')=#iyear#||'-05')>0 then '√'  when (to_number(to_char(sysdate,'mm'))-5)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-5=1 or to_number(to_char(sysdate,'mm'))-5=0 then 'c' end  May,
+       case when (select count(1) from issueinspect iss where iss.CREATEREPUNION= t.ORGINTERNALCODE and iss.SUBMITSTATE=2 and to_char(iss.repdate,'yyyy-mm')=#iyear#||'-06')>0 then '√'  when (to_number(to_char(sysdate,'mm'))-6)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-6=1 or to_number(to_char(sysdate,'mm'))-6=0 then 'c' end June,
+       case when (select count(1) from issueinspect iss where iss.CREATEREPUNION= t.ORGINTERNALCODE and iss.SUBMITSTATE=2 and to_char(iss.repdate,'yyyy-mm')=#iyear#||'-07')>0 then '√'  when (to_number(to_char(sysdate,'mm'))-7)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-7=1 or to_number(to_char(sysdate,'mm'))-7=0 then 'c' end July,
+       case when (select count(1) from issueinspect iss where iss.CREATEREPUNION= t.ORGINTERNALCODE and iss.SUBMITSTATE=2 and to_char(iss.repdate,'yyyy-mm')=#iyear#||'-08')>0 then '√'  when (to_number(to_char(sysdate,'mm'))-8)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-8=1 or to_number(to_char(sysdate,'mm'))-8=0 then 'c' end August,
+       case when (select count(1) from issueinspect iss where iss.CREATEREPUNION= t.ORGINTERNALCODE and iss.SUBMITSTATE=2 and to_char(iss.repdate,'yyyy-mm')=#iyear#||'-09')>0 then '√'  when (to_number(to_char(sysdate,'mm'))-8)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-8=1 or to_number(to_char(sysdate,'mm'))-9=0 then 'c' end September,
+       case when (select count(1) from issueinspect iss where iss.CREATEREPUNION= t.ORGINTERNALCODE and iss.SUBMITSTATE=2 and to_char(iss.repdate,'yyyy-mm')=#iyear#||'-10')>0 then '√'  when (to_number(to_char(sysdate,'mm'))-10)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-10=1 or to_number(to_char(sysdate,'mm'))-10=0 then 'c' end October,
+       case when (select count(1) from issueinspect iss where iss.CREATEREPUNION= t.ORGINTERNALCODE and iss.SUBMITSTATE=2 and to_char(iss.repdate,'yyyy-mm')=#iyear#||'-11')>0 then '√'  when (to_number(to_char(sysdate,'mm'))-11)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-11=1 or to_number(to_char(sysdate,'mm'))-11=0 then 'c' end November,
+       case when (select count(1) from issueinspect iss where iss.CREATEREPUNION= t.ORGINTERNALCODE and iss.SUBMITSTATE=2 and to_char(iss.repdate,'yyyy-mm')=#iyear#||'-12')>0 then '√'  when  (to_number(to_char(sysdate,'mm'))-12)>1 then 'x'  when to_number(to_char(sysdate,'mm'))-12=0 then 'c' end December
+  	from organizations t,propertydicts p where  p.id = t.orgtype and p.internalid = 0 and exists(select 1 from propertydomains pm where pm.id=p.propertydomainid) and
+           exists (select 1  from organizations t1 where t.parentid = t1.id  and t1.orginternalcode = #orgcode#) order by t.seq
+			]]>
+	</select>
+		<select id="issueSubmitInfoCount" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+	<![CDATA[
+	select count(1) from organizations t where exists (select 1  from organizations t1 where t.parentid = t1.id  and t1.orginternalcode = #orgcode#)	
+			]]>
+	</select>
+	<select id="findIssueInspectsByid" parameterClass="java.util.Map"
+		resultMap="issueDetailResult">
+	<![CDATA[
+	select sum(nvl(issd.CITYISSUECOUNT, 0)) c_6_issuecount,sum(nvl(issd.CITYDEALCOUNT, 0)) c_6_dealcount,sum(nvl(issd.CITYFINISHCOUNT, 0)) c_6_finishcount,
+	 sum(nvl(issd.DISTRICTISSUECOUNT, 0)) c_8_issuecount,sum(nvl(issd.DISTRICTDEALCOUNT, 0))  c_8_dealcount,sum(nvl(issd.DISTRICTFINISHCOUNT, 0))  c_8_finishcount,
+	sum(nvl(issd.TOWNISSUECOUNT, 0))  c_10_issuecount,sum(nvl(issd.TOWNDEALCOUNT, 0)) c_10_dealcount,sum(nvl(issd.TOWNFINISHCOUNT, 0)) c_10_finishcount,
+	sum(nvl(issd.VILLAGEISSUECOUNT, 0))c_12_issuecount,sum(nvl(issd.VILLAGEDEALCOUNT, 0)) c_12_dealcount,sum(nvl(issd.VILLAGEFINISHCOUNT, 0)) c_12_finishcount,sum(nvl(issd.ISSUEMONTHSUM, 0)) c_99_issuecount,sum(nvl(issd.DEALMONTHSUM, 0)) c_99_dealcount,
+	sum(nvl(issd.FINISHMONTHSUM, 0)) c_99_finishcount,
+	issd.ISSUETYPE issuetype
+	  from issueinspect iss, issueinspectDetail issd, organizations org
+	where iss.id = issd.inssueid and org.orginternalcode= iss.createrepunion and iss.id=#inssueid# group by issd.issuetype
+			]]>
+
+	</select>
+	<select id="findIssueInspectsFullYearByid" parameterClass="java.util.Map"
+		resultMap="issueDetailFullyearResult">
+	<![CDATA[
+	select sum(nvl(issd.CITYISSUECOUNT, 0))+sum(nvl(issd.DISTRICTISSUECOUNT, 0))+sum(nvl(issd.TOWNISSUECOUNT, 0))+sum(nvl(issd.VILLAGEISSUECOUNT, 0)) c_100_issuecount,
+       sum(nvl(issd.CITYDEALCOUNT, 0))+sum(nvl(issd.DISTRICTDEALCOUNT, 0))+sum(nvl(issd.TOWNDEALCOUNT, 0))+sum(nvl(issd.VILLAGEDEALCOUNT, 0)) c_100_dealcount,
+       sum(nvl(issd.CITYFINISHCOUNT, 0))+sum(nvl(issd.DISTRICTFINISHCOUNT, 0))+sum(nvl(issd.TOWNFINISHCOUNT, 0))+sum(nvl(issd.VILLAGEFINISHCOUNT, 0)) c_100_finishcount,
+    issd.ISSUETYPE issuetype FROM issueinspectDetail issd
+       where  exists(select 1 from issueinspect iss where iss.id=issd.inssueid and iss.issuelevel=#issuelevel# and exists (select 1 from issueinspect ist where ist.id=#id#  and ist.createrepunion=iss.createrepunion and to_char(ist.repdate,'yyyy')=to_char(iss.repdate,'yyyy'))) group by issd.issuetype
+			]]>
+	</select>
+	<select id="findIssueInspectsFullYearByRepdate" parameterClass="java.util.Map"
+		resultMap="issueDetailFullyearResult">
+	<![CDATA[
+	select sum(nvl(issd.CITYISSUECOUNT, 0))+sum(nvl(issd.DISTRICTISSUECOUNT, 0))+sum(nvl(issd.TOWNISSUECOUNT, 0))+sum(nvl(issd.VILLAGEISSUECOUNT, 0)) c_100_issuecount,
+       sum(nvl(issd.CITYDEALCOUNT, 0))+sum(nvl(issd.DISTRICTDEALCOUNT, 0))+sum(nvl(issd.TOWNDEALCOUNT, 0))+sum(nvl(issd.VILLAGEDEALCOUNT, 0)) c_100_dealcount,
+       sum(nvl(issd.CITYFINISHCOUNT, 0))+sum(nvl(issd.DISTRICTFINISHCOUNT, 0))+sum(nvl(issd.TOWNFINISHCOUNT, 0))+sum(nvl(issd.VILLAGEFINISHCOUNT, 0)) c_100_finishcount,
+    issd.ISSUETYPE issuetype 
+  from issueinspect iss, issueinspectDetail issd,(select * from organizations t where exists(select 1 from organizations t1 where t.parentid=t1.id and t1.orginternalcode=#union#)) org
+	 where iss.id=issd.inssueid and org.orginternalcode = iss.createrepunion and  to_char(iss.repdate,'yyyy')=#repdate# and iss.issuelevel=1 and iss.SUBMITSTATE=2 group by issd.issuetype
+			]]>
+	</select>
+	<select id="findIssueInspectsByLevel" parameterClass="java.util.Map"
+		resultMap="issueResultByLevel">
+	<![CDATA[select issd.id ,iss.createrepDate,iss.createrepUnion,iss.createrepPerson,iss.auditPerson,iss.repdate,issd.issueType,issd.cityIssueCount ,
+			issd.cityDealCount,issd.cityFinishcount,issd.districtIssueCount,issd.districtDealCount,issd.districtFinishCount,issd.townIssueCount,
+			issd.townDealCount,issd.townFinishCount from issueinspect iss,issueinspectdetail issd where iss.id=issd.inssueid and iss.id=#id#
+			]]>
+	</select>
+	<select id="countIssues" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+	<![CDATA[
+	select count(1) from issueinspect iss,organizations org where to_char(iss.repDate,'yyyy')=#repDate#  and org.orginternalcode=iss.createrepunion and iss.issuelevel=#issuelevel# and org.id=#orgid#
+			]]>
+	</select>
+	<select id="countNotSubmitArea" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+	<![CDATA[
+	select count(1)  from organizations org,propertydicts p where p.id=org.orgtype and p.internalid=0 and p.propertydomainid=14 and exists (select 1  from organizations t1 where org.parentid = t1.id and  t1.orginternalcode = #orgcode#)
+   and not exists (select 1
+          from issueinspect iss
+         where iss.createrepunion = org.orginternalcode and to_char(iss.CREATEREPDATE,'yyyy-mm')=#createDate# and iss.submitstate=2)
+			]]>
+	</select>
+		<select id="countIssuesByDate" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+	<![CDATA[
+	select count(1) from issueinspect iss,organizations org where  to_char(iss.repDate,'yyyy-mm')between #dealfrom# and #dealto# and iss.issuelevel=#issuelevel#  and org.orginternalcode=iss.createrepunion and org.id=#orgid#
+			]]>
+	</select>
+	<select id="findIssues" parameterClass="java.util.Map"
+		resultMap="issueResult">
+	<![CDATA[
+	select iss.id, case when nvl(iss.submitState, 0)=2 then '已上报'   when nvl(iss.submitState, 0)=1 then '已编制' else '未上报' end submitState,org.orgname CREATEREPUNION,to_char(iss.CREATEREPDATE,'yyyy-mm') as CREATEREPDATE, case when iss.issuelevel=1 then
+       to_char(iss.REPDATE, 'yyyy')||'年'||to_char(iss.REPDATE, 'mm')||'月' || org.orgname || '矛盾纠纷排查调处情况表'  
+       else
+        to_char(iss.REPDATE, 'yyyy') || '年' ||to_char(trunc(to_char(iss.repdate,'mm')*3/10)+1)|| '季度' || org.orgname || '矛盾纠纷排查调处情况表'
+       end repname,to_char(iss.repdate,'yyyy-mm') repdate,iss.CREATEREPPERSON,iss.AUDITPERSON,iss.createrepunion remark,iss.issueLevel,iss.dailyDirectoryId from issueinspect iss,organizations org where org.orginternalcode=iss.createrepunion and iss.dailyDirectoryId=#dailydirectoryid# and  iss.issuelevel=#issuelevel#  and org.id=#orgid# order by iss.repdate desc
+			]]>
+	</select>
+		<select id="findIssuesById" parameterClass="java.util.Map"
+		resultMap="issueResult">
+	<![CDATA[
+	select iss.id, case when nvl(iss.submitState, 0)=2 then '已上报'   when nvl(iss.submitState, 0)=1 then '已编制' else '未上报' end submitState,org.orgname CREATEREPUNION,to_char(iss.CREATEREPDATE,'yyyy-mm') as CREATEREPDATE, case when iss.issuelevel=1 then
+       to_char(iss.REPDATE, 'yyyy')||'年'||to_char(iss.REPDATE, 'mm')||'月' || org.orgname || '矛盾纠纷排查调处情况表'  
+       else
+        to_char(iss.REPDATE, 'yyyy') || '年' ||to_char(trunc(to_char(iss.repdate,'mm')*3/10)+1)|| '季度' || org.orgname || '矛盾纠纷排查调处情况表'
+       end repname,to_char(iss.repdate,'yyyy-mm') repdate,iss.CREATEREPPERSON,iss.AUDITPERSON,iss.createrepunion remark,iss.issueLevel,iss.dailyDirectoryId from issueinspect iss,organizations org where org.orginternalcode=iss.createrepunion and iss.id=#id# 
+			]]>
+	</select>
+	<select id="countfindIssuesBydirPrentid" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+	<![CDATA[
+	select count(1) from issueinspect iss,organizations org where org.orginternalcode=iss.createrepunion and org.id=#orgid# and  exists(select 1 from dailydirectorys dr where dr.id=iss.dailydirectoryid and dr.parentid=#parentid#)
+			]]>
+	</select>
+	<select id="findIssuesBydirPrentid" parameterClass="java.util.Map"
+		resultMap="issueResult">
+	<![CDATA[
+	select iss.id, case when nvl(iss.submitState, 0)=2 then '已上报'   when nvl(iss.submitState, 0)=1 then '已编制' else '未上报' end submitState,org.orgname CREATEREPUNION,to_char(iss.CREATEREPDATE,'yyyy-mm') as CREATEREPDATE, case when iss.issuelevel=1 then
+       to_char(iss.REPDATE, 'yyyy')||'年'||to_char(iss.REPDATE, 'mm')||'月' || org.orgname || '矛盾纠纷排查调处情况表'  
+       else
+        to_char(iss.REPDATE, 'yyyy') || '年' ||to_char(trunc(to_char(iss.repdate,'mm')*3/10)+1)|| '季度' || org.orgname || '矛盾纠纷排查调处情况表'
+       end repname,to_char(iss.repdate,'yyyy-mm') repdate,iss.CREATEREPPERSON,iss.AUDITPERSON,iss.createrepunion remark,iss.issueLevel,iss.dailyDirectoryId from issueinspect iss,organizations org where org.orginternalcode=iss.createrepunion and org.id=#orgid# and exists(select 1 from dailydirectorys dr where dr.id=iss.dailydirectoryid and dr.parentid=#parentid#) order by iss.issuelevel asc
+			]]>
+	</select>
+	<select id="findIssuesByDate" parameterClass="java.util.Map"
+		resultMap="issueResult">
+
+	select iss.id,case when nvl(iss.submitState, 0)=2 then '已上报'   when nvl(iss.submitState, 0)=1 then '已编制' else '未上报' end submitState,org.orgname CREATEREPUNION,to_char(iss.CREATEREPDATE,'yyyy-mm') as CREATEREPDATE, case when iss.issuelevel=1 then
+       to_char(iss.REPDATE, 'yyyy')||'年'||to_char(iss.REPDATE, 'mm')||'月' || org.orgname || '矛盾纠纷排查调处情况表'  
+       else
+        to_char(iss.REPDATE, 'yyyy') || '年' ||to_char(trunc(to_char(iss.repdate,'mm')*3/10)+1)|| '季度' || org.orgname || '矛盾纠纷排查调处情况表'
+       end repname,to_char(iss.repdate,'yyyy-mm') repdate,iss.CREATEREPPERSON,iss.AUDITPERSON,iss.createrepunion remark,iss.issueLevel,iss.dailyDirectoryId from issueinspect iss,organizations org 
+       <dynamic prepend="where">
+       		org.orginternalcode=iss.createrepunion and
+		<isNotNull property="dealfrom" prepend="and">
+				to_char(iss.repDate,'yyyy-mm')between #dealfrom# and #dealto#
+			</isNotNull>
+	<isNotNull property="issuelevel" prepend="and">
+				iss.issuelevel=#issuelevel#
+			</isNotNull>
+				<isNotNull property="orgid" prepend="and">
+				org.id=#orgid#
+			</isNotNull>
+		</dynamic>
+      order by iss.repdate desc
+	</select>
+	<insert id="saveIssueeDetails" parameterClass="java.util.Map">
+		<![CDATA[
+		INSERT INTO issueinspectdetail(id,issuetype,cityissuecount,citydealcount,cityfinishcount,districtissuecount,districtdealcount,districtfinishcount,townissuecount,towndealcount,townfinishcount,VILLAGEISSUECOUNT,VILLAGEDEALCOUNT,VILLAGEFINISHCOUNT,INSSUEID,ISSUEMONTHSUM,ISSUEYEARSUM,DEALMONTHSUM,FINISHMONTHSUM,DEALYEARSUM,FINISHYEARSUM) 
+		values(S_ISSUEINSPECTDETAIL.Nextval,#issuetype#,#c_6_issuecount#,#c_6_dealcount#,#c_6_finishcount#,#c_8_issuecount#,#c_8_dealcount#,#c_8_finishcount#,#c_10_issuecount#,#c_10_dealcount#,#c_10_finishcount#,#c_12_issuecount#,#c_12_dealcount#,#c_12_finishcount#,#issueid#,0,0,0,0,0,0)
+			]]>
+	</insert>
+	<insert id="addIssueInspect" parameterClass="java.util.Map">
+			<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT s_issueinspect.nextval AS ID FROM DUAL ]]>
+		</selectKey>
+	insert into issueInspect(id,Createrepunion,Createrepdate,Createrepperson,Submitstate,repdate,issuelevel,dailydirectoryid)values(#id#,#createrepunion#,to_date(#createrepdate#,'yyyy-mm-dd'),#createrepperson#,0,to_date(#createrepdate#,'yyyy-mm-dd'),#issuelevel#,#dailydirectoryid#)
+	</insert>
+	<update id="updateIssueInspect" parameterClass="java.util.Map">
+		<![CDATA[
+		update issueInspect set createrepdate=to_date(#createrepdate#,'yyyy-mm'),createrepperson=#createrepperson#,repdate=to_date(#createrepdate#,'yyyy-mm') where id=#id#		]]>
+	</update>
+		<update id="updateIssueStateByID" parameterClass="java.util.Map">
+		<![CDATA[
+			update issueInspect set SUBMITSTATE =#summitstate# where id=#id#
+		]]>
+	</update>
+	<delete id="deleteIssueDetailByIssueDetailId" parameterClass="java.lang.Long">
+		delete from issueinspectdetail
+		where inssueid=#id#
+	</delete>
+	<delete id="deleteIssueInspect" parameterClass="java.lang.Long">
+		delete from
+		issueinspect
+		where id=#id#
+	</delete>
+	<update id="updateIssueState" parameterClass="java.util.Map">
+		<![CDATA[
+			update issueinspect iss set iss.submitstate=#summitstate#,iss.submitdate=#submitdate#,iss.auditperson=#auditperson#,iss.CREATEREPPERSON=#createperson# where id=#id#
+			]]>
+	</update>
+	
+	
+	
+	
+	
+	<select id="findIssueInspectsForQuarter" parameterClass="java.util.Map"
+		resultMap="issueDetailResult">
+	<![CDATA[	select sum(nvl(issd.CITYISSUECOUNT, 0)) c_6_issuecount,sum(nvl(issd.CITYDEALCOUNT, 0)) c_6_dealcount,sum(nvl(issd.CITYFINISHCOUNT, 0)) c_6_finishcount,
+	 sum(nvl(issd.DISTRICTISSUECOUNT, 0)) c_8_issuecount,sum(nvl(issd.DISTRICTDEALCOUNT, 0))  c_8_dealcount,sum(nvl(issd.DISTRICTFINISHCOUNT, 0))  c_8_finishcount,
+	sum(nvl(issd.TOWNISSUECOUNT, 0))  c_10_issuecount,sum(nvl(issd.TOWNDEALCOUNT, 0)) c_10_dealcount,sum(nvl(issd.TOWNFINISHCOUNT, 0)) c_10_finishcount,
+	sum(nvl(issd.VILLAGEISSUECOUNT, 0))c_12_issuecount,sum(nvl(issd.VILLAGEDEALCOUNT, 0)) c_12_dealcount,sum(nvl(issd.VILLAGEFINISHCOUNT, 0)) c_12_finishcount,sum(nvl(issd.ISSUEMONTHSUM, 0)) c_99_issuecount,sum(nvl(issd.DEALMONTHSUM, 0)) c_99_dealcount,
+	sum(nvl(issd.FINISHMONTHSUM, 0)) c_99_finishcount,
+	issd.ISSUETYPE issuetype
+	  from issueinspect iss, issueinspectDetail issd, organizations org
+	 where iss.id=issd.inssueid and org.orginternalcode = iss.createrepunion and to_char(iss.repdate,'yyyy-mm') between #begindate# and #enddate# and org.orginternalcode = #orginternalcode# group by issd.issuetype
+			]]>
+	</select>
+	<select id="findIssueInspectsFullYearByRepdateForQuarter" parameterClass="java.util.Map"
+		resultMap="issueDetailFullyearResult">
+	<![CDATA[
+	select sum(nvl(issd.CITYISSUECOUNT, 0))+sum(nvl(issd.DISTRICTISSUECOUNT, 0))+sum(nvl(issd.TOWNISSUECOUNT, 0))+sum(nvl(issd.VILLAGEISSUECOUNT, 0)) c_100_issuecount,
+       sum(nvl(issd.CITYDEALCOUNT, 0))+sum(nvl(issd.DISTRICTDEALCOUNT, 0))+sum(nvl(issd.TOWNDEALCOUNT, 0))+sum(nvl(issd.VILLAGEDEALCOUNT, 0)) c_100_dealcount,
+       sum(nvl(issd.CITYFINISHCOUNT, 0))+sum(nvl(issd.DISTRICTFINISHCOUNT, 0))+sum(nvl(issd.TOWNFINISHCOUNT, 0))+sum(nvl(issd.VILLAGEFINISHCOUNT, 0)) c_100_finishcount,
+    issd.ISSUETYPE issuetype FROM issueinspectDetail issd
+        where  exists(select 1 from issueinspect iss where issd.inssueid=iss.id and to_char(iss.repdate,'yyyy')=#repdate# and iss.createrepunion = #union#) group by issd.ISSUETYPE
+			]]>
+	</select>
+</sqlMap>

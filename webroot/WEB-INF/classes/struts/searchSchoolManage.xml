@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+<constant name="struts.objectFactory" value="spring" />
+
+   <package name="searchSchool" extends="default" namespace="/baseinfo/searchSchool">
+		<default-class-ref class="searchSchoolController"></default-class-ref>
+		<action name="searchSchool" method="searchSchoolList">
+		      <result type="json">
+		          <param name="root">gridPage</param>
+		          <param name="ignoreHierarchy">false</param>
+		       </result>
+		</action>
+		
+		<action name="downloadSchool" 
+			method="downloadSchool">
+			<result name="success" type="stream">
+                <param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>  
+                <param name="inputName">inputStream</param>  
+                <!-- 下载时候提示的文件名 -->  
+                <param name="contentDisposition">attachment;filename="${downloadFileName}"</param>  
+                <param name="bufferSize">4096</param>  
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="downloadSchoolAll" 
+			method="downloadSchoolAll">
+		</action>
+		
+		<action name="searchSchoolForAutoComplete" method="searchSchoolForAutoComplete">
+			<result name="success" type="json">
+				<param name="root">autoCompleteDatas</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="fastSearch" method="fastSearch">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+   </package>
+</struts>
+

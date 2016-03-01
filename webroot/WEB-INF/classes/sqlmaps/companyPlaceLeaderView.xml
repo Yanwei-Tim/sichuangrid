@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="CompanyPlaceLeaderView">
+<!-- 注释说明 -->
+	<typeAlias alias="StatisticsBaseInfoAddCount" type="com.tianque.plugin.analyzing.domain.StatisticsBaseInfoAddCountVo" />
+	
+	<resultMap class="StatisticsBaseInfoAddCount" id="statisticsBaseInfoAddCountResult">
+	    <result property="statisticsType" column="statisticsType"/>
+		<result property="todayAddCount" column="todayAddCount"/>
+		<result property="thisMonthCount" column="thisMonthCount"/>
+		<result property="attentionCount" column="attentionCount"/>
+	    <result property="allCount" column="allCount"/>
+	</resultMap>
+	<resultMap class="StatisticsBaseInfoAddCount" id="StatisticsBaseInfoSummary">
+		<result property="thisMonthCount" column="thisMonthCount" nullValue="0"/>
+		<result property="attentionCount" column="attentionCount" nullValue="0"/>
+		<result property="allCount" column="allCount" nullValue="0"/>
+	</resultMap>
+	<resultMap class="StatisticsBaseInfoAddCount" id="AttenPopulationBaseInfoSummary" extends="StatisticsBaseInfoSummary">
+		
+	</resultMap>
+	<resultMap class="StatisticsBaseInfoAddCount" id="personGeneralCondition">
+		<result property="todayAddCount" column="todayAddCount"/>
+		<result property="thisMonthCount" column="thisMonthCount"/>
+		<result property="attentionCount" column="attentionCount"/>
+		<result property="allCount" column="allCount"/>
+	</resultMap>
+	
+	<select id="queryStatisticsBaseInfoCurrentByKeyForList" parameterClass="java.util.Map" resultMap="statisticsBaseInfoAddCountResult">
+		select 
+		id,
+		orgname as statisticsType,
+		orginternalcode,
+		<!-- 正常的单位场所用英文可以区分的 -->
+		<isEqual property="module" compareValue="companyplace">
+			(select count(1) from companyplace c,companyplacebase cb where c.baseid=cb.id and cb.createdate <![CDATA[>]]> #today# and cb.createdate <![CDATA[<]]> #nextDay#  and orgInternalCode like org.orginternalcode||'%'
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					$column$ = '$keyType$'
+				</isNotNull>
+			</isPropertyAvailable> and isEmphasis=0) as todayAddCount,
+			(select count(1) from companyplace c,companyplacebase cb where c.baseid=cb.id and cb.createdate <![CDATA[>]]> #monthStart# and cb.createdate <![CDATA[<]]> #nextMonthStart# and orgInternalCode like org.orginternalcode||'%'
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					$column$ = '$keyType$'
+				</isNotNull>
+			</isPropertyAvailable> and isEmphasis=0) as thisMonthCount,
+			(select count(1) from companyplace c,companyplacebase cb where c.baseid=cb.id and cb.orgInternalCode like org.orginternalcode||'%'
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					$column$ = '$keyType$'
+				</isNotNull>
+			</isPropertyAvailable> and isEmphasis=0) as attentionCount,
+			(select count(1) from companyplace c,companyplacebase cb where c.baseid=cb.id and cb.orgInternalCode like org.orginternalcode||'%'
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					$column$ = '$keyType$'
+				</isNotNull>
+			</isPropertyAvailable> and isEmphasis=0) as allCount
+		</isEqual>
+		<!-- 重点单位场所 -->
+		<isEqual property="module" compareValue="business">
+			(select count(1) from companyplace c,companyplacebase cb,companyplacebusiness cbs where c.baseid=cb.id and cbs.companyplaceid=c.id and cb.createdate <![CDATA[>]]> #today# and cb.createdate <![CDATA[<]]> #nextDay#  and orgInternalCode like org.orginternalcode||'%'
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					$column$ = '$keyType$'
+				</isNotNull>
+			</isPropertyAvailable> and isEmphasis=0) as todayAddCount,
+			(select count(1) from companyplace c,companyplacebase cb,companyplacebusiness cbs where c.baseid=cb.id and cbs.companyplaceid=c.id and cb.createdate <![CDATA[>]]> #monthStart# and cb.createdate <![CDATA[<]]> #nextMonthStart# and orgInternalCode like org.orginternalcode||'%'
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					$column$ = '$keyType$'
+				</isNotNull>
+			</isPropertyAvailable> and isEmphasis=0) as thisMonthCount,
+			(select count(1) from companyplace c,companyplacebase cb,companyplacebusiness cbs where c.baseid=cb.id and cbs.companyplaceid=c.id and cb.orgInternalCode like org.orginternalcode||'%'
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					$column$ = '$keyType$'
+				</isNotNull>
+			</isPropertyAvailable> and isEmphasis=0) as attentionCount,
+			(select count(1) from companyplace c,companyplacebase cb,companyplacebusiness cbs where c.baseid=cb.id and cbs.companyplaceid=c.id and cb.orgInternalCode like org.orginternalcode||'%'
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					$column$ = '$keyType$'
+				</isNotNull>
+			</isPropertyAvailable> and isEmphasis=0) as allCount
+		</isEqual>
+		from organizations org where
+		<isEqual property="orgLevelInternalId" compareValue="0">
+			id=#orgId# 
+		</isEqual>
+		<isNotEqual property="orgLevelInternalId" compareValue="0">
+			parentid=#orgId# 
+		</isNotEqual>
+		and orgtype in 
+		<iterate  prepend="" property="dictIds"  open="("  close=")"  conjunction="," > 
+		#dictIds[]# 
+		</iterate>
+		order by org.seq
+	</select>
+	
+	<!-- 单位场所领导视图新增统计 -->
+	<select id="queryStatisticsBaseInfoAddCurrentByKeyForList" parameterClass="java.util.Map" resultMap="statisticsBaseInfoAddCountResult">
+		select 
+		    cpb.org statisticsType,
+			sum(1) allCount,
+			sum(1) attentionCount,
+			sum(decode(#charToday#,to_char(cp.createDate, 'yyyy-mm-dd'),1,0)) todayAddCount,
+			sum(decode(#yearMonth#,to_char(cp.createDate, 'yyyy-mm'),1,0)) thisMonthCount
+		from companyplace cp , companyplacebase cpb
+    <isEqual property="module" compareValue="business">
+			,companyplacebusiness cpbs
+			where cp.baseid = cpb.id and cpb.id = cpbs.companyplaceid
+	</isEqual>
+	<isNotEqual property="module" compareValue="business">
+			where cp.baseid = cpb.id
+	</isNotEqual>
+		and cpb.orgInternalCode like #orgInternalCode#||'%'
+		<isPropertyAvailable property="keyType">
+			<isNotNull property="keyType" prepend=" and ">
+				$column$ = '$keyType$'
+			</isNotNull>
+		</isPropertyAvailable> 
+		and cpb.isEmphasis=0
+		group by cpb.org
+	</select>
+	<!-- 单位场所历史月份的数据 -->
+	<select id="getStatisticsSummary" parameterClass="java.util.Map" resultMap="StatisticsBaseInfoSummary">
+		select case when sum(b.monthcreate) is null then 0 else sum(b.monthcreate) end thisMonthCount,
+		       case when sum(b.objectsum) is null then 0 else sum(b.objectsum) end allCount,
+		       case when sum(b.total) is null then 0 else sum(b.total) end attentionCount
+		from companyPlaceStatType_$year$_$month$ b where b.orginternalcode like '$orgCode$%' and b.year=#year# and b.month=#month#
+		<isNotEmpty property="moduleKey">
+			<isNotEqual prepend=" and " property="moduleKey" compareValue="ALLCOMPANYPLACE">
+				b.baseinfotype = '$moduleKey$'
+			</isNotEqual>
+			<isEqual property="moduleKey" compareValue="ALLCOMPANYPLACE">
+				<isPropertyAvailable property="allModuleKeys">
+					<isNotEmpty property="allModuleKeys" prepend=" and ">
+						b.baseinfotype in
+						<iterate open="(" close=")" conjunction="," property="allModuleKeys">
+							#allModuleKeys[]#
+						</iterate>
+					</isNotEmpty>
+				</isPropertyAvailable>	
+			</isEqual>
+		</isNotEmpty> 
+	</select>
+	
+	<!-- 统计报表统计历史记录 -->
+	<insert id="addCompanyPlaceAnalyzStatisticsByTimeAndModuleKey" parameterClass="java.util.Map">
+			insert into companyPlaceStatType_$year$_$month$(
+				id,year,month,orgId,orgInternalCode,startDate,endDate,typeName,baseinfoType,total,percentage,objectSum,monthcreate)
+				
+			select s_statisticCompanyPlaceHistory.nextval as id,'$year$','$month$',t.orgId as orgId,t.orgInternalCode as orgInternalCode,#startDate# as startDate,#endDate# as endDate,
+				#typeName# as typeName,#baseinfoType# as baseinfoType,null,null,t.objectSum as objectSum,t.monthcreate as monthcreate 
+				from (select org.id as orgId,org.orgInternalCode as orgInternalCode, 
+				<!-- 除掉业务信息的 -->
+				<isEqual property="module" compareValue="companyplace">
+					(select count(1) from companyplace c,companyplacebase cb where c.baseid=cb.id and cb.createdate <![CDATA[<]]> #nextMonthStart# and org = org.id
+					<isPropertyAvailable property="keyType">
+						<isNotNull property="keyType" prepend=" and ">
+							$column$ = '$keyType$'
+						</isNotNull>
+					</isPropertyAvailable> and isEmphasis=0) as objectSum,
+					(select count(1) from companyplace c,companyplacebase cb where c.baseid=cb.id and cb.createdate <![CDATA[>=]]> #monthStart# and cb.createdate <![CDATA[<]]> #nextMonthStart# and org = org.id
+					<isPropertyAvailable property="keyType">
+						<isNotNull property="keyType" prepend=" and ">
+							$column$ = '$keyType$'
+						</isNotNull>
+					</isPropertyAvailable> and isEmphasis=0) as monthcreate
+				</isEqual>
+				<!-- 重点单位场所 -->
+				<isEqual property="module" compareValue="business">
+					(select count(1) from companyplace c,companyplacebase cb,companyplacebusiness cbs where c.baseid=cb.id and cbs.companyplaceid=c.id and cb.createdate <![CDATA[<]]> #nextMonthStart# and org = org.id
+					<isPropertyAvailable property="keyType">
+						<isNotNull property="keyType" prepend=" and ">
+							$column$ = '$keyType$'
+						</isNotNull>
+					</isPropertyAvailable> and isEmphasis=0) as objectSum,
+					(select count(1) from companyplace c,companyplacebase cb,companyplacebusiness cbs where c.baseid=cb.id and cbs.companyplaceid=c.id and cb.createdate <![CDATA[>=]]> #monthStart# and cb.createdate <![CDATA[<]]> #nextMonthStart# and org = org.id
+					<isPropertyAvailable property="keyType">
+						<isNotNull property="keyType" prepend=" and ">
+							$column$ = '$keyType$'
+						</isNotNull>
+					</isPropertyAvailable> and isEmphasis=0) as monthcreate
+				</isEqual>
+				 from organizations org 
+				 <dynamic prepend="where">
+				 	<isNotEmpty property="orgInternalCode" prepend=" and ">
+				 		org.orgInternalCode like #orgInternalCode#||'%' 
+				 	</isNotEmpty>
+					<isNotNull property="orgType" prepend=" and ">
+				  		org.orgtype = #orgType# 
+				 	</isNotNull>
+				 	<isNotNull property="orgLevel" prepend=" and ">
+				 		org.orglevel = #orgLevel#
+				 	</isNotNull>
+				 	) t where t.objectSum <![CDATA[ > ]]> 0
+				 </dynamic>
+	</insert>
+	
+	<!-- 删除统计信息 -->
+	<delete id="deleteCompanyPlaceAnalyzStatistics" parameterClass="java.util.Map">
+		delete companyPlaceStatType_$year$_$month$
+		
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty property="orgInternalCode">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="baseinfoType">
+				<isNotNull property="moduleKeys" prepend=" and ">
+					baseinfoType in
+					<iterate open="(" close=")" conjunction="," property="baseinfoType">
+						#moduleKeys[]#
+					</iterate>
+				</isNotNull>			
+			</isPropertyAvailable>
+		</dynamic>  
+	</delete>
+	<select id="queryColumnDateByMapForList" parameterClass="java.util.Map" resultClass="java.util.HashMap" remapResults="true">
+	select mo.id orgId,max(mo.orginternalcode) orgCode,max(mo.orgname) orgName,nvl(sum(co.dc),0) sum,max(mo.seq) seq
+		 from organizations mo 
+            left join(
+            <isNotEmpty property="moduleType">
+		           <isEqual property="moduleType" compareValue="place">
+		           		select d.orginternalcode, count(d.id) dc from companyplacebase d,companyplace c where d.id=c.baseid and isEmphasis=0 
+		           </isEqual>
+		           <isEqual property="moduleType" compareValue="company">
+		           		select d.orginternalcode, count(d.id) dc from companyplacebase d,companyplace c where d.id=c.baseid and isEmphasis=0 
+		           </isEqual>
+		           <isEqual property="moduleType" compareValue="enterprise">
+		           		select d.orginternalcode, count(d.id) dc from companyplacebase d,companyplace c where d.id=c.baseid and isEmphasis=0 
+		           </isEqual>
+		           <isEqual property="moduleType" compareValue="keyCompanyPlace">
+		          		select d.orginternalcode, count(d.id) dc from companyplacebase d,companyplace c,companyplacebusiness cb where d.id=c.baseid and cb.companyplaceid=c.id and isEmphasis=0 
+		           </isEqual>
+		           <!-- 查询的条件 -->
+		            <isPropertyAvailable property="keyTypes">
+						<isNotNull property="keyTypes" prepend=" and ">
+							$column$ in 
+							<iterate open="(" close=")" conjunction="," property="keyTypes">
+								#keyTypes[]#
+							</iterate>
+						</isNotNull>
+					</isPropertyAvailable>
+			</isNotEmpty>
+			<isEmpty property="moduleType">
+				select d.orginternalcode, count(d.id) dc from companyplacebase d  where isEmphasis=0
+			</isEmpty>
+            group by d.orginternalcode )co on co.orginternalcode like mo.orginternalcode||'%'
+           	where 
+				<isNull property="orgLevelDistance">
+					mo.parentid=#orgId#
+				</isNull>
+				<isNotNull property="orgLevelDistance">
+					REGEXP_LIKE(mo.orginternalcode,'^' || REPLACE(#orgInternalCode#, '.', '\.') ||'([^\.]{1,4}\.){$orgLevelDistance$}$$')
+				</isNotNull>
+			
+           and mo.orgtype=#orgType#
+           group by mo.id ,mo.seq
+           order by mo.seq
+	</select>
+	
+	<!-- 区域图历史 -->
+	<select id="queryColumnDateByTimeMapForList" parameterClass="java.util.Map" resultClass="java.util.HashMap" remapResults="true">
+		select mo.id orgId,max(mo.orginternalcode) orgCode,max(mo.orgname) orgName,nvl(sum(co.dc),0) sum,max(mo.seq) seq
+		  from organizations mo
+		  left join (select orginternalcode, objectsum dc
+		               from companyPlaceStatType_$year$_$month$ 
+		               <dynamic prepend="where">
+							<!-- 查询的条件 -->
+				            <isPropertyAvailable property="keyTypes">
+								<isNotNull property="keyTypes" prepend=" and ">
+									baseinfotype in 
+									<iterate open="(" close=")" conjunction="," property="keyTypes">
+										#keyTypes[]#
+									</iterate>
+								</isNotNull>
+							</isPropertyAvailable>
+							<isNotNull property="year" prepend="and">
+								year=#year#
+							</isNotNull>
+							<isNotNull property="month" prepend="and">
+								month=#month#
+							</isNotNull>
+						</dynamic>
+		             ) co on co.orginternalcode like  mo.orginternalcode || '%'
+		 where 
+		 	<isNull property="orgLevelDistance">
+					mo.parentid=#orgId#
+			</isNull>
+			<isNotNull property="orgLevelDistance">
+					REGEXP_LIKE(mo.orginternalcode,'^' || REPLACE(#orgInternalCode#, '.', '\.') ||'([^\.]{1,4}\.){$orgLevelDistance$}$$')
+			</isNotNull>
+		   and mo.orgtype =#orgType#
+		 group by mo.id, mo.seq,mo.parentid
+		 order by (select to_number(seq ||'00'|| mo.seq) from organizations o where o.id=mo.parentid)
+	</select>
+	
+	<!-- 趋势图 -->
+	<!-- 类型分布图历史月份的 （单位和场所） -->
+	<select id="getTendencyChartToal" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select nvl(sum(objectsum),0) from companyPlaceStatType_$year$_$month$
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<!-- 查询的条件 -->
+			<isPropertyAvailable property="keyTypes">
+				<isNotNull property="keyTypes" prepend=" and ">
+					baseinfotype in 
+					<iterate open="(" close=")" conjunction="," property="keyTypes">
+						#keyTypes[]#
+					</iterate>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<!-- 类型分布图当前月份的 （单位和场所） -->
+	<select id="getCompanyplaceCountSumByOrgInternalCode" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		 select nvl(count(*),0) as sum from companyplacebase d, companyplace c
+              where d.id = c.baseid and orginternalcode like #orgInternalCode#||'%' and isEmphasis=0
+              <isPropertyAvailable property="keyTypes">
+				<isNotNull property="keyTypes">
+					and classIficationen in 
+					<iterate open="(" close=")" conjunction="," property="keyTypes">
+						#keyTypes[]#
+					</iterate>
+				</isNotNull>
+			</isPropertyAvailable>
+	</select>
+	<!-- 单一类型的类型分布图当前月份的  -->
+	<select id="getCompanyplaceCountSumByOrgInternalCodeToAloneMold" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		 select nvl(count(1),0) as sum from
+		<!-- 正常的单位场所用英文可以区分的-->
+		<isEqual property="module" compareValue="companyplace">
+			companyplacebase d, companyplace c where d.id = c.baseid 
+		</isEqual>
+		<!--重点单位场所-->
+		<isEqual property="module" compareValue="business">
+			companyplacebase d, companyplace c, companyplacebusiness cbs  where d.id = c.baseid and cbs.companyplaceid=c.id 
+		</isEqual>
+		<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					$column$ = '$keyType$' 
+				</isNotNull>
+		</isPropertyAvailable>
+             and orginternalcode like #orgInternalCode#||'%' and isEmphasis=0
+	</select>
+	
+	<!-- 类型分布图历史月份的 （单个的） -->
+	<select id="getCompanyPlacePieToAloneMold" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select nvl(sum(objectsum),0) from companyPlaceStatType_$year$_$month$
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<!-- 查询的条件 -->
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					baseinfotype = #keyType#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>

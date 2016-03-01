@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="entourage">
+	<typeAlias alias="Entourage" type="com.tianque.domain.Entourage" />
+
+	<resultMap id="entourageResult" class="Entourage">
+		<result column="id" property="id" />
+		<result column="trampResidentId" property="trampResidentId" />
+		<result column="name" property="name" />
+		<result column="relation" property="relation" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="gender" property="gender.id" />
+		<result column="vaccinationCertificate" property="vaccinationCertificate" />
+		<result column="placeToSchool" property="placeToSchool" />
+
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+	</resultMap>
+
+	<insert id="addEntourage" parameterClass="Entourage">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_entourages.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into entourages
+		(id,trampResidentId,name,relation,idCardNo,gender,vaccinationCertificate,
+		placeToSchool,createDate,createUser)
+		values
+		(#id#,#trampResidentId#,#name#,#relation#,#idCardNo#,
+		#gender.id#,#vaccinationCertificate#,#placeToSchool#
+		,#createDate#,#createUser#)
+	</insert>
+
+	<update id="updateEntourage" parameterClass="Entourage">
+		update entourages set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="relation">
+				relation=#relation#
+			</isNotNull>
+			<isPropertyAvailable prepend="," property="idCardNo">
+				idCardNo=#idCardNo#
+			</isPropertyAvailable>
+			<isNotNull prepend="," property="gender">
+				gender=#gender.id#
+			</isNotNull>
+			<isNotNull prepend="," property="vaccinationCertificate">
+				vaccinationCertificate=#vaccinationCertificate#
+			</isNotNull>
+			<isNotNull prepend="," property="placeToSchool">
+				placeToSchool=#placeToSchool#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+
+	<delete id="deleteEntourageById" parameterClass="java.lang.Long">
+		delete from entourages
+		where id=#value#
+	</delete>
+
+	<select id="getEntourageById" parameterClass="java.lang.Long"
+		resultMap="entourageResult">
+		select * from entourages where id=#value#
+	</select>
+
+	<sql id="sql_where">
+		from entourages
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="trampResidentId">
+				<isNotNull property="trampResidentId" prepend=" and ">
+					trampResidentId = #trampResidentId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findEntourages" parameterClass="java.util.Map"
+		resultMap="entourageResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countEntourages" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="getEntourageByIdCard" parameterClass="java.util.Map"
+		resultMap="entourageResult">
+		select * from entourages where trampResidentId=#trampResidentId#
+		and
+		<iterate property="idCardNoList" conjunction="or">
+			upper(idCardNo) like upper(#idCardNoList[]#)
+		</iterate>
+	</select>
+</sqlMap>

@@ -1,0 +1,1097 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchIssueNew">
+	<!-- 注释说明 -->
+	<typeAlias alias="IssueNew" type="com.tianque.issue.domain.IssueNew" />
+	<typeAlias alias="IssueViewObject" type="com.tianque.issue.vo.IssueViewObject" />
+	<typeAlias alias="SearchIssueVoNew" type="com.tianque.domain.vo.SearchIssueVoNew" />
+	<typeAlias alias="SearchCommandCenterIssueVoNew" type="com.tianque.domain.vo.SearchCommandCenterIssueVoNew" />
+	<typeAlias alias="ClobStringTypeHandler" type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+
+	<resultMap id="issueViewResult" class="IssueViewObject">
+		<result property="superviseLevel" column="superviseLevel" />
+		<result property="issueId" column="issueId" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="subject" column="subject" />
+		<result property="status" column="status" />
+		<result property="occurDate" column="occurDate" />
+		<result property="currentOrg.id" column="currentOrg" />
+		<result property="occurOrg.id" column="occurOrg" />
+		<result property="dealTime" column="lastdealdate" />
+		<result property="sourcePerson" column="sourcePerson" />
+		<result property="sourceKind.id" column="sourceKind" />
+		<result property="sourceMobile" column="sourceMobile" />
+		<result property="issueStepId" column="stepId" />
+		<result property="supervisionState" column="superviselevel" />
+		<result property="urgent" column="urgent" />
+		<result property="dealState" column="statecode" />
+		<result property="lastOrg.id" column="lastOrg" />
+		<result property="issueType.issueTypeDomain.id" column="ISSUETYPEDOMAINID"/>
+		<result property="issueType.id" column="ISSUETYPEID"/>
+	</resultMap>
+	<resultMap id="issueViewAndEvaluateResult" class="IssueViewObject" extends="issueViewResult">
+		<result property="evaluateType" column="evaluateType" />
+		<result property="evaluateContent" column="evaluateContent" />
+		<result property="evaluateTime" column="evaluateTime" />
+	</resultMap>
+	<resultMap id="issueViewAndEvaluateResultIssueContent" class="IssueViewObject" extends="issueViewAndEvaluateResult">
+		<result property="issueContent" column="issuecontent" />
+	</resultMap>
+	
+	<resultMap id="issueNewResult" class="IssueNew" extends="issueNewResult.issueResult">
+	</resultMap>
+	
+	<!-- 已办事项 映射结果-->
+	<resultMap id="issueViewMyDoneResult" class="IssueViewObject" extends="issueViewResult">
+		<result property="publicltycass" column="publicltycass" />
+		<result property="topState" column="topState" />	
+	</resultMap>
+	
+	<!-- 已办结事项映射结果 -->
+	<resultMap id="issueViewMyCompleteResult" class="IssueViewObject" extends="issueViewAndEvaluateResult">
+		<result property="topState" column="topState" />	
+		<result property="issueEvaluate.id" column="issueEvaluateId" />	
+	</resultMap>
+	
+	<resultMap id="issueViewMyCompleteResultIssueContent" class="IssueViewObject" extends="issueViewMyCompleteResult">
+		<result property="issueContent" column="issuecontent" />
+	</resultMap>
+	
+	<resultMap id="issueViewResultIssueContent" class="IssueViewObject" extends="issueViewResult">
+		<result property="issueContent" column="issuecontent" />
+		<result property="delayState" column="delaystate" />
+	</resultMap>
+	
+	
+	<sql id="sql_issueType">
+			<isPropertyAvailable property="issueTypeDomain">
+				<isNotEmpty property="issueTypeDomain.id" prepend=" and ">
+					iu.issuetypedomainid =#issueTypeDomain.id#  
+				</isNotEmpty>
+			</isPropertyAvailable>
+	</sql>
+	<!-- 查询条件 -->
+	<sql id="sqlWhere">
+	<dynamic>
+			<isPropertyAvailable property="subject">
+				<isNotEmpty property="subject" prepend=" and ">
+				<![CDATA[
+					iu.subject like #subject#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurOrg">
+				<isNotNull property="occurOrg.id" prepend=" and ">
+				<![CDATA[
+			    	iu.occurOrg = #occurOrg.id#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="status">
+				<isNotNull property="status" prepend=" and ">
+					<isEqual property="status" compareValue="300">
+						status =#status#
+					</isEqual>
+					<isEqual property="status" compareValue="1">
+					<![CDATA[	status != 300 ]]>
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueKind">
+				<isNotNull property="issueKind.id" prepend=" and ">
+				<![CDATA[
+			        iu.issueKind = #issueKind.id#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="important">
+				<isNotNull property="important" prepend=" and ">
+				<![CDATA[
+			    	iu.important = #important#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="serialNumber">
+				<isNotEmpty property="serialNumber" prepend=" and ">
+				<![CDATA[
+					iu.serialNumber like #serialNumber#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sourcePerson">
+				<isNotEmpty property="sourcePerson" prepend=" and ">
+				<![CDATA[
+					iu.sourcePerson like #sourcePerson#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sourceMobile">
+				<isNotEmpty property="sourceMobile" prepend=" and ">
+				<![CDATA[
+					iu.sourceMobile like #sourceMobile#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurFrom">
+				<isNotEmpty property="occurFrom" prepend=" and ">
+				<![CDATA[
+					iu.occurDate >= #occurFrom#
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurEnd">
+				<isNotNull property="occurEnd" prepend=" and ">
+				 <![CDATA[
+					iu.occurDate <= #occurEnd#
+				]]>
+				</isNotNull>
+			</isPropertyAvailable>			
+			<isPropertyAvailable property="endTimeFrom">
+				<isNotEmpty property="endTimeFrom" prepend=" and ">
+				<![CDATA[
+					isteps.endDate >= #endTimeFrom#
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endTimeEnd">
+				<isNotEmpty property="endTimeEnd" prepend=" and ">
+				 <![CDATA[
+					isteps.endDate <= #endTimeEnd#
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relatePeopleMinCount">
+				<isNotNull property="relatePeopleMinCount" prepend=" and ">
+				<![CDATA[
+			    	iu.relatePeopleCount >= #relatePeopleMinCount#
+			   	]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relatePeopleMaxCount">
+				<isNotNull property="relatePeopleMaxCount" prepend=" and ">
+				<![CDATA[
+			    	iu.relatePeopleCount <= #relatePeopleMaxCount#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mainCharacters">
+				<isNotEmpty property="mainCharacters" prepend=" and ">
+				<![CDATA[
+			    	iu.mainCharacters like #mainCharacters#||'%'
+			    ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relateMinAmount">
+				<isNotNull property="relateMinAmount" prepend=" and ">
+				<![CDATA[
+			        iu.relateAmount >= #relateMinAmount#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relateMaxAmount">
+				<isNotNull property="relateMaxAmount" prepend=" and ">
+				<![CDATA[
+			        iu.relateAmount <= #relateMaxAmount#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurLocation">
+				<isNotEmpty property="occurLocation" prepend=" and ">
+				<![CDATA[
+			        iu.occurLocation like #occurLocation#||'%'
+			   	]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueContent">
+				<isNotNull property="issueContent" prepend=" and ">
+				<![CDATA[
+			        iu.issueContent like '%'||#issueContent#||'%'
+			   	]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueTypes">
+				<isNotEmpty property="issueTypes" prepend=" and ">
+					(
+					<iterate property="issueTypes" conjunction=" or ">
+						iu.issueTypeId =#issueTypes[].id#
+		       		 </iterate>
+		       		 )
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueType" >
+				<isNotNull property="issueType" prepend=" and ">
+					iu.ISSUETYPEDOMAINID =#issueType#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<!-- 待办事项查询数量 -->
+	<select id="countIssues" parameterClass="SearchIssueVoNew" resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*)  from issues iu,issuesteps il where 
+		iu.id = il.issue and targetinternalcode = #targeOrgInternalCode#  and il.stateCode<#completeCode# and  iu.historic = 0 
+		]]>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+	</select>
+	
+	<!-- 待办事项查询列表 -->
+	<select id="searchIssues" parameterClass="SearchIssueVoNew"	resultMap="issueViewResultIssueContent">
+		<![CDATA[
+		select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status,iu.createDate,iu.occurdate,iu.currentOrg,iu.occurorg,
+		il.lastdealdate,iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, il.id as stepId,
+		il.superviselevel,iu.lastOrg,il.statecode,iu.issuecontent ,il.delaystate,iu.ISSUETYPEDOMAINID as ISSUETYPEDOMAINID,iu.ISSUETYPEID as ISSUETYPEID from issues iu,issuesteps il where
+		iu.id = il.issue and targetinternalcode = #targeOrgInternalCode#  and il.stateCode<#completeCode# and  iu.historic = 0 
+			]]>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countMyDoneIssues" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(issue) from (select issue from issuesteps where target=#targeOrgId# and stateCode>=#dealState# group by issue) 
+		where issue not in(select issueid from historicalIssues where orgId=#targeOrgId#)
+		]]>
+	</select>
+	
+	<select id="findMyDoneIssues" parameterClass="java.util.Map" resultMap="issueViewResult">
+		<![CDATA[
+		select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,iu.currentOrg,iu.createDate,iu.occurorg,isteps.lastdealdate, 
+		iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, isteps.id as stepId,isteps.superviselevel,iu.lastOrg,isteps.statecode,iu.ISSUETYPEDOMAINID as ISSUETYPEDOMAINID,iu.ISSUETYPEID as ISSUETYPEID 
+		from (select issue from issuesteps where target=#targeOrgId# and stateCode>=#dealState# group by issue) issueIds, 
+		issues iu,issuesteps isteps where iu.id=issueIds.issue and isteps.id=iu.currentStep 
+		and issueIds.issue not in(select issueid from historicalIssues where orgId=#targeOrgId#)
+		]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 已办事项查询数量 -->
+	<select id="countDoneIssues" parameterClass="SearchIssueVoNew"	resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from issues iu left join issuesteps cstep on cstep.id=iu.currentstep 
+		where iu.id in (select id from issues where id in(select issue from issuesteps where target=#targeOrgId# and stateCode>=#completeCode#)
+			and id not in(select issue from issuesteps where target=#targeOrgId# and stateCode<#completeCode#)
+			group by id)
+		]]>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+	</select>
+	
+	<!-- 已办事项查询列表 -->
+	<select id="searchDoneIssues" parameterClass="SearchIssueVoNew" resultMap="issueViewMyDoneResult">
+		<![CDATA[
+		select 
+			case when ti.topState is null then 0  else ti.topState end as topState,
+			case when p.id is null then 0  else 1 end as publicltycass,issue.issueId,serialnumber,
+			subject ,status, occurdate,currentOrg,occurorg,targetOrg,lastdealdate, sourceperson,
+			sourcekind,sourcemobile,urgent,stepId,superviselevel ,lastOrg,statecode,ISSUETYPEDOMAINID,ISSUETYPEID 
+     	from (
+				select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,iu.OCCURLOCATION,iu.ISSUEKIND,iu.IMPORTANT,
+				iu.RELATEPEOPLECOUNT,iu.MAINCHARACTERS,
+					cstep.source currentOrg,iu.occurorg,cstep.target targetOrg,cstep.lastdealdate, 
+					iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, cstep.id as stepId,
+					cstep.superviselevel,iu.lastOrg,iu.status statecode,iu.ISSUETYPEDOMAINID as ISSUETYPEDOMAINID,iu.ISSUETYPEID as ISSUETYPEID  
+				from issues iu left join issuesteps cstep on cstep.id=iu.currentstep 
+				where iu.id in 
+					( select id from issues 
+					  where id in(select issue from issuesteps where target=#targeOrgId# and stateCode>=#completeCode#)
+					  and id not in(select issue from issuesteps where target=#targeOrgId# and stateCode<#completeCode#)
+					  group by id
+					)
+		]]>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+		<dynamic>
+			<isPropertyAvailable property="status">
+				<isNotNull property="status" prepend=" and ">
+					<isEqual property="status" compareValue="300">
+						status =#status#
+					</isEqual>
+					<isEqual property="status" compareValue="1">
+					<![CDATA[	status != 300 ]]>
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<![CDATA[ 
+			) issue left join publicltycass p on issue.issueId=p.issueid and p.orgid=#targeOrgId# 
+			    left join topIssues ti on issue.issueId = ti.issueId and ti.orgId=#targeOrgId# and ti.issueTag = 2
+		]]>
+		<dynamic>
+			<isPropertyAvailable property="subject">
+				<isNotEmpty property="subject" prepend=" and ">
+				<![CDATA[
+					issue.subject like #subject#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurOrg">
+				<isNotNull property="occurOrg.id" prepend=" and ">
+				<![CDATA[
+			    	issue.occurOrg = #occurOrg.id#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="status">
+				<isNotNull property="status" prepend=" and ">
+					<isEqual property="status" compareValue="300">
+						status =#status#
+					</isEqual>
+					<isEqual property="status" compareValue="1">
+					<![CDATA[	status != 300 ]]>
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueKind">
+				<isNotNull property="issueKind.id" prepend=" and ">
+				<![CDATA[
+			        issue.issueKind = #issueKind.id#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="important">
+				<isNotNull property="important" prepend=" and ">
+				<![CDATA[
+			    	issue.important = #important#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="serialNumber">
+				<isNotEmpty property="serialNumber" prepend=" and ">
+				<![CDATA[
+					issue.serialNumber like #serialNumber#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sourcePerson">
+				<isNotEmpty property="sourcePerson" prepend=" and ">
+				<![CDATA[
+					issue.sourcePerson like #sourcePerson#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sourceMobile">
+				<isNotEmpty property="sourceMobile" prepend=" and ">
+				<![CDATA[
+					issue.sourceMobile like #sourceMobile#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurFrom">
+				<isNotEmpty property="occurFrom" prepend=" and ">
+				<![CDATA[
+					issue.occurDate >= #occurFrom#
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurEnd">
+				<isNotNull property="occurEnd" prepend=" and ">
+				 <![CDATA[
+					issue.occurDate <= #occurEnd#
+				]]>
+				</isNotNull>
+			</isPropertyAvailable>			
+			<isPropertyAvailable property="endTimeFrom">
+				<isNotEmpty property="endTimeFrom" prepend=" and ">
+				<![CDATA[
+					isteps.endDate >= #endTimeFrom#
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endTimeEnd">
+				<isNotEmpty property="endTimeEnd" prepend=" and ">
+				 <![CDATA[
+					isteps.endDate <= #endTimeEnd#
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relatePeopleMinCount">
+				<isNotNull property="relatePeopleMinCount" prepend=" and ">
+				<![CDATA[
+			    	issue.relatePeopleCount >= #relatePeopleMinCount#
+			   	]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relatePeopleMaxCount">
+				<isNotNull property="relatePeopleMaxCount" prepend=" and ">
+				<![CDATA[
+			    	issue.relatePeopleCount <= #relatePeopleMaxCount#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mainCharacters">
+				<isNotEmpty property="mainCharacters" prepend=" and ">
+				<![CDATA[
+			    	issue.mainCharacters like #mainCharacters#||'%'
+			    ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relateMinAmount">
+				<isNotNull property="relateMinAmount" prepend=" and ">
+				<![CDATA[
+			        issue.relateAmount >= #relateMinAmount#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relateMaxAmount">
+				<isNotNull property="relateMaxAmount" prepend=" and ">
+				<![CDATA[
+			        issue.relateAmount <= #relateMaxAmount#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurLocation">
+				<isNotEmpty property="occurLocation" prepend=" and ">
+				<![CDATA[
+			        issue.occurLocation like #occurLocation#||'%'
+			   	]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueContent">
+				<isNotNull property="issueContent" prepend=" and ">
+				<![CDATA[
+			        issue.issueContent like '%'||#issueContent#||'%'
+			   	]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueTypeDomain">
+				<isNotEmpty property="issueTypeDomain.id" prepend=" and ">
+					iu.issuetypedomainid =#issueTypeDomain.id#  
+					
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			topState desc, ti.topDate desc
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField"> ,$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 我的事项 - 已办结事项查询数量 -->
+	<select id="countMyCompletedIssues" parameterClass="SearchIssueVoNew"	resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from (
+			select iu.id from issuesteps isteps,issues iu 
+			where iu.id=isteps.issue and iu.CREATEORGINTERNALCODE = #targeOrgInternalCode# 
+			and isteps.stateCode>=#dealState# 
+			and iu.historic = 0 
+		]]>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+			<![CDATA[ group by iu.id)]]>
+			
+	</select>
+	
+	<!-- 我的已办结事项查询 -->
+	<select id="searchMyCompletedIssues" parameterClass="SearchIssueVoNew"	resultMap="issueViewMyCompleteResultIssueContent">
+		<![CDATA[
+		select case when ti.topState is null then 0  else ti.topState end as topState,
+		iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,cstep.source currentOrg,iu.occurorg,
+		cstep.target targetOrg,cstep.lastdealdate, iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, 
+		cstep.id as stepId,cstep.superviselevel ,iu.lastOrg,cstep.statecode,ie.evaluatetype,ie.evaluatecontent,
+		ie.evaluatetime, ie.id  ISSUEEVALUATEID,iu.issuecontent,iu.ISSUETYPEDOMAINID as ISSUETYPEDOMAINID,iu.ISSUETYPEID as ISSUETYPEID  
+		from issues iu 
+		left join issuesteps cstep on  cstep.id= iu.currentstep 
+		left join issueEvaluate ie on ie.issueid = iu.id 
+		left join topIssues ti on ti.issueId = iu.id and ti.orgId=#targeOrgId# and ti.issueTag = 3
+		where  iu.id in  (select i.id from issuesteps isteps,issues i 
+							where i.id=isteps.issue and i.CREATEORGINTERNALCODE = #targeOrgInternalCode# 
+							and isteps.stateCode>=#dealState# 
+							and i.historic = 0 
+		]]>
+			<include refid="sqlWhere" />
+			group by i.id) 
+			<include refid="sql_issueType" />
+		<dynamic prepend="order by">
+			topState desc, ti.topDate desc
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField"> , $sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 历史遗留查询数量 -->
+	<select id="countHistoricalIssues" parameterClass="SearchIssueVoNew" resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*)  from issues iu,issuesteps il where 
+		iu.id = il.issue and targetinternalcode = #targeOrgInternalCode#  and il.stateCode<#completeCode# and  iu.historic <> 0 
+		]]>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+	</select>
+	
+	<!-- 历史遗留查询列表 -->
+	<select id="searchHistoricalIssues" parameterClass="SearchIssueVoNew" resultMap="issueViewResult">
+		<![CDATA[
+		select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status,iu.createDate,iu.occurdate,iu.currentOrg,iu.occurorg,
+		il.lastdealdate,iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, il.id as stepId,
+		il.superviselevel,iu.lastOrg,il.statecode,iu.ISSUETYPEDOMAINID as ISSUETYPEDOMAINID,iu.ISSUETYPEID as ISSUETYPEID from issues iu,issuesteps il where
+		iu.id = il.issue and targetinternalcode = #targeOrgInternalCode#  and il.stateCode<#completeCode# and  iu.historic <> 0
+			]]>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!--  宣传案例查询数量 -->
+	<select id="countPublicltyCassIssues" parameterClass="SearchIssueVoNew" resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from publicltyCass pc,issues iu where pc.orgId=#targeOrgId# and pc.issueId = iu.id
+		]]>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+	</select>
+	
+	<!--  宣传案例查询列表 -->
+	<select id="searchPublicltyCassIssues" parameterClass="SearchIssueVoNew" resultMap="issueViewResult">
+		<![CDATA[
+		select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,cstep.source currentOrg,iu.occurorg,cstep.target targetOrg
+			,cstep.lastdealdate, iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, cstep.id as stepId,cstep.superviselevel
+			,iu.lastOrg,iu.status statecode,iu.ISSUETYPEDOMAINID as ISSUETYPEDOMAINID,iu.ISSUETYPEID as ISSUETYPEID from issues iu left join issuesteps cstep on cstep.id=iu.currentstep 
+		where iu.id in (select issueId from publicltyCass where orgId=#targeOrgId#)
+			]]>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	 <!-- 下辖待办事项查询事件数量 -->
+	<select id="countMyJurisdictionsNeedDoIssues" parameterClass="java.util.Map"	resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(issue) from (select issue from issuesteps where targetinternalcode like #targeOrgInternalCode#||'%' and stateCode<#dealState# group by issue) 
+		where issue not in(select issueid from historicalIssues where orgInternalCode like #orgInternalCode#||'%')
+		]]>
+	</select>
+
+	 <!-- 下辖待办事项查询事列表 -->
+	<select id="findMyJurisdictionsNeedDoIssues" parameterClass="java.util.Map"
+		resultMap="issueViewResult">
+		<![CDATA[
+		select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status,iu.createDate,iu.occurdate,iu.currentOrg,iu.occurorg,isteps.lastdealdate,
+		iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent,isteps.id as stepId,isteps.superviselevel,iu.lastOrg,isteps.statecode,iu.ISSUETYPEDOMAINID as ISSUETYPEDOMAINID,iu.ISSUETYPEID as ISSUETYPEID 
+		from (select issue from issuesteps where targetinternalcode like #targeOrgInternalCode#||'%' and stateCode<#dealState# group by issue) issueIds, 
+		issues iu,issuesteps isteps where iu.id=issueIds.issue and isteps.id=iu.currentStep 
+		and issueIds.issue not in(select issueid from historicalIssues where orgInternalCode like #orgInternalCode#||'%')
+		]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 下辖已办结事项查询数量 -->
+	<select id="countMyJurisdictionsDoneIssues" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from issuesteps where targetinternalcode like #targeOrgInternalCode#||'%' and stateCode>=#dealState#
+		]]>
+	</select>
+	<!-- 下辖已办结事项查询列表-->
+	<select id="findMyJurisdictionsDoneIssues" parameterClass="java.util.Map" resultMap="issueViewResult">
+		<![CDATA[
+		select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,iu.currentOrg,iu.occurorg,isteps.lastdealdate, 
+		iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, isteps.id as stepId,isteps.superviselevel,iu.lastOrg,isteps.statecode ,iu.ISSUETYPEDOMAINID as ISSUETYPEDOMAINID,iu.ISSUETYPEID as ISSUETYPEID 
+		from issuesteps isteps,issues iu where iu.id=isteps.issue and isteps.targetinternalcode like #targeOrgInternalCode#||'%' and isteps.stateCode>=#dealState# 
+		]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<select id="countJurisdictionsIssues" parameterClass="SearchIssueVoNew" resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(issue) from (select issue from issuesteps where targetinternalcode like #targeOrgInternalCode#||'%' and stateCode<#dealState# group by issue) iuStep,issues iu
+		where issue not in(select issueid from historicalIssues where orgInternalCode like #targeOrgInternalCode#||'%') and iuStep.issue=iu.id  and iu.historic = 0
+		]]>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+	</select>
+
+	<select id="searchJurisdictionsIssues" parameterClass="SearchIssueVoNew" resultMap="issueViewResultIssueContent">
+		<![CDATA[
+		select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,iu.createDate,iu.currentOrg,iu.occurorg,iu.issuecontent,isteps.lastdealdate,
+		iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, isteps.id as stepId,isteps.superviselevel,iu.lastOrg,isteps.statecode,isteps.superviseLevel,iu.ISSUETYPEDOMAINID as ISSUETYPEDOMAINID,iu.ISSUETYPEID as ISSUETYPEID  
+		from (select issue from issuesteps where targetinternalcode like #targeOrgInternalCode#||'%' and stateCode<#dealState# group by issue) issueIds, 
+		issues iu,issuesteps isteps where iu.id=issueIds.issue and isteps.id=iu.currentStep 
+		and issueIds.issue not in(select issueid from historicalIssues where orgInternalCode like  #targeOrgInternalCode#||'%')  and iu.historic = 0
+		]]>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countCommandCenterIssuesNew" parameterClass="SearchCommandCenterIssueVoNew" resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*)  from issues iu,issuesteps il where 
+		iu.id = il.issue and targetinternalcode = #targeOrgInternalCode#  and il.stateCode<#completeCode# and  iu.historic = 0 
+		]]>
+		<isNotEmpty prepend="and" property="commandCenterNum">
+		    iu.serialNumber in ($commandCenterNum$)
+		</isNotEmpty>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+	</select>
+	
+	<select id="searchCommandCenterIssues" parameterClass="SearchIssueVoNew" resultMap="issueViewResult">
+		select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status,iu.createDate, iu.occurdate,iu.currentOrg,iu.occurorg,isteps.lastdealdate, 
+		iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, isteps.id as stepId,isteps.superviselevel,iu.lastOrg,isteps.statecode,iu.ISSUETYPEDOMAINID as ISSUETYPEDOMAINID,iu.ISSUETYPEID as ISSUETYPEID  
+		from issueSteps isteps,issues iu where iu.id=isteps.issue and isteps.target=#targeOrgId# and isteps.stateCode<![CDATA[<]]>#dealState# 
+		and iu.id not in(select issueId from historicalIssues where orgId=#targeOrgId#)
+		and iu.sourcekind in
+		<iterate  property="sourcekind" open="(" close=")"  conjunction=",">
+			#sourcekind[].id#
+		</iterate> 
+		<dynamic>
+			<isPropertyAvailable property="subject">
+				<isNotEmpty property="subject">
+					and iu.subject like #subject#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurOrg">
+				<isNotNull property="occurOrg.id">
+				<![CDATA[
+			    and	iu.occurOrg = #occurOrg.id#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueKind">
+				<isNotNull property="issueKind.id">
+			       and  iu.issueKind = #issueKind.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="important">
+				<isNotNull property="important" >
+				<![CDATA[
+			    and	iu.important = #important#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="serialNumber">
+				<isNotEmpty property="serialNumber">
+				<![CDATA[
+					and iu.serialNumber like #serialNumber#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sourcePerson">
+				<isNotEmpty property="sourcePerson">
+				<![CDATA[
+					and  iu.sourcePerson like #sourcePerson#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sourceMobile">
+				<isNotEmpty property="sourceMobile">
+				<![CDATA[
+					and  iu.sourceMobile like #sourceMobile#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurFrom">
+				<isNotNull property="occurFrom" >
+				<![CDATA[
+					and iu.occurDate >= #occurFrom#
+				]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurEnd">
+				<isNotNull property="occurEnd">
+				 <![CDATA[
+				and	iu.occurDate <= #occurEnd#
+				]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relatePeopleMinCount">
+				<isNotNull property="relatePeopleMinCount" >
+				<![CDATA[
+			    	and iu.relatePeopleCount >= #relatePeopleMinCount#
+			   	]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relatePeopleMaxCount">
+				<isNotNull property="relatePeopleMaxCount">
+				<![CDATA[
+			    	and iu.relatePeopleCount <= #relatePeopleMaxCount#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mainCharacters">
+				<isNotEmpty property="mainCharacters" >
+				<![CDATA[
+			    and	iu.mainCharacters like #mainCharacters#||'%'
+			    ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relateMinAmount">
+				<isNotNull property="relateMinAmount">
+				<![CDATA[
+			       and iu.relateAmount >= #relateMinAmount#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relateMaxAmount">
+				<isNotNull property="relateMaxAmount" >
+				<![CDATA[
+			      and  iu.relateAmount <= #relateMaxAmount#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurLocation">
+				<isNotEmpty property="occurLocation" >
+				<![CDATA[
+			       and iu.occurLocation like #occurLocation#||'%'
+			   	]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueTypeDomain">
+				<isNotEmpty property="issueTypeDomain.id" prepend=" and ">
+					iu.issuetypedomainid =#issueTypeDomain.id#  
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<!-- 社情民意中心待办诉求高级搜索 -->	
+	<select id="searchCommandCenterIssuesNew" parameterClass="SearchCommandCenterIssueVoNew" resultMap="issueViewResult">
+		<![CDATA[
+			select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status,iu.createDate,iu.occurdate,iu.currentOrg,
+				   iu.occurorg,il.lastdealdate,iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, il.id as stepId,
+				   il.superviselevel,iu.lastOrg,il.statecode,iu.ISSUETYPEDOMAINID as ISSUETYPEDOMAINID,iu.ISSUETYPEID as ISSUETYPEID   
+			from issues iu,issuesteps il 
+			where iu.id = il.issue 
+			and targetinternalcode = #targeOrgInternalCode#  
+			and il.stateCode<#completeCode# 
+			and  iu.historic = 0 
+		]]>
+		<isNotEmpty prepend="and" property="commandCenterNum">
+		    iu.serialNumber in ($commandCenterNum$)
+		</isNotEmpty>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countSearchCommandCenterIssues" parameterClass="SearchIssueVoNew" resultClass="java.lang.Integer">
+		select count(*) from issues where id in(select issue from issueSteps where target=#targeOrgId# and stateCode<![CDATA[<]]>#dealState# group by issue) 
+		and id not in(select issueId from historicalIssues where orgId=#targeOrgId#)
+		and sourceKind in
+		<iterate  property="sourcekind" open="(" close=")"  conjunction=",">
+			<![CDATA[
+				 #sourcekind[].id#
+			]]>
+		</iterate> 
+		<dynamic>
+			<isPropertyAvailable property="subject">
+				<isNotEmpty property="subject">
+				<![CDATA[
+					and subject like #subject#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurOrg">
+				<isNotNull property="occurOrg.id">
+				<![CDATA[
+			    and	occurOrg = #occurOrg.id#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueKind">
+				<isNotNull property="issueKind.id">
+			       and  issueKind = #issueKind.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="important">
+				<isNotNull property="important" >
+				<![CDATA[
+			    and	important = #important#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="serialNumber">
+				<isNotEmpty property="serialNumber">
+				<![CDATA[
+					and serialNumber like #serialNumber#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sourcePerson">
+				<isNotEmpty property="sourcePerson">
+				<![CDATA[
+					and  sourcePerson like #sourcePerson#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sourceMobile">
+				<isNotEmpty property="sourceMobile">
+				<![CDATA[
+					and  sourceMobile like #sourceMobile#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurFrom">
+				<isNotNull property="occurFrom" >
+				<![CDATA[
+					and occurDate >= #occurFrom#
+				]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurEnd">
+				<isNotNull property="occurEnd">
+				 <![CDATA[
+				and	occurDate <= #occurEnd#
+				]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relatePeopleMinCount">
+				<isNotNull property="relatePeopleMinCount" >
+				<![CDATA[
+			    	and relatePeopleCount >= #relatePeopleMinCount#
+			   	]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relatePeopleMaxCount">
+				<isNotNull property="relatePeopleMaxCount">
+				<![CDATA[
+			    	and relatePeopleCount <= #relatePeopleMaxCount#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mainCharacters">
+				<isNotEmpty property="mainCharacters" >
+				<![CDATA[
+			    and	mainCharacters like #mainCharacters#||'%'
+			    ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relateMinAmount">
+				<isNotNull property="relateMinAmount">
+				<![CDATA[
+			       and relateAmount >= #relateMinAmount#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="relateMaxAmount">
+				<isNotNull property="relateMaxAmount" >
+				<![CDATA[
+			      and  relateAmount <= #relateMaxAmount#
+			    ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurLocation">
+				<isNotEmpty property="occurLocation" >
+				<![CDATA[
+			       and occurLocation like #occurLocation#||'%'
+			   	]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueTypeDomain">
+				<isNotEmpty property="issueTypeDomain.id" prepend=" and ">
+					iu.issuetypedomainid =#issueTypeDomain.id#  
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+
+	<select id="searchCommandCenterDoneIssues" parameterClass="SearchCommandCenterIssueVoNew"	resultMap="issueViewResult">
+		<![CDATA[
+		select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status,iu.occurdate,iu.createDate,cstep.source currentOrg,iu.occurorg
+			, iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent,cstep.superviselevel,cstep.lastdealdate,cstep.id as stepId
+			,iu.lastOrg,iu.status statecode,iu.ISSUETYPEDOMAINID as ISSUETYPEDOMAINID,iu.ISSUETYPEID as ISSUETYPEID  from issues iu left join issuesteps cstep on cstep.id=iu.currentstep 
+		where iu.id in (select issue from issuesteps where target=#targeOrgId# and stateCode>=#completeCode#)
+		]]>
+		<isNotEmpty prepend="and" property="commandCenterNum">
+		    iu.serialNumber in ($commandCenterNum$)
+		</isNotEmpty>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+
+	<select id="countCommandCenterDoneIssues" parameterClass="SearchCommandCenterIssueVoNew" resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from issues iu left join issuesteps cstep on cstep.id=iu.currentstep 
+		where iu.id in (select id from issues where id in(select issue from issuesteps where target=#targeOrgId# and stateCode>=#completeCode#)
+			and id not in(select issue from issuesteps where target=#targeOrgId# and stateCode<#completeCode#)
+			group by id)
+		]]>
+		<isNotEmpty prepend="and" property="commandCenterNum">
+		    iu.serialNumber in ($commandCenterNum$)
+		</isNotEmpty>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+	</select>
+	
+	<select id="searchDoneIssuesforCommandCenter" parameterClass="map" resultMap="issueViewResult">
+		<![CDATA[
+		select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,iu.createDate,cstep.source currentOrg,iu.occurorg,cstep.target targetOrg
+			,cstep.lastdealdate, iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, cstep.id as stepId,cstep.superviselevel
+			,iu.lastOrg,iu.status statecode,iu.ISSUETYPEDOMAINID as ISSUETYPEDOMAINID,iu.ISSUETYPEID as ISSUETYPEID  from issues iu left join issuesteps cstep on cstep.id=iu.currentstep 
+		where iu.id in (select id from issues where id in(select issue from issuesteps where target=#targeOrgId# and stateCode>=#completeCode#)
+			and id not in(select issue from issuesteps where target=#targeOrgId# and stateCode<#completeCode#)
+			and sourcekind in (select id  from propertydicts where propertydomainid = (select id from propertydomains where domainname =#domainname# ) and displayname in (#smsInput#,#webInput#,#hotlinePhone#))
+			group by id)
+		]]>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+	</select>
+	
+	<select id="countDoneIssuesforCommandCenter" parameterClass="map" resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from issues iu left join issuesteps cstep on cstep.id=iu.currentstep 
+		where iu.id in (select id from issues where id in(select issue from issuesteps where target=#targeOrgId# and stateCode>=#completeCode#)
+			and id not in(select issue from issuesteps where target=#targeOrgId# and stateCode<#completeCode#)
+			and sourcekind in (select id  from propertydicts where propertydomainid = (select id from propertydomains where domainname =#domainname# ) and displayname in (#smsInput#,#webInput#,#hotlinePhone#))
+			group by id) and iu.historic = 0
+		]]>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+	</select>
+	
+	<select id="searchJurisdictionsDoneIssues" parameterClass="SearchIssueVoNew" resultMap="issueViewAndEvaluateResultIssueContent">
+		<![CDATA[
+		select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,cstep.source currentOrg,iu.occurorg,cstep.target targetOrg
+       ,cstep.lastdealdate, iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent,iu.issuecontent, cstep.id as stepId,cstep.superviselevel
+       ,iu.lastOrg,cstep.statecode,ie.evaluatetype,ie.evaluatecontent,ie.evaluatetime,iu.ISSUETYPEDOMAINID as ISSUETYPEDOMAINID,iu.ISSUETYPEID as ISSUETYPEID from issues iu left join issuesteps cstep on 
+       cstep.issue= iu.id left join issueEvaluate ie on ie.issueid = iu.id where  iu.id in (
+			select i.id from issuesteps isteps,issues i where i.id=isteps.issue and isteps.targetinternalcode like #targeOrgInternalCode#||'%' and isteps.stateCode>=#dealState# 
+			and i.historic = 0 ]]>
+			<include refid="sqlWhere" />
+		<![CDATA[	group by i.id)]]>
+		<include refid="sql_issueType" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findMyNeedDoIssues" parameterClass="java.util.Map" resultMap="issueViewResult">
+		<![CDATA[
+		select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status,iu.createDate, iu.occurdate,iu.currentOrg,iu.occurorg,isteps.lastdealdate, 
+		iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, isteps.id as stepId,isteps.superviselevel,iu.lastOrg,isteps.statecode,iu.ISSUETYPEDOMAINID as ISSUETYPEDOMAINID,iu.ISSUETYPEID as ISSUETYPEID  
+		from issuesteps isteps,issues iu where iu.id=isteps.issue and isteps.target=#targeOrgId# and isteps.stateCode<#dealState# 
+		and iu.id not in(select issueid from historicalIssues where orgId=#targeOrgId#)
+		]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	
+	<select id="countJurisdictionsDoneIssues" parameterClass="SearchIssueVoNew" resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from issuesteps isteps,issues iu  where targetinternalcode like #targeOrgInternalCode#||'%' and stateCode>=#dealState#   and isteps.issue=iu.id 
+		]]>
+		<include refid="sqlWhere" />
+		<include refid="sql_issueType" />
+	</select>
+	
+	<select id="countMyNeedDoIssues" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from issuesteps isteps,issues iu where iu.id=isteps.issue and isteps.target=#targeOrgId# and isteps.stateCode<#dealState# 
+		and iu.id not in(select issueid from historicalIssues where orgId=#targeOrgId#)
+		]]>
+	</select>
+
+	<select id="findCommandCenterIssues" parameterClass="java.util.Map" resultMap="issueViewResult">
+		select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status,iu.createDate, iu.occurdate,iu.currentOrg,iu.occurorg,isteps.lastdealdate, 
+		iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, isteps.id as stepId,isteps.superviselevel,iu.lastOrg,isteps.statecode,iu.ISSUETYPEDOMAINID as ISSUETYPEDOMAINID,iu.ISSUETYPEID as ISSUETYPEID  
+		from issueSteps isteps,issues iu where iu.id=isteps.issue and isteps.target=#targeOrgId# and isteps.stateCode<![CDATA[<]]>#dealState# 
+		and iu.id not in(select issueId from historicalIssues where orgId=#targeOrgId#) 
+		<isNotNull property="sourcekindList">
+		and iu.sourcekind in
+		<iterate  property="sourcekindList" open="(" close=")"  conjunction=",">
+			<![CDATA[
+				 #sourcekindList[].id#
+			]]>
+			</iterate>
+		</isNotNull>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countCommandCenterIssues" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from issues where id in(select issue from issueSteps where target=#targeOrgId# and stateCode<![CDATA[<]]>#dealState# group by issue) 
+		and id not in(select issueId from historicalIssues where orgId=#targeOrgId#)
+		<isNotNull property="sourcekindList">
+		and sourcekind in
+		<iterate  property="sourcekindList" open="(" close=")"  conjunction=",">
+			<![CDATA[
+				 #sourcekindList[].id#
+			]]>
+			</iterate>
+		</isNotNull>
+	</select>
+	
+	<select id="getIssueType" parameterClass="java.lang.Long" resultClass="string">
+		select domainName from issueTypeDomains where id in (select issueTypeDomainId from issueHasTypes
+		where issueId=#value#)
+	</select>
+
+</sqlMap>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="IssueJointLog">
+	<typeAlias alias="IssueJointLog" type="com.tianque.issueAbutmentJoint.domain.IssueJointLog"/>
+	<typeAlias alias="IssueJointStep" type="com.tianque.issueAbutmentJoint.domain.IssueJointStep"/>
+	<typeAlias alias="IssueJoint" type="com.tianque.issueAbutmentJoint.domain.IssueJoint"/>
+	<resultMap class="IssueJointLog" id="issueJointLogResult">
+		<result property="id" column="id"/>
+		<result property="issueJoint.id" column="issueId"/>
+		<result property="dealOrg.id" column="dealOrgId"/>
+		<result property="dealOrg.orgInternalCode" column="dealorginternalcode"/>
+		<result property="dealType" column="dealType"/>
+		<result property="dealUserName" column="dealUserName"/>
+		<result property="mobile" column="mobile"/>
+		<result property="dealDescription" column="dealDescription"/>
+		<result property="dealTime" column="dealTime"/>
+		<result property="issueJointStep.id" column="stepid"/>
+		<result property="content" column="content"/>
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	<insert id="addIssueJointLogByIssueJointByImport" parameterClass="IssueJointLog">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_issueJointLogs.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into issueJointLogs(
+			id,issueId,dealOrgId,dealorginternalcode,dealType,dealUserName,mobile,dealDescription,dealTime,stepid,content,
+			createUser,createDate,updateUser,updateDate
+		) 
+		values(
+			#id#,#issueJoint.id#,#dealOrg.id#,#dealOrg.orgInternalCode#,#dealType#,#dealUserName#,#mobile#,#dealDescription#,#dealTime#,#issueJointStep.id#,#content#,
+			#createUser#,#dealTime#,#updateUser#,#dealTime#
+		)
+	</insert>
+	<select id="queryIssueJointLogByIssueJointIdForList" parameterClass="java.lang.Long" resultMap="issueJointLogResult">
+		select * from issueJointLogs where issueId=#value#
+	</select>
+	
+	<select id="getIssueJointLogById" parameterClass="java.lang.Long" resultMap="issueJointLogResult">
+		select * from issueJointLogs where id=#value#
+	</select>
+</sqlMap>

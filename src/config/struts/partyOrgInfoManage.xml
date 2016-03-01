@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="partyOrgInfoManage" extends="default" namespace="/baseinfo/partyOrgInfoManage">
+		<default-class-ref class="partyOrgInfoController"></default-class-ref>
+
+		<action name="dispatchOperate" method="dispatch">
+			<result name="search">
+				/baseinfo/partyConstruction/lowerParty/searchLowerPartyMemberInfoDlg.jsp
+			</result>
+			<result name="print">
+				/baseinfo/partyConstruction/lowerParty/maintainPartyMemberInfoPrintDlg.jsp
+			</result>
+			<result name="view">
+				/baseinfo/partyConstruction/lowerParty/lowerPartyMemberInfoViewDlg.jsp
+			</result>
+			<result name="list">
+				/baseinfo/partyConstruction/lowerParty/lowerPartyConstruction.jsp
+			</result>
+			<result name="edit">
+				/baseinfo/partyConstruction/currentParty/editPartyOrganization.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="partyOrgInfoList" method="findPartyOrgInfosByOrgInternalCode">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="searchPartyOrgInfo" method="searchPartyOrgInfo">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="findPartyOrgInfo" method="findPartyOrgInfo">
+			<result name="success">
+				/partyBuilding/organizations/partyOrganization.jsp
+			</result>
+		</action>
+
+		<action name="addPartyOrgInfo" method="addPartyOrgInfo">
+			<result name="success" type="json">
+				<param name="root">partyOrgInfo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="searchPartyOrgInfoById" method="searchPartyOrgInfoById">
+			<result name="success" type="json">
+				<param name="root">partyOrgInfo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="findPartyOrgFoMemberInfos" method="findPartyOrgFoMemberInfos">
+			<result name="success" >
+				/baseinfo/partyConstruction/lowerParty/partyOrgMemberInfoList.jsp
+			</result>
+		</action>
+		<action name="findPartyOrgMemberInfos"	method="findPartyOrgMemberInfos">
+			<result  name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="partyOrgActivityList" method="partyOrgActivityList">
+			<result name="success" >
+				/baseinfo/partyConstruction/lowerParty/partyOrgActivityInfoList.jsp
+			</result>
+		</action>
+		<action name="findPartyOrgActivitys" method="findPartyOrgActivitys">
+			<result  name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+
+		<action name="downloadPartyOrgInfo" method="downloadPartyOrgInfo">
+			<result name="success" type="stream">
+                <param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>
+                <param name="inputName">inputStream</param>
+                <param name="contentDisposition">attachment;filename="${downloadFileName}"</param>
+                <param name="bufferSize">4096</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="downloadPartyOrgInfoAll" method="downloadPartyOrgInfoAll">
+		</action>
+		
+	</package>
+</struts>

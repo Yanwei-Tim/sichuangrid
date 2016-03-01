@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="smsMessageMark">
+	<typeAlias alias="SmsMessageMark" type="com.tianque.domain.SmsMessageMark" />
+	<resultMap id="smsMessageMarkResult" class="SmsMessageMark">
+		<result property="id" column="id" />
+		<result property="operationtType" column="operationtType" />
+		<result property="dealType" column="dealType" />
+		<result property="model" column="model" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+
+	<insert id="addSmsMessageMark" parameterClass="SmsMessageMark">
+	<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT s_smsMessageMark.NEXTVAL AS ID FROM DUAL ]]>
+	</selectKey>
+	INSERT INTO smsMessageMark(id,operationtType,dealType,model,createUser,createDate)
+	VALUES(#id#,#operationtType#,#dealType#,#model#,#createUser#,#createDate#)
+	</insert>
+	<update id="updateSmsMessageMark" parameterClass="SmsMessageMark">
+		update smsMessageMark set model=#model# where id=#id#
+	</update>
+	<delete id="deleteSmsMessageMarkById" parameterClass="java.lang.Long">
+ 	 	delete from smsMessageMark where id=#value#
+	</delete>
+	<select id="getSimpleSmsMessageMarkById" parameterClass="java.lang.Long" resultMap="smsMessageMarkResult">
+	<![CDATA[select * from smsMessageMark	 where id=#value# ]]>
+	</select>
+	<select id="getSimpleSmsMessageMarkByOperationtType" parameterClass="java.lang.Integer" resultMap="smsMessageMarkResult">
+	<![CDATA[select * from smsMessageMark	 where operationtType=#value# ]]>
+	</select>
+	<select id="getSimpleSmsMessageMarkByDealType" parameterClass="java.lang.Integer" resultMap="smsMessageMarkResult">
+	<![CDATA[select * from smsMessageMark	 where dealType=#value# ]]>
+	</select>
+	<sql id="sql_where">
+		from smsMessageMark 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="operationtType">
+				<isNotNull property="operationtType" prepend=" and ">
+					operationtType=#operationtType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dealType">
+				<isNotNull property="dealType" prepend=" and ">
+					dealType=#dealType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="model">
+				<isNotNull property="model" prepend=" and ">
+					model like '%'||#model#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findSmsMessageMarkList" parameterClass="java.util.Map" resultMap="smsMessageMarkResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countSmsMessageMark" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	
+</sqlMap>

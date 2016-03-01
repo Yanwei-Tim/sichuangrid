@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="dailyDirectory">
+	<typeAlias alias="DailyDirectory" type="com.tianque.working.domain.DailyDirectory" />
+	<typeAlias alias="DailyDirectoryAttachFile" type="com.tianque.working.domain.DailyDirectoryAttachFile" />
+	
+	<parameterMap id="dailyDirectoryParams" class="DailyDirectory">
+		<parameter property="createDate" />
+		<parameter property="createUser" />
+		<parameter property="dailyYear" />
+		<parameter property="fullName" />
+		<parameter property="id" />
+		<parameter property="parentDailyDirectory" />
+		<parameter property="remark" />
+		<parameter property="type" />
+		<parameter property="shortName" />
+		<parameter property="updateDate" />
+		<parameter property="updateUser" />
+	</parameterMap>
+	<resultMap id="dailyDirectoryResult" class="DailyDirectory">
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="dailyYear.id" column="dailyYearId" />
+		<result property="fullName" column="fullName" />
+		<result property="id" column="id" />
+		<result property="parentDailyDirectory.id" column="parentId" />
+		<result property="remark" column="remark" />
+		<result property="type.id" column="type" />
+		<result property="shortName" column="shortName" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="indexId" column="indexId" />
+		<result property="indate" column="indate" />
+		<result property="effectiveDate" column="effectiveDate" />
+		<result property="directoryReportType.id" column="directoryReportTypeId" />
+		<result property="require" column="require" />
+		<result property="timeLimit" column="timeLimit" />
+		<result property="effectiveDays" column="effectiveDays" />
+		<result property="deadlineType" column="deadlineType" />
+		<result property="deadlineDate" column="deadlineDate" />
+		<result property="deadlineStart" column="deadlineStart" />
+		<result property="deadlineEnd" column="deadlineEnd" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="whetherAdd" column="whetherAdd" />
+	</resultMap>
+	
+	<resultMap id="dailyDirectoryAttachFileResult" class="DailyDirectoryAttachFile">
+		<result property="fileId" column="fileId" />
+		<result property="dailyDirectory.id" column="dailyDirectoryId" />
+		<result property="dailyYear.id" column="dailyYearId" />
+		<result property="fileName" column="fileName" />
+		<result property="fileActualUrl" column="fileActualUrl" />
+		<result property="fileSize" column="fileSize" />
+	</resultMap>
+
+	<insert id="addDailyDirectory" parameterClass="DailyDirectory">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT s_dailyDirectorys.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		DailyDirectorys(effectiveDate,dailyYearId,fullName,id,parentId,remark,type,
+			shortName,indexId,directoryReportTypeId,indate,
+			require,timeLimit,effectiveDays,deadlineType,deadlineDate,deadlineStart,deadlineEnd,
+			createDate,updateUser,createUser,updateDate,simplePinyin,fullPinyin,whetherAdd)
+		VALUES(#effectiveDate#,#dailyYear.id#,#fullName#,#id#,#parentDailyDirectory.id#,#remark#,#type.id#,
+			#shortName#,#indexId#,#directoryReportType.id#,#indate#,
+			#require#,#timeLimit#,#effectiveDays#,#deadlineType#,#deadlineDate#,#deadlineStart#,#deadlineEnd#,
+			#createDate#,#updateUser#,#createUser#,#updateDate#,#simplePinyin#,#fullPinyin#,#whetherAdd#)
+	</insert>
+
+	<update id="updateDailyDirectory" parameterClass="DailyDirectory">
+		update DailyDirectorys set
+		<dynamic>
+			remark=#remark#,effectiveDate=#effectiveDate#,indate=#indate#,
+			require=#require#,timeLimit=#timeLimit#,effectiveDays=#effectiveDays#,
+			deadlineType=#deadlineType#,deadlineDate=#deadlineDate#,
+			deadlineStart=#deadlineStart#,deadlineEnd=#deadlineEnd#,whetherAdd=#whetherAdd#
+			<isNotNull prepend="," property="fullName">
+				fullName=#fullName#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+	<delete id="deleteDailyDirectoryById" parameterClass="java.lang.Long">
+		delete from
+		DailyDirectorys
+		where id=#value#
+	</delete>
+
+	<delete id="deleteDailyDirectoryByYearId" parameterClass="java.lang.Long">
+		delete from
+		DailyDirectorys
+		where dailyYearId=#value#
+	</delete>
+
+	<select id="getSimpleDailyDirectoryById" parameterClass="java.lang.Long"
+		resultMap="dailyDirectoryResult">
+	<![CDATA[select * from DailyDirectorys	 where id=#value#]]>
+	</select>
+
+	<sql id="sql_where">
+		from DailyDirectorys
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					id=#id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="shortName">
+				<isNotNull property="shortName" prepend=" and ">
+					shortName=#shortName#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="trunkDirectory">
+				<isNotNull property="trunkDirectory" prepend=" and ">
+					parentId is
+					null
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="parentId">
+				<isNotNull property="parentId" prepend=" and ">
+					parentId=#parentId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyYearId">
+				<isNotNull property="dailyYearId" prepend=" and ">
+					dailyYearId=#dailyYearId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findDailyDirectorys" parameterClass="java.util.Map"
+		resultMap="dailyDirectoryResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countDailyDirectorys" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="findRangeDailyDirectoryByDailyYearId"
+		parameterClass="java.util.Map" resultMap="dailyDirectoryResult">
+		select * from DailyDirectorys where dailyYearId=#dailyYearId# and id
+		in
+		<iterate property="dailyDirectoryIds" close=")" open="("
+			conjunction=",">
+			#dailyDirectoryIds[]#
+		</iterate>
+	</select>
+
+	<select id="countExsistedTrunkDirectory" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from DailyDirectorys where shortName=#shortName# and
+		dailyYearId=#dailyYearId#
+		<isNotNull property="besidesId" prepend=" and ">
+			<![CDATA[
+				id!=#besidesId#
+			]]>
+		</isNotNull>
+	</select>
+
+	<select id="countExsistedSubDirectory" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from DailyDirectorys where fullName=#fullName#
+		<isNotNull property="parentId" prepend=" and ">
+			parentId=#parentId#
+		</isNotNull>
+		<isNull property="parentId" prepend=" and ">
+			parentId is null and dailyYearId=#dailyYearId#
+		</isNull>
+	</select>
+
+	<select id="getIndexIdByParentId" resultClass="java.lang.Integer"
+		parameterClass="java.lang.Long">
+		<![CDATA[
+		select max(indexId) from DailyDirectorys where parentId = #value#
+		]]>
+	</select>
+
+	<select id="getDailyTrunkDirectoryIndexIdByDailyYearId" resultClass="java.lang.Integer"
+		parameterClass="java.lang.Long">
+		<![CDATA[
+		select max(indexId) from DailyDirectorys
+		where dailyYearId = #dailyYearId# and parentId is null
+		]]>
+	</select>
+
+	<update id="moveAllIndexNext" parameterClass="java.util.Map">
+        <![CDATA[
+   		update DailyDirectorys set indexId = indexId + 1 where parentId = #parentId# and indexId < #indexId#
+        ]]>
+	</update>
+    <update id="moveAllDailyTrunkDirectoryIndexNext" parameterClass="java.util.Map">
+        <![CDATA[
+   		update DailyDirectorys set indexId = indexId + 1 where parentId is null
+   		and dailyYearId=#dailyYearId# and indexId < #indexId#
+        ]]>
+    </update>
+    <update id="moveDailyDirectoryIndexToFirst" parameterClass="java.util.Map">
+        <![CDATA[
+        update DailyDirectorys set indexId = 1 where id = #id#
+        ]]>
+	</update>
+	<update id="moveAllDailyTrunkDirectoryIndexPrevious" parameterClass="java.util.Map">
+    	<![CDATA[
+   		update DailyDirectorys set indexId = indexId - 1 where parentId is null
+   		and dailyYearId=#dailyYearId# and indexId > #indexId#
+    	]]>
+	</update>
+	<update id="moveDailyTrunkDirectoryToEnd" parameterClass="java.util.Map">
+        <![CDATA[
+        update DailyDirectorys set indexId =
+        (select max(indexId)+1 from DailyDirectorys where parentId is null and dailyYearId=#dailyYearId#)
+        where id = #id#
+        ]]>
+	</update>
+
+	<update id="moveToFirst" parameterClass="java.util.Map">
+        <![CDATA[
+        update DailyDirectorys set indexId = 1 where id = #id#
+        ]]>
+	</update>
+
+	<update id="moveAllIndexPrevious" parameterClass="java.util.Map">
+    	<![CDATA[
+   		update DailyDirectorys set indexId = indexId - 1 where parentId = #parentId# and indexId > #indexId#
+    	]]>
+	</update>
+
+	<update id="moveToEnd" parameterClass="java.util.Map">
+        <![CDATA[
+        update DailyDirectorys set indexId =
+        (select max(indexId)+1 from DailyDirectorys where parentId=#parentId#)
+        where id = #id#
+        ]]>
+	</update>
+
+	<update id="changeIndexOwn" parameterClass="java.util.Map">
+        <![CDATA[
+        update DailyDirectorys set indexId =
+        (select indexId from DailyDirectorys where id=#dailyDirectoryId#) where id = #id#
+        ]]>
+	</update>
+
+	<update id="updateIndexByDailyDirectoryId" parameterClass="java.util.Map">
+        <![CDATA[
+        update DailyDirectorys set indexId = #indexId# where id = #dailyDirectoryId#
+        ]]>
+	</update>
+
+	<select id="getBeforeDailyTrunkDirectoryId" resultClass="java.lang.Long"
+		parameterClass="java.util.Map">
+		<![CDATA[
+		select min(id) from DailyDirectorys where parentId is null and dailyYearId=#dailyYearId#
+		and indexId =(
+			select max(indexId) from DailyDirectorys where parentId is null and
+			dailyYearId=#dailyYearId# and indexid<#ownIndexId# )
+		]]>
+	</select>
+
+	<select id="getBeforeDailySubDirectoryId" resultClass="java.lang.Long"
+		parameterClass="java.util.Map">
+		<![CDATA[
+		select min(id) from DailyDirectorys where parentId=#parentId#
+		and indexId =(
+			select max(indexId) from DailyDirectorys where parentId=#parentId#
+			and indexid<#ownIndexId# )
+		]]>
+	</select>
+
+	<select id="getAfterDailyTrunkDirectoryId" resultClass="java.lang.Long"
+		parameterClass="java.util.Map">
+		<![CDATA[
+		select max(id) from DailyDirectorys where parentId is null and dailyYearId=#dailyYearId#
+		and indexId =(
+			select min(indexId) from DailyDirectorys where parentId is null and
+			dailyYearId=#dailyYearId# and indexId>#ownIndexId# )
+		]]>
+	</select>
+
+	<select id="getAfterDailySubDirectoryId" resultClass="java.lang.Long"
+		parameterClass="java.util.Map">
+		<![CDATA[
+		select max(id) from DailyDirectorys where parentId=#parentId#
+		and indexId =(
+			select min(indexId) from DailyDirectorys where parentId=#parentId#
+			 and indexId>#ownIndexId# )
+		]]>
+	</select>
+
+	<select id="isYearCount" resultClass="int" parameterClass="long">
+		<![CDATA[select count(*) from dailydirectorys days, workingRecord dl where #yearId# = days.dailyyearid and days.id = dl.dailydirectoryid ]]>
+	</select>
+
+	<select id="issueYearCount" resultClass="int" parameterClass="long">
+		<![CDATA[select count(*) from dailydirectorys days,SignificantIssuedeals issue where #yearId# = days.dailyyearid and issue.DIRECTORYID = days.id]]>
+	</select>
+	
+	<select id="keyAreasYearCount" resultClass="int" parameterClass="long">
+		<![CDATA[select count(*) from dailydirectorys days,KeyAreasOfInvestigationInfos kai where #yearId# = days.dailyyearid and kai.DIRECTORYID = days.id]]>
+	</select>
+	
+	<select id="isIssueinspectByDailyDirectoryId" resultClass="int" parameterClass="long">
+		<![CDATA[select count(*) from issueinspect issue where issue.dailydirectoryid = #id#]]>
+	</select>
+	
+	<select id="findSubDirectoryByMakedOrgIdAndDirectoryTypeInterIdAndDirectoryId" parameterClass="map" resultMap="dailyDirectoryResult">
+		select * from DailyDirectorys dd where dd.type = #type#
+			and dd.dailyyearid = 
+				(select id from dailyyears dyy where dyy.makedorgid = #orgId# and dyy.name = 
+					(select name from dailyyears dyy where dyy.id = 
+						(select ddi2.dailyyearid from DailyDirectorys ddi2 where id = #directoryId#)))
+			and dd.parentid is not null
+	</select>
+	
+	<insert id="addDailyDirectoryAttachFile" parameterClass="DailyDirectoryAttachFile">
+		<selectKey resultClass="java.lang.Long" keyProperty="fileId">
+		<![CDATA[SELECT s_dailyDirectoryAttachFiles.NEXTVAL AS FILEID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+			dailyDirectoryAttachFiles(fileId,dailyDirectoryId,dailyYearId,fileName,fileActualUrl,fileSize)
+		VALUES
+			(#fileId#,#dailyDirectory.id#,#dailyYear.id#,#fileName#,#fileActualUrl#,#fileSize#)
+	</insert>
+	
+	<select id="getDailyDirectoryAttachFilesByFileId" parameterClass="java.lang.Long" resultMap="dailyDirectoryAttachFileResult">
+		select * from dailyDirectoryAttachFiles ddaf where  ddaf.fileId = #value#
+	</select>
+	
+	<select id="findDailyDirectoryAttachFilesByDailyDirectoryId" parameterClass="java.lang.Long" resultMap="dailyDirectoryAttachFileResult">
+		select * from dailyDirectoryAttachFiles ddaf where  ddaf.dailyDirectoryId = #value#
+	</select>
+	
+	<delete id="deleteDailyDirectoryAttachFileByFileId" parameterClass="java.lang.Long" >
+		delete dailyDirectoryAttachFiles ddaf where ddaf.fileId = #value#
+	</delete>
+	
+	<delete id="deleteDailyDirectoryAttachFileByDailyDirectoryId" parameterClass="java.lang.Long" >
+		delete dailyDirectoryAttachFiles ddaf where ddaf.dailyDirectoryId = #value#
+	</delete>
+	
+	<select id="findDailyDirectorysForRemind" resultMap="dailyDirectoryResult">
+		<![CDATA[select *  from dailydirectorys  where effectivedays is not null and floor(sysdate - createdate)=(effectivedays-5)]]>
+	</select>
+	
+	<select id="getDailyDirectoryByDailyYearIdAndTypeIdAndReportedTypeId" parameterClass="java.util.Map" resultMap="dailyDirectoryResult">
+		select * from DailyDirectorys d where  d.dailyyearid = #dailyYearId# and d.type = #typeId# and d.directoryreporttypeid = #reportedTypeId#  
+	</select>
+	
+	<select id="getDirectoryByOrgIdAndTypeIdAndReportTypeIdAndDirectoryId" parameterClass="map" resultMap="dailyDirectoryResult">
+		select * from DailyDirectorys d where d.id =
+			(
+				select max(id) from DailyDirectorys dd where dd.type = #typeId# 
+				<isNotNull property="reportTypeId">
+					and dd.directoryReportTypeId = #reportTypeId#
+				</isNotNull>
+				and dd.dailyyearid = 
+					(select id from dailyyears dyy where dyy.makedorgid = #orgId# and dyy.yearDate = 
+						(select yearDate from dailyyears dyy where dyy.id = 
+							(select ddi2.dailyyearid from DailyDirectorys ddi2 where id = #directoryId#)))
+				and dd.parentid is not null
+			)
+		
+	</select>
+	
+	<select id="findLeafDailyDirectorysByOrgIdAndYearDate" resultMap="dailyDirectoryResult">
+		select * from dailyDirectorys
+		where dailyYearId =(select id from dailyYears where yearDate=#yearDate# and makedOrgId=#orgId#) and directoryReportTypeId is not null
+	</select>
+	
+	<select id="searchDirectorys" parameterClass="map" resultMap="dailyDirectoryResult">
+		select * from dailyDirectorys where dailyYearId = #dailyYearId# 
+			and (fullName like #searchText#||'%' or SIMPLEPINYIN like #searchText#||'%' or FULLPINYIN like #searchText#||'%')
+	</select>
+	
+</sqlMap>

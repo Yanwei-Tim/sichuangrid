@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="ActualPopulationHandler">
+	<typeAlias alias="ActualPopulation" type="com.tianque.baseInfo.base.domain.ActualPopulation"/>
+	<typeAlias alias="UnsettledPopulation" type="com.tianque.baseInfo.unsettledPopulation.domain.UnsettledPopulation" />
+	<typeAlias alias="OverseaPersonnel" type="com.tianque.baseInfo.overseaPersonnel.domain.OverseaPersonnel" />
+	
+	<typeAlias alias="CensusRegisterFamily" type="com.tianque.domain.CensusRegisterFamily"/>
+	<typeAlias alias="GroupFamilyHasPopulation" type="com.tianque.baseInfo.familyInfo.domain.GroupFamilyHasPopulation" />
+	<typeAlias alias="PopulationType" type="com.tianque.domain.PopulationTypeBean" />
+	<typeAlias alias="HouseHasActualPopulation" type="com.tianque.domain.HouseHasActualPopulation" />
+	<typeAlias alias="handicappedSdisabilityType" type="com.tianque.baseInfo.handicapped.domain.HandicappedSdisabilityType" />
+	<typeAlias alias="ServiceMemberWithObject"  type="com.tianque.plugin.serviceTeam.serviceMemberWithObject.domain.ServiceMemberWithObject" />
+	<typeAlias alias="ServiceTeamHasObjects" type="com.tianque.plugin.serviceTeam.serviceTeamHasObjects.domain.ServiceTeamHasObjects"/>
+	
+	
+	<resultMap id="actualPopulationList" class="ActualPopulation" >
+		<result column="id" property="id"  nullValue="0"/>
+		<result column="baseInfoId" property="baseInfoId" />
+		<result column="orgId" property="organization.id" />
+    </resultMap>
+    
+    <resultMap id="unsettledPopulationList" class="UnsettledPopulation" >
+		<result property="id" column="id" />
+		<result property="idCardNo" column="idCardNo" />
+		<result property="organization.id" column="orgId" />
+    </resultMap>
+    
+   <resultMap id="overseaPersonnelList" class="OverseaPersonnel" >
+		<result property="id" column="id" />
+		<result property="certificateType.id" column="certificateType" />
+		<result property="certificateNo" column="certificateNo" />
+		<result property="organization.id" column="orgId" />
+    </resultMap>
+    
+    <resultMap id="PopulationTypeResult" class="PopulationType">
+		<result column="id" property="id" />
+		<result column="actualId" property="actualId" />
+		<result column="actualType" property="actualType" />
+		<result column="populationId" property="populationId" />
+		<result column="populationType" property="populationType" />
+	</resultMap>
+	
+	<resultMap id="censusRegisterFamilyList" class="CensusRegisterFamily">
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="accountNumber" property="accountNumber" />
+	</resultMap>
+	
+	<resultMap id="handicappedSdisabilityTypeList" class="handicappedSdisabilityType">
+		<result column="handicappedstype" property="handicappedstype" />
+		<result column="handicappedslevel" property="handicappedslevel" />
+	</resultMap>
+    
+    <select id="queryRepeatDataForList" parameterClass="java.util.Map" resultMap="actualPopulationList">
+		 <![CDATA[  select t1.id,t1.baseinfoid,t1.orgid from $oldTableName$ t1
+ 				where t1.orgid = #oldOrgId#
+   				and exists (select 1
+          		from $newTableName$ t2
+         		where t2.baseinfoid=t1.baseinfoid and t2.orgid = #newOrgId#)
+   			and #oldOrgId# <> #newOrgId# ]]>
+	</select>
+	
+	<select id="queryUnsettledAndHouseholdStaffRepeatDataForList" parameterClass="java.util.Map" resultMap="unsettledPopulationList">
+		<![CDATA[select t1.id,t1.idcardno,t1.orgid from $newTableName$ t1
+		 where t1.orgid = #newOrgId#
+		   and exists (select 1
+		          from $oldTableName$ t2 left join baseinfo t3  on t2.baseinfoid = t3.id
+		         where t3.idcardno=t1.idcardno and t2.orgid = #oldOrgId#)
+		   and #oldOrgId# <> #newOrgId#]]>
+	</select>
+	
+	<select id="queryUnsettledPopulationRepeatDataForList" parameterClass="java.util.Map" resultMap="unsettledPopulationList">
+		<![CDATA[select t1.id,t1.idcardno,t1.orgid from $oldTableName$ t1
+			where t1.orgid = #oldOrgId#
+   			and exists (select 1
+          	from $newTableName$ t2 
+         	where t1.idcardno=t2.idcardno and  t2.orgid = #newOrgId#)
+		   and #oldOrgId# <> #newOrgId#]]>
+	</select>
+	
+	
+	<select id="queryOverseaPersonnelRepeatDataForList" parameterClass="java.util.Map" resultMap="overseaPersonnelList">
+		<![CDATA[ select t1.id,t1.certificatetype,t1.certificateno,t1.orgId from $oldTableName$ t1
+ 			where t1.orgid = #oldOrgId#
+   			and exists (select 1
+         	 from $newTableName$ t2
+        	 where t1.certificatetype=t2.certificatetype and t1.certificateno=t2.certificateno and t2.orgid = #newOrgId#)
+  		 and #oldOrgId# <> #newOrgId#]]>
+	</select>
+	
+	<select id="queryCensusRegisterFamilyRepeatDataForList" parameterClass="java.util.Map" resultMap="censusRegisterFamilyList">
+		<![CDATA[ select t1.id,t1.orgId,t1.accountnumber from $oldTableName$ t1
+      		where t1.orgid = #oldOrgId#
+         	and exists (select 1
+            from $newTableName$ t2
+           	where t1.accountnumber=t2.accountnumber and t2.orgid = #newOrgId#)
+      	 and #oldOrgId# <> #newOrgId#]]>
+	</select>
+	
+	<update id="updateGroupfamilyForAccountnumber" parameterClass="java.util.Map">
+		<![CDATA[update groupfamily t1 set t1.familyaccount =  t1.familyaccount || #orgName#
+          			where t1.orginternalcode = #oldOrgCode#
+          			and exists (select 1
+           			from groupfamily t2
+            		where t1.familyaccount=t2.familyaccount and t2.orginternalcode = #newOrgCode#)
+         and #oldOrgCode# <> #newOrgCode#]]>
+	</update>
+	
+	<update id="updateHouseholdStaffForAccountnumber" parameterClass="java.util.Map">
+		update householdstaffs_$shardCode$ t set t.accountnumber = #newAccountnumber# where t.accountnumber =#accountnumber# and t.orgId = #orgId#
+	</update>
+	
+	<update id="updateCensusregisterfamilysForAccountnumber" parameterClass="java.util.Map">
+		update censusregisterfamilys t set t.accountnumber = #newAccountnumber# where t.accountnumber =#accountnumber# and t.orgId = #orgId#
+	</update>
+	
+	<select id="queryPopulationTypeByPopulationIdForList" parameterClass="PopulationType" resultMap="PopulationTypeResult">
+		select id,actualid,actualtype,populationid,populationtype from populationTypes where actualid = #actualId# and actualtype=#actualType#
+	</select>
+	
+	<select id="getIdCardNoById" parameterClass="java.lang.Long" resultClass="java.lang.String">
+		select idcardno from baseinfo where id=#id#
+	</select>
+	
+	<select id="getIdByIdCardNo" parameterClass="java.lang.String" resultClass="java.lang.Long">
+		select max(id) from baseinfo where idcardno=#idCardNo#
+	</select>
+	
+	<delete id="deleteHouseholdStaffById" parameterClass="java.util.Map">
+		delete from householdstaffs_$shardCode$ where id=#id#
+	</delete>
+	
+	<delete id="deleteOverseaPersonnelById" parameterClass="java.lang.Long">
+		delete from overseaPersonnel where id = #id#
+	</delete>
+	
+	<delete id="deleteFloatingPopulationById" parameterClass="java.lang.Long">
+		delete from floatingPopulations where id=#id#
+	</delete>
+	
+	<delete id="deleteUnsettledPopulationById" parameterClass="java.lang.Long">
+		delete from unsettledPopulations where id=#id#
+	</delete>
+	
+	<update id="updateHouseholdStaffById" parameterClass="java.util.Map">
+		update householdstaffs_$shardCode$ set logout = 1,relationshipwithhead='' where id=#id#
+	</update>
+	
+	<update id="updateFloatingPopulationById" parameterClass="java.lang.Long">
+		update floatingPopulations set logout = 1 where id=#id#
+	</update>
+	
+	<update id="updatePopulationTypeById" parameterClass="PopulationType">
+		update populationTypes set actualid = #actualId#,actualtype=#actualType# where id=#id#
+	</update>
+	
+	<delete id="deleteGroupFamilyHasPopulationByPopulationId" parameterClass="GroupFamilyHasPopulation">
+		delete from groupfamilyhaspopulation where populationId = #populationId# and populationType=#populationType#
+	</delete>
+	
+	<delete id="deletePopulationTypeTableById" parameterClass="java.util.Map">
+		delete from $table$ where id = #id#
+	</delete>
+	
+	<update id="updatePopulationTypeTableById" parameterClass="java.util.Map">
+		update $table$ set isemphasis =1 where id = #id#
+	</update>
+	
+	<delete id="deletePopulationTypeById" parameterClass="java.lang.Long">
+		delete from populationTypes where id=#id#
+	</delete>
+	
+	<delete id="deleteHouseHasActualPopulationByIdAndActualType" parameterClass="HouseHasActualPopulation">
+		delete from houseHasActualPopulation where populationtype=#populationType# and populationid =#populationId#
+	</delete>
+	
+	<delete id="deleteHouseHasImportantPopulationByIdAndActualType" parameterClass="PopulationType">
+		delete from houseHasImportantPopulation where populationtype=#populationType# and populationid =#populationId#
+	</delete>
+	
+	<update id="updateServiceRecordRelyObject" parameterClass="java.util.Map">
+		update servicerecordrelyobject set objecttype =#newObjecttype#,objectid=#newObjectid# where objecttype =#oldObjecttype# and objectid=#oldObjectid#
+	</update>
+	
+	<update id="updateServiceGuardersHasObject" parameterClass="java.util.Map">
+		update serviceGuardersHasObject set objecttype =#newObjecttype#,objectid=#newObjectid# where objecttype =#oldObjecttype# and objectid=#oldObjectid#
+	</update>
+	
+	<delete id="deleteServiceMemberHasObject" parameterClass="java.util.Map">
+		delete serviceMemberHasObject t1
+ 			where  t1.objectid = #oldObjectid#
+   			and exists (select 1
+          	from serviceMemberHasObject t2
+        	 where t2.objecttype=t1.objecttype and t1.teamid = t2.teamid and t1.memberid = t2.memberid
+            and t2.objectid = #newObjectid#) 
+           and t1.objecttype=#oldObjecttype#
+	</delete>
+	
+	<update id="updateServiceMemberHasObject" parameterClass="java.util.Map">
+		update serviceMemberHasObject set objecttype =#newObjecttype#,objectid=#newObjectid# where objecttype =#oldObjecttype# and objectid=#oldObjectid#
+	</update>
+	
+	<delete id="deleteServiceTeamHasObject" parameterClass="java.util.Map">
+		delete serviceTeamHasObject t1
+ 			where  t1.objectid = #oldObjectid#
+   			and exists (select 1
+          	from serviceTeamHasObject t2
+        	 where t2.objecttype=t1.objecttype and t1.teamid = t2.teamid and t1.memberid = t2.memberid 
+        	 and t2.objectid = #newObjectid#) 
+           and t1.objecttype=#oldObjecttype#
+	</delete>
+	
+	<update id="updateServiceTeamHasObject" parameterClass="java.util.Map">
+		update serviceTeamHasObject set objecttype =#newObjecttype#,objectid=#newObjectid# where objecttype =#oldObjecttype# and objectid=#oldObjectid#
+	</update>
+	
+	<update id="updateServiceSupervisionMeasures" parameterClass="java.util.Map">
+		update servicesupervisionmeasures set mentalpatientid =#newMentalpatientid# where mentalpatientid =#mentalpatientid# and type=#type#
+	</update>
+	
+	<delete id="deleteIdleYouthsHasPropertyDictsById" parameterClass="java.lang.Long">
+		delete from idleYouthsHasPropertyDicts where idleyouthsid=#id#
+	</delete>
+	
+	<update id="updateSuperiorVisitHistoryById" parameterClass="java.util.Map">
+		update superiorVisitHistory set visitid =#newVisitid# where visitid =#visitid#
+	</update>
+	
+	<delete id="deleteHandicappedsDisabilityTypeById" parameterClass="java.lang.Long">
+		delete from handicappedsdisabilitytype where handicappedsid=#id#
+	</delete>
+	
+	<delete id="deletePeopleHasEIntentionById" parameterClass="java.lang.Long">
+		delete from uPeopleHasEIntention where unemployedpeopleid=#id#
+	</delete>
+	
+	<delete id="deletePeopleHasTIntentionById" parameterClass="java.lang.Long">
+		delete from uPeopleHasTIntention where unemployedpeopleid=#id#
+	</delete>
+	
+	<update id="updateCensusregisterfamilysForIdCardNo" parameterClass="java.util.Map">
+		update censusregisterfamilys t
+			set t.idcardno = ''
+		where t.accountnumber =
+			 (select t1.accountnumber from householdstaffs_$shardCode$ t1 where id = #id#)
+			  and t.orgid = #orgId#
+	</update>
+	
+	<select id="queryIdleYouthsHasPropertyDictsForList" resultClass="java.lang.Long" parameterClass="java.lang.Long">
+		select propertydictid from idleYouthsHasPropertyDicts where idleYouthsId=#id#
+	</select>
+	
+	<select id="queryHandicappedSdisabilityTypeForList" parameterClass="java.lang.Long" resultMap="handicappedSdisabilityTypeList">
+		SELECT HANDICAPPEDSTYPE, HANDICAPPEDSLEVEL FROM HANDICAPPEDSDISABILITYTYPE WHERE HANDICAPPEDSID = #id#
+	</select>
+	
+	<select id="queryPeopleHasEIntentionForList" resultClass="java.lang.Long" parameterClass="java.lang.Long">
+		select PROPERTYDICTID from uPeopleHasEIntention where UNEMPLOYEDPEOPLEID=#id#
+	</select>
+	
+	<select id="queryPeopleHasTIntentionForList" resultClass="java.lang.Long" parameterClass="java.lang.Long">
+		select PROPERTYDICTID from uPeopleHasTIntention where UNEMPLOYEDPEOPLEID=#id#
+	</select>
+	
+	<select id="queryServiceMemberWithObjectForList" parameterClass="java.util.Map" resultClass="ServiceMemberWithObject">
+		select * from serviceMemberHasObject t1
+ 			where  t1.objectid = #oldObjectid#
+   			and exists (select 1
+          	from serviceMemberHasObject t2
+        	 where t2.objecttype=t1.objecttype and t1.teamid = t2.teamid and t1.memberid = t2.memberid
+            and t2.objectid = #newObjectid#) 
+           and t1.objecttype=#oldObjecttype#
+	</select>
+	
+	<select id="queryServiceTeamHasObjectsForList" parameterClass="java.util.Map"  resultClass="ServiceTeamHasObjects">
+		select * from  serviceTeamHasObject t1
+ 			where  t1.objectid = #oldObjectid#
+   			and exists (select 1
+          	from serviceTeamHasObject t2
+        	 where t2.objecttype=t1.objecttype and t1.teamid = t2.teamid and t1.memberid = t2.memberid 
+        	 and t2.objectid = #newObjectid#) 
+           and t1.objecttype=#oldObjecttype#
+	</select>
+	
+	<select id="queryHouseHasImportantPopulationForList" parameterClass="PopulationType"  resultClass="java.lang.Long">
+		select HOUSEID from houseHasImportantPopulation where populationtype=#populationType# and populationid =#populationId#
+	</select>
+	
+	<select id="getPopulationTypeBeanById" parameterClass="java.lang.Long"  resultClass="PopulationType">
+		select * from populationTypes where id=#id#
+	</select>
+	
+	<select id="queryHouseHasActualPopulationForList" parameterClass="HouseHasActualPopulation"  resultClass="java.lang.Long">
+		select HOUSEID from houseHasActualPopulation where populationtype=#populationType# and populationid =#populationId#
+	</select>
+</sqlMap>

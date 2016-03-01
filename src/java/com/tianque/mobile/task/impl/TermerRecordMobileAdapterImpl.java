@@ -1,0 +1,280 @@
+package com.tianque.mobile.task.impl;
+
+import java.util.Date;
+import java.util.List;
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.User;
+import com.tianque.domain.property.OrganizationLevel;
+import com.tianque.domain.property.OrganizationType;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.mobile.base.BaseMobileAction;
+import com.tianque.mobile.task.TermerRecordMobileAdapter;
+import com.tianque.plugin.taskList.controller.TermerRecordController;
+import com.tianque.plugin.taskList.domain.TermerRecord;
+import com.tianque.plugin.taskList.domain.TermerRecordVo;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+
+@Controller("termerRecordAdapter")
+@Namespace("/mobile/termerRecordManage")
+@Scope("request")
+public class TermerRecordMobileAdapterImpl extends BaseMobileAction implements
+		TermerRecordMobileAdapter {
+
+	@Autowired
+	private TermerRecordController termerRecordController;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private PropertyDictService propertyDictService;
+
+	/** 社区服刑人员记录domain **/
+	private TermerRecord termerRecord;
+	/** 社区服刑人员记录查询domain **/
+	private TermerRecordVo termerRecordVo;
+	/** id字符串  **/
+	private String ids;
+	/** 组织id **/
+	private Long orgId;
+	/** 社区服刑人员记录集合 **/
+	private List<TermerRecord> termerRecords;
+	/** 附件名 **/
+	/* 一个参数  */
+	private String[] attachFiles;
+	/* 多个参数  */
+	private String[] attachFile;
+
+	private Long id;
+	
+	@Override
+	@Action(value = "addTermerRecordForMobile", results = {
+			@Result(name = "success", type = "json", params = { "root", "true", "ignoreHierarchy",
+					"false" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String addTermerRecord() throws Exception {
+		fillAttachFileNames(termerRecord);
+		termerRecordController.setTermerRecord(termerRecord);
+		termerRecordController.addTermerRecord();
+		return SUCCESS;
+	}
+
+	@Override
+	@Action(value = "updateTermerRecordForMobile", results = {
+			@Result(name = "success", type = "json", params = { "root", "true", "ignoreHierarchy",
+					"false" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String updateTermerRecord() throws Exception {
+		fillAttachFileNames(termerRecord);
+		termerRecordController.setTermerRecord(termerRecord);
+		termerRecordController.updateTermerRecord();
+		return SUCCESS;
+	}
+
+	@Override
+	@Action(value = "deleteTermerRecordsForMobile", results = {
+			@Result(type = "json", name = "success", params = { "root", "true", "ignoreHierarchy",
+					"false" }),
+			@Result(type = "json", name = "error", params = { "root", "errorMessage" }) })
+	public String deleteTermerRecords() throws Exception {
+		termerRecordController.setIds(ids);
+		termerRecordController.deleteTermerRecords();
+		return SUCCESS;
+	}
+
+	@Override
+	@Action(value = "findInterViewTermerForMobile", results = {
+			@Result(type = "json", name = "success", params = { "root", "gridPage",
+					"ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String findInterViewTermerForMobile() throws Exception {
+//		fillTermerRecordVo(termerRecordVo);
+		if(getTqmobile()!=null){
+			termerRecordVo.setMode(getTqmobile());
+		}
+		termerRecordController.setTermerRecordVo(termerRecordVo);
+		termerRecordController.setPage(page);
+		termerRecordController.setRows(rows);
+		termerRecordController.setSidx(sidx);
+		termerRecordController.setSord(sord);
+		termerRecordController.setOrgId(orgId);
+		termerRecordController.findInterViewTermer();
+		gridPage = termerRecordController.getGridPage();
+		return SUCCESS;
+	}
+	
+	@Override
+	@Action(value = "findTermerRecordsForMobile", results = {
+			@Result(type = "json", name = "success", params = { "root", "gridPage",
+					"ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String findTermerRecords() throws Exception {
+//		fillTermerRecordVo(termerRecordVo);
+		if(getTqmobile()!=null){
+			termerRecordVo.setMode(getTqmobile());
+		}
+		termerRecordController.setTermerRecordVo(termerRecordVo);
+		termerRecordController.setPage(page);
+		termerRecordController.setRows(rows);
+		termerRecordController.setSidx(sidx);
+		termerRecordController.setSord(sord);
+		termerRecordController.setOrgId(orgId);
+		termerRecordController.findTermerRecords();
+		gridPage = termerRecordController.getGridPage();
+		return SUCCESS;
+	}
+
+	@Override
+	@Action(value = "findTermerRecordsByNameForMobile", results = {
+			@Result(type = "json", name = "success", params = { "root", "termerRecords",
+					"ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String findTermerRecordsByName() throws Exception {
+		fillTermerRecordVo(termerRecordVo);
+		termerRecordController.setTermerRecordVo(termerRecordVo);
+		termerRecordController.findTermerRecordsByNameForMobile();
+		termerRecords = termerRecordController.getTermerRecords();
+		return SUCCESS;
+	}
+
+	@Override
+	@Action(value = "viewTermerRecordForMobile", results = {
+			@Result(type = "json", name = "success", params = { "root", "termerRecord",
+					"ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String viewTermerRecord() throws Exception {
+		termerRecordController.setId(termerRecordVo.getId());
+		termerRecordController.viewTermerRecord();
+		termerRecord = termerRecordController.getTermerRecord();
+		return SUCCESS;
+	}
+	
+	@Override
+	@Action(value = "viewInterViewTermerForMobile", results = {
+			@Result(type = "json", name = "success", params = { "root", "termerRecord",
+					"ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String viewInterViewTermer() throws Exception {
+		termerRecordController.setId(id);
+		termerRecordController.viewInterViewTermer();
+		termerRecord = termerRecordController.getTermerRecord();
+		return SUCCESS;
+	}
+
+	private void fillTermerRecordVo(TermerRecordVo termerRecordVo) {
+		/** 获取组织机构 网格类型--职能部门 属性字典信息 **/
+		PropertyDict orgTypeDict = propertyDictService
+				.findPropertyDictByDomainNameAndDictDisplayName(PropertyTypes.ORGANIZATION_TYPE,
+						OrganizationType.FUNCTION_KEY);
+		/** 获取当前用户信息 **/
+		User user = ThreadVariable.getUser();
+		/** 获取当前用户网格类型  **/
+		Long orgTypeDictDictId = 0L;
+		if (user != null && user.getOrganization() != null
+				&& user.getOrganization().getOrgType() != null) {
+			orgTypeDictDictId = user.getOrganization().getOrgType().getId();
+		}
+		/** 如果是职能部门获取父网格  **/
+		if (orgTypeDict != null && orgTypeDict.getId() != null
+				&& orgTypeDict.getId().equals(orgTypeDictDictId)) {
+			if (termerRecordVo != null && termerRecordVo.getOrganization() != null) {
+				Organization organization = organizationDubboService
+						.getParentOrgByOrgTypeAndChildOrgId(termerRecordVo.getOrganization()
+								.getId(), OrganizationLevel.TOWN);
+				termerRecordVo.setOrganization(organization);
+			}
+		}
+	}
+
+	private void fillAttachFileNames(TermerRecord termerRecord) {
+		String[] attachFileNames = new String[] {};
+		if (attachFiles != null && attachFiles.length != 0) {
+			attachFiles[0] = "," + attachFiles[0];
+			attachFileNames = attachFiles;
+		}
+		// 多个参数
+		if (attachFile != null && attachFile.length != 0) {
+			String[] strTmp = attachFile[0].split(",");
+			for (int i = 0; i < strTmp.length; i++) {
+				strTmp[i] = "," + strTmp[i];
+			}
+			attachFileNames = strTmp;
+		}
+		termerRecord.setAttachFileNames(attachFileNames);
+	}
+
+	public TermerRecord getTermerRecord() {
+		return termerRecord;
+	}
+
+	public void setTermerRecord(TermerRecord termerRecord) {
+		this.termerRecord = termerRecord;
+	}
+
+	public TermerRecordVo getTermerRecordVo() {
+		return termerRecordVo;
+	}
+
+	public void setTermerRecordVo(TermerRecordVo termerRecordVo) {
+		this.termerRecordVo = termerRecordVo;
+	}
+
+	public String getIds() {
+		return ids;
+	}
+
+	public void setIds(String ids) {
+		this.ids = ids;
+	}
+
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+	public List<TermerRecord> getTermerRecords() {
+		return termerRecords;
+	}
+
+	public void setTermerRecords(List<TermerRecord> termerRecords) {
+		this.termerRecords = termerRecords;
+	}
+
+	public String[] getAttachFiles() {
+		return attachFiles;
+	}
+
+	public void setAttachFiles(String[] attachFiles) {
+		this.attachFiles = attachFiles;
+	}
+
+	public String[] getAttachFile() {
+		return attachFile;
+	}
+
+	public void setAttachFile(String[] attachFile) {
+		this.attachFile = attachFile;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	
+}

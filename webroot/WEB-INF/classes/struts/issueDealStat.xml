@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="issueDealStat" extends="default" namespace="/issueDealStat">
+		<default-class-ref class="issueDealStatController"></default-class-ref>
+		
+		<action name="dispatch" method="dispatch">
+			<result name="adminOrgStat">
+				/examine/issueDealStat/issueDealStatList.jsp
+			</result>
+			<result name="realtimeAdminOrgStat">
+				/examine/issueDealStat/issueDealRealTimeStatList.jsp
+			</result>
+			<result name="funOrgStat">
+				/examine/issueDealStat/issueDealStatForFunOrgList.jsp
+			</result>
+			<result name="realtimeFunOrgStat">
+				/examine/issueDealStat/issueDealRealTimeStatForFunOrgList.jsp
+			</result>
+		</action>
+		
+		<action name="monthStat" method="monthStat">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="realtimeStat" method="realtimeStat">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="rebuildStatInfo" method="rebuildStatInfo">
+			<result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="exportToExcel" method="exportToExcel">
+			<result name="success" type="stream">
+                <param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>  
+                <param name="inputName">inputStream</param>  
+                <!-- 下载时候提示的文件名 -->  
+                <param name="contentDisposition">attachment;filename="${downloadFileName}"</param>  
+                <param name="bufferSize">4096</param>  
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="exportRealTimeStatToExcel" method="exportRealTimeStatToExcel">
+			<result name="success" type="stream">
+                <param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>  
+                <param name="inputName">inputStream</param>  
+                <!-- 下载时候提示的文件名 -->  
+                <param name="contentDisposition">attachment;filename="${downloadFileName}"</param>  
+                <param name="bufferSize">4096</param>  
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+	<package name="hotModuelIssueDealStat" extends="issueDealStat" namespace="/hotModuel/issueDealStat"></package>
+
+</struts>

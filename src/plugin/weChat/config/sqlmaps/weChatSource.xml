@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="source">
+	<typeAlias alias="weChatSource" type="com.tianque.plugin.weChat.domain.user.WeChatSource"/>
+	
+	<resultMap id="weChatSourceResult" class="weChatSource">
+		<result property="id" column="source_id"/>
+		
+		<result property="path" column="path"/>
+		
+		<result property="content" column="content"/>
+		
+		<result property="title" column="title"/>
+		<result property="description" column="description"/>
+		<result property="picUrl" column="picUrl"/>
+		<result property="url" column="url"/>
+		
+		<result property="sourceTypeDict.id" column="source_type"/>
+		<result property="weChatUserId" column="weChatUserId"/>
+		<result property="sourceDescription" column="source_description"/>
+		
+		<result property="org.id" column="org_id"/>
+		<result property="org.orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	<update id="updateWeChatSource" parameterClass="weChatSource">
+		update wechat_source set
+		<dynamic>
+			source_id=#id#
+			<isNotNull prepend="," property="path">
+				path=#path#
+			</isNotNull>
+			<isNotNull prepend="," property="content">
+				content=#content#
+			</isNotNull>
+			<isNotNull prepend="," property="title">
+				title=#title#
+			</isNotNull>
+			<isNotNull prepend="," property="description">
+				description=#description#
+			</isNotNull>
+			<isNotNull prepend="," property="picUrl">
+				picUrl=#picUrl#
+			</isNotNull>
+			
+			<isNotNull prepend="," property="url">
+				url=#url#
+			</isNotNull>
+			
+			
+			
+			
+			
+			
+			<isNotNull prepend="," property="sourceDescription">
+				source_description=#sourceDescription#
+			</isNotNull>
+			<isNotNull prepend="," property="sourceTypeDict.id">
+				source_type=#sourceTypeDict.id#
+			</isNotNull>
+			<isNotNull prepend="," property="weChatUserId">
+				WECHATUSERID=#weChatUserId#
+			</isNotNull>
+			<isNotNull prepend="," property="org.id">
+				org_id=#org.id#
+			</isNotNull>
+			<isNotNull prepend="," property="org.orgInternalCode">
+				ORGINTERNALCODE=#org.orgInternalCode#
+			</isNotNull>
+
+			<isNotNull prepend="," property="createUser">
+				createUser=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="createDate">
+				createDate=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+
+		</dynamic>
+		WHERE source_id=#id#
+	</update>
+	
+	<insert id="saveWechatSource" parameterClass="weChatSource">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_wechat_source.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		insert into wechat_source
+		(source_id,path,content,description,picUrl,url,title,source_type,weChatUserId,source_description,org_id,ORGINTERNALCODE,createUser,updateUser,createDate,updateDate)
+		values
+		(#id#,#path#,#content#,#description#,#picUrl#,#url#,#title#,#sourceTypeDict.id#,#weChatUserId#,#sourceDescription#,#org.id#,#org.orgInternalCode#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	</insert>
+	<sql id="sql_where">
+		<dynamic>
+				<isNotEmpty prepend=" and " property="weChatSource.sourceDescription">
+					s.source_description like '%'||#weChatSource.sourceDescription#||'%'
+				</isNotEmpty>
+				<isGreaterThan property="weChatSource.sourceTypeDict.id" prepend=" and " compareValue ="0">
+					s.source_type =#weChatSource.sourceTypeDict.id#
+				</isGreaterThan>
+				<isNotEmpty prepend=" and " property="weChatSource.weChatUserId">
+					s.WECHATUSERID = #weChatSource.weChatUserId#
+				</isNotEmpty>
+				<isNotEmpty prepend=" and " property="weChatSource.org.id">
+					s.org_id = #weChatSource.org.id#
+				</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	<select id="countFindWeChatSource" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		select count(*) from wechat_source s where 1=1
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="getCountByWeChatUserIdAndSourceType" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		select count(*) from wechat_source s where
+		s.weChatUserId=#weChatUserId# and s.source_type=#sourceType#
+	</select>
+	
+	<select id="getCountByWeChatUserId" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		select count(*) from wechat_source s where s.weChatUserId=#weChatUserId#
+	</select>
+	
+	<select id="getWeChatSourceById" parameterClass="java.lang.Long"
+		resultMap="weChatSourceResult">
+		SELECT * FROM wechat_source s WHERE s.source_id=#value#
+	</select>
+	
+	<select id="getWeChatSourceByIds" parameterClass="java.lang.String"
+		resultMap="weChatSourceResult">
+		SELECT * FROM wechat_source s WHERE s.source_id in($value$)
+	</select>
+	
+	<select id="getWeChatSourceByOrgIdAndSourceType" parameterClass="java.util.Map"
+		resultMap="weChatSourceResult">
+		SELECT * FROM wechat_source s WHERE s.source_type=#sourceType# and s.org_id=#orgId#
+	</select>
+	
+	<delete id="deleteWeChatSourceById" parameterClass="java.lang.Long">
+		delete from
+		wechat_source WHERE source_id=#value#
+	</delete>
+		<delete id="deleteWeChatSourceByWeChatUserId" parameterClass="java.lang.String">
+		delete from
+		wechat_source WHERE WECHATUSERID=#value#
+	</delete>
+	
+	<select id="findWeChatSource" parameterClass="java.util.Map"
+		resultMap="weChatSourceResult">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_start" />
+			</isNotNull>
+		</isPropertyAvailable>
+		select * from wechat_source s
+		where 1=1
+		<include refid="sql_where" />
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">s.$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_end" />
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	
+</sqlMap>

@@ -1,0 +1,227 @@
+package com.tianque.plugin.weChat.service.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.base.AbstractBaseService;
+import com.tianque.core.exception.ServiceException;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.plugin.weChat.dao.FanDao;
+import com.tianque.plugin.weChat.domain.inbox.Inbox;
+import com.tianque.plugin.weChat.domain.inbox.PreciseInbox;
+import com.tianque.plugin.weChat.domain.user.Fan;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+import com.tianque.plugin.weChat.service.FanService;
+import com.tianque.plugin.weChat.service.InboxService;
+import com.tianque.plugin.weChat.service.PreciseInboxService;
+import com.tianque.plugin.weChat.service.TencentUserService;
+import com.tianque.plugin.weChat.service.WeChatGroupService;
+import com.tianque.plugin.weChat.service.WeChatService;
+import com.tianque.userAuth.api.PermissionDubboService;
+
+/** 粉丝信息处理服务类 */
+@Service("fanService")
+@Transactional
+public class FanServiceImpl extends AbstractBaseService implements FanService {
+	@Autowired
+	private WeChatService weChatService;
+	@Autowired
+	private WeChatGroupService weChatGroupService;
+	@Autowired
+	private FanDao fanDao;
+	@Autowired
+	private PermissionDubboService permissionService;
+	@Autowired
+	private TencentUserService tencentUserService;
+	@Autowired
+	private InboxService inboxService;
+	@Autowired
+	PreciseInboxService preciseInboxService;
+
+	/**
+	 * 微信粉丝列表
+	 * 
+	 * @param parameterMap
+	 * @param pageNum
+	 * @param pageSize
+	 * @return
+	 */
+	public PageInfo<Fan> findFan(Fan fan, Integer pageNum, Integer pageSize,
+			String sidx, String sord) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		if ("groupId".equals(sidx))
+			sidx = "GROUP_ID";
+		if ("weChatUserId".equals(sidx))
+			sidx = "WECHAT_USER_ID";
+		if ("nickName".equals(sidx))
+			sidx = "nick_name";
+		if ("openId".equals(sidx))
+			sidx = "open_id";
+		map.put("sortField", sidx);
+		map.put("order", sord);
+		map.put("fan", fan);
+		PageInfo<Fan> pageInfo = fanDao.findFan(map, pageNum, pageSize);
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<Fan> findFanListByWeChatUserIdForPage(Fan fan,
+			Integer pageNum, Integer pageSize, String sidx, String sord) {
+		if (!StringUtil.isStringAvaliable(fan.getWeChatUserId())) {
+			throw new ServiceException("查询粉丝列表出错,请刷新后重试!");
+		}
+		try {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("sortField", sidx);
+			map.put("order", sord);
+			map.put("fan", fan);
+			PageInfo<Fan> pageInfo = fanDao.findFanListByWeChatUserId(map,
+					pageNum, pageSize);
+			return pageInfo;
+		} catch (Exception e) {
+			logger.error(
+					"类FanServiceImpl的findFanListByWeChatUserIdForPage方法出现异常，原因：",
+					e);
+			throw new ServiceException("查询粉丝列表出错");
+		}
+
+	}
+
+	/** 根据服务号获取粉丝列表 */
+	@Override
+	public List<Fan> getFanListByWeChatUserId(String weChatUserId) {
+		return fanDao.getFanListByWeChatUserId(weChatUserId);
+	}
+
+	/** 根据服务号和群组Id获取粉丝列表(用于模拟群发 条件：in ) */
+	public List<Fan> getFanListByGroupIdsAndWeChatUserId(String groupIds,
+			String weChatUserId) {
+		return fanDao.getFanListByGroupIdsAndWeChatUserId(groupIds,
+				weChatUserId);
+	}
+
+	/** 根据服务号和群组Id获取粉丝列表 */
+	public List<Fan> getFanListByGroupIdAndWeChatUserId(Long groupId,
+			String weChatUserId) {
+		return fanDao.getFanListByGroupIdAndWeChatUserId(groupId, weChatUserId);
+	}
+
+	/** 根据服务号和群组Id ，服务号48小时内有互动 获取粉丝列表（用于转发） */
+	public List<Fan> getFanListByGroupIdAndWeChatUserIdAndBeforDate(
+			Long groupId, String weChatUserId, Date beforeDate) {
+		return fanDao.getFanListByGroupIdAndWeChatUserIdAndBeforDate(groupId,
+				weChatUserId, beforeDate);
+	}
+
+	@Override
+	public Long saveFan(Map<String, String> messageMap, TencentUser tencentUser) {
+		String openId = messageMap.get("FromUserName");
+		if (fanDao.getFanByOpenIdAndWeChatUserId(openId,
+				tencentUser.getWeChatUserId()) == null) {
+			Fan fan = weChatService.getFanByOpenId(openId, tencentUser);// 获取微信服务口器端的粉丝信息
+			Long groupId = weChatService
+					.getGroupIdByOpenId(openId, tencentUser);// 获取粉丝所属的服务号所在的群组id
+			fan.setGroupId(groupId);
+			fan.setWeChatUserId(tencentUser.getWeChatUserId());
+			// JobHelper.createMockAdminSession();
+			ThreadVariable.setUser(permissionService
+					.findUserByUserName("admin"));
+			return fanDao.addFan(fan);
+		}
+		return null;
+	}
+
+	@Override
+	public Fan getFanByOpenIdAndWeChatUserId(String openId, String weChatUserId) {
+		return fanDao.getFanByOpenIdAndWeChatUserId(openId, weChatUserId);
+	}
+
+	@Override
+	public int deleteFanByOpenIdAndWeChatUserId(String openId,
+			String weChatUserId) {
+		return fanDao.deleteFanByOpenIdAndWeChatUserId(openId, weChatUserId);
+	}
+
+	/**
+	 * 修改昵称
+	 * 
+	 * @param fan
+	 * @return
+	 */
+	public Integer updateFanById(Fan fan) {
+		return fanDao.updateFanById(fan);
+	}
+
+	/**
+	 * 根据id加载对象
+	 * 
+	 * @param fan
+	 * @return
+	 */
+	public Fan getFanById(Fan fan) {
+		return fanDao.getFanById(fan);
+	}
+
+	/**
+	 * 移动粉丝
+	 * 
+	 * @param fan
+	 * @return
+	 */
+	public Integer removeFan(Fan fan, String fanIds) {
+		TencentUser tencentUser = tencentUserService
+				.getTencentUserByWeChatUserId(fan.getWeChatUserId());
+		List<Fan> fanList = fanDao.getFanByIds(fanIds);
+		boolean removeFanFlag = false;
+		for (int i = 0; i < fanList.size(); i++) {
+			removeFanFlag = weChatGroupService.removeUserForGroup(tencentUser,
+					fanList.get(i).getOpenId(),
+					Integer.parseInt(fan.getGroupId() + ""));// 更新微信服务器
+			Inbox in = new Inbox();
+			in.setGroupId(Long.parseLong(fan.getGroupId() + ""));
+			in.setToUserName(tencentUser.getWeChatUserId());
+			in.setFromUserName(fanList.get(i).getOpenId());
+			inboxService.setGroupIdByWeChatUserIdAndFanId(in);
+			
+			PreciseInbox preciseInbox = new PreciseInbox();
+			preciseInbox.setGroupId(Long.parseLong(fan.getGroupId() + ""));
+			preciseInbox.setToUserName(tencentUser.getWeChatUserId());
+			preciseInbox.setFromUserName(fanList.get(i).getOpenId());
+			preciseInboxService.setGroupIdByWeChatUserIdAndFanId(preciseInbox);
+		}
+		if (removeFanFlag == false)
+			throw new ServiceException("粉丝移动分组失败！");
+		String ids[] = fanIds.split(",");
+		int updateFanFlag = 0;
+		for (int i = 0; i < ids.length; i++) {
+			fan.setFanId(Long.parseLong(ids[i]));
+			updateFanFlag += fanDao.updateFanById(fan);// 更新系统Fan数据
+		}
+		// 暂时屏蔽，因为微信移动分组后不是及时更新，改为手动同步分组数据
+		/*
+		 * boolean updateGroupFlag = weChatGroupService
+		 * .saveWeChatGroup(tencentUser);// 更新微信分组及分组内粉丝数 if (updateGroupFlag ==
+		 * false) throw new ServiceException("粉丝移动分组时，微信分组数据更新失败！");
+		 */
+		return updateFanFlag;
+	}
+
+	/**
+	 * 根据ids加载对象
+	 * 
+	 * @param fanIds
+	 * @return
+	 */
+	public List<Fan> getFanByIds(String fanIds) {
+		return fanDao.getFanByIds(fanIds);
+	}
+
+}

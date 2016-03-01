@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.enable.DynamicMethodInvocation" value="false"></constant>
+	<!-- 核心工厂 -->
+	<bean type="com.opensymphony.xwork2.ActionProxyFactory" name="tianque" class="com.tianque.core.struts.StrutsActionProxyFactory" />
+	<constant name="struts.action.extension" value="action,htm,xls"/> 
+	<constant name="struts.actionProxyFactory" value="tianque"/>
+	
+	<constant name="struts.custom.i18n.resources" value="resources/xiNing" />
+	<constant name="struts.i18n.encoding" value="UTF-8" />
+	<constant name="struts.serve.static.browserCache" value="false" />
+	<!-- 
+	<constant name="struts.devMode" value="false" />
+	<constant name="struts.consoleEnabled" value="true" />
+	<constant name="struts.i18n.reload" value="true" />
+	<constant name="struts.configuration.xml.reload" value="true" />
+	 -->
+	<constant name="struts.objectFactory" value="spring" />
+	<constant name="struts.ognl.allowStaticMethodAccess" value="true" />
+	<constant name="struts.enable.SlashesInActionNames" value="true" />
+	<constant name="struts.action.extension" value="action" />
+	<constant name="struts.multipart.maxSize" value="100000000000" />
+	<constant name="struts.convention.result.path" value="" /> 
+	<!--
+	<constant name="struts.convention.action.disableScanning"
+		value="false" />
+	<constant name="struts.convention.package.locators.basePackage"
+		value="com.tianque.controller" />
+	<constant name="struts.convention.action.suffix" value="Controller" />
+	<constant name="struts.convention.relative.result.types"
+		value="dispatcher,freemarker" />
+	-->
+	
+	<constant name="struts.convention.default.parent.package" value="default" />
+	<constant name="struts.convention.action.packages" value="com.tianque" />
+	<constant name="struts.convention.package.locators" value="controller" />
+	<constant name="struts.convention.exclude.parentClassLoader" value="false" />
+	<constant name="struts.convention.action.fileProtocols" value="jar,code-source" />
+	<constant name="struts.objectFactory.spring.autoWire.alwaysRespect" value="true" /> 
+	
+	<include file="struts/*.xml"></include>
+	<include file="struts/mobile/*.xml"></include>
+	<include file="struts/weChat/*.xml"></include>
+	<include file="config/struts/*.xml"></include>
+	
+	
+	<package name="default" extends="json-default">
+		<result-types>
+            <result-type name="json" class="org.apache.struts2.json.JSONResult">
+            	<param name="ignoreHierarchy">false</param>
+            	<param name="excludeNullProperties">true</param>
+            </result-type>
+        </result-types>
+		<interceptors>
+			
+<!-- 			<interceptor name="firstLoginInterceptor" -->
+<!-- 				class="com.tianque.component.interceptor.FirstLoginInterceptor" /> -->
+			<interceptor name="permissionInterceptor"
+				class="com.tianque.component.interceptor.PermissionInterceptor" />
+			<interceptor name="timeCostInterceptor"
+				class="com.tianque.core.struts.interceptor.TimeCostInterceptor" />
+			<interceptor name="moduleClickStatisticsInterceptor"
+				class="com.tianque.component.interceptor.ModuleClickStatisticsInterceptor" />
+			<interceptor name="exceptionInterceptor"
+				class="com.tianque.core.struts.interceptor.ExceptionInterceptor" />
+			<interceptor name="formTokenInterceptor"
+				class="com.tianque.core.struts.interceptor.FormTokenInterceptor" />	
+			<interceptor name="crossAttackInterceptor"
+				class="com.tianque.core.struts.interceptor.CrossAttackInterceptor" />	
+			<interceptor-stack name="tianqueStack">
+				<interceptor-ref name="crossAttackInterceptor"></interceptor-ref>
+				<interceptor-ref name="formTokenInterceptor"/>
+<!-- 				<interceptor-ref name="firstLoginInterceptor"/> -->
+				<interceptor-ref name="permissionInterceptor"/>
+				<interceptor-ref name="fileUpload"></interceptor-ref>
+				<interceptor-ref name="moduleClickStatisticsInterceptor"/>
+				<interceptor-ref name="defaultStack" />
+				<interceptor-ref name="exceptionInterceptor" />
+				<interceptor-ref name="logger" />
+			</interceptor-stack>
+		</interceptors>
+		<default-interceptor-ref name="tianqueStack" />
+		<global-results>
+			<result name="notHavePermissionResult">
+				/common/notHavePermissionResult.jsp
+			</result>
+			<result name="none">
+				/index.jsp
+			</result>
+			<result name="firstLogin">/sysadmin/userManage/firstUpdatePassword.jsp
+			</result>
+			<result name="all">/common/errorException.jsp</result>
+			<result name="mobile_error" type="json">
+				<param name="root">errorResponse</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			 <!-- 表单重复提交时错误提示 -->  
+			<result name="invalid.token" type="json">
+				<param name="root">"请不要重复提交！"</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			 <!-- 表单 有js或vb等脚本时提示-->  
+			<result name="illegal_attack" type="json">
+				<param name="root">"您输入了非法脚本，请重新输入！"</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="jmsError" type="json">
+				<param name="root">"请联系管理员部署jms服务"</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			
+			<result name="streamSuccess" type="stream">
+                <param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>  
+                <param name="inputName">inputStream</param>  
+                <!-- 下载时候提示的文件名 -->  
+                <param name="contentDisposition">attachment;filename="${downloadFileName}"</param>  
+                <param name="bufferSize">4096</param>  
+			</result>
+			<result name="mobile_error" type="json">
+				<param name="root">errorResponse</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="operate_error" type="json">
+				<param name="root">expResult</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="clientDownload" type="stream">
+                <param name="contentType">text/plain</param>  
+                <param name="inputName">inputStream</param>  
+                <!-- 下载时候提示的文件名 -->  
+                <param name="contentDisposition">attachment;filename="${downloadFileName}"</param>  
+                <param name="bufferSize">4096</param>
+                <param name="contentLength">${contentLength}</param>
+			</result>
+		</global-results>
+		<global-exception-mappings>
+			<exception-mapping result="operate_error" exception="java.lang.Exception"></exception-mapping>
+			<exception-mapping result="jmsError" exception="javax.jms.JMSException"></exception-mapping>
+		</global-exception-mappings>
+	</package>
+</struts>
+

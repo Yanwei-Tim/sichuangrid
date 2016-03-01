@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="enamePermissionCache" >
+	<typeAlias alias="enamePermissionCache" type="com.tianque.baseInfo.enamePermissionCache.domain.EnamePermissionCache"/>
+	<resultMap id="enamePermissionCacheResultMap" class="enamePermissionCache" >
+    	<result column="invalidatetime" property="invalidateTime"/>
+    	<result column="cachekey" property="cacheKey"/>
+    	<result column="cachevalue" property="cacheValue"/>
+    	<result column="createUser" property="createUser"/>
+    	<result column="createDate" property="createDate"/>
+    	<result column="updateUser" property="updateUser"/>
+    	<result column="updateDate" property="updateDate"/>
+	</resultMap>
+	
+	<insert id="addEnamePermissionCache" parameterClass="enamePermissionCache">	
+		insert into ENAMEPERMISSIONCACHE
+		(
+		 cachekey,invalidatetime,cachevalue,createUser,createDate
+		)
+		values
+		(
+		 #cacheKey#,#invalidateTime#,#cacheValue#,#createUser#,#createDate#
+		)
+	</insert>
+	
+	<update id="updateEnamePermissionCache" parameterClass="java.util.Map">
+		update ENAMEPERMISSIONCACHE set
+		<dynamic>
+			   cachekey=#cachekey#
+				<isNotNull prepend="," property="cacheValue">
+					cacheValue=#cacheValue#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					updateUser=#updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					updateDate=#updateDate#
+				</isNotNull>
+			where cachekey=#cachekey#
+		</dynamic>
+	</update>
+	
+	<select id="getEnamePermissionCacheByKey" parameterClass="java.lang.String" resultMap="enamePermissionCacheResultMap">
+		select r.* from ENAMEPERMISSIONCACHE r where r.cachekey=#cacheKey#
+	</select>
+	
+	<delete id="deleteEnamePermissionCache" parameterClass="java.lang.String">
+		delete from ENAMEPERMISSIONCACHE r where r.cachekey = #cacheKey# 
+	</delete>
+</sqlMap>

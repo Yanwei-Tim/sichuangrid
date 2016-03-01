@@ -1,0 +1,8 @@
+package com.tianque.publicSecurity.constant;
+
+public interface PublicSecurityType {
+	public static final String SKYNET = "skynet";
+	public static final String BAYONET = "bayonet";
+	public static final String SNAPSHOTSYSTEM = "snapshotSystem";
+	public static final String VIDEOSYSTEM = "videoSystem";
+}

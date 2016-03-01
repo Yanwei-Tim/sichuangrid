@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="approvalItemFile">
+	<typeAlias alias="ApprovalItemFile" type="com.tianque.approval.domain.ApprovalItemFile" />
+	<resultMap class="ApprovalItemFile" id="approvalItemFileResult">
+		<result property="id" column="id" />
+		<result property="approvalItem.id" column="approvalItemId" />
+		<result property="fileName" column="fileName" />
+		<result property="fileActualUrl" column="fileActualUrl" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<insert id="addApprovalItemFile" parameterClass="ApprovalItemFile">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_APPROVALITEMFILE.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into approvalitemfiles(id,approvalItemId,fileName,fileActualUrl,createUser,createDate)
+		values (#id#,#approvalItem.id#,#fileName#,#fileActualUrl#,#createUser#,#createDate#)
+	</insert>
+	
+	<select id="getApprovalItemFileById" parameterClass="java.lang.Long" resultMap="approvalItemFileResult">
+		<![CDATA[select * from approvalitemfiles where id=#value#]]>
+	</select>
+	
+	<select id="findApprovalItemFileByApprovalItemId" parameterClass="java.lang.Long" resultMap="approvalItemFileResult">
+		<![CDATA[select * from approvalitemfiles where approvalItemId=#value#]]>
+	</select>
+
+	<delete id="deleteItemAttachmentByApprovalItemId" parameterClass="java.lang.Long">
+		delete from approvalitemfiles where approvalItemId = #value#
+	</delete>
+	
+	<delete id="deleteApprovalItemFileById" parameterClass="java.lang.Long">
+		delete from approvalitemfiles where id = #value#
+	</delete>
+	
+	<delete id="deleteApprovalItemFileByApprovalItemId" parameterClass="java.lang.Long">
+		delete from approvalitemfiles where approvalItemId = #value#
+	</delete>
+	
+</sqlMap>

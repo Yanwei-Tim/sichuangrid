@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="LoginManage">
+	<typeAlias alias="LoginManage" type="com.tianque.plugin.analyzing.domain.LoginManage" />
+
+	<resultMap id="loginManageResult" class="LoginManage">
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgName" property="orgName"/>
+		<result column="orgInternalCode" property="orgInternalCode" />
+
+		<result column="allLoginCount" property="allLoginCount" />
+		<result column="threeMonthsLoginCount" property="threeMonthsLoginCount" />
+		<result column="outThreeMonthsLoginCount" property="outThreeMonthsLoginCount" />
+		<result column="nerverLoginCount" property="nerverLoginCount" />
+
+		<result column="year" property="year" />
+		<result column="month" property="month" />
+		<result column="STATE" property="state" />
+		<result column="CREATEUSER" property="createUser" />
+    	<result column="CREATEDATE" property="createDate" />
+	</resultMap>
+	
+	<insert id="addLoginManage" parameterClass="java.util.Map">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_LOGINMANGE.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into loginManage_$year$_$month$(id,orgId,orgInternalCode,allLoginCount,threeMonthsLoginCount,outThreeMonthsLoginCount,nerverLoginCount,year,month,STATE,CREATEUSER,CREATEDATE)
+		select s_loginmange.nextval as id, t.id,t.orgCode,t.allLoginCount,t.threeMonthsLoginCount,t.outThreeMonthsLoginCount,t.nerverLoginCount,#year#, #month#,0,#CREATEUSER#,#CREATEDATE#
+		from(select org.id as id,org.orginternalcode as orgCode,
+			(select count(1) from users u where u.organizationid = org.id and u.state = 2) allLoginCount,
+			(select count(1) from users u  where u.organizationid = org.id and u.state = 2 and (to_date(#nowTime#, 'yyyy-mm-dd') - add_months(u.lastlogintime, 3)) <![CDATA[ <= ]]> 0 
+			and (to_date(#nowTime#, 'yyyy-mm-dd') - add_months(u.lastlogintime, 1)) <![CDATA[ >= ]]> 0) threeMonthsLoginCount,
+			(select count(1) from users u where u.organizationid =  org.id and u.state = 2 and (to_date(#nowTime#, 'yyyy-mm-dd') - add_months(u.lastlogintime, 3)) <![CDATA[ >= ]]> 0) outThreeMonthsLoginCount,
+			(select count(1) from users u where u.organizationid = org.id and u.state = 2 and u.lastlogintime is null) nerverLoginCount
+		from organizations org group by org.id, org.orginternalcode) t
+	</insert>
+	
+	<select id="queryLoginManageForList" parameterClass="java.util.Map" resultMap="loginManageResult">
+		select o.orgName,l.* from organizations o left join  loginManage_$year$_$month$ L
+		on o.id = L.orgid where O.PARENTID = #orgId# and L.year=#year# and L.month=#month# and L.state = 0
+		order by o.seq asc
+	</select>
+	
+	<select id="queryLoginManageByOrgIdForList" parameterClass="java.util.Map" resultMap="loginManageResult">
+		select o.orgName,l.* from organizations o left join  loginManage_$year$_$month$ L 
+		on o.id = L.orgid where O.PARENTID 
+		<iterate property="orgList" conjunction="," open="in (" close=")">
+				#orgList[]#
+		</iterate>
+		and L.year=#year# and L.month=#month# and L.state = 0
+		order by (select to_number(seq ||'00'|| o.seq) from organizations o1 where o1.id=o.parentid)
+	</select>
+	
+	<select id="getCount" parameterClass="java.util.Map" resultClass="int">
+		select count(1) from loginManage_$year$_$month$ L,organizations o where L.orgid = o.id and o.parentid = #orgId# and L.year=#year# and L.month=#month# and L.state = 0
+		order by o.seq asc
+	</select>
+	
+	<delete id="deleteLoginMange" parameterClass="java.util.Map">
+	   delete from loginManage_$year$_$month$ where  year=#year#  and month=#month# 
+	</delete>
+</sqlMap>

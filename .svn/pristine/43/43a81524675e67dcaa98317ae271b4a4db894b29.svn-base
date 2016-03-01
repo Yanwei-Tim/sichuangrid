@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="helpPersonnel">
+	<typeAlias alias="HelpPersonnel" type="com.tianque.domain.HelpPersonnel" />
+	<parameterMap id="helpPersonnelParams" class="HelpPersonnel">
+		<parameter property="id" />
+		<parameter property="name" />
+		<parameter property="mobile" />
+		<parameter property="telephone" />
+		<parameter property="status" />
+		<parameter property="personId" />
+		<parameter property="personType" />
+		<parameter property="createUser" />
+		<parameter property="createDate" />
+		<parameter property="updateUser" />
+		<parameter property="updateDate" />
+		<parameter property="fullPinyin" />
+		<parameter property="simplePinyin" />
+		<parameter property="identity" />
+	</parameterMap>
+
+	<resultMap id="helpPersonnelResult" class="HelpPersonnel">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="mobile" column="mobile" />
+		<result property="telephone" column="telephone" />
+		<result property="status" column="status" />
+		<result property="personId" column="personId" />
+		<result property="personType" column="personType" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="identity" column="identity" />
+	</resultMap>
+		<insert id="addHelpPersonnel" parameterClass="HelpPersonnel">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_helpPersonnels.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO helpPersonnels
+		(id,name,mobile,telephone,status,personId,personType,createUser,createDate,updateUser,updateDate,
+		fullPinyin,simplePinyin,identity)
+		values
+		(#id#,#name#,#mobile#,#telephone#,#status#,#personId#,#personType#,#createUser#,#createDate#,#updateUser#,#updateDate#,
+		#fullPinyin#,#simplePinyin#,#identity#)
+	</insert>
+
+	<update id="updateHelpPersonnel" parameterClass="HelpPersonnel">
+		update helpPersonnels set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="mobile">
+				mobile=#mobile#
+			</isNotNull>
+			<isNotNull prepend="," property="telephone">
+				telephone=#telephone#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="fullPinyin">
+				fullPinyin=#fullPinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="simplePinyin">
+				simplePinyin=#simplePinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="status">
+				status=#status#
+			</isNotNull>
+			<isNotNull prepend="," property="identity">
+				identity=#identity#
+			</isNotNull>
+		</dynamic>
+		where id=#id#
+	</update>
+
+	<select id="findHelpPersonnel" resultMap="helpPersonnelResult"
+		parameterClass="java.util.Map">
+		<![CDATA[select * from  helpPersonnels where personId=#personId#  and personType=#personType#]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findHelpPersonnelForList" parameterClass="map"
+		resultMap="helpPersonnelResult">
+		<![CDATA[select * from  helpPersonnels where personId=#personId#  and personType=#personType# ]]>
+	</select>
+
+		<select id="searchHelpPersonnelForAutoComplete" parameterClass="map"
+		resultMap="helpPersonnelResult">
+		<![CDATA[select * from  helpPersonnels where (name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%' ) and personId=#personId# and status is null and personType=#personType# ]]>
+	</select>
+
+
+	<select id="countHelpPersonnel" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(*) from  helpPersonnels where personId=#personId#  and personType=#personType#]]>
+	</select>
+<!--
+	<update id="deleteHelpPersonnelById" parameterClass="long">
+		update helpPersonnels set status=1 where id=#id#
+	</update>
+-->
+	<select id="getHelpPersonnelById" parameterClass="long"
+		resultMap="helpPersonnelResult">
+		<![CDATA[select * from  helpPersonnels where id=#value#]]>
+	</select>
+
+	<delete id="deleteHelpPersonnel" parameterClass="map">
+		delete from helpPersonnels where personId=#personId# and personType=#personType#
+	</delete>
+	<delete id="deleteHelpPersonnelById" parameterClass="long">
+		delete from helpPersonnels where id = #id#
+	</delete>
+
+</sqlMap>

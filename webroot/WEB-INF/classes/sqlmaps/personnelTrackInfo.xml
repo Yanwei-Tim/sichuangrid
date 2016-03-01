@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="personnelTrackInfo">
+   <typeAlias alias="PersonnelTrackInfo" type="com.tianque.baseInfo.personnelTrackInfo.domain.PersonnelTrackInfo"/>
+   <parameterMap class="PersonnelTrackInfo" id="personnelTrackInfoParams">
+		<parameter property="id"/>
+		<parameter property="createUser"/>
+		<parameter property="createDate"/>
+		<parameter property="idcardNo"/>
+		<parameter property="operationOrganization"/>
+		<parameter property="personnelOrganization"/>
+		<parameter property="oldPersonnelOrganization"/>
+		<parameter property="personnelOrgInternalCode"/>
+		<parameter property="personnelId"/>
+		<parameter property="personnelName"/>
+		<parameter property="personnelType"/>
+		<parameter property="operationType"/>
+		<parameter property="personinitType"/>
+		<parameter property="operationContent"/>
+		<parameter property="operationUser"/>
+		<parameter property="operationDate"/>
+	</parameterMap>
+
+	<resultMap class="PersonnelTrackInfo" id="personnelTrackInfoResult">
+		<result property="id" column="id" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="operationOrganization.id" column="operationOrgId" />
+		<result property="personnelOrganization.id" column="personnelOrgId" />
+		<result property="oldPersonnelOrganization.id" column="oldPersonnelOrgId" />
+		<result property="personnelOrgInternalCode" column="personnelOrgInternalCode" />
+		<result property="idcardNo" column="idcardNo" />
+		<result property="personnelId" column="personnelId" />
+		<result property="personnelName" column="personnelName" />
+		<result property="personnelType" column="personnelType" />
+		<result property="operationType" column="operationType" />
+		<result property="personinitType" column="personinitType"/>
+		<result property="operationContent" column="operationContent" />
+		<result property="operationUser.id" column="operationUserId" />
+		<result property="operationDate" column="operationDate" />
+	</resultMap>
+	
+	<select id="countPersonnelTrackInfoByIdCardNo" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from personnelTracks where idcardNo=#idcardNo#
+	</select>
+	
+	<select id="findPersonnelTrackInfoByIdCardNo" parameterClass="java.util.Map" resultMap="personnelTrackInfoResult">
+		<![CDATA[SELECT * FROM personnelTracks where idcardNo = #idcardNo# order by operationDate desc]]>
+	</select>
+	
+	<insert id="addPersonnelTrackInfo" parameterClass="PersonnelTrackInfo">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_personnelTracks.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into personnelTracks (id, createUser, createDate, operationOrgId, personnelOrgId, oldPersonnelOrgId, personnelOrgInternalCode, idcardNo, personnelId, personnelName, personnelType, operationType, personinitType,operationContent, operationUserId, operationDate)
+		values (#id#, #createUser#, #createDate#, #operationOrganization.id#, #personnelOrganization.id#, #oldPersonnelOrganization.id#, #personnelOrgInternalCode#, #idcardNo#, #personnelId#, #personnelName#, #personnelType#, #operationType#,#personinitType#, #operationContent#, #operationUser.id#, #operationDate#)
+	</insert>
+
+	<select id="getPersonnelInfoTrackById" parameterClass="java.lang.Long" resultMap="personnelTrackInfoResult">
+		<![CDATA[SELECT * FROM personnelTracks where id = #value#]]>
+	</select>
+</sqlMap>

@@ -1,0 +1,106 @@
+package com.tianque.plugin.weChat.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.base.AbstractBaseService;
+import com.tianque.core.cache.service.CacheService;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.plugin.weChat.dao.TencentUserDao;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+import com.tianque.plugin.weChat.service.TencentUserService;
+import com.tianque.plugin.weChat.service.WeChatGroupService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+@Service("tencentUserService")
+@Transactional
+public class TencentUserServiceImpl extends AbstractBaseService implements
+		TencentUserService {
+
+	@Autowired
+	private TencentUserDao tencentUserDao;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private WeChatGroupService weChatGroupService;
+	@Autowired
+	private CacheService cacheService;
+
+	@Override
+	public PageInfo getTencentUserList(TencentUser tencentUser,
+			Integer pageNum, Integer pageSize, String sidx, String sord) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("sortField", sidx);
+		map.put("order", sord);
+		map.put("tencentUser", tencentUser);
+		PageInfo tencentUserList = tencentUserDao.getTencentUserList(map,
+				pageNum, pageSize);
+		return tencentUserList;
+	}
+
+	@Override
+	public Long addTencentUser(TencentUser tencentUser) {
+		if (tencentUser.getTencentUserId() != null) {
+			// 修改前删除上一个对应微信号的AccessToken缓存
+			TencentUser t = getTencentUserByTencentUserId(tencentUser
+					.getTencentUserId());
+			cacheService.remove("weChatAccessToken" + t.getWeChatUserId());
+		}
+		boolean flag = weChatGroupService.saveWeChatGroup(tencentUser);
+		if (flag == false) {
+			throw new BusinessValidationException("该服务号不存在或是未获取微信认证！！！");
+		} else {
+			Organization org = organizationDubboService
+					.getSimpleOrgById(tencentUser.getOrganization().getId());
+			if (org != null) {
+				tencentUser.setOrganization(org);
+			}
+			Long id = tencentUserDao.addTencentUser(tencentUser);
+			tencentUser.setTencentUserId(id);
+			return id;
+		}
+
+	}
+
+	@Override
+	public TencentUser getTencentUserByTencentUserId(Long tencentUserId) {
+		return tencentUserDao.getTencentUserByTencentUserId(tencentUserId);
+	}
+
+	@Override
+	public void deleteTencentUser(List<Long> ids) {
+		for (Long id : ids) {
+			TencentUser tencentUser = tencentUserDao
+					.getTencentUserByTencentUserId(id);
+			String accessToken = (String) cacheService.get("weChatAccessToken"
+					+ tencentUser.getWeChatUserId());
+			// 删除缓存
+			if (accessToken != null) {
+				cacheService.remove("weChatAccessToken"
+						+ tencentUser.getWeChatUserId());
+			}
+
+			tencentUserDao.deleteTencentUserById(id);
+			weChatGroupService.deleteWeChatGroupByWeChatUserId(tencentUser
+					.getWeChatUserId());
+		}
+	}
+
+	@Override
+	public List<TencentUser> getTencentUserListByOrgId(Long orgId) {
+		return tencentUserDao.getTencentUserListByOrgId(orgId);
+	}
+
+	@Override
+	public TencentUser getTencentUserByWeChatUserId(String weChatUserId) {
+		return tencentUserDao.getTencentUserByWeChatUserId(weChatUserId);
+	}
+
+}

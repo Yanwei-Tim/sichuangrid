@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="myProfile">
+	<typeAlias alias="myProfile" type="com.tianque.resourcePool.domain.MyProfile" />
+	<typeAlias
+		type="org.springframework.orm.ibatis.support.ClobStringTypeHandler"
+		alias="ClobStringTypeHandler" />
+	<resultMap id="myProfileResult" class="myProfile">
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="resourcePoolType" property="resourcePoolType.id" />
+		<result column="name" property="name" />
+		<result column="fullPinyin" property="fullPinyin" />
+		<result column="simplePinyin" property="simplePinyin" />
+		<result column="userId" property="userId" />
+		<result column="releaseTime" property="releaseTime" />
+		<result column="releaseUnit" property="releaseUnit" />
+		<result column="content" property="content" />
+		<result column="fileNo" property="fileNo" />
+		<result column="documentSubject" property="documentSubject" />
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+		<result column="underJurisdiction" property="underJurisdiction" />
+		<result column="sendMessage" property="sendMessage" />
+		<result column="shareState" property="shareState" />
+		<result column="shareDirectoryId" property="shareDirectory.id" />
+		<result column="shareDate" property="shareDate" />
+		<result column="source" property="source" />
+	</resultMap>
+
+	<insert id="addMyProfile" parameterClass="myProfile">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_myProfiles.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into myProfiles
+		(id,orgId,resourcePoolType,orgInternalCode,name,userId,
+		releaseTime,releaseUnit,fileNo,documentSubject,content,
+		createUser,updateUser,createDate,updateDate,simplePinyin,fullPinyin,
+		underJurisdiction,sendMessage,shareState,shareDirectoryId,source)
+		values(#id#,#organization.id#,#resourcePoolType.id#,#orgInternalCode#,
+		#name#,#userId#,#releaseTime#,#releaseUnit#,#fileNo#,#documentSubject#,#content,handler=ClobStringTypeHandler#,
+		#createUser#,#updateUser#,#createDate#,#updateDate#,#simplePinyin#,#fullPinyin#,
+		#underJurisdiction#,#sendMessage#,#shareState#,#shareDirectory.id#,#source#)
+	</insert>
+	<select id="getMyProfileById" parameterClass="java.lang.Long"
+		resultMap="myProfileResult">
+		select * from myProfiles where id=#value#
+	</select>
+	<select id="selectMyProfilesByIds" parameterClass="java.util.List" resultMap="myProfileResult">
+		select * from myProfiles where id 
+		<iterate prepend="in" conjunction="," open="("  close=")" >
+			#value[]# 
+		</iterate>
+	</select>
+	<sql id="where_Condition">
+
+		<!-- 
+		<isNotNull property="resourcePoolTypeId" prepend=" and ">
+			m.resourcePoolType = #resourcePoolTypeId#
+		</isNotNull>
+		 -->
+		 
+		<isEqual  property="resourcePoolTypeId" compareValue="0" prepend=" and ">
+		 ( ((m.resourcePoolType in (SELECT ID FROM directorySettings  START WITH parentID is null
+         			CONNECT BY PRIOR ID = parentID) or m.resourcePoolType = -1 ) and m.orgId=#orgId# ) or
+           ((m.resourcePoolType in (SELECT ID FROM directorySettings  START WITH parentID = 999
+					CONNECT BY PRIOR ID = parentID) or m.resourcePoolType = 999 ) and m.userId = #userId# ) )
+		</isEqual>
+		
+		<isEqual  property="resourcePoolTypeId" compareValue="-1" prepend=" and ">
+		 (m.resourcePoolType in ( SELECT ID FROM directorySettings START WITH parentID is null 
+		 				CONNECT BY PRIOR ID = parentID) or  m.resourcePoolType=-1)
+		</isEqual>
+		
+ 		<isNotEqual  property="resourcePoolTypeId" compareValue="0">
+ 			<isNotEqual  property="resourcePoolTypeId" compareValue="-1" prepend=" and ">
+			 (m.resourcePoolType in ( SELECT ID FROM directorySettings START WITH parentID = #resourcePoolTypeId#
+			 				CONNECT BY PRIOR ID = parentID) or  m.resourcePoolType = #resourcePoolTypeId#)
+			</isNotEqual>
+
+			<isNotNull property="orgId" prepend=" and ">
+				m.orgId = #orgId#
+			</isNotNull>
+			<isNotNull property="userId" prepend=" and ">
+				m.userId = #userId#
+			</isNotNull>
+		</isNotEqual>
+		
+		<isPropertyAvailable property="createuser">
+			<isNotEmpty property="createuser" prepend=" and ">
+				m.createUser
+				like #createUser#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="name">
+			<isNotEmpty property="name" prepend=" and ">
+				(m.name like #name#||'%' or
+				fullPinyin
+		like #name#||'%' or simplePinyin like #name#||'%')
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="releaseUnit">
+			<isNotEmpty property="releaseUnit" prepend=" and ">
+				m.releaseUnit
+				like #releaseUnit#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="content">
+			<isNotEmpty property="content" prepend=" and ">
+				m.content like
+				#content,handler=ClobStringTypeHandler#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="fileNo">
+			<isNotEmpty property="fileNo" prepend=" and ">
+				m.fileNo like
+				#fileNo#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="documentSubject">
+			<isNotEmpty property="documentSubject" prepend=" and ">
+				m.documentSubject like #documentSubject#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="startReleaseTime">
+			<isNotNull property="startReleaseTime" prepend=" and ">
+				m.releaseTime <![CDATA[>=]]>
+				#startReleaseTime#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="releaseTime">
+			<isNotNull property="releaseTime" prepend=" and ">
+				m.releaseTime <![CDATA[<=]]>
+				#releaseTime#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="startCreateTime">
+			<isNotNull property="startCreateTime" prepend=" and ">
+				m.createDate <![CDATA[>=]]>
+				#startCreateTime#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="createDate">
+			<isNotNull property="createDate" prepend=" and ">
+				m.createDate <![CDATA[<=]]>
+				#createDate#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="source">
+			<isNotEmpty property="source" prepend=" and ">
+				m.source = #source#
+			</isNotEmpty>
+		</isPropertyAvailable>
+	</sql>
+	<sql id="fastSearch">
+		<isEqual property="searchType" compareValue="0">
+		</isEqual>
+		<isEqual property="searchType" compareValue="1">
+			and shareState=1
+		</isEqual>
+		<isEqual property="searchType" compareValue="2">
+			and shareState=2
+		</isEqual>
+	</sql>
+	<sql id="orderSql">
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<select id="findMyProfileForList" parameterClass="java.util.Map"
+		resultMap="myProfileResult">
+		select * from myProfiles m where 1=1
+		<include refid="where_Condition" />
+		<include refid="fastSearch" />
+		<include refid="orderSql" />
+	</select>
+	<select id="countMyProfileForList" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from myProfiles m where 1=1
+		<include refid="fastSearch" />
+		<include refid="where_Condition" />
+	</select>
+	<update id="updateMyprofileBySendMesageAndShareDirectoryId"
+		parameterClass="java.util.Map">
+		<![CDATA[
+		   update myProfiles set sendMessage=#sendMessage#,shareState=#shareState#,shareDirectoryId=#shareDirectoryId#,underJurisdiction=#underJurisdiction#,shareDate=#shareDate#
+		   where id=#id#
+		]]>
+	</update>
+	<update id="updateMyProfileOfshareState" parameterClass="java.util.Map">
+		update myProfiles set shareState=#shareState#,underJurisdiction=#underJurisdiction# where id
+		= #id#
+	</update>
+
+	<update id="updateMyProfile" parameterClass="myProfile">
+    <![CDATA[
+        update myProfiles set
+                   name = #name#,
+                   releaseUnit=#releaseUnit#,
+                   releaseTime=#releaseTime#,
+                   fileNo=#fileNo#,
+                   documentSubject=#documentSubject#,
+                   content=#content,handler=ClobStringTypeHandler#,
+                   updateDate=#updateDate#
+        where id = #id#
+    ]]>
+	</update>
+
+	<delete id="deleteMyProfileById" parameterClass="java.lang.Long">
+		delete from myProfiles where id=#value#
+	</delete>
+
+	<delete id="deleteMyProfileByIds">
+		delete from myProfiles where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	
+	<select id="searchMyProfiles" parameterClass="java.util.Map"
+		resultMap="myProfileResult">
+		select * from myProfiles m where 1=1
+		<include refid="where_Condition" />
+		<include refid="fastSearch" />
+		<isEqual property="attached" compareValue="0">
+		    and m.id not in (select at.myProfileId from myProfileAttachfiles at)
+		</isEqual>
+		<isEqual property="attached" compareValue="1">
+		    and m.id in (select at.myProfileId from myProfileAttachfiles at)
+		</isEqual>
+		<include refid="orderSql" />
+	</select>
+
+
+   <sql id="fastSearch_where_Condition">
+		<isEqual  property="resourcePoolTypeId" compareValue="0" prepend=" and ">
+		 ( ((m.resourcePoolType in (SELECT ID FROM directorySettings  START WITH parentID is null
+         			CONNECT BY PRIOR ID = parentID) or m.resourcePoolType = -1 ) and m.orgId=#orgId# ) or
+           ((m.resourcePoolType in (SELECT ID FROM directorySettings  START WITH parentID = 999
+					CONNECT BY PRIOR ID = parentID) or m.resourcePoolType = 999 ) and m.userId = #userId# ) )
+		</isEqual>
+		
+		<isEqual  property="resourcePoolTypeId" compareValue="-1" prepend=" and ">
+		 (m.resourcePoolType in ( SELECT ID FROM directorySettings START WITH parentID is null 
+		 				CONNECT BY PRIOR ID = parentID) or  m.resourcePoolType=-1)
+		</isEqual>
+		
+ 		<isNotEqual  property="resourcePoolTypeId" compareValue="0">
+ 			<isNotEqual  property="resourcePoolTypeId" compareValue="-1" prepend=" and ">
+			 (m.resourcePoolType in ( SELECT ID FROM directorySettings START WITH parentID = #resourcePoolTypeId#
+			 				CONNECT BY PRIOR ID = parentID) or  m.resourcePoolType = #resourcePoolTypeId#)
+			</isNotEqual>
+
+			<isNotNull property="orgId" prepend=" and ">
+				m.orgId = #orgId#
+			</isNotNull>
+			<isNotNull property="userId" prepend=" and ">
+				m.userId = #userId#
+			</isNotNull>
+		</isNotEqual>
+	</sql>
+
+	<select id="countSearchMyProfiles" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from myProfiles m where 1=1
+		<include refid="where_Condition" />
+		<include refid="fastSearch" />
+		<isEqual property="attached" compareValue="0">
+		    and m.id not in (select at.myProfileId from myProfileAttachfiles at)
+		</isEqual>
+		<isEqual property="attached" compareValue="1">
+		    and m.id in (select at.myProfileId from myProfileAttachfiles at)
+		</isEqual>
+	</select>
+
+	<select id="fastSearchMyProfile" parameterClass="java.util.Map"
+		resultMap="myProfileResult">
+		select * from myProfiles m where (name like '$searchText$%' or
+		fullPinyin
+		like '$searchText$%' or simplePinyin like '$searchText$%')
+		<include refid="fastSearch_where_Condition" />
+		<include refid="fastSearch" />
+		<include refid="orderSql" />
+	</select>
+	<select id="countFastSearchMyProfile" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from myProfiles m where (name like '$searchText$%' or
+		fullPinyin
+		like '$searchText$%' or simplePinyin like '$searchText$%')
+		<include refid="fastSearch_where_Condition" />
+		<include refid="fastSearch" />
+	</select>
+</sqlMap>

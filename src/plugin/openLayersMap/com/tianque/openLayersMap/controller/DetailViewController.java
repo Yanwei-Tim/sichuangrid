@@ -1,0 +1,320 @@
+package com.tianque.openLayersMap.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.primaryOrg.domain.GridTeam;
+import com.tianque.baseInfo.primaryOrg.service.GridTeamService;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.util.StringUtil;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.gis.util.GisGlobalValue;
+import com.tianque.openLayersMap.domian.GisTypeManage;
+import com.tianque.openLayersMap.service.DetailViewService;
+import com.tianque.openLayersMap.service.SysGisTypeManageService;
+import com.tianque.openLayersMap.util.GisGlobalValueMap;
+import com.tianque.openLayersMap.util.ServiceImplModeType;
+import com.tianque.service.DustbinService;
+import com.tianque.sysadmin.service.PropertyDictService;
+
+@Namespace("/gis/twoDimensionMapDetailViewCommonManage")
+@Transactional
+@Scope("prototype")
+@Controller("detailViewController")
+public class DetailViewController<T> extends BaseAction {
+	private static final long serialVersionUID = 1608335118649290742L;
+
+	@Autowired
+	private SysGisTypeManageService sysGisTypeManageService;
+	@Autowired
+	private Map<String, DetailViewService<T>> detailViewService;
+	@Autowired
+	protected PropertyDictService propertyDictService;
+	@Autowired
+	private DustbinService dustbinService;
+	@Autowired
+	private GridTeamService gridTeamService;
+
+	private List<Object> objectList = new ArrayList<Object>();;
+	private String functionType; // 功能类型(精确搜索、辖区分布、图层)
+	private Long id;
+	private String modeType; // Service层调用的类型
+	private String type;
+	private String tableName; // 大类表名
+	private String childTableName; // 子类表名
+	private Boolean isSerachMode = false; // 是否为搜索功能
+	private Boolean isVideo = false;
+	private Boolean isIsuue = false;
+	private Integer internalId;
+	private String content;
+	private Long orgId;
+
+	/**
+	 * 获取查看popup页面--内置(地图要素（如：学校）/链接的单机事件)
+	 * 
+	 * @return
+	 */
+	@Action(value = "getDetailViewPopupInfoByIdAndType", results = {
+			@Result(name = "success", location = "/openLayersMap/detailsCommon/viewDetailsInformationCommon.jsp"),
+			@Result(name = "issue", location = "/issue/issueManage/viewDetailsIssueInformation.jsp"),// 社管查看事件,社情民意周边搜索框
+			@Result(name = "cmsViewA", location = "/openLayersMap/product_3.0/cmsViewDetailsInformationCommonA.jsp"),
+			@Result(name = "cmsViewB", location = "/openLayersMap/product_3.0/cmsViewDetailsInformationCommonB.jsp"),
+			@Result(name = "cmsViewC", location = "/openLayersMap/product_3.0/cmsViewDetailsInformationCommonC.jsp"),
+			@Result(name = "cmsViewD", location = "/openLayersMap/product_3.0/cmsViewDetailsInformationCommonD.jsp"),
+			@Result(name = "dustbin", location = "/openLayersMap/gisHeader/maintainVideoDlg.jsp"),
+			@Result(name = "gridTeam", location = "/openLayersMap/detailsCommon/viewGridTeamInfoCommon.jsp"),//网格员队伍管理页面
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String getDetailViewPopupInfoByIdAndType() throws Exception {
+		if (validateNull(modeType, tableName)) {
+			this.errorMessage = "参数错误，请联系管理员!";
+			return ERROR;
+		}
+		if ("cmsView".equals(tableName)) {// cms临时使用
+			objectList = new ArrayList<Object>();
+			GisTypeManage gisTypeManage = new GisTypeManage();
+			gisTypeManage.setInnerKey(GisGlobalValue.PERSON_MODE);
+			objectList.add(sysGisTypeManageService
+					.getNeedGisTypeManagesByInnerType(gisTypeManage));// 返回选中的人员类型
+
+			gisTypeManage.setInnerKey(GisGlobalValue.PLACE_MODE);
+			objectList.add(sysGisTypeManageService
+					.getNeedGisTypeManagesByInnerType(gisTypeManage));// 返回选中的重点场所类型
+			if ("A".equals(modeType))
+				return "cmsViewA";
+			else if ("B".equals(modeType))
+				return "cmsViewB";
+			else if ("C".equals(modeType))
+				return "cmsViewC";
+			else if ("D".equals(modeType))
+				return "cmsViewD";
+		}
+		objectList = detailViewService.get(modeType)
+				.getViewPopupInfoByIdAndTableNameAndType(id, tableName, type,
+						childTableName, isSerachMode, functionType, orgId);
+		//如果是网格员队伍管理获得网格员对象在返回页面展示
+		if(modeType.equals(ServiceImplModeType.GRID_TEAM_DETAILVIEW)){
+			GridTeam gridTeam = gridTeamService.getGridTeamById(id);
+			gridTeam.setPositionType(propertyDictService.getPropertyDictById(gridTeam.getPositionType().getId()));
+			objectList.add(gridTeam);
+			return "gridTeam";
+		}
+		if (isVideo) {// 视频临时使用
+			content = dustbinService.getVideoParamterById(id);
+			return "dustbin";
+		} else if (isIsuue) {
+			return "issue";
+		}
+
+		return SUCCESS;
+	}
+
+	private boolean validateNull(Object... objects) {
+		for (Object obj : objects) {
+			if (obj == null)
+				return true;
+			else if ((obj instanceof String)
+					&& ((String) obj).trim().length() == 0)
+				return true;
+			else if ((obj instanceof Organization)
+					&& ((Organization) obj).getId() == null)
+				return true;
+		}
+		return false;
+	}
+
+	@Action(value = "getNearObjectList", results = {
+			@Result(type = "json", params = { "root", "objectList",
+					"excludeNullProperties", "true", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String getNearObjectList() throws Exception {
+		if (null == type) {
+			errorMessage = "类型不能为空!";
+			return ERROR;
+		}
+		GisTypeManage gisTypeManage = new GisTypeManage();
+		if (GisGlobalValueMap.KEY_LOCATION.equals(type)) {
+			gisTypeManage.setInnerKey(GisGlobalValueMap.PLACE_MODE);
+			objectList.add(sysGisTypeManageService
+					.getNeedGisTypeManagesByInnerType(gisTypeManage));// 返回选中的组织场所类型
+		} else if (GisGlobalValueMap.KEY_POPULATION.equals(type)) {
+			gisTypeManage.setInnerKey(GisGlobalValueMap.PERSON_MODE);
+			objectList.add(sysGisTypeManageService
+					.getNeedGisTypeManagesByInnerType(gisTypeManage));// 返回选中的重点人员类型
+		} else if (GisGlobalValueMap.KEY_CONSIDERINGOBJECT.equals(type)) {
+			gisTypeManage.setInnerKey(GisGlobalValueMap.CARE_PERSON);
+			objectList.add(sysGisTypeManageService
+					.getNeedGisTypeManagesByInnerType(gisTypeManage));// 返回选中的关怀对象类型
+
+		} else if (GisGlobalValueMap.KEY_OTHERCONSIDERINGOBJECT.equals(type)) {
+			gisTypeManage.setInnerKey(GisGlobalValueMap.OTHER_PERSON);
+			objectList.add(sysGisTypeManageService
+					.getNeedGisTypeManagesByInnerType(gisTypeManage));// 返回选中的其他关注对象类型
+		} else if (GisGlobalValueMap.KEY_CITYCOMPONENTS.equals(type)
+				&& null != internalId) {
+			List<PropertyDict> propertyDicts = new ArrayList<PropertyDict>();
+			if (internalId == 0) {
+				PropertyDict propertyDict = new PropertyDict();
+				propertyDict.setId(-1L);
+				propertyDict.setDisplayName("视频监控");
+				propertyDicts.add(propertyDict);
+			}
+			List<PropertyDict> resultList = propertyDictService
+					.findPropertyDictByDomainNameAndInternalId("部件名称",
+							internalId);
+			propertyDicts.addAll(resultList);
+			objectList.add(propertyDicts);
+		} else if (GisGlobalValueMap.KEY_TWONEWGROUP.equals(type)) {
+			gisTypeManage.setInnerKey(GisGlobalValueMap.TWO_NEWGROUP);
+			objectList.add(sysGisTypeManageService
+					.getNeedGisTypeManagesByInnerType(gisTypeManage));// 返回选中的两新组织类型
+		} else if (GisGlobalValueMap.KEY_ENTERPRISE.equals(type)) {
+			gisTypeManage.setInnerKey(GisGlobalValueMap.ENTERPRISE);
+			objectList.add(sysGisTypeManageService
+					.getNeedGisTypeManagesByInnerType(gisTypeManage));// 返回选中的企业
+		} else if (GisGlobalValueMap.KEY_SCENICS_MANAGE.equals(type)) {
+			gisTypeManage.setInnerKey(GisGlobalValueMap.SCENICS_MANAGE);
+			objectList.add(sysGisTypeManageService
+					.getNeedGisTypeManagesByInnerType(gisTypeManage));// 返回选中的景区管理
+		} else if (GisGlobalValueMap.KEY_PUBLICSECURITY.equals(type)) {
+			gisTypeManage.setInnerKey(GisGlobalValueMap.PUBLICSECURITY);
+			objectList.add(sysGisTypeManageService
+					.getNeedGisTypeManagesByInnerType(gisTypeManage));// 返回选中的公安部件类型
+
+		} else if (GisGlobalValueMap.KEY_UNIT_PLACE.equals(type)) {// 新单位
+			gisTypeManage.setInnerKey(GisGlobalValueMap.UNIT_MANAGE);
+			objectList.add(sysGisTypeManageService
+					.getNeedGisTypeManagesByInnerType(gisTypeManage));
+		} else if (GisGlobalValueMap.KEY_COMPANY_PLACE.equals(type)) {// 新场所
+			gisTypeManage.setInnerKey(GisGlobalValueMap.COMPANY_MANAGE);
+			objectList.add(sysGisTypeManageService
+					.getNeedGisTypeManagesByInnerType(gisTypeManage));
+		} else if (GisGlobalValueMap.KEY_KEY_COMPANY.equals(type)) {// 新重点单位场所
+			gisTypeManage.setInnerKey(GisGlobalValueMap.KEY_COMPANY_MANAGE);
+			objectList.add(sysGisTypeManageService
+					.getNeedGisTypeManagesByInnerType(gisTypeManage));
+		} else if (GisGlobalValueMap.KEY_SIZED_ENTERPRISE.equals(type)) {// 新规模企业
+			gisTypeManage
+					.setInnerKey(GisGlobalValueMap.SIZED_ENTERPRISE_MANAGE);
+			objectList.add(sysGisTypeManageService
+					.getNeedGisTypeManagesByInnerType(gisTypeManage));
+		}
+		return SUCCESS;
+	}
+
+	public List<Object> getObjectList() {
+		return objectList;
+	}
+
+	public void setObjectList(List<Object> objectList) {
+		this.objectList = objectList;
+	}
+
+	public String getFunctionType() {
+		return functionType;
+	}
+
+	public void setFunctionType(String functionType) {
+		this.functionType = functionType;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getModeType() {
+		return modeType;
+	}
+
+	public void setModeType(String modeType) {
+		this.modeType = modeType;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getTableName() {
+		return tableName;
+	}
+
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
+	}
+
+	public String getChildTableName() {
+		return childTableName;
+	}
+
+	public void setChildTableName(String childTableName) {
+		this.childTableName = childTableName;
+	}
+
+	public Boolean getIsSerachMode() {
+		return isSerachMode;
+	}
+
+	public void setIsSerachMode(Boolean isSerachMode) {
+		this.isSerachMode = isSerachMode;
+	}
+
+	public Boolean getIsVideo() {
+		return isVideo;
+	}
+
+	public void setIsVideo(Boolean isVideo) {
+		this.isVideo = isVideo;
+	}
+
+	public Boolean getIsIsuue() {
+		return isIsuue;
+	}
+
+	public void setIsIsuue(Boolean isIsuue) {
+		this.isIsuue = isIsuue;
+	}
+
+	public Integer getInternalId() {
+		return internalId;
+	}
+
+	public void setInternalId(Integer internalId) {
+		this.internalId = internalId;
+	}
+
+	public String getContent() {
+		return content;
+	}
+
+	public void setContent(String content) {
+		this.content = content;
+	}
+
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+}

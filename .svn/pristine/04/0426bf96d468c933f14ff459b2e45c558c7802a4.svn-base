@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="BaseSituationStatement">
+	<typeAlias alias="BaseSituationStatement" type="com.tianque.plugin.analyzing.domain.BaseSituationStatement" />
+	
+	<resultMap class="BaseSituationStatement" id="baseSituationStatementAllResult">
+		<result property="statisticsData" column="statisticsData"/>
+		<result property="year" column="year"/>
+		<result property="month" column="month"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="statisticsType" column="statisticsType"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+	</resultMap>
+	
+	<resultMap class="BaseSituationStatement" id="baseSituationStatementResult">
+		<result property="preventionCount" column="preventionCount"/> 
+		<result property="floatingPersionCount" column="floatingPersionCount"/> 
+		<result property="positivePersionCount" column="positivePersionCount"/>
+		<result property="rectificativePersonCount" column="rectificativePersonCount"/>
+		<result property="mentalPatientPersionCount" column="mentalPatientPersionCount"/>
+		<result property="druggyPersionCount" column="druggyPersionCount"/>
+		<result property="idleYouthCount" column="idleYouthCount"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="organization.orgName" column="orgName"/>
+		<result property="countyCount" column="countyCount"/>
+		<result property="functionDepartmentCount" column="functionDepartmentCount"/>
+		<result property="specialCrowdCount" column="specialCrowdCount"/>
+		
+		<result property="floatingPersionAddCount" column="floatingPersionAddCount"/>
+		<result property="positivePersionAddCount" column="positivePersionAddCount"/>
+		<result property="rectificativePersonAddCount" column="rectificativePersonAddCount"/>
+		<result property="mentalPatientPersionAddCount" column="mentalPatientPersionAddCount"/>
+		<result property="druggyPersionAddCount" column="druggyPersionAddCount"/>
+		<result property="idleYouthAddCount" column="idleYouthAddCount"/>
+		<result property="preventionAddCount" column="preventionAddCount"/>
+		
+		<result property="agencyOfOpinionCount" column="agencyOfOpinionCount"/>
+		<result property="issueDealCount" column="issueDealCount"/>
+	</resultMap>
+	
+	<resultMap class="BaseSituationStatement" id="baseSituationStatementPartResult">
+		<result property="agencyOfOpinionCount" column="agencyOfOpinionCount"/>
+		<result property="issueDealCount" column="issueDealCount"/>
+	</resultMap>
+	
+	<insert id="addBaseSituationStatementStatistics" parameterClass="BaseSituationStatement">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_baseSituationStatement.NEXTVAL as id from dual]]>
+		</selectKey>
+		insert into baseSituationStatement_$year$_$month$(
+		id,orgId,statisticsData,year,month,statisticsType,createUser,createDate
+		)values(
+		#id#,#organization.id#,#statisticsData#,#year#,#month#,#statisticsType#,#createUser#,#createDate#
+		)
+	</insert>
+	
+	<select id="getBaseSituationStatementByOrgIdAndType" parameterClass="java.util.Map" resultMap="baseSituationStatementAllResult">
+		select * from baseSituationStatement_$year$_$month$ where year=#year# and month=#month# and orgId=#orgId# and statisticsType=#statisticsType#
+	</select>
+	
+	<!--<select id="群防群治人数和流口历史数据查询">
+		(select nvl(sum(membernum),0) preventionCount from primaryorganizations_$year$_$month$  where orginternalcode like org.orginternalcode ||'%'
+			and primaryorgtype = #masseduty#
+		) preventionCount ,群防人数总数
+		(select nvl(sum(total),0) floatingPersionCount from populationstattype_$year$_$month$  where populationtype=#floatingPopulation# 
+			and orginternalcode like org.orginternalcode ||'%'
+			) floatingPersionCount ,流口总数
+			
+			 (
+			 select count(m.id) preventionAddCount from primaryorganizations p left join primarymembersorgtype t on p.id=t.primaryorgid left join primarymembers m
+			 on t.primarymembersid = m.id where p.teamclass = #masseduty# and m.createdate >= #startDate# and m.createdate <![CDATA[<]]> #endDate#
+			 and p.orginternalcode like org.orginternalcode || '%'
+			) preventionAddCount ,群防群治本月新增
+			
+			(select nvl(sum(monthcreate),0) floatingPersionAddCount from populationstattype_$year$_$month$  where populationtype=#floatingPopulation# 
+			and orginternalcode like org.orginternalcode ||'%'
+			) floatingPersionAddCount,流口本月新增
+	</select>-->
+	
+	<select id="queryBaseSituationStatementForList" parameterClass="java.util.Map" resultMap="baseSituationStatementResult">
+			select  org.id orgId,org.orgName orgName,
+			0 preventionCount ,
+			0 floatingPersionCount ,
+			(select nvl(sum(sum),0) positivePersionCount from statistichistory_$year$_$month$ d 
+				where d.baseinfotype=#positiveInfo# and d.orginternalcode like org.orginternalcode || '%'
+			 ) positivePersionCount,
+			(select nvl(sum(sum),0) rectificativePersonCount from statistichistory_$year$_$month$  d 
+				where d.baseinfotype=#rectificativePerson# and d.orginternalcode like org.orginternalcode || '%'
+			) rectificativePersonCount,
+			(select nvl(sum(sum),0) mentalPatientPersionCount from statistichistory_$year$_$month$  d 
+				where d.baseinfotype=#mentalPatient# and d.orginternalcode like org.orginternalcode || '%' 
+			) mentalPatientPersionCount, 
+			(select nvl(sum(sum),0) druggyPersionCount from statistichistory_$year$_$month$  d 
+				where d.baseinfotype=#druggy# and d.orginternalcode like org.orginternalcode || '%' 
+			) druggyPersionCount, 
+			(select nvl(sum(sum),0) idleYouthCount from statistichistory_$year$_$month$  d 
+				where d.baseinfotype=#idleYouth# and d.orginternalcode like org.orginternalcode || '%' 
+			) idleYouthCount, 
+			<!--新增加统计列2015.3.19-->
+			( select count(distinct(u.organizationid)) functionDepartmentCount from users u where exists (select 1 from organizations o
+                	where o.orgtype = #functionType# and u.organizationid = o.id) and u.orginternalcode like org.orginternalcode || '%') functionDepartmentCount,
+			(select count(1) countyCount from organizations o where o.orgtype=#orgType# and o.orginternalcode like org.orginternalcode || '%'
+			 and o.orglevel = #orgLevel#) countyCount,
+			(select count(1) specialCrowdCount from serviceRecordRelyObject s left join servicerecords r
+			 on s.recordid= r.id 
+			 where s.objecttype in(#positiveInfo#,#rectificativePerson#,#mentalPatient#,#druggy#,#idleYouth#) 
+			 and r.createdate> #startDate# and r.createdate<![CDATA[<]]> #endDate# and r.orgCode like org.orginternalcode || '%'
+			 ) specialCrowdCount,
+			 
+			 <!--查询本月新增数据-->
+			 <!--群防本月新增-->
+			 0 preventionAddCount ,
+			 <!--流口本月新增-->
+			 0 floatingPersionAddCount ,
+			<!--刑释本月新增-->
+			(select nvl(sum(monthcreate),0) positivePersionAddCount from statistichistory_$year$_$month$ d 
+				where d.baseinfotype=#positiveInfo# and d.orginternalcode like org.orginternalcode || '%'
+			 ) positivePersionAddCount,
+			 <!--矫正本月新增-->
+			(select nvl(sum(monthcreate),0) rectificativePersonAddCount from statistichistory_$year$_$month$  d 
+				where d.baseinfotype=#rectificativePerson# and d.orginternalcode like org.orginternalcode || '%'
+			) rectificativePersonAddCount,
+			<!--精神本月新增-->
+			(select nvl(sum(monthcreate),0) mentalPatientPersionAddCount from statistichistory_$year$_$month$  d 
+				where d.baseinfotype=#mentalPatient# and d.orginternalcode like org.orginternalcode || '%' 
+			) mentalPatientPersionAddCount, 
+			<!--吸毒本月新增-->
+			(select nvl(sum(monthcreate),0) druggyPersionAddCount from statistichistory_$year$_$month$  d 
+				where d.baseinfotype=#druggy# and d.orginternalcode like org.orginternalcode || '%' 
+			) druggyPersionAddCount, 
+			<!--重青本月新增-->
+			(select nvl(sum(monthcreate),0) idleYouthAddCount from statistichistory_$year$_$month$  d 
+				where d.baseinfotype=#idleYouth# and d.orginternalcode like org.orginternalcode || '%' 
+			) idleYouthAddCount,
+			<!--本月事件总数-->
+			 ( select count(1) issueDealCount from issuesteps s ,organizations o where 
+			      s.createdate <![CDATA[<]]> #endDate# and  s.createdate >= #startDate# 
+			      and s.statecode=#stateCode# and s.targetinternalcode like org.orginternalcode || '%' and s.target=o.id ) issueDealCount,
+			<!--本月社情民意数据-->
+			 (select count(*) from issues i left join issuesteps itep on i.id = itep.issue where i.issuetypedomainid =
+			 	(select id from issuetypedomains itd where itd.domainname = '社情民意收集') and itep.statecode = #stateCode#
+		           and itep.createdate between #startDate# and #endDate# and itep.targetinternalcode like org.orginternalcode || '%') agencyOfOpinionCount 
+		     from organizations org where org.parentid=#orgId# and org.orgType=#orgType# order by org.seq
+	</select>
+	
+	<select id="queryBaseSituationStatementNewForList" parameterClass="java.util.Map" resultMap="baseSituationStatementResult">
+			select  org.id orgId,org.orgName orgName,
+			0 preventionCount ,
+			0 floatingPersionCount ,
+			(select nvl(sum(sum),0) positivePersionCount from statistichistory_$year$_$month$ d where d.baseinfotype=#positiveInfo# 
+				 and d.orgId = org.id
+			 ) positivePersionCount,
+			(select nvl(sum(sum),0) rectificativePersonCount from statistichistory_$year$_$month$  d 
+				where d.baseinfotype=#rectificativePerson# and d.orgId = org.id
+			) rectificativePersonCount,
+			(select nvl(sum(sum),0) mentalPatientPersionCount from statistichistory_$year$_$month$  d 
+				where d.baseinfotype=#mentalPatient# and d.orgId = org.id 
+			) mentalPatientPersionCount, 
+			(select nvl(sum(sum),0) druggyPersionCount from statistichistory_$year$_$month$ d 
+				where d.baseinfotype=#druggy# and d.orgId = org.id
+			) druggyPersionCount, 
+			(select nvl(sum(sum),0) idleYouthCount from statistichistory_$year$_$month$  d 
+				 where d.baseinfotype=#idleYouth# and d.orgId = org.id
+				 <isNotNull property="typeNames" prepend=" and ">
+					typeName in ($typeNames$)
+				</isNotNull>
+			) idleYouthCount, 
+			<!--新增加统计列2015.3.19-->
+			( select count(distinct(u.organizationid)) functionDepartmentCount from users u where exists (select 1 from organizations o
+                	where o.orgtype = #functionType# and u.organizationid = o.id) and u.orginternalcode like org.orginternalcode || '%') functionDepartmentCount,
+			(select count(1) countyCount from organizations o where o.orgtype=#orgType# and o.orginternalcode like org.orginternalcode || '%'
+			 and o.orglevel = #orgLevel#) countyCount,
+			(select count(1) specialCrowdCount from serviceRecordRelyObject s left join servicerecords r
+			 on s.recordid= r.id 
+			 where s.objecttype in(#positiveInfo#,#rectificativePerson#,#mentalPatient#,#druggy#,#idleYouth#) 
+			 and r.createdate> #startDate# and r.createdate<![CDATA[<]]> #endDate# and r.orgCode like org.orginternalcode || '%'
+			 ) specialCrowdCount,
+			 
+			 <!--查询本月新增数据-->
+			 <!--群防本月新增-->
+			 0 preventionAddCount ,
+			 <!--流口本月新增-->
+			 0 floatingPersionAddCount ,
+			<!--刑释本月新增-->
+			(select nvl(sum(monthcreate),0) positivePersionAddCount from statistichistory_$year$_$month$  d
+				where d.baseinfotype=#positiveInfo# and d.orgId = org.id
+			 ) positivePersionAddCount,
+			 <!--矫正本月新增-->
+			(select nvl(sum(monthcreate),0) rectificativePersonAddCount from statistichistory_$year$_$month$ d 
+				where d.baseinfotype=#rectificativePerson# and d.orgId = org.id
+			) rectificativePersonAddCount,
+			<!--精神本月新增-->
+			(select nvl(sum(monthcreate),0) mentalPatientPersionAddCount from statistichistory_$year$_$month$  d 
+				where d.baseinfotype=#mentalPatient# and d.orgId = org.id
+			) mentalPatientPersionAddCount, 
+			<!--吸毒本月新增-->
+			(select nvl(sum(monthcreate),0) druggyPersionAddCount from statistichistory_$year$_$month$  d 
+				where d.baseinfotype=#druggy# and d.orgId = org.id
+			) druggyPersionAddCount, 
+			<!--重青本月新增-->
+			(select nvl(sum(monthcreate),0) idleYouthAddCount from statistichistory_$year$_$month$  d 
+				where d.baseinfotype=#idleYouth# and d.orgId = org.id
+				<isNotNull property="typeNames" prepend=" and ">
+					typeName in ($typeNames$)
+				</isNotNull>
+			) idleYouthAddCount,
+			<!--本月事件总数--> 
+			 ( select count(1) issueDealCount from issuesteps s ,organizations o where 
+			      s.lastdealdate <![CDATA[<]]> #endDate# and  s.lastdealdate >= #startDate# 
+			      and s.statecode=#stateCode# and s.targetinternalcode like org.orginternalcode || '%' and s.target=o.id ) issueDealCount,
+			<!--本月社情民意数据-->
+			 (select count(*) from issues i left join issuesteps itep on i.id = itep.issue where i.issuetypedomainid =
+			 	(select id from issuetypedomains itd where itd.domainname = '社情民意收集') and itep.statecode = #stateCode#
+		           and itep.lastdealdate <![CDATA[<]]> #endDate# and itep.lastdealdate >= #startDate# and itep.targetinternalcode like org.orginternalcode || '%') agencyOfOpinionCount 
+		     from organizations org where org.parentid=#orgId# and org.orgType=#orgType# order by org.seq
+	</select>
+	
+	<delete id="deleteBaseSituationStatement" parameterClass="java.lang.String">
+		delete from $tableName$
+	</delete>
+	
+	<select id="getBaseSituationStatementByParams" parameterClass="java.util.Map" resultMap="baseSituationStatementPartResult">
+			select
+			<!--本月事件总数--> 
+			 ( select count(1) issueDealCount from issuejointsteps s ,organizations o where 
+			      s.createdate <![CDATA[<]]> #endDate# and  s.createdate >= #startDate# 
+			      and s.statecode=#stateCode# and s.targetinternalcode like org.orginternalcode || '%' and s.target=o.id ) issueDealCount,
+			<!--本月社情民意数据-->
+			 (select count(1) from issuejoints i left join issuejointsteps itep on i.id = itep.issue where i.issuejointtype =
+			 	(select id from propertydicts itd where itd.displayname = '社情民意收集' 
+			 		and itd.propertydomainid=(select id from propertydomains po
+                 		where po.domainname='对接事件类型（大类）')) and itep.statecode = #stateCode#
+		           and itep.createdate between #startDate# and #endDate# and itep.targetinternalcode like org.orginternalcode || '%' ) agencyOfOpinionCount 
+		     from organizations org where org.id = (select id from organizations where orgname=#orgName#) and org.orgType=#orgType# order by org.seq
+	</select>
+</sqlMap>

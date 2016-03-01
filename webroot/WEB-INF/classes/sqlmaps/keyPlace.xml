@@ -1,0 +1,493 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="keyPlace">
+	<typeAlias alias="keyPlace" type="com.tianque.domain.KeyPlace" />
+	<typeAlias alias="layoutTag" type="com.tianque.baseInfo.buildDatas.domain.vo.LayoutTagVo" />
+	<resultMap id="keyPlaceResult" class="keyPlace">
+		<result column="id" property="id" />
+		<result column="orgid" property="orgId" />
+		<result column="name" property="name" />
+		<result column="orginternalcode" property="orgInternalCode" />
+		<result column="fullpinyin" property="fullPinyin" />
+		<result column="simplepinyin" property="simplePinyin" />
+		<result column="address" property="address" />
+		<result column="createdate" property="createDate" />
+		<result column="type" property="type" />
+		<result column="id_key" property="id_key" />
+		<result column="chargePerson" property="chargePerson" />
+		<result column="buildingid" property="buildDatasId" />
+	</resultMap>
+	
+	<resultMap id="keyPlaceSimpleResult" class="keyPlace">
+		<result column="name" property="name" />
+		<result column="address" property="address" />
+		<result column="type" property="type" />
+		<result column="id_key" property="id_key" />
+	</resultMap>
+	
+	<resultMap class="keyPlace" id="keyPlaceResult2D" extends="keyPlaceResult">
+		<result property="openLayersMapInfo.centerLon" column="centerLon" />
+		<result property="openLayersMapInfo.centerLat" column="centerLat" />
+		<result property="openLayersMapInfo.centerLon2" column="centerLon2" />
+		<result property="openLayersMapInfo.centerLat2" column="centerLat2" />
+		<result column="builddataid" property="buildDatasId" />
+   </resultMap>
+	
+	<insert id="addKeyPlace" parameterClass="keyPlace">
+		<selectKey resultClass="java.lang.Long" keyProperty="id_key">
+			<![CDATA[SELECT s_keyplaces.NEXTVAL as id_key from dual ]]>
+		</selectKey>
+		insert into keyplaces
+		(id,orgid,name,orginternalcode,fullpinyin,simplepinyin,address,createdate,type,id_key,chargePerson,updateDate)
+		values
+		(#id#,#orgId#,#name#,#orgInternalCode#,#fullPinyin#,#simplePinyin#,#address#,#createDate#,#type#,#id_key#,#chargePerson#,#updateDate#)
+	</insert>
+	<select id="getKeyPlaceById" parameterClass="java.lang.Long"
+		resultMap="keyPlaceResult">
+		select * from keyplaces where id_key=#value#
+	</select>
+	
+	<update id="updateKeyPlace" parameterClass="keyPlace">
+		update keyplaces set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="fullPinyin">
+				fullpinyin=#fullPinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="simplePinyin">
+				simplepinyin=#simplePinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="address">
+				address=#address#
+			</isNotNull>
+			<isNotNull prepend="," property="createDate">
+				createdate=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="orgId">
+				orgId=#orgId#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				orginternalcode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="chargePerson">
+				chargePerson=#chargePerson#
+			</isNotNull>
+			<isNotNull prepend="," property="buildDatasId">
+				buildingid=#buildDatasId#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			where id=#id# and type=#type#
+		</dynamic>
+	</update>
+	
+	<update id="updateDomainByKeyplaces" parameterClass="java.util.Map">
+		update keyplaces set
+		<dynamic>
+			id=#id#
+			<isPropertyAvailable property="lon" prepend=",">
+				centerLon=#lon#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="lat" prepend=",">
+				centerLat=#lat#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="lon2" prepend=",">
+				centerLon2=#lon2#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="lat2" prepend=",">
+				centerLat2=#lat2#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="buildDataId" prepend=",">
+				buildDataId=#buildDataId#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="buildingId" prepend=",">
+				buildingId=#buildingId#
+			</isPropertyAvailable>
+			where id=#id#
+			<isPropertyAvailable property="type">
+				<isNotEqual property="type" compareValue="NULL">
+					<isNotNull prepend="and" property="type" >
+						type = #type#
+					</isNotNull>
+				</isNotEqual>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="allType">
+				<isNotEqual property="allType" compareValue="NULL">
+					<isNotNull prepend="and" property="allType" >
+						type in
+						<iterate open="(" close=")" property="allType" conjunction=",">
+							#allType[]#
+						</iterate>
+					</isNotNull>
+				</isNotEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</update>
+	
+	<select id="getKeyPlaceByIdAndType" parameterClass="java.util.Map" resultMap="keyPlaceResult2D">
+		select k.* from keyplaces k where k.id=#id# and k.type=#type#
+	</select>
+	
+	<select id="getKeyPlaceByIdInType" parameterClass="java.util.Map" resultClass="keyPlace">
+		select k.* from keyplaces k where k.id=#id# and k.type in ($types$)
+	</select>
+	
+	<select id="searchKeyPlaceByName" parameterClass="java.util.Map" resultMap="keyPlaceResult">
+		select k.* from keyplaces k where (k.name like #name# or k.fullpinyin like #name# or k.simplepinyin like #name#) and k.orginternalcode like #orgInternalCode#
+	</select>
+	
+	<select id="countSearchKeyPlaceByName" parameterClass="java.util.Map" resultClass="Integer">
+		select count(*) from keyplaces k where (k.name like #name# or k.fullpinyin like #name# or k.simplepinyin like #name#) and k.orginternalcode like #orgInternalCode#
+	</select>
+	
+	<delete id="deleteKeyPlaceByIdAndType" parameterClass="keyPlace">
+		delete from keyplaces k where k.id=#id# and k.type=#type#
+	</delete>
+	
+	<delete id="deleteKeyPlaceByIdAndInType" parameterClass="java.util.Map">
+		delete from keyplaces k where k.id=#id# and k.type in ($types$)
+	</delete>
+	
+	<delete id="deleteKeyPlaceByIdsAndInType" parameterClass="java.util.Map">
+		delete from keyplaces k 
+		<dynamic prepend="WHERE">
+			<isNotNull property="ids">
+				k.id in
+				<iterate property="ids" conjunction="," open="(" close=")">
+					#ids[]#
+				</iterate>
+			</isNotNull>
+			<isNull property="ids">
+				k.id = ''
+			</isNull>
+			and k.type in ($types$)
+		</dynamic>
+	</delete>
+	
+	<delete id="deleteKeyPlaceById" parameterClass="java.util.Map">
+		delete from keyplaces k where k.id=#id# 
+	</delete>
+	
+	<select id="countUnboundKeyPlaceByOrg" resultClass="Integer" parameterClass="map">
+		select count(*) from keyplaces where orginternalcode like #orgInternalCode#||'%'
+		and buildingid is null 
+		 <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		name like #queryStr#||'%' or address like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+	</select>
+	
+	<select id="findUnboundKeyPlaceByOrgForPage" resultMap="keyPlaceSimpleResult">
+		 select * from keyplaces where orginternalcode like #orgInternalCode#||'%'
+		and buildingid is null 
+		<isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		name like #queryStr#||'%' or address like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<!-- 
+		select t.name, t.address, k.type, k.id_key
+		  from enterprises t
+		  join keyplaces k
+		    on k.id = t.id
+		 where k.type = 'SAFETYPRODUCTIONKEY'
+		   and t.keytype = 'safetyProductionKey' 
+		   and t.orginternalcode like #orgInternalCode#||'%'
+			and k.buildingid is null 
+		   <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		t.name like #queryStr#||'%' or t.address like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		union all
+		select t.name, t.address, k.type, k.id_key
+		  from enterprises t
+		  join keyplaces k
+		    on k.id = t.id
+		 where k.type = 'FIRESAFETYKEY'
+		   and t.keytype = 'fireSafetyKey'
+		   and t.orginternalcode like #orgInternalCode#||'%'
+			and k.buildingid is null 
+		    <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		t.name like #queryStr#||'%' or t.address like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		union all
+		select t.name, t.address, k.type, k.id_key
+		  from enterprises t
+		  join keyplaces k
+		    on k.id = t.id
+		 where k.type = 'SECURITYKEY'
+		   and t.keytype = 'securityKey'
+		   and t.orginternalcode like #orgInternalCode#||'%'
+			and k.buildingid is null 
+		    <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		t.name like #queryStr#||'%' or t.address like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		union all
+		select t.chineseName as name, t.address, k.type, k.id_key
+		  from schools t
+		  join keyplaces k
+		    on k.id = t.id
+		 where k.type = 'SCHOOL'
+		 and t.orginternalcode like #orgInternalCode#||'%'
+			and k.buildingid is null 
+		  <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		t.chineseName like #queryStr#||'%' or t.address like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		union all
+		select t.name, t.address, k.type, k.id_key
+		  from otherLocales t
+		  join keyplaces k
+		    on k.id = t.id
+		 where k.type = 'OTHER_LOCALE'
+		 and t.orginternalcode like #orgInternalCode#||'%'
+			and k.buildingid is null 
+		 <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		t.name like #queryStr#||'%' or t.address like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		union all
+		select t.unitName as name, t.unitAddress as address, k.type, k.id_key
+		  from dangerousChemicalsUnit t
+		  join keyplaces k
+		    on k.id = t.id
+		 where k.type = 'DANGEROUSCHEMICALSUNIT'
+		 and t.orginternalcode like #orgInternalCode#||'%'
+			and k.buildingid is null 
+		 <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		t.unitName like #queryStr#||'%' or t.unitAddress like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		union all
+		select t.placeName as name, t.placeAddress as address, k.type, k.id_key
+		  from internetBar t
+		  join keyplaces k
+		    on k.id = t.id
+		 where k.type = 'INTERNETBAR'
+		 and t.orginternalcode like #orgInternalCode#||'%'
+			and k.buildingid is null 
+		  <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		t.placeName like #queryStr#||'%' or t.placeAddress like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		union all
+		select t.placeName as name, t.placeAddress as address, k.type, k.id_key
+		  from publicPlace t
+		  join keyplaces k
+		    on k.id = t.id
+		 where k.type = 'PUBLICPLACE'
+		 and t.orginternalcode like #orgInternalCode#||'%'
+			and k.buildingid is null 
+		  <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		t.placeName like #queryStr#||'%' or t.placeAddress like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		 <dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		-->
+	</select>
+	
+	<select id="countBoundKeyPlaceByBuilddatasId" parameterClass="map" resultClass="Integer">
+		select count(*) from keyplaces where buildingid = #builddatasId#
+	</select>
+	
+	<select id="findBoundKeyPlaceByBuilddatasIdForPage" resultMap="keyPlaceResult" parameterClass="map">
+		  select * from keyplaces where builddataid = #builddatasId#
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic><!--
+		select t.name, t.address, k.type, k.id_key
+		  from enterprises t
+		  join keyplaces k
+		    on k.id = t.id
+		 where k.type = 'SAFETYPRODUCTIONKEY'
+		   and t.keytype = 'safetyProductionKey' 
+		   and k.buildingid = #builddatasId#
+		   <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		t.name like #queryStr#||'%' or t.address like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		union all
+		select t.name, t.address, k.type, k.id_key
+		  from enterprises t
+		  join keyplaces k
+		    on k.id = t.id
+		 where k.type = 'FIRESAFETYKEY'
+		   and t.keytype = 'fireSafetyKey'
+		   and k.buildingid = #builddatasId#
+		    <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		t.name like #queryStr#||'%' or t.address like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		union all
+		select t.name, t.address, k.type, k.id_key
+		  from enterprises t
+		  join keyplaces k
+		    on k.id = t.id
+		 where k.type = 'SECURITYKEY'
+		   and t.keytype = 'securityKey'
+		   and k.buildingid = #builddatasId#
+		    <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		t.name like #queryStr#||'%' or t.address like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		union all
+		select t.chineseName as name, t.address, k.type, k.id_key
+		  from schools t
+		  join keyplaces k
+		    on k.id = t.id
+		 where k.type = 'SCHOOL'
+		 and k.buildingid = #builddatasId# 
+		  <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		t.chineseName like #queryStr#||'%' or t.address like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		union all
+		select t.name, t.address, k.type, k.id_key
+		  from otherLocales t
+		  join keyplaces k
+		    on k.id = t.id
+		 where k.type = 'OTHER_LOCALE'
+		 and k.buildingid = #builddatasId#
+		 <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		t.name like #queryStr#||'%' or t.address like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		union all
+		select t.unitName as name, t.unitAddress as address, k.type, k.id_key
+		  from dangerousChemicalsUnit t
+		  join keyplaces k
+		    on k.id = t.id
+		 where k.type = 'DANGEROUSCHEMICALSUNIT'
+		 and k.buildingid = #builddatasId#
+		 <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		t.unitName like #queryStr#||'%' or t.unitAddress like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		union all
+		select t.placeName as name, t.placeAddress as address, k.type, k.id_key
+		  from internetBar t
+		  join keyplaces k
+		    on k.id = t.id
+		 where k.type = 'INTERNETBAR'
+		 and k.buildingid = #builddatasId#
+		  <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		t.placeName like #queryStr#||'%' or t.placeAddress like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		union all
+		select t.placeName as name, t.placeAddress as address, k.type, k.id_key
+		  from publicPlace t
+		  join keyplaces k
+		    on k.id = t.id
+		 where k.type = 'PUBLICPLACE'
+		 and k.buildingid = #builddatasId#
+		  <isPropertyAvailable property="queryStr">
+		 	<isNotNull property="queryStr" prepend="and" open="(" close=")">
+		 		t.placeName like #queryStr#||'%' or t.placeAddress like #queryStr#||'%'
+		 	</isNotNull>
+		 </isPropertyAvailable>
+		 <dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>-->
+	</select>
+	
+	<update id="boundKeyPlace" parameterClass="map">
+		update keyplaces set buildingid=#buildDatasId#
+		where id_key in(
+			<iterate property="ids" conjunction="," >
+				#ids[]# 
+			</iterate>
+		)
+	</update>
+	<update id="unboundKeyPlace" parameterClass="map">
+		update keyplaces set buildingid=null
+		where id_key in(
+			<iterate property="ids" conjunction="," >
+				#ids[]# 
+			</iterate>
+		)
+	</update>
+	<select id="searchAllKeyPlaceName" resultClass="layoutTag" parameterClass="map">
+		select id as id, name as label, '场所' as category, 3 as buildType, type as keyPlaceType from keyplaces where orginternalcode like #orgInternalCode#||'%' and buildingid = #builddatasId#
+	</select>
+	<select id="countKeyPlaceByBuilddatasIdAndKeyPlaceType" parameterClass="map" resultClass="Integer">
+		select count(*) from keyplaces where buildingid = #builddatasId# and type = #type#
+	</select>
+	<select id="getKeyPlaceNameByIdAndType" parameterClass="map" resultClass="String">
+		select name from keyplaces where id = #id# and type = #type#
+	</select>
+	
+	<update id="emphasisAndNotEmphasis" parameterClass="keyPlace">
+		update keyplaces set emphasis =#emphasis#,updateDate=#updateDate#  where id = #id# and type = #type#
+	</update>
+	
+	<update id="emphasisKeyPlacesByIdsAndTypes" parameterClass="map">
+		update keyplaces set emphasis =#emphasis#,updateDate=#updateDate# 
+		where type in ($types$)
+		<dynamic>
+			<isNotNull property="ids">
+				and id in
+				<iterate property="ids" conjunction="," open="(" close=")">
+					#ids[]#
+				</iterate>
+			</isNotNull>
+		</dynamic>
+	</update>
+	<!--更新组织机构（主要用于单位场所的转移）-->
+	<update id="updateKeyPlaceByIdAndOrgInType" parameterClass="java.util.Map" >
+		UPDATE KEYPLACES SET
+		<dynamic>
+			ID=#id#
+			<isNotNull prepend="," property="orgId">
+				ORGID=#orgId#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				ORGINTERNALCODE=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			WHERE TYPE IN ($type$) AND ID =#id# 
+		</dynamic>
+	</update>
+	
+</sqlMap>

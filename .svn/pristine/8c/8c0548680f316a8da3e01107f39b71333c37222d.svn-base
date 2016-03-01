@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="smsSendBox" extends="default" namespace="/interaction/sms/outbox">
+		<default-class-ref class="smsSendBoxController"></default-class-ref>
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/interaction/sms/outbox/maintainSmsSendDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="findWorkContacters" method="findWorkContacters" >
+			<result name="success" type="json">
+				<param name="root">workContacters</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="sendSmsProcess" method="sendSmsProcess">
+			<result type="json">
+				<param name="root">smsSendBox</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="findSmsSendBoxByOwnerId" method="findSmsSendBoxByOwnerId">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="deleteSmsSendBoxById" method="deleteSmsSendBoxById">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="getSmsSendBoxById" method="getSmsSendBoxById">
+			<result  name="success">
+				/interaction/sms/outbox/maintainSmsSendViewDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findAreaContacters" method="findAreaContacters">
+			<result  name="success">
+				/interaction/sms/outbox/detail.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

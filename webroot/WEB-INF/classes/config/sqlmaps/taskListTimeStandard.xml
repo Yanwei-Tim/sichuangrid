@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+		PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+		"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="taskListTimeStandard">
+	<typeAlias alias="taskListTimeStandard"	type="com.tianque.plugin.taskList.domain.TaskListTimeStandard" />
+	<resultMap id="taskListTimeStandardMap" class="taskListTimeStandard" >
+		<result column="id" property="id" />
+		<result column="orgId" property="org.id" />
+		<result column="orgCode" property="org.orgInternalCode"/>
+		<result column="orgLevel" property="org.orgLevel.id"/>
+		<result column="itemNameDict" property="itemNameDict.id"/>
+		<result column="signYellowLimit" property="signYellowLimit"/>
+		<result column="signRedLimit" property="signRedLimit"/>
+		<result column="replayYellowLimit" property="replayYellowLimit"/>
+		<result column="replayRedLimit" property="replayRedLimit"/>
+		<result column="remark" property="remark" />
+		<result property="createUser" column="createuser" />
+		<result property="updateUser" column="updateuser" />
+		<result property="createDate" column="createdate" />
+		<result property="updateDate" column="updatedate" />
+	</resultMap>
+
+	<insert id="addTaskListTimeStandard" parameterClass="taskListTimeStandard">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_taskListTimeStandard.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into taskListTimeStandard
+		(id,orgId,orgCode,orgLevel,itemNameDict,signYellowLimit,signRedLimit,replayYellowLimit,replayRedLimit,remark,createUser,createDate)
+		values
+		(#id#,#org.id#,#org.orgInternalCode#,#org.orgLevel.id#,#itemNameDict.id#,#signYellowLimit#,#signRedLimit#,#replayYellowLimit#,#replayRedLimit#,#remark#,#createUser#,#createDate#)
+	</insert>
+
+	<update id="updateTaskListTimeStandard" parameterClass="taskListTimeStandard">
+		update taskListTimeStandard set
+		<isNotNull property="signYellowLimit">
+			signYellowLimit = #signYellowLimit#,
+		</isNotNull>
+		<isNotNull property="signRedLimit">
+			signRedLimit = #signRedLimit#,
+		</isNotNull>
+		<isNotNull property="replayYellowLimit">
+			replayYellowLimit = #replayYellowLimit#,
+		</isNotNull>
+		<isNotNull property="replayRedLimit">
+			replayRedLimit = #replayRedLimit#,
+		</isNotNull>
+		<isNotNull property="remark">
+			remark = #remark#,
+		</isNotNull>
+		updateUser = #updateUser#,
+		updateDate = #updateDate#
+		where  id=#id#
+	</update>
+
+	<select id="getTaskListTimeStandardById" parameterClass="java.lang.Long" resultMap="taskListTimeStandardMap">
+		select * from taskListTimeStandard where id=#value#
+	</select>
+	<select id="getTaskListTimeStandardByOrgCodeAndItemNameDictId" parameterClass="java.util.Map" resultMap="taskListTimeStandardMap">
+		select * from taskListTimeStandard where orgCode like #orgCode#||'%' and itemNameDict=#itemNameDictId#
+	</select>
+	<select id="getTaskListTimeStandardByOrgIdAndItemNameDictId" parameterClass="java.util.Map" resultMap="taskListTimeStandardMap">
+		select * from taskListTimeStandard where orgId=#orgId# and itemNameDict=#itemNameDictId#
+	</select>
+	<select id="countByOrgIdAndItemName" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(1) from taskListTimeStandard where orgId=#orgId# and itemNameDict=#itemNameDictId#
+	</select>
+	<delete id="deleteTaskListTimeStandard" parameterClass="java.lang.Long">
+		DELETE FROM taskListTimeStandard where id=#id#;
+	</delete>
+	<delete id="deleteTaskListTimeStandardByIds" parameterClass="java.util.List">
+		DELETE FROM taskListTimeStandard where id in
+		<iterate conjunction="," open="(" close=")">
+			#ids[]#
+		</iterate>
+	</delete>
+
+	<sql id="sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgCode">
+				<isNotEmpty  property="orgCode" prepend="and">
+					orgCode like #orgCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findTaskListTimeStandard" parameterClass="java.util.Map" resultMap="taskListTimeStandardMap">
+		select * from(select rownum as r,taskListTimeStandard.* from taskListTimeStandard
+		<include refid="sql_where"/>
+		<isNotEmpty  property="pageFrom" prepend="and">
+			<![CDATA[rownum <= #pageTo#]]>
+		</isNotEmpty>
+		order by id desc) t where 1=1
+		<isNotEmpty  property="pageTo" prepend="and">
+			t.r>#pageFrom#
+		</isNotEmpty>
+	</select>
+	<select id="findTaskListTimeStandardCount" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(1) from taskListTimeStandard
+		<include refid="sql_where"/>
+	</select>
+
+
+
+
+</sqlMap>

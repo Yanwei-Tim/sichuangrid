@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="fileWorkingRecordManage" extends="default"
+		namespace="/workingRecord/fileWorkingRecordManage">
+		<default-class-ref class="fileWorkingRecordController"></default-class-ref>
+		<action name="addFileWorkingRecord" method="addFileWorkingRecord">
+			<result type="json">
+				<param name="root">fileWorkingRecord</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="updateFileWorkingRecord" method="updateFileWorkingRecord">
+			<result type="json">
+				<param name="root">fileWorkingRecord</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="deleteFileWorkingRecord" method="deleteFileWorkingRecord">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<action name="fileWorkingList" method="fileWorkingList">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/workingRecord/fileWorkingRecord/maintainDailyLogFileDlg.jsp
+			</result>
+		</action>
+		<action name="getFileWorkingRecordeById" method="getFileWorkingRecordeById">
+			<result type="json" name="success">
+				<param name="root">fileWorkingRecord</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

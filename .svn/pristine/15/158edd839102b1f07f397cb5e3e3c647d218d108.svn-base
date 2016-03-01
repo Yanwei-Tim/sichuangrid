@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="exceptionalSituationRecord">
+
+	<typeAlias alias="exceptionalSituationRecord" type="com.tianque.plugin.taskList.domain.ExceptionalSituationRecord" />
+
+	<resultMap id="exceptionalSituationRecordResult" class="exceptionalSituationRecord">
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgCode" />
+		<result property="recordDate" column="recordDate" />
+		<result property="address" column="address" />
+		<result property="exceptionSituation.id" column="exceptionSituation" />
+		<result property="status" column="status" />
+		<result property="attitude" column="attitude" />
+		<result property="signDate" column="signDate" />
+		<result property="signMemberName" column="signMemberName" />
+		<result property="gridMemberPhone" column="gridMemberPhone" />
+		<result property="mark" column="mark" />
+		<result property="createUser" column="createuser" />
+		<result property="updateUser" column="updateuser" />
+		<result property="createDate" column="createdate" />
+		<result property="updateDate" column="updatedate" />
+	</resultMap>
+	
+	<!-- 
+	<resultMap id="exceptionalSituationRecordResultByName" class="ExceptionalSituationRecord">
+	  <result column="address" property="address" />
+	  <result column="name" property="name" />
+	</resultMap>
+	 -->
+	 
+	<sql id="sql_where">
+		where 1 = 1
+		<dynamic>
+			<isNotEmpty  property="fastSearchCondition" prepend="and">
+				address like #fastSearchCondition# || '%'
+			</isNotEmpty>
+			<isNotEmpty  property="address" prepend="and">
+				address like #address# || '%'
+			</isNotEmpty>
+			<isNotEmpty  property="exceptionSituationId" prepend="and">
+				exceptionSituation = #exceptionSituationId#
+			</isNotEmpty>
+			<isNotEmpty  property="signMemberName" prepend="and">
+				signMemberName like #signMemberName# || '%'
+			</isNotEmpty>
+			<isNotEmpty  property="status" prepend="and">
+				status = #status#
+			</isNotEmpty>
+			<isNotEmpty  property="recordStartDate" prepend="and">
+				<![CDATA[#recordStartDate# <= recordDate ]]>
+			</isNotEmpty>
+			<isNotEmpty  property="recordEndDate" prepend="and">
+				<![CDATA[#recordEndDate# >= recordDate]]>
+			</isNotEmpty>
+			<isNotEmpty  property="signEndDate" prepend="and">
+				<![CDATA[#signEndDate# >= signDate]]>
+			</isNotEmpty>
+			<isNotEmpty  property="signStartDate" prepend="and">
+				<![CDATA[#signStartDate# <= signDate]]>
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	<insert id="addExceptionalSituationRecord">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_exceptionalSituationRecord.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		<![CDATA[
+			insert into exceptionalSituationRecord
+			(id, orgCode,orgId,recordDate,address,exceptionSituation,mark,gridMemberPhone,createUser,updateUser,createDate,updateDate)
+			values(#id#, #organization.orgInternalCode#, #organization.id#, #recordDate#, #address#, #exceptionSituation.id#, #mark#, #gridMemberPhone#, #createUser#, #updateUser#, #createDate#, #updateDate#)
+		]]>
+	</insert>
+	
+	<update id="updateExceptionalSituationRecord" parameterClass="exceptionalSituationRecord">
+		update exceptionalSituationRecord set
+			recordDate=#recordDate#,
+			address=#address#,
+			mark=#mark#,
+			exceptionSituation=#exceptionSituation.id#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#
+		where id=#id#
+	</update>
+	
+	<select id="getExceptionalSituationRecordById" parameterClass="java.lang.Long"
+		resultMap="exceptionalSituationRecordResult">
+		select id,orgCode,orgId,recordDate,address,exceptionSituation,mark,signDate,attitude,status,gridMemberPhone,signMemberName,updateUser,updateDate,createDate,createUser
+		from exceptionalSituationRecord where id=#value#
+	</select>
+	
+	<select id="countFindExceptionalSituationRecords" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(0) from exceptionalSituationRecord
+		<include refid="sql_where" />
+		<isNotEmpty  property="orgCode" prepend="and">
+				orgCode like #orgCode#||'%' 
+		</isNotEmpty>
+	</select>
+	
+	<select id="findExceptionalSituationRecords" parameterClass="java.util.Map"
+		resultMap="exceptionalSituationRecordResult">
+		select id,orgCode,orgId,recordDate,address,exceptionSituation,mark,signDate,attitude,status,gridMemberPhone,signMemberName,updateUser,updateDate,createDate,createUser
+		from exceptionalSituationRecord
+		<include refid="sql_where" />
+		<isNotEmpty  property="orgCode" prepend="and">
+				orgCode like #orgCode#||'%' 
+		</isNotEmpty>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<!--
+	<select id="findExceptionalSituationRecordsByName" parameterClass="java.util.Map"
+		resultMap="exceptionalSituationRecordResultByName">
+		select address,name
+		from exceptionalSituationRecord where name like #name#||'%'  
+		and orgCode like #orgCode#||'%' group by name,address,familyPhone
+	</select>
+	 -->
+	<delete id="deleteExceptionalSituationRecord" parameterClass="java.util.Map">
+    	delete from exceptionalSituationRecord where id in
+    	<iterate conjunction="," open="(" close=")" property="ids">
+            #ids[]#
+        </iterate>
+    </delete>
+    
+    <select id="countsearchExceptionalSituationAndGridTaskList" parameterClass="map" resultClass="java.lang.Integer">
+    select count(b.id) from gridConfigTask a,exceptionalSituationRecord b 
+    <include refid="sql_where" />
+    and a.orgInternalCode like b.orgCode
+	</select>
+	
+	<select id="countsearchExceptionalSituationAndGridTaskListOther" parameterClass="map" resultClass="java.lang.Integer">
+    select count(b.id) from gridConfigTask a,exceptionalSituationRecord b 
+    <include refid="sql_where" />
+    and a.orgInternalCode = b.orgCode and a.orgInternalCode = #orgCode#
+	</select>
+	
+	<select id="searchExceptionalSituationAndGridTaskList" parameterClass="map" resultMap="exceptionalSituationRecordResult">
+	select b.* from gridConfigTask a,exceptionalSituationRecord b 
+	<include refid="sql_where" />
+    and a.orgInternalCode like b.orgCode
+	</select>
+	
+	<select id="searchExceptionalSituationAndGridTaskListOther" parameterClass="map" resultMap="exceptionalSituationRecordResult">
+	select b.* from gridConfigTask a,exceptionalSituationRecord b
+	<include refid="sql_where" />
+    and a.orgInternalCode = b.orgCode and a.orgInternalCode = #orgCode#
+	</select>
+</sqlMap>

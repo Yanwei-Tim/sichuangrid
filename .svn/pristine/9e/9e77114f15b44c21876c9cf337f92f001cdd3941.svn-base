@@ -1,0 +1,220 @@
+package com.tianque.plugin.taskList.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.tinygroup.commons.tools.StringUtil;
+
+import com.tianque.controller.ControllerHelper;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.util.DialogMode;
+import com.tianque.core.vo.GridPage;
+import com.tianque.plugin.taskList.domain.ExceptionalSituationRecord;
+import com.tianque.plugin.taskList.domain.ExceptionalSituationRecordVo;
+import com.tianque.plugin.taskList.service.ExceptionalSituationRecordService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+@Scope("request")
+@Namespace("/plugin/taskListManage/exceptionalSituationRecord")
+@Controller("exceptionalSituationRecordController")
+public class ExceptionalSituationRecordController extends BaseAction{
+	@Autowired
+	private ExceptionalSituationRecordService exceptionalSituationRecordService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	
+	/** 异常情况记录domain **/
+	private ExceptionalSituationRecord exceptionalSituationRecord;
+	/** 异常情况记录查询domain **/
+	private ExceptionalSituationRecordVo exceptionalSituationRecordVo;
+	/** id字符串  **/
+	private String ids;
+	/** 组织id **/
+	private Long orgId;
+	/** 异常情况记录集合  **/
+	private List<ExceptionalSituationRecord> exceptionalSituationRecords;
+	
+	
+	/** 附件名字 */
+	private String[] attachFileNames;
+	
+	
+	/**手机端2个及2个以上图片*/
+	private String[] attachFile;
+	
+	/**手机端1个图片*/
+	private String[] attachFiles;
+
+	
+	@Action(value = "dispatch", results = {
+			@Result(name = "success", location = "/template/task/maintainExceptionalSituationRecordDlg.ftl"),
+			@Result(name = "search", location = "/template/task/searchExceptionalSituationRecordDlg.ftl") })
+	public String maintainServiceMemberForPopulation() throws Exception {
+		if (DialogMode.ADD_MODE.equals(mode)) {
+			fillNowDateAndSignDate();
+			return SUCCESS;
+		}else if (DialogMode.SEARCH_MODE.equals(mode)) {
+			return "search";
+		}else if (DialogMode.SIGN.equals(mode)){
+			exceptionalSituationRecord = exceptionalSituationRecordService.getExceptionalSituationRecordById(id);
+			return SUCCESS;
+		}
+		return SUCCESS;
+	}
+	
+	
+	@Action(value = "addExceptionalSituationRecord", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"true", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String addExceptionalSituationRecord() throws Exception {
+		exceptionalSituationRecordService.addExceptionalSituationRecord(exceptionalSituationRecord,attachFile,attachFiles,attachFileNames);
+		return SUCCESS;
+	}
+	
+	@Action(value = "updateExceptionalSituationRecord", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"exceptionalSituationRecord", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String updateExceptionalSituationRecord() throws Exception {
+		exceptionalSituationRecord = exceptionalSituationRecordService
+				.updateExceptionalSituationRecord(exceptionalSituationRecord);
+		return SUCCESS;
+	}
+	
+	@Action(value = "deleteExceptionalSituationRecords", results = {
+			@Result(type = "json", name = "success", params = { "root",
+					"true", "ignoreHierarchy", "false" }),
+			@Result(type = "json", name = "error", params = { "root",
+					"errorMessage" }) })
+	public String deleteExceptionalSituationRecords() throws Exception {
+		exceptionalSituationRecordService.deleteExceptionalSituationRecords(analyzeIds(ids));
+		return SUCCESS;
+	}
+	
+	@Action(value = "findExceptionalSituationRecords", results = {
+			@Result(type = "json", name = "success", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findExceptionalSituationRecords() throws Exception {
+		gridPage = new GridPage(ControllerHelper.processAllOrgRelativeName(
+				exceptionalSituationRecordService.findExceptionalSituationRecords(exceptionalSituationRecordVo,
+						page, rows,sidx, sord), organizationDubboService,
+				new String[] { "organization" }, orgId));
+		return SUCCESS;
+	}
+	
+	@Action(value = "viewExceptionalSituationRecord", results = {
+			@Result(name = "success", location = "/template/task/viewExceptionalSituationRecordDlg.ftl") })
+	public String viewExceptionalSituationRecord() throws Exception {
+		exceptionalSituationRecord = exceptionalSituationRecordService.getExceptionalSituationRecordById(id);
+		return SUCCESS;
+	}
+	
+	private List<Long> analyzeIds(String idStr){
+		if(idStr == null){
+			return null;
+		}
+		String[] deleteId = idStr.split(",");
+		List<Long> idList = new ArrayList<Long>();
+		if(StringUtil.isEmpty(deleteId[0])){
+			return null;
+		}else {
+			for(int i=0;i<deleteId.length;i++){
+				idList.add(Long.parseLong(deleteId[i]));
+			}
+		}
+		return idList;
+	}
+	
+	private void fillNowDateAndSignDate(){
+		if(exceptionalSituationRecord == null){
+			exceptionalSituationRecord = new ExceptionalSituationRecord();
+		}
+		exceptionalSituationRecord.setRecordDate(CalendarUtil.now());
+		exceptionalSituationRecord.setSignDate(CalendarUtil.now());
+	}
+	
+	public ExceptionalSituationRecordVo getExceptionalSituationRecordVo() {
+		return exceptionalSituationRecordVo;
+	}
+
+	public void setExceptionalSituationRecordVo(ExceptionalSituationRecordVo exceptionalSituationRecordVo) {
+		this.exceptionalSituationRecordVo = exceptionalSituationRecordVo;
+	}
+
+	public ExceptionalSituationRecord getExceptionalSituationRecord() {
+		return exceptionalSituationRecord;
+	}
+
+	public void setExceptionalSituationRecord(ExceptionalSituationRecord exceptionalSituationRecord) {
+		this.exceptionalSituationRecord = exceptionalSituationRecord;
+	}
+
+	public String getIds() {
+		return ids;
+	}
+
+	public void setIds(String ids) {
+		this.ids = ids;
+	}
+
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+	public List<ExceptionalSituationRecord> getExceptionalSituationRecords() {
+		return exceptionalSituationRecords;
+	}
+
+	public void setExceptionalSituationRecords(List<ExceptionalSituationRecord> exceptionalSituationRecords) {
+		this.exceptionalSituationRecords = exceptionalSituationRecords;
+	}
+
+
+	public String[] getAttachFileNames() {
+		return attachFileNames;
+	}
+
+
+	public void setAttachFileNames(String[] attachFileNames) {
+		this.attachFileNames = attachFileNames;
+	}
+
+
+	public String[] getAttachFile() {
+		return attachFile;
+	}
+
+
+	public void setAttachFile(String[] attachFile) {
+		this.attachFile = attachFile;
+	}
+
+
+	public String[] getAttachFiles() {
+		return attachFiles;
+	}
+
+
+	public void setAttachFiles(String[] attachFiles) {
+		this.attachFiles = attachFiles;
+	}
+	
+	
+	
+}

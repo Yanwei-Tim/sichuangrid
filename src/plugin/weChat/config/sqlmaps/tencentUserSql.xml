@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="tencentUser">
+	<typeAlias alias="TencentUser" type="com.tianque.plugin.weChat.domain.user.TencentUser" />
+	<resultMap id="tencentUserResult" class="TencentUser">
+		<result property="tencentUserId" column="TENCENT_USER_ID"/>
+		<result property="appId" column="APP_ID"/>
+		<result property="appSecret" column="APP_SECRET"/>
+		<result property="name" column="NAME"/>
+		<result property="organization.id" column="ORG_ID"/>
+		<result property="createDate" column="CREATE_DATE"/>
+		<result property="createUser" column="CREATE_USER"/>
+		<result property="createDept" column="CREATE_DEPT"/>
+		<result property="updateDate" column="UPDATE_DATE"/>
+		<result property="updateUser" column="UPDATE_USER"/>
+		<result property="updateDept" column="UPDATE_DEPT"/>
+		<result property="weChatUserId" column="WECHAT_USER_ID"/>
+		
+		<result property="sourceId" column="source_ID"/>
+		<result property="sourceDescription" column="source_description"/>
+		<result property="sourceTypeDict.id" column="source_type"/>
+		<result property="isAppendKeyWord" column="is_append_KeyWord"/>
+	</resultMap>
+	
+	<sql id="tencentUserCondition">
+		<dynamic>
+			<isNotEmpty property="tencentUser.organization.id" prepend=" and ">
+				 t.ORG_ID = #tencentUser.organization.id# 
+			</isNotEmpty>
+			<isNotEmpty property="tencentUser.appId" prepend=" and ">
+				 t.APP_ID = #tencentUser.appId# 
+			</isNotEmpty>
+			<isNotEmpty property="tencentUser.appSecret" prepend=" and ">
+				 t.APP_SECRET = #tencentUser.appSecret# 
+			</isNotEmpty>
+			<isNotEmpty property="tencentUser.name" prepend=" and ">
+				 t.name like '%'||#tencentUser.name#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="tencentUser.weChatUserId" prepend=" and ">
+				 t.WECHAT_USER_ID like '%'||#tencentUser.weChatUserId#||'%'
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	<select id="countTencentUserList" resultClass="java.lang.Long">
+		SELECT COUNT(*) FROM TENCENT_USER t WHERE 1=1  
+		<include refid="tencentUserCondition"/>
+	</select>
+	
+	
+	<select id="getTencentUserList" resultMap="tencentUserResult">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom" > 
+			    <include refid="common.sql_select_page_start"/>
+			</isNotNull>
+		 </isPropertyAvailable>
+			select t.* from tencent_user t WHERE 1=1 
+			<include refid="tencentUserCondition"/>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">t.$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		 <isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom" >
+				<include refid="common.sql_select_page_end"/>
+			</isNotNull>
+		 </isPropertyAvailable>
+	</select>
+	<select id="getTencentUserListByOrgId" resultMap="tencentUserResult">
+		select * from tencent_user t where t.org_id=#value#
+	</select>
+	
+	<select id="getTencentUserListByOrgCode" resultMap="tencentUserResult">
+		select * from tencent_user t where t.orgInternalCode = #value# or  t.orgInternalCode like #value#||'___' or t.orgInternalCode like #value#||'__'
+	</select>
+	
+	<insert id="addTencentUser" parameterClass="TencentUser">
+		<selectKey resultClass="java.lang.Long" keyProperty="tencentUserId">
+				    SELECT S_TencentUser.NextVal AS tencentUserId FROM DUAL
+		</selectKey>
+		<![CDATA[
+		INSERT INTO TENCENT_USER
+		  (TENCENT_USER_ID,
+		   APP_ID,
+		   APP_SECRET,
+		   ORG_ID,
+		   ORGINTERNALCODE,
+		   NAME,
+		   create_date,
+		   create_user,
+		   create_dept,
+		   update_date,
+		   update_user,
+		   update_dept,
+		   WECHAT_USER_ID)
+		VALUES
+		  (#tencentUserId#,
+		   #appId#,
+		   #appSecret#,
+		   #organization.id#,
+		   #organization.orgInternalCode#,
+		   #name#,
+		   #createDate#,
+		   #createUser#,
+		   #createDept#,
+		   #updateDate#,
+		   #updateUser#,
+		   #updateDept#,
+		   #weChatUserId#)
+		]]>
+	</insert>
+	
+	<update id="updateTencentUser" parameterClass="TencentUser">
+		update TENCENT_USER set
+		<dynamic>
+			TENCENT_USER_ID=#tencentUserId#
+			<isNotNull prepend="," property="appId">
+				APP_ID=#appId#
+			</isNotNull>
+			<isNotNull prepend="," property="appSecret">
+				APP_SECRET=#appSecret#
+			</isNotNull>
+			<isNotNull prepend="," property="organization.id">
+				ORG_ID=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="organization.orgInternalCode">
+				orgInternalCode=#organization.orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="name">
+				NAME=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="createDate">
+				create_date=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="createUser">
+				create_user=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="createDept">
+				create_dept=#createDept#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				update_date=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				update_user=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDept">
+				update_dept=#updateDept#
+			</isNotNull>
+			<isNotNull prepend="," property="weChatUserId">
+				WECHAT_USER_ID=#weChatUserId#
+			</isNotNull>
+			
+			<isPropertyAvailable prepend="," property="sourceId">
+				source_ID=#sourceId#
+			</isPropertyAvailable>
+			<isNotNull prepend="," property="sourceDescription">
+				source_description=#sourceDescription#
+			</isNotNull>
+			<isPropertyAvailable prepend="," property="sourceTypeDict.id">
+				source_type=#sourceTypeDict.id#
+			</isPropertyAvailable>
+			<isPropertyAvailable prepend="," property="isAppendKeyWord">
+				is_append_KeyWord=#isAppendKeyWord#
+			</isPropertyAvailable>
+			
+		</dynamic>
+		   WHERE TENCENT_USER_ID=#tencentUserId#
+	</update>
+	
+	<update id="updateTencentUserByBase" parameterClass="TencentUser">
+		update TENCENT_USER set
+		<dynamic>
+			TENCENT_USER_ID=#tencentUserId#
+			<isNotNull prepend="," property="appId">
+				APP_ID=#appId#
+			</isNotNull>
+			<isNotNull prepend="," property="appSecret">
+				APP_SECRET=#appSecret#
+			</isNotNull>
+			<isNotNull prepend="," property="organization.id">
+				ORG_ID=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="organization.orgInternalCode">
+				orgInternalCode=#organization.orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="name">
+				NAME=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="createDate">
+				create_date=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="createUser">
+				create_user=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="createDept">
+				create_dept=#createDept#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				update_date=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				update_user=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDept">
+				update_dept=#updateDept#
+			</isNotNull>
+			<isNotNull prepend="," property="weChatUserId">
+				WECHAT_USER_ID=#weChatUserId#
+			</isNotNull>
+		</dynamic>
+		   WHERE TENCENT_USER_ID=#tencentUserId#
+	</update>
+	
+	<select id="getTencentUserByTencentUserId" parameterClass="java.lang.Long" resultMap="tencentUserResult">
+		SELECT t.* FROM TENCENT_USER t WHERE t.TENCENT_USER_ID=#value#
+	</select>
+	
+	<delete id="deleteTencentUserById" parameterClass="java.lang.Long">
+		delete from  TENCENT_USER WHERE TENCENT_USER_ID=#value#
+	</delete>
+	
+	<select id="getTencentUserByCurSessionId" parameterClass="java.lang.String" resultMap="tencentUserResult">
+		select t.* from tencent_user t where t.tencent_user_id =
+		(select ts.tencent_user_id from tencent_user_session ts where ts.sessionid = #value#)
+	</select>
+	
+	
+	<select id="getTencentUserByWeChatUserId" parameterClass="java.lang.String" resultMap="tencentUserResult">
+		SELECT t.* FROM TENCENT_USER t WHERE t.WECHAT_USER_ID=#value# 
+	</select>
+	
+		
+	<select id="getTencentUserBySourceId" parameterClass="java.lang.String" resultMap="tencentUserResult">
+		SELECT t.* FROM TENCENT_USER t WHERE t.source_ID like '%'||#value#||'%'
+	</select>
+</sqlMap>

@@ -1,0 +1,282 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<%@ include file="/includes/baseInclude.jsp"%>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib" %>
+
+<div id="dialog-form" title="基础设施建设" class="container container_24">
+	 <form id="maintainForm" method="post"	
+
+action="${path}/baseInfo/infrastructureConstructionManage/maintainInfrastructureConstruction.action" >
+	 	 <pop:token/>
+	 	<input type="hidden" name="infrastructureConstruction.organization.id" id="orgId" value="${organization.id 
+
+}"/>
+	 	<input type="hidden" name="infrastructureConstruction.id" id="infrastructureConstructionId" 
+
+value="${infrastructureConstruction.id }"/>
+		<div class="grid_3 lable-right">
+			<em class="form-req">*</em>
+			<label class="form-lbl">项目类型：</label>
+		</div>
+		<div class="grid_5">
+			<select name="infrastructureConstruction.projectType.id" id="projectType" class="form-select" >
+				<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@PROJECT_TYPE" 
+
+defaultValue="${infrastructureConstruction.projectType.id }"  showInternalId="true"/>
+			</select>
+		</div>
+		
+		<div class="grid_3 lable-right">
+			<em class="form-req">*</em>
+			<label class="form-lbl">建设分类：</label>
+		</div>
+		<div class="grid_5">
+			<select name="infrastructureConstruction.buildingType.id" id="buildingType" class="form-select" >
+				<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@INFRASTRUCTURE_BUILLDING_TYPE" 
+
+defaultValue="${infrastructureConstruction.buildingType.id }"  showInternalId="true"/>
+			</select>
+		</div>
+
+  		<div class="grid_3 lable-right">
+			<em class="form-req">*</em>
+			<label class="form-lbl">所属单位： </label>
+		</div>
+		<div class="grid_5">
+		   <input type="text"  name="infrastructureConstruction.subordinateUnit" id="subordinateUnit" maxlength="30" 
+
+value="${infrastructureConstruction.subordinateUnit }" class="form-txt" readonly="readonly"/>
+  		</div>
+  		
+  		<div class='clearLine'>&nbsp;</div>
+		<div class="grid_3 lable-right">
+			<label class="form-lbl">项目编号： </label>
+		</div>
+		<div class="grid_5">
+		   <input type="text"  name="infrastructureConstruction.projectNo" id="projectNo" maxlength="10" 
+
+value="${infrastructureConstruction.projectNo }" class="form-txt {maxlength:10,messages:{maxlength:'项目编号最多10个字
+
+符'}}"/>
+  		</div>
+  		
+		<div class="grid_3 lable-right">
+			<label class="form-lbl">项目名称： </label>
+		</div>
+		<div class="grid_5" >
+				<input id="projectName"  name="infrastructureConstruction.projectName" maxlength="30" 
+
+value="${infrastructureConstruction.projectName }"  class="form-txt {maxlength:30,validatorName:true,messages:{maxlength:'项
+
+目名称最多30个字符',validatorName:'项目名称不能输入特殊字符'}}"/>
+		</div> 
+				
+		<div class="grid_3 lable-right">
+			<label class="form-lbl">项目地址： </label>
+		</div>
+		<div class="grid_5" >
+				<input id="projectAddress"  name="infrastructureConstruction.projectAddress" maxlength="60" 
+
+value="${infrastructureConstruction.projectAddress }"  class="form-txt {maxlength:60,messages:{maxlength:'项目地址最多60个字
+
+符'}}" />
+		</div> 
+		<div class='clearLine'>&nbsp;</div>
+		<div class="grid_3 lable-right">
+			<label class="form-lbl">承建单位： </label>
+		</div>
+		<div class="grid_5" >
+				<input id="contractBuildUnit"  name="infrastructureConstruction.contractBuildUnit" 
+
+maxlength="30" value="${infrastructureConstruction.contractBuildUnit }"  class="form-txt {maxlength:30,messages:{maxlength:'
+
+承建单位最多30个字符'}}"/>
+		</div> 
+		
+		<div class="grid_3 lable-right">
+			<label class="form-lbl">项目负责人： </label>
+		</div>
+		<div class="grid_5" >
+				<input id="personCharge"  name="infrastructureConstruction.personCharge" maxlength="10" 
+
+value="${infrastructureConstruction.personCharge }"  class="form-txt {maxlength:10,messages:{maxlength:'承建人最多10个字
+
+符'}}"/>
+		</div> 
+		
+		<div class="grid_3 lable-right">
+			<label class="form-lbl">负责人联系方式： </label>
+		</div>
+		<div class="grid_5" >
+				<input id="personPhone"  name="infrastructureConstruction.personPhone" maxlength="20" 
+
+value="${infrastructureConstruction.personPhone }"  class="form-txt {maxlength:20,messages:{maxlength:'承建人联系方式最多20
+
+个字符'}}"/>
+		</div> 
+		<div class='clearLine'>&nbsp;</div>
+		<div id="mileageDiv">
+			<div class="grid_3 lable-right">
+				<label class="form-lbl">完成公里数： </label>
+			</div>
+			<div class="grid_5" >
+					<input id="mileage"  name="infrastructureConstruction.mileage" maxlength="10" 
+
+value="${infrastructureConstruction.mileage }"  class="form-txt {maxlength:10,messages:{maxlength:'涉及户数最多10个字
+
+符'}}"/>
+			</div> 
+		</div>
+		<div id="areaDiv">
+			<div class="grid_3 lable-right">
+				<label class="form-lbl">完成整治面积： </label>
+			</div>
+			<div class="grid_5" >
+					<input id="area"  name="infrastructureConstruction.area" maxlength="10" 
+
+value="${infrastructureConstruction.area }"  class="form-txt {maxlength:10,messages:{maxlength:'涉及户数最多10个字符'}}"/>
+			</div>
+		</div> 
+		<div id="involveNumberDiv">
+			<div class="grid_3 lable-right">
+				<label class="form-lbl">涉及户数： </label>
+			</div>
+			<div class="grid_5" >
+					<input id="involveNumber"  name="infrastructureConstruction.involveNumber" 
+
+maxlength="10" value="${infrastructureConstruction.involveNumber }"  class="form-txt {maxlength:10,messages:{maxlength:'涉及
+
+户数最多10个字符'}}"/>
+			</div>
+		</div>
+		
+  		<div class="grid_3 lable-right">
+  			<em class="form-req">*</em>
+			<label class="form-lbl">开工时间： </label>
+		</div>
+		<div class="grid_5" >
+				<input type="text" id="startDate"  name="infrastructureConstruction.startDate" readonly 
+
+maxlength="30"   class="form-txt "
+				value="<fmt:formatDate value="${infrastructureConstruction.startDate}" type="date" 
+
+pattern="yyyy-MM-dd" />"/>
+		</div> 
+  		
+  		<div class="grid_3 lable-right">
+			<label class="form-lbl">完工时间： </label>
+		</div>
+		<div class="grid_5" >
+				<input id="finishedDate"  name="infrastructureConstruction.finishedDate" readonly 
+
+maxlength="30" value="<fmt:formatDate value="${infrastructureConstruction.finishedDate }" type="date" pattern="yyyy-MM-
+
+dd"/>"  class="form-txt"/>
+		</div> 
+  		<div class='clearLine'>&nbsp;</div>
+  		<div class="grid_3 lable-right">
+			<label class="form-lbl">备注： </label>
+		</div>
+		<div class="grid_21 heightAuto">
+   			<textarea rows="5" cols="78" name="infrastructureConstruction.remark" id="remark"  maxlength="200" 
+
+class="form-txt" >${infrastructureConstruction.remark}</textarea>
+   		</div>
+	</form>
+</div>	
+<script type="text/javascript">
+$(function(){
+	$('#startDate').datePicker({
+		yearRange:'1930:2030',
+		dateFormat:'yy-mm-dd',
+		maxDate:'+0d'
+	});
+	
+	$('#finishedDate').datePicker({
+		yearRange:'1930:2030',
+		dateFormat:'yy-mm-dd',
+		maxDate:'+0d'
+	});
+	// 根据建设分类显示隐藏输入项
+	var buildingTypeChange = function (){
+		var nowValue = $("#buildingType option:selected").html();
+		if(nowValue=='农村硬化道路'||nowValue=='农田水利渠道'){
+			$('#mileageDiv').show();
+			$('#areaDiv').hide();
+			$('#involveNumberDiv').hide();
+		}else if(nowValue=='农村土地综合整治'){
+			$('#areaDiv').show();
+			$('#mileageDiv').hide();
+			$('#involveNumberDiv').hide();
+		}else if(nowValue=='农村户用清洁能源'){
+			$('#involveNumberDiv').show();
+			$('#areaDiv').hide();
+			$('#mileageDiv').hide();
+		}else{
+			$('#involveNumberDiv').hide();
+			$('#areaDiv').hide();
+			$('#mileageDiv').hide();
+		}
+	};
+	$('#buildingType').change(buildingTypeChange);
+	buildingTypeChange();// 初始化
+	
+	$("#maintainForm").formValidate({
+		promptPosition: "bottomLeft",
+		submitHandler: function(form) {
+	     $(form).ajaxSubmit({
+	         success: function(data){
+	        	 if(data!=true){
+	                	 $.messageBox({
+							message:data,
+							level: "error"
+						 });
+	                 	return;
+	                 }
+		        	 <c:if test='${mode=="add"}'>
+					    $.messageBox({message:"成功保存信息!"});
+				     </c:if>
+				     <c:if test='${mode=="edit"}'>
+					    $.messageBox({message:"成功保存修改信息!"});
+				     </c:if>
+				     $("#infrastructureDialog").dialog("close");
+				     $("#infrastructureList").trigger("reloadGrid");
+	  	   },
+	  	   error: function(XMLHttpRequest, textStatus, errorThrown){
+	  	      alert("提交错误");
+	  	   }
+	  	  });
+	},
+		rules:{
+			"infrastructureConstruction.startDate":{
+				required:true
+			},
+			"infrastructureConstruction.projectType.id":{
+				required:true
+			},
+			"infrastructureConstruction.buildingType.id":{
+				required:true
+			},
+			"infrastructureConstruction.subordinateUnit":{
+				required:true
+			}
+		},
+		messages:{
+			"infrastructureConstruction.startDate":{
+				required:"开工时间必须选择"
+			},
+			"infrastructureConstruction.projectType.id":{
+				required:"项目类型必须选择"
+			},
+			"infrastructureConstruction.buildingType.id":{
+				required:"建设分类必须选择"
+			},
+			"infrastructureConstruction.subordinateUnit":{
+				required:"所属单位必须填写"
+			}
+		}
+	});
+});
+</script>

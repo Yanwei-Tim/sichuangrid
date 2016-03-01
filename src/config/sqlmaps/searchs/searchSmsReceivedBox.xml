@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchSmsReceivedBox">
+	<sql id="sql_where">
+		from smsReceivedBoxs
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="sourceMobile">
+				<isNotEmpty property="sourceMobile" prepend=" and ">
+					sourceMobile = #sourceMobile#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startReceiverTime">
+				<isNotNull property="startReceiverTime" prepend=" and ">
+					receiverTime <![CDATA[>=]]>
+					#startReceiverTime#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endReceiverTime">
+				<isNotNull property="endReceiverTime" prepend=" and ">
+					receiverTime <![CDATA[<=]]>
+					#endReceiverTime#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_where_date">
+		from smsReceivedBoxs_$date$
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="sourceMobile">
+				<isNotEmpty property="sourceMobile" prepend=" and ">
+					sourceMobile = #sourceMobile#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startReceiverTime">
+				<isNotNull property="startReceiverTime" prepend=" and ">
+					receiverTime <![CDATA[>=]]>
+					#startReceiverTime#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endReceiverTime">
+				<isNotNull property="endReceiverTime" prepend=" and ">
+					receiverTime <![CDATA[<=]]>
+					#endReceiverTime#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="searchSmsReceivedBoxs" parameterClass="java.util.Map" 
+		resultMap="smsReceivedBox.smsReceivedBoxResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="searchSmsReceivedBoxsByDate" parameterClass="java.util.Map" 
+		resultMap="smsReceivedBox.smsReceivedBoxResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where_date" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countSearchSmsReceivedBoxs" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	<select id="countSearchSmsReceivedBoxsByDate" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where_date" />
+	</select>
+
+</sqlMap>
+	

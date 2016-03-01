@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" 
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="statisticsTendencyChartNew">
+	<sql id="tableName">
+		<isPropertyAvailable property="keyType">
+			#keyType#
+		</isPropertyAvailable>
+		<isNotPropertyAvailable property="keyType">
+			#tableName#
+		</isNotPropertyAvailable>
+	</sql>
+
+	<insert id="statisticsMonthTendencyChart" parameterClass="java.util.Map">
+	insert into baseinfostat
+	(id,typeTableName,types,startDate,endDate,createDate,year,month,total,orgInternalCode)
+	select s_baseinfostat.nextval as id, allData.*
+	from (select 
+	<include refid="tableName"/>
+	,#types#,
+	#monthOfFirstDay#,
+	#monthOfLastDay#,
+	#nowDate#,
+	#year#,
+	#month#,
+	count(1),
+	orgInternalCode
+	from $tableName$ t
+	where t.isEmphasis = '0' 
+	<isPropertyAvailable property="keyType">
+		<isNotNull property="keyType" prepend=" and ">
+			keyType = #keyType#
+		</isNotNull>
+	</isPropertyAvailable>
+	group by t.orgInternalCode) allData
+	</insert>
+	<select id="findTendencyChartToal" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select sum(total) from baseinfostattype_$year$_$month$ 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="typeName">
+				<isNotNull property="typeName" prepend=" and ">
+					typeName = #typeName#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+</sqlMap>

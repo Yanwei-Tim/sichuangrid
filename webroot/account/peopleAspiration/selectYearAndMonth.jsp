@@ -1,0 +1,67 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags" %>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib" %>
+<jsp:include page="/includes/baseInclude.jsp" />
+<div style="float: left">
+			<span>&emsp;台账查询：</span>
+       		<select name="year" id="year" class="form-txt" style="width: 80px;">
+			</select>
+			<span id="monthSpan">
+					
+			</span>&emsp;	
+</div>
+<script>
+//加载搜索下拉框年份
+$(function(){
+	$.ajax({
+		async : false,
+		url : "${path }/stat/currentTime/getCurrentTimeForYear.action",
+		success : function(responseData) {
+			var dataLength = responseData.length;
+			$("#year").append("<option value=''>不限年份</option>");
+			for (var i = 0; i < dataLength; i++) {
+				if (i == 0) {
+					$("#year").append(
+							"<option selected='selected' value='"+responseData[i]+"'>"
+									+ responseData[i]
+									+ "年</option>");
+				} else {
+					if (responseData[i] > 2012) {
+						$("#year").append(
+								"<option value='"+responseData[i]+"'>"
+										+ responseData[i]
+										+ "年</option>");
+					}
+				}
+			}
+		}
+	});
+	$("#monthSpan")
+			.append(
+					'<select name="month" id="month" onchange="searchIsssueById()" class="form-txt" style="width: 80px;"></select>');
+	getMonth();
+	$("#year").change(function() {
+		$("#month").empty();
+		getMonth();
+		searchIsssueById();
+	});
+	function getMonth() {
+		$.ajax({
+			async : false,
+			url : "${path }/stat/currentTime/getCurrentTimeForMonth.action?currenYear="
+					+ $("#year").val(),
+			success : function(responseData) {
+				var dataLength = responseData.length;
+				$("#month")
+						.append("<option value=''>不限月份</option>");
+				for (var i = 0; i < dataLength; i++) {
+					$("#month").append(
+							"<option  value='"+responseData[i]+"'>"
+									+ responseData[i]
+									+ "月</option>");
+				}
+			}
+		});
+	}
+})
+</script>

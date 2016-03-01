@@ -1,0 +1,221 @@
+package com.tianque.baseInfo.positiveInfo.domain;
+
+import java.util.Date;
+
+import org.apache.struts2.json.annotations.JSON;
+
+import com.tianque.baseInfo.base.domain.AttentionPopulation;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.domain.PropertyDict;
+
+public class PositiveInfo extends AttentionPopulation {
+
+	private Date releaseOrBackDate;
+
+	private Boolean isRepeat;
+
+	private Date resettlementDate;
+
+	private String householdId;
+
+	private String nativePlace;
+
+	private String laborEduAddress;
+
+	private String imprisonmentDate;
+
+	private String caseReason;
+
+	private PropertyDict agoProfession;
+
+	private String noResettlementReason;
+
+	private String helpEducator;
+
+	private String educatorTelephone;
+
+	private String educatorMobileNumber;
+
+	private PropertyDict positiveInfoType;
+
+	private Long isExpired;
+	/** 本年度是否重犯 */
+	private Boolean isCrime;
+
+	private Date crimeDate;
+
+	private String criminalBehavior;
+	/***
+	 * 用于手机接口返回走访数量
+	 */
+	private Long interviewCount;
+
+	public PositiveInfo() {
+		setAttentionPopulationType(BaseInfoTables.POSITIVEINFO_KEY);
+	}
+
+	public Long getIsExpired() {
+		return isExpired;
+	}
+
+	public void setIsExpired(Long isExpired) {
+		this.isExpired = isPositiveInfo();
+	}
+
+	public Long isPositiveInfo() {
+		if (getReleaseOrBackDate() != null) {
+			isExpired = java.lang.Math.abs(getReleaseOrBackDate().getTime()
+					- new Date().getTime());
+		}
+		return isExpired;
+	}
+
+	@JSON(format = "yyyy-MM-dd ")
+	public Date getReleaseOrBackDate() {
+		return releaseOrBackDate;
+	}
+
+	public void setReleaseOrBackDate(Date releaseOrBackDate) {
+		this.releaseOrBackDate = releaseOrBackDate;
+	}
+
+	public Boolean getIsRepeat() {
+		return isRepeat;
+	}
+
+	public void setIsRepeat(Boolean isRepeat) {
+		this.isRepeat = isRepeat;
+	}
+
+	@JSON(format = "yyyy-MM-dd")
+	public Date getResettlementDate() {
+		return resettlementDate;
+	}
+
+	public void setResettlementDate(Date resettlementDate) {
+		this.resettlementDate = resettlementDate;
+	}
+
+	public String getHouseholdId() {
+		return householdId;
+	}
+
+	public void setHouseholdId(String householdId) {
+		this.householdId = householdId;
+	}
+
+	public String getNativePlace() {
+		return nativePlace;
+	}
+
+	public void setNativePlace(String nativePlace) {
+		this.nativePlace = nativePlace;
+	}
+
+	public String getLaborEduAddress() {
+		return laborEduAddress;
+	}
+
+	public void setLaborEduAddress(String laborEduAddress) {
+		this.laborEduAddress = laborEduAddress;
+	}
+
+	public String getImprisonmentDate() {
+		return imprisonmentDate;
+	}
+
+	public void setImprisonmentDate(String imprisonmentDate) {
+		this.imprisonmentDate = imprisonmentDate;
+	}
+
+	public String getCaseReason() {
+		return caseReason;
+	}
+
+	public void setCaseReason(String caseReason) {
+		this.caseReason = caseReason;
+	}
+
+	public PropertyDict getAgoProfession() {
+		return agoProfession;
+	}
+
+	public void setAgoProfession(PropertyDict agoProfession) {
+		this.agoProfession = agoProfession;
+	}
+
+	public String getNoResettlementReason() {
+		return noResettlementReason;
+	}
+
+	public void setNoResettlementReason(String noResettlementReason) {
+		this.noResettlementReason = noResettlementReason;
+	}
+
+	public String getHelpEducator() {
+		return helpEducator;
+	}
+
+	public void setHelpEducator(String helpEducator) {
+		this.helpEducator = helpEducator;
+	}
+
+	public String getEducatorTelephone() {
+		return educatorTelephone;
+	}
+
+	public void setEducatorTelephone(String educatorTelephone) {
+		this.educatorTelephone = educatorTelephone;
+	}
+
+	public String getEducatorMobileNumber() {
+		return educatorMobileNumber;
+	}
+
+	public void setEducatorMobileNumber(String educatorMobileNumber) {
+		this.educatorMobileNumber = educatorMobileNumber;
+	}
+
+	public PropertyDict getPositiveInfoType() {
+		return positiveInfoType;
+	}
+
+	public void setPositiveInfoType(PropertyDict positiveInfoType) {
+		this.positiveInfoType = positiveInfoType;
+	}
+
+	public Boolean getIsCrime() {
+		return isCrime;
+	}
+
+	public void setIsCrime(Boolean isCrime) {
+		this.isCrime = isCrime;
+	}
+
+	@JSON(format = "yyyy-MM-dd")
+	public Date getCrimeDate() {
+		return crimeDate;
+	}
+
+	public void setCrimeDate(Date crimeDate) {
+		this.crimeDate = crimeDate;
+	}
+
+	public String getCriminalBehavior() {
+		return criminalBehavior;
+	}
+
+	public void setCriminalBehavior(String criminalBehavior) {
+		this.criminalBehavior = criminalBehavior;
+	}
+
+	public Long getInterviewCount() {
+		return interviewCount;
+	}
+
+	public void setInterviewCount(Long interviewCount) {
+		this.interviewCount = interviewCount;
+	}
+
+	
+}

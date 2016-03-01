@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="preciseInbox">
+	<typeAlias alias="PreciseInbox"
+		type="com.tianque.plugin.weChat.domain.inbox.PreciseInbox" />
+
+	<resultMap id="preciseInboxResult" class="PreciseInbox">
+		<result property="id" column="id" />
+		<result property="toUserName" column="toUserName" />
+		<result property="groupId" column="groupId" />
+		<result property="groupName" column="groupName" />
+		<result property="fromUserName" column="fromUserName" />
+		<result property="msgType" column="msgType" />
+		<result property="msgId" column="msgId" />
+		<result property="org.id" column="orgId" />
+		<result property="issueId" column="issueId" />
+		<result property="dealState" column="dealState" />
+		<result property="availability" column="availability" />
+		<result property="serviceId" column="serviceId" />
+		<result property="lng" column="lng" />
+		<result property="lat" column="lat" />
+		<result property="forwardingState" column="forwardingState" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="issueTypeDomainId" column="issueTypeDomainId" />
+		<result property="issueTypeId" column="issueTypeId" />
+		<result property="issueName" column="issueName" />
+		<result property="occurLocation" column="occurLocation" />
+		<result property="reportPeopleName" column="reportPeopleName" />
+		<result property="reportPeoplePhoneNumber" column="reportPeoplePhoneNumber" />
+		<result property="reportPeopleTelephone" column="reportPeopleTelephone" />
+		<result property="issueScale" column="issueScale" />
+		<result property="relatePeopleCount" column="relatePeopleCount" />
+		<result property="profile" column="profile" />
+		<result property="inboxType" column="inboxType" />
+		<result property="exceptionType.id" column="exceptionType" />
+		
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+ 	<resultMap class="PreciseInbox" id="preciseInboxResultForList" extends="preciseInboxResult">
+		<result property="fanId" column="fan_id" />
+		<result property="groupName" column="group_Name" />
+	</resultMap>
+	
+	<resultMap class="PreciseInbox" id="issuesResultForList" >
+		<result property="serviceId" column="serialnumber" />
+		<result property="issueName" column="subject" />
+		<result property="createDate" column="createdate" />
+	</resultMap>
+	
+	<sql id="sql_where">
+		<dynamic>
+			<isNotEmpty prepend=" and " property="preciseInbox.createUser">
+				(p.createUser like '%'||#preciseInbox.createUser#||'%'
+				or f.nick_name like '%'||#preciseInbox.createUser#||'%')
+			</isNotEmpty>
+			<isNotEmpty property="preciseInbox.startCreateTime" prepend="and">
+				<![CDATA[p.createDate >= #preciseInbox.startCreateTime#]]>
+			</isNotEmpty>
+			<isNotEmpty property="preciseInbox.endCreateTime" prepend="and">
+				<![CDATA[p.createDate <= #preciseInbox.endCreateTime#]]>
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="preciseInbox.dealState">
+				p.dealState = #preciseInbox.dealState#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="preciseInbox.serviceId">
+				p.serviceId = #preciseInbox.serviceId#
+			</isNotEmpty>
+			<isGreaterThan property="preciseInbox.profile" prepend=" and "
+				compareValue="0">
+				p.profile like '%'||#preciseInbox.profile#||'%'
+			</isGreaterThan>
+			<isNotEmpty prepend=" and " property="preciseInbox.org.id">
+				p.orgId = #preciseInbox.org.id#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="preciseInbox.inboxType">
+				p.inboxType = #preciseInbox.inboxType#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="preciseInbox.groupId">
+				p.groupId = #preciseInbox.groupId#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="preciseInbox.forwardingState">
+				p.forwardingState = #preciseInbox.forwardingState#
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+
+	<insert id="savePreciseInbox" parameterClass="PreciseInbox">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_preciseInbox.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		insert into preciseInbox
+		(id,toUserName,groupId,groupName,fromUserName,msgType,msgId,orgId,inboxType,exceptionType,issueId,dealState,availability,serviceId,lng,lat,forwardingState,orgInternalCode,issueTypeDomainId,issueTypeId,issueName,occurLocation,reportPeopleName,reportPeoplePhoneNumber,reportPeopleTelephone,issueScale,relatePeopleCount,profile,createUser,updateUser,createDate,updateDate)
+		values
+		(#id#,#toUserName#,#groupId#,#groupName#,#fromUserName#,#msgType#,#msgId#,#org.id#,#inboxType#,#exceptionType.id#,#issueId#,#dealState#,#availability#,#serviceId#,#lng#,#lat#,#forwardingState#,#orgInternalCode#,#issueTypeDomainId#,#issueTypeId#,#issueName#,#occurLocation#,#reportPeopleName#,#reportPeoplePhoneNumber#,#reportPeopleTelephone#,#issueScale#,#relatePeopleCount#,#profile#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	</insert>
+	<select id="getPreciseInboxById" parameterClass="java.lang.Long"
+		resultMap="preciseInboxResult">
+		select * from preciseInbox where id=#id#
+	</select>
+	<select id="getMaxPreciseInboxId" resultClass="java.lang.Long">
+		select max(id) from preciseInbox
+	</select>
+	
+ 	<select id="countFindPreciseInboxs" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		select count(*) from preciseInbox p left join fan f on f.OPEN_ID=p.fromUserName and
+		f.WECHAT_USER_ID=p.toUserName where 1=1
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="findPreciseInboxPaging" parameterClass="java.util.Map" resultMap="issuesResultForList">
+         <![CDATA[
+                select * from(select a.*, rownum ran from (
+          
+               (select i.serialnumber,i.subject,i.createDate from preciseInbox p,issues i where i.serialNumber=p.serviceId and p.fromUserName=#fromUserName#
+                union
+                select i.serialnumber,i.subject,i.createDate from issues i,inbox n where i.serialNumber=n.service_id and n.from_user_name=#fromUserName#)
+               
+                order by createDate desc
+          
+          ) a where rownum <=#endSize#) where ran >=#startSize#
+          ]]>
+         <dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countFindPreciseInboxAndInboxAndIssuesByFromUserName" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+           select count(id) from (
+                select i.id from issues i inner join preciseInbox p on i.serialNumber=p.serviceId and p.fromUserName=#fromUserName#
+                union
+                 select i.id from issues i inner join inbox n on i.serialNumber=n.service_id and n.from_user_name=#fromUserName#
+            )
+	</select>
+	<select id="findPreciseInboxs" parameterClass="java.util.Map"
+		resultMap="preciseInboxResultForList">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_start" />
+			</isNotNull>
+		</isPropertyAvailable>
+		select
+		p.*,f.fan_id,
+		case when t.name is null then '已删除的公众号'
+		else t.name end as weChat_User_Name,
+		case when f.nick_name is not null then f.nick_name end
+		as nick_name ,
+		case when g.name is null then '已删除的群组'
+		else g.name end as group_Name from preciseInbox p
+		left join tencent_user t on p.toUserName=t.WECHAT_USER_ID
+		left join fan f on f.OPEN_ID=p.fromUserName and
+		f.WECHAT_USER_ID=p.toUserName
+		left join wechat_group g on p.groupId=g.group_id and
+		p.toUserName=g.wechat_user_id
+		where 1=1
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">p.$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_end" />
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	<delete id="deletePreciseInboxById" parameterClass="java.lang.Long">
+		delete from preciseInbox where id = #id#
+	</delete>
+
+	<update id="updateAvailabilityById" parameterClass="PreciseInbox">
+		update preciseInbox
+		set
+		availability = #availability#
+		where id = #id#
+	</update>
+ 	<update id="updateGroupIdByWeChatUserIdAndFanId" parameterClass="PreciseInbox">
+		update preciseInbox set
+		groupId = #groupId#
+		where fromUserName =
+		#fromUserName# and toUserName=#toUserName#
+	</update>
+	<update id="updateById" parameterClass="PreciseInbox">
+		update preciseInbox set
+		toUserName = #toUserName#,
+		groupId = #groupId#,
+		groupName = #groupName#,
+		fromUserName = #fromUserName#,
+		msgType = #msgType#,
+		msgId = #msgId#,
+		orgId = #org.id#,
+		issueId = #issueId#,
+		dealState = #dealState#,
+		availability=#availability#,
+		serviceId=#serviceId#,
+		lng=#lng# ,
+		lat=#lat#,
+		forwardingState=#forwardingState#,
+		orgInternalCode=#orgInternalCode#,
+		issueTypeDomainId=#issueTypeDomainId#,
+		issueTypeId=#issueTypeId#,
+		issueName=#issueName#,
+		occurLocation=#occurLocation#,
+		reportPeopleName=#reportPeopleName#,
+		reportPeoplePhoneNumber=#reportPeoplePhoneNumber#,
+		reportPeopleTelephone=#reportPeopleTelephone#,
+		issueScale=#issueScale#,
+		relatePeopleCount=#relatePeopleCount#,
+		profile=#profile#,
+		inboxType=#inboxType#,
+		exceptionType=#exceptionType.id#,
+		
+		createUser=#createUser#,
+		updateUser=#updateUser#,
+		createDate=#createDate#,
+		updateDate=#updateDate#
+		where id =
+		#id#
+	</update>
+</sqlMap>

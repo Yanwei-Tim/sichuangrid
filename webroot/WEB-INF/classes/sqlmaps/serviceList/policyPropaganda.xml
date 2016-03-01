@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="policyPropaganda" >
+  <typeAlias alias="policyPropaganda" type="com.tianque.serviceList.domain.PolicyPropaganda" />
+  <resultMap id="abatorgeneratedPolicyPropagandaResult" class="policyPropaganda" extends="serviceListCommon.serviceListCommonResult" >
+  </resultMap>
+  
+  <select id="countPolicyPropagandasBySearchVo" parameterClass="policyPropaganda" resultClass="java.lang.Integer" >
+    select count(0) from POLICYPROPAGANDA
+    <include refid="serviceListCommon.sql_where" />
+  </select>
+  
+  <select id="findPolicyPropagandasBySearchVo" parameterClass="policyPropaganda" resultMap="abatorgeneratedPolicyPropagandaResult">
+      	select rownum as r, ID, INPUTTIME, ADDRESS, CATEGORY, DETAILS, ISSIGN,ISREPLY,TELEPHONE,
+      		SIGNDATE, SIGNPEOPLE, CREATEDATE, CREATEUSER, UPDATEDATE, UPDATEUSER, REMAKE, SIGNCONTENT,ORGID,ORGINTERNALCODE from POLICYPROPAGANDA
+		<include refid="serviceListCommon.sql_where"/>
+		<include refid="serviceListCommon.order_by"/>
+	</select>
+  
+  <insert id="addPolicyPropaganda" parameterClass="policyPropaganda" >
+  	<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_POLICYPROPAGANDA.NEXTVAL as id from dual ]]>
+	</selectKey>
+    insert into POLICYPROPAGANDA (ID, INPUTTIME, ADDRESS, CATEGORY, DETAILS, ISSIGN,ISREPLY,
+      SIGNDATE, SIGNPEOPLE, CREATEDATE, CREATEUSER, UPDATEDATE, UPDATEUSER, REMAKE, SIGNCONTENT,ORGID,ORGINTERNALCODE,TELEPHONE)
+    values (#id:DECIMAL#, #inputTime#, #address:VARCHAR#, #category.id:DECIMAL#,
+      #details:VARCHAR#, #isSign:DECIMAL#, #isReply:DECIMAL#, #signDate#, #signPeople:VARCHAR#, #createDate#,
+      #createUser:VARCHAR#, #updateDate#, #updateUser:VARCHAR#, #remake:VARCHAR#,
+      #signContent:VARCHAR#,#organization.id:DECIMAL#,#organization.orgInternalCode:VARCHAR#,#telephone:VARCHAR#)
+  </insert>
+  
+  <update id="updatePolicyPropagandaAll" parameterClass="policyPropaganda" >
+    update POLICYPROPAGANDA
+    set INPUTTIME = #inputTime#,
+      ADDRESS = #address:VARCHAR#,
+      CATEGORY = #category.id:DECIMAL#,
+      DETAILS = #details:VARCHAR#,
+      ISSIGN = #isSign:DECIMAL#,
+      ISREPLY = #isReply:DECIMAL#,
+      SIGNDATE = #signDate#,
+      SIGNPEOPLE = #signPeople:VARCHAR#,
+      CREATEDATE = #createDate#,
+      CREATEUSER = #createUser:VARCHAR#,
+      UPDATEDATE = #updateDate#,
+      UPDATEUSER = #updateUser:VARCHAR#,
+      REMAKE = #remake:VARCHAR#,
+      SIGNCONTENT = #signContent:VARCHAR#,
+      ORGID = #organization.id:DECIMAL#,
+      ORGINTERNALCODE = #organization.orgInternalCode#
+    where ID = #id:DECIMAL#
+  </update>
+  
+  <update id="updatePolicyPropaganda" parameterClass="policyPropaganda" >
+    update POLICYPROPAGANDA
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="inputTime" >
+        INPUTTIME = #inputTime#
+      </isNotNull>
+      <isNotNull prepend="," property="address" >
+        ADDRESS = #address:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="category.id" >
+        CATEGORY = #category.id:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="details" >
+        DETAILS = #details:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="isSign" >
+        ISSIGN = #isSign:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="isReply" >
+        ISREPLY = #isReply:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="signDate" >
+        SIGNDATE = #signDate#
+      </isNotNull>
+      <isNotNull prepend="," property="signPeople" >
+        SIGNPEOPLE = #signPeople:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="createDate" >
+        CREATEDATE = #createDate#
+      </isNotNull>
+      <isNotNull prepend="," property="createUser" >
+        CREATEUSER = #createUser:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="updateDate" >
+        UPDATEDATE = #updateDate#
+      </isNotNull>
+      <isNotNull prepend="," property="updateUser" >
+        UPDATEUSER = #updateUser:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="remake" >
+        REMAKE = #remake:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="signContent" >
+        SIGNCONTENT = #signContent:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="organization.id" >
+        ORGID = #organization.id:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="organization.orgInternalCode" >
+        ORGINTERNALCODE = #organization.orgInternalCode#
+      </isNotNull>
+    </dynamic>
+    where ID = #id:DECIMAL#
+  </update>
+  
+  <delete id="deletePolicyPropagandaById" parameterClass="java.lang.Long" >
+    delete from POLICYPROPAGANDA
+    where ID = #id:DECIMAL#
+  </delete>
+  
+  <select id="getPolicyPropagandaById" resultMap="abatorgeneratedPolicyPropagandaResult" parameterClass="java.lang.Long" >
+    select ID, INPUTTIME, ADDRESS, CATEGORY, DETAILS, ISSIGN,ISREPLY, SIGNDATE, SIGNPEOPLE, CREATEDATE,TELEPHONE,
+      CREATEUSER, UPDATEDATE, UPDATEUSER, REMAKE, SIGNCONTENT,ORGID,ORGINTERNALCODE
+    from POLICYPROPAGANDA
+    where ID = #id:DECIMAL#
+  </select>
+  
+</sqlMap>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="issueSecuritytroubleManage" extends="default" namespace="/issue/issueSecuritytroubleManage">
+		<default-class-ref class="isssueSecurityTroubleController"></default-class-ref>
+		<action name="dispatch" method="dispatch">
+              <result name="success">
+                  /issue/securityTrouble/searchSecurityTroubleDlg.jsp
+              </result>
+        </action>
+		<action name="preIssueSecurityTroubleList"	method="preIssueSecurityTroubleList">
+			<result name="success">
+                /issue/securityTrouble/securityTroubleList.jsp
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+		</action>
+	</package>
+	<package name="hotModuelIssueSecuritytroubleManage" extends="issueSecuritytroubleManage" namespace="/hotModuel/issue/issueSecuritytroubleManage"></package>
+</struts>

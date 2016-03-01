@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		CREATEDATE as createDate ,
+		UPDATEDATE as updateDate ,
+		TELEPHONE as telephone ,
+		MOBILENUMBER as mobileNumber ,
+		ORGID as orgId ,
+		PARTYORGID as partyOrgId ,
+		ORGINTERNALCODE as orgInternalCode ,
+		NAME as name ,
+		CREATEUSER as createUser ,
+		UPDATEUSER as updateUser 
+	FROM PARTY_ORG_MEMBER	
+ -->	
+<sqlMap namespace="partyOrgMember">	
+	
+	<typeAlias alias="PartyOrgMember" type="com.tianque.partyBuilding.organizations.domain.PartyOrgMember"/>
+	<typeAlias alias="SearchPartyOrgMemberVo" type="com.tianque.partyBuilding.organizations.domain.vo.SearchPartyOrgMemberVo" />
+	
+	<resultMap id="partyOrgMemberResult" class="PartyOrgMember">
+		<result property="id" column="ID"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="telephone" column="TELEPHONE"/>
+		<result property="mobileNumber" column="MOBILENUMBER"/>
+		<result property="orgId" column="ORGID"/>
+		<result property="partyOrgId" column="PARTYORGID"/>
+		<result property="orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="name" column="NAME"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+	</resultMap>
+	
+
+
+	<select id="getPartyOrgMemberById" parameterClass="java.lang.Long" resultMap="partyOrgMemberResult">
+		select * from PARTY_ORG_MEMBER where id=#value#
+	</select>
+	
+	<insert id="addPartyOrgMember" parameterClass="PartyOrgMember">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_PARTYORGMEMBER.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into PARTY_ORG_MEMBER (ID , CREATEDATE , UPDATEDATE , TELEPHONE , MOBILENUMBER , ORGID , PARTYORGID , ORGINTERNALCODE , NAME , CREATEUSER , UPDATEUSER ) 
+		values(#id#, #createDate#, #updateDate#, #telephone#, #mobileNumber#, #orgId#, #partyOrgId#, #orgInternalCode#, #name#, #createUser#, #updateUser#)	
+	</insert>
+	
+	<update id="updatePartyOrgMember" parameterClass="PartyOrgMember">
+		update PARTY_ORG_MEMBER set id = #id# 
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="telephone">
+					TELEPHONE = #telephone#
+				</isNotNull>
+				<isNotNull prepend="," property="mobileNumber">
+					MOBILENUMBER = #mobileNumber#
+				</isNotNull>
+				<isNotNull prepend="," property="orgId">
+					ORGID = #orgId#
+				</isNotNull>
+				<isNotNull prepend="," property="partyOrgId">
+					PARTYORGID = #partyOrgId#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="name">
+					NAME = #name#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deletePartyOrgMemberById" parameterClass="java.lang.Long">	
+		delete  from PARTY_ORG_MEMBER where id = #value#	
+	</delete>
+	<delete id="deleteByPartyOrgId" parameterClass="java.lang.Long">	
+		delete  from PARTY_ORG_MEMBER where PARTYORGID = #value#	
+	</delete>
+	
+	<sql id="findPartyOrgMembersBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="telephone">
+					<isNotEmpty prepend="and" property="telephone">
+						TELEPHONE  like #telephone# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="mobileNumber">
+					<isNotEmpty prepend="and" property="mobileNumber">
+						MOBILENUMBER  like #mobileNumber# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="partyOrgId">
+					<isNotEmpty prepend="and" property="partyOrgId">
+						PARTYORGID = #partyOrgId#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="name">
+					<isNotEmpty prepend="and" property="name">
+						NAME  like #name# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+	<select id="findPartyOrgMembersBySearchVo" parameterClass="SearchPartyOrgMemberVo" resultMap="partyOrgMemberResult">
+		select * from PARTY_ORG_MEMBER
+		<include refid="findPartyOrgMembersBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countPartyOrgMembersBySearchVo" parameterClass="SearchPartyOrgMemberVo" resultClass="java.lang.Integer">
+		select count(0) from PARTY_ORG_MEMBER
+		<include refid="findPartyOrgMembersBySearchVo_sql_where" />
+	</select>
+	
+	<select id="getByPartyOrgId" parameterClass="java.lang.Long" resultMap="partyOrgMemberResult">
+		select * from PARTY_ORG_MEMBER where PARTYORGID = #value#	
+	</select>
+
+</sqlMap>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="earlyWarning">
+	<typeAlias alias="EarlyWarning" type="com.tianque.baseInfo.earlyWarning.domain.EarlyWarning" />
+	<resultMap class="EarlyWarning" id="earlyWarningMap">
+	<result property="name" column="name"/>
+	<result property="remindTime" column="remindTime"/>
+	<result property="describe" column="describe"/>
+	</resultMap>
+	<select id="getEarlyWarningByName" resultMap="earlyWarningMap">
+		select e.name,e.remindTime,e.describe from EarlyWarning e where name=#name#
+	</select>
+</sqlMap>

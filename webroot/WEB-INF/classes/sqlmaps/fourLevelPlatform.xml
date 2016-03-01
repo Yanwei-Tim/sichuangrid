@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		CREATEDATE as createDate ,
+		UPDATEDATE as updateDate ,
+		ORGID as orgId ,
+		SEQ as seq ,
+		ORGINTERNALCODE as orgInternalCode ,
+		CREATEUSER as createUser ,
+		UPDATEUSER as updateUser ,
+		NAME as name ,
+		TEAMTYPE as teamType ,
+		REMARK as remark 
+	FROM FOURLEVELPLATFORM	
+ -->	
+<sqlMap namespace="fourLevelPlatform">	
+	
+	<typeAlias alias="FourLevelPlatform" type="com.tianque.baseInfo.primaryOrg.domain.FourLevelPlatform"/>
+	<typeAlias alias="SearchFourLevelPlatformVo" type="com.tianque.baseInfo.primaryOrg.domain.vo.SearchFourLevelPlatformVo" />
+	
+	<resultMap id="fourLevelPlatformResult" class="FourLevelPlatform">
+		<result property="id" column="ID"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="organization.id" column="ORGID"/>
+		<result property="seq" column="SEQ"/>
+		<result property="orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="name" column="NAME"/>
+		<result property="teamType" column="TEAMTYPE"/>
+		<result property="remark" column="REMARK"/>
+		<result property="memberNum" column="memberNum"/>
+		<result property="supervisorydepartment" column="supervisorydepartment"/>
+	</resultMap>
+	
+	<sql id="sql_select_forMember">
+		select FOURLEVELPLATFORM.*,(
+		select count(primarymembersid) from primarymembersorgtype 
+		 where primarymembersid in(select  id from  PRIMARYMEMBERS pt  where   ishavejob=0 )
+		and primaryorgid=FOURLEVELPLATFORM.id and isfourlevelplatform =1) as memberNum 
+	</sql>
+
+	<select id="getFourLevelPlatformById" parameterClass="java.lang.Long" resultMap="fourLevelPlatformResult">
+		<include refid="sql_select_forMember"/> 
+		from FOURLEVELPLATFORM  where id=#value#
+	</select>
+	
+	<insert id="addFourLevelPlatform" parameterClass="FourLevelPlatform">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_FOURLEVELPLATFORM.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into FOURLEVELPLATFORM (ID , CREATEDATE , UPDATEDATE , ORGID , SEQ , ORGINTERNALCODE , CREATEUSER , UPDATEUSER , NAME , TEAMTYPE , REMARK ,SUPERVISORYDEPARTMENT ) 
+		values(#id#, #createDate#, #updateDate#, #organization.id#, #seq#, #orgInternalCode#, #createUser#, #updateUser#, #name#, #teamType#, #remark#,#supervisorydepartment#)	
+	</insert>
+	
+	<update id="updateFourLevelPlatform" parameterClass="FourLevelPlatform">
+		update FOURLEVELPLATFORM set id = #id# 
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="organization.id">
+					ORGID = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="seq">
+					SEQ = #seq#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="name">
+					NAME = #name#
+				</isNotNull>
+				<isNotNull prepend="," property="teamType">
+					TEAMTYPE = #teamType#
+				</isNotNull>
+				<isNotNull prepend="," property="remark">
+					REMARK = #remark#
+				</isNotNull>
+				<isNotNull prepend="," property="supervisorydepartment">
+					SUPERVISORYDEPARTMENT = #supervisorydepartment#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteFourLevelPlatformById" parameterClass="java.lang.Long">	
+		delete  from FOURLEVELPLATFORM where id = #value#	
+	</delete>
+	
+	
+	<sql id="findFourLevelPlatformsBySearchVo_sql_where">
+		from (select f.*,(
+		select count(primarymembersid) from primarymembersorgtype 
+		 where primarymembersid in(select  id from  PRIMARYMEMBERS pt  where   ishavejob=0 )
+		 and primaryorgid=f.id and isfourlevelplatform =1) as memberNum 
+			from FOURLEVELPLATFORM f
+		<dynamic prepend="WHERE">
+			<isNotEmpty  property="displayLevel" prepend=" ">
+				<isEqual property="displayLevel" compareValue="sameGrade">
+					 f.orgInternalCode = #orgInternalCode# 	
+				</isEqual>	
+				<isEqual property="displayLevel" compareValue="directJurisdiction">
+					 f.orgInternalCode like #orgInternalCode#||'__' 	
+				</isEqual>	
+				<isEqual property="displayLevel" compareValue="allJurisdiction">
+					 f.orgInternalCode like #orgInternalCode#||'%' 	
+				</isEqual>	
+			</isNotEmpty>
+			<isPropertyAvailable property="seq">
+				<isNotEmpty prepend="and" property="seq">
+					f.SEQ = #seq#
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="name">
+				<isNotEmpty prepend="and" property="name">
+					f.NAME  like #name# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="teamTypeId">
+				<isNotEmpty prepend="and" property="teamTypeId">
+					f.TEAMTYPE  = #teamTypeId#
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="remark">
+				<isNotEmpty prepend="and" property="remark">
+					f.REMARK  like #remark# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+		</dynamic>
+		) t
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="memberCountMin" prepend="and">
+				t.memberNum <![CDATA[ >= ]]> #memberCountMin#
+			</isNotEmpty>
+			<isNotEmpty property="memberCountMax" prepend="and">
+				t.memberNum <![CDATA[ <= ]]> #memberCountMax#
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	<select id="findFourLevelPlatformsBySearchVo" parameterClass="SearchFourLevelPlatformVo" resultMap="fourLevelPlatformResult">
+		select t.* 
+		<include refid="findFourLevelPlatformsBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countFourLevelPlatformsBySearchVo" parameterClass="SearchFourLevelPlatformVo" resultClass="java.lang.Integer">
+		select count(0)
+		<include refid="findFourLevelPlatformsBySearchVo_sql_where" />
+	</select>
+	
+	<select id="countFourLevelPlatformByOrgId" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		select count(0) from FOURLEVELPLATFORM where orgId=#value#
+	</select>
+</sqlMap>

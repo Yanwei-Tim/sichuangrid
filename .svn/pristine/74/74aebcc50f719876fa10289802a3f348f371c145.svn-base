@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="basicInfomation">
+	<typeAlias alias="basicInfomation" type="com.tianque.newVillage.domain.BasicInfoMation" />
+	
+	<resultMap id="basicInfomationRsult" class="basicInfomation">
+	    <result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgCode" />
+		<result property="organization.orgName" column="orgName" />
+		
+		<result property="geographicalPosition" column="geographicalPosition" />
+		<result property="climate" column="climate" />
+		<result property="totalArea" column="totalArea" />
+		<result property="cultivatedLandArea" column="cultivatedLandArea" />
+		<result property="woodlandArea" column="woodlandArea" />
+		<result property="wastelandArea" column="wastelandArea" />
+		<result property="altitude" column="altitude" />
+		<result property="soilProperties" column="soilProperties" />
+		<result property="imgUrl" column="imgUrl" />
+		<result property="basicIntroduction" column="basicIntroduction" />
+		
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+
+	<insert id="addBasicInfomation" parameterClass="basicInfomation">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_basicinfomation.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into basicinfomation
+		(id,orgId,orgCode,orgName,geographicalPosition,climate,totalArea,cultivatedLandArea,woodlandArea,wastelandArea,altitude,soilProperties,imgUrl,basicIntroduction,createUser,createDate,updateDate)
+		values
+		(#id#,#organization.id#,#organization.orgInternalCode#,#organization.orgName#,#geographicalPosition#,#climate#,#totalArea#,#cultivatedLandArea#,#woodlandArea#,
+		#wastelandArea#,#altitude#,#soilProperties#,#imgUrl#,#basicIntroduction#,#createUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	<update id="updateBasicInfomation" parameterClass="basicInfomation">
+		update basicinfomation set
+		geographicalPosition = #geographicalPosition#,
+		climate = #climate#,
+		totalArea = #totalArea#,
+		cultivatedLandArea = #cultivatedLandArea#,
+		woodlandArea = #woodlandArea#,
+		wastelandArea = #wastelandArea#,
+		altitude = #altitude#,
+		soilProperties = #soilProperties#,
+		updateUser = #updateUser#,
+		updateDate = #updateDate#
+		where id=#id#
+	</update>
+	
+	<update id="updateBasicInfomationImgUrl" parameterClass="basicInfomation">
+		update basicinfomation set
+		imgUrl = #imgUrl#
+		where id=#id#
+	</update>
+	
+	<update id="updateBasicInfomationbasicIntroduction" parameterClass="basicInfomation">
+		update basicinfomation set
+		basicIntroduction = #basicIntroduction#
+		where id=#id#
+	</update>
+	
+	
+	<select id="getBasicInfomationByOrgId" parameterClass="java.lang.Long" resultMap="basicInfomationRsult">
+		select * from basicinfomation where orgId=#orgId#
+	</select>
+	
+	<select id="getBasicInfomationById" parameterClass="java.lang.Long" resultMap="basicInfomationRsult">
+		select * from basicinfomation where id=#id#
+	</select>
+
+</sqlMap>

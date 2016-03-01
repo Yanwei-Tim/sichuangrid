@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="safetyProductionTemp">
+	<typeAlias alias="SafetyProductionTemp" type="com.tianque.plugin.dataManage.location.safetyProductionTemp.domain.SafetyProductionTemp" />
+	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+	
+	<resultMap id="safetyProductionTempResultForBase" class="SafetyProductionTemp" extends="enterpriseTemp.enterpriseTempResultForBase">
+		<result property="industry.id" column="industry"/>
+		<result property="businessLicense" column="businessLicense"/>
+		<result property="area" column="area"/>
+		<result property="registeredCapital" column="registeredCapital"/>
+		<result property="employeeAmount" column="employeeAmount"/>
+		<result property="partyMemberAmount" column="partyMemberAmount"/>
+		<result property="enterpriseTelephone" column="enterpriseTelephone"/>
+		<result property="fax" column="fax"/>
+	</resultMap>
+	
+    <resultMap id="safetyProductionTempResultForList" class="SafetyProductionTemp" extends="safetyProductionTemp.safetyProductionTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<sql id="claim_sql_where">
+		from DM_safetyProduct_Temp d where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	<sql id="updateBusinessSql">
+		industry = #industry.id#
+		,businessLicense = #businessLicense#
+		,area = #area#
+		,registeredCapital = #registeredCapital#
+		,employeeAmount = #employeeAmount#
+		,partyMemberAmount = #partyMemberAmount#
+		,enterpriseTelephone = #enterpriseTelephone#
+		,fax = #fax#
+		,type = #type.id#
+		,telephone = #telephone#
+		,mobileNumber = #mobileNumber#
+		,isRiskEnterprise = #isRiskEnterprise#
+		,hiddenCases = #hiddenCases#
+		,hiddenRectification = #hiddenRectification#
+		,attentionExtent=#attentionExtent.id#
+	</sql>
+	<insert id="addSafetyProductionTemp" parameterClass="SafetyProductionTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_safetyProduct_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_safetyProduct_Temp
+		(id,orgId,orgInternalCode,name,type,manager,address,industry,businessLicense,area,registeredCapital,
+		 employeeAmount,partyMemberAmount,enterpriseTelephone,fax,telephone,mobileNumber,attentionExtent,
+		 isRiskEnterprise,hiddenCases,hiddenRectification,remark,createDate,createUser,
+		<include refid="dataManage.addDataManage"/>
+		)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#name#,#type.id#,#manager#,#address#,#industry.id#,#businessLicense#,#area#,
+		#registeredCapital#,#employeeAmount#,#partyMemberAmount#,#enterpriseTelephone#,#fax#,#telephone#,#mobileNumber#,#attentionExtent.id#,
+		#isRiskEnterprise#,#hiddenCases#,#hiddenRectification#,#remark#,#createDate#,#createUser#,
+		<include refid="dataManage.addValueDataManage"/>
+		)
+    </insert>
+	
+	 <select id="findTempPageList" resultMap="safetyProductionTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select d.*,'safetyProductionKey' as keyType ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<update id="updateSafetyProductionTempInIdById"  parameterClass="java.util.Map">
+		update DM_safetyProduct_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<update id="updateSafetyProductionTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_safetyProduct_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	
+	<update id="updateSafetyProductionTemp" parameterClass="SafetyProductionTemp">
+		update DM_safetyProduct_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="safetyProductionTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	
+	<select id="findTemps" resultMap="safetyProductionTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select d.*,'safetyProductionKey' as keyType ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countFindTemps" resultClass="java.lang.Integer"
+		parameterClass="searchVo">
+			select count(id)  <include refid="claim_sql_where" />
+	</select>
+	<select id="getSafetyProductionTempById" parameterClass="long" resultMap="safetyProductionTempResultForList">
+		select d.*,'safetyProductionKey' as keyType from DM_safetyProduct_Temp d where d.id=#value#
+	</select>
+	<!-- 修改场所信息 -->
+	<update id="updateSafetyProductionTempInfo" parameterClass="SafetyProductionTemp">
+		update DM_safetyProduct_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="safetyProductionTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<delete id="deleteSafetyProductionTempById" parameterClass="Long">
+	   delete DM_safetyProduct_Temp where id = #value#
+	</delete>
+</sqlMap>

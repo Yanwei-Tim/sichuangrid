@@ -1,0 +1,835 @@
+package com.tianque.baseInfo.aidNeedPopulation.service;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.actualHouse.domain.HouseInfo;
+import com.tianque.baseInfo.actualHouse.service.ActualHouseService;
+import com.tianque.baseInfo.aidNeedPopulation.dao.AidNeedPopulationDao;
+import com.tianque.baseInfo.aidNeedPopulation.domain.AidNeedPopulation;
+import com.tianque.baseInfo.base.dao.BaseInfoPopulationBaseDao;
+import com.tianque.baseInfo.base.domain.ActualPopulation;
+import com.tianque.baseInfo.base.domain.Countrymen;
+import com.tianque.baseInfo.base.domain.LogoutDetail;
+import com.tianque.baseInfo.base.helper.CardNoHelper;
+import com.tianque.baseInfo.base.service.BaseInfoPopulationTemplateImpl;
+import com.tianque.baseInfo.base.service.BaseInfoService;
+import com.tianque.baseInfo.base.service.PopulationRelationService;
+import com.tianque.cache.PageInfoCacheThreadLocal;
+import com.tianque.cache.UpdateType;
+import com.tianque.core.cache.constant.MemCacheConstant;
+import com.tianque.core.datatransfer.ExcelImportHelper;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.Chinese2pinyin;
+import com.tianque.core.util.NewBaseInfoTables;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.service.HousePopulationMaintanceService;
+import com.tianque.service.PopulationProccessorService;
+import com.tianque.service.helper.ManagePopulationByHouseHelper;
+import com.tianque.service.util.PopulationCatalog;
+import com.tianque.service.util.PopulationType;
+import com.tianque.service.vo.IsEmphasis;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.util.Arrays;
+import com.tianque.util.IdCardUtil;
+import com.tianque.util.PluginServiceHelpUtil;
+import com.tianque.validate.AbstractCountrymenValidator;
+
+@Service("aidNeedPopulationService")
+@Transactional
+public class AidNeedPopulationServiceImpl extends
+		BaseInfoPopulationTemplateImpl implements AidNeedPopulationService,
+		PopulationProccessorService {
+	private static final String CACHE_ADDAIDNEEDPOPULATION_VALUE = "CACHE_ADDAIDNEEDPOPULATION";
+	private static final String CACHE_ADDAIDNEEDPOPULATIONBASEINFO_VALUE = "CACHE_ADDAIDNEEDPOPULATIONBASEINFO";
+
+	@Autowired
+	private AidNeedPopulationDao aidNeedPopulationDao;
+
+	@Qualifier("aidNeedPopulationValidator")
+	@Autowired
+	private AbstractCountrymenValidator<AidNeedPopulation> domainValidator;
+
+	@Autowired
+	OrganizationDubboService organizationDubboService;
+
+	@Qualifier("aidNeedPopulationValidator")
+	@Autowired
+	private AbstractCountrymenValidator<AidNeedPopulation> updateValidator;
+
+	@Autowired
+	private PopulationRelationService populationRelationService;
+
+	@Autowired
+	private BaseInfoService baseInfoService;
+
+	// @Autowired
+	// private CacheService cacheService;
+
+	// @Autowired
+	// private PageInfoCacheHelper pageInfoCacheHelper;
+
+	@Override
+	@Resource(name = "aidNeedPopulationDao")
+	public void setBaseInfoPopulationBaseDao(
+			BaseInfoPopulationBaseDao aidNeedPopulationDao) {
+		super.setBaseInfoPopulationBaseDao(aidNeedPopulationDao);
+	}
+
+	@Autowired
+	private PropertyDictService propertyDictService;
+	@Autowired
+	private ActualHouseService actualHouseService;
+	@Autowired
+	private ManagePopulationByHouseHelper managePopulationByHouseHelper;
+	@Autowired
+	private HousePopulationMaintanceService housePopulationMaintanceService;
+
+	@Override
+	public AidNeedPopulation addAidNeedPopulation(
+			AidNeedPopulation aidNeedPopulation) {
+		try {
+			ValidateResult aidNeedValidator = domainValidator
+					.validate(aidNeedPopulation);
+			if (!ExcelImportHelper.isImport.get()) {
+				if (aidNeedValidator.hasError()) {
+					throw new BusinessValidationException(
+							aidNeedValidator.getErrorMessages());
+				} else if (hasDuplicateAidNeedPopulation(aidNeedPopulation
+						.getOrganization().getId(),
+						aidNeedPopulation.getIdCardNo(),
+						aidNeedPopulation.getId())) {
+					throw new BusinessValidationException("该网格下已存在相同身份证号码");
+				}
+			}
+			if (checkDataExitInCache(aidNeedPopulation,
+					MemCacheConstant.CACHE_ADDAIDNEEDPOPULATION,
+					CACHE_ADDAIDNEEDPOPULATION_VALUE)) {
+				return aidNeedPopulation;
+			}
+			aidNeedPopulation = add(aidNeedPopulation);
+			return aidNeedPopulation;
+		} catch (Exception e) {
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new ServiceValidationException("新增信息出现错误", e);
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(aidNeedPopulation,
+					MemCacheConstant.CACHE_ADDAIDNEEDPOPULATION);
+		}
+	}
+
+	private AidNeedPopulation add(AidNeedPopulation aidNeedPopulation) {
+		aidNeedPopulation.setIdCardNo(aidNeedPopulation.getIdCardNo()
+				.toUpperCase());
+		autoFillOrganizationInternalCode(aidNeedPopulation);
+		autoFillChinesePinyin(aidNeedPopulation);
+		autoFillBirthday(aidNeedPopulation);
+		autoIsDeath(aidNeedPopulation);
+		contructCurrentAddress(aidNeedPopulation);
+		try {
+			Countrymen temp = populationRelationService.businessOption(
+					aidNeedPopulation,
+					aidNeedPopulation.getActualPopulationType());
+			aidNeedPopulation.setBaseInfoId(temp.getBaseInfoId());
+			aidNeedPopulation.setAddressInfoId(temp.getAddressInfoId());
+			aidNeedPopulation.setSourcesState(null);
+			aidNeedPopulation = aidNeedPopulationDao.add(aidNeedPopulation);
+			populationRelationService.addPopulationRelation(temp.getId(),
+					aidNeedPopulation.getActualPopulationType(),
+					aidNeedPopulation.getId(),
+					BaseInfoTables.AIDNEEDPOPULATION_KEY);
+			aidNeedPopulation.setHouseId(temp.getHouseId());
+			rebuildHouseAddress(aidNeedPopulation);
+
+			if (IsEmphasis.Emphasis.equals(aidNeedPopulation.getIsEmphasis())) {
+				// 缓存计数器
+				PageInfoCacheThreadLocal.increment(MemCacheConstant
+						.getCachePageKey(AidNeedPopulation.class
+								.getSimpleName()), aidNeedPopulation, 1);
+			}
+			return aidNeedPopulation;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类AidNeedPopulationServiceImpl的addAidNeedPopulation方法出现异常，原因：",
+					"新增信息出现错误", e);
+		}
+	}
+
+	/**
+	 * 如果人口的房屋信息（CurrentAddress）不为空，并且房屋id不存在，新增一个房屋，并且建立关联关系, 如果房屋id不为空直接建立关联关系
+	 * 如果房屋信息为空,并且有房屋id不为空，则删除人房关系
+	 * 
+	 * @param householdStaff
+	 */
+	private void rebuildHouseAddress(AidNeedPopulation householdStaff) {
+
+		if (householdStaff.getIsHaveHouse() != null
+				&& householdStaff.getIsHaveHouse()
+				&& householdStaff.getCurrentAddress() != null) {
+
+			if (null == householdStaff.getHouseId()
+					|| householdStaff.getHouseId().equals(01L)) {
+				// 新增一个实有房屋,并且建立人房关系
+				HouseInfo houseInfo = new HouseInfo();
+				houseInfo.setAddress(householdStaff.getCurrentAddress());
+				houseInfo.setAddressType(propertyDictService
+						.findPropertyDictByDomainNameAndDictDisplayName(
+								PropertyTypes.CURRENT_ADDRESS_TYPE, "其他"));
+				houseInfo.setOrganization(householdStaff.getOrganization());
+				houseInfo
+						.setHouseOperateSource(NewBaseInfoTables.AIDNEEDPOPULATION_KEY);// 需要救助人员
+				houseInfo = actualHouseService.addHouseInfo(houseInfo);
+
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.AID_NEED_POPULATION, householdStaff,
+						houseInfo.getId());
+			} else if (householdStaff.getHouseId() != null) {
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.AID_NEED_POPULATION, householdStaff,
+						householdStaff.getHouseId());
+			}
+		} else {
+			housePopulationMaintanceService.releaseHouse(
+					PopulationCatalog.AID_NEED_POPULATION,
+					householdStaff.getId(), householdStaff.getHouseId());
+		}
+	}
+
+	@Override
+	public boolean deleteAidNeedPopulation(Long id) {
+		if (id == null) {
+			throw new BusinessValidationException("需救助人员id不能为空");
+		}
+		AidNeedPopulation domain = getAidNeedPopulationById(id);
+		if (domain == null) {
+			throw new BusinessValidationException("需救助人员不能为空");
+		}
+		domain.setPopulationTypeBean(getPopulationRelationService()
+				.getBusinessPopulationTypeBean(id,
+						PopulationType.AID_NEED_POPULATION));
+		getRecoverDatasService().deleteActualPopulation(domain);
+		populationRelationService.businessDeletePopulationRelation(id,
+				PopulationType.AID_NEED_POPULATION);
+		aidNeedPopulationDao.delete(id);
+		try {
+			PluginServiceHelpUtil.doService("routerService",
+					"deleteServiceTeamHasObjectsAndServiceMemberHasObject",
+					new Class[] { String.class, Long.class },
+					PopulationType.AID_NEED_POPULATION, id);
+			/** 删除时对关联的事件和服务记录进行orgId和idCardNo赋值 */
+			PluginServiceHelpUtil.doService("routerService",
+					"setOrgIdAndCardNoOrName", new Class[] { Long.class,
+							String.class, String.class, Long.class }, domain
+							.getOrganization().getId(), domain.getIdCardNo(),
+					PopulationType.AID_NEED_POPULATION, id);
+			if (IsEmphasis.Emphasis.equals(domain.getIsEmphasis())) {
+				// 缓存计数器
+				PageInfoCacheThreadLocal.decrease(MemCacheConstant
+						.getCachePageKey(AidNeedPopulation.class
+								.getSimpleName()), domain, 1);
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类AidNeedPopulationServiceImpl的deleteAidNeedPopulation方法出现异常，原因：",
+					"删除信息出现错误", e);
+		}
+		return true;
+	}
+
+	@Override
+	public PageInfo<AidNeedPopulation> findAidNeedPopulationServiceForPageByOrganizationId(
+			Long organizationId, Integer pageNum, Integer pageSize,
+			String sortField, String order, Long isEmphasis) {
+		Organization org = organizationDubboService
+				.getSimpleOrgById(organizationId);
+		Map<String, Object> query = new HashMap<String, Object>();
+		query.put("orgInternalCode", org.getOrgInternalCode());
+		query.put("isEmphasis", isEmphasis);
+		PageInfo<AidNeedPopulation> pageInfos = aidNeedPopulationDao
+				.findPagerUsingCacheBySearchVo(organizationId, query, pageNum,
+						pageSize, "AidNeedPopulationDefaultList",
+						MemCacheConstant
+								.getCachePageKey(AidNeedPopulation.class));
+		fitCountrymen(pageInfos);
+		fitServiceMemberHasObject(BaseInfoTables.AIDNEEDPOPULATION_KEY,
+				pageInfos);
+		return pageInfos;
+
+		// return
+		// aidNeedPopulationDao.findPagerUsingCacheBySearchVo(org.getId(),
+		// aidNeedPopulation, pageNum, pageSize, "AidNeedPopulation",
+		// MemCacheConstant.getCachePageKey(AidNeedPopulation.class
+		// .getSimpleName()));
+		// return aidNeedPopulationDao
+		// .findAidNeedPopulationForPageByOrgInternalCode(
+		// organizationDubboService.getSimpleOrgById(organizationId)
+		// .getOrgInternalCode(), pageNum, pageSize,
+		// sortField, order, isEmphasis);
+	}
+
+	@Override
+	public AidNeedPopulation getAidNeedPopulationById(Long id) {
+		if (id == null) {
+			throw new BusinessValidationException("需救助人员id不能为空");
+		}
+		return aidNeedPopulationDao.get(id);
+	}
+
+	@Override
+	public AidNeedPopulation updateAidNeedPopulation(
+			AidNeedPopulation aidNeedPopulation) {
+		aidNeedPopulation.setIdCardNo(aidNeedPopulation.getIdCardNo()
+				.toUpperCase());
+		autoFillOrganizationInternalCode(aidNeedPopulation);
+		ValidateResult aidNeedValidator = domainValidator
+				.validate(aidNeedPopulation);
+
+		if (aidNeedValidator.hasError()) {
+			throw new BusinessValidationException(
+					aidNeedValidator.getErrorMessages());
+		} else if (hasDuplicateAidNeedPopulation(aidNeedPopulation
+				.getOrganization().getId(), aidNeedPopulation.getIdCardNo(),
+				aidNeedPopulation.getId())) {
+			throw new BusinessValidationException("该网格下已存在相同身份证号码");
+		}
+		autoFillChinesePinyin(aidNeedPopulation);
+		autoFillBirthday(aidNeedPopulation);
+		if (aidNeedPopulation.isDeath()) {
+			aidNeedPopulation.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+			this.updateEmphasiseById(aidNeedPopulation.getId(),
+					IsEmphasis.IsNotEmphasis);
+		}
+		contructCurrentAddress(aidNeedPopulation);
+		rebuildHouseAddress(aidNeedPopulation);
+		try {
+			populationRelationService.businessOption(aidNeedPopulation,
+					aidNeedPopulation.getActualPopulationType());
+			aidNeedPopulation = aidNeedPopulationDao.update(aidNeedPopulation);
+			return aidNeedPopulation;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类AidNeedPopulationServiceImpl的updateAidNeedPopulation方法出现异常，原因：",
+					"修改信息出现错误", e);
+		}
+	}
+
+	private void autoFillOrganizationInternalCode(
+			AidNeedPopulation aidNeedPopulation) {
+		if (aidNeedPopulation.getOrganization() == null) {
+			throw new BusinessValidationException("找不到指定的网格");
+		} else {
+			Organization organization = organizationDubboService
+					.getSimpleOrgById(aidNeedPopulation.getOrganization()
+							.getId());
+			if (organization == null) {
+				throw new BusinessValidationException("找不到指定的网格");
+			}
+			aidNeedPopulation.setOrgInternalCode(organization
+					.getOrgInternalCode());
+		}
+
+	}
+
+	private void autoFillChinesePinyin(AidNeedPopulation aidNeedPopulation) {
+		Map<String, String> pinyin = Chinese2pinyin
+				.changeChinese2Pinyin(aidNeedPopulation.getName());
+		aidNeedPopulation.setFullPinyin(pinyin.get("fullPinyin"));
+		aidNeedPopulation.setSimplePinyin(pinyin.get("simplePinyin"));
+	}
+
+	@Override
+	public AidNeedPopulation getAidNeedPopulationByIdCardNoAndOrganizationId(
+			String idCardNo, Long organizationId) {
+		if (idCardNo == null || organizationId == null) {
+			throw new BusinessValidationException("参数错误");
+		}
+		String idCardNo15 = "";
+		String idCardNo18 = "";
+		if (idCardNo.length() == 15) {
+			idCardNo15 = idCardNo;
+			idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		} else if (idCardNo.length() == 18) {
+			idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+			idCardNo18 = idCardNo;
+		}
+		return aidNeedPopulationDao
+				.getAidNeedPopulationByIdCardNoAndOrganizationId(idCardNo15,
+						idCardNo18, organizationId);
+	}
+
+	private void autoFillBirthday(AidNeedPopulation aidNeedPopulation) {
+		if (StringUtil.isStringAvaliable(aidNeedPopulation.getIdCardNo())) {
+			aidNeedPopulation.setBirthday(IdCardUtil
+					.parseBirthday(aidNeedPopulation.getIdCardNo()));
+		}
+	}
+
+	private void autoIsDeath(AidNeedPopulation aidNeedPopulation) {
+		if (aidNeedPopulation.isDeath()) {
+			aidNeedPopulation.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+		} else {
+			aidNeedPopulation.setIsEmphasis(IsEmphasis.Emphasis);
+		}
+	}
+
+	@Override
+	public AidNeedPopulation updateAidNeedPopulationByIdCardNoAndOrgId(
+			String name, Long orgId, AidNeedPopulation domain) {
+		try {
+			AidNeedPopulation older = this
+					.getAidNeedPopulationByIdCardNoAndOrganizationId(name,
+							orgId);
+			domain.setId(older.getId());
+			domain.setCreateDate(older.getCreateDate());
+			domain.setCreateUser(older.getCreateUser());
+			domain = updateAidNeedPopulation(domain);
+		} catch (Exception e) {
+			if (ExcelImportHelper.isImport.get()) {
+				return null;
+			}
+		}
+		return domain;
+	}
+
+	@Override
+	public boolean hasDuplicateAidNeedPopulation(Long orgId, String idCardNo,
+			Long exceptedId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return false;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		// String idCardNo15 = "";
+		// String idCardNo18 = "";
+		// if (idCardNo.length() == 15) {
+		// idCardNo15 = idCardNo;
+		// idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		// } else if (idCardNo.length() == 18) {
+		// idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+		// idCardNo18 = idCardNo;
+		// }
+		Countrymen countrymen = baseInfoService.getBaseInfoByIdCardNo(idCardNo);
+		if (countrymen == null) {
+			return false;
+		}
+		Long exsited = (Long) aidNeedPopulationDao.getIdByBaseinfoIdAndOrgId(
+				countrymen.getId(), orgId);
+		return exceptedId == null ? exsited != null
+				: (exsited != null && !exceptedId.equals(exsited));
+	}
+
+	@Override
+	public AidNeedPopulation hasDuplicateAidNeedPopulation(Long orgId,
+			String idCardNo) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return null;
+		}
+		try {
+			idCardNo = idCardNo.toUpperCase();
+			List<String> list = new ArrayList<String>();
+			list.add(idCardNo);
+			if (idCardNo.length() == 18) {
+				list.add(IdCardUtil.idCardNo18to15(idCardNo));
+			} else if (idCardNo.length() == 15) {
+				list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+				list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+			}
+			return aidNeedPopulationDao.getByIdCard(list, orgId);
+
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类DruggyServiceImpl的hasDuplicateDruggy方法出现异常，原因：",
+					"判断吸毒人员身份证号码是否存在出现错误", e);
+		}
+	}
+
+	@Override
+	public Map<String, Map<String, Object>> getPopulationSpecializedInfoByOrgIdAndIdCardNo(
+			Long orgId, String idCardNo) {
+		AidNeedPopulation aidNeedPopulation = aidNeedPopulationDao
+				.getByOrgIdAndIdCardNo(orgId, idCardNo);
+		if (null == aidNeedPopulation) {
+			return null;
+		}
+		Map<String, Object> aidNeedPopulationMap = new HashMap<String, Object>();
+		aidNeedPopulationMap.put("id", aidNeedPopulation.getId());
+		aidNeedPopulationMap.put("isEmphasis",
+				aidNeedPopulation.getIsEmphasis());
+		aidNeedPopulationMap.put("aidReason", aidNeedPopulation.getAidReason());
+		aidNeedPopulationMap.put("isLowHouseholds",
+				aidNeedPopulation.getIsLowHouseholds());
+		aidNeedPopulationMap.put("difficultCardNo",
+				aidNeedPopulation.getDifficultCardNo());
+		aidNeedPopulationMap.put("difficultType",
+				aidNeedPopulation.getDifficultType());
+		aidNeedPopulationMap.put("subsidiesAmount",
+				aidNeedPopulation.getSubsidiesAmount());
+		aidNeedPopulationMap.put("subsidiesGetTime",
+				aidNeedPopulation.getSubsidiesGetTime());
+		aidNeedPopulationMap.put("subsidiesStartTime",
+				aidNeedPopulation.getSubsidiesStartTime());
+		aidNeedPopulationMap.put("subsidiesPopulation",
+				aidNeedPopulation.getSubsidiesPopulation());
+		aidNeedPopulationMap.put("subsidiesArea",
+				aidNeedPopulation.getSubsidiesArea());
+		aidNeedPopulationMap.put("attentionExtent",
+				aidNeedPopulation.getAttentionExtent());
+		Map<String, Map<String, Object>> map = new HashMap<String, Map<String, Object>>();
+		map.put(PopulationType.AID_NEED_POPULATION, aidNeedPopulationMap);
+		return map;
+	}
+
+	@Override
+	public Long proccessPopulationSpecializedInfo(
+			ActualPopulation actualPopulation, String[] populationType,
+			Map<String, Object> population) {
+		actualPopulation
+				.setAttentionPopulationType(NewBaseInfoTables.AIDNEEDPOPULATION_KEY);
+		Long orgId = Long
+				.valueOf(((String[]) population.get("organization.id"))[0]);
+		String idCardNo = ((String[]) population.get("idCardNo"))[0];
+		AidNeedPopulation aidNeedPopulation = aidNeedPopulationDao
+				.getByOrgIdAndIdCardNo(orgId, idCardNo);
+		if (!com.tianque.util.Arrays.hasObjectInArray(populationType,
+				PopulationType.AID_NEED_POPULATION)) {
+			if (null != aidNeedPopulation) {
+				aidNeedPopulation.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+				this.updateEmphasiseById(aidNeedPopulation.getId(),
+						IsEmphasis.IsNotEmphasis);
+			}
+		} else {
+			if (null == aidNeedPopulation) {
+				aidNeedPopulation = new AidNeedPopulation();
+				copyProperty(actualPopulation, population, aidNeedPopulation);
+				addAidNeedPopulation(aidNeedPopulation);
+			} else {
+				Long id = aidNeedPopulation.getId();
+				copyProperty(actualPopulation, population, aidNeedPopulation);
+				aidNeedPopulation.setId(id);
+				aidNeedPopulation.setIsEmphasis(IsEmphasis.Emphasis);
+				updateAidNeedPopulationBusiness(aidNeedPopulation);
+				this.updateEmphasiseById(aidNeedPopulation.getId(),
+						IsEmphasis.Emphasis);
+			}
+		}
+		return aidNeedPopulation == null
+				|| aidNeedPopulation.getIsEmphasis() == IsEmphasis.IsNotEmphasis
+						.longValue() ? null : aidNeedPopulation.getId();
+	}
+
+	private void copyProperty(ActualPopulation actualPopulation,
+			Map<String, Object> population, AidNeedPopulation aidNeedPopulation) {
+		copyProperties(aidNeedPopulation, actualPopulation);
+		aidNeedPopulation.setAidReason(Arrays.getPropertyDictFromArray(
+				population, "aidReason.id"));
+		aidNeedPopulation.setIsLowHouseholds(Arrays.getBooleanValueFromArray(
+				population, "isLowHouseholds"));
+		aidNeedPopulation.setDifficultCardNo(Arrays.getStringValueFromArray(
+				population, "difficultCardNo"));
+		aidNeedPopulation.setDifficultType(Arrays.getPropertyDictFromArray(
+				population, "difficultType.id"));
+		aidNeedPopulation.setSubsidiesAmount(Arrays.getStringValueFromArray(
+				population, "subsidiesAmount"));
+		aidNeedPopulation.setSubsidiesGetTime(Arrays.getDateValueFromArray(
+				population, "subsidiesGetTime"));
+		aidNeedPopulation.setSubsidiesStartTime(Arrays.getDateValueFromArray(
+				population, "subsidiesStartTime"));
+		aidNeedPopulation.setSubsidiesPopulation(Arrays
+				.getStringValueFromArray(population, "subsidiesPopulation"));
+		aidNeedPopulation.setSubsidiesArea(Arrays.getStringValueFromArray(
+				population, "subsidiesArea"));
+
+		aidNeedPopulation.setAttentionExtent(Arrays.getPropertyDictFromArray(
+				population, "attentionExtent.id"));
+		aidNeedPopulation
+				.setAttentionPopulationType(BaseInfoTables.AIDNEEDPOPULATION_KEY);
+	}
+
+	protected void copyProperties(Object dest, Object orig) {
+		try {
+			PropertyUtils.copyProperties(dest, orig);
+		} catch (Exception e) {
+			throw new ServiceValidationException("复制属性失败", e);
+		}
+	}
+
+	@Override
+	public void updatePopulationBaseInfo(ActualPopulation actualPopulation) {
+		AidNeedPopulation aidNeedPopulation = aidNeedPopulationDao
+				.getByOrgIdAndIdCardNo(actualPopulation.getOrganization()
+						.getId(), actualPopulation.getIdCardNo());
+		if (null == aidNeedPopulation) {
+			return;
+		}
+		Long id = aidNeedPopulation.getId();
+		copyProperties(aidNeedPopulation, actualPopulation);
+		aidNeedPopulation.setId(id);
+		updateAidNeedPopulation(aidNeedPopulation);
+	}
+
+	@Override
+	public void deletePopulationByPopulationId(Long populationId) {
+		if (null != populationId) {
+			this.deleteAidNeedPopulation(populationId);
+			this.deletePopulationTypeByPopulationIdAndType(populationId,
+					PopulationType.AID_NEED_POPULATION);
+		}
+	}
+
+	@Override
+	public AidNeedPopulation updateAidNeedPopulationBusiness(
+			AidNeedPopulation population) {
+		try {
+			if (!ExcelImportHelper.isImport.get()) {
+				ValidateResult specializedValidator = updateValidator
+						.validateSpecializedInfo(population);
+				if (specializedValidator.hasError()) {
+					throw new BusinessValidationException(
+							specializedValidator.getErrorMessages());
+				}
+			}
+			population = aidNeedPopulationDao.updateBusiness(population);
+			PageInfoCacheThreadLocal.update(
+					MemCacheConstant.getCachePageKey(AidNeedPopulation.class),
+					population, UpdateType.BUSINESS);
+			return population;
+		} catch (Exception e) {
+			logger.error(
+					"类AidNeedPopulationServiceImpl的updateAidNeedPopulationBusiness方法出现异常，原因：",
+					e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("修改需救助人员业务信息出现错误");
+			} else {
+				return null;
+			}
+		}
+	}
+
+	@Override
+	public AidNeedPopulation updateAidNeedPopulationBaseInfo(
+			AidNeedPopulation population) {
+		try {
+			if (!ExcelImportHelper.isImport.get()) {
+				ValidateResult baseDataValidator = updateValidator
+						.validateBaseInfo(population);
+				if (baseDataValidator.hasError()) {
+					throw new BusinessValidationException(
+							baseDataValidator.getErrorMessages());
+				}
+			}
+			population.setIdCardNo(population.getIdCardNo().toUpperCase());
+			autoFillBirthday(population);
+			autoFillChinesePinyin(population);
+			autoFillOrganizationInternalCode(population);
+			if (population.isDeath()) {
+				population.setLogoutDetail(buildLogoutDetail(population
+						.isDeath()));
+				// 缓存计数器
+				PageInfoCacheThreadLocal.decrease(MemCacheConstant
+						.getCachePageKey(AidNeedPopulation.class
+								.getSimpleName()), population, 1);
+			}
+			contructCurrentAddress(population);
+			Countrymen temp = populationRelationService.businessOption(
+					population, population.getActualPopulationType());
+			population.setHouseId(temp.getHouseId());
+			rebuildHouseAddress(population);
+			aidNeedPopulationDao.updateTableUpdateDateById(population.getId());
+		} catch (Exception e) {
+			logger.error(
+					"类AidNeedPopulationServiceImpl的updateAidNeedPopulationBaseInfo方法出现异常，原因：",
+					e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("修改需救助人员业务信息出现错误");
+			} else {
+				return null;
+			}
+		}
+		return population;
+	}
+
+	private LogoutDetail buildLogoutDetail(Boolean death) {
+		LogoutDetail result = new LogoutDetail();
+		if (death) {
+			result.setLogoutDate(new Date());
+			result.setLogoutReason(LogoutDetail.LOGOUT_REASON_FOR_DEATH);
+			result.setLogout(IsEmphasis.IsNotEmphasis);
+		} else if (!death) {
+			result.setLogout(IsEmphasis.Emphasis);
+		}
+		return result;
+	}
+
+	@Override
+	public void deleteAidNeedPopulationByIds(Long[] ids) {
+		if (ids == null || ids.length == 0) {
+			throw new BusinessValidationException("传入参数为空");
+		}
+		try {
+			for (int i = 0; i < ids.length; i++) {
+				deleteAidNeedPopulation(ids[i]);
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类AidNeedPopulationServiceImpl的deleteAidNeedPopulationByIds方法出现异常，原因：",
+					"删除需救助人员信息出现错误", e);
+		}
+	}
+
+	@Override
+	public void updateDeathByIds(Long[] analyzePopulationIds, boolean death) {
+		for (int i = 0; i < analyzePopulationIds.length; i++) {
+			AidNeedPopulation population = this
+					.getAidNeedPopulationById(analyzePopulationIds[i]);
+			updateLogOutByPopulationTypeAndId(
+					LogoutDetail.buildLogoutDetail(death),
+					BaseInfoTables.AIDNEEDPOPULATION_KEY, population.getId());
+			baseInfoService.updateDeathStateById(population.getBaseInfoId(),
+					death, population.getIdCardNo(), population
+							.getOrganization().getId(), population
+							.getOrgInternalCode(),
+					NewBaseInfoTables.AIDNEEDPOPULATION_KEY);
+			// 缓存计数器
+			PageInfoCacheThreadLocal.increment(MemCacheConstant
+					.getCachePageKey(AidNeedPopulation.class.getSimpleName()),
+					population, 1);
+		}
+
+	}
+
+	private void updateEmphasiseById(Long id, Long isEmphasis) {
+		LogoutDetail logoutDetail = new LogoutDetail();
+		logoutDetail.setLogout(isEmphasis);
+		updateLogOutByPopulationTypeAndId(logoutDetail,
+				BaseInfoTables.AIDNEEDPOPULATION_KEY, id);
+	}
+
+	@Override
+	public AidNeedPopulation getAidNeedPopulationByIdCardNo(String idCardNo,
+			Long orgId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return null;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		List<String> list = new ArrayList<String>();
+		list.add(idCardNo);
+		if (idCardNo.length() == 18) {
+			list.add(IdCardUtil.idCardNo18to15(idCardNo));
+		} else if (idCardNo.length() == 15) {
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+		}
+		return aidNeedPopulationDao.getByIdCard(list, orgId);
+	}
+
+	@Override
+	public AidNeedPopulation addAidNeedPopulationBaseInfo(
+			AidNeedPopulation aidNeedPopulation) {
+		ValidateResult aidNeedValidator = domainValidator
+				.validateBaseInfo(aidNeedPopulation);
+		if (aidNeedValidator.hasError()) {
+			throw new BusinessValidationException(
+					aidNeedValidator.getErrorMessages());
+		} else if (hasDuplicateAidNeedPopulation(aidNeedPopulation
+				.getOrganization().getId(), aidNeedPopulation.getIdCardNo(),
+				aidNeedPopulation.getId())) {
+			throw new BusinessValidationException("该网格下已存在相同身份证号码");
+		}
+		try {
+			if (checkDataExitInCache(aidNeedPopulation,
+					MemCacheConstant.CACHE_ADDAIDNEEDPOPULATIONBASEINFO,
+					CACHE_ADDAIDNEEDPOPULATIONBASEINFO_VALUE)) {
+				return aidNeedPopulation;
+			}
+			return add(aidNeedPopulation);
+		} catch (Exception e) {
+			logger.error("新增出错", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(aidNeedPopulation,
+					MemCacheConstant.CACHE_ADDAIDNEEDPOPULATIONBASEINFO);
+		}
+	}
+
+	// fateson add move function start
+	@Override
+	public void moveTempByIds(String[] peoperIds, Long targetOrgId) {
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(targetOrgId);
+		for (String id : peoperIds) {
+			Long peoperId = Long.parseLong(id);
+			if (!StringUtils.isEmpty(id)) {
+				// get peoper
+				AidNeedPopulation people = getAidNeedPopulationById(peoperId);
+				if (people == null) {
+					continue;
+				}
+				Long currentOrgid = people.getOrganization().getId();
+				people.setOrganization(organization);
+				// String orgCode = people.getOrgInternalCode();
+				String orgCode = people.getOrganization().getOrgInternalCode();
+				String idCardNo = people.getIdCardNo();
+				// 验证目标组织机构是否存在这个人
+				boolean result = hasDuplicateAidNeedPopulation(targetOrgId,
+						idCardNo, peoperId);
+				if (result) {
+					// 把存在的旧数据成为修改现在现在要移动的新数据
+					if (currentOrgid.longValue() != targetOrgId.longValue()) {
+						updateMovePersonByIdCardNo(idCardNo, targetOrgId,
+								people);
+						// 删掉要移动的数据 删除掉不在同一个网格
+						deleteAidNeedPopulation(peoperId);
+					}
+
+				} else {
+					// 转移网格数据
+					aidNeedPopulationDao.updateData(id, targetOrgId, orgCode,
+							people);
+				}
+			}
+
+		}
+	}
+
+	public void updateMovePersonByIdCardNo(String idcard, Long targetorgId,
+			AidNeedPopulation people) {
+		List<String> cardnos = CardNoHelper.createIdCardNo(idcard);
+		// 获取
+		AidNeedPopulation older = aidNeedPopulationDao.getByIdCard(cardnos,
+				targetorgId);
+		people.setId(older.getId());
+		people.setCreateDate(older.getCreateDate());
+		people.setCreateUser(older.getCreateUser());
+		aidNeedPopulationDao.update(people);
+	}
+
+	@Override
+	public void deleteBusinessPopulationDuplicate(Long id) {
+		this.deleteAidNeedPopulation(id);
+	}
+}

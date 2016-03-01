@@ -1,0 +1,116 @@
+package com.tianque.plugin.taskList.daoImpl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.dao.AbstractBaseDao;
+import com.tianque.plugin.taskList.constants.Constants;
+import com.tianque.plugin.taskList.dao.PositiveInfoRecordDao;
+import com.tianque.plugin.taskList.domain.PositiveInfoRecord;
+import com.tianque.plugin.taskList.domain.PositiveInfoRecordVo;
+
+@Repository("positiveInfoRecordDao")
+public class PositiveInfoRecordDaoImpl extends AbstractBaseDao implements PositiveInfoRecordDao {
+
+	@Override
+	public PositiveInfoRecord addPositiveInfoRecord(PositiveInfoRecord positiveInfoRecord) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"positiveInfoRecord.addPositiveInfoRecord", positiveInfoRecord);
+		return getPositiveInfoRecordById(id);
+	}
+
+	@Override
+	public PositiveInfoRecord getPositiveInfoRecordById(Long id) {
+		return (PositiveInfoRecord) getSqlMapClientTemplate().queryForObject(
+				"positiveInfoRecord.getPositiveInfoRecordById", id);
+	}
+
+	@Override
+	public PageInfo<PositiveInfoRecord> findPositiveInfoRecords(
+			PositiveInfoRecordVo positiveInfoRecordVo, Integer pageNum, Integer pageSize,
+			String sidx, String sord) {
+		Map<String, Object> map = creatPositiveInfoRecordMap(positiveInfoRecordVo, sidx, sord);
+		map.put("modulekey", Constants.REPLY_POSITIVEINFORECORD_KEY);
+		Integer countNum = (Integer) getSqlMapClientTemplate().queryForObject(
+				"positiveInfoRecord.countFindPositiveInfoRecords", map);
+		List<PositiveInfoRecord> list = new ArrayList<PositiveInfoRecord>();
+		if (pageNum == null || pageSize == null) {
+			list = getSqlMapClientTemplate().queryForList(
+					"positiveInfoRecord.findPositiveInfoRecords", map);
+			return new PageInfo<PositiveInfoRecord>(1, countNum, countNum, list);
+		} else {
+			list = getSqlMapClientTemplate().queryForList(
+					"positiveInfoRecord.findPositiveInfoRecords", map, (pageNum - 1) * pageSize,
+					pageSize);
+			return new PageInfo<PositiveInfoRecord>(pageNum, pageSize, countNum, list);
+		}
+	}
+
+	@Override
+	public Integer countPositiveInfoRecords(PositiveInfoRecord positiveInfoRecord) {
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"positiveInfoRecord.countFindPositiveInfoRecords", positiveInfoRecord);
+	}
+
+	@Override
+	public PositiveInfoRecord updatePositiveInfoRecord(PositiveInfoRecord positiveInfoRecord) {
+		getSqlMapClientTemplate().update("positiveInfoRecord.updatePositiveInfoRecord",
+				positiveInfoRecord);
+		return getPositiveInfoRecordById(positiveInfoRecord.getId());
+	}
+
+	@Override
+	public Integer deletePositiveInfoRecords(List<Long> ids) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("ids", ids);
+		return getSqlMapClientTemplate().delete("positiveInfoRecord.deletePositiveInfoRecord", map);
+	}
+
+	private Map<String, Object> creatPositiveInfoRecordMap(
+			PositiveInfoRecordVo positiveInfoRecordVo, String sidx, String sord) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("orgCode", positiveInfoRecordVo.getOrganization().getOrgInternalCode());
+		map.put("address", positiveInfoRecordVo.getAddress());
+		map.put("name", positiveInfoRecordVo.getName());
+		map.put("fastSearchCondition", positiveInfoRecordVo.getFastSearchCondition());
+		map.put("signMemberName", positiveInfoRecordVo.getSignMemberName());
+		map.put("status", positiveInfoRecordVo.getStatus());
+		map.put("hasReplay", positiveInfoRecordVo.getHasReplay());
+		map.put("hasException", positiveInfoRecordVo.getHasException());
+		map.put("mode", positiveInfoRecordVo.getMode());
+		map.put("funOrgId", positiveInfoRecordVo.getFunOrgId());
+		map.put("helpPeople", positiveInfoRecordVo.getHelpPeople());
+		map.put("idCard", positiveInfoRecordVo.getIdCard());
+		map.put("phone", positiveInfoRecordVo.getPhone());
+		map.put("positiveInfoId", positiveInfoRecordVo.getPositiveInfoId());
+		if (positiveInfoRecordVo.getRecordEndDate() != null) {
+			map.put("recordEndDate",
+					CalendarUtil.getLastDaySecoend(positiveInfoRecordVo.getRecordEndDate()));
+		}
+		map.put("recordStartDate", positiveInfoRecordVo.getRecordStartDate());
+		map.put("signStartDate", positiveInfoRecordVo.getSignStartDate());
+		if (positiveInfoRecordVo.getSignEndDate() != null) {
+			map.put("signEndDate",
+					CalendarUtil.getLastDaySecoend(positiveInfoRecordVo.getSignEndDate()));
+		}
+		map.put("sortField", sidx);
+		map.put("order", sord);
+		return map;
+	}
+
+	@Override
+	public List<PositiveInfoRecord> findPositiveInfoRecordsByName(
+			PositiveInfoRecordVo positiveInfoRecordVo) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("orgCode", positiveInfoRecordVo.getOrganization().getOrgInternalCode());
+		map.put("name", positiveInfoRecordVo.getAddress());
+		return getSqlMapClientTemplate().queryForList(
+				"positiveInfoRecord.findPositiveInfoRecordsByName", map);
+	}
+}

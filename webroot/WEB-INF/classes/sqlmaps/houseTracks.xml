@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="houseTracks">
+   <typeAlias alias="HouseTracks" type="com.tianque.baseInfo.houseTrack.domain.HouseTracks"/>
+		
+	<resultMap class="HouseTracks" id="houseTracksResult">
+		<result property="id" column="id" />
+		<result property="houseId" column="houseId"/>
+		<result property="houseAddress" column="houseAddress" />
+		<result property="houseType" column="houseType"/>
+		<result property="houseinitType" column="houseinitType"/>
+		<result property="houseOrganization.id" column="houseOrgId" />
+		<result property="houseOrgInternalCode" column="houseOrgInternalCode" />
+		<result property="oldHouseOrganization.id" column="oldHouseOrgId" />
+		<result property="operationType" column="operationType" />
+		<result property="operationContent" column="operationContent" />
+		<result property="operationUserId" column="operationUserId" />
+		<result property="operationOrganization.id" column="operationOrgId" />
+		<result property="operationDate" column="operationDate" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+	</resultMap>
+
+	<select id="countHouseTracksByHouseId" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from houseTracks where houseId=#houseId#
+	</select>
+	
+	<select id="findHouseTracksByHouseId" parameterClass="java.util.Map" resultMap="houseTracksResult">
+		<![CDATA[SELECT * FROM houseTracks where houseId=#houseId# order by operationDate desc]]>
+	</select>
+
+	<insert id="addHouseTracks" parameterClass="HouseTracks">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_houseTracks.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into houseTracks (id,houseId,houseAddress,houseType,houseinitType,houseOrgId,houseOrgInternalCode,oldHouseOrgId, 
+		 operationType,operationContent,operationUserId,operationOrgId,operationDate,createUser, createDate)
+		values (#id#,#houseId#,#houseAddress#,#houseType#,#houseinitType#,#houseOrganization.id#, #houseOrgInternalCode#, #oldHouseOrganization.id#, 
+		#operationType#,#operationContent#,#operationUserId#, #operationOrganization.id#,#operationDate#,#createUser#,#createDate#)
+	</insert>
+
+	<select id="getHouseTracksById" parameterClass="java.lang.Long" resultMap="houseTracksResult">
+		<![CDATA[SELECT * FROM houseTracks where id = #value#]]>
+	</select>
+</sqlMap>

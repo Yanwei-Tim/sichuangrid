@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="residentPopulations">
+	<typeAlias alias="ResidentPopulations" type="com.tianque.domain.ResidentPopulations"/>
+	
+	<resultMap id="residentPopulations" class="ResidentPopulations">
+		<result column="id" property="id" />
+		<result column="idCard" property="idCardNo" />
+		<result column="personName" property="name" />
+		<result column="personSex" property="sex" />
+		<result column="homeAddress" property="nativePlaceAddress" />
+	</resultMap>
+
+	<select id="findResidentPopulationsByCardNoAndName" parameterClass="java.util.Map" resultMap="residentPopulations">
+		select * from residentPopulations where 1=1
+		<isNotNull prepend="and" property="name">
+			personName=#name#
+		</isNotNull>
+		<isNotNull prepend="and" property="idCardNo">
+			upper(idCard)=upper(#idCardNo#)
+		</isNotNull>
+	</select>
+
+</sqlMap>

@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="searchActualCompany">
+	<typeAlias alias="SearchActualCompanyVo" type="com.tianque.domain.vo.SearchActualCompanyVo"/>
+	<sql id="sql_where">
+		from ActualCompany where orgInternalCode like #orgInternalCode#||'%'
+		<isPropertyAvailable property="companyName">
+			<isNotNull property="companyName">
+				<isNotEmpty property="companyName" prepend=" and ">
+					(companyName like #companyName#||'%' or fullPinyin like #companyName#||'%' or simplePinyin like #companyName#||'%')
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="companyAddress">
+			<isNotNull property="companyAddress">
+				<isNotEmpty property="companyAddress" prepend=" and ">
+					companyAddress like #companyAddress#||'%'
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="companyType">
+			<isNotNull property="companyType">
+				<isNotEmpty property="companyType" prepend=" and ">
+					companyType = #companyType#
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="isKey">
+			<isNotNull property="isKey" prepend=" and ">
+				<isEqual property="isKey" compareValue="true">
+					isKey = #isKey#
+				</isEqual>	
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="corporateRepresentative">
+			<isNotNull property="corporateRepresentative">
+				<isNotEmpty property="corporateRepresentative" prepend=" and ">
+					corporateRepresentative like #corporateRepresentative#||'%'
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="idCardNo">
+			<isNotNull property="idCardNo">
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="telephone">
+			<isNotNull property="telephone">
+				<isNotEmpty property="telephone" prepend=" and ">
+					telephone like #telephone#||'%'
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="businessLicenseNo">
+			<isNotNull property="businessLicenseNo">
+				<isNotEmpty property="businessLicenseNo" prepend=" and ">
+					businessLicenseNo like #businessLicenseNo#||'%'
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="orgCode">
+			<isNotNull property="orgCode">
+				<isNotEmpty property="orgCode" prepend=" and ">
+					orgCode like #orgCode#||'%'
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="registeredCapitalStart">
+			<isNotNull property="registeredCapitalStart">
+				<isNotEmpty property="registeredCapitalStart" prepend=" and ">
+					<![CDATA[ registeredCapital >= #registeredCapitalStart# ]]>
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="registeredCapitalEnd">
+			<isNotNull property="registeredCapitalEnd">
+				<isNotEmpty property="registeredCapitalEnd" prepend=" and ">
+					<![CDATA[ registeredCapital <= #registeredCapitalEnd# ]]>
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="economicNature">
+			<isNotNull property="economicNature">
+				<isNotEmpty property="economicNature" prepend=" and ">
+					economicNature = #economicNature#
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="expiryDateStart">
+			<isNotNull property="expiryDateStart">
+				<isNotEmpty property="expiryDateStart" prepend=" and ">
+					<![CDATA[ expiryDate >= #expiryDateStart# ]]>
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="expiryDateEnd">
+			<isNotNull property="expiryDateEnd">
+				<isNotEmpty property="expiryDateEnd" prepend=" and ">
+					<![CDATA[ expiryDate <= #expiryDateEnd# ]]>
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="registrationDateStart">
+			<isNotNull property="registrationDateStart">
+				<isNotEmpty property="registrationDateStart" prepend=" and ">
+					<![CDATA[ registrationDate >= #registrationDateStart# ]]>
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="registrationDateEnd">
+			<isNotNull property="registrationDateEnd">
+				<isNotEmpty property="registrationDateEnd" prepend=" and ">
+					<![CDATA[ registrationDate <= #registrationDateEnd# ]]>
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="businessScope">
+			<isNotNull property="businessScope">
+				<isNotEmpty property="businessScope" prepend=" and ">
+					businessScope like #businessScope#||'%'
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="registrationAddress">
+			<isNotNull property="registrationAddress">
+				<isNotEmpty property="registrationAddress" prepend=" and ">
+					registrationAddress like #registrationAddress#||'%'
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="employeesNumStart">
+			<isNotNull property="employeesNumStart">
+				<isNotEmpty property="employeesNumStart" prepend=" and ">
+					<![CDATA[ employeesNum >= #employeesNumStart# ]]>
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="employeesNumEnd">
+			<isNotNull property="employeesNumEnd">
+				<isNotEmpty property="employeesNumEnd" prepend=" and ">
+					<![CDATA[ employeesNum <= #employeesNumEnd# ]]>
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="competentDepartment">
+			<isNotNull property="competentDepartment">
+				<isNotEmpty property="competentDepartment" prepend=" and ">
+					competentDepartment like #competentDepartment#||'%'
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="supervisoryLevel">
+			<isNotNull property="supervisoryLevel">
+				<isNotEmpty property="supervisoryLevel" prepend=" and ">
+					supervisoryLevel = #supervisoryLevel#
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="supervisoryDepartment">
+			<isNotNull property="supervisoryDepartment">
+				<isNotEmpty property="supervisoryDepartment" prepend=" and ">
+					supervisoryDepartment like #supervisoryDepartment#||'%'
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="fireFightingLevel">
+			<isNotNull property="fireFightingLevel">
+				<isNotEmpty property="fireFightingLevel" prepend=" and ">
+					fireFightingLevel = #fireFightingLevel#
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="securityChief">
+			<isNotNull property="securityChief">
+				<isNotEmpty property="securityChief" prepend=" and ">
+					securityChief like #securityChief#||'%'
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend="and">
+						isEmphasis = #isEmphasis#
+				</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="hasServiceTeamMember">
+		<isNotNull property="hasServiceTeamMember" prepend=" and ">
+			<isEqual property="hasServiceTeamMember" compareValue="0">
+				id in (select objectId from serviceMemberHasObject where objectType=#objectType#  )
+			</isEqual>	
+			<isEqual property="hasServiceTeamMember" compareValue="1">
+				id not in (select objectId from serviceMemberHasObject where objectType=#objectType#  )
+			</isEqual>
+			<isEqual property="hasServiceTeamMember" compareValue="-1">
+					1=1	 
+				</isEqual>
+		</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="hasServiceRecord">
+		<isNotNull property="hasServiceRecord" prepend=" and ">
+			<isEqual property="hasServiceRecord" compareValue="0">
+				id in (select objectId from serviceRecordRelyObject where objectType=#objectType#  )
+			</isEqual>	
+			<isEqual property="hasServiceRecord" compareValue="1">
+				id not in (select objectId from serviceRecordRelyObject where objectType=#objectType#  )
+			</isEqual>
+			<isEqual property="hasServiceRecord" compareValue="-1">
+					1=1	 
+				</isEqual>
+		</isNotNull>
+		</isPropertyAvailable>
+	</sql>
+	<select id="countSearch" parameterClass="SearchActualCompanyVo" resultClass="java.lang.Integer">
+		select count(*)
+		<include refid="sql_where"/> 
+	</select>
+	<select id="search" parameterClass="SearchActualCompanyVo" resultMap="actualCompany.actualCompanyResultForList">
+		select ActualCompany.*,'$objectType$' as locationType 
+		<include refid="sql_where"/> 
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+</sqlMap>

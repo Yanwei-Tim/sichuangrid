@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="workingRecord">
+	<typeAlias alias="WorkingRecord" type="com.tianque.working.domain.WorkingRecord" />
+	<typeAlias alias="EmphasisSafetyDetail" type="com.tianque.domain.workingRecord.EmphasisSafetyDetail" />
+	<typeAlias alias="DisputEsexamine" type="com.tianque.domain.workingRecord.DisputEsexamine" />
+	<typeAlias alias="ReportWorkingRecord" type="com.tianque.working.domain.ReportWorkingRecord" />
+	<typeAlias alias="KeyAreasOfInvestigationInfoWorkingRecord" type="com.tianque.domain.workingRecord.KeyAreasOfInvestigationInfoWorkingRecord" />
+	<typeAlias alias="SignificantIssuedealWorkingRecord" type="com.tianque.working.domain.SignificantIssuedealWorkingRecord" />
+	<typeAlias alias="DailyLogVo" type="com.tianque.controller.vo.DailyLogVo" />
+	<typeAlias alias="SearchWorkingRecordVo" type="com.tianque.working.vo.SearchWorkingRecordVo" />
+
+	<resultMap id="workingRecordResult" class="WorkingRecord">
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="name" property="name" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result column="subject" property="subject" />
+		<result column="proceedSite" property="proceedSite" />
+		<result column="participant" property="participant" />
+		<result column="dailyDirectoryId" property="dailyDirectory.id" />
+		<result column="dailyYearId" property="dailyYear.id" />
+		<result column="dealDate" property="dealDate" />
+		<result column="dailyLogType" property="dailyLogType.id" />
+		<result column="submitState" property="submitState.id" />
+		<result column="submitTime" property="submitTime" />
+		<result column="backTime" property="backTime" />
+		<result column="workingUnit" property="workingUnit"/>
+		<result column="fileNo" property="fileNo"/>
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+		<result column="content" property="content" />
+		<result column="expiredEntering" property="expiredEntering" />
+	</resultMap>
+	<resultMap id="reportWorkingRecordResult" class="ReportWorkingRecord" extends="workingRecordResult">
+		<result column="content" property="content" />
+		<result column="reportTime" property="reportTime" />
+		<result column="dealPerson" property="dealPerson" />
+		<result column="lister" property="lister" />
+	</resultMap>
+	<resultMap id="reportWorkingRecordNotHaveDetail" class="ReportWorkingRecord" extends="workingRecordResult">
+		<result column="dealPerson" property="dealPerson" />
+		<result column="reportTime" property="reportTime" />
+		<result column="lister" property="lister" />
+	</resultMap>
+	<resultMap id="reportEmphasisSafetyDetail" class="EmphasisSafetyDetail" extends="workingRecordResult">
+		<result column="dealPerson" property="dealPerson" />
+		<result column="lister" property="lister" />
+	</resultMap>
+	<resultMap id="reportDisputEsexamine" class="DisputEsexamine" extends="workingRecordResult">
+		<result column="dealPerson" property="dealPerson" />
+		<result column="lister" property="lister" />
+	</resultMap>
+	<resultMap id="significantIssuedealWorkingRecordResult" class="SignificantIssuedealWorkingRecord" extends="workingRecordResult">
+		<result column="content" property="content" />
+		<result column="significantIssuedealReason" property="significantIssuedealReason" />
+		<result column="abilityUnit" property="abilityUnit" />
+		<result column="abilityLeading" property="abilityLeading" />
+		<result column="workingUnit" property="workingUnit" />
+		<result column="fromId" property="fromSignificantIssuedealWorkingRecord.id" />
+	</resultMap>
+	<resultMap id="keyAreasOfInvestigationInfoWorkingRecordResult" class="KeyAreasOfInvestigationInfoWorkingRecord" extends="workingRecordResult">
+		<result column="content" property="content" />
+		<result column="areaName" property="areaName" />
+		<result column="mainProblem" property="mainProblem" />
+		<result column="policiesAndMeasures" property="policiesAndMeasures" />
+		<result column="fromId" property="fromKeyAreasOfInvestigationInfoWorkingRecord.id" />
+	</resultMap>
+	
+	<select id="countSubTablesValue" parameterClass="java.lang.Long" resultClass="java.lang.Long">
+		select count(id) from (
+		select id from workingRecords where DAILYDIRECTORYID = #directoryId#
+   		 union all
+    	select id from KeyAreasOfInvestigationInfos where DIRECTORYID = #directoryId#
+    	 union all
+    	select id from SignificantIssuedeals where DIRECTORYID = #directoryId#
+		)
+	</select>
+	
+	<select id="findWorkingRecordByDailyDirectoryId" parameterClass="java.util.Map" resultMap="workingRecordResult">
+		select * from workingRecords where 
+		<isNotEmpty prepend=" " property="dailyDirectoryId">
+		dailyDirectoryId=#dailyDirectoryId#
+		</isNotEmpty>
+		<isNotEmpty prepend=" and" property="organizationId">
+		orgId=#organizationId#
+		</isNotEmpty>
+	</select>
+	
+	<resultMap id="dailyLogVoResult" class="DailyLogVo">
+		<result column="name" property="name" />
+		<result column="id" property="id" />
+		<result column="dailyLogType" property="dailyLogType" />
+		<result column="DIRECTORYID" property="dailyDirectory.id" />
+	</resultMap>
+	
+	<select id="findDailyLogVoByDetailedRuleId" parameterClass="java.util.Map"
+		resultMap="dailyLogVoResult">
+	<![CDATA[
+	select wkr.name name,wkr.DAILYDIRECTORYID DIRECTORYID,wkr.id id,reone.dailyLogType dailyLogType
+	from workingrecords wkr,detailedRuleDailyLogRelas reone
+	where wkr.id = reone.dailyLogId 
+	and reone.detailedRuleId= #detailedRuleId#
+	and reone.dailyLogType < #keyAreasOfInvestigationInfoType#
+	union all
+	select inv.AREANAME name,inv.DIRECTORYID DIRECTORYID,inv.id id,retwo.dailyLogType dailyLogType
+	from keyAreasOfInvestigationInfos inv,detailedRuleDailyLogRelas retwo 
+	where inv.id = retwo.dailyLogId 
+	and retwo.detailedRuleId= #detailedRuleId#
+	and retwo.dailyLogType = #keyAreasOfInvestigationInfoType#
+	union all
+	select sign.ADDRESS name,sign.DIRECTORYID DIRECTORYID,sign.id id,rethr.dailyLogType dailyLogType 
+	from significantIssuedeals sign,detailedRuleDailyLogRelas rethr 
+	where sign.id = rethr.dailyLogId 
+	and rethr.detailedRuleId= #detailedRuleId#
+	and rethr.dailyLogType = #significantIssuedealType#
+	]]>
+	</select>
+	
+	
+	<sql id="byOrgCodeAndDailyDirectoryId">
+		<dynamic prepend="where">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode = #orgInternalCode#
+				</isNotNull>
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId in ( $dailyDirectoryId$ )
+				</isNotNull>
+		</dynamic>
+	</sql>
+	<select id="countWorkingRecordByOrgCodeAndDailyDirectoryId" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from workingRecords 
+		<include refid="byOrgCodeAndDailyDirectoryId"/>
+	</select>
+	<select id="findWorkingRecordByOrgCodeAndDailyDirectoryId" parameterClass="java.util.Map" resultMap="workingRecordResult">
+		select * from workingRecords 
+		<include refid="byOrgCodeAndDailyDirectoryId"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<sql id="byOrgCodeAndDailyDirectoryIdAllLevel">
+		<dynamic prepend="where">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId in ( $dailyDirectoryId$ )
+				</isNotNull>
+		</dynamic>
+	</sql>
+	<select id="countWorkingRecordByOrgCodeAndDailyDirectoryIdAllLevel" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from workingRecords 
+		<include refid="byOrgCodeAndDailyDirectoryIdAllLevel"/>
+	</select>
+	<select id="findWorkingRecordByOrgCodeAndDailyDirectoryIdAllLevel" parameterClass="java.util.Map" resultMap="workingRecordResult">
+		select * from workingRecords 
+		<include refid="byOrgCodeAndDailyDirectoryIdAllLevel"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<insert id="addWorkingRecord" parameterClass="WorkingRecord">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_workingRecords.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into workingRecords
+		(id,orgId,orgInternalCode,name,simplePinyin,fullPinyin,dailyDirectoryId,dailyYearId,dealDate,content,
+		dailyLogType,submitState,submitTime,backTime,
+		proceedSite,participant,subject,workingUnit,fileNo,expiredEntering,createDate,createUser)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#name#,#simplePinyin#,#fullPinyin#,#dailyDirectory.id#,
+		#dailyYear.id#,#dealDate#,#content#,#dailyLogType.id#,#submitState.id#,#submitTime#,
+		#backTime#,#proceedSite#,#participant#,#subject#,#workingUnit#,#fileNo#,#expiredEntering#,
+		#createDate#,#createUser#)
+	</insert>
+	
+	
+	<update id="updateWorkingRecord" parameterClass="WorkingRecord">
+		update workingRecords set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="fullPinyin">
+				simplePinyin=#simplePinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="fullPinyin">
+				fullPinyin=#fullPinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="dailyDirectory">
+				dailyDirectoryId=#dailyDirectory.id#
+			</isNotNull>
+			<isNotNull prepend="," property="dailyYear">
+				dailyYearId=#dailyYear.id#
+			</isNotNull>
+			<isNotNull prepend="," property="dealDate">
+				dealDate=#dealDate#
+			</isNotNull>
+			<isNotNull prepend="," property="content">
+				content=#content#
+			</isNotNull>
+			<isNotNull prepend="," property="dailyLogType">
+				dailyLogType=#dailyLogType.id#
+			</isNotNull>
+			<isNotNull prepend="," property="submitState">
+				submitState=#submitState.id#
+			</isNotNull>
+			<isNotNull prepend="," property="submitTime">
+				submitTime=#submitTime#
+			</isNotNull>
+			<isNotNull prepend="," property="backTime">
+				backTime=#backTime#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="proceedSite">
+				proceedSite=#proceedSite#
+			</isNotNull>
+			<isNotNull prepend="," property="participant">
+				participant=#participant#
+			</isNotNull>
+			<isNotNull prepend="," property="subject">
+				subject=#subject#
+			</isNotNull>
+			<isNotNull prepend="," property="workingUnit">
+				workingUnit=#workingUnit#
+			</isNotNull>
+			<isNotNull prepend="," property="fileNo">
+				fileNo=#fileNo#
+			</isNotNull>
+			<isNotNull prepend="," property="expiredEntering">
+				expiredEntering=#expiredEntering#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+	
+	
+	<delete id="deleteWorkingRecordById" parameterClass="java.lang.Long">
+		delete from workingRecords where id=#value#
+	</delete>
+	
+	
+	<sql id="bySearchVo">
+		from workingRecords
+		<dynamic prepend="where">
+			<isEqual property="displayLevel" compareValue="true">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode = #orgInternalCode#
+				</isNotNull>
+			</isEqual>
+			<isEqual property="displayLevel" compareValue="false">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isEqual>
+			<isNotNull property="dailyDirectoryId" prepend=" and ">
+				dailyDirectoryId in ( $dailyDirectoryId$ )
+			</isNotNull>
+			<isNotEmpty property="proceedSite" prepend=" and ">
+				proceedSite like '%'||#proceedSite#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="subject" prepend=" and ">
+				subject like '%'||#subject#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="workingUnit" prepend=" and ">
+				workingUnit like '%'||#workingUnit#||'%'
+			</isNotEmpty>
+			<isNotNull property="workingRecordType" prepend=" and ">
+				dailyLogType = #workingRecordType#
+			</isNotNull>
+			<isNotNull property="name" prepend=" and ">
+				(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+			</isNotNull>
+			<isNotNull property="createDateEnd" prepend=" and ">
+				createDate <![CDATA[<=]]>
+				#createDateEnd#
+			</isNotNull>
+			<isNotNull property="createDateBegin" prepend=" and ">
+				createDate <![CDATA[>=]]>
+				#createDateBegin#
+			</isNotNull>
+		</dynamic>
+	</sql>
+	<sql id="bySearchVoWithAttach">
+		from 
+		(select * from workingRecords w 
+		<dynamic prepend="where">
+			<isEqual property="displayLevel" compareValue="true">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode = #orgInternalCode#
+				</isNotNull>
+			</isEqual>
+			<isEqual property="displayLevel" compareValue="false">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isEqual>
+			<isNotNull property="dailyDirectoryId" prepend=" and ">
+				w.dailyDirectoryId in ( $dailyDirectoryId$ )
+			</isNotNull>
+			<isNotEmpty property="proceedSite" prepend=" and ">
+				w.proceedSite like '%'||#proceedSite#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="subject" prepend=" and ">
+				w.subject like '%'||#subject#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="workingUnit" prepend=" and ">
+				w.workingUnit like '%'||#workingUnit#||'%'
+			</isNotEmpty>
+			<isNotNull property="workingRecordType" prepend=" and ">
+				w.dailyLogType = #workingRecordType#
+			</isNotNull>
+			<isNotNull property="name" prepend=" and ">
+				(w.name like #name#||'%' or w.fullPinyin like #name#||'%' or w.simplePinyin like #name#||'%')
+			</isNotNull>
+			<isNotNull property="createDateEnd" prepend=" and ">
+				w.createDate <![CDATA[<=]]>
+				#createDateEnd#
+			</isNotNull>
+			<isNotNull property="createDateBegin" prepend=" and ">
+				w.createDate <![CDATA[>=]]>
+				#createDateBegin#
+			</isNotNull>
+		</dynamic>
+		) a,
+		(select d.workingrecordid  from dailyLogAttachFiles d group by d.workingrecordid) b 
+		where a.id = b.workingrecordid
+		
+	</sql>
+	<sql id="bySearchVoWithOutAttach">
+		from workingRecords w where w.id not in 
+		(select d.workingrecordid  from dailyLogAttachFiles d group by d.workingrecordid)
+		<dynamic>
+			<isEqual property="displayLevel" compareValue="true">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode = #orgInternalCode#
+				</isNotNull>
+			</isEqual>
+			<isEqual property="displayLevel" compareValue="false">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isEqual>
+			<isNotNull property="dailyDirectoryId" prepend=" and ">
+				w.dailyDirectoryId in ( $dailyDirectoryId$ )
+			</isNotNull>
+			<isNotEmpty property="proceedSite" prepend=" and ">
+				w.proceedSite like '%'||#proceedSite#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="subject" prepend=" and ">
+				w.subject like '%'||#subject#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="workingUnit" prepend=" and ">
+				w.workingUnit like '%'||#workingUnit#||'%'
+			</isNotEmpty>
+			<isNotNull property="workingRecordType" prepend=" and ">
+				w.dailyLogType = #workingRecordType#
+			</isNotNull>
+			<isNotNull property="name" prepend=" and ">
+				(w.name like #name#||'%' or w.fullPinyin like #name#||'%' or w.simplePinyin like #name#||'%')
+			</isNotNull>
+			<isNotNull property="createDateEnd" prepend=" and ">
+				w.createDate <![CDATA[<=]]>
+				#createDateEnd#
+			</isNotNull>
+			<isNotNull property="createDateBegin" prepend=" and ">
+				w.createDate <![CDATA[>=]]>
+				#createDateBegin#
+			</isNotNull>
+		</dynamic>
+	</sql>
+	<select id="countWorkingRecordsBySearchVo" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) 
+		<isEqual property="hasAttach" compareValue="-1">
+			<include refid="bySearchVo"/>
+		</isEqual>
+		<isEqual property="hasAttach" compareValue="1">
+			<include refid="bySearchVoWithAttach"/>
+		</isEqual>
+		<isEqual property="hasAttach" compareValue="0">
+			<include refid="bySearchVoWithOutAttach"/>
+		</isEqual>
+	</select>
+	
+	<select id="searchWorkingRecordsBySearchVo" parameterClass="java.util.Map"
+		resultMap="workingRecord.workingRecordResult">
+		select * 
+		<isEqual property="hasAttach" compareValue="-1">
+			<include refid="bySearchVo"/>
+		</isEqual>
+		<isEqual property="hasAttach" compareValue="1">
+			<include refid="bySearchVoWithAttach"/>
+		</isEqual>
+		<isEqual property="hasAttach" compareValue="0">
+			<include refid="bySearchVoWithOutAttach"/>
+		</isEqual>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<select id="getWorkingRecordById" parameterClass="java.lang.Long"
+		resultMap="workingRecord.workingRecordResult">
+		select * from workingRecords where id=#value#
+	</select>
+	
+	
+	<select id="countWorkingRecordsByCodeAndId" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from workingRecords where orgInternalCode = #orgCode# and dailyDirectoryId=#dailyDirectoryId#
+	</select>
+	
+	
+	<select id="findWorkingRecordByIds" parameterClass="java.lang.String" resultMap="workingRecord.workingRecordResult">
+		select * from workingRecords where id in ($value$)
+	</select>
+	
+</sqlMap>

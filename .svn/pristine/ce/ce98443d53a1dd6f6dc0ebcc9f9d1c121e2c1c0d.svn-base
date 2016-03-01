@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="accountLogs">
+	<typeAlias alias="accountLogs" type="com.tianque.xichang.working.flow.domain.AccountLogs" />
+	<typeAlias alias="AutoCompleteData" type="com.tianque.core.vo.AutoCompleteData" />
+	<resultMap class="accountLogs" id="accountLogsMap">
+		<result property="id" column="ID"/>
+		<result property="accountId" column="ACCOUNTID"/>
+		<result property="accountType" column="ACCOUNTTYPE"/>
+		<result property="logDate" column="LOGDATE"/>
+		<result property="dealDate" column="DEALDATE"/>
+		<result property="dealUser" column="DEALUSER"/>
+		<result property="dealOrganization.id" column="DEALORGID"/>
+		<result property="dealOrganization.orgInternalCode" column="DEALORGCODE"/>
+		<result property="content" column="CONTENT"/>
+		<result property="site" column="SITE"/>
+		<result property="opinion" column="OPINION"/>
+		<result property="isFinish" column="ISFINISH"/>
+		<result property="finishDate" column="FINISHDATE"/>
+		<result property="finishType" column="FINISHTYPE"/>
+		<result property="finishContent" column="FINISHCONTENT"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+	</resultMap>
+	<resultMap class="AutoCompleteData" id="OrgAutoCompleteDataResult">
+		<result property="value" column="id" />
+		<result property="label" column="orgName"/>
+		<result property="desc" column="remark"  />
+	</resultMap>
+	
+	<insert id="addAccountLogs" parameterClass="accountLogs">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_ACCOUNTLOGS_XICHANG.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ACCOUNTLOGS_XICHANG
+		(
+			id,accountid,accounttype,logdate,dealdate,dealuser,dealorgid,dealorgcode,content,site,opinion,isfinish,finishdate,
+			finishtype,finishcontent,createuser,createdate
+		) 
+		values
+		(
+			#id#,#accountId#,#accountType#,sysdate,#dealDate#,#dealUser#,#dealOrganization.id#,#dealOrganization.orgInternalCode#,#content#,#site#,#opinion#,#isFinish#,#finishDate#,         
+			#finishType#,#finishContent#,#createUser#,#createDate#      	
+		)
+	</insert>
+	
+	<update id="updateAccountLogs" parameterClass="accountLogs">
+		update ACCOUNTLOGS_XICHANG set id = #id# 
+		<dynamic>
+		    <isNotNull prepend="," property="accountType">
+		  		accountType=#accountType#
+		    </isNotNull>
+		    <isNotNull prepend="," property="logDate">
+		  		logDate=#logDate#
+		    </isNotNull>
+		    <isNotNull prepend="," property="dealDate">
+		  		dealDate=#dealDate#
+		    </isNotNull>
+		    <isNotNull prepend="," property="dealUser">
+		  		dealUser=#dealUser#
+		    </isNotNull>
+		    <isNotNull prepend="," property="content">
+		  		content=#content#
+		    </isNotNull>
+		    <isNotNull prepend="," property="site">
+		  		site=#site#
+		    </isNotNull>
+		    <isNotNull prepend="," property="opinion">
+		  		opinion=#opinion#
+		    </isNotNull>
+		    <isNotNull prepend="," property="isFinish">
+		  		isFinish=#isFinish#
+		    </isNotNull>
+		    <isNotNull prepend="," property="finishDate">
+		  		finishDate=#finishDate#
+		    </isNotNull>
+		    <isNotNull prepend="," property="finishType">
+		  		finishType=#finishType#
+		    </isNotNull>
+		    <isNotNull prepend="," property="finishContent">
+		  		finishContent=#finishContent#
+		    </isNotNull>
+		    <isNotNull prepend="," property="updateUser">
+		  		updateUser=#updateUser#
+		    </isNotNull>
+		    <isNotNull prepend="," property="updateDate">
+		  		updateDate=#updateDate#
+		    </isNotNull>
+		where id = #id#
+	   </dynamic>
+	</update>
+	
+	<delete id="deleteAccountLogsById" parameterClass="long">
+		delete from ACCOUNTLOGS_XICHANG where id=#value#
+	</delete>
+	
+	<select id="getAccountLogsById" parameterClass="long" resultMap="accountLogsMap">
+		select * from ACCOUNTLOGS_XICHANG where id=#value#
+	</select>
+	
+	<select id="countAccountLogsForPageByAccountId" parameterClass="map" resultClass="integer">
+		select count(0) from ACCOUNTLOGS_XICHANG where accountid=#accountId# and accountType=#accountType#
+	</select>
+	
+	<select id="findAccountLogsForPageByAccountId" parameterClass="map" resultMap="accountLogsMap">
+		select * from ACCOUNTLOGS_XICHANG where accountid=#accountId# and accountType=#accountType#
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>		
+	</select>
+	
+	<!-- 根据accountId、targetOrgId和accountType查询 用于成绩job -->
+	<select id="findAccountLogsByAccountIdAndAccountType" parameterClass="map" resultMap="accountLogsMap">
+		select * from ACCOUNTLOGS_XICHANG where accountId=#accountId# and accountType=#accountType# and dealorgid=#targetOrgId# order by id asc
+	</select>
+	
+</sqlMap>

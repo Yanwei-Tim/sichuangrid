@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchOtherLocale">
+	<typeAlias alias="SearchOtherLocaleVo" type="com.tianque.domain.vo.SearchOtherLocaleVo"/>
+	<select id="countOtherLocales" parameterClass="SearchOtherLocaleVo"
+		resultClass="java.lang.Integer">
+		select count(*) from otherLocales where orgInternalCode like
+		'$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend=" and ">
+					name like '$name$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="address">
+				<isNotEmpty property="address" prepend=" and ">
+					address like
+					'$address$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="typeId">
+				<isNotNull property="typeId" prepend=" and ">
+					type = $typeId$
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="contactPerson">
+				<isNotEmpty property="contactPerson" prepend=" and ">
+					contactPerson like '$contactPerson$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="telephone">
+				<isNotEmpty property="telephone" prepend=" and ">
+					telephone like '$telephone$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty property="mobileNumber" prepend=" and ">
+					mobileNumber like '$mobileNumber$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis# 
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="attentionExtentId" >
+				<isNotEmpty property="attentionExtentId" prepend=" and ">
+					attentionExtentId = #attentionExtentId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isNotEmpty property="hasServiceTeamMember" prepend=" and ">
+				<isEqual property="hasServiceTeamMember" compareValue="0">
+					id in (select objectId from serviceMemberHasObject where objectType='OTHERLOCALE')
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="1">
+					id not in (select objectId from serviceMemberHasObject where objectType='OTHERLOCALE')	 
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="-1">
+					1=1	 
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="hasServiceRecord" prepend=" and ">
+				<isEqual property="hasServiceRecord" compareValue="0">
+					 id in (select objectId from serviceRecordRelyObject where objectType='OTHERLOCALE')
+				</isEqual>
+				<isEqual property="hasServiceRecord" compareValue="1">
+					 id not in (select objectId from serviceRecordRelyObject where objectType='OTHERLOCALE')	 
+				</isEqual>
+				<isEqual property="hasServiceRecord" compareValue="-1">
+					1=1	 
+				</isEqual>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+
+	<select id="searchOtherLocales" parameterClass="SearchOtherLocaleVo"
+		resultMap="otherLocale.otherLocaleResultForList">
+		select OtherLocales.*,'$importantLocationType$' as locationType 
+		from otherLocales where orgInternalCode like '$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend=" and ">
+					name like '$name$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="address">
+				<isNotEmpty property="address" prepend=" and ">
+					address like
+					'$address$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="typeId">
+				<isNotNull property="typeId" prepend=" and ">
+					type = $typeId$
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="contactPerson">
+				<isNotEmpty property="contactPerson" prepend=" and ">
+					contactPerson like '$contactPerson$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="telephone">
+				<isNotEmpty property="telephone" prepend=" and ">
+					telephone like '$telephone$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty property="mobileNumber" prepend=" and ">
+					mobileNumber like '$mobileNumber$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isNotEmpty property="hasServiceTeamMember" prepend=" and ">
+				<isEqual property="hasServiceTeamMember" compareValue="0">
+					id in (select objectId from serviceMemberHasObject where objectType='OTHERLOCALE')
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="1">
+					id not in (select objectId from serviceMemberHasObject where objectType='OTHERLOCALE')	 
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="-1">
+					1=1	 
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="hasServiceRecord" prepend=" and ">
+				<isEqual property="hasServiceRecord" compareValue="0">
+					 id in (select objectId from serviceRecordRelyObject where objectType='OTHERLOCALE')
+				</isEqual>
+				<isEqual property="hasServiceRecord" compareValue="1">
+					 id not in (select objectId from serviceRecordRelyObject where objectType='OTHERLOCALE')	 
+				</isEqual>
+				<isEqual property="hasServiceRecord" compareValue="-1">
+					1=1	 
+				</isEqual>
+			</isNotEmpty>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findOtherLocalesNameAndPinyinAndOrgInternalCode" parameterClass="java.util.Map" resultMap="otherLocale.otherLocaleResult">
+		select * from otherLocales where (name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%' ) and orgInternalCode like '$orgInternalCode$%' order by id
+	</select>
+
+</sqlMap>

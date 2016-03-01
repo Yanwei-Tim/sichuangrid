@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="partyOrgActivityFile">
+	<typeAlias alias="partyOrgActivityFileAlias" type="com.tianque.domain.PartyOrgActivityFile" />
+
+	<resultMap id="partyOrgActivityFileResult" class="partyOrgActivityFileAlias">
+		<result column="id" property="id" />
+		<result column="orgActivityId" property="orgActivityId" />
+		<result column="fileActualUrl" property="fileActualUrl" />
+		<result column="fileName" property="fileName" />
+		<result column="fileSize" property="fileSize" />
+	</resultMap>
+
+	<insert id="addPartyOrgActivityFile" parameterClass="partyOrgActivityFileAlias">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_partyOrgActivityFiles.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into partyOrgActivityFiles
+		(id,orgActivityId,fileActualUrl,fileName,fileSize)
+		values
+		(#id#,#orgActivityId#,#fileActualUrl#,#fileName#,#fileSize#)
+	</insert>
+
+	<update id="updatePartyOrgActivityFile" parameterClass="partyOrgActivityFileAlias">
+		update partyOrgActivityFiles set
+				orgActivityId=#orgActivityId#,
+				fileActualUrl=#fileActualUrl#,
+				fileName=#fileName#,
+				fileSize=#fileSize#
+			where id=#id#
+	</update>
+
+	<delete id="deletePartyOrgActivityFileById" parameterClass="java.lang.Long">
+		delete from partyOrgActivityFiles
+		where id=#value#
+	</delete>
+
+	<delete id="deletePartyOrgActivityFileByOrgActivityId" parameterClass="java.lang.Long">
+		delete from partyOrgActivityFiles
+		where orgActivityId=#value#
+	</delete>
+
+	<select id="getPartyOrgActivityFileById" parameterClass="java.lang.Long"
+		resultMap="partyOrgActivityFileResult">
+		select * from partyOrgActivityFiles where id=#value#
+	</select>
+
+	<select id="getPartyOrgActivityFileByOrgActivityId" parameterClass="java.lang.Long"
+		resultMap="partyOrgActivityFileResult">
+		select * from partyOrgActivityFiles where orgActivityId=#value#
+	</select>
+
+</sqlMap>

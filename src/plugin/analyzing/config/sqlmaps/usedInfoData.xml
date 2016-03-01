@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="usedInfoData">
+	<typeAlias alias="UsedInfoData" type="com.tianque.usedInfoOptmize.domain.UsedInfoData"/>
+	<resultMap class="UsedInfoData" id="usedInfoDataResult">
+		<result property="id" column="id"/>
+		<result property="org.id" column="orgId"/>
+		<result property="parentOrgId" column="parentOrgId"/>
+		<result property="org.orgInternalCode" column="orgInternalCode"/>
+		<result property="activeSum" column="activeSum"/>
+		<result property="accountSum" column="accountSum"/>
+		<result property="specialCrowdCount" column="specialCrowdCount"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+	</resultMap>
+	<insert id="createUsedInfoMonthData"  parameterClass="java.util.Map">
+		insert into usedinfomonth(id,orgId,parentOrgId,orgInternalCode,activeSum,accountSum,specialCrowdCount,CREATEDATE,createuser)
+		select S_usedinfomonth.Nextval,
+			  org.id,
+			  org.parentId,
+			  org.orgInternalCode,
+			  (select count(t.userid)
+	              from (select userid as userid, orginternalcode as orginternalcode
+	                      from usersign us
+	                    where us.createdate between #startDate# and #endDate# 
+	                     group by userid, orginternalcode
+	                    having count(userid) >= 20) t
+	             where t.orginternalcode like org.orginternalcode || '%'),
+	            (select count(1) from users u where u.orginternalcode like org.orginternalcode || '%' and u.state=2 and <![CDATA[u.activationtime < #endDate#]]>),
+	            (select count(1) specialCrowdCount from serviceRecordRelyObject s left join servicerecords r
+       				on s.recordid= r.id 
+       				where s.objecttype in('positiveInfo','rectificativePerson','mentalPatient','druggy','idleYouth') 
+      					and r.createdate between #startDate# and #endDate# and r.orgcode like org.orginternalcode || '%'
+       			),
+	            #createDate#,
+	            #createUser#
+	    from organizations org  
+	    where org.orgtype=#orgTypeId#
+	</insert>
+	<insert id="createUsedInfoWeekData" parameterClass="java.util.Map">
+		insert into usedinfoweek (id,orgId,parentOrgId,orgInternalCode,activeSum,accountSum,specialCrowdCount,CREATEDATE,createuser)
+		select S_usedinfoweek.Nextval,
+			  org.id,
+			  org.parentId,
+			  org.orgInternalCode,
+			  (select count(t.userid)
+	              from (select userid as userid, orginternalcode as orginternalcode
+	                      from usersign us
+	                    where us.createdate between #startDate# and #endDate# 
+	                     group by userid, orginternalcode
+	                    having count(userid) >= 5) t
+	             where t.orginternalcode like org.orginternalcode || '%'),
+	            (select count(1) from users u where u.orginternalcode like org.orginternalcode || '%' and u.state=2 ),
+	            (select count(1) specialCrowdCount from serviceRecordRelyObject s left join servicerecords r
+       				on s.recordid= r.id 
+       				where s.objecttype in('positiveInfo','rectificativePerson','mentalPatient','druggy','idleYouth') 
+      					and r.createdate between #startDate# and #endDate# and r.orgcode like org.orginternalcode || '%'
+       			),
+	            #createDate#,
+	            #createUser#
+	    from organizations org  
+	    where org.orgtype=#orgTypeId#
+	</insert>
+	
+	<delete id="deleteUsedInfoWeekData">
+		delete usedinfoweek
+	</delete>
+	
+	<delete id="deleteUsedInfoMonthData">
+		delete usedinfomonth
+	</delete>
+	
+	<select id="findUsedInfoWeekDataByParentOrgId" parameterClass="java.lang.Long" resultMap="usedInfoDataResult">
+		select * from usedinfoweek u where u.parentOrgId=#value#
+	</select>
+	<select id="findUsedInfoMonthDataByParentOrgId" parameterClass="java.lang.Long" resultMap="usedInfoDataResult">
+		select * from usedinfomonth u where u.parentOrgId=#value#
+	</select>
+	
+	<update id="dropTempWeekTable">
+		drop table $tmpTableName$
+	</update>
+	
+	<insert id="createTempWeekData" parameterClass="java.util.Map">
+	<![CDATA[	create table $tmpTableName$ as  select  /*+opt_param('_b_tree_bitmap_plans', 'false')*/ 
+			  org.id as "ORGID",
+			  org.parentId as "PARENTORGID",
+			  org.orgInternalCode as "ORGINTERNALCODE",
+			  (select count(t.userid)
+	              from (select userid as userid, orginternalcode as orginternalcode
+	                      from usersign us
+	                    where us.createdate between to_date('$startDate$','yyyy-MM-dd HH24:mi:ss')  and to_date('$endDate$','yyyy-MM-dd HH24:mi:ss')
+	                     group by userid, orginternalcode
+	                    having count(userid)  >= 5) t
+	             where t.orginternalcode like org.orginternalcode || '%') as "ACTIVESUM",
+	            (select count(1) from users u where u.orginternalcode like org.orginternalcode || '%' and u.state=2 ) as "ACCOUNTSUM",
+	            (select count(1) specialCrowdCount from serviceRecordRelyObject s left join servicerecords r
+       				on s.recordid= r.id 
+       				where s.objecttype in('positiveInfo','rectificativePerson','mentalPatient','druggy','idleYouth') 
+      					and r.createdate between to_date('$startDate$','yyyy-MM-dd HH24:mi:ss')  and to_date('$endDate$','yyyy-MM-dd HH24:mi:ss')  and r.orgcode like org.orginternalcode || '%'
+       			) as "SPECIALCROWDCOUNT",
+       			to_date('$createDate$','yyyy-MM-dd HH24:mi:ss') as "CREATEDATE",
+	            '$createUser$' as "CREATEUSER"
+	    from organizations org
+	    where org.orgtype=$orgTypeId$
+	    ]]>
+	</insert>
+	
+	<update id="mergeWeekData" parameterClass="java.util.Map">
+		MERGE INTO usedinfoweek uiw
+		USING (SELECT * FROM $tmpTableName$) tdata
+		ON (uiw.orgid = tdata.orgid)
+		WHEN MATCHED THEN
+		  UPDATE
+		     SET uiw.activesum         = tdata.activesum,
+		         uiw.accountsum        = tdata.accountsum,
+		         uiw.specialcrowdcount = tdata.specialcrowdcount,
+		         uiw.createuser        = tdata.createuser,
+		         uiw.createdate        = tdata.createdate
+		WHEN NOT MATCHED THEN
+		  INSERT
+		  VALUES
+		    (S_usedinfomonth.Nextval, tdata.orgid, tdata.parentorgid, tdata.orginternalcode, tdata.activesum, tdata.accountsum, tdata.specialcrowdcount, tdata.createdate, tdata.createuser)
+	</update>
+</sqlMap>

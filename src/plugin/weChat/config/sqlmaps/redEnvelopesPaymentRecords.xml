@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="redEnvelopesPaymentRecords">
+	<typeAlias alias="RedEnvelopesPaymentRecords"
+		type="com.tianque.plugin.weChat.domain.redEnvelopeManagement.RedEnvelopesPaymentRecords" />
+	<resultMap id="redEnvelopesPaymentRecordsResult" class="RedEnvelopesPaymentRecords">
+		<result property="id" column="id" />
+		<result property="sign" column="sign" />
+		<result property="mch_billno" column="mch_billno" />
+		<result property="mch_id" column="mch_id" />
+		<result property="wxappid" column="wxappid" />
+		<result property="re_openid" column="re_openid" />
+		<result property="total_amount" column="total_amount" />
+		<result property="send_time" column="send_time" />
+		<result property="send_listid" column="send_listid" />
+		<result property="detail_id" column="detail_id" />
+		<result property="status" column="status" />
+		<result property="send_type" column="send_type" />
+		<result property="org.id" column="orgId" />
+		<result property="org.orgInternalCode" column="orgInternalCode" />
+		<result property="hb_type" column="hb_type" />
+		<result property="total_num" column="total_num" />
+		<result property="reason" column="reason" />
+		<result property="refund_time" column="refund_time" />
+		<result property="refund_amount" column="refund_amount" />
+		<result property="wishing" column="wishing" />
+		<result property="remark" column="remark" />
+		<result property="act_name" column="act_name" />
+		<result property="openid" column="openid" />
+		<result property="amount" column="amount" />
+		<result property="rcv_time" column="rcv_time" />
+		<result property="apiKey" column="apiKey" />
+		<result property="fanName" column="fanName" />
+		
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<insert id="addRedEnvelopesPaymentRecords" parameterClass="RedEnvelopesPaymentRecords">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_RedEnvelopesPaymentRecords.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		insert into RedEnvelopesPaymentRecords
+		(id,sign,mch_billno,mch_id,wxappid,re_openid,total_amount,send_time,send_listid,detail_id,
+		fanName,apiKey,status,send_type,hb_type,total_num,reason,refund_time,refund_amount,wishing,remark,
+		act_name,openid,amount,rcv_time,orgId,orgInternalCode,createUser,updateUser,createDate,updateDate)
+		values
+		(#id#,#sign#,#mch_billno#,#mch_id#,#wxappid#,#re_openid#,#total_amount#,#send_time#,#send_listid#,#detail_id#,
+		#fanName#,#apiKey#,#status#,#send_type#,#hb_type#,#total_num#,#reason#,#refund_time#,#refund_amount#,#wishing#,#remark#,
+		#act_name#,#openid#,#amount#,#rcv_time#,#org.id#,#org.orgInternalCode#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	<sql id="redEnvelopesPaymentRecords_sql_where">
+		from RedEnvelopesPaymentRecords
+		<dynamic prepend="WHERE">
+			<isNotNull prepend=" and " property="redEnvelopesPaymentRecords.org.id">
+				orgId=#redEnvelopesPaymentRecords.org.id#
+			</isNotNull>
+			<isNotNull prepend=" and " property="redEnvelopesPaymentRecords.send_time_end">
+				<![CDATA[to_date(send_time,'yyyy-MM-dd hh24:mi:ss') <= #redEnvelopesPaymentRecords.send_time_end#]]>
+			</isNotNull>
+			<isNotNull prepend=" and " property="redEnvelopesPaymentRecords.send_time_start">
+				<![CDATA[to_date(send_time,'yyyy-MM-dd hh24:mi:ss') >= #redEnvelopesPaymentRecords.send_time_start# ]]>
+			</isNotNull>
+		</dynamic>
+	</sql>
+	
+	<select id="getRedEnvelopesPaymentRecordsById" parameterClass="java.lang.Long" resultMap="redEnvelopesPaymentRecordsResult">
+		select * from RedEnvelopesPaymentRecords where id = #value# 
+	</select>
+	
+	<select id="countRedEnvelopesPaymentRecordsList" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="redEnvelopesPaymentRecords_sql_where" />
+	</select>
+	
+	<select id="findRedEnvelopesPaymentRecordsList" parameterClass="java.util.Map" resultMap="redEnvelopesPaymentRecordsResult">
+		<include refid="common.sql_select" />
+		<include refid="redEnvelopesPaymentRecords_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>

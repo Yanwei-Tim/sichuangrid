@@ -1,0 +1,250 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" import="java.util.*,com.tianque.core.util.GridProperties;" pageEncoding="utf-8"%>
+<%@taglib prefix="s" uri="/struts-tags" %>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%
+String path2 = request.getContextPath();
+String proxyIp = GridProperties.PROXY_SERVER_DOMAIN_NAME;
+String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path2+"/";
+/* String orgId = request.getParameter("orgId");
+String weChatUserId = request.getParameter("weChatUserId"); */
+%>
+<html>
+
+    <head>
+        <title>事件跟踪</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="<%=proxyIp%>/resource/weChat/weui.min.css" media="all" rel="stylesheet"/>
+		<script type="text/javascript" src="<%=proxyIp%>/resource/desktop/js/jquery.js"></script>
+   <style>
+    .page_title {
+			text-align: center;
+			font-size: 34px;
+			color: #225FBA;
+			font-weight: 400;
+			margin: 0 15%;
+		}
+    </style>   
+       
+    </head>
+
+    <body>
+        <div class="page cell">
+            <h1 class="page_title" style="color:black">事件跟踪</h1>
+            <input id="proxyIp"  type="hidden" value="<%=proxyIp%>" />
+            <form id = "findIssueLoger" action="" method="post">
+              <div class="weui_cells weui_cells_form" >
+                <div class="weui_cell">
+                   <div class="weui_cell_hd"><label style="color:red;">*</label><span style="color:black;">服务单号:</span></div>
+                   <div class="weui_cell_bd weui_cell_primary">
+                      <input type="text" class="weui_input" id="serviceId" name="preciseInbox.serviceId" placeholder="请输入服务单号" checked="checked" oninvalid="这是必填选项" >
+                   </div>
+                   <div id="myButton" class="weui_cell_bd weui_cell_primary">
+                      <button type="button" class="weui_btn weui_btn_mini weui_btn_primary" onclick="getIssueLoger();" >查询</button>
+                   </div>
+                 </div>
+               </div>
+            </form>
+            <div id="issue">
+            <table id="issueTable" class='weui_input'>
+            </table>
+            </div>
+        </div> 
+     <script type="text/javascript">
+        //防止多次点击
+        var multipleClicks=true;
+        var totalnumber;
+        var pageSize=12;//每页显示条数
+        var totalPage=0;//总页数
+        var currentPage=1;//当前页
+        $(function() {
+        	findTotalNumber();
+            
+        });
+        
+        /**
+         * 根据不同的表求出，表的总记录数
+         */
+        function  findTotalNumber(){
+        	url=$("#proxyIp").val()+"/weChat/preciseInbox/findIssueTotal.action";
+        	$.ajax({
+        		  
+        		  type:'post',
+        		  url:url,
+        		  async:false,
+        		  dataType:'json',
+        		   success:function(json){    		
+        			   if(json.id==null){
+                   		alert(json);
+                   		return;
+        			   }else{
+        				   totalnumber=json.id;   			
+            			   pagesfun(totalnumber);
+            			   getIssueList(currentPage,pageSize);
+        			   }   			   
+        		  }
+        	  });
+        }
+        
+        //事件历史列表
+        function getIssueList() {
+        	 var buttonList="";
+        		url=$("#proxyIp").val()+"/weChat/preciseInbox/findHistoryIssue.action";
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    url: url,
+                    data:{
+                    	page:currentPage,
+                    	rows:pageSize
+                    },
+                    success: function(json) {                 
+                    	if(json.rows==null){
+                    		alert(json);
+                    		return;
+                    	}else{                  		
+                    		var th="<tr style='font-weight:bold;'><td>服务单号</td><td >事件名称</td><td >时期</td></tr>";
+                        	$("#issueTable").append(th);
+                            var typeData = json.rows; 
+                            $.each(typeData, function(i, n) {
+                                var tbBody = "";
+                                var trColor;
+                               
+                                if (i % 2 == 0) {
+                                    trColor = "even";
+                                }
+                                else {
+                                    trColor = "odd";
+                                }
+                                var date = n.createDate;             
+                                date = date.substring(0,10);
+                                tbBody += "<tr><td>" + n.serviceId + "</td>" + "<td>" + n.issueName + "</td>" + "<td>" + date + "</td></tr>";
+                                $("#issueTable").append(tbBody);
+                            });
+                            
+                            buttonList="<div id='clearButtonList'><button type='button' class='weui_btn weui_btn_mini weui_btn_primary' onclick='upPage();'>上一页</button>"+
+                            "<button type='button' class='weui_btn weui_btn_mini weui_btn_primary' onclick='downPage();' >下一页</button>"+
+                            "<button type='button' class='weui_btn weui_btn_mini weui_btn_primary'>当前"+currentPage+"/"+totalPage+"</button>"+                       
+                            "<input type='number' class='weui_input weui_btn_mini' id='jumpPageNumber' placeholder='请输入页数' style='color:red'>"+
+                            "<button type='button' class='weui_btn weui_btn_mini weui_btn_primary 'onclick='jumpPage();' >跳转</button>"
+                            +" </div>";
+                            $("#issue").append(buttonList);
+                    	}	
+                    }
+                });
+        	
+        }
+        
+        //获取单个事件详细信息	
+        function getIssueLoger() {
+        	var url=$("#proxyIp").val()+"/weChat/preciseInbox/findIssueLoger.action";
+        	var serviceId=$("#serviceId").val(); 
+        	if(serviceId.length==0){
+        		alert("服务号为空!");
+        		return;
+        	}
+        	$("#myButton").hide();
+        	//alert(serviceId);
+        	if(multipleClicks){
+        		multipleClicks=false;
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    url: url,
+                    data:{'preciseInbox.serviceId':serviceId},
+                    success: function(json) {
+                    	 if (json.rows==null){
+                    		 multipleClicks=true;
+                    		alert(json);
+                    		return;
+                    	}else{
+                    		var typeData = json.rows; 
+                            $("#issueTable").html("");
+                            $("#clearButtonList").remove();
+                            var th="<tr style='font-weight:bold;'><td>处理描述</td><td >处理人电话</td><td >处理时间</td></tr>";
+                        	$("#issueTable").append(th);
+                            $.each(typeData, function(i, n){
+                                var tbBody = ""
+                                var trColor;
+                                if (i % 2 == 0) {
+                                    trColor = "even";
+                                }
+                                else {
+                                    trColor = "odd";
+                                }
+                                tbBody += "<tr><td>" + n.dealDescription + "</td>" + "<td>" + n.mobile + "</td>" + "<td>" + n.createDate + "</td></tr>";
+                                $("#issueTable").append(tbBody);
+                            });
+                            var button= '<button id="backButton" type="button" onclick="removeButtonAndBack()" class="weui_btn weui_btn_primary">返回列表</button>';
+                            $("#issue").append(button);
+                    	}
+                    	
+                    }
+                });
+        	}
+ 
+        }
+
+        function removeButtonAndBack(){
+        	 $("#myButton").show();
+        	 $("#backButton").remove();
+        	 $("#issueTable").html("");
+        	 multipleClicks=true;
+        	 getIssueList();
+        }
+        
+        /**
+         *根据总条数求出总页数 
+         */
+        function pagesfun(totalnumber){
+        	if(totalnumber>0&&totalnumber%pageSize==0){
+        		this.totalPage=totalnumber/pageSize;
+        	}else if(totalnumber%pageSize!=0&&totalnumber>pageSize){
+        		this.totalPage=Math.ceil(totalnumber/pageSize);
+            }else if(totalnumber>0&&totalnumber<=pageSize){
+            	this.totalPage=1;
+            }
+        }
+        
+        /**
+         * 下一页方法
+         */
+        function downPage(){
+        	
+          if(currentPage<totalPage){
+        	  currentPage++;
+        		$("#clearButtonList").remove();
+           	    $("#issueTable").html("");
+        	    multipleClicks=true;
+        	   
+        		getIssueList();
+        	}
+          
+        }
+
+        /**
+         * 上一页方法
+         */
+        function upPage(){
+        	if(currentPage>1){
+        		currentPage--;
+        		$("#clearButtonList").remove();
+           	    $("#issueTable").html("");
+        	    multipleClicks=true;
+        		getIssueList();	
+        	}
+        }
+        //跳转
+        function jumpPage(){  
+        	var jumpPageNumber=$("#jumpPageNumber").val();
+        	if(jumpPageNumber!=currentPage&&jumpPageNumber<=totalPage&&jumpPageNumber>0){
+        		$("#clearButtonList").remove();
+           	    $("#issueTable").html("");
+        	    multipleClicks=true;
+        	    currentPage=jumpPageNumber;
+        	    getIssueList();   
+        	}
+        }
+        </script>  
+    </body>
+</html>

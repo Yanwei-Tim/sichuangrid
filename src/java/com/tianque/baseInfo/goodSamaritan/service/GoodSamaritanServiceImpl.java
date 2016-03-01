@@ -1,0 +1,836 @@
+package com.tianque.baseInfo.goodSamaritan.service;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.actualHouse.domain.HouseInfo;
+import com.tianque.baseInfo.actualHouse.service.ActualHouseService;
+import com.tianque.baseInfo.base.domain.ActualPopulation;
+import com.tianque.baseInfo.base.domain.Countrymen;
+import com.tianque.baseInfo.base.domain.LogoutDetail;
+import com.tianque.baseInfo.base.service.BaseInfoPopulationTemplateImpl;
+import com.tianque.baseInfo.base.service.BaseInfoService;
+import com.tianque.baseInfo.base.service.PopulationRelationService;
+import com.tianque.baseInfo.goodSamaritan.dao.GoodSamaritanDao;
+import com.tianque.baseInfo.goodSamaritan.domain.GoodSamaritan;
+import com.tianque.baseInfo.goodSamaritan.domain.PopulationAttachFile;
+import com.tianque.cache.PageInfoCacheThreadLocal;
+import com.tianque.cache.UpdateType;
+import com.tianque.core.cache.constant.MemCacheConstant;
+import com.tianque.core.datatransfer.ExcelImportHelper;
+import com.tianque.core.systemLog.util.OperatorType;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.Chinese2pinyin;
+import com.tianque.core.util.FileUtil;
+import com.tianque.core.util.GridProperties;
+import com.tianque.core.util.NewBaseInfoTables;
+import com.tianque.core.util.ObjectToJSON;
+import com.tianque.core.util.StoredFile;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.service.HousePopulationMaintanceService;
+import com.tianque.service.IssueTypeService;
+import com.tianque.service.PopulationProccessorService;
+import com.tianque.service.helper.ManagePopulationByHouseHelper;
+import com.tianque.service.util.PopulationCatalog;
+import com.tianque.service.util.PopulationType;
+import com.tianque.service.vo.IsEmphasis;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.userAuth.api.PermissionDubboService;
+import com.tianque.util.Arrays;
+import com.tianque.util.IdCardUtil;
+import com.tianque.util.PluginServiceHelpUtil;
+import com.tianque.validate.AbstractCountrymenValidator;
+
+@Service("goodSamaritanService")
+@Transactional
+public class GoodSamaritanServiceImpl extends BaseInfoPopulationTemplateImpl
+		implements GoodSamaritanService, PopulationProccessorService {
+	private static final String CACHE_ADDGOODSAMARITAN_VALUE = "CACHE_ADDGOODSAMARITAN";
+	private static final String CACHE_ADDGOODSAMARITANBASEINFO_VALUE = "CACHE_ADDGOODSAMARITANBASEINFO";
+
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	GoodSamaritanDao goodSamaritanDao;
+
+	@Qualifier("goodSamaritanValidator")
+	@Autowired
+	private AbstractCountrymenValidator<GoodSamaritan> updateValidator;
+	@Autowired
+	private IssueTypeService issueTypeService;
+	@Autowired
+	private PropertyDictService propertyDictService;
+	@Autowired
+	private ActualHouseService actualHouseService;
+	@Autowired
+	private ManagePopulationByHouseHelper managePopulationByHouseHelper;
+	@Autowired
+	private HousePopulationMaintanceService housePopulationMaintanceService;
+	@Autowired
+	private PopulationRelationService populationRelationService;
+	@Autowired
+	private BaseInfoService baseInfoService;
+	@Autowired
+	private PopulationAttachFileService populationAttachFileService;
+	@Autowired
+	private PermissionDubboService permissionDubboService;
+
+	@Resource(name = "goodSamaritanDao")
+	public void setBaseInfoPopulationBaseDao(GoodSamaritanDao goodSamaritanDao) {
+		super.setBaseInfoPopulationBaseDao(goodSamaritanDao);
+	}
+
+	@Override
+	public Long proccessPopulationSpecializedInfo(
+			ActualPopulation actualPopulation, String[] populationType,
+			Map<String, Object> population) {
+		actualPopulation
+				.setAttentionPopulationType(NewBaseInfoTables.GOOD_SAMARITAN_KEY);
+		Long orgId = Long
+				.valueOf(((String[]) population.get("organization.id"))[0]);
+		String idCardNo = ((String[]) population.get("idCardNo"))[0];
+		GoodSamaritan goodSamaritan = goodSamaritanDao.getByOrgIdAndIdCardNo(
+				orgId, idCardNo);
+		if (!com.tianque.util.Arrays.hasObjectInArray(populationType,
+				PopulationType.GOOD_SAMARITAN)) {
+			if (null != goodSamaritan) {
+				goodSamaritan.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+				updateEmphasiseById(goodSamaritan.getId(),
+						IsEmphasis.IsNotEmphasis);
+			}
+		} else {
+			if (null == goodSamaritan) {
+				goodSamaritan = new GoodSamaritan();
+				copyProperty(actualPopulation, population, goodSamaritan);
+				addGoodSamaritan(goodSamaritan);
+			} else {
+				Long id = goodSamaritan.getId();
+				copyProperty(actualPopulation, population, goodSamaritan);
+				goodSamaritan.setId(id);
+				goodSamaritan.setIsEmphasis(IsEmphasis.Emphasis);
+				updateGoodSamaritanBusiness(goodSamaritan);
+				updateEmphasiseById(goodSamaritan.getId(), IsEmphasis.Emphasis);
+			}
+		}
+		return goodSamaritan == null
+				|| goodSamaritan.getIsEmphasis() == IsEmphasis.IsNotEmphasis
+						.longValue() ? null : goodSamaritan.getId();
+	}
+
+	private void updateEmphasiseById(Long id, Long isEmphasis) {
+		LogoutDetail logoutDetail = new LogoutDetail();
+		logoutDetail.setLogout(isEmphasis);
+		updateLogOutByPopulationTypeAndId(logoutDetail,
+				BaseInfoTables.GOOD_SAMARITAN_KEY, id);
+	}
+
+	@Override
+	public GoodSamaritan updateGoodSamaritan(GoodSamaritan goodSamaritan) {
+		if (!ExcelImportHelper.isImport.get()) {
+			goodSamaritanValidator(goodSamaritan);
+		}
+		try {
+			autoFillFields(goodSamaritan);
+			if (goodSamaritan.isDeath()) {
+				goodSamaritan.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+				deletePopulationTypeByPopulationIdAndType(
+						goodSamaritan.getId(), PopulationType.GOOD_SAMARITAN);
+			}
+			goodSamaritan = goodSamaritanDao.update(goodSamaritan);
+			return goodSamaritan;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类GoodSamaritanServiceImpl的updateGoodSamaritan方法出现异常，原因：",
+					"修改信息出现错误", e);
+		}
+	}
+
+	private void goodSamaritanValidator(GoodSamaritan goodSamaritan) {
+		ValidateResult baseDataValidator = updateValidator
+				.validate(goodSamaritan);
+		if (baseDataValidator.hasError()) {
+			throw new BusinessValidationException(
+					baseDataValidator.getErrorMessages());
+		}
+	}
+
+	@Override
+	public GoodSamaritan addGoodSamaritan(GoodSamaritan goodSamaritan) {
+		if (!ExcelImportHelper.isImport.get()) {
+			goodSamaritanValidator(goodSamaritan);
+		}
+		try {
+			if (checkDataExitInCache(goodSamaritan,
+					MemCacheConstant.CACHE_ADDGOODSAMARITAN,
+					CACHE_ADDGOODSAMARITAN_VALUE)) {
+				return goodSamaritan;
+			}
+			return add(goodSamaritan);
+		} catch (Exception e) {
+			logger.error("GoodSamaritanServiceImpl addGoodSamaritan", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(goodSamaritan,
+					MemCacheConstant.CACHE_ADDGOODSAMARITAN);
+		}
+	}
+
+	private void copyProperty(ActualPopulation actualPopulation,
+			Map<String, Object> population, GoodSamaritan goodSamaritan) {
+
+		copyProperties(goodSamaritan, actualPopulation);
+		goodSamaritan.setDisableGradeType(Arrays.getPropertyDictFromArray(
+				population, "disableGradeType.id"));
+		goodSamaritan.setSacrificeType(Arrays.getPropertyDictFromArray(
+				population, "sacrificeType.id"));
+		goodSamaritan.setInsureSituationType(Arrays.getPropertyDictFromArray(
+				population, "insureSituationType.id"));
+		goodSamaritan.setInsureSituationSmallType(Arrays
+				.getPropertyDictFromArray(population,
+						"insureSituationSmallType.id"));
+		goodSamaritan.setAwardType(Arrays.getPropertyDictFromArray(population,
+				"awardType.id"));
+		goodSamaritan.setDifficultType(Arrays.getPropertyDictFromArray(
+				population, "difficultType.id"));
+		goodSamaritan.setActOccurred(Arrays.getStringValueFromArray(population,
+				"actOccurred"));
+		goodSamaritan.setAwardYear(Arrays.getStringValueFromArray(population,
+				"awardYear"));
+		goodSamaritan.setConfirmUnit(Arrays.getStringValueFromArray(population,
+				"confirmUnit"));
+		goodSamaritan.setHeroicDeeds(Arrays.getStringValueFromArray(population,
+				"heroicDeeds"));
+		goodSamaritan.setPersonAttachFiles(Arrays.getStringArrayValueFromArray(
+				population, "personAttachFiles"));
+		goodSamaritan
+				.setAttentionPopulationType(BaseInfoTables.GOOD_SAMARITAN_KEY);
+	}
+
+	@Override
+	public Map<String, Map<String, Object>> getPopulationSpecializedInfoByOrgIdAndIdCardNo(
+			Long orgId, String idCardNo) {
+		GoodSamaritan goodSamaritan = goodSamaritanDao.getByOrgIdAndIdCardNo(
+				orgId, idCardNo);
+		if (null == goodSamaritan) {
+			return null;
+		}
+		Map<String, Object> dangerousGoodsPractitionerMap = new HashMap<String, Object>();
+		dangerousGoodsPractitionerMap.put("id", goodSamaritan.getId());
+		dangerousGoodsPractitionerMap.put("isEmphasis",
+				goodSamaritan.getIsEmphasis());
+		dangerousGoodsPractitionerMap.put("workUnit",
+				goodSamaritan.getWorkUnit());
+		dangerousGoodsPractitionerMap.put("attentionExtent",
+				goodSamaritan.getAttentionExtent());
+		dangerousGoodsPractitionerMap.put("actOccurred",
+				goodSamaritan.getActOccurred());
+		dangerousGoodsPractitionerMap.put("awardType",
+				goodSamaritan.getAwardType());
+		dangerousGoodsPractitionerMap.put("awardYear",
+				goodSamaritan.getAwardYear());
+		dangerousGoodsPractitionerMap.put("difficultType",
+				goodSamaritan.getDifficultType());
+		dangerousGoodsPractitionerMap.put("disableGradeType",
+				goodSamaritan.getDisableGradeType());
+		dangerousGoodsPractitionerMap.put("insureSituationType",
+				goodSamaritan.getInsureSituationType());
+		dangerousGoodsPractitionerMap.put("insureSituationSmallType",
+				goodSamaritan.getInsureSituationSmallType());
+		dangerousGoodsPractitionerMap.put("sacrificeType",
+				goodSamaritan.getSacrificeType());
+		dangerousGoodsPractitionerMap.put("confirmUnit",
+				goodSamaritan.getConfirmUnit());
+		dangerousGoodsPractitionerMap.put("heroicDeeds",
+				goodSamaritan.getHeroicDeeds());
+		Map<String, Map<String, Object>> map = new HashMap<String, Map<String, Object>>();
+		map.put(PopulationType.GOOD_SAMARITAN, dangerousGoodsPractitionerMap);
+		return map;
+	}
+
+	@Override
+	public void updatePopulationBaseInfo(ActualPopulation actualPopulation) {
+		if (actualPopulation == null
+				|| actualPopulation.getOrganization() == null) {
+			return;
+		}
+		GoodSamaritan goodSamaritan = goodSamaritanDao.getByOrgIdAndIdCardNo(
+				actualPopulation.getOrganization().getId(),
+				actualPopulation.getIdCardNo());
+		if (null == goodSamaritan) {
+			return;
+		}
+		Long id = goodSamaritan.getId();
+		if (!StringUtil.isStringAvaliable(actualPopulation.getWorkUnit())) {
+			actualPopulation.setWorkUnit(goodSamaritan.getWorkUnit());
+		}
+		copyProperties(goodSamaritan, actualPopulation);
+		goodSamaritan.setId(id);
+		updateGoodSamaritan(goodSamaritan);
+	}
+
+	@Override
+	public void deletePopulationByPopulationId(Long populationId) {
+		if (null != populationId) {
+			this.deleteGoodSamaritanById(populationId);
+			this.deletePopulationTypeByPopulationIdAndType(populationId,
+					PopulationType.GOOD_SAMARITAN);
+		}
+	}
+
+	@Override
+	public PageInfo<GoodSamaritan> findGoodSamaritansForPageByOrgId(
+			Long organizationId, Integer page, Integer rows, String sidx,
+			String sord, Long isEmphasis) {
+		if (organizationId == null) {
+			return constructEmptyPageInfo();
+		} else {
+			Organization org = organizationDubboService
+					.getSimpleOrgById(organizationId);
+			if (org == null) {
+				return constructEmptyPageInfo();
+			} else {
+
+				Map<String, Object> query = new HashMap<String, Object>();
+				query.put("orgInternalCode", org.getOrgInternalCode());
+				query.put("isEmphasis", isEmphasis);
+				query.put("attentionPopulationType",
+						BaseInfoTables.GOOD_SAMARITAN_KEY);
+				PageInfo<GoodSamaritan> pageInfos = goodSamaritanDao
+						.findPagerUsingCacheBySearchVo(organizationId, query,
+								page, rows, "GoodSamaritanDefaultList",
+								MemCacheConstant
+										.getCachePageKey(GoodSamaritan.class));
+				fitCountrymen(pageInfos);
+				fitServiceMemberHasObject(BaseInfoTables.GOOD_SAMARITAN_KEY,
+						pageInfos);
+				//隐藏身份证中间4位
+				pageInfos=hiddenIdCard(pageInfos);
+				return pageInfos;
+			}
+		}
+	}
+	
+	//隐藏身份证中间4位
+	private PageInfo<GoodSamaritan> hiddenIdCard(PageInfo<GoodSamaritan> pageInfo){
+					//判断权限，有权限不隐藏
+					if(permissionDubboService.
+							isUserHasPermission(ThreadVariable.getUser().getId(), "isGoodSamaritanManagementNotHidCard")){
+						return pageInfo;
+					}
+					List<GoodSamaritan> list = pageInfo.getResult();
+					int index=0;
+					for (GoodSamaritan verification:list) {
+						verification.setIdCardNo(IdCardUtil.hiddenIdCard(verification.getIdCardNo()));
+						list.set(index, verification);
+						index++;
+					}
+					pageInfo.setResult(list);
+					return pageInfo;
+}
+
+	private PageInfo<GoodSamaritan> constructEmptyPageInfo() {
+		PageInfo<GoodSamaritan> emptyPageInfo = new PageInfo<GoodSamaritan>();
+		emptyPageInfo.setResult(new ArrayList<GoodSamaritan>());
+		return emptyPageInfo;
+	}
+
+	@Override
+	public Boolean existGoodSamaritan(Long orgId, String idCardNo, Long hopeId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return false;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		Countrymen countrymen = baseInfoService.getBaseInfoByIdCardNo(idCardNo);
+		if (countrymen == null) {
+			return false;
+		}
+		Long dr = goodSamaritanDao.getIdByBaseinfoIdAndOrgId(
+				countrymen.getId(), orgId);
+		return hopeId == null ? dr != null
+				: (dr != null && hopeId.longValue() != dr.longValue());
+	}
+
+	@Override
+	public GoodSamaritan hasDuplicateGoodSamaritan(Long orgId, String idCardNo) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return null;
+		}
+		try {
+			idCardNo = idCardNo.toUpperCase();
+			List<String> list = new ArrayList<String>();
+			list.add(idCardNo);
+			if (idCardNo.length() == 18) {
+				list.add(IdCardUtil.idCardNo18to15(idCardNo));
+			} else if (idCardNo.length() == 15) {
+				list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+				list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+			}
+			return goodSamaritanDao.getByIdCard(list, orgId);
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类GoodSamaritanServiceImpl的hasDuplicateGoodSamaritan方法出现异常，原因：",
+					"判断F人员身份证号码是否存在出现错误", e);
+		}
+	}
+
+	@Override
+	public GoodSamaritan updateGoodSamaritanBaseInfo(GoodSamaritan population) {
+		if (!ExcelImportHelper.isImport.get()) {
+			ValidateResult baseDataValidator = updateValidator
+					.validateBaseInfo(population);
+			if (baseDataValidator.hasError()) {
+				throw new BusinessValidationException(
+						baseDataValidator.getErrorMessages());
+			}
+		}
+		try {
+			autoFillFields(population);
+			if (population.isDeath()) {
+				// population.setLogoutDetail(buildLogoutDetail(population
+				// .isDeath()));
+				// 缓存计数器
+				PageInfoCacheThreadLocal.decrease(
+						MemCacheConstant.getCachePageKey(population.getClass()
+								.getSimpleName()), population, 1);
+			}
+			Countrymen temp = populationRelationService.businessOption(
+					population, population.getActualPopulationType());
+			contructCurrentAddress(population);
+			population.setHouseId(temp.getHouseId());
+			rebuildHouseAddress(population);
+			return population;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类GoodSamaritanServiceImpl的updateGoodSamaritanBaseInfo方法出现异常，原因：",
+					"修改信息出现错误", e);
+		}
+
+	}
+
+	private LogoutDetail buildLogoutDetail(Boolean death) {
+		LogoutDetail result = new LogoutDetail();
+		if (death) {
+			result.setLogoutDate(new Date());
+			result.setLogoutReason(LogoutDetail.LOGOUT_REASON_FOR_DEATH);
+			result.setLogout(IsEmphasis.IsNotEmphasis);
+		} else if (!death) {
+			result.setLogout(IsEmphasis.Emphasis);
+		}
+		return result;
+	}
+
+	private void autoFillFields(GoodSamaritan goodSamaritan) {
+		autoFillOrganizationInternalCode(goodSamaritan);
+		autoFillChinesePinyin(goodSamaritan);
+		autoFillBirthday(goodSamaritan);
+		goodSamaritan.setIdCardNo(goodSamaritan.getIdCardNo().toUpperCase());
+		autoIsDeath(goodSamaritan);
+	}
+
+	private void autoIsDeath(GoodSamaritan domain) {
+		if (domain.isDeath()) {
+			domain.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+		} else {
+			domain.setIsEmphasis(IsEmphasis.Emphasis);
+		}
+	}
+
+	private void autoFillOrganizationInternalCode(GoodSamaritan goodSamaritan) {
+		Organization org = organizationDubboService
+				.getSimpleOrgById(goodSamaritan.getOrganization().getId());
+		if (org == null)
+			throw new BusinessValidationException("数据传入错误");
+		goodSamaritan.setOrgInternalCode(org.getOrgInternalCode());
+	}
+
+	private void autoFillChinesePinyin(GoodSamaritan goodSamaritan) {
+		Map<String, String> pinyin = Chinese2pinyin
+				.changeChinese2Pinyin(goodSamaritan.getName());
+		goodSamaritan.setSimplePinyin(pinyin.get("simplePinyin"));
+		goodSamaritan.setFullPinyin(pinyin.get("fullPinyin"));
+	}
+
+	private void autoFillBirthday(GoodSamaritan goodSamaritan) {
+		if (StringUtil.isStringAvaliable(goodSamaritan.getIdCardNo())) {
+			goodSamaritan.setBirthday(IdCardUtil.parseBirthday(goodSamaritan
+					.getIdCardNo()));
+		}
+	}
+
+	@Override
+	public GoodSamaritan addGoodSamaritanBaseInfo(GoodSamaritan population) {
+		ValidateResult baseDataValidator = updateValidator
+				.validateBaseInfo(population);
+		if (baseDataValidator.hasError()) {
+			throw new BusinessValidationException(
+					baseDataValidator.getErrorMessages());
+		}
+		try {
+			if (checkDataExitInCache(population,
+					MemCacheConstant.CACHE_ADDGOODSAMARITANBASEINFO,
+					CACHE_ADDGOODSAMARITANBASEINFO_VALUE)) {
+				return population;
+			}
+			return add(population);
+		} catch (Exception e) {
+			logger.error("GoodSamaritanServiceImpl addGoodSamaritanBaseInfo", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(population,
+					MemCacheConstant.CACHE_ADDGOODSAMARITANBASEINFO);
+		}
+
+	}
+
+	private GoodSamaritan add(GoodSamaritan goodSamaritan) {
+		autoFillFields(goodSamaritan);
+		try {
+			String[] files = goodSamaritan.getPersonAttachFiles();
+			contructCurrentAddress(goodSamaritan);
+			Countrymen temp = populationRelationService.businessOption(
+					goodSamaritan, goodSamaritan.getActualPopulationType());
+			goodSamaritan.setBaseInfoId(temp.getBaseInfoId());
+			goodSamaritan.setAddressInfoId(temp.getAddressInfoId());
+			goodSamaritan.setSourcesState(null);
+			goodSamaritan = goodSamaritanDao.add(goodSamaritan);
+			iterableAttachFiles(goodSamaritan.getId(),
+					PopulationType.GOOD_SAMARITAN, files);
+			populationRelationService.addPopulationRelation(temp.getId(),
+					goodSamaritan.getActualPopulationType(),
+					goodSamaritan.getId(), BaseInfoTables.GOOD_SAMARITAN_KEY);
+			goodSamaritan.setHouseId(temp.getHouseId());
+			rebuildHouseAddress(goodSamaritan);
+			// 人员轨迹
+			// addPersonnelTrackWhenAttentionedOrCancel(GoodSamaritan, null,
+			// PersonnelTrackOperationType.ATTENTIONED,
+			// PersonInitType.IMPORT, "");
+
+			if (IsEmphasis.Emphasis.equals(goodSamaritan.getIsEmphasis())) {
+				// 缓存计数器
+				PageInfoCacheThreadLocal.increment(MemCacheConstant
+						.getCachePageKey(goodSamaritan.getClass()
+								.getSimpleName()), goodSamaritan, 1);
+			}
+			return goodSamaritan;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类GoodSamaritanServiceImpl的add方法出现异常，原因：",
+					"新增GoodSamaritan信息出现错误", e);
+		}
+	}
+
+	/**
+	 * 如果人口的房屋信息（CurrentAddress）不为空，并且房屋id不存在，新增一个房屋，并且建立关联关系, 如果房屋id不为空直接建立关联关系
+	 * 如果房屋信息为空,并且有房屋id不为空，则删除人房关系
+	 * 
+	 * @param householdStaff
+	 */
+	private void rebuildHouseAddress(GoodSamaritan householdStaff) {
+		if (householdStaff.getIsHaveHouse() != null
+				&& householdStaff.getIsHaveHouse()
+				&& householdStaff.getCurrentAddress() != null) {
+
+			if (null == householdStaff.getHouseId()
+					|| householdStaff.getHouseId().equals(01L)) {
+				// 新增一个实有房屋,并且建立人房关系
+				HouseInfo houseInfo = new HouseInfo();
+				houseInfo.setAddress(householdStaff.getCurrentAddress());
+				houseInfo.setAddressType(propertyDictService
+						.findPropertyDictByDomainNameAndDictDisplayName(
+								PropertyTypes.CURRENT_ADDRESS_TYPE, "其他"));
+				houseInfo.setOrganization(householdStaff.getOrganization());
+				houseInfo
+						.setHouseOperateSource(NewBaseInfoTables.GOOD_SAMARITAN_KEY);
+				houseInfo = actualHouseService.addHouseInfo(houseInfo);
+
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.GOOD_SAMARITAN, householdStaff,
+						houseInfo.getId());
+			} else if (householdStaff.getHouseId() != null) {
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.GOOD_SAMARITAN, householdStaff,
+						householdStaff.getHouseId());
+			}
+		} else {
+			housePopulationMaintanceService.releaseHouse(
+					PopulationCatalog.GOOD_SAMARITAN, householdStaff.getId(),
+					householdStaff.getHouseId());
+		}
+	}
+
+	private void addPersonnelTrackWhenAttentionedOrCancel(
+			GoodSamaritan dangerousGoodsPractitioner,
+			Organization oldPersonnelOrg, Integer operationType,
+			Integer personInitType, String operationContent) {
+		personnelTrackService.addPersonnelTrackWhenAttentionedOrCancel(
+				dangerousGoodsPractitioner, oldPersonnelOrg,
+				BaseInfoTables.GOOD_SAMARITAN_KEY, operationType,
+				personInitType, operationContent);
+	}
+
+	@Override
+	public GoodSamaritan updateGoodSamaritanBusiness(GoodSamaritan population) {
+		if (!ExcelImportHelper.isImport.get()) {
+			ValidateResult baseDataValidator = updateValidator
+					.validateSpecializedInfo(population);
+			if (baseDataValidator.hasError()) {
+				throw new BusinessValidationException(
+						baseDataValidator.getErrorMessages());
+			}
+		}
+		try {
+			String[] files = population.getPersonAttachFiles();
+			population = goodSamaritanDao.updateBusiness(population);
+			iterableAttachFiles(population.getId(),
+					PopulationType.GOOD_SAMARITAN, files);
+			PageInfoCacheThreadLocal.update(
+					MemCacheConstant.getCachePageKey(GoodSamaritan.class),
+					population, UpdateType.BUSINESS);
+			return population;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类GoodSamaritanServiceImpl的updateGoodSamaritanBusiness方法出现异常，原因：",
+					"修改信息出现错误", e);
+		}
+
+	}
+
+	private void iterableAttachFiles(Long populationId, String type,
+			String[] files) throws Exception {
+		// 修改业务信息操作，先删除原有的附件信息
+		updateFileForDelete(files, populationId, type);
+		if (files != null && files.length > 0) {
+			for (String attachFileName : files) {
+				if (attachFileName.indexOf(",") < 1) {
+					PopulationAttachFile populationAttachFile = new PopulationAttachFile();
+					populationAttachFile.setBusinessId(populationId);
+					populationAttachFile.setBusinessType(type);
+					StoredFile storeFile = FileUtil.copyTmpFileToStoredFile(
+							attachFileName, GridProperties.POPULATION_PATH);
+					populationAttachFile.setAnnexAddress(storeFile
+							.getStoredFilePath()
+							+ File.separator
+							+ storeFile.getStoredFileName());
+					populationAttachFile.setFileName(attachFileName.substring(
+							1, attachFileName.length()));
+					populationAttachFileService
+							.addPopulationAttachFile(populationAttachFile);
+				}
+			}
+		}
+	}
+
+	private void updateFileForDelete(String[] attachFiles, Long populationId,
+			String type) throws Exception {
+		List<Long> ids = new ArrayList<Long>();
+		if (attachFiles != null && attachFiles.length > 0) {
+			for (String fileName : attachFiles) {
+				if (fileName.indexOf(",") > 1) {
+					ids.add(Long.parseLong(fileName.split(",")[0]));
+				}
+			}
+		}
+		deleteFileNotInId(ids, populationId, type);
+	}
+
+	private void deleteFileNotInId(List<Long> ids, Long populationId,
+			String type) {
+		List<PopulationAttachFile> addList = new ArrayList<PopulationAttachFile>();
+		PopulationAttachFile populationAttachFile = null;
+		for (Long id : ids) {
+			populationAttachFile = populationAttachFileService
+					.getPopulationAttachFile(id);
+			addList.add(populationAttachFile);
+		}
+		populationAttachFileService
+				.deletePopulationAttachFileForBusinessIdAndType(populationId,
+						type);
+		for (int i = 0; i < addList.size(); i++) {
+			populationAttachFileService.addPopulationAttachFile(addList.get(i));
+		}
+	}
+
+	@Override
+	public List<Long> deleteGoodSamaritanByIds(List<Long> personIds) {
+		if (personIds == null) {
+			throw new BusinessValidationException("id没有获得");
+		}
+		for (Long id : personIds) {
+			deleteGoodSamaritanById(id);
+		}
+		return personIds;
+	}
+
+	private void deleteGoodSamaritanById(Long id) {
+
+		GoodSamaritan domain = goodSamaritanDao.get(id);
+		if (null != domain) {
+			log(WARN, GOOD_SAMARITAN, ThreadVariable.getSession().getUserName()
+					+ "删除F" + domain.getName(), OperatorType.DELETE,
+					ObjectToJSON.convertJSON(domain));
+			domain.setPopulationTypeBean(getPopulationRelationService()
+					.getBusinessPopulationTypeBean(id,
+							PopulationType.GOOD_SAMARITAN));
+			getRecoverDatasService().deleteActualPopulation(domain);
+			populationRelationService.businessDeletePopulationRelation(id,
+					PopulationType.GOOD_SAMARITAN);
+			goodSamaritanDao.delete(id);
+			try {
+				PluginServiceHelpUtil.doService("routerService",
+						"deleteServiceTeamHasObjectsAndServiceMemberHasObject",
+						new Class[] { String.class, Long.class },
+						PopulationType.GOOD_SAMARITAN, id);
+				/** 删除时对关联的事件和服务记录进行orgId和idCardNo赋值 */
+				PluginServiceHelpUtil.doService("routerService",
+						"setOrgIdAndCardNoOrName", new Class[] { Long.class,
+								String.class, String.class, Long.class },
+						domain.getOrganization().getId(), domain.getIdCardNo(),
+						PopulationType.GOOD_SAMARITAN, id);
+				issueTypeService.setOrgIdAndCardNoOrNameForPerson(domain
+						.getOrganization().getId(), domain.getIdCardNo(),
+						"goodSamaritan", id);
+
+				if (IsEmphasis.Emphasis.equals(domain.getIsEmphasis())) {
+					// 缓存计数器
+					PageInfoCacheThreadLocal.decrease(MemCacheConstant
+							.getCachePageKey(GoodSamaritan.class
+									.getSimpleName()), domain, 1);
+				}
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e1) {
+					logger.error("", e1);
+				}
+			} catch (Exception e) {
+				logger.error(
+						"GoodSamaritanServiceImpl deleteGoodSamaritanById", e);
+			}
+		}
+
+	}
+
+	private boolean validateObjId(Long id) {
+		return null == id || id < 1L;
+	}
+
+	@Override
+	public GoodSamaritan getSimpleGoodSamaritanById(Long id) {
+		if (validateObjId(id)) {
+			throw new BusinessValidationException("获取F时，ID不合法");
+		}
+		return goodSamaritanDao.get(id);
+	}
+
+	@Override
+	public List<GoodSamaritan> updateDeathByIds(List<Long> populationIds,
+			boolean death) {
+		List<GoodSamaritan> list = new ArrayList<GoodSamaritan>();
+		for (Long id : populationIds) {
+			GoodSamaritan population = this.getSimpleGoodSamaritanById(id);
+			updateLogOutByPopulationTypeAndId(
+					LogoutDetail.buildLogoutDetail(death),
+					BaseInfoTables.GOOD_SAMARITAN_KEY, population.getId());
+			baseInfoService.updateDeathStateById(population.getBaseInfoId(),
+					death, population.getIdCardNo(), population
+							.getOrganization().getId(), population
+							.getOrgInternalCode(),
+					NewBaseInfoTables.GOOD_SAMARITAN_KEY);
+			list.add(population);
+			// 缓存计数器
+			PageInfoCacheThreadLocal.increment(MemCacheConstant
+					.getCachePageKey(GoodSamaritan.class.getSimpleName()),
+					population, 1);
+		}
+		return list;
+	}
+
+	@Override
+	public GoodSamaritan getGoodSamaritanByIdCardNo(String idCardNo, Long id) {
+		if (idCardNo == null || "".equals(idCardNo.trim())) {
+			return null;
+		}
+		List<String> list = new ArrayList<String>();
+		list.add(idCardNo);
+		if (idCardNo.length() == 18) {
+			list.add(IdCardUtil.idCardNo18to15(idCardNo));
+		} else if (idCardNo.length() == 15) {
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+		}
+		return goodSamaritanDao.getByIdCard(list, id);
+	}
+
+	@Override
+	public GoodSamaritan updateGoodSamaritanByName(String idCardNo, Long id,
+			GoodSamaritan domain) {
+		try {
+			GoodSamaritan older = this.getGoodSamaritanByIdCardNo(idCardNo, id);
+			domain.setId(older.getId());
+			domain.setCreateDate(older.getCreateDate());
+			domain.setCreateUser(older.getCreateUser());
+			return updateGoodSamaritan(domain);
+		} catch (Exception e) {
+			logger.error("GoodSamaritanServiceImpl updateGoodSamaritanByName",
+					e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("修改信息出现错误");
+			} else {
+				return null;
+			}
+		}
+	}
+
+	@Override
+	public void deleteGoodSamaritanByIds(Long[] ids) {
+		if (ids == null || ids.length == 0) {
+			throw new BusinessValidationException("传入参数为空");
+		}
+		try {
+			for (int i = 0; i < ids.length; i++) {
+				deleteGoodSamaritanById(ids[i]);
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类GoodSamaritanServiceImpl的deleteGoodSamaritanByIds方法出现异常，原因：",
+					"删除F信息出现错误", e);
+		}
+
+	}
+
+	@Override
+	public GoodSamaritan getGoodSamaritanById(Long id) {
+		return getSimpleGoodSamaritanById(id);
+	}
+
+	@Override
+	public void deleteBusinessPopulationDuplicate(Long id) {
+		deleteGoodSamaritanById(id);
+	}
+}

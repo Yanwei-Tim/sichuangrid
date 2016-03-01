@@ -1,0 +1,479 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ page session="false"%>
+<%@ taglib uri="/struts-tags" prefix="s"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib" %>
+<%@ include file="/includes/baseInclude.jsp" %>
+<!-- include pages -->
+<%@ include file="formPage/publicForm.jsp"%>
+<%@ include file="formPage/companyForm.jsp"%>
+<%@ include file="formPage/placeForm.jsp"%>
+<div class="container container_24">
+	<form id="maintainForm" method="post" >
+		<c:if test='${mode=="add"}'>
+			<pop:token/>
+		</c:if>
+		<input type="hidden" name="mode" id="mode" value="${mode}" />
+		<input type="hidden" name="modul" id="modul" value="${modul}"/>
+		<input type="hidden" name="modulKey" id="modulKey" value="${modulKey }"/>
+		<input id="id_value" type="hidden" name="id" value="${id }"/>
+		<input id="organizationId"	type="hidden" name="companyPlace.org.id" value="${companyPlace.org.id }" />
+		<input id="orginternalcodeId" type="hidden" name="companyPlace.orginternalcode" value="${companyPlace.orginternalcode }" />
+		<input id="companyPlacebaseId" type="hidden" name="companyPlace.baseId" value="${companyPlace.id }" />
+		<input id="companyPlace.cid" type="hidden" name="companyPlace.cid" value="${companyPlace.cid }" />
+		<input id="classifiCationEnId" type="hidden" name="companyPlace.classifiCationEn" value="${companyPlace.classifiCationEn }">
+		<input id="_imgUrl" name="companyPlace.imgUrl" type="hidden" value="${companyPlace.imgUrl}"/>
+		<div class="grid_4 lable-right">
+		   	<em class="form-req">*</em>
+			<label class="form-lb1">所属网格：</label>
+		</div>
+		<div class="grid_20">
+			<input type="text"  id="orgName"  name=""  style="width: 99%"  readonly value="${companyPlace.org.orgName}" class="form-txt" />
+		</div>
+		<div class='clearLine'>&nbsp;</div>
+		<div class="grid_4 lable-right">
+			<em class="form-req">*</em>
+			<label class="form-lb1">名称：</label>
+		</div>
+		<div class="grid_12">
+			<div class="ui-widget">	
+				<input type="text" name="companyPlace.name" id="companyPlaceName" maxlength="50" style="width: 99%" value='${companyPlace.name }' class="form-txt {required:true,isLawful:true,ishasSameName:true,exculdeParticalChar:true,minlength:2,maxlength:50, messages:{required:'请输入名称',isLawful:'您输入了非法脚本，请重新输入！',ishasSameName:'该网格下已存在同类型且相同名称的单位场所',exculdeParticalChar:'不能输入非法字符',minlength:$.format('名称至少需要输入{0}个字符'),maxlength:$.format('名称最多需要输入{0}个字符')}}" />
+			</div>
+		</div>
+		<div class="grid_4 lable-right">
+			<label class="form-lb1">关注程度：</label>
+		</div>
+		<div class="grid_4">
+			<select name="companyPlace.attentionextent.id" id="companyPlaceAttentionextent" class="form-txt" >
+				<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@ATTENTION_EXTENT" defaultValue="${companyPlace.attentionextent.id}"></pop:OptionTag>
+			</select>
+		</div>
+		<div class='clearLine'>&nbsp;</div>
+		<div class="grid_4 lable-right">
+			<em class="form-req">*</em><label class="form-lb1">地址：</label>
+		</div>
+		<div class="grid_20">
+			<input type="text" name="companyPlace.address" id="companPlaceAddress" maxlength="50" style="width: 99%" value='${companyPlace.address }' class="form-txt {required:true,isLawful:true,addressStr:true,minlength:2,maxlength:50, messages:{required:'请输入地址',isLawful:'您输入了非法脚本，请重新输入！',addressStr:'请正确填写地址',minlength:$.format('地址至少需要输入{0}个字符'),maxlength:$.format('地址最多需要输入{0}个字符')}}"  />
+		</div>
+		<div class='clearLine'>&nbsp;</div>
+		<div class="grid_4 lable-right">
+			<em class="form-req">*</em><label class="form-lb1">类型：</label>
+		</div>
+		<div class="grid_4">
+			<input name="companyPlace.type.id" id="companyPalceType_realy" value="${companyPlace.type.id}" type="hidden">
+			<select name="companyPalceTypeId"  id="companyPalceTypeId" class="form-txt {required:true, messages:{required:'请选择类型'}}" onchange="changeType()" >
+				<pop:PropertyDictLevelSelectTag name="@com.tianque.domain.property.PropertyTypes@COMPANY_PLACE_TYPE" id="companyPalceTypeId" reletionId="companyPalceClassifiCationId" 
+		  		reletionName="@com.tianque.domain.property.PropertyTypes@COMPANY_PLACE_CLASSIFICATION" defaultValue="${companyPlace.type.id}"/>
+			</select>
+		</div>
+		<div class="grid_2 lable-right">
+			<em class="form-req">*</em><label class="form-lb1">分类：</label>
+		</div>
+		<div class="grid_6">
+			<input name="companyPlace.classifiCation.id" id="companyPalceClassifiCation_realy" value="${companyPlace.classifiCation.id}" type="hidden">
+			<select name="companyPalceClassifiCationId" id="companyPalceClassifiCationId" class="form-txt {required:true, messages:{required:'请选择分类'}}" onchange="changeClassifiCation()" onfocus="removeNotNeed()">
+				<pop:PropertyDictLevelSelectTag name="@com.tianque.domain.property.PropertyTypes@COMPANY_PLACE_CLASSIFICATION" id="companyPalceClassifiCationId" reletionId="companyPalceCategoryId" 
+		  		reletionName="@com.tianque.domain.property.PropertyTypes@COMPANY_PLACE_CATEGORY" defaultValue="${companyPlace.classifiCation.id}"/>
+			</select>
+		</div>
+		<div class="grid_2 lable-right">
+			<em class="form-req">*</em><label class="form-lb1">类别：</label>
+		</div>
+		<div class="grid_6">
+			<select name="companyPlace.category.id" id="companyPalceCategoryId" class="form-txt {required:true, messages:{required:'请选择类别'}}" >
+				<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@COMPANY_PLACE_CATEGORY" defaultValue="${companyPlace.category.id}"></pop:OptionTag>
+			</select>
+		</div>
+		<div class='clearLine'>&nbsp;</div>
+		<div id="fromDiv"></div>
+		<div class='clearLine'>&nbsp;</div>
+		<div id="remarksFromDiv" style="display: none;margin-bottom: 10px;">		
+			<div class="grid_4 lable-right">
+				<em class="form-req"></em>
+				<label class="form-lb1">备注：</label>
+			</div>
+			<div class="grid_18" style="height: auto;">
+				<textarea rows="5" maxlength="150" name="companyPlace.remarks" class="form-txt {isLawful:true,minlength:2,maxlength:150, messages:{isLawful:'您输入了非法脚本，请重新输入！',minlength:$.format('备注至少需要输入{0}个字符'),maxlength:$.format('备注最多需要输入{0}个字符')}}" style="width: 111%">${companyPlace.remarks}</textarea>
+			</div>
+		</div>
+		<div class='clearLine'>&nbsp;</div>
+	</form>	
+	<input id="modulTypeValue" type="hidden" value="<s:property value="@com.tianque.baseInfo.companyPlace.constacts.ModulTypes@getTypeByName(modulType)"/>">
+	<input id="modulClassValue" type="hidden" value="<s:property value="@com.tianque.baseInfo.companyPlace.constacts.ModulTypes@getTypeByName(modul)"/>">
+	<input id="modulType_dlg" type="hidden" value="${modulType }"/>
+</div>
+<script>
+var modulType_dlg = $("#modulType_dlg").val();
+var modulValue = $("#modul").val();
+
+<pop:formatterProperty name="typeClass" domainName="@com.tianque.domain.property.PropertyTypes@COMPANY_PLACE_TYPE" />
+function getTypekeyByValue(value){
+	 var resultId;
+	 for(var key in  typeClassData ){
+		 if(typeClassData[key]==value){
+			 resultId=key;
+			break;
+		 }
+	 }
+	 return resultId;
+}
+<pop:formatterProperty name="classificationClass" domainName="@com.tianque.domain.property.PropertyTypes@COMPANY_PLACE_CLASSIFICATION" />
+function getClasskeyByValue(value){
+	 var resultId;
+	 for(var key in  classificationClassData ){
+		 if(classificationClassData[key]==value){
+			 resultId=key;
+			break;
+		 }
+	 }
+	 return resultId;
+}
+<pop:formatterProperty name="scaleTypeClass" domainName="@com.tianque.domain.property.PropertyTypes@ENTERPRISE_TYPE" />
+function getScaleTypekeyByValue(value){
+	 var resultId;
+	 for(var key in  scaleTypeClassData ){
+		 if(scaleTypeClassData[key]==value){
+			 resultId=key;
+			break;
+		 }
+	 }
+	 return resultId;
+}
+function removeNotNeed(){
+	if(modulValue=="Enterprise"||modulValue=="EnterpriseDown"){
+		jQuery("#companyPalceClassifiCationId option[internalid='101']").remove();
+	 	jQuery("#companyPalceClassifiCationId option[internalid='102']").remove();
+	 	jQuery("#companyPalceClassifiCationId option[internalid='201']").remove();
+	 	jQuery("#companyPalceClassifiCationId option[internalid='202']").remove();
+	 	jQuery("#companyPalceClassifiCationId option[internalid='203']").remove();
+	 	jQuery("#companyPalceClassifiCationId option[internalid='206']").remove();
+	 	jQuery("#companyPalceClassifiCationId option[internalid='208']").remove();
+	 	jQuery("#companyPalceClassifiCationId option[internalid='209']").remove();
+	}
+}
+function getClassValueByKey(keyValue){
+	 var resultValue;
+	 for(var key in  classificationClassData ){
+		 if(key == keyValue){
+			 resultValue=classificationClassData[key];
+			break;
+		 }
+	 }
+	 return resultValue;
+}
+if(null!=$("#_imgUrl").val() && $("#_imgUrl").val()!=""){
+	$("#headerImg").attr("src",$("#_imgUrl").val()+"?r="+Math.random());
+	$(".shadow").show();
+}
+function disableDivById(divId){
+	$("#"+divId+" :input").attr('disabled', "disabled");  
+	$("#"+divId+"").hide();
+}
+function enableDivById(divId){
+	$("#"+divId+" :input").removeAttr('disabled');  
+	$("#"+divId+"").show();
+}
+//类型
+function changeType(){
+	$("#companyPalceType_realy").val($("#companyPalceTypeId").val());
+}
+//分类
+function changeClassifiCation(){
+	if($("#companyPalceClassifiCationId").val() == '' || $("#companyPalceClassifiCationId").val() == 'undefined'){
+		return ;
+	}
+	
+	var keyValue = $("#companyPalceClassifiCationId").val();
+	$("#companyPalceClassifiCation_realy").val(keyValue);
+	if(keyValue == '' ){
+		$("#fromDiv").empty();
+		$("#remarksFromDiv").hide();
+		return ;
+	}else{
+		$("#remarksFromDiv").show();
+	}
+	var typeValue = getClassValueByKey(keyValue);
+	var modulKey = "";
+	if(typeValue == '公共活动场所' || typeValue == '交通场所' ){
+		if(typeValue == '公共活动场所'){
+			modulKey = 'NEWPUBLICPLACE';
+		}else if(typeValue == '交通场所'){
+			modulKey = 'TRAFFICPLACE';
+		}
+		$("#fromDiv").empty().append($("#baseFromDiv").html());
+		$("#fromDiv").append($("#executiveAreaFromDiv").html());
+	}else if(typeValue == '娱乐场所'){
+		modulKey = 'ENTERTAINMENTPLACE';
+		$("#fromDiv").empty().append($("#baseFromDiv").html());
+		$("#fromDiv").append($("#executiveAreaFromDiv").html());
+		$("#fromDiv").append($("#licenseFromDiv").html());
+		setHasLicense();
+	}else if(typeValue == '商贸场所'){
+		modulKey = 'TRADEPLACE';
+		$("#fromDiv").empty().append($("#baseFromDiv").html());
+		$("#fromDiv").append($("#privateTradeFromDiv").html());
+		$("#fromDiv").append($("#scaleFromDiv").html());
+		$("#fromDiv").append($("#licenseFromDiv").html());
+		setHasLicense();
+		setScaleTypeId();
+	}else if(typeValue == '网吧'){
+		modulKey = 'NEWINTERNETBAR';
+		$("#fromDiv").empty().append($("#baseFromDiv").html());
+		$("#fromDiv").append($("#InternetInfoFromDiv").html());
+		$("#fromDiv").append($("#scaleFromDiv").html());
+		$("#fromDiv").append($("#licenseFromDiv").html());
+		$("#fromDiv").append($("#InternetSeniorityFormDiv").html());
+		setHasLicense();
+		setScaleTypeId();
+	}else if(typeValue == '住宿服务场所'){
+		modulKey = 'ACCOMMODATIONSERVICESPLACE';
+		$("#fromDiv").empty().append($("#baseFromDiv").html());
+		$("#fromDiv").append($("#licenseFromDiv").html());
+		setHasLicense();
+	}else if(typeValue == '餐饮服务场所'){
+		modulKey = 'NEWFOODSERVICESPLACE';
+		$("#fromDiv").empty().append($("#baseFromDiv").html());
+		$("#fromDiv").append($("#scaleFromDiv").html());
+		$("#fromDiv").append($("#licenseFromDiv").html());
+		setHasLicense();
+		setScaleTypeId();
+	}else if(typeValue == '旅游场所'){
+		modulKey = 'TRAVELINGPLACE';
+		$("#fromDiv").empty().append($("#baseFromDiv").html());
+	}else if(typeValue == '施工场所'){
+		modulKey = 'CONSTRUCTIONPLACE';
+		$("#fromDiv").empty().append($("#baseFromDiv").html());
+		$("#fromDiv").append($("#constructionFormDiv").html());
+		setDatePicker();
+	}else if(typeValue == '场所-其他'){
+		modulKey = 'OTHERPLACE';
+		$("#fromDiv").empty().append($("#baseFromDiv").html());
+		$("#fromDiv").append($("#scaleFromDiv").html());
+		$("#fromDiv").append($("#licenseFromDiv").html());
+		setHasLicense();
+		setScaleTypeId();
+	}else if(typeValue == '党政机关'){
+		modulKey = 'PARTYGOVERNMENTORGANCOMPANY';
+		$("#fromDiv").empty().append($("#base_form_pf_id_div").html());
+	}else if(typeValue == '学校'){
+		modulKey = 'NEWSCHOOLS';
+		$("#fromDiv").empty().append($("#eduFormDiv").html());
+		$("#fromDiv").append($("#base_form_pf_id_div").html());
+		$("#fromDiv").append($("#eduFormInfoDiv").html());
+		$("#fromDiv").append($("#licenseFromDiv").html());
+		setHasLicense();
+	}else if(typeValue == '医院'){
+		modulKey = 'NEWHOSPITAL';
+		$("#fromDiv").empty().append($("#baseFromDiv").html());
+		$("#fromDiv").append($("#hospitalFormDiv").html());
+		$("#fromDiv").append($("#scaleFromDiv").html());
+		$("#fromDiv").append($("#licenseFromDiv").html());
+		setHasLicense();
+		setScaleTypeId();
+	}else if(typeValue == '危化品存放单位'){
+		modulKey = 'NEWDANGEROUSCHEMICALSUNIT';
+		$("#fromDiv").empty().append($("#baseFromDiv").html());
+		$("#fromDiv").append($("#dangerousFormDiv").html());
+		$("#fromDiv").append($("#scaleFromDiv").html());
+		$("#fromDiv").append($("#licenseFromDiv").html());
+		setHasLicense();
+		setScaleTypeId();
+	}else if(typeValue == '单位-其他'){
+		modulKey = 'OTHERCOMPANY';
+		$("#fromDiv").empty().append($("#baseFromDiv").html());
+		$("#fromDiv").append($("#otherCompanyFormDiv").html());
+		$("#fromDiv").append($("#scaleFromDiv").html());
+		$("#fromDiv").append($("#licenseFromDiv").html());
+		setDatePicker();
+		setHasLicense();
+		setScaleTypeId();
+	}else if(typeValue == '寄递物流点'){
+		modulKey = 'LOGISTICS';
+		//添加寄递物流点的页面内容
+		$("#fromDiv").empty().append($("#jiDiLogisticsFormDiv").html());
+	}
+	$("#classifiCationEnId").val(modulKey);
+}
+function setScaleTypeId(){
+	$("#maintainForm select[name='companyPlaceScaleTypeId']").attr("id","companyPlaceScaleTypeId");
+	$("#maintainForm input[name='companyPlace.scaleType.id']").attr("id","companyPlaceScaleTypeId_realy");
+	$("#companyPlaceScaleTypeId").change(function(){
+		$("#companyPlaceScaleTypeId_realy").val($("#companyPlaceScaleTypeId").val()); 
+		})
+	<s:if test='"add".equals(mode)'>
+	if(modulValue=="Enterprise"||modulValue=="EnterpriseDown"){
+		var modulVal = $("#modulClassValue").val();  
+		var modulVal_readOnly= getScaleTypekeyByValue(modulVal);
+		$("#companyPlaceScaleTypeId").val(modulVal_readOnly);
+		$("#companyPlaceScaleTypeId").change();
+		$("#companyPlaceScaleTypeId").attr("disabled","disabled");
+		$("#companyPlaceScaleTypeId_realy").val(modulVal_readOnly);
+	}
+	</s:if>
+}
+function setHasLicense(){
+	$("#maintainForm input[name='companyPlace.hasLicense']").attr("id","hasLicense_id");
+	$("#maintainForm input[name='companyPlace.businessLicenseNo']").attr("id","businessLicenseNo_id");
+	$("#maintainForm input[name='companyPlace.orgCode']").attr("id","orgCode_id");
+	$("#businessLicenseNo_id").attr("disabled","disabled")
+	$("#orgCode_id").attr("disabled","disabled")
+	var licenseValue = $("#hasLicense_id").val();
+	if(licenseValue == 1){
+		 $("#hasLicense_id").attr("checked","checked");
+		 $("#businessLicenseNo_id").removeAttr("disabled","disabled");
+		 $("#orgCode_id").removeAttr("disabled","disabled");
+	}
+$("#hasLicense_id").click(function(){
+		var licenseValue = $("#hasLicense_id").val();
+			if(licenseValue == '' || licenseValue == 0){
+				 $("#hasLicense_id").val(1);
+				 $("#businessLicenseNo_id").removeAttr("disabled","disabled");
+				 $("#orgCode_id").removeAttr("disabled","disabled");
+			}else{
+				 $("#hasLicense_id").val(0);
+				 $("#businessLicenseNo_id").attr("disabled","disabled");
+				 $("#orgCode_id").attr("disabled","disabled");
+				 $("#businessLicenseNo_id").val("");;
+				 $("#orgCode_id").val("");
+			}
+		});
+}
+function setDatePicker(){
+	$("#maintainForm input[name='companyPlace.begintime']").attr("id","beginTime");
+	$("#maintainForm input[name='companyPlace.endtime']").attr("id","endTime");
+
+	$('#beginTime').datePicker({
+		yearRange: '1900:2030',
+		dateFormat: 'yy-mm-dd',
+	    maxDate:'+0d'});
+	$('#endTime').datePicker({
+		yearRange : '1900:2060',
+		dateFormat : 'yy-mm-dd',
+		minDate : '+1d'
+	});
+}
+<c:if test='${mode=="add"}'>
+	$("#companyPalceClassifiCationId").change(function(){
+		var keyValue = $("#companyPalceClassifiCationId").val();
+		if(keyValue != '' ){
+			$("#companyPalceCategoryId").get(0).selectedIndex=1; 
+		}
+	});
+</c:if>
+function stringFormatter(str){
+	if(str==undefined || str=='undefined'){
+		return "";
+	}
+	return str;
+}
+function setChangeForEdit(){
+	var type = $("#companyPalceTypeId").val() ;
+	var classifiCation = $("#companyPalceClassifiCationId").val();
+	var category = $("#companyPalceCategoryId").val() ;
+	$("#companyPalceTypeId").val(type);
+	$("#companyPalceTypeId").change();
+	$("#companyPalceClassifiCationId").val(classifiCation);
+	$("#companyPalceClassifiCationId").change();
+	$("#companyPalceCategoryId").val(category);
+	$("#companyPalceType_realy").val(type);
+	$("#companyPalceClassifiCation_realy").val(classifiCation);
+}
+$(document).ready(function(){
+	jQuery.validator.addMethod("phoneAndMobile", function(value, element){
+		if(value==null||value==undefined||value=="" ){return true};
+		var mobile = /^(1[3|4|5|7|8][0-9])+\d{8}$/;
+		var length = value.length;
+		if(length == 11 && mobile.test(value)){return true;}
+		var phone = /^([0-9]{3,4}-)+[0-9]{7,8}$/;	
+		if (value.match(phone)==null) {return false;}
+		return true
+	});
+	jQuery.validator.addMethod("ishasSameName", function(value, element){
+		var flag=true;
+		$.ajax({
+			async:false,
+			url:"${path}/baseinfo/companyPlaceManage/checkCompanyPlaceHas.action",
+			data:{
+				"companyPlace.name": function(){ return $('#companyPlaceName').val()},
+				"companyPlace.org.id" : function(){ return $('#organizationId').val()},
+				"companyPlace.id": function(){ return $('#companyPlacebaseId').val()},
+				"companyPlace.classifiCation.id":function(){return $("#companyPalceClassifiCation_realy").val()}
+			},
+			success:function(responseData){
+				flag = responseData;
+			}
+		});
+		return flag;
+	});
+	jQuery.validator.addMethod("hasLicense", function(value, element){
+		var flag = true;
+		 var businessLicenseNoValue = $("#businessLicenseNo_id").val();
+		 var orgCodeValue = $("#orgCode_id").val();
+		 if(businessLicenseNoValue =="" && orgCodeValue==""){
+			 flag = false;
+		 }
+		return flag;
+	});
+	<c:if test='${mode=="add"}'>
+		$("#maintainForm").attr("action","${path}/baseinfo/companyPlaceManage/addCompanyPlaceOperation.action");
+		if("" == modulType_dlg || null == modulType_dlg ){
+			setChangeForEdit();
+		}else{
+			var modulTypeValue_ = $("#modulTypeValue").val();
+			var modulValue_ = $("#modulClassValue").val();
+			var type_readOnly = getTypekeyByValue(modulTypeValue_);
+			var classifiCation_readOnly = getClasskeyByValue(modulValue_);
+			$("#companyPalceTypeId").val(type_readOnly);
+			$("#companyPalceTypeId").change();
+			$("#companyPalceType_realy").val(type_readOnly);
+			$("#companyPalceClassifiCationId").val(classifiCation_readOnly);
+			$("#companyPalceClassifiCationId").change();
+			$("#companyPalceClassifiCation_realy").val(classifiCation_readOnly);
+			$("#companyPalceTypeId").attr("disabled","disabled");
+			$("#companyPalceClassifiCationId").attr("disabled","disabled");
+		}
+	</c:if>
+	<c:if test='${mode=="edit"}'>
+		$("#maintainForm").attr("action","${path}/baseinfo/companyPlaceManage/updateCompanyPlaceOperation.action");
+		setChangeForEdit();
+		$("#companyPalceTypeId").attr("disabled","disabled");
+		$("#companyPalceClassifiCationId").attr("disabled","disabled");
+	</c:if>
+	$("#maintainForm").formValidate({
+		promptPosition: "bottomLeft",
+		submitHandler: function(form){
+			$(form).ajaxSubmit({
+				async : false,
+				success:function(data){
+					if(typeof(data.id)=='undefined' || typeof(data.id)==undefined){
+						if(data == 'true' || data == true){
+							$.messageBox({
+								message:"操作成功！"
+				 			});
+						}else{
+							$.messageBox({
+								level:"error",
+								message:data
+				 			});
+							$("#companyPlaceMaintanceDialog").dialog("close");
+						}
+					}else{
+						$.messageBox({
+							message:"基本信息保存成功"
+			 			});
+						$("#<s:property value='#parameters.dailogName[0]'/>").proccessSuccess(data.cid,data);
+					}
+				},
+				error:function(XMLHttpRequest, textStatus, errorThrown){
+  	      			alert("提交数据时发生错误");
+	   		    }
+			});
+		},
+		rules:{
+		},
+		messages:{
+		}
+	});
+});
+</script>

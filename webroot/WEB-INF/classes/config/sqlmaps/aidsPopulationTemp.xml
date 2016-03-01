@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="aidspopulationsTemp">
+    <typeAlias alias="AidspopulationsTemp" type="com.tianque.plugin.dataManage.population.aidsPopulationsTemp.domain.AidspopulationsTemp" />
+   	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+   		
+   	<resultMap id="aidspopulationsTempResultForBase" class="AidspopulationsTemp" extends="attentionPopulationTempBaseInfo.attentionPopulationBaseInfoResult">
+   		<result property="infectway.id" column="infectway" />
+   		<result property="violationsofthelaw.id" column="violationsofthelaw" />
+   		<result property="crimetype.id" column="crimetype" />
+   		<result property="receivedlevel.id" column="receivedlevel" />
+   		<result property="addressno" column="addressno" />
+   		<result property="receivedorganization" column="receivedorganization" />
+		<result property="helpcircumstances" column="HELPCIRCUMSTANCES"/>
+	</resultMap>
+   	
+    <resultMap id="aidspopulationsTempResultForList" class="AidspopulationsTemp" extends="aidspopulationsTemp.aidspopulationsTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	<sql id="updateBusinessSql">
+		infectway = #infectway.id#
+		,violationsofthelaw = #violationsofthelaw.id#
+		,crimetype = #crimetype.id#
+		,receivedlevel = #receivedlevel.id#
+		,helpcircumstances = #helpcircumstances#
+		,receivedorganization = #receivedorganization#
+		,attentionExtent=#attentionExtent.id#
+	</sql>
+	<sql id="claim_sql_where">
+		from DM_aidsPopulations_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	
+	<select id="findTempPageList" resultMap="aidspopulationsTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countTempList" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	
+	<insert id="addAidspopulationsTemp" parameterClass="AidspopulationsTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_DM_aidsPopulations_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_aidsPopulations_Temp
+		(
+		<include refid="populationTempBaseInfo.addBaseInfoFields"/>
+		,<include refid="dataManage.addDataManage"/>
+		,infectway,violationsofthelaw,crimetype,receivedlevel
+			,helpcircumstances,receivedorganization,attentionExtent,actualPopulationType
+		
+		)
+		values
+		(
+		<include refid="populationTempBaseInfo.addBaseInfoData"/>
+		,<include refid="dataManage.addValueDataManage"/>
+		,#infectway.id#,#violationsofthelaw.id#,#crimetype.id#,#receivedlevel.id#
+		,#helpcircumstances#,#receivedorganization#,#attentionExtent.id#,#actualPopulationType#
+		)
+    </insert>
+    <select id="getAidspopulationsTempById" parameterClass="Long"
+		resultMap="aidspopulationsTempResultForList">
+	  <![CDATA[
+	  	select * from DM_aidsPopulations_Temp where id = #value#
+	  ]]>
+	</select>
+	<delete id="deleteAidspopulationsTempById" parameterClass="Long">
+	   delete DM_aidsPopulations_Temp where id = #value#
+	</delete>
+	<select id="findAidspopulationsTempsByIdCardNoAndOrgInternalCode" resultMap="aidspopulationsTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_aidsPopulations_Temp where  1=1 and 
+			(orgInternalCode like #orgInternalCode#||'%' or 
+						#orgInternalCode# like orgInternalCode||'%')
+				and(
+				<iterate property="idCardNo" conjunction="or">
+						upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+	</select>
+	<update id="updateAidspopulationsTempInIdByIdCardNoAndIdList"  parameterClass="java.util.Map">
+		update DM_aidsPopulations_Temp set inid = #id# where idcardno = #idCardNo# and
+			(orgInternalCode like #orgInternalCode#||'%' or 
+						#orgInternalCode# like orgInternalCode||'%') and
+		 (claimstate = 1 or claimstate is null or 
+			<iterate property="idList" conjunction="or">
+						id = #idList[]#
+			</iterate>
+		 )
+	</update>
+	<update id="updateRepeatState" parameterClass="AidspopulationsTemp">
+		update DM_aidsPopulations_Temp d set repeatState = 0
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_aidsPopulations_Temp t group by t.idCardNo having count(*)>1) 
+	</update>
+	<update id="updateRepeatStateForDelete" parameterClass="AidspopulationsTemp">
+		update DM_aidsPopulations_Temp d set repeatState = 1
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_aidsPopulations_Temp t group by t.idCardNo having count(*)=1) 
+	</update>
+	<update id="updateAidspopulationsTempInIdById"  parameterClass="java.util.Map">
+		update DM_aidsPopulations_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	
+	<select id="getAidspopulationsTempByInId" parameterClass="Long"
+		resultMap="aidspopulationsTempResultForList">
+	  <![CDATA[
+	  	select * from DM_aidsPopulations_Temp where inid = #value#
+	  ]]>
+	</select>
+	<update id="updateAidspopulationsTemp" parameterClass="AidspopulationsTemp">
+		update DM_aidsPopulations_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="aidspopulationsTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<update id="updateAidspopulationsTempByOrgId" parameterClass="java.util.Map">
+		update DM_aidsPopulations_Temp set repeatState=#repeatState#  where id=#id#
+	</update>
+	<select id="findAidspopulationsTempsByIdCardNoAndImportOrgId" resultMap="aidspopulationsTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_aidsPopulations_Temp where  1=1
+		<dynamic>
+			<isPropertyAvailable property="claimDetail.importDepartmentId">
+				<isNotNull property="claimDetail.importDepartmentId" prepend=" and ">
+					importDepartmentId=#claimDetail.importDepartmentId#
+				</isNotNull>
+			</isPropertyAvailable>
+				and(
+				<iterate property="idCardNo" conjunction="or">
+						upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+		</dynamic>
+	</select>
+	<!-- 新写内容 -->
+	<select id="countFindTemps" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	<select id="findTemps" resultMap="aidspopulationsTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<update id="updateAidspopulationsTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_aidsPopulations_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	<update id="updateAidspopulationsTempBase" parameterClass="AidspopulationsTemp">
+		update DM_aidsPopulations_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updateAidspopulationsTempBusiness" parameterClass="AidspopulationsTemp">
+		update DM_aidsPopulations_Temp set
+		<include refid="aidspopulationsTemp.updateBusinessSql" />
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+</sqlMap>

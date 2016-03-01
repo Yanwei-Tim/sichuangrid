@@ -1,0 +1,285 @@
+package com.tianque.sysadmin.service.impl;
+
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.tianque.core.cache.constant.MemCacheConstant;
+import com.tianque.core.cache.service.CacheService;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.PropertyDomain;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.mobile.mobileDictionary.dao.PropertyDictLogDao;
+import com.tianque.mobile.mobileDictionary.domain.PropertyDictLog;
+import com.tianque.mobile.mobileDictionary.service.MobileDictionaryService;
+import com.tianque.mobile.vo.MobilePropertyDict;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.sysadmin.service.PropertyDomainService;
+import com.tianque.userAuth.api.PropertyDictDubboService;
+
+@Service("propertyDictService")
+public class PropertyDictServiceImpl implements PropertyDictService {
+
+	@Autowired
+	private PropertyDictDubboService propertyDictDubboService;
+	@Autowired
+	private CacheService cacheService;
+	@Autowired
+	private PropertyDomainService propertyDomainService;
+
+	@Autowired
+	private MobileDictionaryService mobileDictService;
+	
+	@Autowired
+	private PropertyDictLogDao propertyDictLogDao;
+
+	@Override
+	public List<PropertyDict> findPropertyDictByIds(Long[] id) {
+		return propertyDictDubboService.findPropertyDictByIds(id);
+	}
+
+	@Override
+	public PropertyDict addPropertyDict(PropertyDict propertyDict) {
+		PropertyDict dict = null;
+		try {
+
+			dict = propertyDictDubboService.addPropertyDict(propertyDict);
+			PropertyDictLog log=new PropertyDictLog();
+			log.setDomainId(propertyDict.getPropertyDomain().getId());
+			log.setDictId(dict.getId());
+			log.setCreateDate(new Date());
+			log.setOperateType(1);
+			propertyDictLogDao.addPropertyDictLog(log);
+//			mobileDictService.addOrUpdateMobileDictionary();
+
+		} catch (Exception e) {
+			throw new ServiceValidationException("操作异常", e);
+		}
+		return dict;
+
+	}
+
+	@Override
+	public PropertyDict addPropertyDictForInit(PropertyDict propertyDict) {
+		PropertyDict dict = null;
+		try {
+			dict = propertyDictDubboService.addPropertyDict(propertyDict);
+		} catch (Exception e) {
+			throw new ServiceValidationException("操作异常", e);
+		}
+		return dict;
+
+	}
+
+	@Override
+	public PropertyDict updatePropertyDict(PropertyDict propertyDict) {
+		PropertyDict dict = null;
+		try {
+
+			dict = propertyDictDubboService.updatePropertyDict(propertyDict);
+//			mobileDictService.addOrUpdateMobileDictionary();
+			PropertyDictLog log=new PropertyDictLog();
+			log.setDomainId(propertyDict.getPropertyDomain().getId());
+			log.setDictId(dict.getId());
+			log.setCreateDate(new Date());
+			log.setOperateType(2);
+			propertyDictLogDao.addPropertyDictLog(log);
+		} catch (Exception e) {
+			throw new ServiceValidationException("操作异常", e);
+		}
+		return dict;
+	}
+
+	@Override
+	public List<PropertyDict> findPropertyDictByPropertyDomainId(Long domainId) {
+		List<PropertyDict> dicts = (List<PropertyDict>) cacheService.get(
+				MemCacheConstant.getPropertyDomainHasPropertyNameSpace(
+						MemCacheConstant.PROPERTYDICTS_BY_DOMAIN_NAMESPACE,
+						domainId), MemCacheConstant.getPropertyDictKey(
+						MemCacheConstant.PROPERTYDICT_KEY,
+						MemCacheConstant.PROPERTYDICT_DOMAINID_KEY, null,
+						domainId));
+		if (null == dicts) {
+			dicts = propertyDictDubboService
+					.findPropertyDictByPropertyDomainId(domainId);
+		}
+		return dicts;
+	}
+
+	@Override
+	public List<PropertyDict> findPropertyDictByPropertyDomainId(Long domainId,
+			String sidx, String sord) {
+		return propertyDictDubboService.findPropertyDictByPropertyDomainId(
+				domainId, sidx, sord);
+	}
+
+	@Override
+	public PropertyDict getPropertyDictByDomainNameAndDictId(String domainName,
+			Long id) {
+		PropertyDict result = (PropertyDict) cacheService
+				.get(MemCacheConstant.PROPERTYDICT_NAMESPACE, MemCacheConstant
+						.getPropertyDictKey(MemCacheConstant.PROPERTYDICT_KEY,
+								MemCacheConstant.PROPERTYDICT_ID_KEY, id, null));
+		if (result == null) {
+			result = propertyDictDubboService
+					.getPropertyDictByDomainNameAndDictId(domainName, id);
+		}
+		return result;
+	}
+
+	@Override
+	public void movePropertyDict(Long id, Long propertyDomainId,
+			ReferType position, Long referPropertyDictId) {
+		try {
+			propertyDictDubboService.movePropertyDict(id, propertyDomainId,
+					position, referPropertyDictId);
+//			mobileDictService.addOrUpdateMobileDictionary();
+			PropertyDictLog log=new PropertyDictLog();
+			log.setDomainId(propertyDomainId);
+			log.setDictId(id);
+			log.setCreateDate(new Date());
+			log.setOperateType(2);
+			propertyDictLogDao.addPropertyDictLog(log);
+		} catch (Exception e) {
+			throw new ServiceValidationException("操作异常", e);
+		}
+
+	}
+
+	@Override
+	public List<PropertyDict> findPropertyDictByDomainName(String domainName) {
+		PropertyDomain domain = propertyDomainService
+				.getPropertyDomainByDomainName(domainName);
+		List<PropertyDict> dicts = null;
+		if (domain != null) {
+			dicts = (List<PropertyDict>) cacheService.get(MemCacheConstant
+					.getPropertyDomainHasPropertyNameSpace(
+							MemCacheConstant.PROPERTYDICTS_BY_DOMAIN_NAMESPACE,
+							domain.getId()), MemCacheConstant
+					.getPropertyDictKey(MemCacheConstant.PROPERTYDICT_KEY,
+							MemCacheConstant.PROPERTYDICT_DOMAINID_KEY, null,
+							domain.getId()));
+		}
+		if (dicts == null) {
+			dicts = propertyDictDubboService
+					.findPropertyDictByDomainName(domainName);
+		}
+		return dicts;
+	}
+
+	@Override
+	public List<PropertyDict> findPropertyDictByDisplayNameAndDomainPropertyId(
+			Long propertyDomainId, String displayName, Long id) {
+		return propertyDictDubboService
+				.findPropertyDictByDisplayNameAndDomainPropertyId(
+						propertyDomainId, displayName, id);
+	}
+
+	@Override
+	public List<PropertyDict> findPropertyDictByDomainNameAndInternalId(
+			String domainName, Integer internalId) {
+		return propertyDictDubboService
+				.findPropertyDictByDomainNameAndInternalId(domainName,
+						internalId);
+	}
+
+	@Override
+	public int deletePropertyDictById(Long id,Long domainId) {
+		int count = 0;
+		try {
+			count = propertyDictDubboService.deletePropertyDictById(id);
+//			mobileDictService.addOrUpdateMobileDictionary();
+			PropertyDictLog log=new PropertyDictLog();
+			log.setDomainId(domainId);
+			log.setDictId(id);
+			log.setCreateDate(new Date());
+			log.setOperateType(3);
+			propertyDictLogDao.addPropertyDictLog(log);
+		} catch (Exception e) {
+			throw new ServiceValidationException("操作异常", e);
+		}
+		return count;
+	}
+
+	@Override
+	public List<PropertyDict> findPropertyDictByDomainNameAndInternalIds(
+			String domainName, int[] internalIds) {
+		return propertyDictDubboService
+				.findPropertyDictByDomainNameAndInternalIds(domainName,
+						internalIds);
+	}
+
+	@Override
+	public PropertyDict findPropertyDictByDomainNameAndDictDisplayName(
+			String propertyDomainName, String dictDisplayName) {
+		return propertyDictDubboService
+				.findPropertyDictByDomainNameAndDictDisplayName(
+						propertyDomainName, dictDisplayName);
+	}
+
+	@Override
+	public PropertyDict getPropertyDictById(Long id) {
+		PropertyDict propertyDict = (PropertyDict) cacheService
+				.get(MemCacheConstant.PROPERTYDICT_NAMESPACE, MemCacheConstant
+						.getPropertyDictKey(MemCacheConstant.PROPERTYDICT_KEY,
+								MemCacheConstant.PROPERTYDICT_ID_KEY, id, null));
+		if (propertyDict == null) {
+			propertyDict = propertyDictDubboService.getPropertyDictById(id);
+		}
+		return propertyDict;
+	}
+
+	@Override
+	public PropertyDict getPropertyDictByOrgId(Long id) {
+		return propertyDictDubboService.getPropertyDictByOrgId(id);
+	}
+
+	@Override
+	public List<MobilePropertyDict> findMobilePropertyDictByDomainName(
+			String domainName) {
+		return propertyDictDubboService
+				.findMobilePropertyDictByDomainName(domainName);
+	}
+
+	@Override
+	public PropertyDict getPropertyDictByDomainName(String useInLevel) {
+		return propertyDictDubboService.getPropertyDictByDomainName(useInLevel);
+	}
+
+	@Override
+	public List<PropertyDict> findPropertyDictByDomainNameAndDisplayseqs(
+			String domainName, int[] displayseqs) {
+		return propertyDictDubboService
+				.findPropertyDictByDomainNameAndDisplayseqs(domainName,
+						displayseqs);
+	}
+
+	@Override
+	public PropertyDict getPropertyDictName(Long gender) {
+		return propertyDictDubboService.getPropertyDictName(gender);
+	}
+
+	@Override
+	public List<PropertyDict> getPropertyDictByPinYinAndDomainid(String pinyin,
+			Long domainId) {
+		return propertyDictDubboService.getPropertyDictByPinYinAndDomainid(
+				pinyin, domainId);
+	}
+
+	@Override
+	public List<PropertyDict> getPropertyDictByDomainidAndInternalid(
+			Long domainId, Integer internalid) {
+		return propertyDictDubboService.getPropertyDictByDomainidAndInternalid(
+				domainId, internalid);
+	}
+
+	@Override
+	public List<PropertyDict> findFullPropertyDictByDomainId(Long dictTypeId,
+			Long dictTypeSubId) {
+		return propertyDictDubboService.findFullPropertyDictByDomainId(
+				dictTypeId, dictTypeSubId);
+	}
+
+}

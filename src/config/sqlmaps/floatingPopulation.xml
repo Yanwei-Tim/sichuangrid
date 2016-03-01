@@ -1,0 +1,813 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="floatingPopulation">
+
+	<typeAlias alias="FloatingPopulation" type="com.tianque.baseInfo.floatingPopulation.domain.FloatingPopulation" />
+
+	<resultMap id="floatingPopulationForJob" class="FloatingPopulation">
+		<result column="id" property="id" />
+		<result column="baseInfoId" property="baseInfoId" />
+		<result column="addressInfoId" property="addressInfoId" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+	</resultMap>
+
+	<resultMap id="floatingPopulationNoAddress" class="FloatingPopulation" extends="baseInfo.populationBaseInfoResult" >
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="baseInfoId" property="baseInfoId" />
+		<result column="addressInfoId" property="addressInfoId" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="name" property="name" />
+		<result column="usedName" property="usedName" />
+		<result column="gender" property="gender.id" />
+		<result column="birthday" property="birthday" />
+		<result column="nativePlaceAddress" property="nativePlaceAddress" />
+		<result column="mobileNumber" property="mobileNumber" />
+		<result column="telephone" property="telephone" />
+		<result column="isDeath" property="isDeath" />
+		<result column="province" property="province" />
+		<result column="city" property="city" />
+		<result column="district" property="district" />
+		<result column="politicalBackground" property="politicalBackground.id" />
+		<result column="maritalState" property="maritalState.id" />
+		<result column="stature" property="stature" />
+		<result column="nation" property="nation.id" />
+		<result column="faith" property="faith.id" />
+		<result column="schooling" property="schooling.id" />
+		<result column="bloodType" property="bloodType.id" />
+		<result column="email" property="email" />
+		<result column="career" property="career.id" />
+		<result column="workUnit" property="workUnit" />
+		<result column="imgUrl" property="imgUrl" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="sourcesState" column="sourcesState"/>
+		<result property="inflowingReason.id" column="inflowingReason" /> 
+		<result property="inflowingDate" column="inflowingDate" />
+		<result property="inflowingProvince" column="inflowingProvince" />
+		<result property="inflowingCity" column="inflowingCity" />
+		<result property="inflowingDistrict" column="inflowingDistrict" />
+		<result property="registrationType.id" column="registrationType" />
+		<result property="registerDate" column="registerDate" />
+		<result property="expectedDatedue" column="expectedDatedue" />
+	</resultMap>
+	
+	<resultMap class="FloatingPopulation" id="floatingPopulationResult" extends="addressInfo.attentionPopulationGetAddressInfoResult">
+		<result property="isInflowing" column="isInflowing" />
+		<result property="inflowingReason.id" column="inflowingReason" /> 
+		<result property="inflowingDate" column="inflowingDate" />
+		<result property="inflowingProvince" column="inflowingProvince" />
+		<result property="inflowingCity" column="inflowingCity" />
+		<result property="inflowingDistrict" column="inflowingDistrict" />
+		<result property="registrationType.id" column="registrationType" />
+		<result property="registerDate" column="registerDate" />
+		<result property="expectedDatedue" column="expectedDatedue" />
+		<result property="logOut" column="logOut" />
+		<result property="logoutDetail.logout" column="logOut" />
+		<result property="logoutDetail.logoutReason" column="logoutReason"/>
+		<result property="logoutDetail.logoutDate" column="logoutDate"/>
+		<result property="settleTime" column="settleTime" />
+		<result property="certificateNumber" column="certificateNumber" />
+		<result property="stayLocationType.id" column="stayLocationTypeId" />
+		<result property="economySource.id" column="economySourceId" />
+		<result property="stayTimeLimit.id" column="stayTimeLimitId" />
+		<result property="preparedStayTimeLimit.id" column="preparedStayTimeLimitId" />
+		<result property="hasMarriedProve" column="hasMarriedProve" />
+		<result property="sourcesState" column="sourcesState" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="baseInfoId" property="baseInfoId" />
+		<result column="addressInfoId" property="addressInfoId" />
+	</resultMap>
+	<resultMap class="FloatingPopulation" id="floatingPopulationResultDefaultList">
+		<result column="id" property="id"  nullValue="0"/>
+		<result property="isInflowing" column="isInflowing" />
+		<result property="inflowingReason.id" column="inflowingReason" /> 
+		<result property="inflowingDate" column="inflowingDate" />
+		<result property="inflowingProvince" column="inflowingProvince" />
+		<result property="inflowingCity" column="inflowingCity" />
+		<result property="inflowingDistrict" column="inflowingDistrict" />
+		<result property="registrationType.id" column="registrationType" />
+		<result property="registerDate" column="registerDate" />
+		<result property="expectedDatedue" column="expectedDatedue" />
+		<result property="logOut" column="logOut" />
+		<result property="logoutDetail.logout" column="logOut" />
+		<result property="logoutDetail.logoutReason" column="logoutReason"/>
+		<result property="logoutDetail.logoutDate" column="logoutDate"/>
+		<result property="settleTime" column="settleTime" />
+		<result property="certificateNumber" column="certificateNumber" />
+		<result property="stayLocationType.id" column="stayLocationTypeId" />
+		<result property="economySource.id" column="economySourceId" />
+		<result property="stayTimeLimit.id" column="stayTimeLimitId" />
+		<result property="preparedStayTimeLimit.id" column="preparedStayTimeLimitId" />
+		<result property="hasMarriedProve" column="hasMarriedProve" />
+		<result property="sourcesState" column="sourcesState" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="baseInfoId" property="baseInfoId" />
+		<result column="addressInfoId" property="addressInfoId" />
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+	</resultMap>
+	
+	<resultMap class="FloatingPopulation" id="GisfloatingPopulationResult" extends="floatingPopulationResult">
+		<result column="populationtype" property="populationtypes" />
+		<result column="actualtype" property="actualtype"/>
+	</resultMap>
+
+	<sql id="fields">
+		f.id,f.baseInfoId,f.addressInfoId,f.orgId,f.orgInternalCode,
+		f.isInflowing,f.inflowingReason,f.inflowingDate,f.inflowingProvince,f.inflowingCity,f.inflowingDistrict,
+		f.registrationType,f.registerDate,f.expectedDatedue,f.createUser,f.createDate,f.updateUser,f.updateDate,
+		f.certificateNumber,f.stayLocationTypeId,f.economySourceId,f.stayTimeLimitId,f.preparedStayTimeLimitId,
+		f.settleTime,f.hasMarriedProve,f.sourcesState,f.logOut,f.logOutReason,f.logOutDate
+	</sql>
+	
+	<sql id="floatingPopulationBusinessInfo">
+		updatedate=#updateDate#,
+		updateuser=#updateUser#,
+		isInflowing=#isInflowing#,
+		inflowingReason=#inflowingReason.id#,
+		inflowingDate=#inflowingDate#,
+		inflowingProvince=#inflowingProvince#,
+		inflowingCity=#inflowingCity#,
+		inflowingDistrict=#inflowingDistrict#,
+		registrationType=#registrationType.id#,
+		registerDate=#registerDate#,
+		expectedDatedue=#expectedDatedue#,
+		certificateNumber=#certificateNumber#,
+		stayLocationTypeId=#stayLocationType.id#,
+		economySourceId=#economySource.id#,
+		stayTimeLimitId=#stayTimeLimit.id#,
+		preparedStayTimeLimitId=#preparedStayTimeLimit.id#,
+		hasMarriedProve=#hasMarriedProve#
+	</sql>
+
+	<sql id="sql_where">
+		 FROM floatingPopulations f left join baseinfo b on f.baseinfoid=b.id left join addressInfo adds on f.addressInfoId = adds.id
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					f.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isDeath">
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="true">
+						isDeath = #isDeath#
+					</isEqual>
+					<isEqual property="isDeath" compareValue="false">
+						(isDeath = #isDeath# or isDeath is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logOut">
+				<isNotNull property="logOut" prepend=" and ">
+					logOut = #logOut#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+		
+	<sql id="search_sql_where">
+		 FROM floatingPopulations f left join baseinfo b on f.baseinfoid=b.id left join addressInfo adds on f.addressInfoId = adds.id
+		<dynamic prepend="where">
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+					(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					f.orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty prepend=" and " property="idCardNo">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty prepend=" and " property="name">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="inflowingReason">
+				<isNotEmpty prepend=" and " property="inflowingReason">
+					inflowingReason = #inflowingReason#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="usedName">
+				<isNotEmpty prepend=" and " property="usedName">
+					usedName like #usedName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="inflowingStartDate" >
+				<isNotEmpty prepend=" and " property="inflowingStartDate">
+					<![CDATA[ inflowingDate >= #inflowingStartDate# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="inflowingEndDate">
+				<isNotEmpty prepend=" and " property="inflowingEndDate">
+					<![CDATA[ inflowingDate <= #inflowingEndDate# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="expectedStartDatedue" >
+				<isNotEmpty prepend=" and " property="expectedStartDatedue">
+					<![CDATA[ expectedDatedue >= #expectedStartDatedue# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="expectedEndDatedue">
+				<isNotEmpty prepend=" and " property="expectedEndDatedue">
+					<![CDATA[ expectedDatedue <= #expectedEndDatedue# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="inflowingProvince">
+				<isNotEmpty prepend=" and " property="inflowingProvince">
+					inflowingProvince = #inflowingProvince#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="inflowingCity">
+				<isNotEmpty prepend=" and " property="inflowingCity">
+					inflowingCity = #inflowingCity#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="inflowingDistrict">
+				<isNotEmpty prepend=" and " property="inflowingDistrict">
+					inflowingDistrict = #inflowingDistrict#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="registrationType">
+				<isNotEmpty prepend=" and " property="registrationType">
+					registrationType = #registrationType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="gender">
+				<isNotEmpty prepend=" and " property="gender">
+					gender = #gender#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="registerStartDate" >
+				<isNotEmpty prepend=" and " property="registerStartDate">
+					<![CDATA[ registerDate >= #registerStartDate# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="registerEndDate">
+				<isNotEmpty prepend=" and " property="registerEndDate">
+					<![CDATA[ registerDate <= #registerEndDate# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startBirthday" >
+				<isNotEmpty prepend=" and " property="startBirthday">
+					<![CDATA[ birthday >= #startBirthday# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endBirthday">
+				<isNotEmpty prepend=" and " property="endBirthday">
+					<![CDATA[ birthday <= #endBirthday# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="career">
+				<isNotEmpty prepend=" and " property="career">
+					career = #career#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workUnit">
+				<isNotEmpty prepend=" and " property="workUnit">
+					workUnit like '%'||#workUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="province">
+				<isNotEmpty prepend=" and " property="province">
+					province = #province#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="city">
+				<isNotEmpty prepend=" and " property="city">
+					city = #city#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="district">
+				<isNotEmpty prepend=" and " property="district">
+					district = #district#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativePlaceAddress">
+				<isNotEmpty prepend=" and " property="nativePlaceAddress">
+					nativePlaceAddress like '%'||#nativePlaceAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentAddress">
+				<isNotEmpty prepend=" and " property="currentAddress">
+					currentAddress like '%'||#currentAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isDeath">
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="true">
+						isDeath = 1
+					</isEqual>
+					<isEqual property="isDeath" compareValue="false">
+						(isDeath = 0 or isDeath is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logOut">
+				<isNotNull property="logOut" prepend=" and ">
+					logOut = #logOut#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<sql id="fast_search_sql_where">
+		 FROM floatingPopulations f left join baseinfo b on f.baseinfoid=b.id 
+		<dynamic prepend="where">
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+					(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					f.orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty prepend=" and " property="idCardNo">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty prepend=" and " property="name">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+					(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+				</isNotNull>
+			</isPropertyAvailable>
+			and logOut = 0
+		</dynamic>
+	</sql>
+	
+	<select id="countFloatingPopulations" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="countFloatingPopulationsDefaultList" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from floatingPopulations
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logOut">
+				<isNotNull property="logOut" prepend=" and ">
+					logOut = #logOut#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findFloatingPopulationsDefaultList" parameterClass="java.util.Map" resultMap="floatingPopulationResultDefaultList">
+		select 
+
+		f.id,f.baseInfoId,f.addressInfoId,f.orgId,f.orgInternalCode,
+		f.isInflowing,f.inflowingReason,f.inflowingDate,f.inflowingProvince,f.inflowingCity,f.inflowingDistrict,
+		f.registrationType,f.registerDate,f.expectedDatedue,f.createUser,f.createDate,f.updateUser,f.updateDate,
+		f.certificateNumber,f.stayLocationTypeId,f.economySourceId,f.stayTimeLimitId,f.preparedStayTimeLimitId,
+		f.settleTime,f.hasMarriedProve,f.sourcesState,f.logOut,f.logOutReason,f.logOutDate
+		
+		from floatingPopulations f
+
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					f.orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logOut">
+				<isNotNull property="logOut" prepend=" and ">
+					logOut = #logOut#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findFloatingPopulations" parameterClass="java.util.Map" resultMap="floatingPopulationResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		<include refid="sql_where" />
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<insert id="addFloatingPopulation" parameterClass="FloatingPopulation">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_floatingPopulations.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into floatingPopulations (
+			id,isInflowing,inflowingReason,inflowingDate,inflowingProvince,inflowingCity,inflowingDistrict,registrationType,registerDate,expectedDatedue,logOut,createUser,createDate,updateUser,updateDate
+			,certificateNumber,stayLocationTypeId,economySourceId,stayTimeLimitId,preparedStayTimeLimitId,hasMarriedProve,sourcesState,baseInfoId,addressInfoId,orgId,orgInternalCode,MARKBIRTHDAY,MARKGENDER
+		) values (
+			#id#,#isInflowing#,#inflowingReason.id#,#inflowingDate#,#inflowingProvince#,#inflowingCity#,#inflowingDistrict#,#registrationType.id#,#registerDate#,#expectedDatedue#,#logOut#,#createUser#,#createDate#,#updateUser#,#updateDate#
+			,#certificateNumber#,#stayLocationType.id#,#economySource.id#,#stayTimeLimit.id#,#preparedStayTimeLimit.id#,#hasMarriedProve#,#sourcesState#,#baseInfoId#,#addressInfoId#,#organization.id#,#orgInternalCode#,#birthday#,#gender.id#
+		)
+	</insert>
+
+	<update id="updateBaseHouseInfoAndRemark" parameterClass="FloatingPopulation">
+		update floatingPopulations set
+			isHaveHouse = #isHaveHouse#,
+			noHouseReason = #noHouseReason#,
+			currentAddress = #currentAddress#,
+			otherAddress = #otherAddress#,
+			remark = #remark#
+		where id=#id#
+	</update>
+
+	<update id="updateFloatingPopulationBusinessInfo" parameterClass="FloatingPopulation">
+		update floatingPopulations set
+		<include refid="floatingPopulationBusinessInfo"/>
+		where id=#id#
+	</update>
+	
+	<update id="updateBusiness" parameterClass="FloatingPopulation">
+		update floatingPopulations set
+		<include refid="floatingPopulationBusinessInfo"/>
+		where id=#id#
+	</update>
+	
+	<select id="getActualPopulationByOrgIdAndIdCardNoExcludePopulationId" parameterClass="java.util.Map" resultMap="floatingPopulationResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		FROM floatingPopulations f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					f.id != #id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					f.orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo15">
+				<isNotEmpty property="idCardNo15" prepend=" and ">
+					(upper(b.idCardno) like upper(#idCardNo15#)||'%' or upper(b.idCardno) like upper(#idCardNo18#)||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+		and f.LOGOUT!=1
+	</select>
+	
+	<select id="getActualPopulationByOrgIdAndIdCardNoExcludePopulationIdIncludeLogout" parameterClass="java.util.Map" resultMap="floatingPopulationResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		FROM floatingPopulations f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					f.id != #id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					f.orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo15">
+				<isNotEmpty property="idCardNo15" prepend=" and ">
+					(upper(b.idCardno) like upper(#idCardNo15#)||'%' or upper(b.idCardno) like upper(#idCardNo18#)||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+		
+	<select id="getFloatingPopulationByIdCardNoAndOrgId" parameterClass="java.util.Map" resultMap="floatingPopulationResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		FROM floatingPopulations f 
+		 	left join baseinfo b on f.baseinfoid=b.id 
+		 	left join addressInfo adds on f.addressInfoId = adds.id
+		where (upper(b.idCardno) = upper(#idCardNo15#) or upper(b.idCardno) like upper(#idCardNo18#))
+			and f.orgId = #organizationId# 
+	</select>
+	
+	<select id="getFloatingPopulationById" parameterClass="java.lang.Long" resultMap="floatingPopulationResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		FROM floatingPopulations f 
+			left join baseinfo b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		where f.id = #id#
+	</select>
+
+	<select id="countSearchFloatingPopulation" parameterClass="map" resultClass="int">
+		select count(*)
+		<include refid="search_sql_where" />
+	</select>
+	
+	<select id="searchFloatingPopulation" parameterClass="map" resultMap="floatingPopulationResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		<include refid="search_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countFastSearchFloatingPopulation" parameterClass="map" resultClass="int">
+		select count(*)
+		<include refid="fast_search_sql_where" />
+	</select>
+	
+	<select id="fastSearchFloatingPopulation" parameterClass="map" resultMap="floatingPopulationNoAddress">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/> 
+		<include refid="fast_search_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getFloatingPopulationByBaseInfoIdAndOrgId" parameterClass="java.util.Map" resultMap="floatingPopulationResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		FROM floatingPopulations f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+		where f.baseinfoid = #baseInfoId# and f.orgId = #orgId#
+	</select>
+	
+	<select id="getFloatingPopulationByBaseInfoId" parameterClass="java.util.Map" resultMap="floatingPopulationNoAddress">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>  
+		FROM floatingPopulations f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+		where f.baseinfoid = #baseInfoId#
+	</select>
+	
+	<update id="updateLogOutPopulationById" parameterClass="map">
+		update floatingPopulations set 
+		<isNotEmpty property="logoutDetail.logout">
+			logout=#logoutDetail.logout#,
+		</isNotEmpty>
+		logoutDate=#logoutDetail.logoutDate#,
+		logoutReason=#logoutDetail.logoutReason#,
+		updateDate=sysdate
+		where id=#id#
+	</update>
+	
+	<update id="updateDeathStateById" parameterClass="map">
+		update floatingPopulations set isDeath = #death# where id=#id#
+	</update>
+	
+	<select id="findFloatingPopulationsWhenIsOldForMark" resultMap="floatingPopulationForJob" parameterClass="java.util.Map">
+		SELECT f.id,f.baseinfoid,f.addressinfoid,f.orgid,f.orginternalcode from floatingPopulations f 
+	    <![CDATA[ where #whenOldDate# >= MARKBIRTHDAY ]]>  
+	   	and logout=0  and f.orginternalcode like #orgCode# || '%'
+	   	and not exists(select 1 from elderlypeople_$shardCode$ e where f.baseinfoId = e.baseinfoid AND f.orgId = e.orgId) 
+	    <![CDATA[and rownum <=#endRow#]]>
+	</select>
+	
+	<select id="countFloatingPopulationsWhenIsOldForMark" resultClass="java.lang.Integer" parameterClass="java.util.Map">
+		SELECT count(f.id)  
+	    	from floatingPopulations f 
+	    		<![CDATA[ where #whenOldDate# >= MARKBIRTHDAY ]]>
+	    		and logout=0 
+				and not exists(select 1 from elderlypeople e where f.baseinfoId = e.baseinfoid AND f.orgId = e.orgId)
+	</select>
+	
+	
+	<select id="findFloatingPopulationsWhenIsNurtuesWomenForMark" resultMap="floatingPopulationForJob" parameterClass="java.util.Map">
+		select f.id,f.baseinfoid,f.addressinfoid,f.orgid,f.orginternalcode  
+		from floatingPopulations f
+	    <![CDATA[ where #minDate# >= MARKBIRTHDAY  and #maxDate# <= MARKBIRTHDAY ]]>  
+		and logout=0 and f.markgender = 89 and f.orginternalcode like #orgCode# || '%'
+		and not exists(select 1 from nurtureswomen_$shardCode$ n where f.baseinfoId = n.baseinfoid AND f.orgId = n.orgId)
+	   <![CDATA[and rownum <=#endRow#]]>
+	</select>
+	
+	<select id="countFloatingPopulationsWhenIsNurtuesWomenForMark" resultClass="java.lang.Integer" parameterClass="java.util.Map">
+		SELECT count(f.id)  
+	    	from floatingPopulations f 
+	    		<![CDATA[ where #minDate# >= MARKBIRTHDAY  and #maxDate# <= MARKBIRTHDAY ]]>  
+				and logout=0 and f.markgender = 89 
+				and not exists(select 1 from nurtureswomen_$shardCode$ n where f.baseinfoId = n.baseinfoid AND f.orgId = n.orgId)
+	</select>
+	
+	
+<!-- 查询出到期的流动人员 -->
+	<select id="findFloatingPopulationByExpectedDatedue" resultMap="floatingPopulationResult">
+		<include refid="common.sql_page_start"/>
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+	    from floatingPopulations f
+	    	left join baseinfo b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id
+	    where (sysDate + #remindTime#)>=f.expectedDatedue and isRemind != 1
+	    <include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countFloatingPopulationByExpectedDatedue" resultClass="java.lang.Integer">
+		SELECT count(f.id)  
+	    	from floatingPopulations f 
+	    		where (sysDate + #remindTime#)>=f.expectedDatedue and isRemind != 1
+	</select>
+	
+	<update id="updateIsRemindByid" parameterClass="map" >
+		update floatingPopulations set isRemind=1 where id=#id#
+	</update>
+	
+
+	<select id="findFloatingPopulationByCardNoAndNameAndOrgId" parameterClass="java.util.Map" resultMap="baseInfo.populationBaseInfoResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from floatingPopulations f
+	    	left join baseinfo b on f.baseinfoid=b.id 
+		where orgInternalCode like #orgInternalCode#||'%'
+		<isNotNull prepend="and" property="name">
+			name=#name#
+		</isNotNull>
+		<isNotNull prepend="and" property="idCardNo">
+			upper(idCardNo)=upper(#idCardNo#)
+		</isNotNull>
+	</select>
+	
+
+	<update id="updateActualPopulationToHasHouseState" parameterClass="java.util.Map">
+		update addressInfo set 
+		isHaveHouse = #isHaveHouse#,
+		noHouseReason = #noHouseReason#,
+		currentAddress = #currentAddress# where id = 
+		(select addressInfoId from floatingPopulations where id=#id#) 
+	</update>
+<!-- 直接调用baseInfoService 的 updateBaseinfo -->
+<!-- 
+	<update id="updateFloatingPopulationBaseInfo" parameterClass="FloatingPopulation">
+	update floatingPopulations set logOut = #logOut#,
+	<include refid="baseInfo.updateBaseInfo"/>
+	where id=#id#
+	</update>
+ -->
+	<update id="updateFloatingPopulation" parameterClass="FloatingPopulation">
+		update floatingPopulations set
+		<include refid="floatingPopulationBusinessInfo"/>
+		<isNotEmpty property="logOut">
+			,logOut = #logOut#
+		</isNotEmpty>
+		where id=#id#
+	</update>
+
+	<delete id="deleteFloatingPopulationById" parameterClass="java.lang.Long">
+		delete from floatingPopulations where id = #value#
+	</delete>
+
+	<!-- 
+	<select id="findFloatingPopulationByCardNoAndOrgId" parameterClass="java.util.Map" resultMap="floatingPopulationResult">
+		select * from floatingPopulations where orgId=#orgId# and
+		<iterate property="idCardNoList" conjunction="or">
+			upper(idCardNo) like upper(#idCardNoList[]#)
+		</iterate>
+	</select>
+	 -->
+	<select id="findFloatingPopulationByCardNoAndOrgId" parameterClass="java.util.Map" resultMap="floatingPopulationResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from floatingPopulations f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id 
+		where f.orgId=#orgId# and
+		<iterate property="idCardNoList" conjunction="or">
+			upper(b.idCardNo) like upper(#idCardNoList[]#)
+		</iterate>
+	</select>
+	
+	<select id="findGisHouseHoldStaffById"  parameterClass="java.lang.Long" resultMap="GisfloatingPopulationResult">		<!-- 基础信息没有带出-->
+			select distinct(ps.populationtype) , 'floatingPopulation'as actualtype, ps.populationtype, f.*   from  populationtypes ps,floatingPopulations f 
+		   where ps.actualid(+) = f.id  and ps.actualtype(+) = 'floatingPopulation' and f.id=#id#
+	</select>
+
+	<select id="countFurtherStepGisByPopulationType" parameterClass="map" resultClass="java.lang.Integer">		<!-- isdeath 在基础信息里，待修改 	基础信息没有带出-->
+	  select count(*) from (
+	  	select ps.populationtype from populationtypes ps, floatingpopulations f
+             where ps.actualid = f.id and ps.actualtype(+)='floatingPopulation' and f.orginternalcode like #orgInternalCode#||'%' and 
+          ps.populationtype=#populationType#  and f.isdeath=0 and f.logout =0
+      )
+	</select>
+	
+	<select id="findFurtherStepGisByPopulationType" parameterClass="map" resultMap="GisfloatingPopulationResult">		<!-- isdeath 在基础信息里，待修改 	基础信息没有带出-->
+		select  ps.populationtype, 'floatingPopulation'as actualtype, f.* from populationtypes ps, floatingpopulations f 
+			where  ps.actualid = f.id and ps.actualtype(+)='floatingPopulation' and  f.isdeath=0 and f.logout=0 and
+		f.orginternalcode like #orgInternalCode#||'%' and ps.populationtype=#populationType#
+	</select>
+	
+	
+	<select id="countFurtherStepGisByPopulationTypeList" parameterClass="map" resultClass="java.lang.Integer">		<!-- isdeath 在基础信息里，待修改 -->
+	 select count(*) from (
+	  	select ps.populationtype from populationtypes ps, floatingpopulations f
+             where ps.actualid = f.id and  f.isdeath=0 and f.logout=0 and
+        ps.actualtype(+)='floatingPopulation' and f.orginternalcode like #orgInternalCode#||'%' 
+             <iterate prepend = "and" property = "populationType" open = "(" close = ")" conjunction = "or" >
+      			  	 ps.populationtype = #populationType[]# 
+   			 </iterate >
+      )
+	</select>
+	<select id="findFurtherStepGisByPopulationTypeList" parameterClass="map" resultMap="GisfloatingPopulationResult">		<!-- isdeath 在基础信息里，待修改 	基础信息没有带出-->
+		select  ps.populationtype , 'floatingPopulation'as actualtype, f.* from populationtypes ps, floatingpopulations f 
+		where  ps.actualid = f.id and ps.actualtype(+)='floatingPopulation' and f.isdeath=0 and f.logout=0 and f.orginternalcode like #orgInternalCode#||'%'
+		<iterate prepend="and" property="populationType" open="(" close=")" conjunction="or">
+			 ps.populationtype=#populationType[]#
+		</iterate>
+	</select>
+	
+	<select id="findFloatingPopulationByorgCodeForGis" parameterClass="map" resultMap="GisfloatingPopulationResult">		<!-- 基础信息没有带出-->
+		select 'floatingPopulation'as actualtype, 0 as populationtype, f.* from floatingpopulations f  where f.orginternalcode like #orgInternalCode#||'%'
+	</select>
+
+    <select id="findAllBindingFloatingPopulationByorgCodeForGis" parameterClass="map" resultMap="GisfloatingPopulationResult">		<!-- 基础信息没有带出-->
+		select 'floatingPopulation'as actualtype, 0 as populationtype, fp.* 
+		  from floatingpopulations fp, houseHasActualPopulation ph
+		 where fp.id = ph.populationid
+		   and fp.orginternalcode like #orgInternalCode#||'%'
+		   and ph.persontype = #personType#
+		   and ph.populationType = #populationType#
+		   and ph.defaultLivingHouse = #defaultLivingHouse#
+		   and exists (select *
+		          from houseinfo hi
+		         where hi.centerx is not null
+		           and hi.id = ph.houseid)
+	</select>
+	<!-- 
+	<select id="getFloatingPopulationByIdAndBusinessType" parameterClass="java.util.Map" resultMap="floatingPopulationResult">
+		<![CDATA[ select * from floatingpopulations where id=(select actualid from populationtypes where populationid=#populationId# and populationtype=#populationType# and actualType=#actualType#) ]]>
+	</select>
+	 -->
+	 <select id="getFloatingPopulationByIdAndBusinessType" parameterClass="java.util.Map" resultMap="floatingPopulationResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from floatingPopulations f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id 
+			where f.id=(select actualid from populationtypes 
+						where populationid=#populationId# 
+						and populationtype=#populationType# 
+						and actualType=#actualType#)
+	</select>
+	<!-- 移动数据需要的sql -->
+	<update id="updateDataMoveFloatingPopulationToOrg" parameterClass="java.util.Map">
+		update floatingpopulations set orgId = #orgId# , orgInternalCode = #orgInternalCode# where id = #id#
+	</update>
+	<!-- 移动数据需要的sql -->
+	<select id="getByOrgIdAndIdCardNo" parameterClass="java.util.Map" resultMap="floatingPopulationResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from floatingPopulations f 
+			left join baseinfo  b on f.baseinfoid=b.id 
+			left join addressInfo adds on f.addressInfoId = adds.id 
+		where upper(b.idCardno) = upper(#idCardNo#) and f.orgId=#orgId#
+	</select>
+	<update id="updateBirthdayAndGender" parameterClass="java.util.Map">
+		update floatingPopulations f set f.markbirthday=#birthday#,f.markgender=#genderId# where f.baseinfoId=#baseInfoId#
+	</update>
+	
+	<select id="findFloatingPopulationByIds" parameterClass="java.util.Map" resultMap="floatingPopulationResultDefaultList">
+		SELECT 
+		f.id,f.baseInfoId,f.addressInfoId,f.orgId,f.orgInternalCode,
+		f.isInflowing,f.inflowingReason,f.inflowingDate,f.inflowingProvince,f.inflowingCity,f.inflowingDistrict,
+		f.registrationType,f.registerDate,f.expectedDatedue,f.createUser,f.createDate,f.updateUser,f.updateDate,
+		f.certificateNumber,f.stayLocationTypeId,f.economySourceId,f.stayTimeLimitId,f.preparedStayTimeLimitId,
+		f.settleTime,f.hasMarriedProve,f.sourcesState,f.logOut,f.logOutReason,f.logOutDate
+		 from floatingPopulations f where id in
+		 <iterate close=")" open="(" conjunction="," property="ids">
+	    	#ids[]#
+	    </iterate>
+	</select>
+	
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization"/>
+	<resultMap id="findOrgByAddressResult" class="Organization">
+		<result column="orgId" property="id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+	</resultMap>
+	<select id="findOrgByAddress" parameterClass="java.lang.Long" resultMap="findOrgByAddressResult">
+	  select orgid,orginternalcode from  floatingpopulations where addressinfoid = #addressId#
+	</select>
+</sqlMap>

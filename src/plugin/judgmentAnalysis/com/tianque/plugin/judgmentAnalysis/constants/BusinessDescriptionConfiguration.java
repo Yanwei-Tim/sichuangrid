@@ -1,0 +1,106 @@
+package com.tianque.plugin.judgmentAnalysis.constants;
+
+public enum BusinessDescriptionConfiguration {
+
+	ORGNAME("组织机构名称", "&orgname&"), 
+	/*
+	 * 户籍人口
+	 */
+	HOUSEHOLDSTAFFSTOTAL("总户籍人口","&householdstaffsTotal&"), 
+	ORGHOUSEHOLDSTAFFSTOTAL("当前层级户籍人口","&orgHouseholdstaffsTotal&"), 
+	HOUSEHOLDSTAFFSRATE("户籍占比","&householdstaffsRate&"), 
+	HLASTMONTHGROWTH("户籍上月增长","&h_lastMonthGrowth&"), 
+	HSEQUENTIAL("户籍环比", "&h_sequential&"), 
+	HSAMETIMEGROWTH("户籍同期增长", "&h_sameTimeGrowth&"), 
+	HSAMEPERIOD("户籍同比","&h_samePeriod&"), 
+	/*
+	 * 流动人口
+	 */
+	FLOATINGTOTAL("总流动人口", "&floatingTotal&"), 
+	ORGFLOATINGTOTAL("当前层级流动人口", "&orgFloatingTotal&"), 
+	FLOATINGRATE("流动占比","&floatingRate&"), 
+	FLASTMONTHGROWTH("流动上月增长", "&f_lastMonthGrowth&"), 
+	FSEQUENTIAL("流动环比", "&f_sequential&"),
+	FSAMETIMEGROWTH("流动同期增长","&f_sameTimeGrowth&"), 
+	FSAMEPERIOD("流动同比", "&f_samePeriod&"), 
+	INFLOWS("流入数量", "&inflows&"), 
+	INFLOWSREASON("流入原因", "&inflowsReason&"), 
+	/*
+	 * 特殊人群
+	 */
+	SPECIALPOPULATIONS("总特殊人群", "&specialPopulations&"), 
+	ORGSPECIALPOPULATIONSTOTAL("当前层级特殊人群", "&orgSpecialPopulationsTotal&"), 
+	SPECIALPOPULATIONSTOTALRATE("特殊人群占比", "&specialPopulationsTotalRate&"), 
+	SPLASTMONTHGROWTH("特殊人群上月增长", "&sp_lastMonthGrowth&"), 
+	SPSEQUENTIAL("特殊人群环比","&sp_sequential&"), 
+	SPSAMETIMEGROWTH("特殊人群同期增长","&sp_sameTimeGrowth&"), 
+	SPSAMEPERIOD("特殊人群同比", "&sp_samePeriod&"), 
+	/*
+	 * 失业人员
+	 */
+	ORGUNEMPLOYED("当前层级失业人员", "&orgUnemployed&"), 
+	/*
+	 * 育龄妇女
+	 */
+	ORGCHILDBEARING("当前层级育龄妇女","&orgChildbearing&"), 
+	/*
+	 * 刑释人员
+	 */
+	ORGPOSITIVEINFOS("当前层级刑释人员","&orgPositiveinfos&"),
+	/*
+	 * 社区矫正人员
+	 */
+	ORGRECTIFICATIVEPERSONS("当前层级社区矫正人员","&orgRectificativePersons&"), 
+	/*
+	 * 严重精神障碍患者
+	 */
+	ORGMENTALPATIENTS("当前层级严重精神障碍患者","&orgMentalpatients&"),
+	/*
+	 * 吸毒人员
+	 */
+	ORGDRUGGY("当前层级吸毒人员", "&orgDruggy&"), 
+	/*
+	 * 重点青少年
+	 */
+	ORGIDLEYOUTHS("当前层级重点青少年", "&orgIdleYouths&"), 
+	/*
+	 * 重点上访人员
+	 */
+	ORGSUPERIORVISITS("当前层级重点上访人员","&orgSuperiorVisits&"), 
+	/*
+	 * 危险品从业人员
+	 */
+	ORGDANGEROUSGOODS("当前层级危险品从业人员","&orgDangerousGoods&"), 
+	/*
+	 * 其他人员
+	 */
+	ORGOTHER("当前层级其他人员", "&orgOther&");
+
+	public String name;
+	public String value;
+
+	private BusinessDescriptionConfiguration() {
+	}
+
+	private BusinessDescriptionConfiguration(String name, String value) {
+		this.name = name;
+		this.value = value;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
+
+}

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="publicPlaceTemp">
+	<typeAlias alias="PublicPlaceTemp" type="com.tianque.plugin.dataManage.location.publicPlaceTemp.domain.PublicPlaceTemp" />
+	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+	
+	<resultMap id="publicPlaceTempResultForBase" class="PublicPlaceTemp" extends="locationTempBaseDomain.placeCommonTempResultForBase">
+		<result property="licenseDate" column="licenseDate" />
+		<result property="openingDate" column="openingDate" />
+		<result property="category" column="category" />
+		<result property="registrationNumber" column="registrationNumber" />
+		<result property="placeLevel" column="placeLevel" />
+		<result property="buildingStructure" column="buildingStructure" />
+		<result property="totalArea" column="totalArea" />
+		<result property="operationArea" column="operationArea" />
+		<result property="cloakroom.id" column="cloakroom" />
+		<result property="vouchedPeopleCount" column="vouchedPeopleCount"/> 
+		<result property="privateRoomCount" column="privateRoomCount"/> 
+		<result property="passageway" column="passageway"/> 
+		<result property="innerStructure" column="innerStructure"/> 
+		<result property="surrounding" column="surrounding"/> 
+	</resultMap>
+    <resultMap id="publicPlaceTempResultForList" class="PublicPlaceTemp" extends="publicPlaceTemp.publicPlaceTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<sql id="claim_sql_where">
+		from DM_publicPlace_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	<sql id="updateBusinessSql">
+		licenseDate = #licenseDate#
+		,openingDate = #openingDate#
+		,category = #category#
+		,registrationNumber = #registrationNumber#
+		,placeLevel = #placeLevel#
+		,buildingStructure = #buildingStructure#
+		,totalArea = #totalArea#
+		,operationArea = #operationArea#
+		,cloakroom=#cloakroom.id#
+		,vouchedPeopleCount=#vouchedPeopleCount#
+		,privateRoomCount=#privateRoomCount#
+		,passageway=#passageway#
+		,innerStructure=#innerStructure#
+		,surrounding=#surrounding#
+		,attentionExtent=#attentionExtent.id#
+	</sql>
+	<insert id="addPublicPlaceTemp" parameterClass="PublicPlaceTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_publicPlace_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_publicPlace_Temp
+		(id,orgId,orgInternalCode,name,address,manager,licenseDate,openingDate,category,registrationNumber,
+		 placeLevel,buildingStructure,totalArea,operationArea,cloakroom,vouchedPeopleCount,privateRoomCount,
+		 surrounding,passageway,innerStructure,remark,attentionExtent,createDate,createUser,
+		<include refid="dataManage.addDataManage"/>
+		)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#name#,#address#,#manager#,#licenseDate#,#openingDate#,#category#,#registrationNumber#,
+		#placeLevel#,#buildingStructure#,#totalArea#,#operationArea#,#cloakroom.id#,#vouchedPeopleCount#,#privateRoomCount#,
+		#surrounding#,#passageway#,#innerStructure#,#remark#,#attentionExtent.id#,#createDate#,#createUser#,
+		<include refid="dataManage.addValueDataManage"/>
+		)
+    </insert>
+    
+    <select id="getPublicPlaceTempById" parameterClass="long" resultMap="publicPlaceTempResultForList">
+    	select * from DM_publicPlace_Temp where id=#value#
+    </select>
+    
+    <select id="countFindTemps" resultClass="java.lang.Integer" parameterClass="searchVo">
+		select count(id)  <include refid="claim_sql_where" />
+	</select>
+	
+	<select id="findTemps" resultMap="publicPlaceTempResultForList" parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+    
+    <delete id="deletePublicPlaceTempById" parameterClass="Long">
+	   delete DM_publicPlace_Temp where id = #value#
+	</delete>
+    
+    <update id="updatePublicPlaceTempInfo" parameterClass="PublicPlaceTemp">
+		update DM_publicPlace_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="publicPlaceTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+    
+    <select id="findTempPageList" resultMap="publicPlaceTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	 <update id="updatePublicPlaceTempInIdById"  parameterClass="java.util.Map">
+		update DM_publicPlace_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<update id="updatePublicPlaceTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_publicPlace_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	
+	<update id="updatePublicPlaceTemp" parameterClass="PublicPlaceTemp">
+		update DM_publicPlace_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="publicPlaceTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+</sqlMap>

@@ -1,0 +1,163 @@
+package com.tianque.plugin.weChat.service.impl;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.base.AbstractBaseService;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.plugin.weChat.dao.InboxDao;
+import com.tianque.plugin.weChat.domain.inbox.Inbox;
+import com.tianque.plugin.weChat.domain.inbox.InboxAttachment;
+import com.tianque.plugin.weChat.domain.inbox.ReplyMessage;
+import com.tianque.plugin.weChat.domain.sendMessage.text.TextSendMessage;
+import com.tianque.plugin.weChat.domain.user.Fan;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+import com.tianque.plugin.weChat.service.FanService;
+import com.tianque.plugin.weChat.service.InboxAttachmentService;
+import com.tianque.plugin.weChat.service.InboxService;
+import com.tianque.plugin.weChat.service.ReplyMessageService;
+import com.tianque.plugin.weChat.service.TencentUserService;
+import com.tianque.plugin.weChat.service.WeChatService;
+import com.tianque.plugin.weChat.util.Constants;
+
+/**收件箱数据处理服务类*/
+@Service("inboxService")
+@Transactional
+public class InboxServiceImpl extends AbstractBaseService implements InboxService {
+	private static Logger logger = Logger.getLogger(InboxServiceImpl.class);
+	@Autowired
+	private InboxDao inboxDao;
+	@Autowired
+	private WeChatService weChatService;
+	@Autowired
+	private InboxAttachmentService inboxAttachmentService;
+	@Autowired
+	private ReplyMessageService replyMessageService;
+	@Autowired
+	private FanService fanService;
+	@Autowired
+	private TencentUserService tencentUserService;
+
+	@Override
+	public PageInfo<Inbox> findInboxs(Inbox inbox, Integer pageNum, Integer pageSize, String sidx,
+			String sord) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("sortField", sidx);
+		map.put("order", sord);
+		map.put("inbox", inbox);
+		PageInfo<Inbox> pageInfo = inboxDao.findInboxs(map, pageNum, pageSize);
+		for (Inbox vo : pageInfo.getResult()) {
+			vo.setInboxAttachments(inboxAttachmentService.getInboxAttachmentByInboxId(vo
+					.getInboxId()));
+			vo.setCount(replyMessageService.countRMByInboxId(vo.getInboxId()));
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public Long saveInbox(Map<String, String> messageMap, TencentUser tencentUser) {
+		String msgType = messageMap.get("MsgType");
+		Long inboxId = saveInboxMain(messageMap, tencentUser);
+		if (msgType.equals(Constants.REQ_MESSAGE_TYPE_IMAGE)
+				|| msgType.equals(Constants.REQ_MESSAGE_TYPE_VOICE)) {
+			String fileName = weChatService.downloadMedia(messageMap.get("MediaId"), tencentUser);
+			InboxAttachment inboxAttachment = new InboxAttachment();
+			inboxAttachment.setFileName(fileName);
+			inboxAttachment.setExtFileName(fileName.substring(fileName.indexOf(".") + 1));
+			inboxAttachment.setFileActualUrl("/uploadFile/weChat/" + fileName);
+			inboxAttachment.setInboxId(inboxId);
+			inboxAttachmentService.saveInboxAttachment(inboxAttachment);
+		}
+		return inboxId;
+	}
+
+	/**保存收件箱主消息*/
+	private Long saveInboxMain(Map<String, String> messageMap, TencentUser tencentUser) {
+		Inbox inbox = new Inbox();
+		inbox.setToUserName(messageMap.get("ToUserName"));
+		inbox.setFromUserName(messageMap.get("FromUserName"));
+		inbox.setMsgType(messageMap.get("MsgType"));
+		inbox.setMsgId(Long.parseLong(messageMap.get("MsgId")));
+		inbox.setCreateTime(formatTime(messageMap.get("CreateTime")));
+		inbox.setOrg(tencentUser.getOrganization());
+		Fan fan = fanService.getFanByOpenId(messageMap.get("FromUserName"));
+		if (fan == null) {
+			fanService.saveFan(messageMap, tencentUser);
+			fan = fanService.getFanByOpenId(messageMap.get("FromUserName"));
+		}
+		inbox.setCreateUser(fan.getName());
+		inbox.setGroupId(fan.getGroupId());
+		inbox.setDealState(Constants.NOT_ACCEPT);
+		inbox.setContent(messageMap.get("Content"));
+		return inboxDao.saveInbox(inbox);
+	}
+
+	private Date formatTime(String createTime) {
+		Date date = new Date();
+		try {
+			long msgCreateTime = Long.parseLong(createTime) * 1000L;
+			DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			date = format.parse(format.format(new Date(msgCreateTime)));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return date;
+	}
+
+	@Override
+	public void deleteInboxById(List<Long> inboxId) {
+		for (int i = 0; i < inboxId.size(); i++) {
+			inboxAttachmentService.deleteInboxAttachmentByInboxId(inboxId.get(i));
+			replyMessageService.deleteReplyMessageByInboxId(inboxId.get(i));
+		}
+		inboxDao.deleteInboxById(inboxId);
+	}
+
+	@Override
+	public int replyMessage(Inbox inbox, TextSendMessage textSendMessage) {
+		textSendMessage.setMsgtype(Constants.REQ_MESSAGE_TYPE_TEXT);
+		TencentUser tencentUser = tencentUserService.getTencentUserByWeChatUserId(inbox
+				.getToUserName());
+		int resultCode = weChatService.replyMessage(textSendMessage, tencentUser);
+		if (resultCode == 0) {
+			saveReplyMessage(inbox, textSendMessage);
+		}
+		return resultCode;
+	}
+
+	@Override
+	public Long saveReplyMessage(Inbox inbox, TextSendMessage textSendMessage) {
+		ReplyMessage replyMessage = new ReplyMessage();
+		replyMessage.setInboxId(inbox.getInboxId());
+		replyMessage.setContent(textSendMessage.getText().getContent());
+		replyMessage.setReceiveUser(inbox.getCreateUser());
+		replyMessage.setCreateDate(new Date());
+		return replyMessageService.saveReplyMessage(replyMessage);
+	}
+
+	@Override
+	public Inbox getInboxById(Long id) {
+		return inboxDao.getInboxById(id);
+	}
+
+	@Override
+	public void update(Inbox inbox) {
+		inboxDao.update(inbox);
+	}
+
+	@Override
+	public Long getMaxInboxId() {
+		return inboxDao.getMaxInboxId();
+	}
+
+}

@@ -1,0 +1,174 @@
+package com.tianque.plugin.weChat.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.controller.ControllerHelper;
+import com.tianque.controller.annotation.PermissionFilter;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.util.DialogMode;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.GridPage;
+import com.tianque.domain.Organization;
+import com.tianque.domain.User;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+import com.tianque.plugin.weChat.service.TencentUserService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+@Controller("tencentUserController")
+@Scope("prototype")
+@Transactional
+@Namespace("/tencentUserManage")
+public class TencentUserController extends BaseAction {
+	private static Logger logger = LoggerFactory
+			.getLogger(TencentUserController.class);
+
+	@Autowired
+	private TencentUserService tencentUserService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+
+	private TencentUser tencentUser;
+
+	private boolean flag;
+	private String idsStr;
+
+	/**
+	 * 分页查询
+	 * 
+	 * @return
+	 */
+	@Action(value = "getTencentUserList", results = { @Result(name = "success", type = "json", params = {
+			"root", "gridPage", "ignoreHierarchy", "false",
+			"excludeNullProperties", "true" }) })
+	public String getTencentUserList() throws Exception {
+		tencentUser = tencentUser == null ? new TencentUser() : tencentUser;
+		gridPage = new GridPage(ControllerHelper.processAllOrgRelativeName(
+				tencentUserService.getTencentUserList(tencentUser, page, rows,
+						sidx, sord), organizationDubboService,
+				new String[] { "organization" }, tencentUser.getOrganization()
+						.getId()));
+		List<TencentUser> list = new ArrayList<TencentUser>(gridPage.getRows());
+		User user = ThreadVariable.getUser();
+		for (TencentUser tencentUser : list) {
+			if (user.getOrganization().getId().toString()
+					.equals(tencentUser.getOrganization().getId().toString())) {
+				tencentUser.setState(1L);
+			}
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "dispatch", results = {
+			@Result(name = "success", location = "/template/tencentUser/tencentUserDlg.ftl"),
+			@Result(name = "search", location = "/template/tencentUser/searchTencentUser.ftl"),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String dispatch() throws Exception {
+		if (DialogMode.ADD_MODE.equals(mode)) {
+			this.procOrganization();
+			return SUCCESS;
+		} else if (DialogMode.EDIT_MODE.equals(mode)) {
+			this.getTencentUserInfo();
+			return SUCCESS;
+		} else if (DialogMode.SEARCH_MODE.equals(mode)) {
+			return "search";
+		} else {
+			return ERROR;
+		}
+	}
+
+	/**
+	 * 保存
+	 * 
+	 * @return
+	 */
+	@Action(value = "addTencentUser", results = {
+			@Result(name = "success", type = "json", params = { "root", "id",
+					"ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String addTencentUser() throws Exception {
+		tencentUserService.addTencentUser(tencentUser);
+		return SUCCESS;
+	}
+
+	/**
+	 * 删除
+	 * 
+	 * @return
+	 */
+	@PermissionFilter(ename = "deleteTencentUser")
+	@Action(value = "deleteTencentUser", results = { @Result(name = "success", type = "json", params = {
+			"root", "flag" }) })
+	public String deleteTencentUser() throws Exception {
+		List<Long> ids = new ArrayList<Long>();
+		String[] idsArr = idsStr.split(",");
+		for (int i = 0; i < idsArr.length; i++) {
+			ids.add(Long.parseLong(idsArr[i]));
+		}
+		tencentUserService.deleteTencentUser(ids);
+		flag = true;
+		return SUCCESS;
+	}
+
+	@Action(value = "validateWeChatUserId", results = { @Result(name = "success", type = "json", params = {
+			"root", "tencentUser", "ignoreHierarchy", "false" }) })
+	public String validateWeChatUserId() throws Exception {
+		tencentUser = tencentUserService
+				.getTencentUserByWeChatUserId(tencentUser.getWeChatUserId());
+		return SUCCESS;
+	}
+
+	private void procOrganization() {
+		Organization organization = new Organization();
+		organization.setId(tencentUser.getOrganization().getId());
+		organization.setOrgName(ControllerHelper.getOrganizationRelativeName(
+				organization.getId(), organizationDubboService));
+		tencentUser = new TencentUser();
+		tencentUser.setOrganization(organization);
+	}
+
+	private void getTencentUserInfo() {
+		tencentUser = this.tencentUserService
+				.getTencentUserByTencentUserId(tencentUser.getTencentUserId());
+		tencentUser.getOrganization().setOrgName(
+				ControllerHelper.getOrganizationRelativeName(tencentUser
+						.getOrganization().getId(), organizationDubboService));
+	}
+
+	public TencentUser getTencentUser() {
+		return tencentUser;
+	}
+
+	public void setTencentUser(TencentUser tencentUser) {
+		this.tencentUser = tencentUser;
+	}
+
+	public boolean isFlag() {
+		return flag;
+	}
+
+	public void setFlag(boolean flag) {
+		this.flag = flag;
+	}
+
+	public String getIdsStr() {
+		return idsStr;
+	}
+
+	public void setIdsStr(String idsStr) {
+		this.idsStr = idsStr;
+	}
+
+}

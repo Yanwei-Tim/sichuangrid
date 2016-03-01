@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="serviceManagement">
+	<typeAlias alias="ServiceManagement" type="com.tianque.working.domain.ServiceManagement" />
+	<resultMap id="serviceManagementResult" class="ServiceManagement">
+		<result property="id" column="id" />
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="forcesForm" column="forcesForm" />
+		<result property="dailyDirectoryId" column="dailydirectoryid" />
+		<result property="formulateCriterion" column="formulateCriterion"
+			typeHandler="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+		<result property="work" column="work"
+			typeHandler="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+		<result property="facility" column="facility" />
+	</resultMap>
+
+	<insert id="addServiceManagement" parameterClass="ServiceManagement">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_ServiceManagement.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ServiceManagement
+		(id, createDate, createUser, updateDate,
+		updateUser, orgId, orgInternalCode, forcesForm, formulateCriterion,
+		work, facility,dailydirectoryid)
+		values
+		(#id#, #createDate#,
+		#createUser#, #updateDate#,
+		#updateUser#,
+		#organization.id#,
+		#orgInternalCode#,
+		#forcesForm#,#formulateCriterion:CLOB#,#work:CLOB#,#facility#,#dailyDirectoryId#)
+	</insert>
+
+	<sql id="sql_where">
+		from ServiceManagement
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId=#orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId in ($dailyDirectoryId$)
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="countForPageByOrgId" parameterClass="map"
+		resultClass="integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="findForPageByOrgId" parameterClass="map"
+		resultMap="serviceManagementResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="getServiceManagement" parameterClass="long" resultMap="serviceManagementResult">
+		select *
+		from ServiceManagement where id=#value#
+	</select>
+
+	<delete id="deleteServiceManagement" parameterClass="long">
+		delete from
+		ServiceManagement where id=#value#
+	</delete>
+
+	<update id="updateServiceManagement" parameterClass="ServiceManagement">
+		update ServiceManagement set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="forcesForm">
+				forcesForm=#forcesForm#
+			</isNotNull>
+			<isNotNull prepend="," property="formulateCriterion">
+				formulateCriterion=#formulateCriterion:CLOB#
+			</isNotNull>
+			<isNotNull prepend="," property="work">
+				work=#work:CLOB#
+			</isNotNull>
+			<isNotNull prepend="," property="facility">
+				facility=#facility#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+		</dynamic>
+		where id=#id#
+	</update>
+</sqlMap>

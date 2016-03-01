@@ -1,0 +1,642 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="fourTeams">
+	<!-- 注释说明 四支队伍表-->
+	<typeAlias alias="fourTeams" type="com.tianque.fourTeams.fourTeamsManage.domain.FourTeams" />
+	<!-- 注释说明 四支队伍成员表-->
+	<typeAlias alias="fourTeamMembers" type="com.tianque.fourTeams.fourTeamsManage.domain.FourTeamMembers" />
+	
+    <!--四支队伍表-->
+	<resultMap id="fourTeamsRsult" class="fourTeams">
+	    <result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgCode" column="orgCode" />
+		<result property="names" column="names" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="indexId" column="indexId" />
+		<result property="parentTeamId" column="parentTeamId" />
+		<result property="subTeamNumber" column="subTeamNumber" />
+		<result property="memberNumber" column="memberNumber" />
+		<result property="teamType" column="teamType" />
+		<result property="comments" column="comments" />
+		<result property="departementId" column="departementId" />
+		<result property="departementName" column="departementName" />
+		<result property="serviceArea" column="serviceArea" />
+		<result property="competentDepartment.id" column="competentDepartment" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<!--子队伍修改时主队伍名获取-->
+	<resultMap id="fourTeamsRsult_mod" class="fourTeams">
+	    <result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgCode" column="orgCode" />
+		<result property="names" column="names" />
+		<result property="parentNames" column="parentNames" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="indexId" column="indexId" />
+		<result property="departementId" column="departementId" />
+		<result property="departementName" column="departementName" />
+		<result property="parentTeamId" column="parentTeamId" />
+		<result property="subTeamNumber" column="subTeamNumber" />
+		<result property="memberNumber" column="memberNumber" />
+		<result property="serviceArea" column="serviceArea" />
+		<result property="competentDepartment.id" column="competentDepartment" />
+		<result property="teamType" column="teamType" />
+		<result property="comments" column="comments" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<!--子队伍查看时主队伍名获取-->
+	<resultMap id="fourTeamsRsult_view" class="fourTeams">
+		<result property="parentNames" column="parentNames" />
+		<result property="parentComments" column="parentComments" />
+	</resultMap>
+
+	<!--四支队伍成员表-->
+	<resultMap id="fourTeamMembersRsult" class="fourTeamMembers">
+	    <result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgCode" column="orgCode" />
+		<result property="serviceName" column="serviceName" />
+		<result property="names" column="names" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="teamId" column="teamId" />
+		<result property="duty" column="duty" />
+		<result property="gender.id" column="gender" />
+		<result property="birthday" column="birthday" />
+		<result property="mobile" column="mobile" />
+		<result property="telephone" column="telephone" />
+		<result property="specialty" column="specialty" />
+		<result property="orgAdminName" column="orgAdminName" />
+		<result property="politics.id" column="politics" />
+		<result property="orgAdminTelephone" column="orgAdminTelephone" />
+		<result property="comments" column="comments" />
+		<result property="memberDepartement" column="MEMBERDEPARTEMENT" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<sql id="com_orderBy_sql_where">
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<!--队伍一览-->
+    <select id="countTeamsByCondition" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	    select count(*) from fourTeams where parentTeamId = 0
+	   		<dynamic>
+				<isNotEmpty  prepend="and" property="fourTeams.organization.id">
+	        		orgId = #fourTeams.organization.id#
+	      		</isNotEmpty>
+			</dynamic> 
+	</select>
+
+    <select id="findTeamsByCondition" parameterClass="java.util.Map" resultMap="fourTeamsRsult">
+			select * from fourTeams where parentTeamId = 0
+			<dynamic>
+				<isNotEmpty  prepend="and" property="fourTeams.organization.id">
+	        		orgId = #fourTeams.organization.id#
+	      		</isNotEmpty>
+			</dynamic> 
+			<include refid="com_orderBy_sql_where" />
+	</select>
+	
+	<!--队伍高级检索-->
+    <select id="countSearchTeamsByCondition" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	    select count(*) from fourTeams where parentTeamId = 0
+	    	<dynamic>
+				<isNotEmpty  prepend="and" property="fourTeams.names">
+	        		names = #fourTeams.names#
+	      		</isNotEmpty>
+	      		<isNotEmpty  prepend="and" property="fourTeams.organization.id">
+	        		orgId = #fourTeams.organization.id#
+	      		</isNotEmpty>
+	      		<isNotEmpty  prepend="and" property="fourTeams.subTeamNumberMin">
+	      			<![CDATA[ subTeamNumber >= #fourTeams.subTeamNumberMin# ]]>
+	      		</isNotEmpty>
+	      		<isNotEmpty  prepend="and" property="fourTeams.subTeamNumberMax">
+	      			<![CDATA[ subTeamNumber <= #fourTeams.subTeamNumberMax# ]]>
+	      		</isNotEmpty>
+			</dynamic>
+	</select>
+
+    <select id="findSearchTeamsByCondition" parameterClass="java.util.Map" resultMap="fourTeamsRsult">
+			select * from fourTeams where parentTeamId = 0
+			<dynamic>
+				<isNotEmpty  prepend="and" property="fourTeams.names">
+	        		names = #fourTeams.names#
+	      		</isNotEmpty>
+	      		<isNotEmpty  prepend="and" property="fourTeams.organization.id">
+	        		orgId = #fourTeams.organization.id#
+	      		</isNotEmpty>
+	      		<isNotEmpty  prepend="and" property="fourTeams.subTeamNumberMin">
+	      			<![CDATA[ subTeamNumber >= #fourTeams.subTeamNumberMin# ]]>
+	      		</isNotEmpty>
+	      		<isNotEmpty  prepend="and" property="fourTeams.subTeamNumberMax">
+	      			<![CDATA[ subTeamNumber <= #fourTeams.subTeamNumberMax# ]]>
+	      		</isNotEmpty>
+			</dynamic>
+			<include refid="com_orderBy_sql_where" />
+	</select>
+	
+	<!--维护队伍检索-->
+	<sql id="search_fourTeams_sql_whereNames">
+		from FOURTEAMS a ,FOURTEAMS b
+		where  b.id=a.parentTeamId
+		<dynamic>
+			<isNotEmpty  prepend="and" property="fourTeams.parentTeamId">
+        		a.parentTeamId = #fourTeams.parentTeamId#
+      		</isNotEmpty>
+      		<isNotEmpty  prepend="and" property="fourTeams.organization.id">
+        		a.orgId = #fourTeams.organization.id#
+      		</isNotEmpty>
+      		<isNotEmpty  prepend="and" property="fourTeams.names">
+        		(a.names like #fourTeams.names#||'%'
+      		</isNotEmpty>
+      		<isNotEmpty  prepend="or" property="fourTeams.names">
+        		a.fullPinyin like #fourTeams.names#||'%'
+      		</isNotEmpty>
+      		<isNotEmpty  prepend="or" property="fourTeams.names">
+        		a.simplePinyin like #fourTeams.names#||'%')
+      		</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+    <select id="countSearchTeamsByConditionNames" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	    select count(*)
+	    <include refid="search_fourTeams_sql_whereNames" />
+	</select>
+
+    <select id="findSearchTeamsByConditionNames" parameterClass="java.util.Map" resultMap="fourTeamsRsult">
+		select a.*
+			<include refid="search_fourTeams_sql_whereNames" />
+			
+	</select>
+	
+	<!--维护成员检索-->
+	<sql id="search_fourTeamMemberNames_sql_where">
+		from FOURTEAMS a ,FOURTEAMMEMBERS b
+		where  b.teamId = #id# and  a.id=b.teamid
+		<dynamic>
+      		<isNotEmpty  prepend="and" property="names">
+        		(b.names like #names#||'%' or b.fullPinyin like #names#||'%' or b.simplePinyin like #names#||'%')
+      		</isNotEmpty>
+		</dynamic>
+	</sql>
+    <select id="countSearchTeamMembersByConditionNames" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	    select count(*)
+	    <include refid="search_fourTeamMemberNames_sql_where" />
+	</select>
+
+    <select id="findSearchTeamMembersByConditionNames" parameterClass="java.util.Map" resultMap="fourTeamMembersRsult">
+		select b.*
+			<include refid="search_fourTeamMemberNames_sql_where" />
+	</select>
+	
+	
+	<!--四支队伍高级检索-->
+    <select id="countSearchTeamMembersByCondition" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	    select count(*) from fourTeams where parentTeamId != 0
+	    <dynamic prepend="and" >
+				<isNotEmpty  prepend="and" property="fourTeams.teamType">
+	        		teamType = #fourTeams.teamType#
+	      		</isNotEmpty>
+	      		<isNotEmpty  prepend="and" property="fourTeams.names">
+	        		names like #fourTeams.names#||'%'
+	      		</isNotEmpty>
+	      		<isNotEmpty  prepend="and" property="fourTeams.departementName">
+	        		departementName like #fourTeams.departementName#||'%'
+	      		</isNotEmpty>
+	      		
+	      		<isEqual property="screeningLevel" compareValue="sameLevel">
+					<isNotEmpty property="fourTeams.organization.id" prepend=" and ">
+						orgId= #fourTeams.organization.id#
+					</isNotEmpty>
+				</isEqual>
+				<isEqual property="screeningLevel" compareValue="jurisdiction">
+					<isNotEmpty property="fourTeams.orgIdsList">
+						<iterate prepend=" and "  property="fourTeams.orgIdsList" conjunction="or" open="(" close=")">
+							orgId in ($fourTeams.orgIdsList[]$)
+						</iterate>
+					</isNotEmpty>
+				</isEqual>
+				<isEqual property="screeningLevel" compareValue="jurisdictionAll">
+				<isNotEmpty property="fourTeams.organization.orgInternalCode" prepend=" and ">
+					  orgcode like #fourTeams.organization.orgInternalCode# ||'%' and orgcode !=#fourTeams.organization.orgInternalCode#
+				</isNotEmpty>
+				</isEqual>
+				
+	      		<isNotEmpty  prepend="and" property="fourTeams.memberNumberMin">
+	      			<![CDATA[ memberNumber >= #fourTeams.memberNumberMin# ]]>
+	      		</isNotEmpty>
+	      		<isNotEmpty  prepend="and" property="fourTeams.memberNumberMax">
+	      			<![CDATA[ memberNumber <= #fourTeams.memberNumberMax# ]]>
+	      		</isNotEmpty>
+			</dynamic>
+	    
+	</select>
+
+    <select id="findSearchTeamMembersByCondition" parameterClass="java.util.Map" resultMap="fourTeamsRsult">
+			select * from fourTeams where parentTeamId != 0
+			<dynamic prepend="and" >
+				<isNotEmpty  prepend="and" property="fourTeams.teamType">
+	        		teamType = #fourTeams.teamType#
+	      		</isNotEmpty>
+	      		<isNotEmpty  prepend="and" property="fourTeams.names">
+	        		names like #fourTeams.names#||'%'
+	      		</isNotEmpty>
+	      		<isNotEmpty  prepend="and" property="fourTeams.departementName">
+	        		departementName like #fourTeams.departementName#||'%'
+	      		</isNotEmpty>
+	      		
+	      		<isEqual property="screeningLevel" compareValue="sameLevel">
+					<isNotEmpty property="fourTeams.organization.id" prepend=" and ">
+						orgId= #fourTeams.organization.id#
+					</isNotEmpty>
+				</isEqual>
+				<isEqual property="screeningLevel" compareValue="jurisdiction">
+					<isNotEmpty property="fourTeams.orgIdsList">
+						<iterate prepend=" and "  property="fourTeams.orgIdsList" conjunction="or" open="(" close=")">
+							orgId in ($fourTeams.orgIdsList[]$)
+						</iterate>
+					</isNotEmpty>
+				</isEqual>
+				<isEqual property="screeningLevel" compareValue="jurisdictionAll">
+				<isNotEmpty property="fourTeams.organization.orgInternalCode" prepend=" and ">
+					  orgcode like #fourTeams.organization.orgInternalCode# ||'%' and orgcode !=#fourTeams.organization.orgInternalCode#
+				</isNotEmpty>
+				</isEqual>
+				
+	      		<isNotEmpty  prepend="and" property="fourTeams.memberNumberMin">
+	      			<![CDATA[ memberNumber >= #fourTeams.memberNumberMin# ]]>
+	      		</isNotEmpty>
+	      		<isNotEmpty  prepend="and" property="fourTeams.memberNumberMax">
+	      			<![CDATA[ memberNumber <= #fourTeams.memberNumberMax# ]]>
+	      		</isNotEmpty>
+			</dynamic>
+			<include refid="com_orderBy_sql_where" />
+	</select>
+	
+	<!--队伍筛选-->
+	<sql id="screening_sql">
+		from fourteams f where f.teamtype = #fourteamsType# and f.parentTeamId != 0
+		<dynamic>
+				<isEqual property="screeningLevel" compareValue="sameLevel">
+					<isNotEmpty property="orgId" prepend=" and ">
+						f.orgId=#orgId#
+					</isNotEmpty>
+				</isEqual>
+				<isEqual property="screeningLevel" compareValue="jurisdiction">
+					<isNotEmpty property="orgIdsList">
+							<iterate prepend=" and "  property="orgIdsList" conjunction="or" open="(" close=")">
+								f.orgId in ($orgIdsList[]$)
+							</iterate>
+						</isNotEmpty>
+				</isEqual>
+				<isEqual property="screeningLevel" compareValue="jurisdictionAll">
+				<isNotEmpty property="orgCode" prepend=" and ">
+					  f.orgcode like #orgCode# ||'%' and f.orgcode !=#orgCode#
+				</isNotEmpty>
+				</isEqual>
+		</dynamic> 
+		
+	</sql>
+	
+	<!--子队伍一览-->
+	<sql id="search_fourTeams_sql_where">
+		    from (select a.*
+		            from FOURTEAMS a, FOURTEAMS b
+		           where b.id = a.parentteamid
+		           <dynamic>
+						<isNotEmpty  prepend="and" property="fourTeams.parentTeamId">
+			        		a.parentteamid = #fourTeams.parentTeamId#
+			      		</isNotEmpty>
+					</dynamic>
+		             ) t1  where 1=1
+				<iterate prepend=" and "  property="fourTeams.orgIdsList" conjunction="or" open="(" close=")">
+					t1.orgId in ($fourTeams.orgIdsList[]$)
+				</iterate>
+	</sql>
+	
+    <select id="countFourTeamsByCondition" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	    select count(*)
+	    <include refid="search_fourTeams_sql_where" />
+	</select>
+
+    <select id="findFourTeamsByCondition" parameterClass="java.util.Map" resultMap="fourTeamsRsult">
+		 select t1.*
+			<include refid="search_fourTeams_sql_where" />
+			
+	</select>
+	<!--维护队伍新增-->
+	<insert id="insertTeam" parameterClass="fourTeams">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_fourTeams.NEXTVAL as id from dual]]>
+		</selectKey>
+		insert into FOURTEAMS
+		  (ID,ORGID,ORGCODE,NAMES,FULLPINYIN,SIMPLEPINYIN,INDEXID,PARENTTEAMID,SUBTEAMNUMBER,MEMBERNUMBER,TEAMTYPE,COMMENTS,CREATEUSER,UPDATEUSER,CREATEDATE,UPDATEDATE,departementId,departementName,competentDepartment,serviceArea)
+		values
+		  (#id#,#organization.id#,#orgCode#,#names#,#fullPinyin#,#simplePinyin#,#indexId#,#parentTeamId#,#subTeamNumber#,#memberNumber#,#teamType#,#comments#,#createUser#,#updateUser#,#createDate#,#updateDate#,#departementId#,#departementName#,#competentDepartment.id#,#serviceArea#)
+	</insert>	
+	<!--indexId的最大值-->
+	<select id="maxIndexId" resultClass="java.lang.Integer">
+		select max(indexId) from FOURTEAMS
+	</select>
+	
+	<!--队伍一览中变更当前队伍数+1-->
+	<update id="updateFourTeamsSubTeamNumber" parameterClass="java.lang.Long">
+		update FOURTEAMS set subTeamNumber = subTeamNumber + 1
+		where id = #id#
+	</update>
+	<select id="getFourTeams" parameterClass="java.lang.Long" resultMap="fourTeamsRsult">
+		select * from FOURTEAMS where id=#id# 
+	</select>
+	<!--维护队伍查看-->
+	<select id="getFourTeamView" parameterClass="java.lang.Long" resultMap="fourTeamsRsult_view">
+		select names as parentNames ,comments as parentComments from FOURTEAMS where id=#id# 
+	</select>
+	<select id="getFourTeam" parameterClass="java.lang.Long" resultMap="fourTeamsRsult_mod">
+		select t1.*,t2.names as parentNames ,t2.comments as parentComments from FOURTEAMS t1,FOURTEAMS t2 
+		where t1.id=#id# and t2.id=t1.parentTeamid	
+	</select>
+	<!--维护队伍批量删除-->
+  	<delete id="deleteFourTeams">
+		delete from  FOURTEAMS where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	<!--维护队伍批量删除成功队伍数-1-->
+	<update id="updateTeamByDeleteFourTeams" parameterClass="java.util.Map">
+		 update FOURTEAMS set subTeamNumber = subTeamNumber - #number#
+			where id = #id#
+	</update>
+	<!--维护队伍修改-->
+	<update id="updateTeam" parameterClass="fourTeams">
+		update FOURTEAMS set competentDepartment=#competentDepartment.id#,departementName=#departementName#,comments=#comments#,
+		serviceArea=#serviceArea#
+		<dynamic>
+			<isNotNull prepend="," property="names">
+				names=#names#
+			</isNotNull>
+			<isNotNull prepend="," property="fullPinyin">
+				fullPinyin=#fullPinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="simplePinyin">
+				simplePinyin=#simplePinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="indexId">
+				indexId=#indexId#
+			</isNotNull>
+			<isNotNull prepend="," property="departementId">
+				departementId=#departementId#
+			</isNotNull>
+			<isNotNull prepend="," property="parentTeamId">
+				parentTeamId=#parentTeamId#
+			</isNotNull>
+			<isNotNull prepend="," property="subTeamNumber">
+				subTeamNumber=#subTeamNumber#
+			</isNotNull>
+			<isNotNull prepend="," property="memberNumber">
+				memberNumber=#memberNumber#
+			</isNotNull>
+			<isNotNull prepend="," property="teamType">
+				teamType=#teamType#
+			</isNotNull>
+			where id = #id#
+		</dynamic>
+	</update>
+	
+	<!--四支队伍一览-->
+    <select id="countServiceTeamsByCondition" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	    select count(*) from fourTeams where parentTeamId != 0
+	   <dynamic prepend="and" >
+	    	<isNotEmpty  prepend="and" property="fourTeams.teamType">
+	        		teamType = #fourTeams.teamType#
+	      		</isNotEmpty>
+	      		 <isEqual property="screeningLevel" compareValue="sameLevel">
+		        <isNotEmpty property="fourTeams.organization.id" prepend=" and ">
+		         	orgId = #fourTeams.organization.id#
+		        </isNotEmpty>
+		        </isEqual>
+		        <isEqual property="screeningLevel" compareValue="jurisdiction">
+			        <isNotEmpty property="fourTeams.orgIdsList">
+						<iterate prepend=" and "  property="fourTeams.orgIdsList" conjunction="or" open="(" close=")">
+							orgId in ($fourTeams.orgIdsList[]$)
+						</iterate>
+					</isNotEmpty>
+		        </isEqual>
+		        <isEqual property="screeningLevel" compareValue="jurisdictionAll">
+		        <isNotEmpty property="orgCode" prepend=" and ">
+		            orgcode like #orgCode# ||'%' and orgcode !=#orgCode#
+		        </isNotEmpty>
+		        </isEqual>
+			</dynamic>
+	    <include refid="com_orderBy_sql_where" />
+	</select>
+
+    <select id="findServiceTeamsByCondition" parameterClass="java.util.Map" resultMap="fourTeamsRsult">
+			select * from fourTeams  where parentTeamId != 0
+			<dynamic prepend="and" >
+				<isNotEmpty  prepend="and" property="fourTeams.teamType">
+	        		teamType = #fourTeams.teamType#
+	      		</isNotEmpty>
+	      		 <isEqual property="screeningLevel" compareValue="sameLevel">
+		        <isNotEmpty property="fourTeams.organization.id" prepend=" and ">
+		         	orgId = #fourTeams.organization.id#
+		        </isNotEmpty>
+		        </isEqual>
+		        <isEqual property="screeningLevel" compareValue="jurisdiction">
+		        	<isNotEmpty property="fourTeams.orgIdsList">
+						<iterate prepend=" and "  property="fourTeams.orgIdsList" conjunction="or" open="(" close=")">
+							orgId in ($fourTeams.orgIdsList[]$)
+						</iterate>
+					</isNotEmpty>
+		        </isEqual>
+		        <isEqual property="screeningLevel" compareValue="jurisdictionAll">
+		        <isNotEmpty property="orgCode" prepend=" and ">
+		            orgcode like #orgCode# ||'%' and orgcode !=#orgCode#
+		        </isNotEmpty>
+		        </isEqual>
+			</dynamic>
+			<include refid="com_orderBy_sql_where" />
+	</select>
+	
+	<sql id="search_fourTeamMembers_sql_where">
+		from FOURTEAMMEMBERS b
+		where  teamId = #id# 
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<!--维护成员一览-->
+    <select id="countMemberFourTeamsByCondition" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	    select count(*)
+	    <include refid="search_fourTeamMembers_sql_where" />
+	</select>
+
+    <select id="findMemberFourTeamsByCondition" parameterClass="java.util.Map" resultMap="fourTeamMembersRsult">
+		select b.*
+			<include refid="search_fourTeamMembers_sql_where" />
+			
+	</select>
+	
+	<!--队伍一览中变更当前队伍成员数+1-->
+	<update id="updateFourTeamsSubTeamMemberNumber" parameterClass="java.lang.Long">
+		update FOURTEAMS set memberNumber = memberNumber + 1
+		where id = #id#
+	</update>
+	
+	<!--维护成员新增-->
+	<insert id="insertTeamMember" parameterClass="fourTeamMembers">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_fourTeamMembers.NEXTVAL as id from dual]]>
+		</selectKey>
+		insert into FOURTEAMMEMBERS
+		  (ID,ORGID,ORGCODE,SERVICENAME,NAMES,FULLPINYIN,SIMPLEPINYIN,TEAMID,DUTY,GENDER,BIRTHDAY,MOBILE,TELEPHONE,SPECIALTY,ORGADMINNAME,POLITICS,ORGADMINTELEPHONE,COMMENTS,CREATEUSER,UPDATEUSER,CREATEDATE,UPDATEDATE,MEMBERDEPARTEMENT)
+		values
+		(#id#,#organization.id#,#orgCode#,#serviceName#,#names#,#fullPinyin#,#simplePinyin#,#teamId#,#duty#,#gender.id#,#birthday#,#mobile#,#telephone#,#specialty#,#orgAdminName#,#politics.id#,#orgAdminTelephone#,#comments#,#createUser#,#updateUser#,#createDate#,#updateDate#,#memberDepartement#)
+
+	</insert>
+	
+	<select id="getFourTeamMembers" parameterClass="java.lang.Long" resultMap="fourTeamMembersRsult">
+		select * from FOURTEAMMEMBERS where id =#id#		
+	</select>
+	
+	<!--维护队伍批量删除-->
+  	<delete id="deleteFourTeamMembers">
+		delete from  FOURTEAMMEMBERS where 
+		<iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	<!--维护队伍批量删除成功队伍成员数-1-->
+	<update id="updateTeamByDeleteFourTeamMembers" parameterClass="java.util.Map">
+		 update FOURTEAMS set memberNumber = memberNumber - #number#
+			where id = #id# 
+	</update>
+	
+	<!--维护队伍成员修改-->
+	<update id="updateTeamMember" parameterClass="fourTeamMembers">
+		update FOURTEAMMEMBERS set duty=#duty#,birthday=#birthday#,mobile=#mobile#,telephone=#telephone#,specialty=#specialty#,orgAdminName=#orgAdminName#,
+		orgAdminTelephone=#orgAdminTelephone#,comments=#comments#,MEMBERDEPARTEMENT=#memberDepartement#
+		<dynamic>
+			<isNotNull prepend="," property="serviceName">
+				serviceName=#serviceName#
+			</isNotNull>
+			<isNotNull prepend="," property="organization.id">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="orgCode">
+				orgCode=#orgCode#
+			</isNotNull>
+			<isNotNull prepend="," property="names">
+				names=#names#
+			</isNotNull>
+			<isNotNull prepend="," property="fullPinyin">
+				fullPinyin=#fullPinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="simplePinyin">
+				simplePinyin=#simplePinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="teamId">
+				teamId=#teamId#
+			</isNotNull>
+			<isNotNull prepend="," property="gender.id">
+				gender=#gender.id#
+			</isNotNull>
+			<isNotNull prepend="," property="politics.id">
+				politics=#politics.id#
+			</isNotNull>
+			where id = #id#
+		</dynamic>
+	</update>
+	
+	  <select id="getFourTeamMembersByType" parameterClass="java.lang.String" resultMap="fourTeamsRsult">
+			select * from fourTeams where (parentTeamId =0 or parentTeamId='') and teamType = #type#
+	</select>
+	
+	<!--事件-四支队伍查询-->
+    <select id="countTeamsByConditionForIssue" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	    select count(*) from fourTeams where orgId = #fourTeams.organization.id#
+	   		<dynamic>
+				<isNotEmpty  prepend="and" property="fourTeams.names">
+	        		names like #fourTeams.names#||'%'
+	      		</isNotEmpty>
+	      		<isNotEmpty  prepend="and" property="fourTeams.parentTeamId">
+	        		parentTeamId = #fourTeams.parentTeamId#
+	      		</isNotEmpty>
+			</dynamic> 
+	</select>
+    <select id="findTeamsByConditionForIssue" parameterClass="java.util.Map" resultMap="fourTeamsRsult">
+			select * from fourTeams where orgId = #fourTeams.organization.id#
+			<dynamic>
+				<isNotEmpty prepend="and" property="fourTeams.names">
+	        		names like #fourTeams.names#||'%'
+	      		</isNotEmpty>
+	      		<isNotEmpty  prepend="and" property="fourTeams.parentTeamId">
+	        		parentTeamId = #fourTeams.parentTeamId#
+	      		</isNotEmpty>
+			</dynamic> 
+			<include refid="com_orderBy_sql_where" />
+	</select>
+	
+	<!--根据队伍名称和所在网格查询队伍信息-->
+	<select id="repeatTeamName" parameterClass="java.util.Map" resultMap="fourTeamsRsult">
+		select * from fourteams f where  f.names=#names# and f.orgid=#orgId#
+	</select>
+	
+	<!--筛选四支队伍信息-->
+	<select id="findScreeningFourteamsForPageInfo" parameterClass="java.util.Map" resultMap="fourTeamsRsult">
+		select * 
+		<include refid="screening_sql" />
+		<include refid="com_orderBy_sql_where" />
+	</select>
+	
+	<select id="countfindScreeningFourteamsForPageInfo" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) 
+		<include refid="screening_sql" />
+	</select>
+	
+	<!--组织机构迁移合并方法-->
+	<update id="updateFourteamsOrganizationByIds" parameterClass="java.util.Map">
+		update fourteams set orgId = #orgId# , orgCode = #orgCode# where 1=1
+		<isNotNull prepend="and" property="ids">
+			<iterate property="ids"  conjunction="," open="id in (" close=")">
+				#ids[]#
+			</iterate>
+		</isNotNull>
+	</update>
+	
+	<update id="updateFourTeamsNameByIds" parameterClass="java.util.Map">
+		update fourteams set names = #fourTeamsName#  where id = #id#
+	</update>
+	
+	<select id="findteamsByOrgIdAndOrgCode"  parameterClass="java.util.Map" resultMap="fourTeamsRsult">
+		select * from fourteams  where 	orgId = #orgId# and orgCode = #orgCode#
+	</select>
+
+</sqlMap>

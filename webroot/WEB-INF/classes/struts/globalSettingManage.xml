@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="globalSettingManage" extends="default"
+		namespace="/sysadmin/globalSettingManage">
+		<default-class-ref class="globalSettingController"></default-class-ref>
+
+		<action name="dispatch" method="dispatch">
+			<result name="sysHeaderAndBottomPage">
+				/sysadmin/sysGlobalSetting/maintainHeaderAndBottomPage.jsp
+			</result>
+			<result name="fileDirectory">
+				/sysadmin/sysGlobalSetting/maintainFileDirectory.jsp
+			</result>
+			<result name="pluginSettings">
+				/sysadmin/sysGlobalSetting/maintainPluginSettings.jsp
+			</result>
+			<result name="mobileVersion">
+				/sysadmin/sysGlobalSetting/maintainMobileVersion.jsp
+			</result>
+			<result name="loginPageImage">
+				/sysadmin/sysGlobalSetting/maintainLoginPage.jsp
+			</result>
+			<result name="simpleRelease">
+				/sysadmin/sysGlobalSetting/maintainSimpleRelease.jsp
+			</result>
+			<result name="gridParams">
+				/sysadmin/sysGlobalSetting/maintainGridParams.jsp
+			</result>
+			<result name="organizationDeparmentNoSettings">
+				/sysadmin/sysGlobalSetting/maintainOrganizationUpload.jsp
+			</result>
+			<result name="personInfoChangeLevel">
+				/sysadmin/sysGlobalSetting/maintainPersonInfoChangeLevel.jsp
+			</result>
+			<result name="baseInfoRestrict">
+				/sysadmin/sysGlobalSetting/maintainBaseInfoRestrict.jsp
+			</result>
+			<result name="platformMessage">
+				/sysadmin/sysGlobalSetting/maintainPlatformMessage.jsp
+			</result>
+			<result name="mobileGPSPositionTimeInterval">
+				/sysadmin/sysGlobalSetting/maintainMobileGPSPositionTimeInterval.jsp
+			</result>
+			<result name="jmsMessage">
+				/sysadmin/sysGlobalSetting/maintainJmsMessage.jsp
+			</result>
+			<result name="tqSearchManage">
+				/sysadmin/sysGlobalSetting/maintainTqSearchManage.jsp
+			</result>
+			<result name="workbenchAppQRcode">
+				/sysadmin/sysGlobalSetting/maintainWorkbenchAppQRcode.jsp
+			</result>
+		</action>
+
+		<action name="updateGlobalLoginSetting" method="updateGlobalLoginSetting">
+		</action>
+		<action name="resetGlobalLoginSetting" method="resetGlobalLoginSetting">
+		</action>
+		<action name="updateGlobalSetting" method="updateGlobalSetting">
+			<result name="success" type="json">
+				<param name="root">map</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateFileDirectorySetting" method="updateFileDirectorySetting">
+			<result name="success" type="json">
+				<param name="root">map</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateMobileVersion" method="updateMobileVersion">
+			<result name="success" type="json">
+				<param name="root">map</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<!-- 修改工作台二维码图片-->
+		<action name="updateWorkbenchAppQRcodeSetting"  method="updateWorkbenchAppQRcodeSetting">
+			<result name="success" type="json">
+				<param name="root">map</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="includeProperties">errorMessage</param>
+			</result>
+		</action>
+		<!-- 重置工作台二维码图片-->
+		<action name="resetWorkbenchAppQRcodeSetting" method="resetWorkbenchAppQRcodeSetting">
+			<result name="success" type="json">
+				<param name="root">map</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+	</package>
+</struts>

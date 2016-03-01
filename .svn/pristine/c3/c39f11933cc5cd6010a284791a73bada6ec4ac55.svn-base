@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="issueHistory">
+	<typeAlias alias="issueHistory" type="com.tianque.issue.domain.IssueNew" />
+	<typeAlias alias="IssueViewObjectHistory" type="com.tianque.issue.vo.IssueViewObject" />
+	<typeAlias alias="IssueLogHistory" type="com.tianque.issue.domain.IssueLogNew"/>
+	<typeAlias alias="IssueStepHistory" type="com.tianque.issue.domain.IssueStep" />
+	<typeAlias alias="IssueStepGroupHistory" type="com.tianque.issue.state.IssueStepGroup" />
+	<typeAlias alias="IssueMapHistory" type="com.tianque.issue.domain.IssueMap" />
+	<!-- IssueViewObjectHistory映射结果 -->
+	<resultMap id="issueViewResultHistory" class="IssueViewObjectHistory">
+		<result property="superviseLevel" column="superviseLevel"
+			nullValue="-1" />
+		<result property="issueId" column="issueId" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="subject" column="subject" />
+		<result property="status" column="status" />
+		<result property="occurDate" column="occurDate" />
+		<result property="currentOrg.id" column="currentOrg" />
+		<result property="occurOrg.id" column="occurOrg" />
+		<result property="targeOrg.id" column="targetOrg" />
+		<result property="dealTime" column="lastdealdate" />
+		<result property="sourcePerson" column="sourcePerson" />
+		<result property="sourceKind.id" column="sourceKind" />
+		<result property="sourceMobile" column="sourceMobile" />
+		<result property="issueLogId" column="stepId" />
+		<result property="issueStepId" column="stepId" />
+		<result property="supervisionState" column="superviselevel"
+			nullValue="-1" />
+		<result property="urgent" column="urgent" />
+		<result property="dealState" column="statecode" />
+		<result property="delayState" column="delayState" nullValue="0" />
+		<result property="lastOrg.id" column="lastOrg" />
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="fromSerialNumber" column="fromSerialNumber" />
+		<result property="createDate" column="createDate" />
+		<result property="deadLine" column="deadLine" />
+		<result property="createName" column="CREATEUSER"
+			select="issue.getFullUserByUerName" />
+		<result property="issueType.issueTypeDomain.id" column="ISSUETYPEDOMAINID"/>
+		<result property="issueType.id" column="ISSUETYPEID"/>
+	</resultMap>
+
+	<!-- 置顶事件（宣传案例标识）映射结果 -->
+	<resultMap id="issueViewTopPublicltycassResultHistory" class="IssueViewObjectHistory"
+		extends="issueViewResultHistory">
+		<!--<result property="topState" column="topState" />-->
+		<result property="createOrg.id" column="createOrg" />
+		<result property="publicltycass" column="publicltycass" />
+		<result property="evaluateType" column="evaluateType" />
+	</resultMap>
+	<!-- 包含事件评价结果的IssueViewObjectHistory映射结果 -->
+	<resultMap id="issueViewAndEvaluateResultHistory" class="IssueViewObjectHistory"
+		extends="issueViewResultHistory">
+		<result property="evaluateType" column="evaluateType" />
+		<result property="evaluateContent" column="evaluateContent" />
+		<result property="evaluateTime" column="evaluateTime" />
+	</resultMap>
+	<!--下辖事项列表- 宣传案例事项映射结果 -->
+	<resultMap id="issueViewPublicltycassResultHistory" class="IssueViewObjectHistory"
+		extends="issueViewAndEvaluateResultHistory">
+		<result property="publicltycass" column="publicltycass" />
+		<result property="createOrg.id" column="createOrg" />
+		<result property="issueContent" column="issueContent"
+			typeHandler="ClobStringTypeHandler" />
+	</resultMap>
+	
+	<resultMap id="issueMapResultHistory" class="IssueMapHistory">
+		<result property="name" column="orgname" />
+		<result property="orgLevelInternalId" column="internalid" />
+		<result property="dealType" column="dealtype" />
+		<result property="superviselevel" column="superviselevel" />
+		<result property="urgent" column="urgent" />
+		<result property="orgId" column="orgId" />
+	</resultMap>
+
+	<resultMap class="IssueLogHistory" id="issueLogResultHistory">
+		<result property="id" column="id"/>
+		<result property="issue.id" column="issueId"/>
+		<result property="issueStep.id" column="stepId"/>
+		<result property="dealOrg.orgInternalCode" column="dealOrgInternalCode"/>
+		<result property="dealOrg.id" column="dealOrgId"/>
+		<result property="dealOrgId" column="dealOrgId"/>
+		<result property="dealOrgInternalCode" column="dealOrgInternalCode"/>
+		<result property="dealUserName" column="dealUserName"/>
+		<result property="dealTime" column="dealTime"/>
+		<result property="dealDeadline" column="dealDeadline"/>
+		<result property="mobile" column="mobile"/>
+		<result property="dealType" column="dealType"/>
+		<result property="dealDescription" column="dealDescription"/>
+		<result property="content" column="content" typeHandler="org.springframework.orm.ibatis.support.ClobStringTypeHandler"/>
+		<result property="targeOrg.id" column="targeOrgId"/>
+		<result property="targeOrg.orgInternalCode" column="targeOrgInternalCode"/>
+		<result property="targeOrgInternalCode" column="targeOrgInternalCode"/>
+		<result property="supervisionState" column="supervisionState"/>
+		<result property="dealState" column="dealState"/>
+		<result property="forIssueLog.id" column="forIssueLogId"/>
+		<result property="backIssueLog.id" column="backIssueLogId"/>
+		<result property="dealStepIndex" column="dealStepIndex"/>
+		<result property="logCompleteTime" column="logCompleteTime"/>
+		<result property="forLogEntryTime" column="forLogEntryTime"/>
+		<result property="fourTeamsName" column="fourTeamsName"/>
+		<result property="stateClass" column="stateClass"/>
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<!-- 完整的事件信息 -->
+	<resultMap class="issueHistory" id="fullIssueHistory">
+		<result property="id" column="id"/>
+		<result property="serialNumber" column="serialNumber"/>
+		<result property="subject" column="subject"/>
+		<result property="occurOrg.id" column="occurOrg"/>
+		<result property="occurOrg.orgInternalCode" column="occurOrgInternalCode"/>
+		<result property="createOrg.id" column="createOrg"/>
+		<result property="createOrg.orgInternalCode" column="createOrgInternalCode"/>
+		<result property="lastOrg.id" column="lastOrg"/>
+		<result property="lastOrg.orgInternalCode" column="lastOrgInternalCode"/>
+		<result property="lastUsername" column="lastUsername"/>
+		<result property="issueKind.id" column="issueKind"/>
+		<result property="historic" column="historic"/>
+		<result property="important" column="important"/>
+		<result property="sourcePerson" column="sourcePerson"/>
+		<result property="sourceKind.id" column="sourceKind"/>
+		<result property="sourceMobile" column="sourceMobile"/>
+		<result property="occurDate" column="occurDate"/>
+		<result property="relatePeopleCount" column="relatePeopleCount"/>
+		<result property="occurLocation" column="occurLocation"/>
+		<result property="mainCharacters" column="mainCharacters"/>
+		<result property="issueContent" column="issueContent" typeHandler="ClobStringTypeHandler"/>
+		<result property="remark" column="remark" typeHandler="ClobStringTypeHandler"/>
+		<result property="displayStyle" column="displayStyle"/>
+		<result property="status" column="status"/>
+		<result property="urgent" column="urgent"/>
+		<!--<result property="issueTypes" column="id" select="issue.loadIssueHasTypes"/>
+		--><result property="endDate" column="completeDate"/>
+		<result property="isEmergency" column="isEmergency"/>
+		<result property="currentStep.id" column="currentStep"/>
+		<result property="lon" column="lon"/>
+		<result property="lat" column="lat"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="importantPlace" column="importantPlace" />
+		<result property="emergencyLevel.id" column="emergencyLevel" />
+		<result property="centerLon" column="centerLon"/>
+		<result property="centerLat" column="centerLat"/>
+		<result property="zoom" column="zoom"/>
+		<result property="centerLon2" column="centerLon2"/>
+		<result property="centerLat2" column="centerLat2"/>
+		<result property="uniqueIdForMobile" column="uniqueidformobile"/>
+		<result property="fromSerialNumber" column="fromSerialNumber"/>
+		<result property="issueType.issueTypeDomain.id" column="ISSUETYPEDOMAINID"/>
+		<result property="issueType.id" column="ISSUETYPEID"/>
+	</resultMap>
+	
+	<!-- 事件处理步骤结果映射 -->
+	<resultMap id="issueStepResultHistory" class="IssueStepHistory">
+		<result property="id" column="id" />
+		<result property="source.id" column="source" />
+		<result property="target.id" column="target" />
+		<result property="target.orgInternalCode" column="targetinternalcode" />
+		<result property="state" column="state" />
+		<result property="stateCode" column="stateCode" />
+		<result property="entryDate" column="entryDate" />
+		<result property="endDate" column="endDate" />
+		<result property="lastDealDate" column="lastDealDate" />
+		<result property="issue.id" column="issue" />
+		<result property="superviseLevel" column="superviseLevel" />
+		<result property="backTo.id" column="backTo" />
+		<result property="groupId" column="groupId" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<resultMap id="simpleStepGroupResultHistory" class="IssueStepGroupHistory">
+		<result property="id" column="id" />
+		<result property="issue.id" column="issue" />
+		<result property="keyStep.id" column="keyStep" />
+		<result property="entyLog.id" column="entyLog" />
+		<result property="outLog.id" column="outLog" />
+	</resultMap>
+	
+	<resultMap id="simpleStepResultForFourTeams" class="IssueStepHistory" extends="issueStepResultHistory">
+		<result property="fourTeamsTypeID" column="fourTeamsTypeID" />
+		<result property="fourTeams.id" column="fourTeams"/>
+		<result property="fourTeams.names" column="fourTeamsName"/>
+	</resultMap>
+
+	<sql id="sql_findJurisdictionsHistory_leaderView">
+		<dynamic>
+			<isPropertyAvailable property="orgLevel" prepend=" and ">
+				<isNull property="searchOrgId">
+					cstep.targetorgLevel=$orgLevel$ and cstep.TARGETINTERNALCODE like '$orgCode$%'
+				</isNull>
+				<isNotNull property="searchOrgId">
+					cstep.targetorgLevel=$orgLevel$ and cstep.TARGETINTERNALCODE like '$searchOrgCode$%'
+				</isNotNull>
+				<isPropertyAvailable property="functionalOrgType">
+					<isNotNull property="functionalOrgType" prepend=" and ">
+						cstep.targetorgfunctionalorgType = $functionalOrgType$
+					</isNotNull>
+					<isNull property="functionalOrgType" prepend=" and ">
+						cstep.targetorgfunctionalorgType = 0
+					</isNull>
+				</isPropertyAvailable>
+			</isPropertyAvailable>
+			<isNotPropertyAvailable property="orgLevel"
+				prepend=" and ">
+				cstep.targetinternalcode = '$orgCode$'
+			</isNotPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<!-- 越级 -->
+	<select id="getJurisdictionsSkipIssueHistoryCount"
+		parameterClass="map" resultClass="java.lang.Integer">
+	<![CDATA[select count(0) from issues_History iu
+		where iu.historic = 0
+		and exists(
+		   select 1 from issuesteps_History cstep where EMERGENCYLEVEL is not null
+	]]>
+		<include refid="sql_findJurisdictionsHistory_leaderView" />
+	<![CDATA[and cstep.issue = iu.id )]]>
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+	</select>
+	<select id="findJurisdictionsSkipIssueHistory" parameterClass="map"
+		resultMap="issueViewTopPublicltycassResultHistory">
+		<![CDATA[	
+		   select  iu.publicltycass,
+		   iu.id as issueId,iu.serialnumber,iu.subject,iu.status,iu.occurdate,
+		   cstep.source currentOrg,iu.occurorg,iu.createOrg,cstep.target targetOrg,
+		   cstep.lastdealdate,iu.sourceperson,iu.sourcekind,iu.sourcemobile,
+		   iu.urgent,cstep.id as stepId,cstep.superviselevel,iu.lastOrg,iu.CREATEUSER,
+		   cstep.statecode,iu.fromSerialNumber,iu.createDate,iu.deadLine,iu.hours,
+		   iu.minute,cstep.delayState,iu.ISSUETYPEID,iu.ISSUETYPEDOMAINID
+		   from ISSUESTEPS_HISTORY cstep,ISSUES_HISTORY iu 
+		 where cstep.issue = iu.id 
+	 		and cstep.EMERGENCYLEVEL is not null and  cstep.isStayStep=1
+		]]>
+		<include refid="sql_findJurisdictionsHistory_leaderView" />
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+		<!--<dynamic prepend="order by">
+			ti.topState asc, ti.topDate desc
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">,$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	--></select>
+
+
+	<!-- 下辖已办事件数量 -->
+	<select id="getJurisdictionsDoneHistoryCount" parameterClass="map"
+		resultClass="java.lang.Integer">
+	<![CDATA[select count(0) from ISSUES_HISTORY iu
+		  where iu.historic = 0 
+		  and exists(select 1 from ISSUESTEPS_HISTORY cstep
+					   where cstep.stateCode >= $completeCode$
+	]]>
+		<include refid="sql_findJurisdictionsHistory_leaderView" />
+	<![CDATA[and cstep.issue=iu.id)]]>
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+	</select>
+
+	<select id="findJurisdictionsDoneHistory" parameterClass="map"
+		resultMap="issueViewTopPublicltycassResultHistory">
+	<![CDATA[	
+		   select iu.publicltycass, iu.id as issueId,iu.serialnumber,
+		   iu.subject,iu.status,iu.occurdate,cstep.source currentOrg,iu.occurorg,iu.createOrg,
+		   cstep.target targetOrg,cstep.lastdealdate,iu.sourceperson,iu.sourcekind,iu.sourcemobile,
+		   iu.urgent,cstep.id as stepId,cstep.superviselevel,iu.lastOrg,iu.CREATEUSER,iu.fromSerialNumber,
+		   iu.createDate,iu.deadLine,cstep.statecode,iu.hours,iu.minute,cstep.delayState,iu.ISSUETYPEID,iu.ISSUETYPEDOMAINID
+		   ,ie.evaluateType
+		   from ISSUESTEPS_HISTORY cstep,ISSUES_HISTORY iu left join IssueEvaluate ie on ie.issueId = iu.id
+						 where cstep.issue = iu.id and cstep.stateCode >= $completeCode$ and cstep.isStayStep=1
+	   ]]>
+		<include refid="sql_findJurisdictionsHistory_leaderView" />
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+		<!--<dynamic prepend="order by">
+			ti.topState asc, ti.topDate desc
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">,$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	--></select>
+
+
+	<!-- 下辖上级交办事件数量 -->	<!--判断是否查询所有，本级，下辖 -->
+	<select id="getJurisdictionsAssginCountHistoryCount"  
+		parameterClass="map" resultClass="java.lang.Integer">
+		<![CDATA[ select count(0) from ISSUES_HISTORY iu , ISSUESTEPS_HISTORY cstep 
+					   where cstep.issue=iu.id and cstep.assign = $assgin$
+					   and cstep.isStayStep=1
+		]]>
+		<include refid="sql_findJurisdictionsHistory_leaderView" /> 
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+	</select>
+	<select id="findJurisdictionsAssginHistory" parameterClass="map"
+		resultMap="issueViewTopPublicltycassResultHistory">
+		<![CDATA[
+			select  iu.publicltycass,iu.id as issueId,iu.serialnumber,
+			 iu.subject,iu.status,iu.occurdate,cstep.source currentOrg,iu.occurorg,iu.createOrg,cstep.target targetOrg,
+			 iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent,cstep.id as stepId,cstep.superviselevel,cstep.lastdealdate,
+			 iu.lastOrg,iu.fromSerialNumber,iu.createDate,iu.deadLine,iu.CREATEUSER,cstep.statecode,iu.hours,
+			 iu.minute,cstep.delayState,iu.ISSUETYPEID,iu.ISSUETYPEDOMAINID
+			from  ISSUESTEPS_HISTORY cstep,ISSUES_HISTORY iu 
+				where cstep.issue=iu.id and cstep.assign = $assgin$
+					   and cstep.isStayStep=1
+		]]>
+		<include refid="sql_findJurisdictionsHistory_leaderView" /> 
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+		<!--<dynamic prepend="order by">
+			ti.topState asc, ti.topDate desc
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">,$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	--></select>
+	<!-- 下辖上报事件数量 -->
+	<select id="getJurisdictionsSubmitHistoryCount" parameterClass="map"
+		resultClass="java.lang.Integer">
+		select count(0) from ISSUES_HISTORY iu
+		where iu.historic = 0 and
+		exists(select 1 from ISSUESTEPS_HISTORY cstep
+		where cstep.submit =$submit$
+		<include refid="sql_findJurisdictionsHistory_leaderView" />
+		and cstep.issue = iu.id)
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+	</select>
+
+	<select id="findJurisdictionsSubmitHistory" parameterClass="map"
+		resultMap="issueViewTopPublicltycassResultHistory">
+		<![CDATA[
+			select  iu.publicltycass,iu.id as issueId,cstep.delayState as delayState,
+			 iu.serialnumber,iu.subject,iu.status,iu.occurdate,cstep.source currentOrg,iu.occurorg,iu.createOrg,cstep.target targetOrg,
+			 iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent,cstep.id as stepId,cstep.superviselevel,cstep.lastdealdate,
+			 iu.lastOrg,iu.CREATEUSER,iu.fromSerialNumber,iu.createDate,iu.deadLine,cstep.statecode,iu.hours,iu.minute,iu.ISSUETYPEID,iu.ISSUETYPEDOMAINID
+			 from  issuesteps_History  cstep,ISSUES_HISTORY iu 
+			where 
+			 cstep.issue= iu.id and cstep.submit = $submit$ and cstep.isStayStep=1
+		]]>
+		<include refid="sql_findJurisdictionsHistory_leaderView" />
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+		<!--<dynamic prepend="order by">
+			ti.topState asc, ti.topDate desc
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">,$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	--></select>
+<!-- ########################################## -->
+
+	<select id="loadIssueOperationLogsHistoryByIssueId" parameterClass="long" resultMap="issueLogResultHistory">
+		SELECT issue.* from ISSUELOGS_HISTORY issue where issueId = #value# order by dealstepindex,id
+	</select>
+	
+	<!-- 根据id查询完整的事件信息 -->
+	<select id="getFullIssueHistoryById" parameterClass="long" resultMap="fullIssueHistory">
+		select * from ISSUES_HISTORY where id=#value#
+	</select>
+
+	<!-- 根据事件id 获取该事件所有的处理步骤组 -->
+	<select id="getIssueStepGroupHistoryByIssueId" parameterClass="long" resultMap="simpleStepGroupResultHistory">
+		select * from ISSUESTEPGROUPS_HISTORY where issue=#value# order by id
+	</select>
+	
+	<select id="getSimpleIssueStepHistoryGroupById" parameterClass="long" resultMap="simpleStepGroupResultHistory">
+		select * from ISSUESTEPGROUPS_HISTORY where id=#value#
+	</select>
+	
+	<!-- 根据事件IssueStepGroup issuemap -->
+	<select id="getIssueMapHistoryByStepGroup" parameterClass="IssueStepGroupHistory" resultMap="issueMapResultHistory">
+		select o.id orgId ,o.orgname,p.internalid,il.dealType,i.superviselevel,iu.urgent 
+		from ISSUES_HISTORY iu,ISSUESTEPS_HISTORY i,organizations o,propertydicts p,ISSUELOGS_HISTORY il 
+		where i.target=o.id and o.orglevel=p.id and il.id =#outLog.id# and i.id=#keyStep.id# and iu.id=#issue.id#
+	</select>
+
+	<!-- 查询一个部门从事件进去到流出这一周期内的处理记录 -->
+	<select id="findIssueDealLogHistoryByIssueMapAndIssueStepGroup" parameterClass="map" resultMap="issueLogResultHistory">
+	  SELECT * from ISSUELOGS_HISTORY where issueId = #issueId# 
+	  and
+	  	<![CDATA[id >=#startId# ]]>
+		<isNotNull property="endId">
+			<![CDATA[and   id<=#endId#]]>
+		</isNotNull>
+	 order by id
+	</select>
+	
+	<select id="searchIssueStepsHistoryByIssueId" parameterClass="java.lang.Long" resultMap="issueStepResultHistory">
+		select * from ISSUESTEPS_HISTORY where issue = #value#
+	</select>
+	<select id="searchAllIssueStepsHistoryByStepId" parameterClass="java.lang.Long" resultMap="issueStepResultHistory">
+		select * from ISSUESTEPS_HISTORY where issue = (select issue from ISSUESTEPS_HISTORY where id = #value#)
+	</select>
+	
+	<!-- 删除事件处理记录 -->
+	<delete id="deleteIssueLogHistoryByIssueId" parameterClass="long">
+		delete from ISSUELOGS_HISTORY where issueId=#value#
+	</delete>
+	
+	<!-- 删除事件 -->
+	<delete id="removeIssueHistory" parameterClass="long">
+		delete from ISSUES_HISTORY where id=#value#
+	</delete>
+	<delete id="deleteIssueStepsHistoryByIssueId" parameterClass="long">
+		delete from ISSUESTEPS_HISTORY where issue=#value#
+	</delete>
+	
+	<!-- 根据stepid查询完整的事件信息 -->
+	<select id="getFullIssueByHistoryStepId" parameterClass="long"	resultMap="fullIssueHistory">
+		select iu.* from ISSUES_HISTORY iu,issuesteps_History steps where iu.id=steps.issue and steps.id=#value#
+	</select>
+	
+	<!-- 根据id查询事件步骤 -->
+	<select id="loadSimpleStepHistory" parameterClass="long" resultMap="simpleStepResultForFourTeams">
+		select issue.*,(select ft.names from fourTeams ft where ft.id = issue.fourteams) as fourTeamsName from issuesteps_History issue where issue.id=#value#
+	</select>
+</sqlMap>

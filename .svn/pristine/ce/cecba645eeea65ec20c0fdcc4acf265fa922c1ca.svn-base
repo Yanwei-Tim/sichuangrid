@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+	http://www.springframework.org/schema/jee
+	http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+	
+	<bean id="initRouterManager" class="com.tianque.dbRouterManager.InitProductionRouterManager"  init-method="init" scope="singleton"/>
+	<!-- 
+	<bean id="dataSource"
+		class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+		<property name="driverClass"
+			value="${jdbc.driverClassName}" />
+		<property name="jdbcUrl"
+			value="${production.url}" />
+		<property name="user" value="${production.username}" />
+		<property name="password" value="${production.password}" />
+		<property name="acquireIncrement" value="5" />
+		<property name="acquireRetryAttempts" value="30" />
+		<property name="acquireRetryDelay" value="1000" />
+		<property name="idleConnectionTestPeriod" value="60" />
+		<property name="testConnectionOnCheckin" value="true" />
+	</bean>
+	 -->
+	
+	<!--  
+	<bean id="dataSource" class="oracle.jdbc.xa.client.OracleXADataSource">
+		<property name="user" value="${production.username}"></property>
+        <property name="password" value="${production.password}"></property>
+        <property name="URL" value="${production.url}"></property>
+        <property name="connectionProperties">
+        	<props>
+        		<prop key="oracle.jdbc.freeMemoryOnEnterImplicitCache">true</prop>
+                <prop key="PreparedStatementCacheSize">0</prop>
+                <prop key="oracle.jdbc.maxCachedBufferSize">0</prop>
+                <prop key="remarksReporting">false</prop>
+                <prop key="defaultBatchValue">1</prop>
+        	</props>
+        </property>
+	</bean>
+	
+	<bean id="zzGrid_main_ds" class="com.atomikos.jdbc.AtomikosDataSourceBean" init-method="init" destroy-method="close">
+        <property name="uniqueResourceName">
+            <value>TIANQUEGRID_MAIN_JDBC_RESOURCE</value>
+        </property>
+        <property name="maxPoolSize" value="${production.maxPoolSize}"/>
+        <property name="minPoolSize" value="${production.minPoolSize}"/>
+        <property name="borrowConnectionTimeout" value="${production.borrowConnectionTimeout}"/>
+        <property name="maxIdleTime" value="${production.maxIdleTime}"/>
+        <property name="reapTimeout" value="${production.reapTimeout}"/>
+        <property name="maintenanceInterval" value="${production.maintenanceInterval}"/>
+		<property name="xaDataSource" ref="dataSource" />
+	</bean>
+	  --> 
+	
+	
+	
+
+	<bean id="zzGrid_main_ds"
+		class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+		<property name="driverClass"
+			value="${jdbc.driverClassName}" />
+		<property name="jdbcUrl"
+			value="${production.url}" />
+		<property name="user" value="${production.username}" />
+		<property name="password" value="${production.password}" />
+		<property name="acquireIncrement" value="5" />
+		<property name="maxIdleTime" value="${production.maxIdleTime}"/>
+		<property name="acquireRetryAttempts" value="30" />
+		<property name="acquireRetryDelay" value="1000" />
+		<property name="idleConnectionTestPeriod" value="60" />
+		<property name="testConnectionOnCheckin" value="false" />
+		<property name="maxPoolSize" value="${production.maxPoolSize}"/>
+    	<property name="minPoolSize" value="${production.minPoolSize}"/>
+    	<property name="testConnectionOnCheckout" value="false" />
+	</bean> 
+	
+	 <!--  
+	<bean name="memcachedClient" class="net.rubyeye.xmemcached.utils.XMemcachedClientFactoryBean" destroy-method="shutdown" >
+        <property name="servers" value="${production.memcached.servers}"></property>
+        <property name="commandFactory">
+           <bean class="net.rubyeye.xmemcached.command.BinaryCommandFactory"></bean>
+        </property>
+        <property name="sessionLocator">
+                <bean class="net.rubyeye.xmemcached.impl.KetamaMemcachedSessionLocator">
+                </bean>
+        </property>
+         <property name="opTimeout" value="5000"></property>
+         
+		 <property name="connectionPoolSize" value="35"></property> 
+   </bean>
+     -->
+   
+  
+   <bean id="memCachedManage" class="com.tianque.core.cache.util.MemCachedManage" init-method="init" scope="singleton">
+   		<property name="servers" value="${production.memcached.servers}"></property>
+   </bean>
+
+   
+   
+   <bean class="com.tianque.core.util.GlobalValue">
+   		<property name="environment" value="production"></property>
+   </bean>
+   
+   <bean id="fileManagerDao" class="com.tianque.dao.impl.FileManagerDaoImpl" scope="prototype">
+   		<property name="baseDir" value="${production.filemanage}"></property>
+   </bean>
+   
+	 <bean id="dataSourceHbase"
+		class="com.tianque.hbase.HbaseDataSource" >
+		<property name="driverName" value="${hbase.driverClassName}" />
+		<property name="jdbcUrl" value="${hbse.url}" />
+	 </bean>
+	
+    <bean id="mongodbTemplate" class="com.tianque.mongodb.config.DatastoreFactoryBean">
+     	<property name="url" value="${production.mongodb.url}"/>
+     	<property name="dbname" value="${mongodb.dbname}"></property>
+     	<property name="slaveOk" value="${production.mongodb.slaveOk}"/>
+     	<property name="ensureIndexes" value="${production.mongodb.ensureIndexes}"/>
+     	<property name="packageNames">
+     		<list>
+     			<value>com.tianque.mongodb.demo</value>
+     		</list>
+     	</property>
+     	<property name="options">
+     		<props>
+     			<prop key="connectTimeout">${production.mongodb.connectTimeout}</prop>
+     			<prop key="maxWaitTime">${production.mongodb.maxWaitTime}</prop>
+     			<prop key="autoConnectRetry">${production.mongodb.autoConnectRetry}</prop>
+     			<prop key="connectionsPerHost">${production.mongodb.connectionsPerHost}</prop>
+     			<prop key="socketKeepAlive">${production.mongodb.socketKeepAlive}</prop>
+     			<prop key="socketTimeout">${production.mongodb.socketTimeout}</prop>
+     			<prop key="threadsAllowedToBlockForConnectionMultiplier">${production.mongodb.threadsAllowedToBlockForConnectionMultiplier}</prop>
+     		</props>
+     	</property>
+     </bean>
+     
+     <!-- <bean id="redisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">   
+       	<property name="maxTotal" value="${redis.maxTotal}"></property>
+        <property name="maxIdle" value="${redis.maxIdle}"></property>
+        <property name="maxWaitMillis" value="${redis.maxWaitMillis}"></property>
+        <property name="testOnBorrow" value="${redis.testOnBorrow}"></property>
+    </bean>
+    
+     <bean id="redisConnectionFactory" class="com.tianque.core.redis.connection.RedisConnectionFactory" init-method="init" destroy-method="destroy">   
+        <property name="poolConfig" ref="redisPoolConfig"></property>
+        <property name="address" value="${production.redis.address}"></property>
+        <property name="port" value="${production.redis.port}"></property>
+        <property name="timeout" value="${production.redis.timeout}"></property>
+        <property name="reConnection" value="${production.redis.reConnection}"></property>
+    </bean>    -->
+    
+    <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<property name="maxTotal" value="${redis.maxTotal}" />
+		<property name="maxIdle" value="${redis.maxIdle}" />
+		<property name="minIdle" value="${redis.minIdle}" />
+		<property name="maxWaitMillis" value="${redis.maxWaitMillis}" />
+		<property name="testOnBorrow" value="${redis.testOnBorrow}" />
+		<property name="testOnReturn" value="${redis.testOnReturn}" />
+		<property name="testWhileIdle" value="${redis.testWhileIdle}" />
+	</bean>
+	<bean id="redisSentinel" class="com.tianque.core.redis.connection.JedisSentinelShardPool">
+		<constructor-arg index="0" value="${production.redis.masterName}" />
+		<constructor-arg index="1">
+			<set>
+				<value>${production.redis.sentinel}</value>
+			</set>
+		</constructor-arg>
+		<constructor-arg index="2" ref="jedisPoolConfig" />
+		<constructor-arg index="3" value="${production.redis.timeout}" />
+		<constructor-arg index="4" value="${production.redis.password}" />
+	</bean>
+     <!--job持久化，这个文件可以不用了-->
+     <!--  <import resource="applicationContext-job.xml"/> -->
+     <!-- 
+     <bean id="schedulerFactoryBean"
+		 class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		 <property name="dataSource">
+			 <ref bean="zzGrid_main_ds" />
+		 </property>
+		 <property name="overwriteExistingJobs" value="true" />
+		 <property name="applicationContextSchedulerContextKey" value="applicationContext" />
+		 <property name="configLocation" value="classpath:quartz.properties" />
+	  </bean>
+	  -->
+   	  <import resource="applicationContext-mq-production.xml"/>
+   	  <import resource="applicationContext-dubbo-production.xml"/>
+</beans>

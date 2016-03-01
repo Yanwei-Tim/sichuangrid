@@ -1,0 +1,178 @@
+package com.tianque.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.util.StringUtil;
+import com.tianque.exception.base.ServiceValidationException;
+
+public class IdCardUtil {
+	/**
+	 * 身份证信息隐藏开始位数
+	 */
+	private static final int HIDDEN_START=10;
+	/**
+	 * 身份证信息隐藏结束位数
+	 */
+	private static final int HIDDEN_END=14;
+	
+	public static String idCardNo15to18(String idCardNo, String year) {
+		idCardNo = idCardNo.trim();
+		StringBuilder sb = new StringBuilder(idCardNo);
+		if (idCardNo != null && idCardNo.length() == 15) {
+			sb.insert(6, year);
+			sb.insert(17, "%");
+		}
+		return sb.toString();
+	}
+
+	public static String idCardNo18to15(String idCardNo) {
+		idCardNo = idCardNo.trim();
+		StringBuilder sb = new StringBuilder(idCardNo);
+		if (idCardNo != null && idCardNo.length() == 18) {
+			sb.delete(17, 18);
+			sb.delete(6, 8);
+		}
+		return sb.toString();
+	}
+
+	public static Date parseBirthday(String idCard) {
+		if (is15bitIdcard(idCard)) {
+			return parse15BitIdcardBirthday(idCard);
+		} else if (is18bitIdcard(idCard)) {
+			return parse18BitIdcardBirthday(idCard);
+		} else {
+			return null;
+		}
+	}
+
+	// 通过身份证 获取年龄
+	public static Integer parseBirthdayToAge(String idCard) {
+		Date date = parseBirthday(idCard);
+		return new Date().getYear() - date.getYear();
+
+	}
+
+	private static Date parse18BitIdcardBirthday(String idCard) {
+		String text = idCard.substring(6, 14);
+		return CalendarUtil.parseDate(text, "yyyyMMdd");
+	}
+
+	private static Date parse15BitIdcardBirthday(String idCard) {
+		String text = "19" + idCard.substring(6, 12);
+		return CalendarUtil.parseDate(text, "yyyyMMdd");
+	}
+
+	private static boolean is15bitIdcard(String idCard) {
+		return idCard.length() == 15;
+	}
+
+	private static boolean is18bitIdcard(String idCard) {
+		return idCard.length() == 18;
+	}
+
+	public static final String getPrecise18BitIdCardNo(String idCardNo15) {
+		if (idCardNo15 == null) {
+			return null;
+		}
+		if (idCardNo15.length() != 15 && idCardNo15.length() != 18) {
+			return null;
+		}
+		if (idCardNo15.length() == 18) {
+			return idCardNo15.toUpperCase();
+		}
+		final int[] W = { 7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2,
+				1 };
+		final String[] A = { "1", "0", "X", "9", "8", "7", "6", "5", "4", "3",
+				"2" };
+		final String CENTURY = "19";
+		int i, j, s = 0;
+		String idCardNo18 = idCardNo15.substring(0, 6) + CENTURY
+				+ idCardNo15.substring(6, idCardNo15.length());
+		for (i = 0; i < idCardNo18.length(); i++) {
+			j = Integer.parseInt(idCardNo18.substring(i, i + 1)) * W[i];
+			s = s + j;
+		}
+		s = s % 11;
+		return idCardNo18 + A[s];
+	}
+
+	// 根据身份证号 来验证是否为育龄妇女
+	public static boolean autoIdCardNoWhenIsNurturesWomen(String idCardNo) {
+		if (!StringUtil.isStringAvaliable(idCardNo)) {
+			return false;
+		}
+		Date idCardDate = IdCardUtil.parseBirthday(idCardNo);
+		if (idCardDate == null) {
+			return false;
+		}
+		Date afterDate = null, beforeDate = null;
+		Date date = new Date();
+		String dates = new SimpleDateFormat("yyyy-MM-dd").format(date);
+		String afterDateStr = (Integer.parseInt(dates.substring(0, 4)) - 15)
+				+ dates.substring(4, 10);
+		String beforeDateStr = (Integer.parseInt(dates.substring(0, 4)) - 49)
+				+ dates.substring(4, 10);
+		try {
+			afterDate = new SimpleDateFormat("yyyy-MM-dd").parse(afterDateStr);
+
+			beforeDate = new SimpleDateFormat("yyyy-MM-dd")
+					.parse(beforeDateStr);
+		} catch (ParseException e) {
+			throw new ServiceValidationException("格式化时间出现异常：", e);
+		}
+		if (idCardDate.before(beforeDate)) {
+			return false;
+		}
+		if (idCardDate.after(afterDate)) {
+			return false;
+		}
+		if (15 == idCardNo.length()) { // 15位身份证号码
+			if (idCardNo.charAt(14) / 2 * 2 != idCardNo.charAt(14)) {
+				return false;
+			}
+		}
+		if (18 == idCardNo.length()) { // 18位身份证号码
+			if (idCardNo.charAt(16) / 2 * 2 != idCardNo.charAt(16)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	// 根据身份证号 来验证是否为老年人
+	public static boolean autoIdCardNoWhenIsElderlyPeople(String idCardNo) {
+		if (!StringUtil.isStringAvaliable(idCardNo)) {
+			return false;
+		}
+		Date idCardDate = IdCardUtil.parseBirthday(idCardNo);
+		if (idCardDate == null) {
+			return false;
+		}
+		Date beforeDate = null;
+		Date date = new Date();
+		String dates = new SimpleDateFormat("yyyy-MM-dd").format(date);
+		String beforeDateStr = (Integer.parseInt(dates.substring(0, 4)) - 60)
+				+ dates.substring(4, 10);
+		try {
+			beforeDate = new SimpleDateFormat("yyyy-MM-dd")
+					.parse(beforeDateStr);
+		} catch (ParseException e) {
+			throw new ServiceValidationException("格式化时间出现异常：", e);
+		}
+		if (!idCardDate.before(beforeDate)) {
+			return false;
+		}
+		return true;
+	}
+	
+	// 隐藏身份证中的出生日期，例：5101121980****1105
+	public static String hiddenIdCard(String idCardNo) {
+		if(idCardNo==null||idCardNo.length()<18&&idCardNo.length()!=15){
+			return idCardNo;
+		}
+		return idCardNo.substring(0,HIDDEN_START)+"****"+idCardNo.substring(HIDDEN_END);
+	}
+}

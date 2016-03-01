@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="companyPlaceTemp">
+	<typeAlias alias="companyPlaceTemp" type="com.tianque.plugin.dataManage.location.companyPlaceTemp.domain.CompanyPlaceTemp" />
+	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo"/>
+
+	<resultMap class="com.tianque.plugin.dataManage.location.companyPlaceTemp.domain.CompanyPlaceTemp" id="companyPlaceTempResult">
+		<result column="ID" property="id" />
+		<result column="BASEID" property="baseId" />
+		<result column="ORG" property="org.id" />
+		<result column="ORGINTERNALCODE" property="orginternalcode"/>
+		<result column="NAME"  property="name" />
+		<result column="ATTENTIONEXTENT" property="attentionextent.id"  />
+		<result column="ADDRESS" property="address" />
+		<result column="ISEMPHASIS" property="isEmphasis"  />
+		<result column="ISEMPHASISDATE" property="isEmphasisDate"  />
+		<result column="ISEMPHASISREASON" property="isEmphasisReason" />
+		<result column="CENTERLON" property="centerLon"  />
+		<result column="CENTERLAT" property="centerLat"  />
+		<result column="CENTERLON2" property="centerLon2" />
+		<result column="CENTERLAT2" property="centerLat2"  />
+		<result column="FEATUREID" property="featureId"  />
+		<result column="BUILDDATAID" property="buildDataId"  />
+		<result column="IMGURL" property="imgUrl"  />
+		<result column="TYPE" property="type.id"  />
+		<result column="CLASSIFICATION" property="classifiCation.id" />
+		<result column="CLASSIFICATIONEN" property="classifiCationEn" />
+		<result column="CATEGORY" property="category.id"  />
+		<result column="USERNAME" property="userName"  />
+		<result column="MOBILENUMBER" property="mobileNumber" />
+		<result column="TELEPHONE" property="telePhone" />
+		<result column="FAXNUMBER" property="faxNumber"  />
+		<result column="AREA" property="area" />
+		<result column="COVEREDAREA" property="coveredArea"  />
+		<result column="REMARKS" property="remarks"  />
+		<result column="HASLICENSE" property="hasLicense" />
+		<result column="BUSINESSLICENSENO" property="businessLicenseNo" />
+		<result column="ORGCODE" property="orgCode" />
+		<result column="CLOAKROOM" property="cloakRoom" />
+		<result column="SCALETYPE" property="scaleType.id"  />
+		<result column="PARTYCOUNTNUMBER" property="partyCountNumber" />
+		<result column="NETWORKCARDNO" property="networkCardNo" />
+		<result column="REGISTEREDCAPITAL" property="registeredCapital" />
+		<result column="REGISTEREDCAPITALNO" property="registeredCapitalNo"  />
+		<result column="BEGINTIME" property="begintime"  />
+		<result column="ENDTIME" property="endtime"  />
+		<result column="BUSINESSAREA" property="businessArea"  />
+		<result column="DIGVOLUME" property="digVolume"  />
+		<result column="FILLVOLUME" property="fillVolume"  />
+		<result column="EMAIL" property="email"  />
+		<result column="HOSPITALNATURE" property="hospitalNature.id"  />
+		<result column="GENERALSTORAGE" property="generalStorage" />
+		<result column="GENERALTYPE" property="generalType" />
+		<result column="FAXNNO" property="faxNo"/>
+		<result column="NOWIP" property="nowip" />
+		<result column="COUNTNO" property="countNo"  />
+		<result column="GENERALMANAGE" property="generalManage"  />
+		<result column="GENERALMENTE" property="generalMente"  />
+		<result column="FIREAUDITOPINIONNO" property="fireAuditOpinionNo"  />
+		<result column="INTERNETBARNO" property="internetBarNo"  />
+		<result column="LEGALVICEPRINCIPAL" property="legalVicePrincipal"  />
+		<result column="SCHOOLNATURE" property="schoolNature.id"  />
+		<result column="SCHOOLNAMEEN" property="schoolNameEn"  />
+		<result column="SCHOOLWEBSITE" property="schoolWebSite"  />
+		<result column="ECONOMICNATURE" property="economicNature.id"  />
+		<result column="MANAGEMENTLEVEL" property="managementLevel.id"  />
+		<result column="FIRELEVEL" property="fireLevel.id"  />
+		<result column="CLAIMSTATE" property="claimDetail.claimState"  />
+		<result column="CLAIMDATE" property="claimDetail.claimDate"  />
+		<result column="CLAIMUSERNAME" property="claimDetail.claimUserName"  />
+		<result column="CLAIMUSERID" property="claimDetail.claimUser.id"  />
+		<result column="CLAIMORGID" property="claimDetail.claimOrg.id"  />
+		<result column="IMPORTDEPARTMENTID" property="claimDetail.importDepartment.id"  />
+		<result column="OLDORGID" property="claimDetail.importOrganization.id"  />
+		<result column="INID" property="claimDetail.inId"  />
+		<result column="DISPOSE" property="claimDetail.dispose"  />
+		<result column="CLAIMAVAILABLE" property="claimDetail.claimAvailable"  />
+		<result column="IMPORTDATE" property="claimDetail.importDate"  />
+		<result column="DISTRICTORGID" property="claimDetail.districtOrgId"  />
+		<result column="CREATEUSER" property="createUser" />
+		<result column="UPDATEUSER" property="updateUser"/>
+		<result column="CREATEDATE" property="createDate" />
+		<result column="UPDATEDATE" property="updateDate"  />
+	</resultMap>
+	<insert id="addCompanyPlaceTemp" parameterClass="companyPlaceTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[ SELECT s_dm_companyplace_temp.NEXTVAL AS id FROM dual ]]>
+		</selectKey>
+insert into dm_companyplace_temp(id,baseId,org, orginternalcode, name,attentionextent, address, isEmphasis, isEmphasisDate, isEmphasisReason, 
+	PCORMOBILE, imgUrl,type,classifiCation,classifiCationEn,category,userName,mobileNumber,telePhone,faxNumber,area,coveredArea,remarks,hasLicense,
+	businessLicenseNo,orgCode,cloakRoom ,scaleType,partyCountNumber,NETWORKCARDNO,registeredCapital,REGISTEREDCAPITALNO,begintime,endtime,businessArea,
+	digVolume,fillVolume,email,hospitalNature,generalStorage,generalType,faxnNo,nowip,countNo,generalManage,generalMente,fireAuditOpinionNo,internetBarNo,
+	legalVicePrincipal,schoolNature, schoolNameEn,schoolWebSite,economicNature,managementLevel,fireLevel,createUser,updateUser,createDate,updateDate,
+		<include refid="dataManage.addDataManage"/>
+    )
+    values(#id#,#baseId#,#organization.id#, #orginternalcode#, #name#,#attentionextent.id#, #address#, default, #isEmphasisDate#,#isEmphasisReason#,#pcOrMobile#, 
+    #imgUrl#,#type.id#,#classifiCation.id#,#classifiCationEn#,#category.id#,#userName#,#mobileNumber#,#telePhone#,#faxNumber#,#area#,#coveredArea#,#remarks#,
+    #hasLicense#,#businessLicenseNo#,#orgCode#,#cloakRoom# , #scaleType.id#,#partyCountNumber#,#networkCardNo#,#registeredCapital#,#registeredCapitalNo#,
+    #begintime#,#endtime#,#businessArea#,#digVolume#,#fillVolume#,#email#,#hospitalNature.id#,#generalStorage#,#generalType#,#faxNo#,#nowip#,#countNo#,
+    #generalManage#,#generalMente#,#fireAuditOpinionNo#,#internetBarNo#,#legalVicePrincipal#, #schoolNature.id#,#schoolNameEn#,#schoolWebSite#,#economicNature.id#,
+    #managementLevel.id#,#fireLevel.id#,#createUser#, #updateUser#, #createDate#,#updateDate#,
+		<include refid="dataManage.addValueDataManage"/>)
+	</insert>
+
+	<sql id="searchVoDataManage">
+		<dynamic>
+			<isPropertyAvailable property="mode" >
+				<isEqual property="mode" compareValue="claimList">
+					<isNotEmpty property="targetOrg" prepend="and">
+						(orgInternalCode like #targetOrg.orgInternalCode#||'%' or 
+						#targetOrg.orgInternalCode# like orgInternalCode||'%')
+					</isNotEmpty>
+					<isNotEmpty property="dispose" prepend="and">
+						dispose = #dispose#
+					</isNotEmpty>
+					<isNotEmpty property="claimAvailable" prepend="and">
+						claimavailable = #claimAvailable#
+					</isNotEmpty>
+					
+				</isEqual>
+				<isEqual property="mode" compareValue="importList">
+					<isPropertyAvailable property="importDepartment" prepend="and">
+						<isNotEmpty property="importDepartment">
+							importdepartmentid = #importDepartment.id#
+						</isNotEmpty>
+					</isPropertyAvailable>
+				</isEqual>
+			</isPropertyAvailable>
+			
+			<isNotEmpty property="orgId" prepend="and">
+				<isEqual property="bigType" compareValue="builddatas">
+					organization=#orgId#
+				</isEqual>
+				<isNotEqual property="bigType" compareValue="builddatas">
+					org=#orgId#
+				</isNotEqual>
+			</isNotEmpty>
+		
+			<isNotEmpty property="searchArgs" prepend=" and ">
+				<isEqual property="bigType" compareValue="population" >
+					(name like '%'||#searchArgs#||'%' or idCardNo like '%'||#searchArgs#||'%')
+				</isEqual>
+				<isEqual property="bigType" compareValue="house">
+					address like '%'||#searchArgs#||'%'
+				</isEqual>
+				<isEqual property="bigType" compareValue="location">
+					(name like '%'||#searchArgs#||'%' or address like '%'||#searchArgs#||'%')
+				</isEqual>
+				<isEqual property="bigType" compareValue="dustbin">
+					(dustbinCode like '%'||#searchArgs#||'%')
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="dataState" prepend="and">
+				claimState 
+				<isEqual property="dataState" compareValue="0">
+				<![CDATA[<]]> 10
+				</isEqual>
+				<isEqual property="dataState" compareValue="10">
+				<![CDATA[>]]>= 10
+				</isEqual>
+				<isEqual  property="dataState" compareValue="-1">
+				<![CDATA[>]]>-1
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="dateType" prepend="and">
+				<isEqual property="dateType" compareValue="import">
+					<isNotEmpty property="beginDate">
+					<![CDATA[importDate >= #beginDate#]]> 
+					</isNotEmpty>
+					<isNotEmpty property="endDate">
+						<isNotEmpty property="beginDate">
+							and
+						</isNotEmpty>
+					<![CDATA[importDate <= #endDate#]]>
+					</isNotEmpty>
+				</isEqual>
+				<isEqual property="dateType" compareValue="claim">
+					<isNotEmpty property="beginDate">
+					<![CDATA[claimDate >= #beginDate#]]>
+					</isNotEmpty>
+					<isNotEmpty property="endDate">
+						<isNotEmpty property="beginDate">
+							and
+						</isNotEmpty>
+					<![CDATA[claimDate <= #endDate#]]>
+					</isNotEmpty>
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="name" prepend="and">
+					name like '%'||#name#||'%'
+			</isNotEmpty>
+			
+			<isNotEmpty property="address" prepend="and">
+					address like '%'||#address#||'%'
+			</isNotEmpty>
+			
+			<isNotEmpty property="idCardNo" prepend="and">
+					idCardNo like '%'||#idCardNo#||'%'
+			</isNotEmpty>
+			
+			<isNotEmpty property="currentAddress" prepend="and">
+					otherAddress like '%'||#currentAddress#||'%'
+			</isNotEmpty>
+			
+			<isNotNull  property="gender.id" prepend=" and ">
+					gender = #gender.id# 
+			</isNotNull>
+		</dynamic>
+	</sql>
+
+	<sql id="claim_sql_where">
+	from DM_COMPANYPLACE_TEMP where 1=1
+	
+		<isPropertyAvailable property="classifiCationEn">
+			<isNotEmpty property="classifiCationEn" prepend=" and ">
+			classificationen =#classifiCationEn#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<include refid="searchVoDataManage"/>
+	</sql>
+
+	<select id="findTemps" parameterClass="searchVo" resultMap="companyPlaceTempResult">
+	select * 
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countFindTemps" parameterClass="searchVo" resultClass="java.lang.Integer">
+	select count(*) 
+		<include refid="claim_sql_where" />
+	</select>
+	<select id="getCompanyPlaceTempById" parameterClass="java.lang.Long" resultMap="companyPlaceTempResult">
+	select * from DM_COMPANYPLACE_TEMP where id =#id#
+	</select>
+
+	<delete id="deleteCompanyPlaceTempById" parameterClass="java.lang.Long">
+	delete from DM_COMPANYPLACE_TEMP where id =#value#
+	</delete>
+
+	<update id="updateCompanyPlaceTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_COMPANYPLACE_TEMP set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+
+	<update id="updateCompanyPlaceTempInfo" parameterClass="companyPlaceTemp">
+	update DM_COMPANYPLACE_TEMP set 
+		<dynamic>
+		 id=#id#,SCALETYPE= #scaleType.id#,ECONOMICNATURE=  #economicNature.id#,ATTENTIONEXTENT= #attentionextent.id#,HOSPITALNATURE= #hospitalNature.id#, MANAGEMENTLEVEL=  #managementLevel.id#,FIRELEVEL=  #fireLevel.id#,SCHOOLNATURE=  #schoolNature.id#
+			<isNotNull prepend="," property="baseId">
+			BASEID=#baseId#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+			ORG=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="orginternalcode">
+			ORGINTERNALCODE=#orginternalcode#
+			</isNotNull>
+			<isNotNull prepend="," property="name">
+			NAME=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="address" >
+	      ADDRESS= #address#
+			</isNotNull>
+			<isNotNull prepend="," property="isEmphasis" >
+	      ISEMPHASIS=#isEmphasis#
+			</isNotNull>
+			<isNotNull prepend="," property="isEmphasisDate" >
+	      ISEMPHASISDATE=  #isEmphasisDate#
+			</isNotNull>
+			<isNotNull prepend="," property="isEmphasisReason" >
+	     	ISEMPHASISREASON=#isEmphasisReason#
+			</isNotNull>
+			<isNotNull prepend="," property="centerLon" >
+	     	CENTERLON=   #centerLon#
+			</isNotNull>
+			<isNotNull prepend="," property="centerLat" >
+	      	CENTERLAT=  #centerLat#
+			</isNotNull>
+			<isNotNull prepend="," property="centerLon2" >
+	      	CENTERLON2=  #centerLon2#
+			</isNotNull>
+			<isNotNull prepend="," property="centerLat2" >
+	      	CENTERLAT2=  #centerLat2#
+			</isNotNull>
+			<isNotNull prepend="," property="featureId" >
+	       FEATUREID= #featureId#
+			</isNotNull>
+			<isNotNull prepend="," property="buildDataId" >
+	      	BUILDDATAID=  #buildDataId#
+			</isNotNull>
+			<isNotNull prepend="," property="imgUrl" >
+	       IMGURL= #imgUrl#
+			</isNotNull>
+			<isNotNull property="type" >
+				<isNotNull prepend="," property="type.id" >
+		       TYPE= #type.id#
+				</isNotNull>
+			</isNotNull>
+			<isNotNull property="classifiCation" >
+				<isNotNull prepend="," property="classifiCation.id" >
+		      	CLASSIFICATION=  #classifiCation.id#
+				</isNotNull>
+			</isNotNull>
+			<isNotNull prepend="," property="classifiCationEn" >
+	       CLASSIFICATIONEN= #classifiCationEn#
+			</isNotNull>
+			<isNotNull prepend="," property="category.id" >
+	       CATEGORY= #category.id#
+			</isNotNull>
+			<isNotNull prepend="," property="userName" >
+	       USERNAME= #userName#
+			</isNotNull>
+			<isNotNull prepend="," property="mobileNumber" >
+	      MOBILENUMBER=  #mobileNumber#
+			</isNotNull>
+			<isNotNull prepend="," property="telePhone" >
+	       TELEPHONE= #telePhone#
+			</isNotNull>
+			<isNotNull prepend="," property="faxNumber" >
+	      FAXNUMBER= #faxNumber#
+			</isNotNull>
+			<isNotNull prepend="," property="area" >
+	      AREA=  #area#
+			</isNotNull>
+			<isNotNull prepend="," property="coveredArea" >
+	      COVEREDAREA=  #coveredArea#
+			</isNotNull>
+			<isNotNull prepend="," property="remarks" >
+	      REMARKS=  #remarks#
+			</isNotNull>
+			<isNotNull prepend="," property="hasLicense" >
+	       HASLICENSE= #hasLicense#
+			</isNotNull>
+			<isNotNull prepend="," property="businessLicenseNo" >
+	       BUSINESSLICENSENO= #businessLicenseNo#
+			</isNotNull>
+			<isNotNull prepend="," property="orgCode" >
+	       ORGCODE= #orgCode#
+			</isNotNull>
+			<isNotNull prepend="," property="cloakRoom" >
+	       CLOAKROOM= #cloakRoom#
+			</isNotNull>
+			<isNotNull prepend="," property="partyCountNumber" >
+	       PARTYCOUNTNUMBER= #partyCountNumber#
+			</isNotNull>
+			<isNotNull prepend="," property="networkCardNo" >
+	       NETWORKCARDNO= #networkCardNo#
+			</isNotNull>
+			<isNotNull prepend="," property="registeredCapital" >
+	       REGISTEREDCAPITAL= #registeredCapital#
+			</isNotNull>
+			<isNotNull prepend="," property="registeredCapitalNo" >
+	       REGISTEREDCAPITALNO= #registeredCapitalNo#
+			</isNotNull>
+			<isNotNull prepend="," property="begintime" >
+	      BEGINTIME=  #begintime#
+			</isNotNull>
+			<isNotNull prepend="," property="endtime" >
+	       ENDTIME= #endtime#
+			</isNotNull>
+			<isNotNull prepend="," property="businessArea" >
+	       BUSINESSAREA= #businessArea#
+			</isNotNull>
+			<isNotNull prepend="," property="digVolume" >
+	       DIGVOLUME= #digVolume#
+			</isNotNull>
+			<isNotNull prepend="," property="fillVolume" >
+	       FILLVOLUME= #fillVolume#
+			</isNotNull>
+			<isNotNull prepend="," property="email" >
+	       EMAIL= #email#
+			</isNotNull>
+	      
+			<isNotNull prepend="," property="generalStorage" >
+	      GENERALSTORAGE=  #generalStorage#
+			</isNotNull>
+			<isNotNull prepend="," property="generalType" >
+	      GENERALTYPE=  #generalType#
+			</isNotNull>
+			<isNotNull prepend="," property="faxNo" >
+	      FAXNNO=  #faxNo#
+			</isNotNull>
+			<isNotNull prepend="," property="nowip" >
+	      NOWIP=  #nowip#
+			</isNotNull>
+			<isNotNull prepend="," property="countNo" >
+	      COUNTNO=  #countNo#
+			</isNotNull>
+			<isNotNull prepend="," property="generalManage" >
+	      GENERALMANAGE=  #generalManage#
+			</isNotNull>
+			<isNotNull prepend="," property="generalMente" >
+	      GENERALMENTE=  #generalMente#
+			</isNotNull>
+			<isNotNull prepend="," property="fireAuditOpinionNo" >
+	      FIREAUDITOPINIONNO=  #fireAuditOpinionNo#
+			</isNotNull>
+			<isNotNull prepend="," property="internetBarNo" >
+	      INTERNETBARNO=  #internetBarNo#
+			</isNotNull>
+			<isNotNull prepend="," property="legalVicePrincipal" >
+	      LEGALVICEPRINCIPAL=  #legalVicePrincipal#
+			</isNotNull>
+			<isNotNull prepend="," property="schoolNameEn" >
+	      SCHOOLNAMEEN=  #schoolNameEn#
+			</isNotNull>
+			<isNotNull prepend="," property="schoolWebSite" >
+	      SCHOOLWEBSITE=  #schoolWebSite#
+			</isNotNull>
+			<isNotNull property="claimDetail" >
+				<isNotNull prepend="," property="claimDetail.claimState" >
+	      CLAIMSTATE=  #claimDetail.claimState#
+				</isNotNull>
+				<isNotNull prepend="," property="claimDetail.claimUserName" >
+	      CLAIMUSERNAME=  #claimDetail.claimUserName#
+				</isNotNull>
+				<isNotNull prepend="," property="claimDetail.claimDate" >
+	      CLAIMDATE=  #claimDetail.claimDate#
+				</isNotNull>
+				<isNotNull prepend="," property="claimDetail.claimUser.id" >
+	      CLAIMUSERID=  #claimDetail.claimUser.id#
+				</isNotNull>
+				<isNotNull prepend="," property="claimDetail.claimOrg.id" >
+	      CLAIMORGID=  #claimDetail.claimOrg.id#
+				</isNotNull>
+				<isNotNull prepend="," property="claimDetail.importDepartment.id" >
+	      IMPORTDEPARTMENTID=  #claimDetail.importDepartment.id#
+				</isNotNull>
+				<isNotNull prepend="," property="claimDetail.importOrganization.id" >
+	      OLDORGID=  #claimDetail.importOrganization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="claimDetail.inId" >
+	      INID=  #claimDetail.inId#
+				</isNotNull>
+				<isNotNull prepend="," property="claimDetail.dispose" >
+	      DISPOSE=  #claimDetail.dispose#
+				</isNotNull>
+				<isNotNull prepend="," property="claimDetail.claimAvailable" >
+	      CLAIMAVAILABLE=  #claimDetail.claimAvailable#
+				</isNotNull>
+				<isNotNull prepend="," property="claimDetail.importDate" >
+	      IMPORTDATE=  #claimDetail.importDate#
+				</isNotNull>
+				<isNotNull prepend="," property="claimDetail.districtOrgId" >
+		      DISTRICTORGID=  #claimDetail.districtOrgId#
+				</isNotNull>
+			</isNotNull>
+		</dynamic>
+		where id=#id#
+	</update>
+</sqlMap>

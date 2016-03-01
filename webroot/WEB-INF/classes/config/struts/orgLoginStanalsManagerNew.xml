@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="orgLoginStanalsManagerNew" extends="default"
+		namespace="/statAnalyse/orgLoginStanalsManagerNew">
+		<default-class-ref class="orgLoginStanalsNewController"></default-class-ref>
+
+		<action name="findOrgLoginStanalsByOrgIdForListPage" method="findOrgLoginStanalsByOrgIdForListPage">
+			<result type="json">
+				<param name="root">FullReportVo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/statAnalyseNew/orgLoginStanals/orgLoginStanals.ftl
+			</result>
+			<result name="produceDate">
+				/statAnalyseNew/orgLoginStanals/produceDate.ftl
+			</result>
+			<result name="loginManage">
+				/statAnalyseNew/orgLoginStanals/loginManage.ftl
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="searchOrgLoginStanals" method="searchOrgLoginStanals">
+			<result type="json">
+				<param name="root">FullReportVo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="reProduceDate" method="reProduceDate">
+		</action>
+		
+		<action name="downloadOrgLoginStanals" method="downloadOrgLoginStanals">
+			<result name="success" type="stream">
+                <param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>  
+                <param name="inputName">inputStream</param>  
+                <!-- 下载时候提示的文件名 -->  
+                <param name="contentDisposition">attachment;filename="${downloadFileName}"</param>  
+                <param name="bufferSize">4096</param>  
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>
+

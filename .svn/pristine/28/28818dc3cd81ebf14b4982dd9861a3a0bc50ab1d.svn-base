@@ -1,0 +1,208 @@
+package com.tianque.plugin.taskList.serviceImpl;
+
+import java.io.File;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.systemLog.util.ModuleConstants;
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.util.FileUtil;
+import com.tianque.core.util.GridProperties;
+import com.tianque.core.util.StoredFile;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.plugin.taskList.constants.Constants;
+import com.tianque.plugin.taskList.dao.DruggyTaskDao;
+import com.tianque.plugin.taskList.domain.DruggyTask;
+import com.tianque.plugin.taskList.domain.TaskListAttachFile;
+import com.tianque.plugin.taskList.service.DruggyTaskService;
+import com.tianque.plugin.taskList.service.TaskListAttachFileService;
+import com.tianque.plugin.taskList.validate.DruggyTaskValidatorImpl;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+
+@Transactional
+@Service("druggyTaskService")
+public class DruggyTaskServiceImpl implements DruggyTaskService {
+
+	@Autowired
+	private DruggyTaskDao druggyTaskDao;
+	String orgInternalCode;
+	@Autowired
+	private OrganizationDubboService organizaitonService;
+	@Autowired
+	private DruggyTaskValidatorImpl druggyTaskValidatorImpl;
+	private DruggyTask druggyTask;
+	@Autowired
+	private PropertyDictService propertyDictService;
+	@Autowired
+	private TaskListAttachFileService taskListAttachFileService;
+
+	@Override
+	public void updateDruggyTask(DruggyTask druggyTask) {
+		if (druggyTask == null) {
+			throw new BusinessValidationException("吸毒修改信息不全报错");
+		}
+		try {
+			druggyTaskValidatorImpl.validatorDruggyTask(druggyTask);
+			druggyTaskDao.updateDruggyTask(druggyTask);
+		} catch (Exception e) {
+			throw new ServiceValidationException("修改吸毒信息出错", e);
+		}
+	}
+
+	@Override
+	public DruggyTask addDruggyTask(DruggyTask druggyTask) {
+		if (druggyTask == null) {
+			throw new BusinessValidationException("新增失败！");
+		}
+		try {
+			fillDruggyOrg(druggyTask);
+			fillDruggyTelAndUserId(druggyTask);
+			druggyTaskValidatorImpl.validatorDruggyTask(druggyTask);
+			String[] attachFileNames = druggyTask.getAttachFileNames();
+			druggyTask = druggyTaskDao.addDruggyTask(druggyTask);
+			addAttachFile(attachFileNames, druggyTask.getId());
+			return druggyTask;
+		} catch (Exception e) {
+			throw new ServiceValidationException("DruggyTaskServiceImpl的addDruggyTask方法出错，原因：",
+					"新增信息不全", e);
+		}
+	}
+
+	@Override
+	public void deleteDruggyTaskByIds(List<Long> ids) {
+		if (ids == null || ids.size() < 1) {
+			throw new BusinessValidationException("参数为空，获取吸毒人员记录信息失败！");
+		}
+		try {
+			druggyTaskDao.deleteDruggyTaskByIds(ids);
+			for (Long id : ids) {
+				taskListAttachFileService.deleteTaskListAttachFilesByBusinessId(id,
+						Constants.DRUGGYTASK_KEY);
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"DruggyTaskServiceImpl的deleteDruggyTaskByIds方法出错，原因：", "删除的ids异常", e);
+		}
+	}
+
+	@Override
+	public DruggyTask getDruggyTaskById(Long id) {
+		if (id == null) {
+			throw new BusinessValidationException("id获取异常！");
+		}
+		try {
+			druggyTask = druggyTaskDao.getDruggyTaskById(id);
+			fillDruggyOrg(druggyTask);
+			List<TaskListAttachFile> druggyTaskAnnexFiles = taskListAttachFileService
+					.queryTaskListAttachFilesByBusinessId(id, Constants.DRUGGYTASK_KEY);
+			druggyTask.setAnnexFiles(druggyTaskAnnexFiles);
+			return druggyTask;
+		} catch (Exception e) {
+			throw new ServiceValidationException("根据id获取吸毒人员走访信息出错", e);
+		}
+	}
+
+	public void fillDruggyOrg(DruggyTask druggyTask) {
+		if (druggyTask.getOrganization().getId() == null) {
+			throw new BusinessValidationException("组织结构获取异常！");
+		}
+		Organization organization = organizaitonService.getFullOrgById(druggyTask.getOrganization()
+				.getId());
+		String[] orgs = organization.getFullOrgName().split(ModuleConstants.SEPARATOR);
+		if (orgs.length > 2) {
+			String org = orgs[orgs.length - 2] + ModuleConstants.SEPARATOR + orgs[orgs.length - 1];
+			organization.setFullOrgName(org);
+		}
+		druggyTask.setOrganization(organization);
+	}
+
+	public void fillDruggyTelAndUserId(DruggyTask druggyTask) {
+		Long userId = ThreadVariable.getUser().getId();
+		String tel = ThreadVariable.getUser().getMobile();
+		druggyTask.setReporterTel(tel);
+		druggyTask.setReporter(userId);
+		druggyTask.setTime(CalendarUtil.now(Constants.SIGNDATEFORMAT));
+	}
+
+	public PageInfo getDruggyTaskList(DruggyTask druggyTask, Integer page, Integer rows,
+			String sidx, String sord) {
+		if (druggyTask == null || page == null || rows == null
+				|| druggyTask.getOrganization() == null
+				|| druggyTask.getOrganization().getId() == null) {
+			throw new BusinessValidationException("参数为空，获取吸毒人员记录信息失败！");
+		}
+		try {
+			fillDruggyOrg(druggyTask);
+			return druggyTaskDao.getDruggyTaskList(druggyTask, page, rows, sidx, sord);
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类druggyTaskserviceimpl的getDruggyTaskList方法出现异常，原因：", "获取吸毒人员记录信息出现错误", e);
+		}
+	}
+
+	@Override
+	public PageInfo searchDruggyTask(DruggyTask druggyTask, Integer page, Integer rows,
+			String sidx, String sord) {
+		if (druggyTask == null || page == null || rows == null
+				|| druggyTask.getOrganization() == null
+				|| druggyTask.getOrganization().getId() == null) {
+			throw new BusinessValidationException("参数为空，搜索吸毒人员记录信息失败！");
+		}
+		try {
+			fillDruggyOrg(druggyTask);
+			return druggyTaskDao.searchDruggyTaskList(druggyTask, page, rows, sidx, sord);
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类druggyTaskserviceimpl的searchDruggyTask方法出现异常，原因：", "获取吸毒人员记录信息出现错误", e);
+		}
+	}
+
+	@Override
+	public List<DruggyTask> searchDruggyTaskByName(DruggyTask druggyTask) {
+		if (druggyTask.getName() == null) {
+			throw new BusinessValidationException("姓名参数为空，查询失败！");
+		}
+		return druggyTaskDao.searchDruggyTaskByName(druggyTask);
+	}
+
+	private void addAttachFile(String[] attachFileNames, Long objectId) {
+		if (attachFileNames != null && attachFileNames.length > 0) {
+			TaskListAttachFile taskListAttachFile = null;
+			StoredFile storedFile = null;
+			for (String attachFileName : attachFileNames) {
+				if (attachFileName.charAt(0) == ',') {
+					attachFileName = attachFileName.substring(1);
+					try {
+						storedFile = FileUtil.copyTmpFileToStoredFile(attachFileName,
+								GridProperties.DOWNLOAD_TEMP_FILE_FOLDER);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					taskListAttachFile = new TaskListAttachFile();
+					taskListAttachFile.setBusinessId(objectId);
+					taskListAttachFile.setPhysicsFullFileName(storedFile.getStoredFilePath()
+							+ File.separator + storedFile.getStoredFileName());
+					taskListAttachFile.setFileName(storedFile.getStoredTruthFileName());
+					taskListAttachFile.setModuleKey(Constants.DRUGGYTASK_KEY);
+					taskListAttachFileService.addTaskListAttachFile(taskListAttachFile);
+				}
+			}
+		}
+	}
+
+	private void updateAttachFile(String[] attachFileNames, Long objectId) {
+		if (attachFileNames != null && attachFileNames.length > 0) {
+			taskListAttachFileService.deleteTaskListAttachFilesByBusinessId(objectId,
+					Constants.DRUGGYTASK_KEY);
+			addAttachFile(attachFileNames, objectId);
+		}
+	}
+}

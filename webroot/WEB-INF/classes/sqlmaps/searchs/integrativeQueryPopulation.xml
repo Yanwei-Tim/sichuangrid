@@ -1,0 +1,996 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="integrativeQueryPopulation">
+	<typeAlias alias="Countrymen"
+		type="com.tianque.baseInfo.base.domain.Countrymen" />
+	<resultMap id="countryInfoResult" class="Countrymen">
+		<result column="sid" property="sid" />
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="gender" property="gender.id" />
+		<result column="currentAddress" property="currentAddress" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="name" property="name" />
+		<result property="actualPopulationType" column="actualType"/>
+		<result property="nativePoliceStation" column="nativeplaceaddress"/>
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="birthday" property="birthday" />
+		<result column="nation" property="nation.id" />
+	</resultMap>
+	<resultMap id="countryInfoResult_ForBaseQuery" class="Countrymen">
+		<result column="sid" property="sid" />
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="gender" property="gender.id" />
+		<result column="currentAddress" property="currentAddress" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="name" property="name" />
+		<result property="attentionPopulationType" column="populationType"/>
+		<result property="nativePoliceStation" column="nativeplaceaddress"/>
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="birthday" property="birthday" />
+		<result column="nation" property="nation.id" />
+		<result column="imgUrl" property="imgUrl" />
+	</resultMap>
+	
+	<resultMap id="countrymenResult" class="Countrymen">
+		<result column="sid" property="sid" />
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="gender" property="gender.id" />
+		<result column="currentAddress" property="currentAddress" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="name" property="name" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="birthday" property="birthday" />
+	</resultMap>
+
+	<sql id="comment_actual_sql">
+		<isPropertyAvailable property="orgCode">
+			<isNotEmpty property="orgCode" prepend=" and ">
+				$actualPersonType$.orgInternalCode like #orgCode#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="gender">
+			<isNotEmpty prepend=" and " property="gender.id">
+				b.gender = #gender.id#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="birthdayStrart">
+			<isNotEmpty prepend=" and " property="birthdayStrart">
+            	<![CDATA[ b.birthday >= #birthdayStrart# ]]>
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="birthdayEnd">
+			<isNotEmpty prepend=" and " property="birthdayEnd">
+            	<![CDATA[ b.birthday <= #birthdayEnd# ]]>
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="hasHouse" prepend="and">
+		
+			<isEqual compareValue="false" property="hasHouse">
+				(adds.ishavehouse=0 or
+				adds.ishavehouse is null)
+			</isEqual>
+			<isEqual compareValue="true" property="hasHouse">
+				adds.ishavehouse=1
+			</isEqual>
+
+		</isPropertyAvailable>
+		and (b.isdeath=0 or b.isdeath is null) 
+		and ($actualPersonType$.logout=0 or $actualPersonType$.logout is null)
+	</sql>
+	
+	<sql id="unsettledPopulations_sql">
+		<isPropertyAvailable property="orgCode">
+			<isNotEmpty property="orgCode" prepend=" and ">
+				$actualPersonType$.orgInternalCode like #orgCode#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="gender">
+			<isNotEmpty prepend=" and " property="gender.id">
+				$actualPersonType$.gender = #gender.id#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="birthdayStrart">
+			<isNotEmpty prepend=" and " property="birthdayStrart">
+            	<![CDATA[ $actualPersonType$.birthday >= #birthdayStrart# ]]>
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="birthdayEnd">
+			<isNotEmpty prepend=" and " property="birthdayEnd">
+            	<![CDATA[ $actualPersonType$.birthday <= #birthdayEnd# ]]>
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="hasHouse" prepend="and">
+		
+			<isEqual compareValue="false" property="hasHouse">
+				($actualPersonType$.ishavehouse=0 or
+				$actualPersonType$.ishavehouse is null)
+			</isEqual>
+			<isEqual compareValue="true" property="hasHouse">
+				$actualPersonType$.ishavehouse=1
+			</isEqual>
+
+		</isPropertyAvailable>
+		and ($actualPersonType$.isdeath=0 or $actualPersonType$.isdeath is null) 
+		and ($actualPersonType$.logout=0 or $actualPersonType$.logout is null)
+	</sql>
+
+
+	<sql id="comment_buss_sql">
+		<isPropertyAvailable property="attentionPopulationTypes">
+			<iterate property="attentionPopulationTypes">
+				<isPropertyAvailable property="orgCode">
+					<isNotNull property="orgCode" prepend=" and ">
+						$attentionPopulationTypes[]$.orgInternalCode like
+						#orgCode#||'%'
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="gender">
+					<isNotEmpty prepend=" and " property="gender.id">
+						$attentionPopulationTypes[]$.gender = #gender.id#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="birthdayStrart">
+					<isNotEmpty prepend=" and " property="birthdayStrart">
+            	<![CDATA[ $attentionPopulationTypes[]$.birthday >= #birthdayStrart# ]]>
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="birthdayEnd">
+					<isNotEmpty prepend=" and " property="birthdayEnd">
+            	<![CDATA[ $attentionPopulationTypes[]$.birthday <= #birthdayEnd# ]]>
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="hasHouse">
+					<isEqual compareValue="false">
+						($attentionPopulationTypes[]$.ishavehouse=0 or
+						$actualPersonType$.ishavehouse is null)
+					</isEqual>
+					<isEqual compareValue="true">
+						$attentionPopulationTypes[]$.ishavehouse=1
+					</isEqual>
+
+				</isPropertyAvailable>
+				and 
+				$attentionPopulationTypes[]$.isdeath=0 
+				and
+				 $attentionPopulationTypes[]$.isEmphasis=0 
+			</iterate>
+
+		</isPropertyAvailable>
+	</sql>
+
+	<sql id="all_actual_population_query">
+		<isParameterPresent removeFirstPrepend="true">
+				<isNotEmpty removeFirstPrepend="true" prepend="union" property="unsettledPopulations">
+					<include refid="unsettledPopulations_query" />
+				</isNotEmpty>
+				<isNotEmpty removeFirstPrepend="true" prepend="union" property="householdStaffs">
+					<include refid="householdStaffs_query" />
+				</isNotEmpty>
+				<isNotEmpty removeFirstPrepend="true" prepend="union" property="floatingPopulations">
+					<include refid="floatingPopulations_query" />
+				</isNotEmpty>
+		
+			</isParameterPresent>
+	</sql>
+
+	<sql id="integrativeQueryField">
+		select 
+		name,gender,idCardNo,birthday,nation,currentAddress,orgId,province||city||district||
+		nativeplaceaddress nativeplaceaddress,orgInternalCode
+	</sql>
+
+	<sql id="select_filed">
+		actual.id,actual.sid,actual.orgId,actual.gender,actual.currentAddress,actual.idCardNo,actual.name,actual.orgInternalCode,actual.birthday,actual.nation,actual.actualType,actual.nativeplaceaddress
+	</sql>
+	<sql id="idleYouth_select_filed">
+		popu.id,popu.sid,popu.orgId,popu.gender,popu.currentAddress,popu.idCardNo,popu.name,popu.orgInternalCode,popu.birthday,popu.nation,popu.actualType,popu.nativeplaceaddress
+	</sql>
+	
+	<sql id="workBenchQuerySqlWhere">
+		<dynamic>
+			<![CDATA[ where orginternalcode like '$orgCode$%' and isdeath=0 and logout = 0
+					and 
+			(name like '$searchText$%' or simplepinyin like '$searchText$%' or fullpinyin like '$searchText$%' or currentAddress like '%$searchText$%'  or upper(idCardNo) like upper(#searchText#)||'%') ]]>
+		</dynamic>
+	</sql>
+	
+	<sql id="workBenchQueryField">
+		select id,orgId,gender,currentAddress,idCardNo,name,orgInternalCode,birthday,nation,
+		province||city||district||nativeplaceaddress nativeplaceaddress
+		
+	</sql>
+	
+	
+	<sql id="unsettledPopulations_query">
+		<include refid="integrativeQueryField" /> ,-1 baseinfoid,id,'unsettledPopulations' actualType,'unsettledPopulations'||id sid
+		from unsettledPopulations $actualPersonType$ where 1=1
+		<dynamic>
+			<isNotEmpty prepend=" and "
+				property="populationQueryVo.searchUnsettledPopulation.unsettedTimeStart">
+             <![CDATA[ unSettedTime >= #populationQueryVo.searchUnsettledPopulation.unsettedTimeStart# ]]>
+			</isNotEmpty>
+			<isNotEmpty prepend=" and "
+				property="populationQueryVo.searchUnsettledPopulation.unsettedTimeEnd">
+             <![CDATA[ unSettedTime <= #populationQueryVo.searchUnsettledPopulation.unsettedTimeEnd# ]]>
+			</isNotEmpty>
+			<isNotEmpty prepend=" and "
+				property="populationQueryVo.searchUnsettledPopulation.unSettedReason.id">
+				unSettedReason=#populationQueryVo.searchUnsettledPopulation.unSettedReason.id#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and "
+				property="populationQueryVo.searchUnsettledPopulation.certificateType.id">
+				certificateType=
+				#populationQueryVo.searchUnsettledPopulation.certificateType.id#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and "
+				property="populationQueryVo.searchUnsettledPopulation.certificateNo">
+				certificateNo like
+				'%'||#populationQueryVo.searchUnsettledPopulation.certificateNo#||'%'
+			</isNotEmpty>
+			<include refid="unsettledPopulations_sql" />
+		</dynamic>
+	</sql>
+
+	<sql id="householdStaffs_query">
+		<include refid="integrativeQueryField" /> ,baseinfoid,$actualPersonType$.id,'householdstaffs' actualType,'householdstaffs'||$actualPersonType$.id sid
+		from HOUSEHOLDSTAFFS $actualPersonType$ left join baseinfo b on $actualPersonType$.baseinfoid = b.id 
+		left join addressinfo adds on $actualPersonType$.addressinfoid = adds.id  where 1=1
+		<dynamic>
+			<isNotEmpty property="populationQueryVo.searchHouseholdStaffVo.province"
+				prepend=" and ">
+				b.province =
+				#populationQueryVo.searchHouseholdStaffVo.province#
+			</isNotEmpty>
+			<isNotEmpty property="populationQueryVo.searchHouseholdStaffVo.city"
+				prepend=" and ">
+				b.city =
+				#populationQueryVo.searchHouseholdStaffVo.city#
+			</isNotEmpty>
+			<isNotEmpty property="populationQueryVo.searchHouseholdStaffVo.district"
+				prepend=" and ">
+				b.district =
+				#populationQueryVo.searchHouseholdStaffVo.district#
+			</isNotEmpty>
+			<isNotEmpty property="populationQueryVo.searchHouseholdStaffVo.accountNumber"
+				prepend=" and ">
+				$actualPersonType$.accountNumber like
+				'%'||#populationQueryVo.searchHouseholdStaffVo.accountNumber#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="populationQueryVo.searchHouseholdStaffVo.outGone"
+				prepend=" and ">
+				<isEqual property="populationQueryVo.searchHouseholdStaffVo.outGone"
+					compareValue="true">
+					outGone =
+					#populationQueryVo.searchHouseholdStaffVo.outGone#
+				</isEqual>
+				<isNotEqual property="populationQueryVo.searchHouseholdStaffVo.outGone"
+					compareValue="true">
+					outGone =
+					#populationQueryVo.searchHouseholdStaffVo.outGone# or outGone is
+					null
+				</isNotEqual>
+			</isNotEmpty>
+			<isNotEmpty property="populationQueryVo.searchHouseholdStaffVo.outReasonsId"
+				prepend=" and ">
+				outreasons =
+				#populationQueryVo.searchHouseholdStaffVo.outReasonsId#
+			</isNotEmpty>
+			<isNotEmpty
+				property="populationQueryVo.searchHouseholdStaffVo.reasonsDateStart"
+				prepend=" and ">
+					 <![CDATA[ reasonsdate >= #populationQueryVo.searchHouseholdStaffVo.reasonsDateStart# ]]>
+			</isNotEmpty>
+			<isNotEmpty property="populationQueryVo.searchHouseholdStaffVo.reasonsDateEnd"
+				prepend=" and ">
+					 <![CDATA[ reasonsdate <= #populationQueryVo.searchHouseholdStaffVo.reasonsDateEnd# ]]>
+			</isNotEmpty>
+			<include refid="comment_actual_sql" />
+		</dynamic>
+	</sql>
+
+	<sql id="floatingPopulations_query">
+		<include refid="integrativeQueryField" /> ,baseinfoid,$actualPersonType$.id,'floatingPopulations' actualType,'floatingPopulations'||$actualPersonType$.id sid
+		from floatingPopulations $actualPersonType$ left join baseinfo b on $actualPersonType$.baseinfoid = b.id  
+		left join addressinfo adds on $actualPersonType$.addressinfoid = adds.id  where 1=1
+		<dynamic>
+			<isNotEmpty prepend=" and "
+				property="populationQueryVo.searchFloatingPopulationVo.inflowingReason">
+				$actualPersonType$.inflowingReason =
+				#populationQueryVo.searchFloatingPopulationVo.inflowingReason#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and "
+				property="populationQueryVo.searchFloatingPopulationVo.inflowingStartDate">
+					<![CDATA[ inflowingDate >= #populationQueryVo.searchFloatingPopulationVo.inflowingStartDate# ]]>
+			</isNotEmpty>
+			<isNotEmpty prepend=" and "
+				property="populationQueryVo.searchFloatingPopulationVo.inflowingEndDate">
+					<![CDATA[ inflowingDate <= #populationQueryVo.searchFloatingPopulationVo.inflowingEndDate# ]]>
+			</isNotEmpty>
+			<isNotEmpty
+				property="populationQueryVo.searchFloatingPopulationVo.hasMarriedProve"
+				prepend="and">
+				<isEqual
+					property="populationQueryVo.searchFloatingPopulationVo.hasMarriedProve"
+					compareValue="1">
+					hasMarriedProve=#populationQueryVo.searchFloatingPopulationVo.hasMarriedProve#
+				</isEqual>
+				<isNotEqual
+					property="populationQueryVo.searchFloatingPopulationVo.hasMarriedProve"
+					compareValue="1">
+					hasMarriedProve=#populationQueryVo.searchFloatingPopulationVo.hasMarriedProve#
+					or hasMarriedProve is null
+				</isNotEqual>
+			</isNotEmpty>
+			<isNotEmpty prepend=" and "
+				property="populationQueryVo.searchFloatingPopulationVo.registrationType">
+				registrationType =
+				#populationQueryVo.searchFloatingPopulationVo.registrationType#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and "
+				property="populationQueryVo.searchFloatingPopulationVo.expectedStartDatedue">
+					<![CDATA[ expectedDatedue >= #populationQueryVo.searchFloatingPopulationVo.expectedStartDatedue# ]]>
+			</isNotEmpty>
+
+			<isNotEmpty prepend=" and "
+				property="populationQueryVo.searchFloatingPopulationVo.expectedEndDatedue">
+					<![CDATA[ expectedDatedue <= #populationQueryVo.searchFloatingPopulationVo.expectedEndDatedue# ]]>
+			</isNotEmpty>
+			<isNotEmpty prepend=" and "
+				property="populationQueryVo.searchFloatingPopulationVo.stayLocationTypeId">
+				stayLocationTypeId =
+				#populationQueryVo.searchFloatingPopulationVo.stayLocationTypeId#
+			</isNotEmpty>
+
+
+			<include refid="comment_actual_sql" />
+		</dynamic>
+
+	</sql>
+	<sql id="positiveinfos_query">
+		<isNotEmpty property="populationQueryVo.searchPositiveInfoVo.positiveInfosType.id"
+			prepend="and">
+			POSITIVEINFOTYPE =
+			#populationQueryVo.searchPositiveInfoVo.positiveInfosType.id#
+		</isNotEmpty>
+		<isNotEmpty property="populationQueryVo.searchPositiveInfoVo.releaseOrBackDate"
+			prepend=" and ">
+			releaseOrBackDate <![CDATA[>=]]>
+			#populationQueryVo.searchPositiveInfoVo.releaseOrBackDate#
+		</isNotEmpty>
+		<isNotEmpty
+			property="populationQueryVo.searchPositiveInfoVo.endReleaseOrBackDate"
+			prepend=" and ">
+			releaseOrBackDate <![CDATA[<=]]>
+			#populationQueryVo.searchPositiveInfoVo.endReleaseOrBackDate#
+		</isNotEmpty>
+		<isNotEmpty property="populationQueryVo.searchPositiveInfoVo.isRepeat"
+			prepend="and">
+			<isEqual property="populationQueryVo.searchPositiveInfoVo.isRepeat"
+				compareValue="1">
+				isRepeat=#populationQueryVo.searchPositiveInfoVo.isRepeat#
+			</isEqual>
+			<isNotEqual property="populationQueryVo.searchPositiveInfoVo.isRepeat"
+				compareValue="1">
+				(isRepeat=#populationQueryVo.searchPositiveInfoVo.isRepeat# or
+				isRepeat is null)
+			</isNotEqual>
+		</isNotEmpty>
+
+	</sql>
+
+	<sql id="rectificativepersons_query">
+		<isNotEmpty
+			property="populationQueryVo.searchRectificativePersonVo.executeTypeId" prepend="and">
+			executeType =
+			#populationQueryVo.searchRectificativePersonVo.executeTypeId#
+		</isNotEmpty>
+	</sql>
+	<sql id="druggys_query">
+		<isNotEmpty property="populationQueryVo.searchDruggyVo.detoxicateCase.id"
+			prepend=" and ">
+			detoxicateCase=#populationQueryVo.searchDruggyVo.detoxicateCase.id#
+		</isNotEmpty>
+		<isNotEmpty property="populationQueryVo.searchDruggyVo.drugReason.id"
+			prepend=" and ">
+			drugReason=#populationQueryVo.searchDruggyVo.drugReason.id#
+		</isNotEmpty>
+		<isNotEmpty property="populationQueryVo.searchDruggyVo.drugSource.id"
+			prepend=" and ">
+			drugSource=#populationQueryVo.searchDruggyVo.drugSource.id#
+		</isNotEmpty>
+		<isNotEmpty property="populationQueryVo.searchDruggyVo.detoxicateCondition.id"
+			prepend=" and ">
+			detoxicateCondition=#populationQueryVo.searchDruggyVo.detoxicateCondition.id#
+		</isNotEmpty>
+		<isNotEmpty property="populationQueryVo.searchDruggyVo.isAdanon"
+			prepend=" and ">
+			<isEqual property="populationQueryVo.searchDruggyVo.isAdanon"
+				compareValue="1">
+				isAdanon=#populationQueryVo.searchDruggyVo.isAdanon#
+			</isEqual>
+			<isNotEqual property="populationQueryVo.searchDruggyVo.isAdanon"
+				compareValue="1">
+				isAdanon=#populationQueryVo.searchDruggyVo.isAdanon# or
+				isAdanon is null
+			</isNotEqual>
+
+		</isNotEmpty>
+	</sql>
+
+	<sql id="mentalpatients_query">
+		<isNotEmpty property="populationQueryVo.searchMentalPatientVo.isTreat" prepend="and">
+			<isEqual property="populationQueryVo.searchMentalPatientVo.isTreat"
+				compareValue="1">
+				isTreat=#populationQueryVo.searchMentalPatientVo.isTreat#
+			</isEqual>
+			<isNotEqual property="populationQueryVo.searchMentalPatientVo.isTreat"
+				compareValue="1">
+				isTreat=#populationQueryVo.searchMentalPatientVo.isTreat# or isTreat
+				is null
+			</isNotEqual>
+
+		</isNotEmpty>
+		<isNotEmpty property="populationQueryVo.searchMentalPatientVo.dangerLevelId"
+			prepend=" and ">
+			dangerLevel =
+			#populationQueryVo.searchMentalPatientVo.dangerLevelId#
+		</isNotEmpty>
+	</sql>
+	<sql id="idleyouths_query">
+
+	</sql>
+	<sql id="superiorVisits_query">
+		<isNotEmpty property="populationQueryVo.searchSuperiorVisitVo.visitState.id"
+			prepend=" and ">
+			visitState =
+			#populationQueryVo.searchSuperiorVisitVo.visitState.id#
+		</isNotEmpty>
+	</sql>
+	<sql id="dangerousGoodsPractitioners_query">
+		<isNotEmpty
+			property="populationQueryVo.searchDangerousGoodsPractitionerVo.dangerousWorkingType.id"
+			prepend=" and ">
+			dangerousWorkingType =
+			#populationQueryVo.searchDangerousGoodsPractitionerVo.dangerousWorkingType.id#
+		</isNotEmpty>
+		<isNotEmpty
+			property="populationQueryVo.searchDangerousGoodsPractitionerVo.workingCertificate"
+			prepend=" and ">
+			workingCertificate like
+			#populationQueryVo.searchDangerousGoodsPractitionerVo.workingCertificate#||'%'
+		</isNotEmpty>
+
+		<isNotEmpty
+			property="populationQueryVo.searchDangerousGoodsPractitionerVo.workingCertificateNo"
+			prepend=" and ">
+			workingCertificateNo like
+			#populationQueryVo.searchDangerousGoodsPractitionerVo.workingCertificateNo#||'%'
+		</isNotEmpty>
+		<isNotEmpty
+			property="populationQueryVo.searchDangerousGoodsPractitionerVo.startAvailableDate"
+			prepend=" and ">
+			periodofvaliditystart &lt;=
+			#populationQueryVo.searchDangerousGoodsPractitionerVo.startAvailableDate#
+		</isNotEmpty>
+
+		<isNotEmpty
+			property="populationQueryVo.searchDangerousGoodsPractitionerVo.endAvailableDate"
+			prepend=" and ">
+			periodofvaliditystart &gt;=
+			#populationQueryVo.searchDangerousGoodsPractitionerVo.endAvailableDate#
+		</isNotEmpty>
+	</sql>
+	<sql id="elderlypeople_query">
+		<isNotEmpty prepend=" and "
+			property="populationQueryVo.searchElderlyPeopleVo.peopleType">
+			peopleType =
+			#populationQueryVo.searchElderlyPeopleVo.peopleType#
+		</isNotEmpty>
+		<isNotEmpty prepend=" and "
+			property="populationQueryVo.searchElderlyPeopleVo.liveStatus">
+			liveStatus =
+			#populationQueryVo.searchElderlyPeopleVo.liveStatus#
+		</isNotEmpty>
+		<isNotEmpty prepend=" and "
+			property="populationQueryVo.searchElderlyPeopleVo.currentStatus">
+			currentStatus =
+			#populationQueryVo.searchElderlyPeopleVo.currentStatus#
+		</isNotEmpty>
+	</sql>
+
+	<sql id="handicappeds_query">
+		<isNotEmpty prepend=" and "
+			property="populationQueryVo.searchHandicappedVo.disabilityType">
+			disabilityType =
+			#populationQueryVo.searchHandicappedVo.disabilityType#
+		</isNotEmpty>
+		<isNotEmpty prepend=" and "
+			property="populationQueryVo.searchHandicappedVo.disabilityId">
+			disability =
+			#populationQueryVo.searchHandicappedVo.disabilityId#
+		</isNotEmpty>
+		<isNotEmpty prepend=" and "
+			property="populationQueryVo.searchHandicappedVo.hasDisabilityCard">
+			hadDisabilityCard =
+			#populationQueryVo.searchHandicappedVo.hasDisabilityCard#
+		</isNotEmpty>
+		<isNotEmpty prepend=" and "
+			property="populationQueryVo.searchHandicappedVo.workProfileId">
+			workProfile =
+			#populationQueryVo.searchHandicappedVo.workProfileId#
+		</isNotEmpty>
+	</sql>
+	<sql id="optimalObjects_query">
+		<isNotEmpty
+			property="populationQueryVo.searchOptimalObjectVo.optimalCardType.id"
+			prepend=" and ">
+			optimalCardType =
+			#populationQueryVo.searchOptimalObjectVo.optimalCardType.id#
+		</isNotEmpty>
+	</sql>
+	<sql id="aidneedpopulation_query">
+		<isNotEmpty prepend="and"
+			property="populationQueryVo.searchAidNeedPopulationVo.aidReason.id">
+			aidReason =
+			#populationQueryVo.searchAidNeedPopulationVo.aidReason.id#
+		</isNotEmpty>
+		<isNotEmpty
+			property="populationQueryVo.searchAidNeedPopulationVo.isLowHousehold"
+			prepend=" and ">
+			isLowHouseholds =
+			#populationQueryVo.searchAidNeedPopulationVo.isLowHousehold#
+		</isNotEmpty>
+	</sql>
+	
+	<sql id="aidsPopulations_query">
+		<isNotNull prepend="and"
+			property="populationQueryVo.searchAidspopulationsVo.infectway">
+			infectway =
+			#populationQueryVo.searchAidspopulationsVo.infectway#
+		</isNotNull>
+		<isNotNull
+			property="populationQueryVo.searchAidspopulationsVo.crimetype"
+			prepend=" and ">
+			crimetype =
+			#populationQueryVo.searchAidspopulationsVo.crimetype#
+		</isNotNull>
+		<isNotNull
+			property="populationQueryVo.searchAidspopulationsVo.violationsofthelaw"
+			prepend=" and ">
+			violationsofthelaw =
+			#populationQueryVo.searchAidspopulationsVo.violationsofthelaw#
+		</isNotNull>
+	</sql>
+
+	<sql id="otherAttentionPersonnels_query">
+		<isNotNull prepend="and"
+			property="populationQueryVo.searchOtherAttentionPersonnelVo.gender.id">
+			otherAttentionPersonnels.gender =
+			#populationQueryVo.searchOtherAttentionPersonnelVo.gender.id#
+		</isNotNull>
+		<isNotNull
+			property="populationQueryVo.searchOtherAttentionPersonnelVo.career.id"
+			prepend=" and ">
+			otherAttentionPersonnels.career =
+			#populationQueryVo.searchOtherAttentionPersonnelVo.career.id#
+		</isNotNull>
+	</sql>
+	
+	<sql id="unemployedpeople_query">
+		<isNotEmpty prepend=" and "
+			property="populationQueryVo.searchUnemployedPeopleVo.unemployedPeopleType">
+			unemployedPeopleType
+			=#populationQueryVo.searchUnemployedPeopleVo.unemployedPeopleType#
+		</isNotEmpty>
+
+		<isNotEmpty prepend=" and "
+			property="populationQueryVo.searchUnemployedPeopleVo.unemploymentDateStart">
+		<![CDATA[ unemploymentDate >= #populationQueryVo.searchUnemployedPeopleVo.unemploymentDateStart# ]]>
+		</isNotEmpty>
+		<isNotEmpty prepend=" and "
+			property="populationQueryVo.searchUnemployedPeopleVo.unemploymentDateEnd">
+		<![CDATA[ unemploymentDate <= #populationQueryVo.searchUnemployedPeopleVo.unemploymentDateEnd# ]]>
+		</isNotEmpty>
+		<isNotEmpty prepend=" and "
+			property="populationQueryVo.searchUnemployedPeopleVo.unemploymentReason">
+			unemploymentReason=
+			#populationQueryVo.searchUnemployedPeopleVo.unemploymentReason#
+		</isNotEmpty>
+	</sql>
+	<sql id="nurtureswomen_query">
+		<isNotEmpty prepend=" and "
+			property="populationQueryVo.searchNurturesWomenVo.childNumberStart">
+		<![CDATA[ (boyNumber+girlNumber) >= #populationQueryVo.searchNurturesWomenVo.childNumberStart# ]]>
+		</isNotEmpty>
+		<isNotEmpty prepend=" and "
+			property="populationQueryVo.searchNurturesWomenVo.childNumberEnd">
+		<![CDATA[ (boyNumber+girlNumber)  <= #populationQueryVo.searchNurturesWomenVo.childNumberEnd# ]]>
+		</isNotEmpty>
+		<isNotEmpty prepend=" and "
+			property="populationQueryVo.searchNurturesWomenVo.licenseSituation">
+			licenseSituation=#populationQueryVo.searchNurturesWomenVo.licenseSituation#
+		</isNotEmpty>
+		<isNotEmpty
+			property="populationQueryVo.searchNurturesWomenVo.isUnmarriedPregnant"
+			prepend=" and ">
+			<isEqual
+				property="populationQueryVo.searchNurturesWomenVo.isUnmarriedPregnant"
+				compareValue="1">
+				isUnmarriedPregnant =
+				#populationQueryVo.searchNurturesWomenVo.isUnmarriedPregnant#
+			</isEqual>
+			<isEqual
+				property="populationQueryVo.searchNurturesWomenVo.isUnmarriedPregnant"
+				compareValue="0">
+				(isUnmarriedPregnant =
+				#populationQueryVo.searchNurturesWomenVo.isUnmarriedPregnant# or
+				isUnmarriedPregnant
+				is null)
+			</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="populationQueryVo.searchNurturesWomenVo.isLevied"
+			prepend=" and ">
+			<isEqual property="populationQueryVo.searchNurturesWomenVo.isLevied"
+				compareValue="1">
+				isLevied =
+				#populationQueryVo.searchNurturesWomenVo.isLevied#
+			</isEqual>
+			<isEqual property="populationQueryVo.searchNurturesWomenVo.isLevied"
+				compareValue="0">
+				(isLevied =
+				#populationQueryVo.searchNurturesWomenVo.isLevied# or isLevied is
+				null)
+			</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="populationQueryVo.searchNurturesWomenVo.isMaternityCard"
+			prepend=" and ">
+			<isEqual property="populationQueryVo.searchNurturesWomenVo.isMaternityCard"
+				compareValue="1">
+				isMaternityCard =
+				#populationQueryVo.searchNurturesWomenVo.isMaternityCard#
+			</isEqual>
+			<isEqual property="populationQueryVo.searchNurturesWomenVo.isMaternityCard"
+				compareValue="0">
+				(isMaternityCard =
+				#populationQueryVo.searchNurturesWomenVo.isMaternityCard# or
+				isMaternityCard is null)
+			</isEqual>
+		</isNotEmpty>
+		
+				<isNotEmpty prepend=" and " property="populationQueryVo.searchNurturesWomenVo.maternityCardIssueTimeStart">
+				<![CDATA[ maternitycardissuetime >= #populationQueryVo.searchNurturesWomenVo.maternityCardIssueTimeStart# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend=" and " property="populationQueryVo.searchNurturesWomenVo.maternityCardIssueTimeEnd">
+				<![CDATA[ maternitycardissuetime <= #populationQueryVo.searchNurturesWomenVo.maternityCardIssueTimeEnd# ]]>
+				</isNotEmpty>
+	</sql>
+
+	<sql id="actualPopulation_query">
+		<isPropertyAvailable property="actualPersonType">
+			<isEqual property="actualPersonType" compareValue="all_actual_population">
+				<include refid="all_actual_population_query" />
+			</isEqual>
+			<isEqual property="actualPersonType" compareValue="floatingPopulation">
+				<include refid="floatingPopulations_query" />
+			</isEqual>
+			<isEqual property="actualPersonType" compareValue="householdStaff">
+				<include refid="householdStaffs_query" />
+			</isEqual>
+			<isEqual property="actualPersonType" compareValue="unsettledPopulation">
+				<include refid="unsettledPopulations_query" />
+			</isEqual>
+		</isPropertyAvailable>
+	</sql>
+
+	<sql id="integrative_Query_sql">
+		<isPropertyAvailable property="superiorVisits">
+			<include refid="superiorVisits_query" />
+		</isPropertyAvailable>
+		<isPropertyAvailable property="dangerousGoodsPractitioners">
+			<include refid="dangerousGoodsPractitioners_query" />
+		</isPropertyAvailable>
+		<isPropertyAvailable property="idleyouths">
+			<include refid="idleyouths_query" />
+		</isPropertyAvailable>
+		<isPropertyAvailable property="druggys">
+			<include refid="druggys_query" />
+		</isPropertyAvailable>
+		<isPropertyAvailable property="mentalpatients">
+			<include refid="mentalpatients_query" />
+		</isPropertyAvailable>
+		<isPropertyAvailable property="rectificativepersons">
+			<include refid="rectificativepersons_query" />
+		</isPropertyAvailable>
+		<isPropertyAvailable property="positiveinfos">
+			<include refid="positiveinfos_query" />
+		</isPropertyAvailable>
+
+		<isPropertyAvailable property="nurtureswomen">
+			<include refid="nurtureswomen_query" />
+		</isPropertyAvailable>
+
+		<isPropertyAvailable property="aidneedpopulation">
+			<include refid="aidneedpopulation_query" />
+		</isPropertyAvailable>
+		<isPropertyAvailable property="aidspopulations">
+			<include refid="aidsPopulations_query" />
+		</isPropertyAvailable>
+		<isPropertyAvailable property="otherAttentionPersonnels">
+			<include refid="otherAttentionPersonnels_query" />
+		</isPropertyAvailable>
+		
+		<isPropertyAvailable property="elderlypeople">
+			<include refid="elderlypeople_query" />
+		</isPropertyAvailable>
+		<isPropertyAvailable property="handicappeds">
+			<include refid="handicappeds_query" />
+		</isPropertyAvailable>
+		<isPropertyAvailable property="optimalObjects">
+			<include refid="optimalObjects_query" />
+		</isPropertyAvailable>
+		<isPropertyAvailable property="unemployedpeople">
+			<include refid="unemployedpeople_query" />
+		</isPropertyAvailable>
+	</sql>
+	<sql id="actualPopulationQuery">
+		<isPropertyAvailable property="actualPersonType">
+			<include refid="actualPopulation_query" />
+		</isPropertyAvailable>
+	</sql>
+	<sql id="attentionPopulationQuery">
+			<isNotEmpty property="attentionPopulationTypes"> ,	</isNotEmpty>
+			<isNotEmpty property="attentionPopulationTypes" open="("
+				close=")">
+				<isNotEmpty property="attentionPopulationTypes">
+					select distinct($attentionPopulationTypes[0]$.id),
+					$attentionPopulationTypes[0]$.orgId,$attentionPopulationTypes[0]$.baseinfoid
+					from
+					<iterate property="attentionPopulationTypes" conjunction=",">
+						$attentionPopulationTypes[]$ $attentionPopulationTypes[]$ 
+					</iterate>
+					where 1=1
+					<isPropertyAvailable property="connectSql">
+						<isNotEmpty property="connectSql" prepend="and">
+							$connectSql$
+						</isNotEmpty>
+					</isPropertyAvailable>
+					<include refid="integrative_Query_sql" />
+
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="attentionPopulationTypes"> buss
+				where actual.orgId=buss.orgId
+				and upper(actual.baseinfoid)=upper(buss.baseinfoid)
+			</isNotEmpty>
+	</sql>
+	<sql id="noIdleYouthSqlResult">
+		(
+		 <include refid="actualPopulationQuery"/>
+		) actual
+		<dynamic>
+			<include refid="attentionPopulationQuery"/>
+		</dynamic>
+	</sql>
+	
+	<sql id="integrativeQuerySql">
+		<isNotEmpty property="idleYouth">
+		select
+		<include refid="idleYouth_select_filed" />
+		from (
+		</isNotEmpty>
+		
+		select
+		<include refid="select_filed" />
+		from 
+		<include refid="noIdleYouthSqlResult"/>
+		
+		<isNotEmpty property="idleYouth">
+			) popu , (<include refid="idleYouth_query"/>) idle 
+			where popu.orgid=idle.orgid and upper(popu.idcardno)=upper(idle.idcardno)
+		</isNotEmpty>
+		
+		
+	</sql>
+
+	<sql id="idleYouth_query">
+		select distinct(iy.id),iy.idcardno,iy.orgid
+		from idleYouths iy,idleYouthsHasPropertyDicts  hDicts
+		where 1=1 and    iy.id = hDicts.Idleyouthsid   
+		<include refid="idleYouth_comm_sql"/>
+		<isNotEmpty property="populationQueryVo.searchIdleYouthVo.staffTypeId" prepend=" and ">
+				hDicts.PROPERTYDICTID in
+				<iterate property="populationQueryVo.searchIdleYouthVo.staffTypeId" close=")" open="("
+					conjunction=",">
+					#populationQueryVo.searchIdleYouthVo.staffTypeId[]#
+				</iterate>
+		</isNotEmpty>
+	</sql>
+	
+		<sql id="idleYouth_comm_sql">
+		<isPropertyAvailable property="orgCode">
+			<isNotEmpty property="orgCode" prepend=" and ">
+				iy.orgInternalCode like #orgCode#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="gender">
+			<isNotEmpty prepend=" and " property="gender.id">
+				iy.gender = #gender.id#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="birthdayStrart">
+			<isNotEmpty prepend=" and " property="birthdayStrart">
+            	<![CDATA[ iy.birthday >= #birthdayStrart# ]]>
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="birthdayEnd">
+			<isNotEmpty prepend=" and " property="birthdayEnd">
+            	<![CDATA[ iy.birthday <= #birthdayEnd# ]]>
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="hasHouse" prepend="and">
+		
+			<isEqual compareValue="false" property="hasHouse">
+				(iy.ishavehouse=0 or
+				iy.ishavehouse is null)
+			</isEqual>
+			<isEqual compareValue="true" property="hasHouse">
+				iy.ishavehouse=1
+			</isEqual>
+
+		</isPropertyAvailable>
+		and (iy.isdeath=0 or iy.isdeath is null)  and iy.isEmphasis=0 
+	</sql>
+
+	<select id="count_integrative_query_result" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from (
+		<include refid="integrativeQuerySql"/>
+		)
+	</select>
+
+
+	<select id="integrativeQueryPopulation" parameterClass="java.util.Map"
+		resultMap="countryInfoResult">
+		
+		select rs.* from 
+		(select rsa.*,ROWNUM RN from (
+			<include refid="integrativeQuerySql"/>
+		)rsa)rs
+		<isNotEmpty property="skipResults">
+			where  RN between #skipResults# and #maxResults#
+		</isNotEmpty>
+		
+		<isNotEmpty property="sortField">
+			order by $sortField$ $order$
+		</isNotEmpty>
+
+	</select>
+	
+	<sql id="workBenchQuerySql">
+				<include refid="workBenchQueryField"/>
+				,'floatingPopulations' actualType,'floatingPopulations'||id sid
+				  from floatingpopulations
+				<include refid="workBenchQuerySqlWhere"/>
+			union
+				<include refid="workBenchQueryField"/>
+				,'householdstaffs' actualType,'householdstaffs'||id sid
+				  from householdstaffs
+				<include refid="workBenchQuerySqlWhere"/>
+			union
+				<include refid="workBenchQueryField"/>
+				,'unsettledpopulations' actualType,'unsettledpopulations'||id sid
+				  from unsettledpopulations
+				<include refid="workBenchQuerySqlWhere"/>
+			union 
+				 select id,
+                        orgid,
+                         gender,
+                         currentAddress,
+                          certificateno idCardNo,
+                        englishName name,
+                         orgInternalCode, birthday,
+                        null nation,
+                        '' nativeplaceaddress,
+                        'overseapersonnel' actualType,
+                        'overseapersonnel' || id sid
+        		from overseapersonnel
+				where 
+				orginternalcode like '$orgCode$%' and logout = 0
+			   and (englishName like '$searchText$%' or simplepinyin like '$searchText$%' or fullpinyin like '$searchText$%' or currentAddress like '%$searchText$%' or certificateno like  '$searchText$%')
+	</sql>
+		<sql id="findPopulationsByBaseQueryVoAndTypesSql">
+			<iterate  property="typeTableMapList" conjunction=" union ">
+			<isNotEqual property="typeTableMapList[].type" compareValue="overseaStaff">
+				select '$typeTableMapList[].type$'||id as sid ,id,orgId,gender,currentAddress,idCardNo idCardNo, name name,
+				'$typeTableMapList[].type$' populationType,province||city||district||nativeplaceaddress nativeplaceaddress ,birthday,nation nation,orgInternalCode,imgUrl
+				from $typeTableMapList[].table$  $typeTableMapList[].type$
+				where 1=1
+				<isNotEmpty property="populationBaseQueryVo.name" prepend="and">
+				( 
+				name like  #populationBaseQueryVo.name#||'%' or 
+				 fullpinyin like  #populationBaseQueryVo.name#||'%' or
+				 simplepinyin like  #populationBaseQueryVo.name#||'%'
+				 )
+				</isNotEmpty>
+				<isNotEmpty property="populationBaseQueryVo.idCardNo" prepend="and">
+				upper(idCardNo) like  upper(#populationBaseQueryVo.idCardNo#)||'%'
+				</isNotEmpty>
+				<isNotEmpty property="populationBaseQueryVo.orgInternalCode" prepend="and">
+				orginternalcode like #populationBaseQueryVo.orgInternalCode#||'%'
+				</isNotEmpty>
+			</isNotEqual>
+			<isEqual property="typeTableMapList[].type" compareValue="overseaStaff">
+				select '$typeTableMapList[].type$'||id as sid ,id,orgId,gender,currentAddress,certificateno idCardNo, englishname name,
+				'$typeTableMapList[].type$' populationType,'' nativePoliceStation,birthday,0 nation,orgInternalCode,imgUrl
+				from $typeTableMapList[].table$  $typeTableMapList[].type$
+				where 1=1
+				<isNotEmpty property="populationBaseQueryVo.name" prepend="and">
+				 (
+				 englishname like  #populationBaseQueryVo.name#||'%' or 
+				 name like #populationBaseQueryVo.name#||'%' or
+				  fullpinyin like  #populationBaseQueryVo.name#||'%' or
+				   simplepinyin like  #populationBaseQueryVo.name#||'%'
+				   )
+				</isNotEmpty>
+				<isNotEmpty property="populationBaseQueryVo.idCardNo" prepend="and">
+				 upper(certificateno) like  upper(#populationBaseQueryVo.idCardNo#)||'%'
+				</isNotEmpty>
+				<isNotEmpty property="populationBaseQueryVo.orgInternalCode" prepend="and">
+				orginternalcode like #populationBaseQueryVo.orgInternalCode#||'%'
+				</isNotEmpty>
+			</isEqual>
+		</iterate>
+</sql>
+	
+	<select id="queryPopulationForWorkBench" parameterClass="java.util.Map" resultMap="countryInfoResult">
+			select rs.* from 
+		(select rsa.*,ROWNUM RN from (
+			<include refid="workBenchQuerySql"/>
+		)rsa)rs
+		<isNotEmpty property="skipResults">
+			where  RN between #skipResults# and #maxResults#
+		</isNotEmpty>
+		
+		<isNotEmpty property="sortField">
+			order by $sortField$ $order$
+		</isNotEmpty>
+	</select>
+	
+		<select id="count_queryPopulationForWorkBench" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from (
+		<include refid="workBenchQuerySql"/>
+		)
+	</select>
+	
+	<select id="count_findPopulationsByBaseQueryVoAndTypes" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from (
+		<include refid="integrativeQueryPopulation.findPopulationsByBaseQueryVoAndTypesSql"/>
+		)
+	</select>
+	
+	<select id="findPopulationsByBaseQueryVoAndTypes" parameterClass="map" resultMap="countryInfoResult_ForBaseQuery">
+	select sid,id,orgId,gender,currentAddress,idCardNo,name,populationType,nativeplaceaddress,birthday,nation,orgInternalCode,imgUrl from (
+	 	select sid,id,orgId,gender,currentAddress,idCardNo,name,populationType,nativeplaceaddress,birthday,nation,orgInternalCode,ROWNUM RN,imgUrl from (
+	 		<include refid="integrativeQueryPopulation.findPopulationsByBaseQueryVoAndTypesSql"/>
+	 	)
+	 	)
+	 	
+	 	<isNotEmpty property="skipResults">
+			where  RN between #skipResults# and #maxResults#
+		</isNotEmpty>
+	 	<isNotEmpty property="sortField">
+			order by $sortField$ $order$
+		</isNotEmpty>
+	 	
+	</select>
+	
+	<select id="findPopulationsByPopulationIdAndType" parameterClass="java.util.Map" resultMap="countrymenResult">
+		select '$tableName$'||id as sid , $tableName$.* from $tableName$ where id=#populationId#
+	</select>
+	
+</sqlMap>

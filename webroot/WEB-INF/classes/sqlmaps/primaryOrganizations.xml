@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="primaryOrganizations">
+	<typeAlias alias="PrimaryOrganizations"  type="com.tianque.baseInfo.primaryOrg.domain.PrimaryOrganizations" />
+	<typeAlias alias="PrimaryMembers"  type="com.tianque.baseInfo.primaryOrg.primaryMembers.domain.PrimaryMembers" />
+	<typeAlias alias="PrimaryOrgVo"  type="com.tianque.baseInfo.primaryOrg.domain.PrimaryOrgVo" />
+	<typeAlias alias="AutoCompleteData"  type="com.tianque.core.vo.AutoCompleteData" />
+	
+	<resultMap class="AutoCompleteData" id="autoCompleteDataResult">
+		<result property="value" column="value" />
+		<result property="label" column="label"/>
+		<result property="desc" column="desc"/>
+	</resultMap>	
+	
+	<resultMap class="PrimaryOrganizations" id="PrimaryOrganizationResult">
+		<result property="id" column="id" />
+		<result property="detailName" column="detailName"/>
+	</resultMap>	
+	
+	<resultMap class="PrimaryOrganizations" id="PrimaryOrganizationResult_dispalyName" extends="PrimaryOrganizationResult">
+		<result property="teamClazz.id" column="teamClass"/>
+		<result property="isFourLevelPlatform" column="isFourLevelPlatform"/>
+	</resultMap>
+	
+	<resultMap class="PrimaryOrganizations" id="fourTeamsPrimaryOrganizationResult_dispalyName" extends="PrimaryOrganizationResult">
+		<result property="teamClazz.displayName" column="displayName"/>
+		<result property="isFourLevelPlatform" column="isFourLevelPlatform"/>
+	</resultMap>		
+	
+		
+	<resultMap class="PrimaryOrgVo" id="primaryOrgResult">
+		<result property="id" column="id" />
+		<result property="teamClazz.id" column="teamClass" />
+		<result property="teamType.id" column="teamType" />
+		<result property="org.id" column="orgId" />
+		<result property="org.orgInternalCode" column="orgInternalCode" />
+		<result property="name" column="name" />
+		<result property="detailName" column="detailName" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="isSynchronize" column="isSynchronize" />
+		<result property="seq" column="seq" />
+		<result property="remark" column="remark" />
+		<result property="memberNum" column="memberNum" />
+		<result property="departmentType.id" column="DEPARTMENTTYPE"/>
+		<result property="guidanceDepartment" column="guidanceDepartment"/>
+		<result property="mainFunction" column="mainFunction"/>
+		<!-- 
+		<result property="serviceType" column="serviceType" />
+		<result property="orgScope" column="orgScope" />
+		<result property="teamRecords" column="teamRecords" />
+		<result property="personObjectCounts" column="personObjectCounts" />
+		<result property="familyObjectCounts" column="familyObjectCounts" />
+		<result property="locationObjectCounts" column="locationObjectCounts" />
+		 -->
+	</resultMap>
+	
+	<resultMap class="PrimaryOrganizations" id="PrimaryOrganizationsForOrgChange">
+		<result property="id" column="id" />
+		<result property="teamClazz.id" column="teamClass" />
+		<result property="teamType.id" column="teamType" />
+		<result property="org.id" column="orgId" />
+		<result property="org.orgInternalCode" column="orgInternalCode" />
+		<result property="name" column="name" />
+		<result property="detailName" column="detailName" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="isSynchronize" column="isSynchronize" />
+		<result property="seq" column="seq" />
+		<result property="remark" column="remark" />
+		<result property="departmentType.id" column="DEPARTMENTTYPE"/>
+		<result property="guidanceDepartment" column="guidanceDepartment"/>
+		<result property="mainFunction" column="mainFunction"/>
+	</resultMap>
+	
+	<sql id="sql_select_forMember">
+		select PrimaryOrganizations.*,(
+			select count(primarymembersid) from primarymembersorgtype  where primarymembersid in(select  id from  PRIMARYMEMBERS pt  where   ishavejob=0 )
+			and primaryorgid=PrimaryOrganizations.id and isfourlevelplatform =0) as memberNum 
+	</sql>
+	<!-- 
+	<sql id="sql_select_forMemberList">
+		select PrimaryOrganizations.*,(select count(*) from PrimaryOrgMembers where primaryOrgId = PrimaryOrganizations.id and ishavejob=0 and isfourlevelplatform is null) as memberNum,( select displayseq from propertydicts  where id = PrimaryOrganizations.teamType ) as displayseq
+	</sql>
+	 -->
+	<!-- 优化组织机构列表显示 -->
+	<sql id="sql_select_forMemberList">
+		select   nvl(a.memberNum,0) as memberNum, b.*<!--该字段没有使用过 ,(select displayseq from propertydicts where id = b.teamType) as displayseq -->
+		from (
+			select count(pom.id) as memberNum, po.id
+          from (select *
+                <include refid="sql_where"/>     
+                  ) po,
+               primarymembersorgtype pom
+         where <![CDATA[ pom.primaryorgid = po.id(+) ]]>
+           and pom.primarymembersid in(select id from PRIMARYMEMBERS where ishavejob=0)     
+           and pom.isfourlevelplatform =0
+           and pom.primaryorgid is not null
+         group by po.id) a,
+       (select *
+         <include refid="sql_where"/> 
+          ) b
+ 		where <![CDATA[ b.id = a.id(+) ]]>
+	</sql>
+	<sql id="sql_where">
+		from PrimaryOrganizations
+		<dynamic prepend="WHERE">
+			<isNotEmpty  property="displayLevel" prepend=" ">
+				<isEqual property="displayLevel" compareValue="sameGrade">
+					 orgInternalCode = #org.orgInternalCode# 	
+				</isEqual>	
+				<isEqual property="displayLevel" compareValue="directJurisdiction">
+					 parentid = #org.id#
+				</isEqual>	
+				<isEqual property="displayLevel" compareValue="allJurisdiction">
+					 orgInternalCode like #org.orgInternalCode#||'%' 	
+				</isEqual>	
+			</isNotEmpty>
+			<isNotEmpty property="name" prepend="and">
+				(name like #name#||'%')
+			</isNotEmpty>
+			<isNotEmpty property="detailName" prepend="and">
+				(detailName like #detailName#||'%')
+			</isNotEmpty>
+			<!--postulantduty 群防群治搜索的时候组织类别是不是选择平安志愿者 -->
+			<isNotNull property="postulantduty" prepend="and">
+					(teamType = #teamType.id# or isSynchronize=1)
+			</isNotNull>
+			<isNull property="postulantduty">
+				<isNotNull property="teamType.id" prepend="and">
+					(teamType = #teamType.id#)
+				</isNotNull>
+			</isNull>
+			<!--internalId 是不是群防群治的显示，是就显示同步数据 -->
+			<isNotNull property="internalId" prepend="and">
+					(teamClass = #teamClazz.id# or isSynchronize=1)
+			</isNotNull>
+			<isNull property="internalId">
+				<isNotNull property="teamClazz.id" prepend="and">
+					(teamClass = #teamClazz.id#)
+				</isNotNull>
+			</isNull>
+			<isNotNull property="isSynchronize" prepend="and">
+				(isSynchronize = #isSynchronize#)
+			</isNotNull>
+		</dynamic>
+	</sql>
+
+	<insert id="addPrimaryOrg" parameterClass="PrimaryOrganizations">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+    	<![CDATA[ SELECT s_primaryorganizations.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		insert into PrimaryOrganizations
+		(id,orgId,name,detailName,teamClass,teamType,orgInternalCode,createUser,createDate,seq,remark,DEPARTMENTTYPE,guidanceDepartment,mainFunction,updateDate,parentId)
+		values
+		(#id#,#org.id#,#name#,#detailName#,#teamClazz.id#,#teamType.id#,#orgInternalCode#,#createUser#,#createDate#,#seq#,#remark#,#departmentType.id#,#guidanceDepartment#,#mainFunction#,#updateDate#,#parentId#)
+	</insert>
+	
+	<select id="getPrimaryOrgById" parameterClass="java.lang.Long"
+		resultMap="primaryOrgResult">
+		<include refid="sql_select_forMember" />
+		  from PrimaryOrganizations where id=#value#
+	</select>
+	
+	<select id="countFindPrimaryOrgs" parameterClass="PrimaryOrgVo"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="countPrimaryOrgsWhenAdd" parameterClass="PrimaryOrganizations"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		from PrimaryOrganizations 
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="id" prepend="and">
+				(id != #id#)
+			</isNotEmpty>
+			<isNotEmpty property="org.id" prepend="and">
+				(orgid = #org.id#)
+			</isNotEmpty>
+			<isNotEmpty property="detailName" prepend="and">
+				(detailName = #detailName#)
+			</isNotEmpty>
+			<isNotEmpty property="teamType.id" prepend="and">
+				(teamType = #teamType.id#)
+			</isNotEmpty>
+			<isNotEmpty property="departmentType.id" prepend="and">
+				(departmentType = #departmentType.id#)
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="findPrimaryOrgs" parameterClass="PrimaryOrgVo"
+		resultMap="primaryOrgResult">
+		<include refid="sql_select_forMemberList" />
+		<!-- 
+		<include refid="sql_where" />
+		 -->
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<sql id="sqlsearch_where">
+		from (select o1.*,(		
+		select count(*) from primarymembersorgtype where 	primaryOrgId = o1.id  
+		and isfourlevelplatform =0 and primarymembersid in(select id from PRIMARYMEMBERS where ishavejob=0) ) as memberNum
+		          from primaryorganizations o1
+		   <dynamic prepend="WHERE">
+			<isNotEmpty  property="displayLevel" prepend=" ">
+				<isEqual property="displayLevel" compareValue="sameGrade">
+					 o1.orgInternalCode = #org.orgInternalCode# 	
+				</isEqual>	
+				<isEqual property="displayLevel" compareValue="allJurisdiction">
+					 o1.orgInternalCode like #org.orgInternalCode#||'%' 	
+				</isEqual>
+				<isEqual property="displayLevel" compareValue="directJurisdiction">
+					 o1.parentid =#org.id#	
+				</isEqual>		
+			</isNotEmpty>
+			<isNotEmpty property="name" prepend="and">
+				o1.name like #name#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="detailName" prepend="and">
+				o1.detailName like #detailName#||'%'
+			</isNotEmpty>
+			<!--postulantduty 群防群治搜索的时候组织类别是不是选择平安志愿者 -->
+			<isNotNull property="postulantduty">
+				<isNotNull property="teamType.id" prepend="and">
+					(o1.teamType = #teamType.id# or isSynchronize=1)
+				</isNotNull>
+			</isNotNull>
+			<isNull property="postulantduty">
+				<isNotNull property="teamType.id" prepend="and">
+					(o1.teamType = #teamType.id#)
+				</isNotNull>
+			</isNull>
+			<!--internalId 是不是群防群治的显示，是就显示同步数据 -->
+			<isNotNull property="internalId">
+				<isNotNull property="teamClazz.id" prepend="and">
+					(o1.teamClass = #teamClazz.id# or isSynchronize=1)
+				</isNotNull>
+			</isNotNull>
+			<isNull property="internalId">
+				<isNotNull property="teamClazz.id" prepend="and">
+					(o1.teamClass = #teamClazz.id#)
+				</isNotNull>
+			</isNull>
+			<isNotNull property="isSynchronize" prepend="and">
+					(o1.isSynchronize = #isSynchronize#)
+				</isNotNull>
+		   </dynamic>       
+		   ) priOrg
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="memberCountMin" prepend="and">
+				priOrg.memberNum <![CDATA[ >= ]]> #memberCountMin#
+			</isNotEmpty>
+			<isNotEmpty property="memberCountMax" prepend="and">
+				priOrg.memberNum <![CDATA[ <= ]]> #memberCountMax#
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+		
+	<select id="findPrimaryOrgsBySearch" parameterClass="PrimaryOrgVo"
+		resultMap="primaryOrgResult">
+		select priOrg.* 
+		<include refid="sqlsearch_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+
+	<select id="countFindPrimaryOrgsBySearch" parameterClass="PrimaryOrgVo"
+		resultClass="java.lang.Integer">
+		select count(*) 
+		<include refid="sqlsearch_where" />
+	</select>
+	
+	
+	<update id="updatePrimaryOrg" parameterClass="PrimaryOrganizations">
+		update PrimaryOrganizations set
+			name=#name#,
+			detailName=#detailName#,
+			teamType=#teamType.id#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#,
+			remark=#remark#,
+			departmentType=#departmentType.id#,
+			guidanceDepartment=#guidanceDepartment#,
+			mainFunction=#mainFunction# 
+		where id=#id#
+	</update>
+
+	
+	<delete id="deletePrimaryOrg" parameterClass="java.lang.Long">
+    	delete from PrimaryOrganizations where id=#id#
+    </delete>
+    <!-- 设置排序顺序 -->
+    <update id="setPrimaryOrgSeq" parameterClass="map">
+    	update PrimaryOrganizations set seq=#seq# 
+    	where id=#id#
+    </update>
+     <!-- 同步群防群治 -->
+    <update id="synchronizePrimaryOrgMembersToMasseduty" parameterClass="map">
+    	update PrimaryOrganizations set isSynchronize=#isSynchronize# 
+    	where id=#id#
+    </update>
+    
+    
+     <!-- 通过成员ID获取组织信息 -->
+	<select id="getPrimaryOrganizationByPrimaryMemberId"   parameterClass="java.lang.Long"  resultMap="PrimaryOrganizationResult">
+		select po.id,po.detailName from primarymembersorgtype pt,primaryorganizations po
+	      where pt.primaryorgid=po.id  and pt.isfourlevelplatform=0 and pt.primarymembersid=#id#
+			union     
+		select fp.id,fp.name as detailName from primarymembersorgtype pt,fourlevelplatform fp
+	      where pt.primaryorgid=fp.id and pt.isfourlevelplatform=1 and pt.primarymembersid=#id#
+	</select>
+	
+	<!-- 通过组织名称获取组织信息 -->
+	<select id="getPrimaryOrgInfoBydetailName"  parameterClass="PrimaryOrgVo"  resultMap="PrimaryOrganizationResult_dispalyName">
+		select po.id ,po.detailName,po.teamClass, '0' as isFourLevelPlatform  from primaryorganizations po where 
+		<dynamic>
+				<isNotEmpty property="detailName" prepend=" and " >
+					 po.detailName like #detailName# || '%'
+				</isNotEmpty>
+				<isNotEmpty  prepend=" and " property="org.orgInternalCode" >
+					 po.orgInternalCode like #org.orgInternalCode#||'%' 
+				</isNotEmpty>
+		</dynamic>
+	</select>
+	<select id="getFourTeamPrimaryOrgInfoBydetailName" parameterClass="PrimaryOrgVo" resultMap="fourTeamsPrimaryOrganizationResult_dispalyName">
+		select f.id ,f.name as detailName,'四级平台' as disPlayName,'1' as isFourLevelPlatform    from fourlevelplatform f where 1=1
+       <dynamic>
+			<isNotEmpty property="detailName" prepend=" and " >
+				 f.name like #detailName# || '%'
+			</isNotEmpty>
+			<isNotEmpty  prepend=" and " property="org.orgInternalCode" >
+				 f.orgInternalCode like #org.orgInternalCode#||'%' 
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	<!-- 通过组织名称获取组织信息 -->
+	<!--迁移合并方法-->
+	<select id="findAllPrimaryOrgForOrgChange" parameterClass="map" resultMap="PrimaryOrganizationsForOrgChange">
+		select p.*  from PrimaryOrganizations p where exists (select p2.detailname from PrimaryOrganizations p2  where p2.orgid = #newOrgId#
+		and p.teamclass = p2.teamclass
+        and p.teamtype = p2.teamtype
+        and p.detailname = p2.detailname
+        <dynamic>
+			<isNotEmpty property="deptMinValue" prepend=" and " >
+				 p.departmenttype = p2.departmenttype
+			</isNotEmpty>
+		</dynamic>
+        )
+  		and p.orgid =#oldOrgId#
+	</select>
+	
+	<select id="findPrimaryOrgByOrgIdAndDetailnameForOrgChange" parameterClass="map" resultMap="PrimaryOrganizationsForOrgChange">
+		select * from PrimaryOrganizations p where p.orgid=#newOrgId# and p.teamclass=#teamclazz# and p.teamtype=#teamtype# and p.detailname=#detailname#
+       <dynamic>
+			<isNotEmpty property="departmenttype" prepend=" and ">
+				 p.departmenttype=#departmenttype#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+</sqlMap>

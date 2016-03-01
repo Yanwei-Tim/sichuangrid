@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="taskListStatistics">
+	<typeAlias alias="generalSituation"	type="com.tianque.plugin.statistics.domain.GeneralSituation" />
+	<typeAlias alias="taskListMapVo"	type="com.tianque.plugin.statistics.vo.TaskListMapVo" />
+	<resultMap id="taskListMapVoResult" class="taskListMapVo">
+		<result property="organization.id" column="id" />
+		<result property="organization.orgName" column="orgName" />
+		<result property="organization.departmentNo" column="departmentNo" />
+		<result property="ranking" column="rownum" />
+		<result property="monthCreateSign" column="signNum" />
+	</resultMap>
+	
+	<resultMap id="generalBaseResult" class="generalSituation" >
+	    <result column="orgId" property="organization.id" />  
+	    <result column="orgName" property="organization.orgName" />  
+	    <result column="monthCreateSign" property="monthCreateSign" />  
+	    <result column="monthCreateCount" property="monthCreateCount" />  
+	</resultMap>
+	<resultMap id="generalBasesicTypeResult" class="generalSituation" extends="generalBaseResult">
+	    <result column="basesicType" property="basesicType" />  
+	</resultMap>
+	<resultMap id="generalDetailTypeResult" class="generalSituation" extends="generalBaseResult">
+	    <result column="detailType" property="detailType" />  
+	</resultMap>
+	<resultMap id="generalSubTypeResult" class="generalSituation" extends="generalBaseResult">
+	    <result column="typeName" property="typeName" />  
+	</resultMap>
+	
+	<resultMap id="generalSubTypesResult" class="generalSituation" extends="generalBaseResult">
+	    <result column="subType" property="subType" />  
+	</resultMap>
+	
+	<select id="getTaskListColumn" parameterClass="java.util.Map" resultMap="generalBasesicTypeResult">
+		select
+		max(mo.id) orgId,max(mo.orgname) orgName,basesicType,nvl(sum(co.msign),0) monthCreateSign,nvl(sum(co.dc),0) monthcreatecount
+		from organizations mo
+	    left join
+	    (select d.orgid,basesicType,sum(d.monthcreatecount) dc,sum(d.monthCreateSign) msign
+	    from
+	    $tableName$ d where 1=1
+	    <isNotNull property="basesicType">
+			<iterate prepend=" and "  property="basesicType" conjunction="," open="basesicType in (" close=")">
+							#basesicType[]#
+			</iterate>
+		</isNotNull>
+	    group by
+	    d.orgid,basesicType
+	    )co on
+	    co.orgid =mo.id 
+	    where
+	    <isEqual property="searchCurrent" compareValue="false">
+			<isNotNull property="orgId">
+					 mo.parentid=#orgId#
+			</isNotNull> 
+		</isEqual>
+		<isEqual property="searchCurrent" compareValue="true">
+			<isNotNull property="orgId">
+					 mo.id=#orgId#
+			</isNotNull> 
+		</isEqual>
+	    and mo.orgtype=#orgType#
+	    group by mo.id,basesicType
+	    ,mo.seq
+	    order by
+	    mo.seq
+	</select>
+	
+	<select id="getFloatingColumn" parameterClass="java.util.Map" resultMap="generalDetailTypeResult">
+		select
+		max(mo.id) orgId,max(mo.orgname) orgName,detailType,nvl(sum(co.msign),0) monthCreateSign,nvl(sum(co.dc),0) monthcreatecount
+		from organizations mo
+	    left join
+	    (select d.orgid,detailType,sum(d.monthcreatecount) dc,sum(d.monthCreateSign) msign
+	    from
+	    $tableName$ d where 1=1
+	    <isNotNull property="detailType">
+			<iterate prepend=" and "  property="detailType" conjunction="," open="detailType in (" close=")">
+							#detailType[]#
+			</iterate>
+		</isNotNull>
+	    group by
+	    d.orgid,detailType
+	    )co on
+	    co.orgid =mo.id 
+	    where
+	    <isEqual property="searchCurrent" compareValue="false">
+			<isNotNull property="orgId">
+					 mo.parentid=#orgId#
+			</isNotNull> 
+		</isEqual>
+		<isEqual property="searchCurrent" compareValue="true">
+			<isNotNull property="orgId">
+					 mo.id=#orgId#
+			</isNotNull> 
+		</isEqual>
+	    and mo.orgtype=#orgType#
+	    group by mo.id,detailType
+	    ,mo.seq
+	    order by
+	    mo.seq
+	</select>
+	
+	
+	<!--详细类别查询-->
+	<select id="getTaskListForSubType" parameterClass="java.util.Map" resultMap="generalSubTypeResult">
+	select 
+	max(mo.id) orgId,max(mo.orgname) orgName,p.displayname typeName,nvl(sum(co.dc),0) monthCreateCount,nvl(sum(co.msign),0) monthCreateSign
+    from organizations mo  left join propertydicts p on p.id=p.id  left join  (
+    select d.orgid, p.id, max(p.displayname)  rs,sum(d.monthcreatecount) dc,sum(d.monthCreateSign) msign
+    from  $tableName$ d right join propertydicts p on subtype=p.id
+    where   1=1 
+    <isNotNull property="subType">
+		<iterate prepend=" and "  property="subType" conjunction="," open="p.id in (" close=")">
+								#subType[]#
+		</iterate>
+	</isNotNull>
+    group by   d.orgid, p.id )co on    co.orgid =mo.id and co.id=p.id
+    where 
+    <isEqual property="searchCurrent" compareValue="false">
+			<isNotNull property="orgId">
+					 mo.parentid=#orgId#
+			</isNotNull> 
+		</isEqual>
+		<isEqual property="searchCurrent" compareValue="true">
+			<isNotNull property="orgId">
+					 mo.id=#orgId#
+			</isNotNull> 
+		</isEqual>
+     and  mo.orgtype=#orgType#
+    <isNotNull property="subType">
+		<iterate prepend=" and "  property="subType" conjunction="," open="p.id in (" close=")">
+								#subType[]#
+		</iterate>
+	</isNotNull>
+    group by mo.id,p.displayname
+    ,mo.seq,p.displayseq
+    order by
+    mo.seq,p.displayseq
+		
+	</select>
+	
+	<!--线性图查询-->
+	<select id="getTaskListForTrend" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select 
+		<isEqual property="isSign" compareValue="false">
+			sum(monthCreateCount)
+		</isEqual>
+		<isEqual property="isSign" compareValue="true">
+			sum(monthCreateSign)
+		</isEqual>
+		 count from $tableName$ where 1=1
+ 			<isNotNull property="basesicType">
+							and basesicType = #basesicType#
+			</isNotNull>
+			<isNotNull property="detailType">
+							and detailType=#detailType#
+			</isNotNull>
+			<isNotNull property="subType">
+							and subType=#subType#
+			</isNotNull>
+ 	   and orgid = #orgId# order by basesicType
+	</select>
+	
+	<!--根据条件查询签到数据-->
+	<select id="getMonthCreateSignByCondition" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select 
+		<isNotNull property="isSign">
+				<isEqual property="isSign" compareValue="0">
+					sum(monthcreateCount) count
+				</isEqual>
+				<isEqual property="isSign" compareValue="1">
+					sum(monthcreateSign) count
+				</isEqual>
+		</isNotNull>
+		 from organizations o left join  $tableName$ g on o.id=g.orgId
+		where o.parentid=#orgId#
+		 <isNotNull property="basesicType">
+	    	<iterate prepend=" and "  property="basesicType" conjunction="," open="basesicType in (" close=")">
+								#basesicType[]#
+			</iterate>
+		</isNotNull>
+		<isNotNull property="detailType">
+			and detailType=#detailType#
+		</isNotNull>
+		<isNotNull property="subType">
+			and subType=#subType#
+		</isNotNull>
+	</select>
+	<!--根据传入的任务清单类别查询返回该类别签收数排名前三的组织机构数据-->
+	<select id="getMaxCreatSignOrgByType" parameterClass="java.util.Map" resultMap="taskListMapVoResult">
+		select o.id id,o.orgName orgName,o.departmentNo departmentNo,rownum,nvl(signNum,0) signNum from organizations o left join (select sum($isSegin$) signNum,orgid from  $tableName$ where 1=1
+		 <isNotNull property="basesicType">
+	    	<iterate prepend=" and "  property="basesicType" conjunction="," open="basesicType in (" close=")">
+								#basesicType[]#
+			</iterate>
+		</isNotNull>
+		<isNotNull property="detailType">
+			and detailType=#detailType#
+		</isNotNull>
+		<isNotNull property="subType">
+			and subType=#subType#
+		</isNotNull>
+		group by orgid order by max($isSegin$)desc) g on o.id=g.orgid where 1=1 
+		<isNotNull property="mapTypeByOrg">
+			<isEqual property="mapTypeByOrg" compareValue="0" >
+			    and o.parentid=#orgId# 
+			</isEqual>
+			<isEqual property="mapTypeByOrg" compareValue="1">
+			    and o.id=#orgId# 
+			</isEqual>
+		</isNotNull> 
+
+	</select>
+	
+	<select id="getTaskListColumnForMap" parameterClass="java.util.Map" resultMap="generalBaseResult">
+		select
+		max(mo.id) orgId,max(mo.orgname) orgName,nvl(sum(co.msign),0) monthCreateSign,nvl(sum(co.dc),0) monthcreatecount
+		from organizations mo
+	    left join
+	    (select d.orgid,sum(d.monthcreatecount) dc,sum(d.monthCreateSign) msign
+	    from
+	    $tableName$ d where 1=1
+	    <isNotNull property="basesicType">
+	    	<iterate prepend=" and "  property="basesicType" conjunction="," open="basesicType in (" close=")">
+								#basesicType[]#
+			</iterate>
+		</isNotNull>
+		<isNotNull property="detailType">
+			and detailType=#detailType#
+		</isNotNull>
+		<isNotNull property="subType">
+			and subType=#subType#
+		</isNotNull>
+	    group by
+	    d.orgid
+	    )co on
+	    co.orgid =mo.id 
+	    where
+	    <isEqual property="searchCurrent" compareValue="false">
+			<isNotNull property="orgId">
+					 mo.parentid=#orgId#
+			</isNotNull> 
+		</isEqual>
+		<isEqual property="searchCurrent" compareValue="true">
+			<isNotNull property="orgId">
+					 mo.id=#orgId#
+			</isNotNull> 
+		</isEqual>
+	    and mo.orgtype=#orgType#
+	    group by mo.id
+	    ,mo.seq
+	    order by
+	    mo.seq
+	</select>
+	
+	<select id="getTaskListColumnForBasesicTypeMap" parameterClass="java.util.Map" resultMap="generalBasesicTypeResult">
+		select
+		max(mo.id) orgId,max(mo.orgname) orgName,basesicType,nvl(sum(co.msign),0) monthCreateSign,nvl(sum(co.dc),0) monthcreatecount
+		from organizations mo
+	    left join
+	    (select d.orgid,sum(d.monthcreatecount) dc,sum(d.monthCreateSign) msign,basesicType
+	    from
+	    $tableName$ d where 1=1
+	    <isNotNull property="basesicType">
+	    	<iterate prepend=" and "  property="basesicType" conjunction="," open="basesicType in (" close=")">
+								#basesicType[]#
+			</iterate>
+		</isNotNull>
+		<isNotNull property="detailType">
+			and detailType=#detailType#
+		</isNotNull>
+		<isNotNull property="subType">
+			and subType=#subType#
+		</isNotNull>
+	    group by
+	    d.orgid,basesicType
+	    )co on
+	    co.orgid =mo.id 
+	    where
+	    <isEqual property="searchCurrent" compareValue="false">
+			<isNotNull property="orgId">
+					 mo.parentid=#orgId#
+			</isNotNull> 
+		</isEqual>
+		<isEqual property="searchCurrent" compareValue="true">
+			<isNotNull property="orgId">
+					 mo.id=#orgId#
+			</isNotNull> 
+		</isEqual>
+	    and mo.orgtype=#orgType#
+	    group by mo.id,basesicType
+	    ,mo.seq
+	    order by
+	    mo.seq
+	</select>
+	
+	<select id="getTaskListColumnForDetailTypeMap" parameterClass="java.util.Map" resultMap="generalDetailTypeResult">
+		select
+		max(mo.id) orgId,max(mo.orgname) orgName,detailType,nvl(sum(co.msign),0) monthCreateSign,nvl(sum(co.dc),0) monthcreatecount
+		from organizations mo
+	    left join
+	    (select d.orgid,sum(d.monthcreatecount) dc,sum(d.monthCreateSign) msign,detailType
+	    from
+	    $tableName$ d where 1=1
+	    <isNotNull property="basesicType">
+	    	<iterate prepend=" and "  property="basesicType" conjunction="," open="basesicType in (" close=")">
+								#basesicType[]#
+			</iterate>
+		</isNotNull>
+		<isNotNull property="detailType">
+			and detailType=#detailType#
+		</isNotNull>
+		<isNotNull property="subType">
+			and subType=#subType#
+		</isNotNull>
+	    group by
+	    d.orgid,detailType
+	    )co on
+	    co.orgid =mo.id 
+	    where
+	    <isEqual property="searchCurrent" compareValue="false">
+			<isNotNull property="orgId">
+					 mo.parentid=#orgId#
+			</isNotNull> 
+		</isEqual>
+		<isEqual property="searchCurrent" compareValue="true">
+			<isNotNull property="orgId">
+					 mo.id=#orgId#
+			</isNotNull> 
+		</isEqual>
+	    and mo.orgtype=#orgType#
+	    group by mo.id,detailType
+	    ,mo.seq
+	    order by
+	    mo.seq
+	</select>
+	
+	<select id="getTaskListColumnForSubTypeTypeMap" parameterClass="java.util.Map" resultMap="generalSubTypeResult">
+		select 
+	max(mo.id) orgId,max(mo.orgname) orgName,p.displayname typeName,nvl(sum(co.dc),0) monthCreateCount,nvl(sum(co.msign),0) monthCreateSign
+    from organizations mo  left join propertydicts p on p.id=p.id  left join  (
+    select d.orgid, p.id, max(p.displayname)  rs,sum(d.monthcreatecount) dc,sum(d.monthCreateSign) msign
+    from  $tableName$ d right join propertydicts p on subtype=p.id
+    where   1=1 
+    <isNotNull property="propertyDomainId">
+		and p.propertydomainid=#propertyDomainId#
+	</isNotNull>
+    group by   d.orgid, p.id )co on    co.orgid =mo.id and co.id=p.id
+    where 
+    <isEqual property="searchCurrent" compareValue="false">
+			<isNotNull property="orgId">
+					 mo.parentid=#orgId#
+			</isNotNull> 
+		</isEqual>
+		<isEqual property="searchCurrent" compareValue="true">
+			<isNotNull property="orgId">
+					 mo.id=#orgId#
+			</isNotNull> 
+		</isEqual>
+     and  mo.orgtype=#orgType#
+    <isNotNull property="propertyDomainId">
+		and p.propertydomainid=#propertyDomainId#
+	</isNotNull>
+    group by mo.id,p.displayname
+    ,mo.seq,p.displayseq
+    order by
+    mo.seq,p.displayseq
+	</select>
+	
+	<select id="getTaskListColumnForSubTypesTypeMap" parameterClass="java.util.Map" resultMap="generalSubTypesResult">
+	 	select
+		max(mo.id) orgId,max(mo.orgname) orgName,subType,nvl(sum(co.msign),0) monthCreateSign,nvl(sum(co.dc),0) monthcreatecount
+		from organizations mo
+	    left join
+	    (select d.orgid,sum(d.monthcreatecount) dc,sum(d.monthCreateSign) msign,subType
+	    from
+	    $tableName$ d where 1=1
+	    <isNotNull property="basesicType">
+	    	<iterate prepend=" and "  property="basesicType" conjunction="," open="basesicType in (" close=")">
+								#basesicType[]#
+			</iterate>
+		</isNotNull>
+		<isNotNull property="detailType">
+			and detailType=#detailType#
+		</isNotNull>
+		<isNotNull property="subType">
+			and subType=#subType#
+		</isNotNull>
+	    group by
+	    d.orgid,subType
+	    )co on
+	    co.orgid =mo.id 
+	    where
+	    <isEqual property="searchCurrent" compareValue="false">
+			<isNotNull property="orgId">
+					 mo.parentid=#orgId#
+			</isNotNull> 
+		</isEqual>
+		<isEqual property="searchCurrent" compareValue="true">
+			<isNotNull property="orgId">
+					 mo.id=#orgId#
+			</isNotNull> 
+		</isEqual>
+	    and mo.orgtype=#orgType#
+	    group by mo.id,subType
+	    ,mo.seq
+	    order by
+	    mo.seq
+	</select>
+	
+</sqlMap>

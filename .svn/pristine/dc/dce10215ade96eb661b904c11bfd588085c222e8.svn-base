@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="helpPrecord">
+	<typeAlias alias="HelpPrecord" type="com.tianque.domain.HelpPrecord" />
+	<parameterMap id="helpPrecordParams" class="HelpPrecord">
+		<parameter property="id" />
+		<parameter property="helpTime" />
+		<parameter property="address" />
+		<parameter property="events" />
+		<parameter property="personnelId" />
+		<parameter property="personnelType" />
+		<parameter property="createUser" />
+		<parameter property="createDate" />
+		<parameter property="updateUser" />
+		<parameter property="updateDate" />
+		<parameter property="helpPersonnelName" />
+		<parameter property="personNmae" />
+		<parameter property="personTypeName" />
+	</parameterMap>
+
+	<resultMap id="helpPrecordResult" class="HelpPrecord">
+		<result property="id" column="id" />
+		<result property="helpTime" column="helpTime" />
+		<result property="address" column="address" />
+		<result property="events" column="events" />
+		<result property="personnelId" column="personnelId" />
+		<result property="personnelType" column="personnelType" />
+		<result property="helpPersonnelName" column="helpPersonnelName" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="personNmae" column="personNmae" />
+		<result property="personTypeName" column="personTypeName" />
+	</resultMap>
+	
+	<insert id="addHelpPrecord" parameterClass="HelpPrecord">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_helpPrecords.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO helpPrecords
+		(id,helpTime,address,events,personnelId,personnelType,helpPersonnelName,createUser,createDate,updateUser,updateDate,personNmae,personTypeName)
+		values
+		(#id#,#helpTime#,#address#,#events#,#personnelId#,#personnelType#,#helpPersonnelName#,#createUser#,#createDate#,#updateUser#,#updateDate#,#personNmae#,#personTypeName#)
+	</insert>
+
+	<update id="updateHelpPrecord" parameterClass="HelpPrecord">
+		update helpPrecords set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="helpTime">
+				helpTime=#helpTime#
+			</isNotNull>
+			<isNotNull prepend="," property="address">
+				address=#address#
+			</isNotNull>
+			<isNotNull prepend="," property="events">
+				events=#events#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="helpPersonnelName">
+				helpPersonnelName=#helpPersonnelName#
+			</isNotNull>
+		</dynamic>
+		where id=#id#
+	</update>
+
+	<select id="findHelpPrecord" resultMap="helpPrecordResult"
+		parameterClass="java.util.Map">
+		<![CDATA[select * from  helpPrecords where personnelId=#personnelId# and personnelType=#personnelType#]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+
+	<select id="countHelpPrecord" parameterClass="java.util.Map" 
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(*) from  helpPrecords where personnelId=#personnelId# and personnelType=#personnelType#]]>
+	</select>
+
+
+	<select id="getHelpPrecordById" parameterClass="long"
+		resultMap="helpPrecordResult">
+		<![CDATA[select * from  helpPrecords where id=#placeId#]]>
+	</select>
+
+	<delete id="deleteHelpPrecord" parameterClass="map">
+		delete from helpPrecords where personnelId=#personnelId# and personnelType=#personnelType#
+	</delete>
+
+	<delete id="deleteHelpPrecordById" parameterClass="long">
+		delete from helpPrecords where id=#id#
+	</delete>
+</sqlMap>

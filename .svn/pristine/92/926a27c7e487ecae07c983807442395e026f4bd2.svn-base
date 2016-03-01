@@ -1,0 +1,217 @@
+package com.tianque.issue.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.IssueType;
+import com.tianque.domain.IssueTypeDomain;
+import com.tianque.domain.Organization;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.issue.constants.IssueConstants;
+import com.tianque.issue.constants.IssueViewType;
+import com.tianque.issue.dao.CompletedIssueDao;
+import com.tianque.issue.domain.CompletedIssue;
+import com.tianque.issue.domain.IssueEvaluate;
+import com.tianque.issue.domain.IssueNew;
+import com.tianque.issue.domain.TopIssue;
+import com.tianque.issue.service.CompletedIssueService;
+import com.tianque.issue.service.IssueEvaluateService;
+import com.tianque.issue.service.IssueService;
+import com.tianque.issue.state.IssueState;
+import com.tianque.service.IssueTypeService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PermissionService;
+
+@Service
+public class CompletedIssueServiceImpl implements CompletedIssueService {
+
+	@Resource(name = "completedIssueDao")
+	private CompletedIssueDao completedIssueDao;
+	@Autowired
+	private IssueTypeService issueTypeService;
+	@Autowired
+	private PermissionService permissionService;
+	@Autowired
+	private IssueEvaluateService issueEvaluateService;
+	@Autowired
+	private IssueService issueService;
+
+	// @Resource(name = "organizationDubboServiceDubbo")
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+
+	@Override
+	@Transactional
+	public CompletedIssue addCompletedIssue(CompletedIssue completedIssue) {
+		return completedIssueDao.addCompletedIssue(completedIssue);
+	}
+
+	@Override
+	public CompletedIssue buildCompletedIssueByIssueId(Map<String, Object> param) {
+		return completedIssueDao.buildCompletedIssueByIssueId(param);
+	}
+
+	@Transactional
+	@Override
+	public boolean topIssue(TopIssue topIssue, int state) {
+		Map<String, Object> map = new HashMap<String, Object>();
+
+		map.put("issueId", topIssue.getIssueId());
+		if (state == 1) {
+			map.put("topdate", topIssue.getTopDate());
+			map.put("torgid", topIssue.getOrgId());
+			map.put("topstate", topIssue.getTopState());
+		} else {
+			map.put("topdate", null);
+			map.put("torgid", null);
+			map.put("topstate", topIssue.getTopState());
+		}
+
+		return completedIssueDao.topIssue(map);
+	}
+
+	public void publicltycassIssue(Long issueId, int publicltycass) {
+		completedIssueDao.publicltycassIssue(issueId, publicltycass);
+	}
+
+	@Override
+	public PageInfo<CompletedIssue> findCompletedIssueByPage(Long keyId,
+			Integer page, Integer rows, String sidx, String sord,
+			Long orgLevel, Long functionalOrgType, String leaderView,
+			Long sourceType, Long issueType, String evaluationType,
+			Integer viewProcess, int orgCodeFindLevel, Long searchOrgId,
+			String searchOrgCode) {
+		Organization org = organizationDubboService.getSimpleOrgById(keyId);
+		int isCurrentOrg = IssueConstants.NOT_CURRENT_ORG;// 已办结列表是不是查询自己本层级数据，默认查询下辖已办结列表
+		if ((org.getOrgLevel().getId()).equals(orgLevel)) {
+			isCurrentOrg = IssueConstants.IS_CURRENT_ORG;
+		}
+		PageInfo<CompletedIssue> pageInfo = completedIssueDao
+				.findCompletedIssueByPage(org, page, rows, sidx, sord,
+						orgLevel, functionalOrgType, leaderView, sourceType,
+						issueType, evaluationType, isCurrentOrg,
+						orgCodeFindLevel, searchOrgId, searchOrgCode);
+		List<CompletedIssue> list = new ArrayList<CompletedIssue>();
+		for (CompletedIssue completedIssue : pageInfo.getResult()) {
+			IssueEvaluate issueEvaluate = issueEvaluateService
+					.getIssueEvaluateByIssueId(completedIssue.getIssueId());
+			if (issueEvaluate != null && issueEvaluate.getId() != null) {
+				completedIssue.setEvaluateType(issueEvaluate.getEvaluateType());
+				completedIssue.setStatus(IssueState.GRADEDELAY);
+			}
+			list.add(completedIssue);
+		}
+		pageInfo.setResult(list);
+
+		if (IssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	private void loadIssueOccurOrgAndCurrentOrgAndIssueTypes(
+			PageInfo<CompletedIssue> pageInfo) {
+		if (null != pageInfo.getResult() && pageInfo.getResult().size() > 0) {
+			for (CompletedIssue ivo : pageInfo.getResult()) {
+				IssueNew issueNew = issueService.getFullIssueByIssueId(ivo
+						.getIssueId());
+				loadFullIssueTypes(issueNew, ivo);
+
+				ivo.setOccurOrg(organizationDubboService.getSimpleOrgById(ivo
+						.getOccurOrg() == null ? null : ivo.getOccurOrg()
+						.getId()));
+				ivo.setCurrentOrg(organizationDubboService.getSimpleOrgById(ivo
+						.getCurrentOrg() == null ? null : ivo.getCurrentOrg()
+						.getId()));
+				ivo.setCreateOrg(organizationDubboService.getSimpleOrgById(issueNew
+						.getCreateOrg() == null ? null : issueNew
+						.getCreateOrg().getId()));
+				ivo.setCreateUser(issueNew.getCreateUser());
+				ivo.setCreateName(permissionService.getFullUserByUerName(
+						issueNew.getCreateUser()).getName());
+
+			}
+		}
+	}
+
+	private void loadFullIssueTypes(IssueNew selectIssue,
+			CompletedIssue completedIssue) {
+		String issueTypes = "";
+		IssueType type = issueTypeService.getIssueTypeById(selectIssue
+				.getIssueType().getIssueTypeDomain().getId(), selectIssue
+				.getIssueType().getId());
+		IssueTypeDomain issueTypeDomain = issueTypeService
+				.getIssueTypeDomainById(selectIssue.getIssueType()
+						.getIssueTypeDomain().getId());
+		issueTypes += issueTypeDomain.getDomainName() + "：";
+		issueTypes += type.getIssueTypeName() + "，";
+		if (issueTypes.lastIndexOf('，') >= 0) {
+			issueTypes = (new StringBuffer(issueTypes)).replace(
+					issueTypes.length() - 1, issueTypes.length(), "")
+					.toString();
+		}
+		completedIssue.setIssueTypes(issueTypes);
+	}
+
+	@Override
+	public boolean removeCompletedIssueByIssueId(Long issueId) {
+		return completedIssueDao.removeCompletedIssueByIssueId(issueId);
+	}
+
+	@Override
+	public CompletedIssue getCompletedByIssueId(Long issueId) {
+		return completedIssueDao.getCompletedByIssueId(issueId);
+	}
+
+	@Override
+	public PageInfo<CompletedIssue> findGradeDelayIssueByPage(Long keyId,
+			Integer page, Integer rows, String sidx, String sord,
+			Long orgLevel, Long functionalOrgType, String leaderView,
+			Long sourceType, Long issueType, String evaluationType,
+			Integer viewProcess, int orgCodeFindLevel, Long searchOrgId,
+			String searchOrgCode) {
+		Organization org = organizationDubboService.getSimpleOrgById(keyId);
+		int isCurrentOrg = IssueConstants.NOT_CURRENT_ORG;// 已办结列表是不是查询自己本层级数据，默认查询下辖已办结列表
+		if ((org.getOrgLevel().getId()).equals(orgLevel)) {
+			isCurrentOrg = IssueConstants.IS_CURRENT_ORG;
+		}
+		PageInfo<CompletedIssue> pageInfo = completedIssueDao
+				.findGradeDelayIssueByPage(org, page, rows, sidx, sord,
+						orgLevel, functionalOrgType, leaderView, sourceType,
+						issueType, evaluationType, isCurrentOrg,
+						orgCodeFindLevel, searchOrgId, searchOrgCode);
+		List<CompletedIssue> list = new ArrayList<CompletedIssue>();
+		for (CompletedIssue completedIssue : pageInfo.getResult()) {
+			IssueEvaluate issueEvaluate = issueEvaluateService
+					.getIssueEvaluateByIssueId(completedIssue.getIssueId());
+			if (issueEvaluate != null && issueEvaluate.getId() != null) {
+				completedIssue.setEvaluateType(issueEvaluate.getEvaluateType());
+				completedIssue.setStatus(IssueState.GRADEDELAY);
+			}
+			list.add(completedIssue);
+		}
+		pageInfo.setResult(list);
+
+		if (IssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public void updateEventStateByIssueId(Long issueId) {
+		if (issueId == null) {
+			throw new BusinessValidationException("参数有误");
+		}
+		completedIssueDao.updateEventStateByIssueId(issueId);
+	}
+}

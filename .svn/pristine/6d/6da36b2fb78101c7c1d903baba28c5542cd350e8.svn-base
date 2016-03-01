@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchPublicComplexPlaces">
+	<typeAlias alias="SearchPublicComplexPlacesVo" type="com.tianque.domain.vo.SearchPublicComplexPlacesVo"/>
+	<sql id="sql_where">
+		 from publicComplexPlaces where orgInternalCode like #orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="unitName">
+				<isNotEmpty property="unitName" prepend=" and ">
+					(placeName like #unitName#||'%' or fullPinyin like #unitName#||'%' or simplePinyin like #unitName#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="placeAddress">
+				<isNotEmpty property="placeAddress" prepend=" and ">
+					placeAddress like #placeAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="manager">
+				<isNotEmpty property="manager" prepend=" and ">
+					manager like #manager#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="managerMobile">
+				<isNotEmpty property="managerMobile" prepend=" and ">
+					managerMobile like #managerMobile#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="managerTelephone">
+				<isNotEmpty property="managerTelephone" prepend=" and ">
+					managerTelephone like #managerTelephone#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="typeId" >
+				<isNotEmpty property="typeId" prepend=" and ">
+					type = #typeId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="detailedTypeId" >
+				<isNotEmpty property="detailedTypeId" prepend=" and ">
+					detailedType = #detailedTypeId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="true">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="false">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="attentionExtentId" >
+				<isNotEmpty property="attentionExtentId" prepend=" and ">
+					attentionExtentId = #attentionExtentId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isNotEmpty property="hasServiceTeamMember" prepend=" and ">
+				<isEqual property="hasServiceTeamMember" compareValue="0">
+					id in (select objectId from serviceMemberHasObject where objectType='PUBLICCOMPLEXPLACES')
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="1">
+					id not in (select objectId from serviceMemberHasObject where objectType='PUBLICCOMPLEXPLACES')	 
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="-1">
+					1=1	 
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="hasServiceRecord" prepend=" and ">
+				<isEqual property="hasServiceRecord" compareValue="0">
+					 id in (select objectId from serviceRecordRelyObject where objectType='PUBLICCOMPLEXPLACES')
+				</isEqual>
+				<isEqual property="hasServiceRecord" compareValue="1">
+					 id not in (select objectId from serviceRecordRelyObject where objectType='PUBLICCOMPLEXPLACES')	 
+				</isEqual>
+				<isEqual property="hasServiceRecord" compareValue="-1">
+					1=1	 
+				</isEqual>
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+
+	<select id="countPlaces" parameterClass="SearchPublicComplexPlacesVo" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="searchPlaces" parameterClass="SearchPublicComplexPlacesVo" resultMap="publicComplexPlaces.publicComplexPlacesResultForList">
+			select publicComplexPlaces.*,'$importantLocationType$' as locationType 
+			<include refid="sql_where" />
+			<dynamic>
+				<isPropertyAvailable property="sortField" prepend="order by">
+ 					<isNotNull property="sortField">$sortField$</isNotNull>
+ 					<isNotNull property="order">$order$</isNotNull>
+ 				</isPropertyAvailable>
+			</dynamic>
+	</select>
+</sqlMap>

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="houseHoldStaffLog">
+	<typeAlias alias="HouseHoldStaffLogVo" type="com.tianque.baseInfo.householdStaff.shardTable.vo.HouseHoldStaffLogVo" />
+	
+	<resultMap class="HouseHoldStaffLogVo" id="simpleHouseHoldStaffLogVoResult">
+		<result property="LOGID" column="LOGID" />
+		<result property="OPERATORTYPE" column="OPERATORTYPE"/>
+		<result property="NEWID" column="NEWID"  />
+		<result property="TABLENAME" column="TABLENAME"/>
+		<result property="ID" column="ID"  />
+	</resultMap>
+	
+	<resultMap class="HouseHoldStaffLogVo" id="fullHouseHoldStaffLogVoResult">
+		<result property="BASEINFOID" column="BASEINFOID"/>
+		<result property="ADDRESSINFOID" column="ADDRESSINFOID"/>
+		<result property="ORGID" column="ORGID"/>
+		<result property="ORGINTERNALCODE" column="ORGINTERNALCODE"/>
+		<result property="FAMILYID" column="FAMILYID"/>
+		<result property="ACCOUNTNUMBER" column="ACCOUNTNUMBER"/>
+		<result property="RESIDENCETYPE" column="RESIDENCETYPE"/>
+		<result property="RELATIONSHIPWITHHEAD" column="RELATIONSHIPWITHHEAD"/>
+		<result property="OUTGONE" column="OUTGONE"/>
+		<result property="OUTREASONS" column="OUTREASONS"/>
+		<result property="REASONSDATE" column="REASONSDATE"/>
+		<result property="OUTPROVINCE" column="OUTPROVINCE"/>
+		<result property="OUTCITY" column="OUTCITY"/>
+		<result property="OUTDISTRICT" column="OUTDISTRICT"/>
+		<result property="GOOUTDETAILEDADDRESS" column="GOOUTDETAILEDADDRESS"/>
+		<result property="HOMEPHONE" column="HOMEPHONE"/>
+		<result property="RESIDENTSTATUS" column="RESIDENTSTATUS"/>
+		<result property="SETTLETIME" column="SETTLETIME"/>
+		<result property="SOURCESSTATE" column="SOURCESSTATE"/>
+		<result property="OLDCURRENTADDRESS" column="OLDCURRENTADDRESS"/>
+		<result property="IMMIGRATIONDATE" column="IMMIGRATIONDATE"/>
+		<result property="PROPERSTATIONCODE" column="PROPERSTATIONCODE"/>
+		<result property="PROPERSTATION" column="PROPERSTATION"/>
+		<result property="IMMIGRATIONSORT" column="IMMIGRATIONSORT"/>
+		<result property="IMMIGRATIONCAUSE" column="IMMIGRATIONCAUSE"/>
+		<result property="EMIGRATIONDATE" column="EMIGRATIONDATE"/>
+		<result property="EMIGRATIONCODE" column="EMIGRATIONCODE"/>
+		<result property="EMIGRATIONLAND" column="EMIGRATIONLAND"/>
+		<result property="EMIGRATIONSORT" column="EMIGRATIONSORT"/>
+		<result property="EMIGRATIONCAUSE" column="EMIGRATIONCAUSE"/>
+		<result property="HEALTHSTATE" column="HEALTHSTATE"/>
+		<result property="MILITARYSERVICE" column="MILITARYSERVICE"/>
+		<result property="ANNUALINCOME" column="ANNUALINCOME"/>
+		<result property="INSURED" column="INSURED"/>
+		<result property="OUTGONEDIRECTION" column="OUTGONEDIRECTION"/>
+		<result property="SOLDIERDEPENDENTS" column="SOLDIERDEPENDENTS"/>
+		<result property="LOWINCOME" column="LOWINCOME"/>
+		<result property="HARDSTATE" column="HARDSTATE"/>
+		<result property="ABROADDEPENDENTS" column="ABROADDEPENDENTS"/>
+		<result property="ABROADDEPENDENTSTYPE" column="ABROADDEPENDENTSTYPE"/>
+		<result property="STATUS" column="STATUS"/>
+		<result property="ISMOVED" column="ISMOVED"/>
+		<result property="OCCUPATION" column="OCCUPATION"/>
+		<result property="LOGOUT" column="LOGOUT"/>
+		<result property="LOGOUTREASON" column="LOGOUTREASON"/>
+		<result property="LOGOUTDATE" column="LOGOUTDATE"/>
+		<result property="CREATEUSER" column="CREATEUSER"/>
+		<result property="UPDATEUSER" column="UPDATEUSER"/>
+		<result property="CREATEDATE" column="CREATEDATE"/>
+		<result property="UPDATEDATE" column="UPDATEDATE"/>
+		<result property="MARKBIRTHDAY" column="MARKBIRTHDAY"/>
+		<result property="MARKGENDER" column="MARKGENDER"/>
+		<result property="RELATIONSHIPWITHHEADTEXT" column="RELATIONSHIPWITHHEADTEXT"/>
+	</resultMap>
+	
+	<select id="getHouseHoldStaffById" parameterClass="java.lang.Long" resultMap="fullHouseHoldStaffLogVoResult">
+		select * from HOUSEHOLDSTAFFS where id=#value#
+	</select>
+
+	<select id="findHouseHoldStaffLogByStartIdAndEndId" parameterClass="map" resultMap="simpleHouseHoldStaffLogVoResult">
+		<![CDATA[select * from HOUSEHOLDSTAFFS_Logs where logId>=#startId# and logId<#endId# order by logid asc]]>
+	</select>
+	
+	<select id="getMaxHouseHoldStaffLogId" resultClass="java.lang.Long">
+		<![CDATA[select max(logid) from HOUSEHOLDSTAFFS_Logs ]]>
+	</select>
+	
+	<insert id="addHouseHoldStaff" parameterClass="HouseHoldStaffLogVo">
+	  insert into $TABLENAME$(ID,BASEINFOID,ADDRESSINFOID,ORGID,ORGINTERNALCODE,FAMILYID,ACCOUNTNUMBER,
+   RESIDENCETYPE,RELATIONSHIPWITHHEAD,OUTGONE,OUTREASONS,REASONSDATE,OUTPROVINCE,OUTCITY,OUTDISTRICT,
+   GOOUTDETAILEDADDRESS,HOMEPHONE,RESIDENTSTATUS,SETTLETIME,SOURCESSTATE,OLDCURRENTADDRESS,IMMIGRATIONDATE,
+   PROPERSTATIONCODE,PROPERSTATION,IMMIGRATIONSORT,IMMIGRATIONCAUSE,EMIGRATIONDATE,EMIGRATIONCODE,
+   EMIGRATIONLAND,EMIGRATIONSORT,EMIGRATIONCAUSE,HEALTHSTATE,MILITARYSERVICE,ANNUALINCOME,INSURED,
+   OUTGONEDIRECTION,SOLDIERDEPENDENTS,LOWINCOME,HARDSTATE,ABROADDEPENDENTS,ABROADDEPENDENTSTYPE,
+   STATUS,ISMOVED,OCCUPATION,LOGOUT,LOGOUTREASON,LOGOUTDATE,CREATEUSER,UPDATEUSER,CREATEDATE,
+   UPDATEDATE,MARKBIRTHDAY,MARKGENDER,RELATIONSHIPWITHHEADTEXT) 
+   values
+   (#ID#,#BASEINFOID#,#ADDRESSINFOID#,#ORGID#,#ORGINTERNALCODE#,#FAMILYID#,#ACCOUNTNUMBER#,
+   #RESIDENCETYPE#,#RELATIONSHIPWITHHEAD#,#OUTGONE#,#OUTREASONS#,#REASONSDATE#,#OUTPROVINCE#,#OUTCITY#,#OUTDISTRICT#,
+   #GOOUTDETAILEDADDRESS#,#HOMEPHONE#,#RESIDENTSTATUS#,#SETTLETIME#,#SOURCESSTATE#,#OLDCURRENTADDRESS#,#IMMIGRATIONDATE#,
+   #PROPERSTATIONCODE#,#PROPERSTATION#,#IMMIGRATIONSORT#,#IMMIGRATIONCAUSE#,#EMIGRATIONDATE#,#EMIGRATIONCODE#,
+   #EMIGRATIONLAND#,#EMIGRATIONSORT#,#EMIGRATIONCAUSE#,#HEALTHSTATE#,#MILITARYSERVICE#,#ANNUALINCOME#,#INSURED#,
+   #OUTGONEDIRECTION#,#SOLDIERDEPENDENTS#,#LOWINCOME#,#HARDSTATE#,#ABROADDEPENDENTS#,#ABROADDEPENDENTSTYPE#,
+   #STATUS#,#ISMOVED#,#OCCUPATION#,#LOGOUT#,#LOGOUTREASON#,#LOGOUTDATE#,#CREATEUSER#,#UPDATEUSER#,#CREATEDATE#,
+   #UPDATEDATE#,#MARKBIRTHDAY#,#MARKGENDER#,#RELATIONSHIPWITHHEADTEXT#) 
+	</insert>
+	
+	<update id="updateHouseHoldStaff" parameterClass="HouseHoldStaffLogVo">
+		update $TABLENAME$ set
+		BASEINFOID=#BASEINFOID#,
+		ADDRESSINFOID=#ADDRESSINFOID#,
+		ORGID=#ORGID#,
+		ORGINTERNALCODE=#ORGINTERNALCODE#,
+		FAMILYID=#FAMILYID#,
+		ACCOUNTNUMBER=#ACCOUNTNUMBER#,
+        RESIDENCETYPE=#RESIDENCETYPE#,
+        RELATIONSHIPWITHHEAD=#RELATIONSHIPWITHHEAD#,
+        OUTGONE=#OUTGONE#,
+        OUTREASONS=#OUTREASONS#,
+        REASONSDATE=#REASONSDATE#,
+        OUTPROVINCE=#OUTPROVINCE#,
+        OUTCITY=#OUTCITY#,
+        OUTDISTRICT=#OUTDISTRICT#,
+        GOOUTDETAILEDADDRESS=#GOOUTDETAILEDADDRESS#,
+        HOMEPHONE=#HOMEPHONE#,
+        RESIDENTSTATUS=#RESIDENTSTATUS#,
+        SETTLETIME=#SETTLETIME#,
+        SOURCESSTATE=#SOURCESSTATE#,
+        OLDCURRENTADDRESS=#OLDCURRENTADDRESS#,
+        IMMIGRATIONDATE=#IMMIGRATIONDATE#,
+        PROPERSTATIONCODE=#PROPERSTATIONCODE#,
+        PROPERSTATION=#PROPERSTATION#,
+        IMMIGRATIONSORT=#IMMIGRATIONSORT#,
+        IMMIGRATIONCAUSE=#IMMIGRATIONCAUSE#,
+        EMIGRATIONDATE=#EMIGRATIONDATE#,
+        EMIGRATIONCODE=#EMIGRATIONCODE#,
+        EMIGRATIONLAND=#EMIGRATIONLAND#,
+        EMIGRATIONSORT=#EMIGRATIONSORT#,
+        EMIGRATIONCAUSE=#EMIGRATIONCAUSE#,
+        HEALTHSTATE=#HEALTHSTATE#,
+        MILITARYSERVICE=#MILITARYSERVICE#,
+        ANNUALINCOME=#ANNUALINCOME#,
+        INSURED=#INSURED#,
+        OUTGONEDIRECTION=#OUTGONEDIRECTION#,
+        SOLDIERDEPENDENTS=#SOLDIERDEPENDENTS#,
+        LOWINCOME=#LOWINCOME#,
+        HARDSTATE=#HARDSTATE#,
+        ABROADDEPENDENTS=#ABROADDEPENDENTS#,
+        ABROADDEPENDENTSTYPE=#ABROADDEPENDENTSTYPE#,
+        STATUS=#STATUS#,
+        ISMOVED=#ISMOVED#,
+        OCCUPATION=#OCCUPATION#,
+        LOGOUT=#LOGOUT#,
+        LOGOUTREASON=#LOGOUTREASON#,
+        LOGOUTDATE=#LOGOUTDATE#,
+        CREATEUSER=#CREATEUSER#,
+        UPDATEUSER=#UPDATEUSER#,
+        CREATEDATE=#CREATEDATE#,
+        UPDATEDATE=#UPDATEDATE#,
+        MARKBIRTHDAY=#MARKBIRTHDAY#,
+        MARKGENDER=#MARKGENDER#,
+        RELATIONSHIPWITHHEADTEXT=#RELATIONSHIPWITHHEADTEXT#
+   where ID=#ID#
+	</update>
+	
+	<delete id="deleteHouseHoldStaff" parameterClass="HouseHoldStaffLogVo">
+		delete from $TABLENAME$ where ID=#NEWID#
+	</delete>
+	
+	<update id="updateHousehasactualpopulation" parameterClass="HouseHoldStaffLogVo">
+		update househasactualpopulation  set POPULATIONID=#NEWID#
+	 	where POPULATIONTYPE='householdStaff' and  POPULATIONID=#ID#
+	</update>
+	
+	<update id="updatePopulationtypes" parameterClass="HouseHoldStaffLogVo">
+	 	update populationtypes set ACTUALID=#NEWID#
+	 	where  ACTUALTYPE='householdStaff' and ACTUALID=#ID#
+	</update>
+	
+</sqlMap>

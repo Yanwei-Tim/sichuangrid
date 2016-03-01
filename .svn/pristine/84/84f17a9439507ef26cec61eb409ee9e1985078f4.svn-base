@@ -1,0 +1,27 @@
+package com.tianque.plugin.weChat.dao.impl;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.plugin.weChat.dao.FanDao;
+import com.tianque.plugin.weChat.domain.user.Fan;
+
+@Repository("fanDao")
+public class FanDaoImpl extends AbstractBaseDao implements FanDao {
+
+	@Override
+	public Long saveFan(Fan fan) {
+		return (Long) getSqlMapClientTemplate().insert("fan.saveFan", fan);
+	}
+
+	@Override
+	public Fan getFanByOpenId(String openId) {
+		return (Fan) getSqlMapClientTemplate().queryForObject("fan.getFanByOpenId", openId);
+	}
+
+	@Override
+	public int deleteFanByOpenId(String openId) {
+		return getSqlMapClientTemplate().delete("fan.deleteFanByOpenId", openId);
+	}
+
+}

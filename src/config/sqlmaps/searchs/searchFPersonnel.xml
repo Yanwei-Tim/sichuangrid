@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchFPersonnel">
+	<sql id="query_condition_where">
+		<dynamic>
+			<isNotEmpty property="queryQopulation.fastSearchKeyWords" prepend=" and ">
+				(upper(idCardNo) like  upper(#queryQopulation.fastSearchKeyWords#)||'%' or name like #queryQopulation.fastSearchKeyWords#||'%' or fullPinyin like #queryQopulation.fastSearchKeyWords#||'%' or simplePinyin like #queryQopulation.fastSearchKeyWords#||'%' )
+			</isNotEmpty>
+			<isNotEmpty property="queryQopulation.name" prepend=" and ">
+					(name like #queryQopulation.name#||'%' or fullPinyin like #queryQopulation.name#||'%' or simplePinyin like #queryQopulation.name#||'%')
+			</isNotEmpty>
+			
+			<isNotEmpty property="queryQopulation.idCardNo" prepend=" and ">
+					upper(idCardNo) like upper(#queryQopulation.idCardNo#)||'%'
+			</isNotEmpty>
+		  
+			<isNotEmpty property="queryQopulation.workUnit" prepend=" and ">
+					workunit like #queryQopulation.workUnit#||'%' 
+			</isNotEmpty>
+			
+			<isNotEmpty property="queryQopulation.workingCertificate" prepend=" and ">
+					workingCertificate like #queryQopulation.workingCertificate#||'%'
+			</isNotEmpty>
+			
+			<isNotEmpty property="queryQopulation.workingCertificateNo" prepend=" and ">
+					workingCertificateNo like #queryQopulation.workingCertificateNo#||'%'
+			</isNotEmpty>
+			
+			 <isNotNull property="queryQopulation.startAvailableDate" prepend=" and ">
+					periodofvaliditystart  &gt;= #queryQopulation.startAvailableDate#
+			</isNotNull>
+			
+			<isNotNull property="queryQopulation.endAvailableDate" prepend=" and ">
+					periodofvaliditystart &lt;= #queryQopulation.endAvailableDate#
+			</isNotNull>
+			
+			
+			<isNotNull property="queryQopulation.gender.id" prepend=" and ">
+					gender = $queryQopulation.gender.id$
+			</isNotNull>
+			
+			 <isNotNull property="queryQopulation.startBirthday" prepend=" and ">
+					birthday &gt;= #queryQopulation.startBirthday#
+			</isNotNull>
+		
+			<isNotNull property="queryQopulation.endBirthday" prepend=" and ">
+					birthday &lt;= #queryQopulation.endBirthday#
+			</isNotNull>
+			
+			<isNotNull property="queryQopulation.career.id" prepend=" and ">
+					career = $queryQopulation.career.id$
+			</isNotNull>
+			
+			<isNotEmpty property="queryQopulation.province" prepend=" and ">
+					province = #queryQopulation.province#
+			</isNotEmpty>
+			
+			<isNotEmpty property="queryQopulation.city" prepend=" and ">
+					city = #queryQopulation.city#
+			</isNotEmpty>
+			
+			<isNotEmpty property="queryQopulation.district" prepend=" and ">
+					district = #queryQopulation.district#
+			</isNotEmpty>
+			
+			<isNotEmpty property="queryQopulation.nativePlaceAddress" prepend=" and ">
+					nativePlaceAddress like #queryQopulation.nativePlaceAddress#||'%'
+			</isNotEmpty>
+			
+			<isNotEmpty property="queryQopulation.currentAddress" prepend=" and ">
+					currentAddress like #queryQopulation.currentAddress#||'%'
+			</isNotEmpty>
+			
+			<isNotNull property="queryQopulation.isEmphasis" prepend=" and ">
+				<isEqual property="queryQopulation.isEmphasis" compareValue="1">
+					isEmphasis = #queryQopulation.isEmphasis#
+				</isEqual>
+				<isEqual property="queryQopulation.isEmphasis" compareValue="0">
+					isEmphasis = #queryQopulation.isEmphasis# 
+				</isEqual>
+			</isNotNull>
+		    <isNotNull property="queryQopulation.isDeath" prepend=" and ">
+				(isDeath = #queryQopulation.isDeath# )
+			</isNotNull>
+		</dynamic>
+	</sql>
+	
+	<sql id="fields">
+		uni.id,uni.baseinfoid,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.createUser,uni.updateUser,uni.createDate,uni.updateDate,uni.sourcesState,
+		uni.attentionExtent,uni.isEmphasis, uni.isEmphasisReason,uni.isEmphasisDate,uni.businessRemark
+	</sql>
+	             
+	<select id="countSearchFPersonnel" parameterClass="map" resultClass="int">
+		select count(*) 
+		from fPersonnels uni left join baseInfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where orgInternalCode like  #orgInternalCode#||'%'
+		<include refid="query_condition_where"/>
+	</select>
+
+	<select id="searchFPersonnels" parameterClass="map" resultMap="fPersonnel.fPersonnelResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		from fPersonnels uni left join baseInfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where orgInternalCode like  #orgInternalCode#||'%'
+		<include refid="query_condition_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findFPersonnelsNameAndPinyinAndOrgInternalCode" parameterClass="java.util.Map" resultMap="fPersonnel.fPersonnelResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		from fPersonnels uni left join baseInfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where (name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%' ) and orgInternalCode like #orgInternalCode#||'%' order by id
+	</select>
+	
+	<select id="getCountFPersonnelByOrgInternalCodeAndMap" parameterClass="java.util.Map" resultClass="int">
+		select count(id) from fPersonnels uni where uni.orgInternalCode like #orgInternalCode#||'%' and  uni.isEmphasis =0
+		<dynamic>
+			<isPropertyAvailable property="isHelped">
+				<isNotNull property="isHelped" prepend=" and ">
+					<isEqual property="isHelped" compareValue="1">
+						uni.id in (select personId from helpPersonnels where personType = 'fPersonnels')
+					</isEqual>
+					<isEqual property="isHelped" compareValue="0">
+						uni.id not in (select personId from helpPersonnels where personType = 'fPersonnels')
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+</sqlMap>

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="populationBaseInfo">
+	<typeAlias alias="Countrymen" type="com.tianque.baseInfo.base.domain.Countrymen"/>
+	<resultMap id="populationBaseInfoResult" class="Countrymen">
+		<result column="id" property="id"  nullValue="0"/>
+		<result column="orgId" property="organization.id" />
+		<result column="gender" property="gender.id" />
+		<result column="currentAddress" property="currentAddress" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="name" property="name" />
+		<result column="usedName" property="usedName"/>
+		<result column="fullPinyin" property="fullPinyin" />
+		<result column="simplePinyin" property="simplePinyin" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="telephone" property="telephone" />
+		<result column="mobileNumber" property="mobileNumber" />
+		<result column="province" property="province" />
+		<result column="city" property="city" />
+		<result column="district" property="district" />
+		<result column="nativePlaceAddress" property="nativePlaceAddress" />
+		<result column="birthday" property="birthday" />
+		<result column="workUnit" property="workUnit" />
+		<result column="remark" property="remark" />
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+		<result column="isDeath" property="isDeath"/>
+		<result column="nation" property="nation.id" />
+		<result column="politicalBackground" property="politicalBackground.id" />
+		<result column="schooling" property="schooling.id" />
+		<result column="career" property="career.id" />
+		<result column="maritalState" property="maritalState.id" />
+		<result column="bloodType" property="bloodType.id" />
+		<result column="faith" property="faith.id" />
+		<result column="otherAddress" property="otherAddress" />
+		<result column="stature" property="stature" />
+		<result column="imgUrl" property="imgUrl" />
+		<result column="email" property="email" />
+		<result property="noHouseReason" column="noHouseReason"/>
+		<result property="isHaveHouse" column="isHaveHouse"/>
+		<result property="sourcesState" column="sourcesState"/>
+	</resultMap>
+	
+	<resultMap id="actualPopulationBaseInfoResult" class="Countrymen" extends="populationBaseInfoResult">
+		<result column="isHaveHouse" property="isHaveHouse" />
+		<result column="noHouseReason" property="noHouseReason" />
+	</resultMap>
+	
+	<resultMap class="java.util.HashMap" id="IdCardNoAndOrgIdResult">
+		<result property="idCardNo" column="idCardNo"/>
+		<result property="orgId" column="orgId" javaType="java.lang.Long" />
+	</resultMap>
+	
+	
+	<sql id="isHasHouseInfo">
+		isHaveHouse = #isHaveHouse#,
+		noHouseReason = #noHouseReason#
+	</sql>
+	
+	<sql id="updateActualPopulationHouseInfo">
+		<include refid="populationBaseInfo.isHasHouseInfo"/>
+		,currentAddress = #currentAddress#
+	</sql>
+	
+	<sql id="updateCountrymenBaseInfo">
+		updateUser = #updateUser#
+		,updateDate = #updateDate#
+	</sql>
+	
+	<sql id="updateBaseInfoSql">
+		 <include refid="populationBaseInfo.updateCountrymenBaseInfo"/>
+	</sql>
+	<sql id="addBaseInfoFields">
+		id,createDate,createUser,updateUser,updateDate,orgId,orgInternalCode,baseInfoId,addressInfoId
+	</sql>
+	<sql id="addBaseInfoData">
+		#id#,#createDate#,#createUser#,#updateUser#,#updateDate#,#organization.id#,#orgInternalCode#,#baseInfoId#,#addressInfoId#
+	</sql>
+	
+	
+	<update id="updateActualPopulationLogOutByPopulationTypeAndId" parameterClass="java.util.Map">
+		update $table$ set               
+		<isNotEmpty property="logoutDetail.logout">
+		 	logout=#logoutDetail.logout#,
+		</isNotEmpty>
+		logoutDate=#logoutDetail.logoutDate#,
+		logoutReason=#logoutDetail.logoutReason#,
+		updateDate=#sysDate#
+		<!-- <isNotEmpty property="logoutDetail.cancelLogoutDate" prepend=",">
+		 cancelLogoutDate=#logoutDetail.cancelLogoutDate#
+		</isNotEmpty>
+		<isNotNull property="logoutDetail.cancelLogoutReason" prepend=",">
+		 cancelLogoutReason=#logoutDetail.cancelLogoutReason#
+		</isNotNull> -->
+		where id=#id#
+	</update>
+	
+	
+	<update id="updateBussPopulationLogOutByPopulationTypeAndId" parameterClass="java.util.Map">
+		update $table$ set
+		<isNotEmpty property="logoutDetail.logout">
+			isEmphasis=#logoutDetail.logout#,
+		</isNotEmpty>
+		isEmphasisDate=#logoutDetail.logoutDate#,
+		isEmphasisReason=#logoutDetail.logoutReason#,
+		updateDate=#sysDate#
+		<!-- <isNotEmpty property="logoutDetail.cancelLogoutDate" prepend=",">
+		 cancelIsEmphasisDate=#logoutDetail.cancelLogoutDate#
+		</isNotEmpty>
+		<isNotNull property="logoutDetail.cancelLogoutReason" prepend=",">
+		 cancelIsEmphasisReason=#logoutDetail.cancelLogoutReason#
+		</isNotNull> -->
+		where id=#id#
+	</update>
+	
+	
+	<sql id="updateBussLogoutDetail">
+		<isNotEmpty property="logoutDetail.logout" prepend=",">
+		 isEmphasis=#logoutDetail.logout#
+		</isNotEmpty>
+		
+		,isEmphasisDate=#logoutDetail.logoutDate#
+		 ,isEmphasisReason=#logoutDetail.logoutReason#
+		
+	  <!-- 	<isNotEmpty property="logoutDetail.cancelLogoutDate" prepend=",">
+		 cancelIsEmphasisDate=#logoutDetail.cancelLogoutDate#
+		</isNotEmpty>
+		<isNotNull property="logoutDetail.cancelLogoutReason" prepend=",">
+		 cancelIsEmphasisReason=#logoutDetail.cancelLogoutReason#
+		</isNotNull> -->
+	</sql>
+	
+	<sql id="updateActualLogoutDetail">
+		<isNotEmpty property="logoutDetail.logout" prepend=",">
+		 logout=#logoutDetail.logout#
+		</isNotEmpty>
+		,logoutDate=#logoutDetail.logoutDate#
+		,logoutReason=#logoutDetail.logoutReason#
+		<!-- <isNotEmpty property="logoutDetail.cancelLogoutDate" prepend=",">
+		 cancelLogoutDate=#logoutDetail.cancelLogoutDate#
+		</isNotEmpty>
+		<isNotNull property="logoutDetail.cancelLogoutReason" prepend=",">
+		 cancelLogoutReason=#logoutDetail.cancelLogoutReason#
+		</isNotNull> -->
+	</sql>
+	
+	<select id="getIdCardNoAndOrgIdByPopulationTableAndId" parameterClass="java.util.Map" resultMap="IdCardNoAndOrgIdResult">
+		select idCardNo,orgId from $table$ uni left join baseInfo b on uni.baseinfoid = b.id where uni.id=#id#
+	</select>
+	
+	<select id="getActualPopulationLogoutByIdCardNoAndOrgId" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		select f.id,logout,'floatingPopulation' actualType from floatingpopulations f  where f.orgId=#orgId# and f.baseInfoId = #baseInfoId# 
+		union
+		select h.id,logout,'householdStaff' actualType from householdstaffs_$shardCode$ h  where h.orgId=#orgId# and h.baseInfoId = #baseInfoId# 
+	</select>
+	
+</sqlMap>

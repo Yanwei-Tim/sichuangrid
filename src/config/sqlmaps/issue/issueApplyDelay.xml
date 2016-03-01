@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="issueApplyDelay">
+	<typeAlias alias="issueApplyDelay" type="com.tianque.issue.domain.IssueApplyDelay" />
+	<resultMap class="issueApplyDelay" id="issueApplyDelayMap">
+		<result property="id" column="id" />
+		<result property="issueStepId" column="STEPID" />
+		<result property="delayInfo" column="delayInfo" />
+		<result property="delayDate" column="delayDate" />
+		<result property="delayWorkday" column="delayWorkday" />
+		<result property="auditOrg.id" column="auditOrg" />
+		<result property="auditState" column="auditstate" />
+		<result property="permitDelayDate" column="permitDelayDate" />
+		<result property="permitDelayWorkday" column="permitDelayWorkday" />
+		<result property="auditInfo" column="auditInfo" />
+		<result property="applyDate" column="applyDate" />
+		<result property="applyUser.id" column="applyUser" />
+		<result property="auditDate" column="auditDate" />
+		<result property="auditUser.id" column="auditUser" />
+	</resultMap>
+	<insert id="saveApplyDelay" parameterClass="issueApplyDelay">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_ISSUEAPPLYDELAY.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO ISSUEAPPLYDELAY(ID, AUDITSTATE, STEPID, DELAYINFO, DELAYDATE, DELAYWORKDAY, AUDITORG, APPLYDATE, APPLYUSER)
+		VALUES
+		(#id#, #auditState#, #issueStepId#, #delayInfo#, #delayDate#, #delayWorkday#, #auditOrg.id#, #applyDate#, #applyUser.id#)
+	</insert>
+	
+	<update id="auditDelay" parameterClass="issueApplyDelay">
+		update ISSUEAPPLYDELAY set 
+		auditDate=#auditDate#,
+		permitDelayDate=#permitDelayDate#,
+		permitDelayWorkday=#permitDelayWorkday#,
+		auditInfo=#auditInfo#,
+		auditState=#auditState#,
+		auditUser=#auditUser.id#
+		where id=#id#
+	</update>
+	
+	<select id="getApplyDelayById" parameterClass="java.lang.Long" resultMap="issueApplyDelayMap">
+		SELECT * FROM ISSUEAPPLYDELAY WHERE ID = #id#
+	</select>
+	
+	<select id="countIssueDelayList" parameterClass="long" resultClass="integer">
+		select count(*) from ISSUEAPPLYDELAY where stepid=#issueStepId#
+	</select>
+	
+	<select id="findIssueDelayList" parameterClass="map" resultMap="issueApplyDelayMap">
+		select * from ISSUEAPPLYDELAY where stepid=#issueStepId#
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getIssueApplyDelayByIssueStepIdAndDelayState" parameterClass="long" resultMap="issueApplyDelayMap">
+		select * from ISSUEAPPLYDELAY where stepid=#issueStepId# and auditState=1
+	</select>
+</sqlMap>

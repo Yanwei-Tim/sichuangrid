@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="optimalObject">
+	<typeAlias alias="optimalObject" type="com.tianque.baseInfo.optimalObject.domain.OptimalObject" />
+	<typeAlias alias="searchOptimalObjectVo" type="com.tianque.domain.vo.SearchOptimalObjectVo" />
+
+	<resultMap id="optimalObjectResult" class="optimalObject" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResult">
+		<result column="optimalCardNo" property="optimalCardNo" />
+		<result column="optimalCardType" property="optimalCardType.id" />
+		<result column="laborAbility" property="laborAbility.id" />
+		<result column="abilityLiving" property="abilityLiving.id" />
+		<result column="employmentSituation" property="employmentSituation.id" />
+		<result column="supportSituation" property="supportSituation.id" />
+		<result column="monthLivingExpenses" property="monthLivingExpenses" />
+	</resultMap>
+		<!-- 这两个resultMap内容一致，继承关系不一样 -->
+	<resultMap id="optimalObjectResultForList" class="optimalObject" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+		<result column="optimalCardNo" property="optimalCardNo" />
+		<result column="optimalCardType" property="optimalCardType.id" />
+		<result column="laborAbility" property="laborAbility.id" />
+		<result column="abilityLiving" property="abilityLiving.id" />
+		<result column="employmentSituation" property="employmentSituation.id" />
+		<result column="supportSituation" property="supportSituation.id" />
+		<result column="monthLivingExpenses" property="monthLivingExpenses" />
+	</resultMap>
+
+
+	<sql id="updateBusinessSql">
+				<include refid="populationBaseInfo.updateBaseInfoSql"/>,
+			    optimalcardno=#optimalCardNo#,
+				optimalcardtype=#optimalCardType.id#,
+				laborability=#laborAbility.id#,
+				abilityliving=#abilityLiving.id#,
+				employmentsituation=#employmentSituation.id#,
+				supportsituation=#supportSituation.id#,
+				monthlivingexpenses=#monthLivingExpenses#,
+				attentionExtent=#attentionExtent.id#
+	</sql>
+	
+	<sql id="fields">
+		uni.id,uni.baseInfoId,uni.addressInfoId,uni.createDate,uni.createUser,uni.updateUser,uni.updateDate,
+		uni.orgId,uni.orgInternalCode,optimalCardNo,optimalCardType,laborAbility,
+		abilityLiving,employmentSituation,supportSituation,monthLivingExpenses
+		,isEmphasis,isEmphasisReason,isEmphasisDate,sourcesState,attentionExtent
+	</sql>
+	
+	<insert id="addOptimalObject" parameterClass="optimalObject">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_optimalObjects.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into optimalobjects
+		(
+		<include refid="populationBaseInfo.addBaseInfoFields"/>,
+		optimalcardno,optimalcardtype,laborability,abilityliving,employmentsituation,supportsituation,
+		monthlivingexpenses,attentionExtent,sourcesState,isEmphasis)
+		values
+		(
+		<include refid="populationBaseInfo.addBaseInfoData"/>,
+		#optimalCardNo#,#optimalCardType.id#,#laborAbility.id#,#abilityLiving.id#,#employmentSituation.id#,#supportSituation.id#,
+		#monthLivingExpenses#,#attentionExtent.id#,#sourcesState#,#isEmphasis#
+		)
+	</insert>
+
+	<update id="updateOptimalObject" parameterClass="optimalObject">
+		update optimalobjects set
+		<isNotEmpty property="isEmphasis">
+			isEmphasis = #isEmphasis#,
+		</isNotEmpty>
+		<include refid="updateBusinessSql"/>
+		where id=#id#
+	</update>
+
+    <update id="updateEmphasiseById" parameterClass="map">
+		update optimalobjects set isEmphasis=#isEmphasis# where id=#id#
+	</update>
+	  <update id="updateDeathAndLogoutStateById" parameterClass="map">
+		update optimalobjects set isEmphasis=#isEmphasis# , isDeath = #death# where id=#id#
+	</update>
+
+
+
+	<delete id="deleteOptimalObjectById" parameterClass="java.lang.Long">
+		delete from optimalobjects
+		where id=#value#
+	</delete>
+
+	<select id="getOptimalObjectById" parameterClass="java.lang.Long"
+		resultMap="optimalObjectResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from optimalobjects uni left join baseinfo b on uni.baseinfoid =b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.id=#value#
+	</select>
+
+	<select id="getOptimalObjectByIdAndIdCard" parameterClass="java.util.Map"
+		resultMap="optimalObjectResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from optimalobjects uni left join baseinfo b on uni.baseinfoid =b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.id!=#id# and uni.orgId=#orgId# 
+		and
+		<iterate property="idCardNoList" open="("  close=")"  conjunction="or">
+		    upper(idCardNo) = upper(#idCardNoList[]#)
+		</iterate>
+	</select>
+
+	<sql id="sql_where">
+		from optimalobjects uni left join baseinfo b on uni.baseinfoid =b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty prepend=" and " property="idCardNo">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty prepend=" and " property="name">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+						(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="optimalCardNo">
+				<isNotEmpty property="optimalCardNo" prepend=" and ">
+					optimalCardNo like #optimalCardNo#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="gender">
+				<isNotNull prepend=" and " property="gender.id">
+					gender = #gender.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="laborAbility">
+				<isNotNull property="laborAbility.id" prepend=" and ">
+					laborAbility = #laborAbility.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="abilityLiving">
+				<isNotNull property="abilityLiving.id" prepend=" and ">
+					abilityLiving = #abilityLiving.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="supportSituation">
+				<isNotNull property="supportSituation.id" prepend=" and ">
+					supportSituation = #supportSituation.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="employmentSituation">
+				<isNotNull property="employmentSituation.id" prepend=" and ">
+					employmentSituation = #employmentSituation.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="optimalCardType">
+				<isNotNull property="optimalCardType.id" prepend=" and ">
+					optimalCardType = #optimalCardType.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="province">
+				<isNotEmpty prepend=" and " property="province">
+					province = #province#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativePlaceAddress">
+				<isNotEmpty prepend=" and " property="nativePlaceAddress">
+					nativePlaceAddress like '%'||#nativePlaceAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentAddress">
+				<isNotEmpty prepend=" and " property="currentAddress">
+					currentAddress like '%'||#currentAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthday" >
+				<isNotEmpty prepend=" and " property="birthday">
+					<![CDATA[ birthday >= #birthday# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endBirthday">
+				<isNotEmpty prepend=" and " property="endBirthday">
+					<![CDATA[ birthday <= #endBirthday# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="monthLivingExpenses" >
+				<isNotEmpty prepend=" and " property="monthLivingExpenses">
+					<![CDATA[ monthLivingExpenses >= #monthLivingExpenses# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endMonthLivingExpenses">
+				<isNotEmpty prepend=" and " property="endMonthLivingExpenses">
+					<![CDATA[ monthLivingExpenses <= #endMonthLivingExpenses# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nation">
+				<isNotNull prepend=" and " property="nation.id">
+					nation = #nation.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="politicalbackground">
+				<isNotNull prepend=" and " property="politicalbackground.id">
+					politicalbackground = #politicalbackground.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maritalstate">
+				<isNotNull prepend=" and " property="maritalstate.id">
+					maritalstate = #maritalstate.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="schooling">
+				<isNotNull prepend=" and " property="schooling.id">
+					schooling = #schooling.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="stature" >
+				<isNotEmpty prepend=" and " property="stature">
+					<![CDATA[ stature >= #stature# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endStature">
+				<isNotEmpty prepend=" and " property="endStature">
+					<![CDATA[ stature <= #endStature# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="email">
+				<isNotEmpty prepend=" and " property="email">
+					email like #email#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty prepend=" and " property="mobileNumber">
+					mobileNumber like #mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="telephone">
+				<isNotEmpty prepend=" and " property="telephone">
+					telephone like #telephone#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="career">
+				<isNotNull prepend=" and " property="career.id">
+					career = #career.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="bloodtype">
+				<isNotNull prepend="and" property="bloodtype.id">
+					bloodtype=#bloodtype.id#
+				</isNotNull>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="faith">
+				<isNotNull prepend="and" property="faith.id">
+					faith=#faith.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workUnit">
+				<isNotEmpty prepend="and" property="workUnit">
+					workUnit like #workUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="isEmphasis">
+				<isNotEmpty property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<sql id="isDeathSql">
+		<dynamic>
+			<isNotNull property="isDeath" prepend=" and ">
+				<isEqual property="isDeath" compareValue="1">
+					isDeath = #isDeath#
+				</isEqual>
+				<isEqual property="isDeath" compareValue="0">
+					(isDeath = #isDeath# or isDeath is null)
+				</isEqual>
+			</isNotNull>
+		</dynamic>
+	</sql>
+
+	<select id="findOptimalObjects" parameterClass="optimalObject"
+		resultMap="optimalObjectResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countOptimalObjects" parameterClass="optimalObject"
+		resultClass="java.lang.Integer">
+		select count(*)
+		<include refid="sql_where" />
+	</select>
+
+	<select id="getByIdCard" parameterClass="java.util.Map"
+		resultMap="optimalObjectResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from optimalobjects uni left join baseinfo b on uni.baseinfoid =b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgId=#orgId# 
+		and
+		<iterate property="idCardNoList" open="("  close=")"  conjunction="or">
+		    upper(idCardNo) = upper(#idCardNoList[]#)
+		</iterate>
+	</select>
+
+	<select id="countSearchOptimalobject" parameterClass="searchOptimalObjectVo" resultClass="int">
+		select count(*)
+		<include refid="sql_where" />
+		<include refid="isDeathSql"/>
+		<include refid="attentionPopulationBaseInfo.serviceTeamInfoForSearch"/>
+	</select>
+
+	<select id="searchOptimalobject" parameterClass="searchOptimalObjectVo" resultMap="optimalObjectResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="sql_where" />
+		<include refid="isDeathSql"/>
+		<include refid="attentionPopulationBaseInfo.serviceTeamInfoForSearch"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="getByOrgIdAndIdCardNo" parameterClass="java.util.Map" resultMap="optimalObjectResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		FROM optimalobjects uni left join baseinfo b on uni.baseinfoid =b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where upper(idCardno) = upper(#idCardNo#) and uni.orgId=#orgId#
+	</select>
+
+	<update id="updateBaseInfo" parameterClass="optimalObject">
+		update optimalObjects set
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>
+		<include refid="populationBaseInfo.updateBussLogoutDetail"/>
+		where id = #id#
+	</update>
+
+	<update id="updateBusiness" parameterClass="optimalObject">
+		update optimalObjects set
+		<isNotEmpty property="isEmphasis">
+			isEmphasis = #isEmphasis#,
+		</isNotEmpty>
+		<include refid="updateBusinessSql"/>
+		where id = #id#
+	</update>
+	
+	<select id="getIdByBaseinfoIdAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		SELECT id from optimalObjects  
+		where baseinfoid=#baseInfoId# and orgId=#orgId#
+	</select>
+	
+	<resultMap id="optimalObjectResultForDefaultList" class="optimalObject" 
+		extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForDefaultList">
+		<result column="optimalCardNo" property="optimalCardNo" />
+		<result column="optimalCardType" property="optimalCardType.id" />
+		<result column="laborAbility" property="laborAbility.id" />
+		<result column="abilityLiving" property="abilityLiving.id" />
+		<result column="employmentSituation" property="employmentSituation.id" />
+		<result column="supportSituation" property="supportSituation.id" />
+		<result column="monthLivingExpenses" property="monthLivingExpenses" />
+	</resultMap>
+	<sql id="default_sql_where">
+	  from optimalObjects uni 
+	  <dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findOptimalObjectDefaultList" resultMap="optimalObjectResultForDefaultList" parameterClass="map">
+	  select <include refid="fields"/>
+	  <include refid="default_sql_where" />
+	  ORDER BY ID DESC
+	</select>
+	
+	<select id="countOptimalObjectDefaultList" resultClass="java.lang.Integer" parameterClass="map">
+		<![CDATA[select count(uni.id)]]>
+		<include refid="default_sql_where" />
+	</select>
+	
+
+</sqlMap>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="serviceRecordAttachment">
+	<typeAlias alias="ServiceRecordAttachment" type="com.tianque.plugin.serviceTeam.serviceRecord.domain.ServiceRecordAttachment"/>
+	
+	<resultMap id="serviceRecordAttachmentResult" class="ServiceRecordAttachment">
+		<result property="id" column="id"/>
+		<result property="recordId" column="recordId"/>
+		<result property="fileSize" column="fileSize"/>
+		<result property="fileName" column="fileName"/>
+		<result property="fileActualUrl" column="fileActualUrl"/>
+	</resultMap>
+	
+	<insert id="addServiceRecordAttachment" parameterClass="ServiceRecordAttachment">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_serviceRecordHasAttachment.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		<![CDATA[
+			insert into serviceRecordHasAttachments
+			(id, recordId,fileSize,fileName,fileActualUrl,createUser,updateUser,createDate,updateDate)
+			values(#id#, #recordId#, #fileSize#,#fileName#, #fileActualUrl#,#createUser#, #updateUser#, #createDate#, #updateDate#)
+		]]>
+	</insert>
+	
+	<select id="getServiceRecordAttachmentById" parameterClass="java.lang.Long"
+		resultMap="serviceRecordAttachmentResult">
+		select id, recordId,fileSize,fileName,fileActualUrl,updateUser,updateDate
+		from serviceRecordHasAttachments where id=#value#
+	</select>
+	
+	<select id="findServiceRecordAttachments" parameterClass="java.lang.Long"
+		resultMap="serviceRecordAttachmentResult">
+		select id, recordId,fileSize,fileName,fileActualUrl,updateUser,updateDate from serviceRecordHasAttachments where recordId=#value#
+	</select>
+	
+	<delete id="deleteServiceRecordHasAttachments" parameterClass="java.lang.Long">
+    	delete from serviceRecordHasAttachments where recordId=#value#
+    </delete>
+    
+    <delete id="deleteServiceRecordHasAttachment" parameterClass="java.lang.Long">
+    	delete from serviceRecordHasAttachments where id=#value#
+    </delete>
+</sqlMap>

@@ -1,0 +1,77 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<jsp:include page="/includes/baseInclude.jsp" />
+<div id="chartsTabs">
+	<div id="gridbox" class="SigmaReport">
+	</div>
+</div>
+<script type="text/javascript">
+function onOrgChanged(){
+	$.ajax({
+		url:'${path}/statAnalyse/issueReport/getDataColumnByLevel.action',
+		data:{
+			"year":$("#cyear").val(),
+			"month":getMonthValue(),
+			"parentOrgId":getCurrentOrgId(),
+			"queryType":$("#type").val(),
+			"reportDateType.id":$("#reoprtDateType").val()
+		},
+		success:function(data){
+			if(data == null){
+				$.messageBox({
+					message: data,
+					level: "error"
+				});
+				return;
+			}
+			grid.bindData(data);
+		}
+	})
+}
+
+$(document).ready(function(){
+	document.title=$("#type").find("option:selected").text();
+	columns = [
+					{name:"general",caption:"部门",children:[
+   		   			    {name:"orgType.displayName",caption:"部门类型",width:80,mode:"string"},
+  		   			    {name:"issueLevelStats[index].orgLevelOrFunOrgType.displayName",caption:"部门层级",width:100,mode:"string"}
+   		   			]},
+					{name:"general",caption:"办理情况",children:[
+		   			    {name:"issueLevelStats[index].issueAreaStat.addIssueSum",caption:"新增事件",width:75,mode:"number",format:"#"},
+		   			    {name:"issueLevelStats[index].issueAreaStat.submitIssueSum",caption:"上报事件",width:75,mode:"number",format:"#"},
+		   			    {name:"issueLevelStats[index].issueAreaStat.assignIssueSum",caption:"上级交办事件",width:80,mode:"number",format:"#"},
+		   			    {name:"issueLevelStats[index].issueAreaStat.doingIssueSum",caption:"在办事件",width:75,mode:"number",format:"#"},
+		   			    {name:"issueLevelStats[index].issueAreaStat.verificationSum",caption:"待验证事件",width:75,mode:"number",format:"#"},
+		   			    {name:"issueLevelStats[index].issueAreaStat.verificationedSum",caption:"已验证事件",width:75,mode:"number",format:"#"},
+		   			    {name:"issueLevelStats[index].issueAreaStat.doneIssueSum",caption:"办结事件",width:75,mode:"number",format:"#"},
+		   			    {name:"issueLevelStats[index].issueAreaStat.issueSum",caption:"事件处理工作总量",width:90,mode:"number",format:"#"}
+		   			    /* ,{name:"issueLevelStats[index].issueAreaStat.completionRate",caption:"事件办结率",width:80,mode:"string"} */
+		   			]},
+		   			{name:"general",caption:"超期情况",children:[
+		   			    {name:"issueLevelStats[index].issueAreaStat.extendedDoingSum",caption:"超期在办",width:75,mode:"number",format:"#"},
+		   			    {name:"issueLevelStats[index].issueAreaStat.extendedDoneSum",caption:"超期办结",width:75,mode:"number",format:"#"}
+		   			    /* ,{name:"issueLevelStats[index].issueAreaStat.extendedRate",caption:"超期办结率",width:80,mode:"string"} */
+					]}
+				];
+	grid = new SigmaReport("gridbox",context,columns);
+	onOrgChanged();
+	
+	$(".print").click(function(){
+		$("#issuePrintDlg").createDialog({
+			width:680,
+			height:450,
+			title:"打印",
+			url:'${path}/statAnalyse/issueManage/listMange/print.jsp',
+			buttons: {
+			   "打印" : function(){
+					print();
+		  	   },
+			   "关闭" : function(){
+				   $("#issuePrintDlg").dialog("close");
+			   }
+			}
+		});
+	});
+});
+</script>

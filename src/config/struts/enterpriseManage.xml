@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+  
+<struts>
+	<package name="enterpriseManage" extends="default" namespace="/baseinfo/safetyProductionKeyManage">
+		<default-class-ref class="enterpriseController"></default-class-ref>
+		
+		<action name="dispatchOperate" method="dispatchOperate">
+			<result name="success">
+				/baseinfo/siteinfo/enterprise/maintainEnterpriseDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+			<result name="search">
+				/baseinfo/siteinfo/enterprise/searchEnterpriseCondition.jsp
+			</result>
+			<result name="securitySearch">
+				/baseinfo/siteinfo/enterprise/searchSecurityCondition.jsp
+			</result>
+			<!-- <result name="print">
+				/baseinfo/siteinfo/enterprise/enterprisePrintDlg.jsp
+			</result> -->
+			<result name="print">
+				/baseinfo/commonPopulation/printTabPreviewDlg.jsp
+			</result>
+			<result name="securityKey">
+				/baseinfo/siteinfo/enterprise/maintainSecurityDlg.jsp
+			</result>
+			<result name="securityPrint">
+				/baseinfo/siteinfo/enterprise/securityPrintDlg.jsp
+			</result>
+			<result name="view">
+				/baseinfo/siteinfo/enterprise/EnterpriseViewDlg.jsp
+			</result>			
+		</action>
+		<!-- 解密调用 -->
+		<action name="dispatchOperateByEncrypt" method="dispatchOperateByEncrypt">
+			<result name="success">
+				/baseinfo/siteinfo/enterprise/maintainEnterpriseDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+			<result name="print">
+				/baseinfo/commonPopulation/printTabPreviewDlg.jsp
+			</result>
+			<result name="view">
+				/baseinfo/siteinfo/enterprise/EnterpriseViewDlg.jsp
+			</result>	
+			<result name="securityKey">
+				/baseinfo/siteinfo/enterprise/maintainSecurityDlg.jsp
+			</result>		
+		</action>
+		
+		<action name="dispatchOperateForGis" method="dispatchOperate">
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+			<result name="view">
+				/baseinfo/siteinfo/enterprise/EnterpriseViewDlg_gis.jsp
+			</result>			
+		</action>
+		
+		<action name="addEnterprise" method="addEnterprise">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="shiftDispatch"  method="shiftDispatch">
+			<result name="success">
+					/common/shiftTree.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="shiftEnterprise" method="shiftEnterprise">
+			<result type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		
+		<action name="addEnterpriseAndPersonInCharges" method="addEnterpriseAndPersonInCharges">
+			<result name="success" type="json">
+				<param name="root">enterprise</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="safetyProductionKeyList" method="findEnterprisesForListPage">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateEnterprise" method="updateEnterprise">
+			<result name="success" type="json" >
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateEmphasis" method="updateEmphasis">
+			<result name="success" type="json" >
+				<param name="root">enterprise</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		
+		<action name="deleteEnterprise" method="deleteEnterprise">
+			<result name="success" type="json" >
+				<param name="root">bol</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="hasDuplicateEnterpriseName" method="hasDuplicateEnterpriseName">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>		
+		</action>
+		
+		<action name="hasRelatePlace" method="hasRelatePlace">
+			<result name="success" type="json">
+				<param name="root">bol</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		
+		<action name="deleteSafetyProductionKey" method="deleteEnterprise">
+			<result name="success" type="json" >
+				<param name="root">placeId</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="viewEnterprise" method="viewEnterprise">
+			<result name="success">
+				/baseinfo/siteinfo/enterprise/EnterpriseView.jsp
+			</result>
+			<result name="viewSecurityKey">
+				/baseinfo/siteinfo/enterprise/securityView.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="viewEnterpriseForMobile" method="viewEnterpriseForMobile">
+			<result name="success" type="json">
+				<param name="root">enterprise</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<!-- add by lss 2013.05.08 -->
+		<action name="hasDuplicateEnterpriseNameAndKeyType" method="hasDuplicateEnterpriseNameAndKeyType">
+			<result name="success" type="json">
+				<param name="root">bol</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>		
+		</action>
+	</package>
+	
+</struts>

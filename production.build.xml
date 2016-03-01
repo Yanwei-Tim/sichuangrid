@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns:artifact="antlib:org.apache.maven.artifact.ant" name="tianqueGrid" basedir="." >
+
+	<property file=".properties" />
+
+	<path id="build.lib">
+		<fileset dir="${build.lib.dir}" includes="*.jar,*/*.jar" />
+	</path>
+
+	<path id="runtime.lib">
+		<fileset dir="${runtime.lib.dir}" includes="*.jar,*/*.jar" />
+	</path>
+
+	<path id="all.lib">
+		<path refid="build.lib" />
+		<path refid="runtime.lib" />
+	</path>
+
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties" classpathref="all.lib" />
+	
+	<target name="clean">
+
+		<delete dir="${classes.dir}">
+		</delete>
+
+		<mkdir dir="${classes.dir}" />
+	</target>
+
+	<!-- 编译源代码 -->
+	<target name="compile" depends="clean">
+		<javac destdir="${classes.dir}" srcdir="${src.dir}:${config.dir}:${test.dir}:${core.dir}:${src.plugin.dirs}" encoding="UTF-8" fork="true" memorymaximumsize="500m">
+			<classpath refid="build.lib" />
+			<classpath refid="runtime.lib" />
+		</javac>
+		<foreach target="compilePlugin" param="plugin.name">
+			<path>
+				<dirset dir="${src.plugin.dir}">
+					<include name="*" />
+				</dirset>
+			</path>
+		</foreach>
+		<copy todir="${classes.dir}">
+			<fileset dir="${src.dir}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<copy todir="${classes.dir}">
+			<fileset dir="${config.dir}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<copy todir="${classes.dir}">
+			<fileset dir="${database.dir}">
+			</fileset>
+		</copy>
+		<copy todir="${classes.dir}">
+			<fileset dir="${taskJob.dir}">
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="compilePlugin">
+		<echo message="compile -> ${plugin.name}" />
+		<script language="javascript">
+		    propname = project.getProperty("plugin.name");
+		    project.setProperty("pluginFolerName", propname.substring(propname.lastIndexOf(java.io.File.separator)+1));
+		</script>
+		<delete dir="target/bin/${pluginFolerName}" quiet="true" />
+		<mkdir dir="target/bin/${pluginFolerName}" />
+		<javac destdir="target/bin/${pluginFolerName}" srcdir="${plugin.name}" classpath="${classes.dir}" encoding="UTF-8" fork="true" memorymaximumsize="256m">
+			<classpath refid="build.lib" />
+			<classpath refid="runtime.lib" />
+		</javac>
+		<copy todir="target/bin/${pluginFolerName}">
+			<fileset dir="${plugin.name}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<xmlproperty file="${plugin.name}/${pluginFolerName}-tq-plugin.xml" />
+		<jar destfile="target/dist/${pluginFolerName}-${plugin.version}.jar" basedir="target/bin/${pluginFolerName}">
+		</jar>
+		<copy todir="${classes.dir}">
+			<fileset dir="target/bin/${pluginFolerName}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<jar destfile="target/dist/${pluginFolerName}-${plugin.version}-source.jar" basedir="${plugin.name}">
+		</jar>
+		<!--
+		<antcall target="jarDeploy">
+			<param name="pluginFolerName">${pluginFolerName}</param>
+			<param name="plugin.version">${plugin.version}</param>
+		</antcall>
+		-->
+	</target>
+
+	<!--添加publish target，这个不是必须的：-->
+	<target name="jarDeploy" description="publish">
+
+		<artifact:pom id="tqPom" file="pom.xml" />
+
+		<artifact:install file="target/dist/${pluginFolerName}-${plugin.version}.jar">
+			<pom refid="tqPom" />
+		</artifact:install>
+
+		<artifact:install-provider artifactId="wagon-http" version="1.0-beta-2" />
+
+		<artifact:deploy file="target/dist/${pluginFolerName}-${plugin.version}.jar">
+			<remoteRepository url="http://localhost:18001/nexus/content/repositories/snapshots">
+				<authentication username="admin" password="admin123" />
+			</remoteRepository>
+			<pom refid="tqPom" />
+			<attach file="target/dist/${pluginFolerName}-${plugin.version}-source.jar" type="jar" classifier="sources" />
+		</artifact:deploy>
+	</target>
+
+	<target name="commonpopulationData">
+		<java classname="com.tianque.install.commonpopulation.CommonpopulationData" classpath="${classes.dir}" classpathref="all.lib" fork="true">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+		</java>
+	</target>
+
+	<target name="initWorkCalenderForAct">
+		<java classname="com.tianque.install.workcalender.InitWorkCalenderForAct" classpath="${classes.dir}" classpathref="all.lib" fork="true">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+		</java>
+	</target>
+	
+	<target name="dataComplement">
+		<java classname="com.tianque.install.fixBug.DataComplement"  classpath="${classes.dir}" classpathref="all.lib" fork="true">
+			<arg value="${years}"/>
+			<arg value="${months}"/>
+			<jvmarg value="-Xms256m" />
+			<jvmarg value="-Xmx1024m" />
+			<jvmarg value="-XX:MaxPermSize=256M" />
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+	    </java>
+	</target>	
+	
+	<target name="archiveSystemlogs">
+		<java classname="com.tianque.install.archiveSystemlogs.ArchiveSystemlogsForOld" classpath="${classes.dir}" classpathref="all.lib" fork="true">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+		</java>
+	</target>
+
+	<target name="compileDebug" depends="clean">
+		<mkdir dir="${classes.dir}" />
+		<javac destdir="${classes.dir}" srcdir="${src.dir}:${config.dir}:${core.dir}:${src.plugin.dirs}" encoding="UTF-8" debug="true" debuglevel="lines,vars,source">
+			<classpath refid="all.lib" />
+		</javac>
+		<copy todir="${classes.dir}">
+			<fileset dir="${src.dir}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<copy todir="${classes.dir}">
+			<fileset dir="${config.dir}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+	</target>
+	
+	<target name="housePopulationComplement">
+			<java classname="com.tianque.install.fixBug.HousePopulationComplement"  classpath="${classes.dir}" classpathref="all.lib" fork="true">
+				<arg value="${years}"/>
+				<arg value="${months}"/>
+				<arg value="${type}"/>
+				<jvmarg value="-Xms256m" />
+				<jvmarg value="-Xmx2048m" />
+				<jvmarg value="-XX:MaxPermSize=256M" />
+				<jvmarg value="-Dfile.encoding=UTF-8" />
+			</java>
+		</target>
+
+	<!-- 压缩js文件 -->
+	<target name="js.compress">
+		<propertyfile file="${config.dir}/grid.properties">
+			<entry key="tianqueGridJsVersion" value="0" />
+		</propertyfile>
+		<delete dir="${web.dir}/resource/system/js" includes="tianqueGrid*.js">
+		</delete>
+		<delete dir="${web.dir}/resource/system/js" includes="*-min.js">
+		</delete>
+		<apply executable="java" parallel="false" failonerror="true">
+			<fileset dir="${web.dir}/resource/system/js" includes="*.js" />
+			<arg line="-jar" />
+			<arg path="lib/yuicompressor-2.4.2.jar" />
+			<arg line="--charset utf-8" />
+			<srcfile />
+			<arg line="-o" />
+			<mapper type="glob" from="*.js" to="${web.dir}/resource/system/js/*-min.js" />
+			<targetfile />
+		</apply>
+		<property file="${config.dir}/grid.properties">
+		</property>
+		<concat destfile="${web.dir}/resource/system/js/tianqueGrid-${tianqueGridJsVersion}.js" encoding="utf-8" append="false">
+			<path>
+				<fileset dir="${web.dir}/resource/system/js" includes="*-min.js" />
+			</path>
+		</concat>
+		<delete dir="${web.dir}/resource/system/js" includes="*-min.js">
+		</delete>
+	</target>
+
+	<!-- 拷贝文件到存放目录中并且把WEB-INF/calsses目录下的.calss文件打jar包 -->
+	<target name="build">
+		<delete file="${web.dir}/WEB-INF/web.xml" />
+		<move file="${web.dir}/WEB-INF/web.xml.product" tofile="${web.dir}/WEB-INF/web.xml" />
+		<mkdir dir="${web.dir}/uploadFile" />
+		<!--
+    	<symlink link="${basedir}/thirdPartyProjects/filemanage/userfiles" resource="/home/admin/share/sharefile/" overwrite="true"></symlink>
+    	<symlink link="${basedir}/webroot/uploadFile/tmp" resource="/home/share/tmp/" overwrite="true"></symlink>
+    	<symlink link="${basedir}/webroot/uploadFile/issue" resource="/home/share/issue/" overwrite="true"></symlink>
+    	<symlink link="${basedir}/webroot/uploadFile/dailylog" resource="/home/share/dailylog/" overwrite="true"></symlink>
+    	<symlink link="${basedir}/webroot/uploadFile/mail" resource="/home/share/mail/" overwrite="true"></symlink>
+    	<symlink link="${basedir}/webroot/uploadFile/upload" resource="/home/share/upload/" overwrite="true"></symlink>
+    	-->
+    	
+    	<symlink link="${basedir}/webroot/uploadFile/tmp" resource="/home/admin/share/tmp/" overwrite="true"></symlink>
+    	<symlink link="${basedir}/webroot/uploadFile/issue" resource="/home/admin/share/issue/" overwrite="true"></symlink>
+    	<symlink link="${basedir}/webroot/uploadFile/dailylog" resource="/home/admin/share/dailylog/" overwrite="true"></symlink>
+    	<symlink link="${basedir}/webroot/uploadFile/mail" resource="/home/admin/share/mail/" overwrite="true"></symlink>
+    	<symlink link="${basedir}/webroot/uploadFile/upload" resource="/home/admin/share/upload/" overwrite="true"></symlink>
+    	<symlink link="${basedir}/webroot/uploadFile/exposureRating" resource="/home/admin/share/exposureRating/" overwrite="true"></symlink>
+		<symlink link="${basedir}/webroot/uploadFile/dataChangeFile" resource="/home/datachange/dataChangeUploadFile/" overwrite="true"></symlink>
+		<symlink link="${basedir}/webroot/uploadFile/documents" resource="/home/admin/share/documents/" overwrite="true"></symlink>
+		<symlink link="${basedir}/webroot/uploadFile/threeRecords" resource="/home/admin/share/threeRecords/" overwrite="true"></symlink>
+	</target>
+
+	<!--注意：第一次发布需要初始化应用,以后就不能执行initApp;以后只能做数据追加-->
+	<target name="initApp">
+		<java fork="true" classname="com.tianque.init.AppInitialization" classpath="${classes.dir}" classpathref="all.lib">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<arg value="${env}" />
+			<jvmarg value="-XX:MaxPermSize=256m" />
+			<jvmarg value="-Xmx512m" />
+		</java>
+	</target>
+	<!--数据迁移-->
+	<target name="moveDataApp" depends="">
+		<java  fork="true" classname="com.tianque.init.MoveDatasInitialization"  maxmemory="256m" classpath="${classes.dir}" classpathref="all.lib">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<jvmarg value="-XX:MaxPermSize=512m" />
+			<arg value="${env}" />
+		</java>
+	</target>
+	
+	<!--重点场所数据迁移-->
+	<target name="moveCompanyPlaceDataApp" depends="">
+		<java  fork="true" classname="com.tianque.init.MoveCompanyPlaceDatasInitialization"  maxmemory="256m" classpath="${classes.dir}" classpathref="all.lib">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<jvmarg value="-XX:MaxPermSize=512m" />
+			<arg value="${env}" />
+		</java>
+	</target>
+	
+	<!--重点场所数据迁移二次 7月19日后的数据-->
+	<target name="moveCompanyPlaceDataTwoApp" depends="">
+		<java  fork="true" classname="com.tianque.init.MoveCompanyPlaceDatasTwoInitialization"  maxmemory="256m" classpath="${classes.dir}" classpathref="all.lib">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<jvmarg value="-XX:MaxPermSize=512m" />
+			<arg value="${env}" />
+		</java>
+	</target>
+	
+	<target name="systemOperateLogToHbase" depends="">
+		<java  fork="true" classname="com.tianque.systemOperateLog.util.SystemOperateLogToHbase"  maxmemory="256m" classpath="${classes.dir}" classpathref="all.lib">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<jvmarg value="-XX:MaxPermSize=512m" />
+			<arg value="${env}" />
+		</java>
+	</target>
+	
+	<target name="findOldIssue" depends="">
+		<java  fork="true" classname="com.tianque.issue.migrateData.HandleIssueData"  maxmemory="512m" classpath="${classes.dir}" classpathref="all.lib">
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<jvmarg value="-XX:MaxPermSize=512m" />
+			<arg value="${env}" />
+		</java>
+	</target>
+	
+	<target name="deploy" depends="initApp,startJetty" />
+
+	<target name="stopJetty">
+		<java classname="com.tianque.JettyStop" classpath="${classes.dir}" classpathref="all.lib" fork="true">
+			<arg value="${listenerport}" />
+		</java>
+	</target>
+
+	<target name="startJetty">
+		<mkdir dir="../logs" />
+		<mkdir dir="../heapdump"/>
+		<java classname="com.tianque.JettyProduction" spawn="true" classpath="${classes.dir}" classpathref="all.lib" fork="true">
+			<arg value="${port}" />
+			<arg value="${listenerport}" />
+			<arg value="${path}" />
+			<arg value="${rootdir}" />
+			<jvmarg value="-server" />
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<jvmarg value="-XX:PermSize=128M" />
+			<jvmarg value="-XX:MaxPermSize=512m" />
+			<jvmarg value="-Xms256m" />
+	  		<jvmarg value="-Xmx4096m" />
+			<jvmarg value="-XX:+HeapDumpOnOutOfMemoryError" />
+			<jvmarg value="-XX:HeapDumpPath=../heapdump" />		
+		</java>
+	</target>
+
+	<target name="startJettyToDebug">
+		<mkdir dir="../logs" />
+		<java classname="com.tianque.JettyProduction" spawn="true" classpath="${classes.dir}" classpathref="all.lib" fork="true">
+			<arg value="${port}" />
+			<arg value="${listenerport}" />
+			<arg value="${path}" />
+			<arg value="${rootdir}" />
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<jvmarg value="-Xms1024m" />
+			<jvmarg value="-Xmx2048m" />
+			<jvmarg value="-XX:PermSize=64M" />
+			<jvmarg value="-XX:MaxPermSize=512m" />
+			<jvmarg value="-Xdebug" />
+			<jvmarg value="-Xrunjdwp:transport=dt_socket,address=8453,suspend=n,server=y" />
+		</java>
+	</target>
+</project>

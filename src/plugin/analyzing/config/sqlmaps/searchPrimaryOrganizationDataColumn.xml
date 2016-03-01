@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="searchPrimaryOrganizationDataColumnVo" >
+  <typeAlias alias="searchPrimaryOrganizationDataColumnVo" type="com.tianque.plugin.analyzing.domain.SearchPrimaryOrganizationDataColumnVo"/>
+  <resultMap id="baseResultMap" class="searchPrimaryOrganizationDataColumnVo" >
+    <result property="teamClazz" column="teamClass"/>
+    <result property="orgInternalCode" column="ORGINTERNALCODE" />
+    <result property="memberNum" column="memberNum"  nullValue="0" />
+    <result property="teamNum" column="teamNum"/>
+  </resultMap>
+
+  <!--<select id="getPrimaryOrganizationDataColumnVo" parameterClass="searchPrimaryOrganizationDataColumnVo"  resultMap="baseResultMap">
+	SELECT 1 AS teamNum,teamClass,ORGINTERNALCODE,m.memberNum as memberNum FROM PRIMARYORGANIZATIONS  
+	left join (select count(*) as memberNum ,primaryOrgId from primarymembers where isHaveJob=0 group by primaryOrgId)m
+	on id=m.primaryOrgId and ORGINTERNALCODE LIKE '$orgInternalCode$%'
+  </select>-->
+  
+   <select id="getPrimaryOrganizationDataColumnVo" parameterClass="searchPrimaryOrganizationDataColumnVo"  resultMap="baseResultMap">
+	SELECT 1 AS teamNum,teamClass,ORGINTERNALCODE,m.memberNum as memberNum FROM PRIMARYORGANIZATIONS  
+	left join (select count(*) as memberNum,pt.primaryorgid from primarymembersorgtype pt 
+	where pt.primarymembersid in (select pm.id from primarymembers pm where pm.ishavejob = 0) group by pt.primaryorgid)m
+	on id=m.primaryorgid and ORGINTERNALCODE LIKE '$orgInternalCode$%'
+  </select>
+</sqlMap>

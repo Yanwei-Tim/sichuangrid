@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		CREATEDATE as createdate ,
+		UPDATEDATE as updatedate ,
+		ORGID as orgId ,
+		TEAMID as teamId ,
+		MEMBERID as memberId ,
+		ORGINTERNALCODE as orgInternalCode ,
+		CREATEUSER as createuser ,
+		UPDATEUSER as updateuser 
+	FROM VOLUNTEER_MEMBER	
+ -->	
+<sqlMap namespace="volunteerMember">	
+	
+	<typeAlias alias="VolunteerMember" type="com.tianque.partyBuilding.volunteerTeam.domain.VolunteerMember"/>
+	<typeAlias alias="SearchVolunteerMemberVo" type="com.tianque.partyBuilding.volunteerTeam.domain.vo.SearchVolunteerMemberVo" />
+	<typeAlias alias="Member" type="com.tianque.partyBuilding.members.domain.Member" />
+	
+	<resultMap class="Member" id="memberResult">
+		<result property="id" column="id"/>
+		<result property="idCardNo" column="idCardNo"/>
+		<result property="name" column="name"/>
+		<result property="gender.id" column="gender"/>
+		<result property="nation.id" column="nation"/>
+		<result property="birthday" column="birthday"/>
+		<result property="schooling.id" column="schooling"/>
+		<result property="degree" column="degree"/>
+		<result property="specialPosition" column="specialPosition"/>
+		<result property="telephone" column="telephone"/>
+		<result property="mobileNumber" column="mobileNumber"/>
+		<result property="province" column="province"/>
+		<result property="city" column="city"/>
+		<result property="district" column="district"/>
+		<result property="nativePlaceAddress" column="nativePlaceAddress"/>
+		<result property="belongOrg.id" column="belongOrg"/>
+		<result property="partyPosition.id" column="partyPosition"/>
+		<result property="joinPartyDate" column="joinPartyDate"/>
+		<result property="career" column="career"/>
+		<result property="endDate" column="endDate"/>
+		<result property="rewardAndPunishment" column="rewardAndPunishment"/>
+		<result property="accedingSituation" column="accedingSituation"/>
+		<result property="joinPartyBranchDate" column="joinPartyBranchDate"/>
+		<result property="democracy.id" column="democracy"/>
+		<result property="isHandicap" column="isHandicap"/>
+		<result property="isOld" column="isOld"/>
+		<result property="isOversea" column="isOversea"/>
+		<result property="reportOrganization.id" column="reportOrganization"/>
+		<result property="imgUrl" column="imgUrl"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+	</resultMap>
+	
+
+	<insert id="addVolunteerMember" parameterClass="VolunteerMember">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_VOLUNTEER_MEMBER.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into VOLUNTEER_MEMBER (ID , createDate , updateDate , ORGID , TEAMID , MEMBERID , ORGINTERNALCODE , createUser , updateUser ) 
+		values(#id#, #createDate#, #updateDate#, #organization.id#, #teamId#, #memberId#, #orgInternalCode#, #createUser#, #updateUser#)	
+	</insert>
+	
+	<update id="updateVolunteerMember" parameterClass="VolunteerMember">
+		update VOLUNTEER_MEMBER set id = #id# 
+				<isNotNull prepend="," property="updateDate">
+					updateDate = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="organization">
+					ORGID = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="teamId">
+					TEAMID = #teamId#
+				</isNotNull>
+				<isNotNull prepend="," property="memberId">
+					MEMBERID = #memberId#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					updateUser = #updateUser#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteVolunteerMemberById" parameterClass="java.lang.Long">	
+		delete  from VOLUNTEER_MEMBER where id = #value#	
+	</delete>
+	
+	<delete id="deleteByTeamIdAndMemberId" parameterClass="java.util.Map">	
+		delete  from VOLUNTEER_MEMBER
+		<dynamic prepend="WHERE">
+			<isNotNull prepend="and" property="teamId">
+				teamId = #teamId#
+			</isNotNull>
+			<isNotNull prepend="and" property="memberId">
+				MEMBERID = #memberId#
+			</isNotNull>
+			<isNotNull prepend="and" property="orgId">
+				orgId = #orgId#
+			</isNotNull>
+		</dynamic>
+	</delete>
+	
+	<select id="getMemberById" parameterClass="long" resultMap="memberResult">
+		select * from party_members where id=#value#
+	</select>
+	
+	<sql id="findVolunteerMembersBySearchVo_sql_where">
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					v.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="searchValue">
+				<isNotEmpty prepend="and" property="searchValue">
+					(pm.idCardNo like #searchValue#||'%' or pm.name like #searchValue#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>		
+		</dynamic>
+	</sql>
+	<select id="findMembersBySearchVo" parameterClass="SearchVolunteerMemberVo" resultMap="memberResult">
+		select pm.* from VOLUNTEER_MEMBER v,party_members pm where v.memberid(+)=pm.id and v.teamid=#teamId#
+		<include refid="findVolunteerMembersBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">pm.$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countMembersBySearchVo" parameterClass="SearchVolunteerMemberVo" resultClass="java.lang.Integer">
+		select count(*) from VOLUNTEER_MEMBER v,party_members pm where v.memberid(+)=pm.id and v.teamid=#teamId#
+		<include refid="findVolunteerMembersBySearchVo_sql_where" />
+	</select>
+	
+	<select id="findMembersByOrgCodeAndTeamId" parameterClass="SearchVolunteerMemberVo" resultMap="memberResult">
+		select *
+		  from party_members
+		 where idcardno in
+		       (select distinct (p.idcardno)
+		          from (select pm.*, mp.partyorg, mp.logout
+		                  from party_members pm, member_associate_partyorg mp
+		                 where pm.id(+) = mp.memberid
+		                   and mp.orginternalcode like #orgInternalCode#||'%') p
+		         where p.id not in
+		               (select v.memberid from VOLUNTEER_MEMBER v where v.teamid = #teamId#))
+		    <dynamic>
+			    <isPropertyAvailable property="searchValue">
+					<isNotEmpty prepend="and" property="searchValue">
+						(idCardNo like #searchValue#||'%' or name like #searchValue#||'%')
+					</isNotEmpty>
+				</isPropertyAvailable>
+			</dynamic>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+	</select>
+	
+	<select id="countMembersByOrgCodeAndTeamId" parameterClass="SearchVolunteerMemberVo" resultClass="java.lang.Integer">
+		select count(*)
+		  from party_members
+		 where idcardno in
+		       (select distinct (p.idcardno)
+		          from (select pm.*, mp.partyorg, mp.logout
+		                  from party_members pm, member_associate_partyorg mp
+		                 where pm.id(+) = mp.memberid
+		                   and mp.orginternalcode like #orgInternalCode#||'%') p
+		         where p.id not in
+		               (select v.memberid from VOLUNTEER_MEMBER v where v.teamid = #teamId#))
+		 <dynamic>
+		    <isPropertyAvailable property="searchValue">
+				<isNotEmpty prepend="and" property="searchValue">
+					(idCardNo like #searchValue#||'%' or name like #searchValue#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>

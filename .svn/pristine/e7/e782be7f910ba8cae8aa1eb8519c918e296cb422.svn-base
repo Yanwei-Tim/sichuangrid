@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="systemOperateLoghbase">
+	<typeAlias alias="SystemOperateLog" type="com.tianque.systemOperateLog.domain.SystemOperateLog" />
+	
+	<resultMap class="SystemOperateLog" id="systemOperateLogResult">
+		<result property="id" column="id"/>
+		<result property="dataOrgId.id" column="dataOrgId"/>
+		<result property="dataOrgCode" column="dataOrgCode"/>
+		<result property="dataBeforeOrgId.id" column="dataBeforeOrgId"/>
+		<result property="operatePerson" column="operatePerson"/>
+		<result property="operateType" column="operateType"/>
+		<result property="moduleType" column="moduleType"/>
+		<result property="businessType" column="businessType"/>
+		<result property="operateDate" column="operateDate"/>
+		<result property="dataKeyword" column="dataKeyword"/>
+		<result property="contrastState" column="contrastState"/>
+		<result property="operateSource" column="operateSource"/>
+		<result property="dataBeforeOperate" column="dataBeforeOperate" />
+		<result property="dataAfterOperate" column="dataAfterOperate" />
+		<result property="operateDescribe" column="operateDescribe" />
+	</resultMap>
+	
+	
+	<insert id="addSystemOperateLog" parameterClass="SystemOperateLog">
+			UPSERT INTO systemOperateLogs(
+					id,dataOrgId,dataOrgCode,dataBeforeOrgId,operatePerson,operateType,moduleType,businessType,dataKeyword,operateDate,
+					dataBeforeOperate,dataAfterOperate,operateDescribe,contrastState,operateSource,dataId
+			)VALUES(
+					#id#,#dataOrgId.id#,#dataOrgCode#,#dataBeforeOrgId.id#,#operatePerson#,#operateType#,#moduleType#,#businessType#,#dataKeyword#,#operateDateHbase#,
+					#dataBeforeOperate#,
+					#dataAfterOperate#,
+					#operateDescribe#,
+					#contrastState#,#operateSource#,#dataId#
+			)
+	</insert>
+	
+	<update id="updateSystemOperateLog" parameterClass="SystemOperateLog">
+		UPSERT INTO systemOperateLogs (id,dataBeforeOperate,dataAfterOperate
+		<isNotNull prepend="," property="contrastState">contrastState</isNotNull><isNotNull prepend="," property="operateDescribe">operateDescribe</isNotNull>) VALUES(
+			#id#,'',''
+			<isNotNull prepend="," property="contrastState">
+				#contrastState#
+			</isNotNull>
+			<isNotNull prepend="," property="operateDescribe">
+				#operateDescribe#
+			</isNotNull>
+		)
+	</update>
+	
+	<select id="getSystemOperateLogById" parameterClass="java.lang.Long" resultMap="systemOperateLogResult">
+		select id,dataOrgId,dataOrgCode,dataBeforeOrgId,operatePerson,operateType,moduleType,businessType,dataKeyword,operateDate,
+		dataBeforeOperate,dataAfterOperate,operateDescribe,contrastState,operateSource,dataId from systemOperateLogs where id=#value#
+	</select>
+	
+	
+	<sql id="sql_where">
+		FROM systemOperateLogs where 1=1
+		<dynamic>
+			<isPropertyAvailable property="dataKeyword">
+				<isNotEmpty prepend="AND" property="dataKeyword">
+					dataKeyword = #dataKeyword#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<!-- 
+			<isPropertyAvailable property="searchDataKeyword">
+				<isNotEmpty prepend="AND" property="searchDataKeyword">
+					dataKeyword like '$searchDataKeyword$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			 -->
+			<isPropertyAvailable property="dataId">
+				<isNotEmpty prepend="AND" property="dataId">
+					dataId = #dataId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<!-- 
+			<isPropertyAvailable property="businessType">
+				<isNotEmpty prepend="AND" property="businessType">
+					businessType = #businessType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="searchBusinessType">
+				<isNotEmpty prepend="AND" property="searchBusinessType">
+					businessType = #searchBusinessType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="operateType">
+				<isNotEmpty prepend="AND" property="operateType">
+					operateType = #operateType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startDate">
+				<isNotNull prepend="AND" property="startDate">
+					<![CDATA[
+						operateDate > #startDate#
+					]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endDate">
+				<isNotNull prepend="AND" property="endDate">
+					<![CDATA[
+						operateDate < #endDate#
+					]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			 -->
+			<isPropertyAvailable property="searchType">
+				<isNotEmpty prepend="AND" property="searchType">
+					( businessType = #searchType#
+					<isPropertyAvailable property="distinguishType">
+						<isEqual prepend="OR" property="distinguishType" compareValue="1">
+							businessType in ('baseInfo','householdStaff','floatingPopulation')
+						</isEqual>
+						<isEqual prepend="OR" property="distinguishType" compareValue="2">
+							businessType in ('rentalHouse','actualHouse')
+						</isEqual>
+						<isEqual prepend="OR" property="distinguishType" compareValue="3">
+							businessType in ('CompanyPlace','CompanyPlaceBusiness')
+						</isEqual>
+					</isPropertyAvailable>
+					)
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+		</dynamic>
+	</sql>
+	
+	<select id="getRowKeyList" parameterClass="java.util.Map" resultClass="java.lang.Long">
+			select id 
+			<include refid="sql_where" /> 
+	</select>
+	
+	<select id="countSystemOperateLogsByQueryBuilder" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	    select count(*)
+		<include refid="sql_where" />
+	</select>
+	
+	
+	<select id="findSystemOperateLogsByQueryBuilder" resultMap="systemOperateLogResult" parameterClass="java.util.List">
+		SELECT id,dataOrgId,dataOrgCode,dataBeforeOrgId,operatePerson,operateType,moduleType,businessType,dataKeyword,operateDate,
+		dataBeforeOperate,dataAfterOperate,operateDescribe,contrastState,operateSource,dataId
+		from systemOperateLogs where id in 
+	    <iterate conjunction="," open="(" close=")" >
+           #value[]# 
+        </iterate>
+		order by operateDate desc
+	</select>
+</sqlMap>

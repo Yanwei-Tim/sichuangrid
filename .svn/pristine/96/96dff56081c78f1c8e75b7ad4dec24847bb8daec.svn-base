@@ -1,0 +1,1343 @@
+package com.tianque.sysadmin.controller;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.controller.ControllerHelper;
+import com.tianque.controller.annotation.PermissionFilter;
+import com.tianque.controller.annotation.PermissionFilters;
+import com.tianque.core.base.SearchBaseAction;
+import com.tianque.core.systemLog.service.SystemLogService;
+import com.tianque.core.systemLog.util.ModelType;
+import com.tianque.core.systemLog.util.OperatorType;
+import com.tianque.core.util.DialogMode;
+import com.tianque.core.util.GlobalValue;
+import com.tianque.core.util.GridProperties;
+import com.tianque.core.util.ObjectToJSON;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.GridPage;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.datatransfer.ExcelExportHelper;
+import com.tianque.datatransfer.dataconvert.CityNameHelper;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.Role;
+import com.tianque.domain.Session;
+import com.tianque.domain.User;
+import com.tianque.domain.property.OrganizationLevel;
+import com.tianque.domain.vo.UserVo;
+import com.tianque.platformMessage.constants.PlatformMessageType;
+import com.tianque.platformMessage.service.PlatformMessageService;
+import com.tianque.plugin.dataManage.util.Constants;
+import com.tianque.service.impl.OrganizationServiceHelper;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PermissionService;
+import com.tianque.userAuth.api.UserHasPlatformMessageTypesDubboService;
+
+@Scope("prototype")
+@Transactional
+@Controller("userManageController")
+public class UserManageController extends SearchBaseAction {
+	public final static Logger logger = LoggerFactory
+			.getLogger(UserManageController.class);
+	private static final String RESET_PWD = "resetPwd";
+	@Autowired
+	private PermissionService permissionService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private UserHasPlatformMessageTypesDubboService userHasPlatformMessageTypesDubboService;
+	@Autowired
+	private PlatformMessageService platformMessageService;
+	@Autowired
+	private SystemLogService systemLogService;
+
+	private List<Organization> organizations;
+
+	private String searchLockStatus; // 用于userAutocomplete查询
+	private boolean searchChildOrg = false;// 用于userAutocomplete查询
+	private String[][] userInfors;// 用于userAutocomplete查询返回
+	private boolean pageOnly;
+
+	private User user = new User();
+	private User operateUser;
+	private Long organizationId;
+
+	private Long[] roleIds;
+	private Long[] zoneIds;
+
+	private String roleIdsStr;
+
+	private String oldPassword;
+	private String currentPassword;
+	private String validatePassword;
+	private String email;
+	private String userIds;
+	private String logInUserName;
+	private String modifyRoleUserName;
+
+	private Long roleId;
+	private Long[] ids;
+	private Long userId;
+	private String vpdnRule = "";
+	private Long orgId;
+
+	/** 用户的岗位 */
+	private String userRole = "";
+	/** 用户的部门 */
+	private String userDept = "";
+
+	/** 用户订阅的消息类型 */
+	private List<Integer> messageTypes;
+
+	/** 用户未订阅的消息类型 */
+	private List<Integer> canSelectMessageTypes;
+
+	/** 手机账号搜索 */
+	UserVo userVo;
+	/** 手机账号匹配岗位id */
+	private String selectedRoleIds;
+
+	private Long state;
+	private Long isUp;
+
+	private final static String ACCESSKEY = "f1b09eea8d7e69f7fae3d14f37ac82f1";
+
+	/** 控制跳转 */
+	public String dispatchOperate() throws Exception {
+		if (DialogMode.ADD_MODE.equals(mode)) {
+			user = new User();
+			user.setChangePassword(true);
+			user.setPcusable(true);
+			user.setMobileusable(true);
+
+		} else if (DialogMode.EDIT_MODE.equals(mode)) {
+			if (user == null || user.getId() == null) {
+				errorMessage = "参数错误";
+				return ERROR;
+			}
+			user = permissionService.getFullUserById(user.getId());
+		} else if (DialogMode.SEARCH_MODE.equals(mode)) {
+			userVo = new UserVo();
+			userVo.setMobileusable(true);
+			return DialogMode.SEARCH_MODE;
+		}
+		return SUCCESS;
+	}
+
+	/** 手机账号list显示 */
+
+	public String findMobileUsers() throws Exception {
+		if (userVo == null || !userVo.isMobileusable()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		PageInfo<User> pageInfo = permissionService.findMobileUsers(userVo,
+				page, rows, sidx, sord);
+		gridPage = new GridPage(pageInfo);
+
+		return SUCCESS;
+	}
+
+	public String getSimpleUserById() throws Exception {
+		if (userId == null) {
+			return ERROR;
+		}
+		user = permissionService.getSimpleUserById(userId);
+		return SUCCESS;
+	}
+
+	public List<User> getNeedExportDatas(int page) {
+		if (pageOnly) {
+			return permissionService.findMobileUsers(userVo, page, rows, sidx,
+					sord).getResult();
+		} else {
+			return permissionService.findMobileUsers(userVo, 1,
+					Integer.MAX_VALUE, sidx, sord).getResult();
+		}
+	}
+
+	@PermissionFilter(ename = "downMobileUser")
+	public String downloadMobileUsers() throws Exception {
+		if (userVo == null || !userVo.isMobileusable()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		} else {
+			List<User> records = getNeedExportDatas(page);
+			inputStream = ExcelExportHelper.exportDateToExcel(permissionService
+					.getExportPopertyArray(), records);
+			downloadFileName = new String("手机账号清单".getBytes("gbk"), "ISO8859-1")
+					+ ".xls";
+			systemLogService.log(com.vladium.logging.Logger.INFO,
+					ModelType.MOBILEINFOMANAGE, OperatorType.EXPORT,
+					getCurrentUersName() + "在" + getCurrenOrg()
+							+ " 导出当前页手机账号清单", null);
+		}
+		return STREAM_SUCCESS;
+	}
+
+	@PermissionFilter(ename = "downMobileUser")
+	public void downloadMobileUsersAll() throws Exception {
+		if (userVo == null || !userVo.isMobileusable()) {
+			errorMessage = "参数错误";
+			return;
+		} else {
+			if (!pageOnly) {
+				pageOnly = true;
+				Integer count = permissionService.countMobileUsers(userVo, 1,
+						Integer.MAX_VALUE, sidx, sord);
+				String[][] excelDefines = permissionService
+						.getExportPopertyArray();
+				exportDataAll(count, excelDefines, "手机账号清单");
+			}
+			systemLogService
+					.log(com.vladium.logging.Logger.INFO,
+							ModelType.MOBILEINFOMANAGE, OperatorType.EXPORT,
+							getCurrentUersName() + "在" + getCurrenOrg()
+									+ " 导出全部手机账号清单", null);
+		}
+		return;
+	}
+
+	/**
+	 * 对手机账号进行维护 新增、修改
+	 * */
+	@PermissionFilters(value = {
+			@PermissionFilter(ename = "addMobileUser", actionName = "maintainMobileUser"),
+			@PermissionFilter(ename = "updateMobileUser", actionName = "maintainMobileUser") })
+	public String maintainMobileUser() throws Exception {
+		if (DialogMode.ADD_MODE.equals(mode)) {
+			user = permissionService.addMobileUser(user, false);
+		} else if (DialogMode.EDIT_MODE.equals(mode)) {
+			if (user == null || user.getId() == null) {
+				errorMessage = "参数错误";
+				return ERROR;
+			}
+			user = permissionService.updateMobileUser(user);
+		}
+
+		return SUCCESS;
+	}
+
+	/**
+	 * 
+	 * @Title: updateMobileUserVersion
+	 * @Description: TODO手机端登录 修改版本号以及内部版本号参数
+	 * @param @return 设定文件
+	 * @return String 返回类型
+	 * @author wanggz
+	 * @date 2014-7-23 上午10:37:33
+	 */
+	public String updateMobileUserVersion() throws Exception {
+		user = permissionService.updateMobileUserVersion(user);
+		return SUCCESS;
+	}
+
+	/**
+	 * 手机账号配网格
+	 * */
+	@PermissionFilter(ename = "matchupOrganization", actionName = "matchupOrganizationMobileUser")
+	public String matchupOrganizationMobileUser() throws Exception {
+		if (userIds == null || "".equals(userIds)) {
+			errorMessage = "id为空，请选择要匹配网格的用户！";
+			return ERROR;
+		}
+
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(orgId);
+		Long[] ids = analyzePopulationIds(userIds);
+		if (organization != null && organization.getId() != null) {
+			permissionService.matchupOrganizationMobileUserByIds(ids,
+					organization);
+		}
+		return SUCCESS;
+	}
+
+	/**
+	 * 匹配手机账号的岗位的岗位显示
+	 * */
+	@PermissionFilter(ename = "matchupRole", actionName = "matchupMobileUserRoleList")
+	public String matchupMobileUserRoleList() throws Exception {
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(organizationId);
+		if (organization == null || organization.getOrgLevel() == null) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		Long currentOrgLevel = organization.getOrgLevel().getId();
+		gridPage = new GridPage();
+		gridPage.setRows(permissionService
+				.findRolesByUserInLevel(currentOrgLevel));
+		return SUCCESS;
+	}
+
+	/**
+	 * 匹配手机账号的岗位
+	 * */
+	@PermissionFilter(ename = "matchupRole", actionName = "matchupMobileUserRole")
+	public String matchupMobileUserRole() throws Exception {
+		if (userIds == null || "".equals(userIds) || selectedRoleIds == null
+				|| "".equals(selectedRoleIds)) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		Long[] ids = analyzePopulationIds(userIds);
+		Long[] roleIds = analyzePopulationIds(selectedRoleIds);
+
+		if (roleIds != null) {
+			for (Long id : ids) {
+				permissionService.updateUserRoleRela(id, roleIds);
+				permissionService.lockOperate(id, false);
+				User matchUser = permissionService.getSimpleUserById(id);
+				systemLogService.log(com.vladium.logging.Logger.INFO,
+						ModelType.MOBILEINFOMANAGE, OperatorType.UPDATE,
+						getCurrentUersName() + "匹配手机账号"
+								+ matchUser.getUserName() + "岗位", null);
+			}
+		}
+
+		return SUCCESS;
+	}
+
+	/**
+	 * 手机账号回收
+	 * */
+
+	@PermissionFilter(ename = "recycleMobileUser", actionName = "recycleMobileUser")
+	public String recycleMobileUser() throws Exception {
+		if (userIds == null || "".equals(userIds)) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		Long[] ids = analyzePopulationIds(userIds);
+
+		permissionService.recycleMobileUser(ids);
+		return SUCCESS;
+	}
+
+	/**
+	 * 匹配网格时验证vpdn是否正确
+	 * */
+	@PermissionFilter(ename = "matchupRole", actionName = "validateMobileVpdn")
+	public String validateMobileVpdn() throws Exception {
+		if (orgId == null || orgId == 0 || userIds == null
+				|| "".equals(userIds)) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+
+		String vpdn = getVpdnRule(orgId);
+		if (vpdn == null || "".equals(vpdn)) {
+			return ERROR;
+		}
+		// String vpdnTemp = vpdn.substring(0, vpdn.indexOf(".", 1));
+		Long[] ids = analyzePopulationIds(userIds);
+		opreationResult = permissionService.validateMobileUserVpdn(vpdn, ids);
+		if (!opreationResult) {
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	/**
+	 * 验证手机账号用户的用户名是否存在
+	 * */
+	public String validateMobileUserName() throws Exception {
+		String userName = user.getUserName(), vpdn = user.getVpdn();
+		userName = (userName == null ? "" : userName)
+				+ (vpdn == null ? "" : vpdn);
+		User existedUser = permissionService.findUserByMobileUserName(userName);
+		if (existedUser == null) {
+			return SUCCESS;
+		}
+		if (DialogMode.EDIT_MODE.equalsIgnoreCase(mode)) {
+			if (existedUser.getId().equals(user.getId())) {
+				return SUCCESS;
+			}
+		}
+		return ERROR;
+	}
+
+	/**
+	 * 验证账号的imsi码是否存在
+	 * */
+	public String validateHasSameUserImsi() throws Exception {
+		String imsi = user.getImsi();
+		imsi = (imsi == null ? "" : imsi);
+		User existedUser = permissionService.findUserByImsi(imsi);
+		if (existedUser == null) {
+			return SUCCESS;
+		}
+		if (DialogMode.EDIT_MODE.equalsIgnoreCase(mode)) {
+			if (existedUser.getId().equals(user.getId())) {
+				return SUCCESS;
+			}
+		}
+		return ERROR;
+	}
+
+	@PermissionFilter(ename = "deleteUser")
+	public String deleteUserById() throws Exception {
+		if ("".equals(userIds) || userIds == null) {
+			errorMessage = "id为空，请选择要删除的用户！";
+			return ERROR;
+		}
+
+		long id = ThreadVariable.getUser().getId();
+		Long[] ids = analyzePopulationIds(userIds);
+		// 检查删除的用户id是否包含当前登录用户id
+		for (int i = 0; i < ids.length; i++) {
+			if (id == ids[i]) {
+				errorMessage = "删除的用户中包含当前登录用户，不能删除！";
+				return ERROR;
+			}
+		}
+		if (!permissionService.deleteUserById(ids)) {
+			errorMessage = "admin用户不能删除！";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	@PermissionFilters(value = {
+			@PermissionFilter(ename = "openGps", actionName = "openOrCloseGpsByUserId"),
+			@PermissionFilter(ename = "closeGps", actionName = "openOrCloseGpsByUserId") })
+	public String openOrCloseGpsByUserId() throws Exception {
+		if ("".equals(userIds) || userIds == null) {
+			errorMessage = "id为空，请选择要变更的用户！";
+			return ERROR;
+		}
+		Long[] ids = analyzePopulationIds(userIds);
+		permissionService.openOrCloseGpsByUserId(ids, mode);
+		return SUCCESS;
+	}
+
+	@PermissionFilters(value = {
+			@PermissionFilter(ename = "closeFourTeams", actionName = "openOrCloseFourTeamsByUserId"),
+			@PermissionFilter(ename = "openFourTeams", actionName = "openOrCloseFourTeamsByUserId") })
+	public String openOrCloseFourTeamsByUserId() throws Exception {
+		if ("".equals(userIds) || userIds == null) {
+			errorMessage = "id为空，请选择要变更的用户！";
+			return ERROR;
+		}
+		Long[] ids = analyzePopulationIds(userIds);
+		permissionService.openOrCloseFourTeamsByUserId(ids, mode);
+		return SUCCESS;
+	}
+
+	private Long[] analyzePopulationIds(String userIds) {
+		String[] deleteId = userIds.split(",");
+		List<Long> idList;
+		if (deleteId[0].equals("")) {
+			idList = initTargetId(deleteId, 1);
+		} else {
+			idList = initTargetId(deleteId, 0);
+		}
+		Long[] ids = new Long[idList.size()];
+		for (int i = 0; i < ids.length; i++) {
+			ids[i] = idList.get(i);
+		}
+		return ids;
+	}
+
+	@PermissionFilter(ename = "addUser")
+	public String addUser() throws Exception {
+		if (organizationId == null) {
+			errorMessage = "请选择网格!";
+			return ERROR;
+		}
+		if (roleIds == null && !user.isAdmin()) {
+			errorMessage = "岗位不能为空";
+			return ERROR;
+		}
+		if (user.getOrganization() == null) {
+			user.setOrganization(new Organization());
+		}
+		user.getOrganization().setId(organizationId);
+		getUserNameAndvpdn(organizationId);
+		if ("error".equals(validateUserName())) {
+			errorMessage = "该用户已经存在!";
+		}
+		user = permissionService.addUser(user);
+		if (roleIds != null) {
+			for (Long roleId : roleIds) {
+				permissionService.addUserRoleRela(user.getId(), roleId);
+			}
+		}
+		if (zoneIds != null) {
+			for (Long zoneId : zoneIds) {
+				permissionService.addUserMultiZone(user.getId(), zoneId);
+			}
+		}
+		user = permissionService.getFullUserById(user.getId());
+		systemLogService.log(com.vladium.logging.Logger.INFO, ModelType.USER,
+				OperatorType.ADD, getCurrentUersName() + "在" + getCurrenOrg()
+						+ "新增用户" + user.getUserName(), ObjectToJSON
+						.convertJSON(user));
+		return SUCCESS;
+	}
+
+	private void getUserNameAndvpdn(Long currentOrgId) {
+		Organization currentOrg = organizationDubboService
+				.getFullOrgById(currentOrgId);
+		if (DialogMode.ADD_MODE.equalsIgnoreCase(getMode())) {
+			if (currentOrg.getOrgLevel().getInternalId() != OrganizationLevel.COUNTRY) {
+				String str = user.getUserName() + user.getVpdn();
+				user.setUserName(str);
+			}
+		}
+	}
+
+	@PermissionFilters(value = {
+			@PermissionFilter(ename = "updateUser", actionName = "updateUser"),
+			@PermissionFilter(ename = "userListUpdate", actionName = "updateUser") })
+	public String updateUser() throws Exception {
+		if (roleIds == null && user.isAdmin() == false) {
+			errorMessage = "岗位不能为空";
+			return ERROR;
+		}
+		if (!checkUserAssigned())
+			return ERROR;
+		if (user.getOrganization() == null) {
+			user.setOrganization(new Organization());
+		}
+		user.getOrganization().setId(organizationId);
+		if (!SUCCESS.equals(validateUserName())) {
+			errorMessage = "用户名已经存在";
+			return ERROR;
+		}
+		user = permissionService.updateUser(user);
+		permissionService.updateUserRoleRela(user.getId(), roleIds);
+		permissionService.updateUserMultiZone(user.getId(), zoneIds);
+		user = permissionService.getFullUserById(user.getId());
+		systemLogService.log(com.vladium.logging.Logger.INFO, ModelType.USER,
+				OperatorType.UPDATE, ThreadVariable.getSession().getUserName()
+						+ "在" + getCurrenOrg() + "修改用户" + user.getUserName(),
+				null);
+		return SUCCESS;
+	}
+
+	public String updateDetails() throws Exception {
+		if (!permissionService.updateUserDetails(user)) {
+			this.errorMessage = "修改个人信息失败";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	// modify by FCY at 2011.12.26 start
+	@PermissionFilters(value = {
+			@PermissionFilter(ename = "resetPassword", actionName = "resetUserPassword2"),
+			@PermissionFilter(ename = "usersListResetPassword", actionName = "resetUserPassword2") })
+	public String resetUserPasswordByUserName() throws Exception {
+		permissionService.resetUserPasswordByUserName(user.getUserName(), user
+				.getPassword());
+		return SUCCESS;
+	}
+
+	// modify by FCY at 2011.12.26 end
+
+	@PermissionFilters(value = {
+			@PermissionFilter(ename = "resetPassword", actionName = "resetUserPassword"),
+			@PermissionFilter(ename = "usersListResetPassword", actionName = "resetUserPassword") })
+	public String resetUserPassword() throws Exception {
+		logger
+				.info("=====UserManageController====UserManageController==resetUserPassword===="
+						+ organizationId + ":" + user);
+		if (!checkUserAssigned())
+			return ERROR;
+		permissionService.resetUserPasswordByUserId(user.getId(), user
+				.getPassword());
+		return SUCCESS;
+	}
+
+	@PermissionFilter(ename = "userManagement")
+	public String findUsers() throws Exception {
+		if (organizationId == null) {
+			gridPage = new GridPage(new PageInfo<User>());
+			return SUCCESS;
+		}
+		Boolean lockStatus = null;
+		if ("locked".equalsIgnoreCase(searchLockStatus)) {
+			lockStatus = Boolean.TRUE;
+		} else if ("unlocked".equals(searchLockStatus)) {
+			lockStatus = Boolean.FALSE;
+		} else if ((Boolean.FALSE + "").equals(searchLockStatus)) {
+			lockStatus = Boolean.FALSE;
+		} else if (Constants.UserState.WITHACTIVATION_STRING
+				.equals(searchLockStatus)) {
+			user.setState(Constants.UserState.WITHACTIVATION_STATE);
+		}
+		PageInfo<User> pageInfo = permissionService
+				.findUsersForPageByUserIdAndOrgIdAndLockState(user.getId(),
+						organizationId, searchChildOrg, lockStatus, user,
+						roleIdsStr, page, rows, sidx, sord);
+		gridPage = new GridPage(pageInfo);
+
+		return SUCCESS;
+	}
+
+	@PermissionFilter(ename = "usersListManagement")
+	public String usersList() throws Exception {
+		if (organizationId == null) {
+			gridPage = new GridPage(new PageInfo<User>());
+			return SUCCESS;
+		}
+		Boolean lockStatus = null;
+		if ("locked".equalsIgnoreCase(searchLockStatus)
+				|| "true".equals(searchLockStatus)) {
+			lockStatus = Boolean.TRUE;
+		} else if ("unlocked".equals(searchLockStatus)
+				|| "false".equals(searchLockStatus)) {
+			lockStatus = Boolean.FALSE;
+		} else if (Constants.UserState.WITHACTIVATION_STRING
+				.equals(searchLockStatus)) {
+			user.setState(Constants.UserState.WITHACTIVATION_STATE);
+		}
+		PageInfo<User> pageInfo = permissionService
+				.findUsersForPageByUserIdAndOrgIdAndLockState(user.getId(),
+						organizationId, searchChildOrg, lockStatus, user,
+						roleIdsStr, page, rows, sidx, sord);
+		gridPage = new GridPage(pageInfo);
+
+		return SUCCESS;
+	}
+
+	public List<Long> getRoleIdList() {
+		List<Long> result = new ArrayList<Long>();
+		if (roleIds != null && roleIds.length > 0) {
+			for (int i = 0; i < roleIds.length; i++) {
+				result.add(new Long(roleIds[i]));
+			}
+		}
+		return result;
+	}
+
+	@PermissionFilter(ename = "searchUsers")
+	public String searchUsers() throws Exception {
+		PageInfo<User> pageInfo = permissionService.findUsersBylockStatus(
+				searchLockStatus, user, page, rows, sidx, sord);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	@PermissionFilters(value = {
+			@PermissionFilter(ename = "lockUser", actionName = "lockOperate"),
+			@PermissionFilter(ename = "usersListLockUsers", actionName = "lockOperate") })
+	public String lockOperate() throws Exception {
+		if (!checkUserAssigned())
+			return ERROR;
+		boolean lockStatus = false;
+		if ("true".equalsIgnoreCase(searchLockStatus)) {
+			lockStatus = Boolean.FALSE;
+		} else if ("false".equals(searchLockStatus)) {
+			lockStatus = Boolean.TRUE;
+		} else {
+			this.errorMessage = "更改用户锁状态失败!";
+			return ERROR;
+		}
+		permissionService.lockOperate(user.getId(), lockStatus);
+		return SUCCESS;
+	}
+
+	@PermissionFilters(value = {
+			@PermissionFilter(ename = "reUsed", actionName = "reUsed"),
+			@PermissionFilter(ename = "usersListReUsed", actionName = "reUsed") })
+	public String reUsed() throws Exception {
+		String[] usersId = userIds.split(",");
+		List<Long> idList;
+		if (usersId[0].equals("")) {
+			idList = initTargetId(usersId, 1);
+		} else {
+			idList = initTargetId(usersId, 0);
+		}
+		for (Long id : idList) {
+			User user = permissionService.getSimpleUserById(id);
+			user.setShutDown(true);
+			user = permissionService.updateUserByShutdown(user);
+			if (null == user) {
+				errorMessage = "操作出现错误";
+				return ERROR;
+			}
+			systemLogService.log(com.vladium.logging.Logger.INFO,
+					ModelType.USER, OperatorType.UPDATE, getCurrentUersName()
+							+ "启用用户" + user.getUserName(), null);
+		}
+		return SUCCESS;
+	}
+
+	@PermissionFilters(value = {
+			@PermissionFilter(ename = "stopUsed", actionName = "stopUsed"),
+			@PermissionFilter(ename = "usersListStopUsed", actionName = "stopUsed") })
+	public String stopUsed() throws Exception {
+		String[] usersId = userIds.split(",");
+		List<Long> idList;
+		if (usersId[0].equals("")) {
+			idList = initTargetId(usersId, 1);
+		} else {
+			idList = initTargetId(usersId, 0);
+		}
+		for (Long id : idList) {
+			User user = permissionService.getSimpleUserById(id);
+			user.setShutDown(false);
+			user = permissionService.updateUserByShutdown(user);
+			if (null == user) {
+				return ERROR;
+			}
+			systemLogService.log(com.vladium.logging.Logger.INFO,
+					ModelType.USER, OperatorType.UPDATE, getCurrentUersName()
+							+ "关闭用户" + user.getUserName(), null);
+		}
+		return SUCCESS;
+	}
+
+	private List<Long> initTargetId(String[] targetIds, int size) {
+		List<Long> idLongs = new ArrayList<Long>();
+		for (int i = size; i < targetIds.length; i++) {
+			String tempId = targetIds[i];
+			if (size == 0) {
+				idLongs.add(Long.parseLong(targetIds[i]));
+			} else {
+				idLongs.add(Long.parseLong(tempId));
+			}
+		}
+		return idLongs;
+	}
+
+	public String dispatchUserOperate() throws Exception {
+		operateUser = permissionService.getFullUserById(ThreadVariable
+				.getSession().getUserId());
+		if (DialogMode.ADD_MODE.equalsIgnoreCase(mode)) {
+			organizations = organizationDubboService
+					.findOrganizationsByParentId(organizationId);
+			user = new User();
+			user.setChangePassword(true);
+			user.setPcusable(true);
+			vpdnRule = getVpdnRule(organizationId);
+		} else if (DialogMode.EDIT_MODE.equalsIgnoreCase(mode)) {
+			organizations = organizationDubboService
+					.findOrganizationsByParentId(organizationId);
+			user = permissionService.getFullUserById(user.getId());
+			organizationId = user.getOrganization() == null ? null : user
+					.getOrganization().getId();
+		} else if (DialogMode.VIEW_MODE.equalsIgnoreCase(mode)) {
+			user = permissionService.getFullUserById(user.getId());
+			user.getOrganization().setOrgName(
+					ControllerHelper.getOrganizationRelativeName(user
+							.getOrganization().getId(),
+							organizationDubboService));
+			dealUserRole();
+			dealUserDept();
+			return "view";
+		} else if (RESET_PWD.equalsIgnoreCase(mode)) {
+			if (user != null && user.getId() != null)
+				user = permissionService.getFullUserById(user.getId());
+			return RESET_PWD;
+		} else if (DialogMode.SEARCH_MODE.equals("search")) {
+			organizations = organizationDubboService
+					.findOrganizationsByParentId(organizationId);
+			return "search";
+		}
+		return SUCCESS;
+	}
+
+	private String getVpdnRule(Long currentOrgId) {
+		String currentProject = GridProperties.CURRENT_PROJECT;
+		Organization parentOrg = new Organization();
+		Organization org = organizationDubboService
+				.getFullOrgById(currentOrgId);
+		int orgLevel1 = org.getOrgLevel().getInternalId();
+		if (orgLevel1 == OrganizationLevel.COUNTRY) {
+			return "";
+		}
+
+		if (orgLevel1 == OrganizationLevel.PROVINCE
+				|| orgLevel1 == OrganizationLevel.CITY) {
+			parentOrg = org;
+			PropertyDict organizationType = org.getFunctionalOrgType();
+			if (organizationType != null) {// 省、市级职能部门
+				parentOrg = organizationDubboService.getFullOrgById(org
+						.getParentOrg().getId());
+			}
+		} else {
+			while (true) {
+				parentOrg = organizationDubboService.getFullOrgById(org
+						.getParentOrg().getId());
+				if (parentOrg.getOrgLevel().getInternalId() == OrganizationLevel.CITY) {
+					break;
+				}
+				org = parentOrg;
+			}
+		}
+		int orgLevel = parentOrg.getOrgLevel().getInternalId();
+		if (CityNameHelper.SICHUANE.equals(currentProject)) {
+			if (orgLevel == OrganizationLevel.PROVINCE) {
+				vpdnRule = CityNameHelper.SICHUAN_VPDN;
+			} else if (orgLevel == OrganizationLevel.CITY) {
+				if (StringUtil.isStringAvaliable(parentOrg.getOrgName())) {
+					vpdnRule = CityNameHelper.scVpdnMap.get(parentOrg
+							.getOrgName());
+				}
+			}
+		} else {
+			if (orgLevel == OrganizationLevel.PROVINCE) {
+				vpdnRule = CityNameHelper.CHONGQING_VPDN;
+			} else if (orgLevel == OrganizationLevel.CITY) {
+				if (StringUtil.isStringAvaliable(parentOrg.getOrgName())) {
+					vpdnRule = CityNameHelper.cqVpdnMap.get(parentOrg
+							.getOrgName());
+				}
+			} else if (orgLevel == OrganizationLevel.DISTRICT) {
+				if (StringUtil.isStringAvaliable(parentOrg.getOrgName())) {
+					vpdnRule = CityNameHelper.cqVpdnMap.get(parentOrg
+							.getOrgName());
+				}
+			}
+		}
+		return vpdnRule;
+	}
+
+	private void dealUserRole() {
+		if (user.getRoles().size() > 0) {
+			for (Role role : user.getRoles()) {
+				userRole = userRole + role.getRoleName() + ",";
+			}
+			if (userRole.length() == userRole.lastIndexOf(",") + 1) {
+				userRole = userRole.substring(0, userRole.lastIndexOf(","));
+			}
+		}
+	}
+
+	private void dealUserDept() {
+		if (user.getMultiZone().size() > 0) {
+			for (Organization org : user.getMultiZone()) {
+				userDept = userDept + org.getOrgName() + ",";
+			}
+			if (userDept.length() == userDept.lastIndexOf(",") + 1) {
+				userDept = userDept.substring(0, userDept.lastIndexOf(","));
+			}
+		}
+	}
+
+	public String viewUserOperateByUserName() throws Exception {
+		operateUser = permissionService.getFullUserById(ThreadVariable
+				.getSession().getUserId());
+		user = permissionService.getFullUserByUerName(user.getUserName());
+		organizationId = user.getOrganization() == null ? null : user
+				.getOrganization().getId();
+		return SUCCESS;
+	}
+
+	/**
+	 * 检查该用户名是否存在
+	 * 
+	 * @return
+	 */
+	public String checkIsExistByUserName() throws Exception {
+		user = permissionService.getFullUserByUerName(user.getUserName());
+		if (null == user) {
+			errorMessage = "没有该用户！";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	public String prepareZoneSelection() throws Exception {
+		return SUCCESS;
+	}
+
+	public String prepareRoleTable() throws Exception {
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(organizationId);
+		if (organization == null || organization.getOrgLevel() == null)
+			return ERROR;
+		Long currentOrgLevel = organization.getOrgLevel().getId();
+		gridPage = new GridPage();
+
+		if (mode != null && "view".equals(mode)) {
+			gridPage.setRows(permissionService.findRolesByUserId(user.getId()));
+			return SUCCESS;
+		}
+
+		if (loginIsSuperAdmin()) {
+			gridPage.setRows(permissionService.findRolesByUserInLevel(userRole,
+					currentOrgLevel));
+		} else {
+			user = permissionService.getFullUserById(((Session) ThreadVariable
+					.getSession()).getUserId());
+
+			Organization userOwerOrg = organizationDubboService
+					.getSimpleOrgById(user.getOrganization().getId());
+			Long currentUserOrgLevel = userOwerOrg.getOrgLevel().getId();
+			if (user.isAdmin() || currentUserOrgLevel > currentOrgLevel) {
+				gridPage.setRows(permissionService.findRolesByUserInLevel(
+						userRole, currentOrgLevel));
+			} else {
+				gridPage.setRows(permissionService
+						.findRolesByRoleNameAndUserIdAndUseInLevel(userRole,
+								user.getId(), currentOrgLevel));
+			}
+		}
+		return SUCCESS;
+	}
+
+	public String currentUserIsSuperAdmin() throws Exception {
+		user.setAdmin(loginIsSuperAdmin());
+		return SUCCESS;
+
+	}
+
+	public String validateUserName() throws Exception {
+		String userName = user.getUserName(), vpdn = user.getVpdn();
+		userName = (userName == null ? "" : userName).indexOf("@") == -1 ? userName
+				+ (vpdn == null ? "" : vpdn)
+				: userName;
+		User existedUser = permissionService.findUserByUserName(userName);
+		if (existedUser == null) {
+			return SUCCESS;
+		}
+		if (DialogMode.EDIT_MODE.equalsIgnoreCase(mode)) {
+			if (existedUser.getId().equals(user.getId())) {
+				return SUCCESS;
+			}
+		}
+		return ERROR;
+	}
+
+	public String findUserForAutocomplete() throws Exception {
+		Boolean lockStatus = null;
+		if ("locked".equalsIgnoreCase(searchLockStatus)) {
+			lockStatus = Boolean.TRUE;
+		} else if ("unlocked".equals(searchLockStatus)) {
+			lockStatus = Boolean.FALSE;
+		}
+		userInfors = permissionService.findUserForAutocomplete(organizationId,
+				user.getName(), lockStatus, searchChildOrg, rows);
+		return SUCCESS;
+	}
+
+	public String updatePasswordEmail() throws Exception {
+		if (permissionService.updatePasswordSuccess(ThreadVariable.getSession()
+				.getUserId(), oldPassword, currentPassword, validatePassword,
+				email)) {
+			systemLogService.log(com.vladium.logging.Logger.INFO,
+					ModelType.USER, OperatorType.UPDATE, getCurrentUersName()
+							+ "重置密码邮箱", null);
+			return SUCCESS;
+		}
+		oldPasswordIsRight();
+		return ERROR;
+	}
+
+	public String asyncoUser() throws Exception {
+		user = permissionService.getSimpleUserById(user.getId());
+		asyncBBSUser(user.getUserName(), user.getPassword());
+		return SUCCESS;
+	}
+
+	private boolean asyncBBSUser(String username, String password) {
+		if (!"production".equals(GlobalValue.environment))
+			return false;
+		String url = "?accessKey=%s&userName=%s&password=%s";
+		try {
+			URL bbsURL = new URL(GridProperties.BBS_BASEURL
+					+ String.format(url, ACCESSKEY, username, password));
+			Object result = bbsURL.getContent();
+			logger.error(result.toString());
+			return true;
+		} catch (MalformedURLException mu) {
+			logger.error("错误信息", mu);
+		} catch (IOException e) {
+			logger.error("异常信息", e);
+		}
+		return false;
+	}
+
+	private boolean checkUserAssigned() {
+		if (user == null || user.getId() == null) {
+			this.errorMessage = "系统错误,请联系管理员!";
+			return false;
+		}
+		return true;
+	}
+
+	public String toPersonalDetailsUpdate() throws Exception {
+		user = permissionService.getSimpleUserById(ThreadVariable.getSession()
+				.getUserId());
+		return SUCCESS;
+	}
+
+	public String oldPasswordIsRight() throws Exception {
+		if (permissionService.oldPasswordIsRight(user.getId(), oldPassword)) {
+			return SUCCESS;
+		}
+		errorMessage = "旧密码输入不正确，请重试！";
+		return ERROR;
+	}
+
+	// 用户列表 角色
+	public String prepareRoleTableForUserList() throws Exception {
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(organizationId);
+		Long currentOrgLevel = organization.getOrgLevel().getId();
+		if (organization == null || organization.getOrgLevel() == null)
+			return ERROR;
+
+		gridPage = new GridPage();
+		gridPage.setRows(permissionService
+				.findAllRolesDownCurrentOrgLevel(currentOrgLevel));
+		return SUCCESS;
+	}
+
+	// 根据roleId重置工作台
+	public String reSetPatelConfig() throws Exception {
+		if (roleId == null && user.isAdmin() == false) {
+			errorMessage = "岗位不能为空";
+			return ERROR;
+		}
+		ids = permissionService.reSetPatelConfigByRoleId(roleId);
+		return SUCCESS;
+	}
+
+	// 根据roleId重置工作台
+	public String reSetPatelConfigByUserId() throws Exception {
+		if (roleId == null && user.isAdmin() == false && userId == null) {
+			errorMessage = "岗位不能为空";
+			return ERROR;
+		}
+		permissionService.reSetPatelConfigByUserId(userId);
+		return SUCCESS;
+	}
+
+	/***
+	 * 获取用户订阅的消息类型
+	 * 
+	 * @return
+	 */
+	public String findUserHasPlatformMessageTypeByUserId() throws Exception {
+		// 当前登录已订阅的消息类型
+		messageTypes = userHasPlatformMessageTypesDubboService
+				.findUserHasPlatformMessageTypeByUserId(ThreadVariable
+						.getUser().getId());
+		// 所有的消息类型
+		Set<Integer> allMessageType = PlatformMessageType.MESSAGE_TYPE.keySet();
+
+		canSelectMessageTypes = new ArrayList<Integer>(allMessageType);
+		// 用户未订阅的消息类型
+		canSelectMessageTypes.removeAll(messageTypes);
+
+		return SUCCESS;
+	}
+
+	/***
+	 * 保存用户订阅的消息类型
+	 * 
+	 * @return
+	 */
+	public String updateUserHasPlatformMessageType() throws Exception {
+
+		userHasPlatformMessageTypesDubboService.addUserHasPlatformMessageType(
+				messageTypes, ThreadVariable.getUser().getId());
+
+		return SUCCESS;
+	}
+
+	/***
+	 * 用户激活、停用
+	 * 
+	 * @return
+	 */
+	@PermissionFilters(value = {
+			@PermissionFilter(ename = "activationUser", actionName = "activationAndDisableUserOperate"),
+			@PermissionFilter(ename = "disableUser", actionName = "activationAndDisableUserOperate"),
+			@PermissionFilter(ename = "usersListActivation", actionName = "activationAndDisableUserOperate"),
+			@PermissionFilter(ename = "usersListDisable", actionName = "activationAndDisableUserOperate"),
+			@PermissionFilter(ename = "activationMobileUser", actionName = "activationAndDisableUserOperate"),
+			@PermissionFilter(ename = "disableMobileUser", actionName = "activationAndDisableUserOperate") })
+	public String activationAndDisableUserOperate() throws Exception {
+		if (StringUtil.isStringAvaliable(userIds) && state != null) {
+			Long[] ids = analyzePopulationIds(userIds);
+			permissionService.updateUserStateByUserIds(ids, state);
+		}
+		return SUCCESS;
+	}
+
+	// 日志获取当前登陆用户名
+	private String getCurrentUersName() {
+		return ThreadVariable.getSession().getUserName();
+	}
+
+	// 日志获取当前用户操作层级
+	private String getCurrenOrg() {
+		return organizationDubboService
+				.getOrganizationRelativeNameByRootOrgIdAndOrgId(organizationId,
+						OrganizationServiceHelper.getRootOrg(
+								organizationDubboService).getId());
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	private boolean loginIsSuperAdmin() {
+		String currentUserName = ((Session) ThreadVariable.getSession())
+				.getUserName();
+		return "admin".equals(currentUserName);
+	}
+
+	public String getOldPassword() {
+		return oldPassword;
+	}
+
+	public void setOldPassword(String oldPassword) {
+		this.oldPassword = oldPassword;
+	}
+
+	public String getCurrentPassword() {
+		return currentPassword;
+	}
+
+	public void setCurrentPassword(String currentPassword) {
+		this.currentPassword = currentPassword;
+	}
+
+	public String getValidatePassword() {
+		return validatePassword;
+	}
+
+	public void setValidatePassword(String validatePassword) {
+		this.validatePassword = validatePassword;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String[][] getUserInfors() {
+		return userInfors;
+	}
+
+	public void setUserInfors(String[][] userInfors) {
+		this.userInfors = userInfors;
+	}
+
+	public boolean isSearchChildOrg() {
+		return searchChildOrg;
+	}
+
+	public void setSearchChildOrg(boolean searchChildOrg) {
+		this.searchChildOrg = searchChildOrg;
+	}
+
+	public String getSearchLockStatus() {
+		return searchLockStatus;
+	}
+
+	public void setSearchLockStatus(String searchLockStatus) {
+		this.searchLockStatus = searchLockStatus;
+	}
+
+	public Long[] getRoleIds() {
+		return roleIds;
+	}
+
+	public void setRoleIds(Long[] roleIds) {
+		this.roleIds = roleIds;
+	}
+
+	public Long[] getZoneIds() {
+		return zoneIds;
+	}
+
+	public void setZoneIds(Long[] zoneIds) {
+		this.zoneIds = zoneIds;
+	}
+
+	public Long getOrganizationId() {
+		return organizationId;
+	}
+
+	public void setOrganizationId(Long organizationId) {
+		this.organizationId = organizationId;
+	}
+
+	public List<Organization> getOrganizations() {
+		return organizations;
+	}
+
+	public void setOrganizations(List<Organization> organizations) {
+		this.organizations = organizations;
+	}
+
+	public User getOperateUser() {
+		return operateUser;
+	}
+
+	public void setOperateUser(User operateUser) {
+		this.operateUser = operateUser;
+	}
+
+	public String getUserIds() {
+		return userIds;
+	}
+
+	public void setUserIds(String userIds) {
+		this.userIds = userIds;
+	}
+
+	public String getLogInUserName() {
+		return logInUserName;
+	}
+
+	public void setLogInUserName(String logInUserName) {
+		this.logInUserName = logInUserName;
+	}
+
+	public String getModifyRoleUserName() {
+		return modifyRoleUserName;
+	}
+
+	public void setModifyRoleUserName(String modifyRoleUserName) {
+		this.modifyRoleUserName = modifyRoleUserName;
+	}
+
+	public Long getRoleId() {
+		return roleId;
+	}
+
+	public void setRoleId(Long roleId) {
+		this.roleId = roleId;
+	}
+
+	public Long[] getIds() {
+		return ids;
+	}
+
+	public void setIds(Long[] ids) {
+		this.ids = ids;
+	}
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public List<Integer> getMessageTypes() {
+		return messageTypes;
+	}
+
+	public void setMessageTypes(List<Integer> messageTypes) {
+		this.messageTypes = messageTypes;
+	}
+
+	public List<Integer> getCanSelectMessageTypes() {
+		return canSelectMessageTypes;
+	}
+
+	public void setCanSelectMessageTypes(List<Integer> canSelectMessageTypes) {
+		this.canSelectMessageTypes = canSelectMessageTypes;
+	}
+
+	public String getUserRole() {
+		return userRole;
+	}
+
+	public void setUserRole(String userRole) {
+		this.userRole = userRole;
+	}
+
+	public String getUserDept() {
+		return userDept;
+	}
+
+	public void setUserDept(String userDept) {
+		this.userDept = userDept;
+	}
+
+	public String getRoleIdsStr() {
+		return roleIdsStr;
+	}
+
+	public void setRoleIdsStr(String roleIdsStr) {
+		this.roleIdsStr = roleIdsStr;
+	}
+
+	public String getVpdnRule() {
+		return vpdnRule;
+	}
+
+	public void setVpdnRule(String vpdnRule) {
+		this.vpdnRule = vpdnRule;
+	}
+
+	public UserVo getUserVo() {
+		return userVo;
+	}
+
+	public void setUserVo(UserVo userVo) {
+		this.userVo = userVo;
+	}
+
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+	public String getSelectedRoleIds() {
+		return selectedRoleIds;
+	}
+
+	public void setSelectedRoleIds(String selectedRoleIds) {
+		this.selectedRoleIds = selectedRoleIds;
+	}
+
+	public boolean isPageOnly() {
+		return pageOnly;
+	}
+
+	public void setPageOnly(boolean pageOnly) {
+		this.pageOnly = pageOnly;
+	}
+
+	public Long getState() {
+		return state;
+	}
+
+	public void setState(Long state) {
+		this.state = state;
+	}
+
+	public Long getIsUp() {
+		return isUp;
+	}
+
+	public void setIsUp(Long isUp) {
+		this.isUp = isUp;
+	}
+}

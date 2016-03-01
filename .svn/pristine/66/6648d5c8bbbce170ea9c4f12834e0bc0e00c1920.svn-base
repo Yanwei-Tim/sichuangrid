@@ -1,0 +1,274 @@
+<#assign pop=JspTaglibs["/WEB-INF/taglib/pop-taglib.tld"]>
+<#assign s=JspTaglibs["/WEB-INF/taglib/struts-tags.tld"]>
+<@s.include value="/includes/baseInclude.jsp" />
+<div class="content">
+	<div class="ui-corner-all" id="nav">
+		<div class="btnbanner btnbannerData">
+			<@s.include value="/common/orgSelectedComponent.jsp"/>
+			<div class="ui-widget autosearch">
+			    <input class="basic-input" type="text" value="请输入姓名或地点" name="positiveInfoRecordVo.fastSearchCondition" id="searchText" maxlength="18" class="searchtxt" onblur="value=(this.value=='')?'请输入姓名或地点':this.value;" onfocus="value=(this.value=='请输入姓名或地点')?'':this.value;"/>
+				<button id="refreshSearchKey" class="ui-icon ui-icon-refresh searchbtnico"></button>
+			</div>
+			<a href="javascript:;" id="fastSearchButton"><span>搜索</span></a>
+			<@pop.JugePermissionTag ename="searchPositiveInfoRecord">
+				<a id="search" href="javascript:void(0)"><span><strong
+						class="ui-ico-cx"></strong>高级搜索</span></a>
+				<span class="lineBetween"></span>
+			</@pop.JugePermissionTag>
+			<span class="lineBetween"></span>
+		</div>
+		<@pop.JugePermissionTag ename="addPositiveInfoRecord">
+			<a id="add" href="javascript:void(0)"><span><strong
+					class="ui-ico-xz"></strong>新增</span></a>
+		</@pop.JugePermissionTag>
+		<@pop.JugePermissionTag ename="deletePositiveInfoRecord">
+			<a id="delete" href="javascript:void(0)"><span><strong
+					class="ui-ico-sc"></strong>批量删除</span></a>
+		</@pop.JugePermissionTag>
+		<a id="reload" href="javascript:void(0)"><span><strong
+				class="ui-ico-refresh"></strong>刷新</span></a>
+		<!--
+		<@pop.JugePermissionTag ename="signPositiveInfoRecord">
+			<a id="transfer" href="javascript:void(0)"><span>签收</span></a>
+		</@pop.JugePermissionTag>
+		-->
+	</div>
+	<input type="hidden" name="" id="flag" value="${(flag)!}" />
+	<div style="width: 100%;" class="">
+		<table id="positiveInfoRecordList"></table>
+		<div id="positiveInfoRecordListPager"></div>
+	</div>
+	<div id="positiveInfoRecordDialog"></div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){
+	<@pop.formatterProperty name="livelihoodWay" domainName="@com.tianque.domain.property.PropertyTypes@DRUGGY_LIFE_RESOURCE" />
+	$("#positiveInfoRecordList").jqGridFunction({
+		datatype: "local",
+		multiselect:true,
+		colModel:[
+			{name:"id",index:"id",sortable:false,hidden:true},
+			/**
+		    {name:"operation",index:"id",label:"操作",sortable:false,width:80,align:"center",formatter:operaterFormatter},
+		    **/
+		    {name:'name',index:"name",label:'姓名',sortable:false,width:100,align:"center"},
+		    {name:'recordDate',index:"recordDate",label:'时间',sortable:true,width:150},
+		    {name:'address',index:'address',label:'地点',sortable:false,width:200},
+		    {name:'livelihoodWay',label:'生活来源方式',sortable:false,width:100,formatter:livelihoodWayFormatter},
+		     {name:'status',label:'是否签收',align:"center",sortable:false, width:150,formatter:statusFormatter},
+		    {name:'exceptionSituationInfo',index:'exceptionSituationInfo',label:'异常情况',sortable:false,width:240},
+		    {name:'mark',index:'mark',label:'备注',sortable:false,width:200}
+		   
+		],
+		ondblClickRow: viewPositiveInfoRecord
+	});
+	$("#positiveInfoRecordList").jqGrid('setFrozenColumns');
+	//新增按钮事件
+	$("#add").click(function(event){
+		if(!isGrid()){
+			$.messageBox({level:"warn",message:"请先选择网格级别组织机构进行新增！"});
+			return;
+		}
+		$("#positiveInfoRecordDialog").createDialog({
+			title:"新增刑释人员记录",
+			width: 600,
+			height: 475,
+			url:"${path}/plugin/taskListManage/positiveInfoRecord/dispatch.action?mode=add",
+			buttons: {
+				"保存" : function(event){
+		   			$("#positiveInfoRecordForm").submit();
+				},
+				"关闭" : function(event){
+		   			$(this).dialog("close");
+				}
+			}
+		});
+	});
+	//刷新按钮事件绑定
+	$("#reload").click(function(event){
+		$("#searchText").val("请输入姓名或地点");
+		getPositiveInfoRecordList();
+	});
+	
+	$("#refreshSearchKey").click(function(){
+		$("#searchText").val("请输入姓名或地点");
+	});
+	
+	$("#fastSearchButton").click(function(event){
+		var fastSearchCondition = $("#searchText").val();
+		if(fastSearchCondition == "请输入姓名或地点"){
+			
+		}else {
+			$("#positiveInfoRecordList").setPostData({
+				"positiveInfoRecordVo.organization.id":getCurrentOrgId(),
+				"positiveInfoRecordVo.fastSearchCondition":fastSearchCondition
+			});
+			$("#positiveInfoRecordList").trigger("reloadGrid");
+		}
+	});
+	
+		getPositiveInfoRecordList();
+	
+	//高级搜索对话框
+	$("#search").click(function(event){
+		$("#positiveInfoRecordDialog").createDialog({
+			title:"社区刑释人员记录查询-请输入查询条件",
+			width: 700,
+			height: 300,
+			url:"${path}/plugin/taskListManage/positiveInfoRecord/dispatch.action?mode=search",
+			buttons: {
+				"查询" : function(event){
+					searchPositiveInfoRecords();
+					$(this).dialog("close");
+				},
+				"关闭" : function(){
+		        	$(this).dialog("close");
+				}
+			}
+
+		});
+	});
+	
+	$("#delete").click(function(){
+		var ids = $("#positiveInfoRecordList").jqGrid("getGridParam", "selarrrow");
+		if(ids.length < 1){
+			$.messageBox({level:'warn',message:"没有选中数据，无法对刑释人员记录进行删除操作！"});
+		}else {
+			deletePositiveInfoRecordOperator(ids);
+		}
+	});
+});
+
+	//列表显示（包括快速过滤）
+	function getPositiveInfoRecordList(){
+		$("#positiveInfoRecordList").setGridParam({
+			url:"${path}/plugin/taskListManage/positiveInfoRecord/findPositiveInfoRecords.action",
+			datatype: "json",
+			page:1,
+			mytype:"post"
+		});
+		$("#positiveInfoRecordList").setPostData({
+			"positiveInfoRecordVo.organization.id":getCurrentOrgId()
+		});
+		$("#positiveInfoRecordList").trigger("reloadGrid");
+	}
+	
+	//删除服务记录
+	function deletePositiveInfoRecordOperator(selectedIds){
+		var flag1 = false;
+		var flag2= false;
+		for(var i=0;i<selectedIds.length;i++){
+			var positiveInfoRecord =  $("#positiveInfoRecordList").getRowData(selectedIds[i]);
+			if(positiveInfoRecord.internalId>USER_ORG_LEVEL){
+				flag1 = true;
+			}
+			if(positiveInfoRecord.status == '是'){
+				flag2 = true;
+			}
+		}
+		if(flag1){
+			$.messageBox({level:'warn',message:"选中的刑释人员记录层级高于当前登录层级，无法对该刑释人员记录进行删除操作！"});
+			return;
+		}
+	    if(flag2){
+			$.messageBox({level:'warn',message:"选中的刑释人员记录已签收，无法对该刑释人员记录进行删除操作！"});
+			return;
+		}
+		$.confirm({
+			title:"确认删除",
+			message:"确定要删除吗?",
+			okFunc: function(){
+				$.ajax({
+					url:"${path}/plugin/taskListManage/positiveInfoRecord/deletePositiveInfoRecords.action?ids="+selectedIds,
+					success:function(data){
+						if(data>0){
+						    $.messageBox({message:"成功删刑释人员记录!"});
+							$("#positiveInfoRecordList").trigger("reloadGrid");
+						}else{
+							$.messageBox({
+								message:"删除刑释人员记录出错!",
+								level:"warn"
+							});
+						}
+					}
+				});
+			}
+		});
+	}
+	
+	//高级搜索
+	function searchPositiveInfoRecords()
+	{
+		$("#positiveInfoRecordList").setGridParam({
+			url:"${path}/plugin/taskListManage/positiveInfoRecord/findPositiveInfoRecords.action",
+			datatype: "json",
+			page:1,
+			mtype:"post"
+		});
+		var data=$("#searchPositiveInfoRecordForm").serializeArray();
+		var dataJson={};
+		for(i=0;i<data.length;i++){
+	 		if (dataJson[data[i].name]) {
+				dataJson[data[i].name]=dataJson[data[i].name]+","+data[i].value;
+			} else {
+				dataJson[data[i].name] = data[i].value;
+			}
+		}
+		$("#positiveInfoRecordList").setPostData(
+			$.extend(dataJson,{
+				"positiveInfoRecordVo.organization.id":getCurrentOrgId()
+		}));
+		$("#positiveInfoRecordList").trigger("reloadGrid");
+	}
+
+	function viewPositiveInfoRecord(selectedId) {
+		$("#positiveInfoRecordDialog").createDialog({
+			width: 600,
+			height: 500,
+			title: '查看刑释人员记录信息',
+			url:"${path}/plugin/taskListManage/positiveInfoRecord/viewPositiveInfoRecord.action?mode=view&id="+selectedId,
+			buttons: {
+				"关闭" : function(){
+					$(this).dialog("close");
+				}
+			}
+		});
+	}
+	
+	function statusFormatter(el, options, rowData){
+		var flag = "<@pop.JugePermissionTag ename='signPositiveInfoRecord'>true</@pop.JugePermissionTag>";
+		if(rowData.status == 0 && flag == 'true'){
+			return "<@pop.JugePermissionTag ename='signPositiveInfoRecord'><a href='javascript:' onclick='signRecord("+rowData.id+")'><span style='color:#ff0000;'>签收</span></a></@pop.JugePermissionTag>";
+		}else if(rowData.status == 0 && flag != 'true'){
+			return "否";
+		}
+		if(rowData.status == 1){
+			return "是";
+		}
+	}
+	
+	function operaterFormatter(el, options, rowData){
+		if(rowData.status == 0){
+			return "<@pop.JugePermissionTag ename='deletePositiveInfoRecord'><a href='javascript:' onclick='deletePositiveInfoRecordOperator("+rowData.id+")'><span>删除</span></a></@pop.JugePermissionTag>";
+		}else {
+			return "无";
+		}
+	}
+	
+	function signRecord(id){
+		$("#positiveInfoRecordDialog").createDialog({
+			width: 600,
+			height: 610,
+			title: '刑释人员记录签收',
+			url:"${path}/plugin/taskListManage/positiveInfoRecord/dispatch.action?mode=sign&id="+id,
+			buttons: {
+				"签收" : function(){
+					$("#positiveInfoRecordForm").submit();
+				},
+				"关闭" : function(){
+					$(this).dialog("close");
+				}
+			}
+		});
+	}
+</script>

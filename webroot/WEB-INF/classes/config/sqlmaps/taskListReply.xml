@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="taskListReply">
+	<typeAlias alias="taskListReply" type="com.tianque.plugin.taskList.domain.TaskListReply" />
+	<resultMap class="taskListReply" id="taskListReply_ResultMap">
+	    <result column="ID"  property="id" />
+	    <result column="moduleKey"  property="moduleKey" />
+	    <result column="taskId" property="taskId" />
+	    <result column="replyContent"  property="replyContent" />
+	    <result column="replyUserId"  property="replyUserId" />
+	    <result column="replyUser"  property="replyUser" />
+	    <result column="replyDate"  property="replyDate" />
+	    <result column="CREATEUSER" property="createUser" />
+	    <result column="UPDATEUSER"  property="updateUser" />
+	    <result column="CREATEDATE"  property="createDate" />
+	    <result column="UPDATEDATE"  property="updateDate" />
+  	</resultMap>
+  	
+  	<insert id="addTaskListReply" parameterClass="taskListReply">
+  		<selectKey resultClass="java.lang.Long" keyProperty="id">
+    	<![CDATA[ SELECT s_taskListReply.NEXTVAL AS id FROM dual ]]>
+		</selectKey>
+		<![CDATA[ insert into TaskListReply
+		(id,moduleKey,taskId,replyContent,replyUserId,replyUser,replyDate,createUser,UPDATEUSER,createDate,UPDATEDATE)
+		values
+		(#id#,#moduleKey#,#taskId#,#replyContent#,#replyUserId#,#replyUser#,#replyDate#,#createUser#,#updateUser#,#createDate#,#updateDate#) ]]>
+  	</insert>
+  	
+  	<select id="getTaskListReplyById" resultMap="taskListReply_ResultMap"  parameterClass="java.lang.Long">
+  		select * from TaskListReply where id = #id#
+  	</select>
+  	
+  	<select id="queryTaskListReplyByTaskId" resultMap="taskListReply_ResultMap"  parameterClass="java.util.Map">
+  		select * from TaskListReply where
+  		moduleKey = #moduleKey# and taskId = #taskId# order by replyDate desc
+  	</select>
+  	
+</sqlMap>

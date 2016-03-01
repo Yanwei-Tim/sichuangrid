@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="serviceMemberWithObject">
+	<typeAlias alias="ServiceMemberWithObject"  type="com.tianque.plugin.serviceTeam.serviceMemberWithObject.domain.ServiceMemberWithObject" />
+	<typeAlias alias="ServiceMemberWithObjectVo"  type="com.tianque.plugin.serviceTeam.serviceMemberWithObject.vo.ServiceMemberWithObjectVo" />
+	<typeAlias alias="serviceTeamMemberVo" type="com.tianque.plugin.serviceTeam.serviceTeamMember.vo.ServiceTeamMemberVo"/>
+	<resultMap class="ServiceMemberWithObjectVo" id="serviceMemberWithObjectVoResult">
+		<result property="id" column="id" />
+		<result property="memberId" column="memberId" />
+		<result property="objectType" column="objectType" />
+		<result property="objectName" column="objectName" />
+		<result property="objectId" column="objectId" />
+		<result property="teamMember" column="teamMember" />
+		<result property="onDuty" column="onDuty" />
+		<result property="teamId" column="teamId" />
+	</resultMap>
+	
+	<select id="getServiceMemberWithObjectById" parameterClass="long" resultMap="serviceMemberWithObjectVoResult">
+		<![CDATA[ select * from serviceMemberHasObject where id = #value# ]]>	
+	</select>
+	
+	<insert id="addObjectAndMemberRelation" parameterClass="ServiceMemberWithObject">
+	<selectKey resultClass="java.lang.Long" keyProperty="id">
+    	<![CDATA[ SELECT s_serviceMemberHasObject.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+	<![CDATA[
+		insert into serviceMemberHasObject (id,memberId, objectType, objectName,objectId,teamMember,teamId )
+		VALUES (#id#,#memberId#, #objectType#, #objectName#,#objectId#,#teamMember#,#teamId#) 
+	]]>
+	</insert>
+	
+	<delete id="deleteServiceMemberWithObject" parameterClass="java.lang.Long">
+    	delete from serviceMemberHasObject where id=#id#
+    </delete>
+    
+    <delete id="deleteServiceMemberHasObject" parameterClass="ServiceMemberWithObject">
+    	delete from serviceMemberHasObject where objectId=#objectId# and objectType=#objectType#
+    	<isNotEmpty property="memberId" prepend="and" >
+			memberId=#memberId#
+		</isNotEmpty>
+    </delete>
+    
+    <update id="updateServiceMemberWithObject" parameterClass="ServiceMemberWithObject">
+		update serviceMemberHasObject set onDuty = #onDuty# where id = #id#
+	</update>
+	
+	<update id="updateServiceMemberHasObject" parameterClass="ServiceMemberWithObject">
+		update serviceMemberHasObject set objectLogout = #objectLogout# where objectId=#objectId# and objectType=#objectType#
+	</update>
+	
+	<select id="findServiceTeamMemberHasObjects" parameterClass="serviceTeamMemberVo" resultClass="java.lang.Integer">
+		select count(*) from serviceMemberHasObject where memberId=#memberId# and teamId=#teamId#
+	</select>
+	
+	<update id="updateServiceTeamHasObjects" parameterClass="ServiceMemberWithObject">
+		update serviceMemberHasObject set onDuty = #onDuty# where teamId =#teamId# 
+		and memberId = #memberId# 
+		<isNotEmpty prepend="and" property="objectId">
+		objectId=#objectId#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="objectType">
+		objectType=#objectType#
+		</isNotEmpty>
+	</update>
+	<select id="getServiceMemberWithObjectVoByMemberIdAndObjectTypeAndId" parameterClass="ServiceMemberWithObjectVo" resultMap="serviceMemberWithObjectVoResult">
+		select * from serviceMemberHasObject where memberId = #memberId# 
+		<isNotEmpty prepend="and" property="objectId">
+			objectId=#objectId#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="objectType">
+			objectType=#objectType#
+		</isNotEmpty>
+	</select>
+	<select id="findServiceMemberWithObjectsByMemberId" parameterClass="java.lang.Long" resultMap="serviceMemberWithObjectVoResult">
+		select * from serviceMemberHasObject where memberId = #memberId# 
+	</select>
+	<select id="findServiceMemberWithObjectsByTypeAndId" parameterClass="ServiceMemberWithObjectVo" resultMap="serviceMemberWithObjectVoResult">
+		select * from serviceMemberHasObject where objectId = #objectId# and objectType=#objectType#
+	</select>
+	<update id="updateRepeatData" parameterClass="ServiceMemberWithObjectVo">
+		update serviceMemberHasObject set memberId = #standardMemberId# where
+		memberId = #memberId# and objectId=#objectId# and objectType=#objectType#
+	</update>
+	<update id="updateOnDuty" parameterClass="ServiceMemberWithObjectVo">
+		update serviceMemberHasObject set onDuty=#onDuty# where 
+		memberId = #memberId# and objectId=#objectId# and (objectType=#objectType# or objectType=(select upper(#objectType#) from dual))
+	</update>
+	
+	<update id="updateServiceMemberWithObjectById" parameterClass="ServiceMemberWithObjectVo">
+    	update serviceMemberHasObject set 
+    	objectId=#objectId# 
+    	where id=#id#
+    </update>
+    
+    <!--组织机构迁移合并-->
+     <select id="queryServiceMemberWithObjectForList" parameterClass="java.util.Map" resultClass="ServiceMemberWithObject">
+    	select * from serviceMemberHasObject t1
+		where  t1.objectid = #oldObjectid#
+		and exists (select 1
+      	from serviceMemberHasObject t2
+    	where t2.objecttype=t1.objecttype and t1.teamid = t2.teamid and t1.memberid = t2.memberid
+        and t2.objectid = #newObjectid#) 
+        and t1.objecttype=#oldObjecttype#
+    </select>
+    
+    
+    <select id="findServiceMembersWithObjectsByTypeAndId" parameterClass="java.util.Map" resultMap="serviceMemberWithObjectVoResult">
+		select * from serviceMemberHasObject where objectId in <iterate conjunction="," property="objectIds" open="(" close=")">#objectIds[]#</iterate>
+		 and objectType=#objectType#
+	</select>
+	
+</sqlMap>

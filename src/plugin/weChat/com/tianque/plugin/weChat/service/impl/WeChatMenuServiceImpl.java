@@ -1,0 +1,330 @@
+package com.tianque.plugin.weChat.service.impl;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.base.AbstractBaseService;
+import com.tianque.core.exception.ServiceException;
+import com.tianque.core.util.GridProperties;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.plugin.weChat.dao.WeChatMenuDao;
+import com.tianque.plugin.weChat.domain.menu.Button;
+import com.tianque.plugin.weChat.domain.menu.ClickButton;
+import com.tianque.plugin.weChat.domain.menu.ComplexButton;
+import com.tianque.plugin.weChat.domain.menu.Menu;
+import com.tianque.plugin.weChat.domain.menu.ViewButton;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+import com.tianque.plugin.weChat.domain.user.WeChatMenu;
+import com.tianque.plugin.weChat.service.MenuServiceByWeixin;
+import com.tianque.plugin.weChat.service.TencentUserService;
+import com.tianque.plugin.weChat.service.WeChatMenuService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+/**微信菜单服务类*/
+@Service("weChatMenuService")
+@Transactional
+public class WeChatMenuServiceImpl extends AbstractBaseService implements WeChatMenuService {
+	private static Logger logger = Logger.getLogger(WeChatMenuServiceImpl.class);
+	@Autowired
+	private WeChatMenuDao weChatMenuDao;
+	@Autowired
+	private OrganizationDubboService organizationService;
+	@Autowired
+	private MenuServiceByWeixin menuServiceByWeixin;
+	@Autowired
+	private TencentUserService tencentUserService;
+
+	public PageInfo<WeChatMenu> findWeChatMenu(WeChatMenu weChatMenu, Integer pageNum,
+			Integer pageSize, String sidx, String sord) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		if ("sourceTypeDict.id".equals(sidx))
+			sidx = "source_type";
+		if ("sourceDescription".equals(sidx))
+			sidx = "source_description";
+		map.put("sortField", sidx);
+		map.put("order", sord);
+		map.put("weChatMenu", weChatMenu);
+		PageInfo<WeChatMenu> pageInfo = weChatMenuDao.findWeChatMenu(map, pageNum, pageSize);
+		return pageInfo;
+	}
+
+	/**
+	 * 菜单与素材绑定
+	 * @param weChatMenu
+	 * @return
+	 */
+	public Integer updateWeChatMenu(WeChatMenu weChatMenu) {
+		return weChatMenuDao.updateWeChatMenu(weChatMenu);
+	}
+
+	/**
+	 * 根据sourceid修改素材描述
+	 * @param weChatMenu
+	 * @return
+	 */
+	public Integer updateWeChatMenuBySourceId(WeChatMenu weChatMenu) {
+		return weChatMenuDao.updateWeChatMenuBySourceId(weChatMenu);
+
+	}
+
+	/**
+	 * 根据服务号修改菜单
+	 * @param weChatMenu
+	 * @return
+	 */
+	public Integer updateWeChatMenuByWeChatUserId(WeChatMenu weChatMenu) {
+		return weChatMenuDao.updateWeChatMenuByWeChatUserId(weChatMenu);
+	}
+
+	/**
+	 * 加载微信菜单对象
+	 * @param id
+	 * @return
+	 */
+	public WeChatMenu getWeChatMenuById(Long id) {
+		return weChatMenuDao.getWeChatMenuById(id);
+	}
+
+	/**
+	 * 根据素材id加载微信菜单（条件like）
+	 * @param sourceId
+	 * @return
+	 */
+	public List<WeChatMenu> getWeChatMenuBySourceId(String sourceId) {
+		return weChatMenuDao.getWeChatMenuBySourceId(sourceId);
+	}
+
+	/**
+	 * 根据服务号和key加载菜单
+	 * @param id
+	 * @return
+	 */
+	public WeChatMenu getWeChatMenuByMenuKeyAndWeChatUserId(String menuKey, String weChatUserId) {
+		return weChatMenuDao.getWeChatMenuByMenuKeyAndWeChatUserId(menuKey, weChatUserId);
+	}
+
+	/**
+	 * 根据服务号和叶子结点加载菜单
+	 * @param isLeaf
+	 * @param weChatUserId
+	 * @return
+	 */
+	public List<WeChatMenu> getWeChatMenuByWeChatUserIdAndIsleaf(Long isLeaf, String weChatUserId) {
+		return weChatMenuDao.getWeChatMenuByWeChatUserIdAndIsleaf(isLeaf, weChatUserId);
+	}
+
+	/**
+	 * 根据服务号和层级加载菜单 
+	 * @param rank 1:一级 2：二级
+	 * @param weChatUserId
+	 * @return
+	 */
+	public List<WeChatMenu> getWeChatMenuByWeChatUserIdAndRank(Long rank, String weChatUserId) {
+		return weChatMenuDao.getWeChatMenuByWeChatUserIdAndRank(rank, weChatUserId);
+	}
+
+	/**
+	 * 根据微服务号删除菜单
+	 * @param weChatUserId
+	 * @return
+	 */
+	public Integer deleteWeChatMenuByWeChatUserId(String weChatUserId) {
+		return weChatMenuDao.deleteWeChatMenuByWeChatUserId(weChatUserId);
+	}
+
+	/**
+	 * 保存菜单(更新，保存)
+	 * @param weChatMenu
+	 * @return
+	 */
+
+	public Long addWeChatMenu(String menuJson, String weChatUserId) {
+		logger.error("修改微信菜单json:" + menuJson);
+		if (weChatUserId == null || "请选择微信号".equals(weChatUserId))
+			throw new ServiceException("请选择要创建菜单的微信号！");
+		//weChatMenuDao.deleteWeChatMenuByWeChatUserId(weChatUserId);//删除该微信号的所有菜单
+		TencentUser tencentUser = tencentUserService.getTencentUserByWeChatUserId(weChatUserId);
+		if (tencentUser == null)
+			throw new ServiceException("创建菜单时，获取微信号对象失败！");
+		if (null == menuJson || "".equals(menuJson)) {
+			menuServiceByWeixin.deleteMenu(tencentUser);//menuJson为空时， 删除该微信号的所以菜单
+			return 1L;
+		}
+		List<WeChatMenu> listMenu = new ArrayList<WeChatMenu>();
+		List<Button> buttonList = new ArrayList<Button>();
+		JSONArray array = JSONArray.fromObject(menuJson);
+		for (int i = 0; i < array.size(); i++) {
+			JSONObject objOne = (JSONObject) array.get(i);
+			JSONArray arrOne = (JSONArray) objOne.get("button");
+			for (int j = 0; j < arrOne.size(); j++) {
+				JSONObject objJson = (JSONObject) arrOne.get(j);
+				long n = 1 + j;
+				if (objJson.containsKey("type")) {
+					WeChatMenu w = new WeChatMenu(weChatUserId, objJson.getString("name"),
+							objJson.getString("type"), n, 1, 1L);
+					if (objJson.containsKey("key")) {
+						w.setMenuKey(objJson.getString("key"));
+						ClickButton c = new ClickButton(objJson.getString("name"),
+								objJson.getString("key"), "click");
+						buttonList.add(c);
+					}
+					if (objJson.containsKey("url")) {
+						String url = objJson.getString("url");
+						w.setUrl(url);
+						url = url + (url.contains("?") ? "&" : "?") + "orgId="
+								+ tencentUser.getOrganization().getId() + "&weChatUserId="
+								+ weChatUserId;
+						ViewButton v = new ViewButton(objJson.getString("name"),
+								this.urlToWeChatRedirectUri(tencentUser.getAppId(), url),
+								"view");
+						buttonList.add(v);
+					}
+					if(objJson.containsKey("id")&&objJson.getString("id")!=null&&!objJson.getString("id").equals("")){
+						Long id = Long.parseLong(objJson.getString("id"));
+						w.setId(id);
+					}
+					listMenu.add(w);
+				}
+				if (objJson.containsKey("sub_button")) {
+					JSONArray arrTwo = (JSONArray) objJson.get("sub_button");
+					WeChatMenu w = new WeChatMenu(weChatUserId, objJson.getString("name"), null, n,
+							2, 1L);
+					if(objJson.containsKey("id")&&objJson.getString("id")!=null&&!objJson.getString("id").equals("")){
+						Long id = Long.parseLong(objJson.getString("id"));
+						w.setId(id);
+					}
+					listMenu.add(w);
+
+					ComplexButton mainBtn = new ComplexButton();
+					mainBtn.setName(objJson.getString("name"));
+					Button[] sub_button = new Button[arrTwo.size()];
+					for (int k = 0; k < arrTwo.size(); k++) {
+						JSONObject objTwo = (JSONObject) arrTwo.get(k);
+						WeChatMenu ww = new WeChatMenu(weChatUserId, objTwo.getString("name"),
+								objTwo.getString("type"), n, 1, 2L);
+						if (objTwo.containsKey("key")) {
+							ww.setMenuKey(objTwo.getString("key"));
+							ClickButton c = new ClickButton(objTwo.getString("name"),
+									objTwo.getString("key"), "click");
+							sub_button[k] = c;
+						}
+						if (objTwo.containsKey("url")) {
+							String url = objTwo.getString("url");
+							ww.setUrl(url);
+							url = url + (url.contains("?") ? "&" : "?") + "orgId="
+									+ tencentUser.getOrganization().getId() + "&weChatUserId="
+									+ weChatUserId;
+							ViewButton v = new ViewButton(objTwo.getString("name"),
+									this.urlToWeChatRedirectUri(tencentUser.getAppId(), url),
+									"view");
+							sub_button[k] = v;
+						}
+						if(objTwo.containsKey("id")&&objTwo.getString("id")!=null&&!objTwo.getString("id").equals("")){
+							Long id = Long.parseLong(objTwo.getString("id"));
+							ww.setId(id);
+						}
+						listMenu.add(ww);
+					}
+					mainBtn.setSub_button(sub_button);
+					buttonList.add(mainBtn);
+				}
+			}
+		}
+		//根据微信公众号查询所有菜单
+		List<WeChatMenu> weChatMenuParentList = weChatMenuDao.getWeChatMenuByWeChatUserId(weChatUserId);
+		//移除不相等元素,遍历出要删除的元素
+		if(weChatMenuParentList!=null&&!weChatMenuParentList.isEmpty()){
+			int i=0;
+			while (i<weChatMenuParentList.size()) {
+				WeChatMenu oldWeChatMenu=weChatMenuParentList.get(i);
+//				for (WeChatMenu newWeChatMenu : listMenu) {
+//					if(newWeChatMenu.getId()!=null&&oldWeChatMenu.getId().equals(newWeChatMenu.getId())){
+//						weChatMenuParentList.remove(oldWeChatMenu);
+//						i--;
+//						break;
+//					}
+//				}
+				if(listMenu.contains(oldWeChatMenu)){
+					weChatMenuParentList.remove(oldWeChatMenu);
+					i--;
+				}
+				i++;
+			}
+		}
+
+		//删除已经去掉的菜单
+        for (WeChatMenu deleteWeChatMenu : weChatMenuParentList) {
+        	weChatMenuDao.deleteWeChatMenuById(deleteWeChatMenu.getId());
+		}
+        
+		Long flag = 0L;
+		for (WeChatMenu w : listMenu) {
+			//有ID就更新
+			if(w.getId()!=null){
+				WeChatMenu old = weChatMenuDao.getWeChatMenuById(w.getId());
+				old.setMenuName(w.getMenuName());
+				if(w.getMenuType()!=null){
+					old.setMenuType(w.getMenuType());
+				}
+				if(w.getUrl()!=null){					
+					old.setUrl(w.getUrl());
+				}
+				flag += Long.valueOf(weChatMenuDao.updateWeChatMenu(old));//菜单数据更新到服务器上（自己系统）
+			}else{
+				flag += weChatMenuDao.addWeChatMenu(w);//菜单数据更新到服务器上（自己系统）
+			}		
+			//			System.out.println(w.getMenuName() + " key:" + w.getMenuKey() + " type:"
+			//					+ w.getMenuType() + " isleaf:" + w.getIsLeaf() + " url:" + w.getUrl()
+			//					+ " rank:" + w.getRank() + " parent:" + w.getParentId());
+		}
+		/**拼接微信json数据***/
+		Menu menu = new Menu();
+		Button[] button = buttonList.toArray(new Button[buttonList.size()]);
+		menu.setButton(button);
+		if (menu.getButton() != null && menu.getButton().length > 0) {
+			logger.error("拼接前的json" + menuJson);
+			logger.error("meunJson:" + JSONObject.fromObject(menu).toString());
+			String respMessage = menuServiceByWeixin.createMenu(tencentUser, menu);//菜单数据更新到服务器上（微信服务器）
+			if (!("服务号：" + tencentUser.getWeChatUserId() + "菜单创建成功").equals(respMessage)) {
+				throw new ServiceException("创建菜单时， 数据同步失败！");
+			}
+		} else
+			throw new ServiceException("创建菜单时， 数据拼接失败！");
+		return flag;
+		//return weChatMenuDao.addWeChatMenu(null);
+	}
+
+	/**
+	 * 转换成微信跳转地址
+	 * @param appId
+	 * @param url
+	 * @return
+	 */
+	private String urlToWeChatRedirectUri(String appId, String url) {
+		if (!url.startsWith(GridProperties.PROXY_SERVER_DOMAIN_NAME)) {
+			// 设置的是其他链接，直接设置该链接
+			return url;
+		}
+		String urlEndcode;
+		try {
+			urlEndcode = URLEncoder.encode(url, "utf-8");
+		} catch (UnsupportedEncodingException e) {
+			throw new ServiceException("url 编码错误");
+		}
+		return "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + appId
+				+ "&redirect_uri=" + urlEndcode
+				+ "&response_type=code&scope=snsapi_base&state=wechat_redirect#wechat_redirect";
+	}
+}

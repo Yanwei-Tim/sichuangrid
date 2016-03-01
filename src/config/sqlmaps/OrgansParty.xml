@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		CREATEDATE as createdate ,
+		UPDATEDATE as updatedate ,
+		TELEPHONE as telephone ,
+		ORGID as orgid ,
+		DEPARTMENT as department ,
+		TYPE as type ,
+		SUPERIOR as superior ,
+		ORGINTERNALCODE as orginternalcode ,
+		NAME as name ,
+		CONTACT as contact ,
+		CREATEUSER as createuser ,
+		UPDATEUSER as updateuser ,
+		REMARK as remark 
+	FROM ORGANS_PARTY	
+ -->	
+<sqlMap namespace="organsParty">	
+	
+	<typeAlias alias="OrgansParty" type="com.tianque.partyBuilding.organsParty.domain.OrgansParty"/>
+	<typeAlias alias="SearchOrgansPartyVo" type="com.tianque.partyBuilding.organsParty.domain.vo.SearchOrgansPartyVo" />
+	
+	<resultMap id="organsPartyResult" class="OrgansParty">
+		<result property="id" column="ID"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="telephone" column="TELEPHONE"/>
+		<result property="orgid" column="ORGID"/>
+		<result property="department.id" column="DEPARTMENT"/>
+		<result property="type.id" column="TYPE"/>
+		<result property="superior.id" column="SUPERIOR"/>
+		<result property="orginternalcode" column="ORGINTERNALCODE"/>
+		<result property="name" column="NAME"/>
+		<result property="contact" column="CONTACT"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="remark" column="REMARK"/>
+	</resultMap>
+	
+
+
+	<select id="getOrgansPartyById" parameterClass="java.lang.Long" resultMap="organsPartyResult">
+		select * from ORGANS_PARTY where id=#value#
+	</select>
+	<select id="getOrgansPartyByName" parameterClass="map" resultClass="java.lang.Long">
+		select id  from ORGANS_PARTY where name=#name# and orgId=#orgId#
+	</select>
+	
+	<insert id="addOrgansParty" parameterClass="OrgansParty">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_ORGANSPARTY.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ORGANS_PARTY (ID , CREATEDATE , UPDATEDATE , TELEPHONE , ORGID , DEPARTMENT , TYPE , SUPERIOR , ORGINTERNALCODE , NAME , CONTACT , CREATEUSER , UPDATEUSER , REMARK ) 
+		values(#id#, #createDate#, #updateDate#, #telephone#, #orgid#, #department.id#, #type.id#, #superior.id#, #orginternalcode#, #name#, #contact#, #createUser#, #updateUser#, #remark#)	
+	</insert>
+	
+	<update id="updateOrgansParty" parameterClass="OrgansParty">
+		update ORGANS_PARTY set 
+					UPDATEDATE = #updateDate#,
+					TELEPHONE = #telephone#	,			
+					ORGID = #orgid#,				
+					DEPARTMENT = #department.id#,				
+					TYPE = #type.id#,
+					SUPERIOR = #superior.id#,			
+					ORGINTERNALCODE = #orginternalcode#,			
+					NAME = #name#,				
+					CONTACT = #contact#,					
+					UPDATEUSER = #updateUser#,				
+					REMARK = #remark#
+		where id = #id#
+	</update>
+	
+	<delete id="deleteOrgansPartyById" parameterClass="java.lang.Long">	
+		delete  from ORGANS_PARTY where id = #value#	
+	</delete>
+	
+	<sql id="findOrgansPartysBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+				<isPropertyAvailable property="orgid">
+					<isNotNull prepend="and" property="orgid">
+						orgid  = #orgid#
+					</isNotNull>
+				</isPropertyAvailable>	
+				<isPropertyAvailable property="telephone">
+					<isNotEmpty prepend="and" property="telephone">
+						TELEPHONE  like #telephone# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="department">
+					<isNotNull prepend="and" property="department">
+						DEPARTMENT = #department#
+					</isNotNull>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="type">
+					<isNotNull prepend="and" property="type">
+						TYPE = #type#
+					</isNotNull>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="superior">
+					<isNotEmpty prepend="and" property="superior">
+						SUPERIOR = #superior#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="name">
+					<isNotEmpty prepend="and" property="name">
+						NAME  like #name# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="contact">
+					<isNotEmpty prepend="and" property="contact">
+						CONTACT  like #contact# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="remark">
+					<isNotEmpty prepend="and" property="remark">
+						REMARK  like #remark# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+	<select id="findOrgansPartysBySearchVo" parameterClass="SearchOrgansPartyVo" resultMap="organsPartyResult">
+		select * from ORGANS_PARTY
+		<include refid="findOrgansPartysBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countOrgansPartysBySearchVo" parameterClass="SearchOrgansPartyVo" resultClass="java.lang.Integer">
+		select count(0) from ORGANS_PARTY
+		<include refid="findOrgansPartysBySearchVo_sql_where" />
+	</select>
+	
+	<select id="findOrgansPartysByOrgIdAndSuperiorAndType" parameterClass="map" resultClass="java.lang.Integer">
+		select count(0) from ORGANS_PARTY where orgId=#orgId# and superior=#superior# and type=#type.id#
+	</select>
+	
+
+</sqlMap>

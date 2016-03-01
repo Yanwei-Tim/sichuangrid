@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="houseBuilddatasBinding">
+	<typeAlias alias="HouseBuilddatasBinding" type="com.tianque.baseInfo.buildDatas.domain.HouseBuilddatasBinding"/>
+	<select id="countHouseInfosByBuilddatasId" parameterClass="java.lang.Long"
+		resultClass="java.lang.Integer">
+		select count(*) from houseinfo h ,housebuilddatasbinding b
+		where h.id =
+		b.houseid
+		and b.builddatasid = #builddatasId#
+	</select>
+	<select id="findHouseInfosByBuilddatasId" parameterClass="java.util.Map"
+		resultMap="houseInfo.actualHouseInfoResult">		
+		select h.* from houseinfo h
+		,housebuilddatasbinding b
+		where h.id =
+		b.houseid
+		and b.builddatasid =
+		#builddatasId#
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>		
+	</select>
+	<select id="countHouseInfosByOrgInternalCode" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from houseinfo h
+		left join housebuilddatasbinding b on h.id = b.houseid
+		where b.houseid is null
+		and h.orgInternalCode like #orgInternalCode# || '%'
+		<isPropertyAvailable property="address">
+			<isNotNull property="address" prepend=" and ">
+				h.address like '%' || #address# || '%'
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	<select id="findHouseInfosByOrgInternalCode" parameterClass="java.util.Map"
+		resultMap="houseInfo.actualHouseInfoResult">		
+		select h.* from houseinfo h
+		left join housebuilddatasbinding b on h.id = b.houseid
+		where b.houseid is null
+		and h.orgInternalCode like #orgInternalCode# || '%'
+		<isPropertyAvailable property="address">
+			<isNotNull property="address" prepend=" and ">
+				h.address like '%' || #address# || '%'
+			</isNotNull>
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>		
+	</select>
+	<insert id="addBinding" parameterClass="HouseBuilddatasBinding">
+		insert into housebuilddatasbinding (houseId,builddatasId,createUser,createDate) values(#houseId#,#builddatasId#,#createUser#,sysdate)
+	</insert>
+	<delete id="removeBinding" parameterClass="java.util.Map">
+		delete from housebuilddatasbinding where houseId in
+		<iterate property="houseIds" close=")" open="("
+		   	conjunction=",">
+		   	#houseIds[]#
+	  	</iterate>
+	</delete>
+</sqlMap>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="newEconomicOrganizationsManage" extends="default" namespace="/baseinfo/newEconomicOrganizationsManage">
+		<default-class-ref class="newEconomicOrganizationsController"></default-class-ref>
+		
+		<action name="findNewEconomicOrganizations" method="findNewEconomicOrganizations">
+			<result type="json" name="success" >
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="dispath" method="dispath">
+			<result name="success">
+				/baseinfo/twoNewOrganization/newEconomicOrganizations/newEconomicOrganizationsDlg.jsp
+			</result>
+			<result name="view">
+				/baseinfo/twoNewOrganization/newEconomicOrganizations/newEconomicOrganizationsViewDlg.jsp
+			</result>
+			<result name="print">
+				/baseinfo/commonPopulation/printTabPreviewDlg.jsp
+			</result>
+		</action>
+		<action name="dispathByEncrypt" method="dispathByEncrypt">
+			<result name="success">
+				/baseinfo/twoNewOrganization/newEconomicOrganizations/newEconomicOrganizationsDlg.jsp
+			</result>
+			<result name="view">
+				/baseinfo/twoNewOrganization/newEconomicOrganizations/newEconomicOrganizationsViewDlg.jsp
+			</result>
+			<result name="print">
+				/baseinfo/commonPopulation/printTabPreviewDlg.jsp
+			</result>
+		</action>
+		
+		
+		<action name="addNewEconomicOrganizations" method="addNewEconomicOrganizations">
+			<result name="success" type="json">
+				<param name="root">true</param>
+				<!-- <param name="ignoreHierarchy">false</param>  -->
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="getNewEconomicOrganizationsById" method="getNewEconomicOrganizationsById">
+			<result name="success" type="json">
+				<param name="root">newEconomicOrganizations</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		 <action name="updateNewEconomicOrganizations" method="updateNewEconomicOrganizations">
+			<result type="json" name="success">
+				<param name="root">newEconomicOrganizations</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="saveNewEconomicOrganizations" method="saveNewEconomicOrganizations">
+			<result type="json" name="success">
+				<param name="root">newEconomicOrganizations</param>
+				<!-- <param name="ignoreHierarchy">false</param>  -->
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	<action name="hasDuplicateNewEconomicOrganizations" method="hasDuplicateNewEconomicOrganizations">
+			<result name="success" type="json">
+				<param name="root">hasDuplicateNewEconomicOrganizations</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="deleteNewEconomicOrganizations" method="deleteNewEconomicOrganizations">
+			<result type="json" name="success">
+				<param name="root">newEconomicOrganizationsIds</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="updateLogOutOfNewEconomicOrganizationss" method="updateLogOutOfNewEconomicOrganizationss">
+			<result type="json" name="success">
+				<param name="root">newEconomicOrganizationsList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>     
+		
+		<action name="updateEmphasiseById" method="updateEmphasiseById">
+			<result type="json" name="success">
+				<param name="root">locationIds</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>   
+		
+		<action name="searchNewEconomicOrganizations" method="searchNewEconomicOrganizations">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+        <action name="downloadNewEconomicOrganizations" method="downloadNewEconomicOrganizations">
+			<result name="success" type="stream">
+                <param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>  
+                <param name="inputName">inputStream</param>  
+                <param name="contentDisposition">attachment;filename="${downloadFileName}"</param>  
+                <param name="bufferSize">4096</param>  
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="downloadNewEconomicOrganizationsAll" 
+			method="downloadExcelExportAll">
+		</action>
+		
+		<action name="viewNewEconomicOrganizations" method="viewNewEconomicOrganizations">
+			<result name="success" >
+				/baseinfo/twoNewOrganization/newEconomicOrganizations/newEconomicOrganizationsView.jsp
+			</result>
+		</action>
+		<action name="viewNewEconomicOrganizationsByEncrypt" method="viewNewEconomicOrganizationsByEncrypt">
+			<result name="success" >
+				/baseinfo/twoNewOrganization/newEconomicOrganizations/newEconomicOrganizationsView.jsp
+			</result>
+		</action>
+	</package>
+</struts>

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="baseInfoStanal">
+	<typeAlias type="com.tianque.domain.BaseInfoStanalObject" alias="BaseInfoStanalObject"/>
+	<typeAlias type="com.tianque.plugin.analyzing.domain.BaseInfoStat" alias="BaseInfoStat"/>
+	<typeAlias type="com.tianque.domain.vo.BaseInfoStanalVo" alias="BaseInfoStanalVo"/>
+	
+	<resultMap class="BaseInfoStat" id="baseInfoStatResult">
+		<result property="typeTableName" column="typeTableName"/>
+		<result property="total" column="total"/>
+		<result property="startDate" column="startDate"/>
+		<result property="endDate" column="endDate"/>
+		<result property="year" column="year"/>
+		<result property="month" column="month"/>
+		<result property="types" column="types"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+	</resultMap>
+	
+	<resultMap class="BaseInfoStat" id="baseInfoIncResult">
+		<result property="typeTableName" column="typeTableName"/>
+		<result property="total" column="totalCount"/>
+		<result property="year" column="year"/>
+		<result property="month" column="month"/>
+	</resultMap>
+	
+	<resultMap class="BaseInfoStanalVo" id="baseInfoStanalVoResult">
+		<result property="num" column="num"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+	</resultMap>
+	
+	<resultMap class="BaseInfoStanalVo" id="fullBaseInfoStanalVoResult">
+		<result property="num" column="totalCount"/>
+		<result property="dataType" column="typeTableName"/>
+	</resultMap>
+	
+	<parameterMap class="BaseInfoStat" id="baseInfoStatParams">
+		<parameter property="typeTableName"/>
+		<parameter property="total"/>
+		<parameter property="startDate"/>
+		<parameter property="endDate"/>
+		<parameter property="year"/>
+		<parameter property="month"/>
+		<parameter property="types"/>
+		<parameter property="orgInternalCode"/>
+	</parameterMap>
+	
+	<resultMap class="BaseInfoStanalObject" id="baseInfoStanalResult">
+	    <result property="org.id" column="orgId"/>
+	    <result property="orgName" column="orgName"/>
+	    <result property="count" column="count"/> 
+	</resultMap>
+	
+	<!-- 方法没有显式调用 <select id="baseInfoStanal" parameterClass="java.util.Map" resultMap="baseInfoStanalResult">
+	   select 
+		   <![CDATA[(select id from organizations where id = vOrg.id) orgId,]]>
+		   <![CDATA[(select orgname from  organizations org where org.id = vOrg.id) orgName,]]>
+		   <![CDATA[(select count(id) from $tableName$  where orginternalcode like (select Orginternalcode from organizations where id =vOrg.Id)||'%' ]]>
+		   <dynamic>
+			   <isPropertyAvailable property="startDate">
+			       <isNotEmpty property="startDate" prepend="and">
+			           <![CDATA[ createDate >= #startDate#]]>
+			       </isNotEmpty>
+			   </isPropertyAvailable>
+			   <isPropertyAvailable property="endDate">
+			       <isNotEmpty property="endDate" prepend="and">
+			           <![CDATA[ createDate <= #endDate# + 1]]>
+			       </isNotEmpty>
+			   </isPropertyAvailable>
+		   </dynamic>
+		   <isNotNull property="isDanger" prepend="and">
+		      isDanger = #isDanger#
+		   </isNotNull>
+		   <![CDATA[) count]]>
+		from organizations vOrg
+		<![CDATA[where vOrg.Parentid = #orgId# and vOrg.orgtype=#orgType# order by vOrg.id]]>
+	</select> -->
+	
+	<select id="groupByTableByOrgInternalCode" parameterClass="java.util.Map" resultMap="baseInfoStanalVoResult">
+		select orgInternalCode, count(id) num from $tableName$ where 1=1 
+			<isNotEmpty property="orgInternalCode" prepend="and">
+				orgInternalCode like #orgInternalCode#||'%'
+			</isNotEmpty>
+			<isNotNull property="startDate" prepend="and">
+				<![CDATA[createdate >= #startDate# ]]>
+			</isNotNull>
+			<isNotNull property="endDate" prepend="and">
+				<![CDATA[createdate < #endDate# + 1]]>
+			</isNotNull>
+			<isNotEmpty property="keyType" prepend="and">
+				keyType = #keyType#
+			</isNotEmpty>
+			<isNotNull property="isdanger" prepend="and">
+				<![CDATA[isdanger = #isdanger#]]>
+			</isNotNull>
+			group by orgInternalCode
+	</select>
+	
+	<insert id="addBaseInfoStat" parameterClass="BaseInfoStat">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_baseInfoStat.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		insert into baseInfoStat (id,typeTableName,total,startDate,endDate,year,month,types,orgInternalCode) 
+		values(#id#,#typeTableName#,#total#,#startDate#,#endDate#,#year#,#month#,#types#,#orgInternalCode#)
+	</insert>
+	
+	<select id="getBaseInfoStatById" parameterClass="java.lang.Long" resultMap="baseInfoStatResult">
+		<![CDATA[ SELECT * FROM baseInfoStat WHERE id = #id# ]]>
+	</select>
+	
+	<select id="findBaseInfoStatByTypeTableNameAndYearAndMonthAndTypesAndOrgInternalCode" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select sum(total) from baseInfoStat
+		<dynamic prepend="where">
+			<isNotEmpty property="typeTableName" prepend="and">
+				typeTableName = #typeTableName#
+			</isNotEmpty>
+			<isNotNull property="year" prepend="and">
+				year = #year#
+			</isNotNull>
+			<isNotNull property="month" prepend="and">
+				<![CDATA[month < #month#+1]]>
+			</isNotNull>
+			<isNotEmpty property="types" prepend="and">
+				types = #types#
+			</isNotEmpty>
+			<isNotEmpty property="orgInternalCode" prepend="and">
+				orgInternalCode like #orgInternalCode#||'%'
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<delete id="deleteBaseInfoStatByYearAndMonthAndTypesAndOrgInternalCode">
+		delete from  baseInfoStat
+		<dynamic prepend="where">
+			<isNotNull property="year" prepend="and">
+				year = #year#
+			</isNotNull>
+			<isNotNull property="month" prepend="and">
+				month = #month#
+			</isNotNull>
+			<isNotEmpty property="types" prepend="and">
+				types = #types#
+			</isNotEmpty>
+			<isNotEmpty property="typeTableName" prepend="and">
+				typeTableName = #typeTableName#
+			</isNotEmpty>
+			<isNotEmpty property="orgInternalCode" prepend="and">
+				orgInternalCode like #orgInternalCode#||'%'
+			</isNotEmpty>
+		</dynamic>
+	</delete>
+	
+	<select id="findTableByStartDateAndEndDateAndOrgInternalCode" parameterClass="java.util.Map" resultClass="java.lang.String">
+		select orgInternalCode from $tableName$
+			<dynamic prepend="where"> 
+				<isNotNull property="startDate" prepend="and">
+					<![CDATA[createdate >= #startDate# ]]>
+				</isNotNull>
+				<isNotNull property="endDate" prepend="and">
+					<![CDATA[createdate < #endDate# + 1]]>
+				</isNotNull>
+				<isNotEmpty property="orgInternalCode" prepend="and">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotEmpty>
+			</dynamic>
+			group by orgInternalCode
+	</select>
+	
+	<select id="loadPersonnelPeriodDistribution" parameterClass="java.util.Map" resultMap="fullBaseInfoStanalVoResult">
+		select typeTableName,sum(total) totalCount from baseinfostat where types=#type# and orginternalcode like #orgInternalCode#||'%' 
+		<![CDATA[and startdate>=#startDate# and enddate<=#endDate# ]]>
+		group by typeTableName
+	</select>
+	
+	<select id="loadPersonnelPeriodInc" parameterClass="java.util.Map" resultMap="baseInfoIncResult">
+		select typeTableName,year,month, sum(total) totalCount from baseinfostat where types=#type# and orginternalcode like #orgInternalCode#||'%' 
+		<![CDATA[and startdate>=#startDate# and enddate<=#endDate# ]]>
+		group by typeTableName,year,month
+		
+	</select>
+	<update id="updateSourcesState">
+		update $table$ set sourcesState=#sourcesState# where id =#id#
+	</update>
+</sqlMap>

@@ -1,0 +1,60 @@
+package com.tianque.plugin.statistics.util;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.domain.PropertyDict;
+import com.tianque.plugin.statistics.constants.GeneralStituationConstants;
+import com.tianque.plugin.statistics.vo.GeneralStituationSearchVo;
+
+public class GenneralsituationUtil {
+
+	public static final List<Long> dealLongToArray(Long[] ids){
+		List<Long> idList = new ArrayList<Long>();
+		if(ids!=null && ids.length!=0){
+			for(Long id:ids){
+				idList.add(id);
+			}
+		}
+		return idList;
+	}
+	
+
+	public static final List<Long> dealOrgIds(String [] orgIds){
+		List<Long> list = new ArrayList<Long>();
+		for(String id:orgIds){
+			list.add(Long.parseLong(id));
+		}
+		return list;
+	}
+	
+	public static final String getSubTypeIds(List<PropertyDict> list){
+		StringBuffer subType = new StringBuffer();
+		int i = 0;
+		for(PropertyDict propertyDict:list){
+			if(i==list.size()-1){
+				subType.append(propertyDict.getId()+"");
+			}else{
+				subType.append(propertyDict.getId()+",");
+			}
+		}
+		return subType.toString();
+	}
+	
+	public static final String[] getTime(Integer year,Integer month,String[] time) {
+		Calendar nowCalendar = Calendar.getInstance();
+		nowCalendar.setTime(CalendarUtil.getDateByYearAndMonth(year, month));
+		nowCalendar.add(Calendar.MONTH, -11);
+
+		for (int i = 0; i < 12; i++) {
+			SimpleDateFormat timePattern = new SimpleDateFormat("yyyy-MM");
+			time[i] = timePattern.format(nowCalendar.getTime());
+			nowCalendar.add(Calendar.MONTH, 1);
+		}
+
+		return time;
+	}
+}

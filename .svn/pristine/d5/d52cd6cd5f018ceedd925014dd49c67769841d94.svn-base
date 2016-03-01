@@ -1,0 +1,942 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags" %>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib" %>
+<jsp:include page="/includes/baseInclude.jsp" />
+<%request.setAttribute("fromClaim",request.getParameter("fromClaim"));
+%>
+<div id="unsettledPopulation" class="container container_24">
+	<form id="maintainForm" method="post" action = "${path}/baseinfo/unsettledPopulationManage/maintainUnsettledPopulationBaseInfo.action">
+		<pop:token/>
+		<div id="perUuid"></div>
+		<input id="_imgUrl" type="hidden" name="unsettledPopulation.imgUrl" value="${unsettledPopulation.imgUrl}">
+		<input type="hidden" name="mode" id="mode" value="${mode}" />
+		<input type="hidden" name="modeType" id="modeType" value="${modeType}" />
+		<input type="hidden" name="populationType" id="populationType" value="${populationType}" />
+		<input type="hidden" name="unsettledPopulation.id" id="unsettledPopulation-id" value="${unsettledPopulation.id}" />
+		<input type="hidden" name="ownerOrg.id" id="organizationId" value="${unsettledPopulation.organization.id}" />
+		<input type="hidden" name="unsettledPopulation.organization.id" id="unsettledPopulationOrganizationId" value="${unsettledPopulation.organization.id}" />
+		<input id="nativeProvinceValue" type="hidden" name="" value="${unsettledPopulation.province}" />
+		<input id="nativeCityValue" type="hidden" name="" value="${unsettledPopulation.city}" />
+		<input id="nativeDistrictValue" type="hidden" name="" value="${unsettledPopulation.district}">
+		<input id="keyType" type="hidden" name="" value="${keyType}" />
+		<input id="personTypeName" type="hidden" name="personTypeName" value="${personTypeName}">
+		<input id="businessHouse" type="hidden" value=""/>
+		<input id="actualHouseTypeId" type="hidden" name="" value="" />
+		<input id="logOut"	type="hidden" name="unsettledPopulation.logOut" value="${unsettledPopulation.logOut}" />
+		<input id="other" type="hidden" value=""/>
+
+		<div class="grid_4 lable-right">
+			<em class="form-req">*</em>
+			<label class="form-lbl">所属网格：</label>
+		</div>
+		<div class="grid_20">
+			<input type="text"  name="unsettledPopulation.organization.orgName" id="orgName" value="" readonly class="form-txt" />
+		</div>
+		<div class='clearLine'></div>
+        <div class="grid_4 lable-right"><!-- <em class="form-req">*</em> -->
+			<label class="form-lbl">身份证号码：</label>
+		</div>
+		<div class="grid_7">
+	    	<input type="text" name="unsettledPopulation.idCardNo" id="unsettledPopulation-idCardNo" maxlength="18"
+	    	<s:if test="unsettledPopulation.id!=null && unsettledPopulation.idCardNo!=null">readonly </s:if><s:else>title="请输入15或18位由数字或字母X组成的身份证号码"</s:else>
+ 				 value="${unsettledPopulation.idCardNo}" 
+ 				 class="dialogtip form-txt {idCard:true,exsistedIdCard:true,messages:{idCard:'请输入一个合法的身份证号码，如果最后一位为[X]请输入大写[X]',exsistedIdCard:'该身份证号码已经存在，请重新输入'}}" />
+		</div>
+
+		<div class="grid_6 lable-right">
+			<em class="form-req">*</em>
+			<label class="form-lbl">姓名：</label>
+		</div>
+		<div class="grid_7">
+			<input type="text" id="name" name="unsettledPopulation.name"  value="${unsettledPopulation.name}" maxlength="20"
+			class="form-txt {required:true,exculdeParticalChar:true,minlength:2,messages:{required:'请输入姓名',exculdeParticalChar:'不能输入非法字符',minlength:$.format('姓名至少需要输入{0}个字符')}}"/>
+		</div>
+		<div class='clearLine'></div>
+
+		<div class="grid_4 lable-right">
+			<em class="form-req">*</em>
+			<label class="form-lbl">性别：</label>
+		</div>
+		<div class="grid_7">
+			<select name="unsettledPopulation.gender.id" class="form-select {required:true,messages:{required:'请输入性別'}}"
+		    id="unsettledPopulation-gender">
+		   		<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@GENDER"  defaultValue="${unsettledPopulation.gender.id}" />
+			</select>
+		</div>
+
+		<div class="grid_6 lable-right">
+			<label class="form-lbl">曾用名/别名：</label>
+		</div>
+		<div class="grid_7">
+			<input type="text" name="unsettledPopulation.usedName"  value="${unsettledPopulation.usedName}" maxlength="20"
+			class="form-txt {exculdeParticalChar:true,minlength:2,maxlength:20,messages:{exculdeParticalChar:'不能输入非法字符',minlength:$.format('曾用名/别名至少需要输入{0}个字符'),maxlength:$.format('曾用名/别名最多需要输入{0}个字符')}}"/>
+		</div>
+		<div class="clearLine">&nbsp;</div>
+
+		<div class="grid_4 lable-right">
+            <label class="form-lbl">联系手机：</label>
+        </div>
+        <div class="grid_7">
+            <input type="text" name="unsettledPopulation.mobileNumber" id="mobileNumber"  value="${unsettledPopulation.mobileNumber}" title="请输入11位以1开头的联系手机 例如：13988888888"
+            class="dialogtip form-txt {mobile:true,messages:{mobile:$.format('手机号码输入只能是以1开头的11位数字')}}"
+             maxlength="11"/>
+        </div>
+        <div class="grid_6 lable-right">
+            <label class="form-lbl">固定电话：</label>
+        </div>
+        <div class="grid_7">
+            <input type="text" name="unsettledPopulation.telephone" id="telephone" value="${unsettledPopulation.telephone}" title="请输入由数字和-组成的联系电话 例如：0577-88888888"
+             class="dialogtip form-txt {telephone:true,messages:{telephone:$.format('联系电话只能输数字和横杠(-)')}}"
+            maxlength="20"/>
+        </div>
+        <div class='clearLine'></div>
+
+		<div class="grid_4 lable-right">
+            <label class="form-lbl">出生日期：</label>
+        </div>
+        <div class="grid_7" id="birthdayDiv">
+            <input type="text" name="unsettledPopulation.birthday" id="unsettledPopulation-birthday" maxlength="32"
+            readonly value='<s:date name="unsettledPopulation.birthday" format="yyyy-MM-dd"/>' class="form-txt"
+           />
+        </div>
+        <div class="grid_6 lable-right">
+        <em class="form-req" >*</em>
+			<label class="form-lbl">民族： </label>
+		</div>
+		<div class="grid_7">
+			<select name="unsettledPopulation.nation.id" class='form-txt {required:true,messages:{required:"请选择民族"}}' id="unsettledPopulation-nationa">
+		   		<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@NATION" defaultValue="${unsettledPopulation.nation.id}" />
+			</select>
+		</div>
+		<div class='clearLine'></div>
+
+		<div class="grid_4 lable-right">
+		<em class="form-req" id="politicalBackgroundStat"  >*</em>
+			<label class="form-lbl">政治面貌： </label>
+		</div>
+		<div class="grid_7">
+			<select name="unsettledPopulation.politicalBackground.id" class='form-txt {required:true,messages:{required:"请选择政治面貌"}}' id="unsettledPopulation-politicalBackground">
+		   	<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@POLITICAL_BACKGROUND" defaultValue="${unsettledPopulation.politicalBackground.id}" />
+		</select>
+		</div>
+		<div class="grid_6 lable-right">
+		<em class="form-req" id="schoolingStat"  >*</em> 
+			<label class="form-lbl">文化程度： </label>
+		</div>
+		<div class="grid_7">
+			<select name="unsettledPopulation.schooling.id" class='form-txt {required:true,messages:{required:"请选择文化程度"}}' id="unsettledPopulation-schooling">
+		   		<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@SCHOOLING" defaultValue="${unsettledPopulation.schooling.id}" />
+			</select>
+		</div>
+		<div class='clearLine'></div>
+
+		<div class="grid_4 lable-right">
+			<label class="form-lbl">职业：</label>
+		</div>
+		<div class="grid_7">
+			<select name="unsettledPopulation.career.id" class="form-select" id="unsettledPopulation-career">
+		   	<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@CAREER" defaultValue="${unsettledPopulation.career.id}" />
+			</select>
+		</div>
+		<div class="grid_6 lable-right">
+			<label class="form-lbl">工作单位或就读学校：</label>
+		</div>
+		<div class="grid_7">
+			<input type="text" name="unsettledPopulation.workUnit" id="workUnit" class="form-txt {validatorWorkUnit:true,messages:{validatorWorkUnit:'工作单位或就读学校不能输入特殊字符'}}" value="${unsettledPopulation.workUnit}" maxlength="50"/>
+		</div>
+		<div class='clearLine'></div>
+
+		<div class="grid_4 lable-right">
+		<em class="form-req" id="maritalStateStat"  >*</em>
+			<label class="form-lbl">婚姻状况： </label>
+		</div>
+		<div class="grid_7">
+		<select name="unsettledPopulation.maritalState.id" class='form-txt { required:true,messages:{required:"请选择婚姻状况"}}' id="unsettledPopulation-maritalState"
+		 	>
+		    <pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@MARITAL_STATUS" defaultValue="${unsettledPopulation.maritalState.id}" />
+		</select>
+		</div>
+		
+        <s:if test='#request.fromClaim.equals("true")'></s:if><s:else>
+			<s:if test='unsettledPopulation.id'>
+			<div class="grid_8 lable-right">
+				<input  type="checkbox" id="unsettledPopulation-isDeath" name="unsettledPopulation.death" value=true class="dialogtip"
+				<s:if test="unsettledPopulation.death" >checked="checked"</s:if>
+				 />
+				<label class="form-check-text">是否死亡 </label>
+			</div>
+			</s:if>
+		</s:else>
+		<div class='clearLine'></div>
+
+		<div class="grid_4 lable-right">
+            <label class="form-lbl">身高：</label>
+        </div>
+		<div class="grid_6">
+            <input type="text" name="unsettledPopulation.stature" id="conditionStature"
+            class="dialogtip form-txt {stature:true,messages:{stature:'请输入不大于300的正整数'}}" value="${unsettledPopulation.stature}" maxlength="3"/>
+        </div>
+        <div class="grid_1">cm</div>
+		<div class="grid_6 lable-right">
+			<label class="form-lbl">血型：</label>
+		</div>
+		<div class="grid_7">
+			<select name="unsettledPopulation.bloodType.id" class="form-select"
+		    id="unsettledPopulation-bloodType">
+		   		<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@BLOOD_TYPE" defaultValue="${unsettledPopulation.bloodType.id}" />
+			</select>
+		</div>
+		<div class='clearLine'></div>
+
+		<div class="grid_4 lable-right">
+            <label class="form-lbl">宗教信仰：</label>
+        </div>
+        <div class="grid_7">
+        	<select name="unsettledPopulation.faith.id" class="form-select" id="unsettledPopulation-faith">
+		   <pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@FAITH" defaultValue="${unsettledPopulation.faith.id}" />
+			</select>
+        </div>
+        <div class="grid_6 lable-right">
+            <label class="form-lbl">电子邮箱：</label>
+        </div>
+        <div class="grid_7">
+            <input type="text" name="unsettledPopulation.email" id="email"
+            class="dialogtip form-txt {email:true,messages:{email:'请输入一个合法的电子邮箱'}}"
+            value="${unsettledPopulation.email}"
+             maxlength="50"/>
+        </div>
+        <div class='clearLine'></div>
+
+        <div class="grid_4 lable-right">
+			<label class="form-lbl">未落户时间：</label>
+		</div>
+		<div class="grid_7">
+			<input type="text" name="unsettledPopulation.unSettedTime" id="unsettledPopulation-unSettedTime" class="form-txt"
+			value="<s:date name="unsettledPopulation.unSettedTime" format="yyyy-MM-dd"/>" readonly/>
+		</div>
+        <div class="grid_6 lable-right">
+			<label class="form-lbl">未落户原因：</label>
+		</div>
+		<div class="grid_7">
+			<select name="unsettledPopulation.unSettedReason.id" class="form-select" id="unsettledPopulation-unSettedReason">
+		   <pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@UNSETTEDREASON" defaultValue="${unsettledPopulation.unSettedReason.id}" />
+			</select>
+		</div>
+		<div class='clearLine'></div>
+
+		<div class="grid_4 lable-right">
+			<label class="form-lbl">持证种类： </label>
+		</div>
+		<div class="grid_7">
+			<select name="unsettledPopulation.certificateType.id" class="form-select" id="unsettledPopulation-certificateType">
+		   		<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@CERTIFICATEHOLD_TYPE" defaultValue="${unsettledPopulation.certificateType.id}" />
+			</select>
+		</div>
+		<div class="grid_6 lable-right">
+			<label class="form-lbl">持证编号：</label>
+		</div>
+      	<div class="grid_7">
+			<input type="text" name="unsettledPopulation.certificateNo" id="unsettledPopulation-certificateNo" value="${unsettledPopulation.certificateNo}" class="form-txt" maxlength="50"/>
+		</div>
+    	<div class='clearLine'></div>
+
+		<div class="grid_4 lable-right">
+			<label class="form-lbl">原户籍地： </label>
+		</div>
+		<div class="grid_5">
+			<select name="unsettledPopulation.province" id="province" class="form-txt">
+			</select>
+		</div>
+		<div class="grid_1 lable-left">
+			<label class="form-lbl">省</label>
+		</div>
+		<div class="grid_6">
+			<select name="unsettledPopulation.city" id="city" class="form-txt" >
+			</select>
+		</div>
+		<div class="grid_1 lable-left">
+			<label class="form-lbl">市</label>
+		</div>
+		<div class="grid_6">
+			<select name="unsettledPopulation.district" id="district" class="form-txt">
+ 			</select>
+		</div>
+		<div class="grid_1 lable-left">
+			<label class="form-lbl">县</label>
+		</div>
+        <div class='clearLine'>&nbsp;</div>
+
+		<div class="grid_4 lable-right">
+			<label class="form-lbl">户籍地详址：</label>
+		</div>
+		<div class="grid_20">
+			<input type="text" name="unsettledPopulation.nativePlaceAddress" id="nativePlaceAddress" class="form-txt" value="${unsettledPopulation.nativePlaceAddress}" maxlength="50"/>
+		</div>
+		
+        <div class='clearLine'>&nbsp;</div>
+        	<s:if test='#request.fromClaim.equals("true")'></s:if><s:else>
+				<jsp:include page="/baseinfo/commonPopulation/commonSearchAddress.jsp">
+					<jsp:param value="unsettledPopulation" name="name"/>
+				</jsp:include>
+			</s:else>
+   		<div class='clearLine'>&nbsp;</div>
+   		
+		<div class="grid_4 lable-right">
+			<label class="form-lbl">临时居所：</label>
+		</div>
+		<div class="grid_20">
+			<input type="text" name="unsettledPopulation.otherAddress"  maxlength="50" value="${unsettledPopulation.otherAddress }" class="form-txt" style="width: 99%" />
+		</div>
+		<div class='clearLine'>&nbsp;</div>
+
+		<div class="grid_4 lable-right">
+		   <label class="form-lbl">备注：</label>
+		</div>
+		<div class="grid_20" style="height: 120px">
+			<textarea rows="3" id="unsettledPopulation-remark" name="unsettledPopulation.remark" 
+			class="form-txt {maxlength:300,messages:{maxlength:$.format('备注最多只能输入{0}个字符')}}" style="widht: 100%;" >${unsettledPopulation.remark}</textarea>
+		</div>
+		<div class='clearLine'>&nbsp;</div>
+		<input name="isSubmit" id="isSubmit" type="hidden" value="">
+	</form>
+</div>
+<script>
+if(null!=$("#_imgUrl").val() && $("#_imgUrl").val()!=""){
+	$("#headerImg").attr("src",$("#_imgUrl").val()+"?r="+Math.random());
+	$(".shadow").show();
+}
+$(document).ready(function(){
+	if($("#unsettledPopulation-idCardNo").val()!=null && $("#unsettledPopulation-idCardNo").val() != "" ){
+		$("#unsettledPopulation-gender").attr("disabled",true);
+		<s:if test="population.id">
+		$("#unsettledPopulation-idCardNo").attr("readonly","readonly");
+		</s:if>
+	}
+	<s:if test='#request.fromClaim.equals("true")'></s:if><s:else>
+		populationHasHouseInfoChanged();
+	</s:else>
+	// 根据房屋编号自动获取实有房屋信息
+	function searchHoseInfoByCode(){
+		$.ajax({
+			async: false ,
+			url:"${path}/baseinfo/actualHouseManage/getHouseInfoByHouseCode.action",
+		   	data:{
+				"searchHouseInfoVo.houseCode":$('#houseCode').val(),
+				"searchHouseInfoVo.houseTypeId":$('#actualHouseTypeId').val()
+	        },
+			success:function(date){
+				if(null != date) {
+					procCurrentAddressType(date);
+				} else {
+					$("#address").val("");
+					$("#community").val("");
+					$("#block").val("");
+					$("#unit").val("");
+					$("#room").val("");
+					$("#currentAddress").val("");
+				}
+			}
+		});
+	}
+
+	$("#unsettledPopulation-idCardNo").blur(function(value){
+		if($("#unsettledPopulation-idCardNo").val()!=null && $("#unsettledPopulation-idCardNo").val()!="" && typeof($("#unsettledPopulation-idCardNo").val())!="undefined"){
+			$("#unsettledPopulation-gender").attr("disabled",true);
+		}else{
+			$("#unsettledPopulation-gender").attr("disabled",false);
+		}
+		fillGenderByIdCardNo($("#unsettledPopulation-idCardNo").val(),"unsettledPopulation-gender","",true);
+	});
+	function procCurrentAddressType(date) {
+		$("#houseId").val(date.id);
+		$("#addressTypeId").val(date.addressType.id);
+		$("#currentAddressType").val(date.addressType.id);
+		if($("#currentAddressType").find("option:selected").attr("internalId")==<s:property value="@com.tianque.domain.property.CurrentAddressType@BUSINESS_HOUSE"/>) {
+			$("#building").show();
+			$("#otherAddress").hide();
+			$("#community").val(date.community);
+			$("#block").val(date.block);
+			$("#unit").val(date.unit);
+			$("#room").val(date.room);
+			$("#address").val(date.community+"小区"+date.block+"幢"+date.unit+"单元"+date.room+"室");
+		} else {
+			$("#building").hide();
+			$("#otherAddress").show();
+			$("#currentAddress").val(date.address);
+			$("#community").val("");
+			$("#block").val("");
+			$("#unit").val("");
+			$("#room").val("");
+		}
+	}
+	$("#houseCode").change(searchHoseInfoByCode);
+	initActualHouse();
+
+	$("#houseCode").houseAutoComplete({
+		searchLevel:"houseCode",
+		select:function(event,ui){
+			renderHouseInfoForHouseCode(ui.item);
+		}});
+
+	function renderHouseInfoForHouseCode(house){
+		$("#houseId").val(house.houseId);
+		$("#addressTypeId").val(house.addressType.id);
+		$("#currentAddressType").val(house.addressType.id);
+		$("#community").val(house.community);
+		$("#block").val(house.block);
+		$("#unit").val(house.unit);
+		$("#room").val(house.room);
+		procCurrentAddressType(house);
+		$("#houseCode").val(house.houseCode);
+	}
+
+	function initActualHouse() {
+		$.ajax({
+			async: false ,
+			url:"${path }/sysadmin/propertyManage/findPropertyDictByDomainName.action",
+		   	data:{
+			"propertyDomain.domainName":"住房类别"
+	        },
+			success:function(responseData){
+	    	   if(responseData!=null&&responseData.length>0){
+	        	   for(var i=0;i<responseData.length;i++){
+	            	   var data = responseData[i];
+	            	   if(data.internalId==<s:property value="@com.tianque.domain.property.HouseInfoType@ACTUAL_HOUSE"/>){
+	        			   $("#actualHouseTypeId").val(data.id);
+	        	   		}
+	        	   }
+				}
+	        }
+		});
+	}
+
+	if(""!=$("#_imgUrl").val()){
+		$("#img").attr("src",$("#_imgUrl").val());
+	}
+	$('#unsettledPopulation-unSettedTime').datePicker({
+		yearRange:'1900:2030',
+		dateFormat:'yy-mm-dd',
+        maxDate:'+0d'
+	});
+function changeOrgId(){
+	$("#unsettledPopulationOrganizationId").val($("#organizationId").val());
+}
+var unsettledPopulationOrgTree="";
+function isGridForTreeSelect(){
+	if(unsettledPopulationOrgTree != ""){
+		return $.getSelectedNode(unsettledPopulationOrgTree).attributes.orgLevelInternalId == <s:property value="@com.tianque.domain.property.OrganizationLevel@GRID"/>;
+	}else{
+		return true;
+	}
+}
+var existed = true;
+var bol = true;
+
+
+	$("#tabs").tabFunction({ cache: true });
+	
+	$.ajax({
+		async: false,
+		url: "${path}/sysadmin/orgManage/getOrgRelativePath.action",
+		data:{
+			"organization.id":$("#organizationId").val()
+		},
+		success:function(responseData){
+			$("#orgName").val(responseData);
+		}
+	});
+
+	threeSelect({
+		province:'province',
+		city:'city',
+		district:'district',
+		provinceValue:$('#nativeProvinceValue').val(),
+		cityValue:$('#nativeCityValue').val(),
+		districtValue:$('#nativeDistrictValue').val()
+	});
+	$(".dialogtip").inputtip();
+	$("#currentAddressType").change(chooseCurrentAddressType);
+	initCurrentAddress();
+
+
+	jQuery.validator.addMethod("exsistedIdCard", function(value, element){
+		var flag =true;
+		if(value==null||value==undefined||value==""){return true}
+		$.ajax({
+			async: false ,
+			url:"${path}/baseinfo/unsettledPopulationManage/hasDuplicateUnsettledPopulation.action",
+		   	data:{
+			"unsettledPopulation.idCardNo":$("#unsettledPopulation-idCardNo").val(),
+			"ownerOrg.id":$("#organizationId").val(),
+			"mode":$('#mode').val(),
+			"unsettledPopulation.id":$("#mode").val() == "add"?"-1":$('#unsettledPopulation-id').val()
+	        },
+			success:function(responseData){
+				flag = !eval(responseData);
+			}
+		});
+		return flag;
+	});
+
+	jQuery.validator.addMethod("isGridOrganization", function(value, element){
+		if(value==null||value==undefined||value==""){return true}
+		if(isGridForTreeSelect()){
+			return true;
+		}else{
+			return false;
+		}
+
+	});
+
+	function renderHouseInfoFromCBUR(house){
+		$("#community").val(house.community);
+		$("#block").val(house.block);
+		$("#unit").val(house.unit);
+		$("#room").val(house.room);
+		businessHouseToCurrentAddress();
+		$("#houseId").val(house.houseId);
+	}
+
+	function renderHouseInfoFromADD(house){
+		$("#community").val("");
+		$("#block").val("");
+		$("#unit").val("");
+		$("#room").val("");
+		$("#currentAddress").val(house.address);
+		$("#houseId").val(house.houseId);
+	}
+
+	function searchHouse(searchByAddress,searchLevel){
+		$.ajax({
+			async: false ,
+			url:"${path }/baseinfo/houseAutoComplete/findSingleHousesIdByAddressLib.action",
+		   	data:{
+				 "orgId":getCurrentOrgId(),
+				 "searchByAddress":searchByAddress,
+				 "searchType":searchLevel,
+				 "community":function(){return $("#community").val()},
+				 "block":function(){return $("#block").val()},
+				 "unit":function(){return $("#unit").val()},
+				 "searchCondition":function(){return searchByAddress?$("#currentAddress").val(): $("#room").val();}
+	        },
+			success:function(responseData){
+	    		if(responseData==null||responseData==undefined||responseData==""||responseData=="null"){
+	    			$("#houseId").val("");
+		    	}else{
+		        	$("#houseId").val(responseData);
+			    }
+	        }
+		});
+	}
+
+	jQuery.validator.addMethod("currentAddress", function(value, element){
+		//var other = $("#other").val();
+		//if(other!=null&& $("#currentAddressType").val()== other.split("-")[0]){
+			if($("#currentAddressType").find("option:selected").attr("internalId")==<s:property value="@com.tianque.domain.property.CurrentAddressType@OTHER"/>){
+				//searchHouse(true,"");
+				var livingHouse=$("#currentAddress").val();
+				return (livingHouse==null||livingHouse==undefined||livingHouse=="")?false:true;
+//				if(value==null||value==undefined||value==""){
+//	    			return false;
+//	    		}else{
+//	    			return true;
+//	    		}
+			}
+		//}
+	  return true;
+	});
+
+	jQuery.validator.addMethod("community", function(value, element){
+		//var businessHouse = $("#businessHouse").val();
+		//if(businessHouse!=null&& $("#currentAddressType").val()== businessHouse.split("-")[0]){
+			if($("#currentAddressType").find("option:selected").attr("internalId")==<s:property value="@com.tianque.domain.property.CurrentAddressType@BUSINESS_HOUSE"/>) {
+				var livingHouse=$("#community").val();
+				return (livingHouse==null||livingHouse==undefined||livingHouse=="")?false:true;
+			}
+		//}
+	  return true;
+	});
+
+	resetBirthdayField($("#unsettledPopulation-birthday").val());
+	$('#unsettledPopulation-idCardNo').blur(idCardChanged);
+
+	$('#unsettledPopulation-FristDate').datePicker({
+		yearRange: '1900:2060',
+		dateFormat:'yy-mm-dd',
+		maxDate:'+0y'
+	});
+
+	$("#maintainForm").formValidate({
+		promptPosition: "bottomLeft",
+		submitHandler: function(form){
+		$("#_imgUrl").attr("src",$("#_imgUrl").val());
+		businessHouseToCurrentAddress();
+			$(form).ajaxSubmit({
+				async:false,
+				success:function(data){
+					if(!data.id){
+						$.messageBox({
+							message:data,
+							evel: "error"
+						});
+						return;
+					}
+					if($("#populationHasHouseInfo").val()=="false"){
+					if("add"==$("#mode").val()){
+						 if(($("#isLock").val()=='1'&&$("#logOut").val()!="1")||($("#isLock").val()=='2'&&$("#isDeath").val()!="1")){
+					 		$("#unsettledPopulationList").addRowData(data.id,data,"first");
+					 		$("#unsettledPopulationList").setSelection(data.id);
+				 		}
+						 $("#unsettledPopulationList").trigger("reloadGrid");
+						 $.messageBox({message:"未落户人口新增成功"});
+					 }
+					 if("edit"==$("#mode").val()){
+						 if(data.death == true || data.death == "true"){
+					 		if(($("#isLock").val()=='1'&&$("#logOut").val()=="0")||($("#isLock").val()=='2'&&$("#isDeath").val()=="0")){
+						 		$("#unsettledPopulationList").delRowData(data.id);
+					 		}else{
+						 		$("#unsettledPopulationList").setRowData(data.id,data);
+						 		$("#"+data.id+"").css('color','#778899');
+						 		$("#unsettledPopulationList").setSelection(data.id);
+					 		}
+				 		}else{
+					        if($("#isLock").val()=='2'&&$("#isDeath").val()=="1"){
+						 		$("#unsettledPopulationList").delRowData(data.id);
+							}else{
+						 		$("#unsettledPopulationList").setRowData(data.id,data);
+						 		$("#unsettledPopulationList").setSelection(data.id);
+					 		}
+				 		}
+						 $("#unsettledPopulationList").trigger("reloadGrid");
+						 $.messageBox({message:"未落户人口修改成功"});
+						 disableButtons();
+						 checkExport();
+					 }
+					 }
+					 $("#<s:property value='#parameters.dailogName[0]'/>").proccessSuccess(data.encryptId,data);
+				},
+				error:function(XMLHttpRequest, textStatus, errorThrown){
+  	      			alert("提交数据时发生错误");
+	   		    }
+			});
+		},
+		ignore:":hidden",
+		rules:{
+
+		},
+		messages:{
+
+
+		}
+	});
+
+
+	function businessHouseToCurrentAddress(){
+		var businessHouse = $("#businessHouse").val();
+		var other = $("#other").val();
+		var currentAddressType = $("#currentAddressType").val();
+		if(currentAddressType==businessHouse.split("-")[0]){
+			var community = $("#community").val();
+			var block = $("#block").val();
+			var unit = $("#unit").val();
+			var room = $("#room").val();
+			var currentAddress ="";
+
+			if(community!=null&&community!=undefined&&community!=""){
+				currentAddress += community+"小区";
+			}
+			if(block!=null&&block!=undefined&&block!=""){
+				currentAddress += block+"幢";
+			}
+			if(unit!=null&&unit!=undefined&&unit!=""){
+				currentAddress += unit+"单元";
+			}
+			if(room!=null&&room!=undefined&&room!=""){
+				currentAddress += room+"室";
+			}
+			 $("#currentAddress").val(currentAddress);
+		}else{
+			$("#community").val("");
+			$("#block").val("");
+			$("#unit").val("");
+			$("#room").val("");
+		}
+	}
+	$(".dialogtip").inputtip();
+	<s:if test='"add_path".equals(modeType)'>
+	$("#orgName").click(function(event){
+		$("#noticeDialog").createDialog({
+			width: 300,
+			height: 350,
+			title:'请选择一个部门',
+			url:'${path}/common/organizationSelector.jsp',
+			buttons: {
+				"确定" : function(){
+					closeDialog();
+				},
+				"取消" : function(){
+					$("#noticeDialog").dialog("close");
+				}
+			}
+		});
+	});
+	</s:if>
+
+	<s:if test='#parameters.dialog != null'>
+		unsettledPopulationOrgTree=$("#orgName").treeSelect({
+			inputName:"ownerOrg.id",
+			url:"/sysadmin/orgManage/loadTownForExtTree.action",
+			onSelect:changeOrgId
+		});
+		//$.setTreeValue($("#organizationId").val(),tree);
+		var bol = false;
+		$.ajax({
+			async:false,
+			url:"${path}/issue/issueManage/checkOccurOrgId.action",
+			data:{
+				"issueNew.occurOrg.id":${USER_ORG_ID}
+			},
+			success:function(responseData){
+				bol = responseData;
+			}
+		});
+		var url = "";
+		if(bol){
+			url = PATH+"/sysadmin/orgManage/ajaxSearchParentNodeIdsWhenRootIsTown.action?organization.id="+$("#organizationId").val()
+		}else{
+			url = PATH+"/sysadmin/orgManage/ajaxSearchParentNodeIds.action?organization.id="+$("#organizationId").val()
+		}
+		$.ajax({
+			url:url,
+			success:function(data){
+				$.searchChild(unsettledPopulationOrgTree,data);
+			}
+		});
+	</s:if>
+});
+
+<s:if test='"add_path".equals(modeType)'>
+function setZone(selectOrgId,selectOrgName){
+		$("#organizationId").val(selectOrgId);
+		$("#orgName").val(selectOrgName);
+	}
+</s:if>
+
+function resetBirthdayField(text){
+	if (text!="" && $('#unsettledPopulation-idCardNo').val()!=""){
+		$("#birthdayDiv").html("<input type='text' name='unsettledPopulation.birthday' id='unsettledPopulation-birthday' class='form-txt' value='"+text+"' readonly/>");
+	}else{
+		$('#unsettledPopulation-birthday').datePicker({
+			yearRange: '1900:2030',
+    		dateFormat: 'yy-mm-dd',
+        	maxDate:'+0d'
+        });
+	}
+}
+function idCardChanged(){
+	var text=$('#unsettledPopulation-idCardNo').val();
+	text=getBirthDayTextFromIdCard(text);
+	resetBirthdayField(text);
+	text = $('#unsettledPopulation-idCardNo').val();
+	getCommonPopulation(text);
+}
+
+function getCommonPopulation(idCardNo){
+	if( idCardNo.length != null && idCardNo.length == 18){
+		ajaxForCommonPopulation(idCardNo);
+	}else if( idCardNo.length != null && idCardNo.length == 15){
+		ajaxForCommonPopulation(idCardNo);
+	}
+}
+
+
+function ajaxForCommonPopulation(idCardNo){
+	$.ajax({
+		async:false,
+		url: "${path}/commonPopulation/commonPopulationManage/getCommonPopulationByIdCardNo.action",
+		data:{
+			"commonPopulation.idCardNo":idCardNo
+		},
+		success:function(responseData){
+			manageCommonPopulation(responseData);
+		}
+	});
+}
+
+function manageCommonPopulation(responseData){
+	//省市县的选中
+	threeSelect({
+		province:'province',
+		city:'city',
+		district:'district',
+		provinceValue:responseData.province,
+		cityValue:responseData.city,
+		districtValue:responseData.district
+	});
+
+}
+function getBirthDayTextFromIdCard(idCard){
+	if(idCard!=null&&idCard.length==18){
+		idCard=idCard.substring(6,14);
+		if(idCard.substring(4,6)<=0||idCard.substring(4,6)>12){
+			return "";
+		}else if(idCard.substring(6,8)<=0||idCard.substring(6,8)>31){
+			return "";
+		}else{
+			return idCard.substring(0,4)+"-"+idCard.substring(4,6)+"-"+idCard.substring(6,8);
+		}
+	}else if(idCard!=null&&idCard.length==15){
+		idCard=idCard.substring(6,12);
+		if(idCard.substring(2,4)<=0||idCard.substring(2,4)>12){
+			return "";
+		}else if(idCard.substring(4,6)<=0||idCard.substring(4,6)>31){
+			return "";
+		}else{
+			return "19"+idCard.substring(0,2)+"-"+idCard.substring(2,4)+"-"+idCard.substring(4,6);
+		}
+	}
+	return "";
+}
+
+function getUnsettledPopulation(){
+	$.ajax({
+		async: false,
+		url: "${path }/baseinfo/unsettledPopulationManage/getUnsettledPopulationByIdCardNo.action",
+		data:{
+			"unsettledPopulation.organization.id":$("#organizationId").val(),
+			"unsettledPopulation.idCardNo":$("#unsettledPopulation-idCardNo").val()
+		},
+		success:function(responseData){
+			if(responseData.id){
+				$("#mode").val("edit");
+				$("#maintainForm").attr("action","${path}/baseinfo/unsettledPopulationManage/updateUnsettledPopulation.action");
+				$("#unsettledPopulation-id").val(responseData.id);
+				$("#name").val(responseData.name);
+				$("#usedName").val(responseData.usedName);
+				$("#nativeProvinceValue").val(responseData.province);
+				$("#nativeCityValue").val(responseData.city);
+				$("#nativeDistrictValue").val(responseData.district);
+				$("#unsettledPopulation-gender").val(responseData.gender.id);
+				$("#populationGender").val(responseData.gender.id);
+				$("#unsettledPopulation-bloodType").val(responseData.bloodType!=null?responseData.bloodType.id:"");
+				$("#nativePlaceAddress").val(responseData.nativePlaceAddress!=null?responseData.nativePlaceAddress:"");
+				$("#currentAddress").val(responseData.currentAddress);
+				$("#politicalBackground").val(responseData.currentAddress);
+				$("#workUnit").val(responseData.workUnit!=null?responseData.workUnit:"");
+				$("#remark").val(responseData.remark!=null?responseData.remark:"");
+				if(responseData.isDeath==true){
+				 $("#unsettledPopulation-isDeath").attr("checked","checked");
+				}else{
+					 $("#unsettledPopulation-isDeath").removeAttr("checked");
+				}
+				threeSelect({
+					province:'province',
+					city:'city',
+					district:'district',
+					provinceValue:$('#nativeProvinceValue').val(),
+					cityValue:$('#nativeCityValue').val(),
+					districtValue:$('#nativeDistrictValue').val()
+				});
+			}
+		}
+	});
+}
+
+function emptyObject(){
+				$("#name").val("");
+				$("#usedName").val("");
+				$("#unsettledPopulation-idCardNo").val("");
+				$("#nativeProvinceValue").val("");
+				$("#unsettledPopulation-gender").val("");
+				$("#populationGender").val("");
+				$("#unsettledPopulation-bloodType").val("");
+				$("#nativeCityValue").val("");
+				$("#nativeDistrictValue").val("");
+				$("#nativePlaceAddress").val("");
+				$("#unsettledPopulation-birthday").val("");
+				$("#telephone").val("");
+				$("#currentAddress").val("");
+				$("#politicalBackground").val("");
+				$("#isTreat").removeAttr("checked");
+				$("#mobileNumber").val("");
+				$("#workUnit").val("");
+				$("#address").val("");
+				$("#otherAddress").val("");
+				$("#career").val("");
+				$("#school").val("");
+				$("#unsettledPopulation-unSettedReason").val("");
+				$("#unsettledPopulation-unSettedTime").val("");
+				$("#stature").val("");
+				$("#unsettledPopulation-certificateType").val("");
+				$("#unsettledPopulation-certificateNo").val("");
+				$("#unsettledPopulation-faith").val("");
+				$("#unsettledPopulation-maritalState").val("");
+				$("#residenceType").val("");
+				$("#unsettledPopulation-nationality").val("");
+				$("#unsettledPopulation-schooling").val("");
+				$("#email").val("");
+				$("#unsettledPopulation-remark").val("");
+				threeSelect({
+					province:'province',
+					city:'city',
+					district:'district',
+					provinceValue:$('#nativeProvinceValue').val(),
+					cityValue:$('#nativeCityValue').val(),
+					districtValue:$('#nativeDistrictValue').val()
+				});
+
+}
+
+function initCurrentAddress(){
+	$.ajax({
+		async: false ,
+		url:"${path }/sysadmin/propertyManage/findPropertyDictByDomainName.action",
+	   	data:{
+		"propertyDomain.domainName":"现居住址类型"
+        },
+		success:function(responseData){
+    	   if(responseData!=null&&responseData.length>0){
+        	   for(var i=0;i<responseData.length;i++){
+            	   var data = responseData[i];
+            	   if(data.internalId==<s:property value="@com.tianque.domain.property.CurrentAddressType@BUSINESS_HOUSE"/>){
+        			   $("#businessHouse").val(data.id+"-"+data.internalId);
+        	   		}else{
+        	   		   $("#other").val(data.id+"-"+data.internalId);
+        	   		}
+        	   }
+			}
+        }
+	});
+	chooseCurrentAddressType();
+}
+
+function chooseCurrentAddressType(){
+	var businessHouse = $("#businessHouse").val();
+	var other = $("#other").val();
+	var currentAddressType = $("#currentAddressType").val();
+	if(currentAddressType==businessHouse.split("-")[0]){
+		$("#building").show();
+		$("#otherAddress").hide();
+	}else if(currentAddressType==other.split("-")[0]){
+		$("#building").hide();
+		$("#otherAddress").show();
+	}
+}
+jQuery.validator.addMethod("exculdeParticalChar", validatorSpecialWord);
+jQuery.validator.addMethod("validatorWorkUnit", validatorSpecialWord);
+
+function validatorSpecialWord(value,element){
+	if(value==null||value==undefined||value==""){return true}
+	var pattern = new RegExp("[`~!@%#$^&*()=|{}':;',　\\[\\]<>/? \\.；：%……+￥（）【】‘”“'。，、？ ！-]");
+	return this.optional(element)||!pattern.test(value) ; 
+}
+
+
+function validatorSpecialWord(value,element){
+	if(value==null||value==undefined||value==""){return true}
+	var pattern = new RegExp("[`~!@%#$^&*()=|{}':;',　\\[\\]<>/? \\.；：%……+￥（）【】‘”“'。，、？ ！]");
+	return this.optional(element)||!pattern.test(value) ; 
+}
+
+
+</script>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" 
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="significantIssuedealWorkingRecord">
+<typeAlias alias="SignificantIssuedealWorkingRecord" type="com.tianque.working.domain.SignificantIssuedealWorkingRecord" />
+
+	<insert id="addSignificantIssuedealWorkingRecord" parameterClass="SignificantIssuedealWorkingRecord">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_workingRecord.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into workingRecord
+		(id,orgId,orgInternalCode,fromId,significantIssuedealReason,abilityUnit,
+		abilityLeading,workingUnit,dealDate,content,submitState,dailyDirectoryId,
+		dailyYearId,dailyLogType,
+		createDate,createUser)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#fromSignificantIssuedealWorkingRecord.id#,
+		#significantIssuedealReason#,#abilityUnit#,#abilityLeading#,#workingUnit#,
+		#dealDate#,#content#,#submitState#,#dailyDirectory.id#,#dailyYear.id#,#dailyLogType.id#,
+		#createDate#,#createUser#)
+	</insert>
+	<update id="updateSignificantIssuedealWorkingRecord" parameterClass="SignificantIssuedealWorkingRecord">
+		update workingRecord set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="dailyDirectory">
+				dailyDirectoryId=#dailyDirectory.id#
+			</isNotNull>
+			<isNotNull prepend="," property="dailyYear">
+				dailyYearId=#dailyYear.id#
+			</isNotNull>
+			<isNotNull prepend="," property="dealDate">
+				dealDate=#dealDate#
+			</isNotNull>
+			<isNotNull prepend="," property="content">
+				content=#content#
+			</isNotNull>
+			<isNotNull prepend="," property="dailyLogType">
+				dailyLogType=#dailyLogType.id#
+			</isNotNull>
+			<isNotNull prepend="," property="significantIssuedealReason">
+				significantIssuedealReason=#significantIssuedealReason#
+			</isNotNull>
+			<isNotNull prepend="," property="abilityUnit">
+				abilityUnit=#abilityUnit#
+			</isNotNull>
+			<isNotNull prepend="," property="abilityLeading">
+				abilityLeading=#abilityLeading#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="workingUnit">
+				workingUnit=#workingUnit#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+	<select id="getSignificantIssuedealWorkingRecordById" parameterClass="java.lang.Long"
+		resultMap="workingRecord.significantIssuedealWorkingRecordResult">
+		select * from workingRecord where id=#value#
+	</select>
+	<sql id="sql_where">
+		from workingRecord
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId in ( $dailyDirectoryId$ )
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<delete id="deleteSignificantIssuedealWorkingRecordById" parameterClass="java.lang.Long">
+		delete from workingRecord where id=#value#
+	</delete>
+	<select id="findSignificantIssuedealWorkingRecord" parameterClass="java.util.Map"
+		resultMap="workingRecord.significantIssuedealWorkingRecordResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countSignificantIssuedealWorkingRecord" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+</sqlMap>

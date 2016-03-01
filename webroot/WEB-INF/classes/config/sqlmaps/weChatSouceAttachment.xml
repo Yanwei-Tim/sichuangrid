@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="souceAttachment">
+	<typeAlias alias="weChatSouceAttachment" type="com.tianque.plugin.weChat.domain.user.WeChatSourceAttachment"/>
+	
+	<resultMap id="weChatSouceAttachmentResult" class="weChatSouceAttachment">
+	
+	    <result property="attachmentId" column="attachmentId" />
+	 
+	    <result property="fileSize" column="fileSize" />
+	    <result property="extFileName" column="extFileName" />
+	    <result property="fileName" column="fileName" />
+	    <result property="fileActualUrl" column="fileActualUrl" />
+	    
+	
+	    <result property="sourceId" column="sourceId" />
+	    <result property="weChatUserId" column="weChatUserId" />
+	    
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<insert id="saveWeChatSouceAttachment" parameterClass="weChatSouceAttachment">
+		<selectKey resultClass="java.lang.Long" keyProperty="attachmentId">
+			<![CDATA[
+				SELECT S_wechatSource_Attachment.NEXTVAL AS attachmentId FROM DUAL
+			]]>
+		</selectKey>
+		insert into wechatSource_Attachment
+		(attachmentId,fileSize,extFileName,fileName,fileActualUrl,sourceId,weChatUserId,createUser,updateUser,createDate,updateDate)
+		values
+		(#attachmentId#,#fileSize#,#extFileName#,#fileName#,#fileActualUrl#,#sourceId#,#weChatUserId#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	<update id="updateWeChatSouceAttachmentById" parameterClass="weChatSouceAttachment">
+		update wechatSource_Attachment set
+		<dynamic>
+			attachmentId=#attachmentId#
+			<isNotNull prepend="," property="sourceId">
+				sourceId=#sourceId#
+			</isNotNull>
+			<isNotNull prepend="," property="fileSize">
+				fileSize=#fileSize#
+			</isNotNull>
+			<isNotNull prepend="," property="extFileName">
+				extFileName=#extFileName#
+			</isNotNull>
+			<isNotNull prepend="," property="fileName">
+				fileName=#fileName#
+			</isNotNull>
+			<isNotNull prepend="," property="fileActualUrl">
+				fileActualUrl=#fileActualUrl#
+			</isNotNull>
+			
+			<isNotNull prepend="," property="weChatUserId">
+				weChatUserId=#weChatUserId#
+			</isNotNull>
+
+			<isNotNull prepend="," property="createUser">
+				createUser=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="createDate">
+				createDate=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+
+		</dynamic>
+		WHERE attachmentId=#attachmentId#
+		
+	</update>
+
+	
+	<select id="getWeChatSouceAttachmentBySouceIdAndWeChatuserId" parameterClass="java.util.Map" resultMap="weChatSouceAttachmentResult">
+		select * from wechatSource_Attachment where  weChatUserId=#weChatUserId# and sourceId=#sourceId#
+	</select>
+	<delete id="deleteWeChatSouceAttachmentBySouceIdAndWeChatuserId" parameterClass="java.util.Map">
+		delete from wechatSource_Attachment where weChatUserId=#weChatUserId# and sourceId=#sourceId#
+	</delete>
+	
+	<select id="getWeChatSouceAttachmentById" parameterClass="java.lang.Long" resultMap="weChatSouceAttachmentResult">
+		select * from wechatSource_Attachment where attachmentId=#value#
+	</select>
+	<delete id="deleteWeChatSouceAttachmentById" parameterClass="java.lang.Long">
+		delete from wechatSource_Attachment where attachmentId=#value#
+	</delete>
+	
+	<delete id="deleteWeChatSouceAttachmentByWeChatUserId" parameterClass="java.lang.String">
+		delete from wechatSource_Attachment where weChatUserId=#value#
+	</delete>
+	
+    <select id="getWeChatSouceAttachmentBySourceId" parameterClass="java.lang.Long" resultMap="weChatSouceAttachmentResult">
+		select * from wechatSource_Attachment where sourceId=#value#
+	</select>
+	
+	<delete id="deleteWeChatSouceAttachmentBySourceId" parameterClass="java.lang.Long">
+		delete from wechatSource_Attachment where sourceId=#value#
+	</delete>
+	
+</sqlMap>

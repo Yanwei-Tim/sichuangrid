@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="houseHasActualPopulations">
+	<typeAlias alias="houseHasActualPopulation" type="com.tianque.domain.HouseHasActualPopulation" />
+
+	<resultMap id="houseHasActualPopulationResult" class="houseHasActualPopulation">
+		<result column="personType" property="personType" />
+		<result column="populationType" property="populationType" />
+		<result column="houseId" property="houseId" />
+		<result column="populationId" property="populationId" />
+		<result column="defaultLivingHouse" property="defaultLivingHouse" />
+	</resultMap>
+	
+	<!-- 通过实口id和type来获取其关联的houseid等信息 -->
+	<select id="getByActualIdAndActualType" parameterClass="java.util.Map"
+		resultMap="houseHasActualPopulationResult">
+		select * from HouseHasActualPopulation where populationType=#populationType# and populationId=#populationId#
+	</select>
+	
+	<!-- 通过业务人员id和type来获取其关联的houseid等信息 -->
+	<select id="getByImportantIdAndImportantType" parameterClass="java.util.Map"
+		resultMap="houseHasActualPopulationResult">
+		select * from HouseHasImportantPopulation where populationType=#populationType# and populationId=#populationId#
+	</select>
+	
+	<!--  更新业务人员的人房关联 -->
+	<update id="updateImportantHouseId" parameterClass="java.util.Map">
+		update HouseHasImportantPopulation set houseId=#newHouseId#
+			where populationType=#populationType# and populationId=#populationId# and houseId=#oldHouseId#
+	</update>
+	
+	<!-- 业务人口人房关联去除 -->
+	<delete id="deleteHouseHasImportantPopulationByPopulationTypeAndPopulationId" parameterClass="java.util.Map">
+		delete from HouseHasImportantPopulation
+		where populationType=#populationType# and populationId=#populationId#
+	</delete>
+	
+	<!-- 给业务人员增加人房关联关系 -->
+	<insert id="addHouseHasImportantPopulation" parameterClass="java.util.Map">
+		insert into HouseHasImportantPopulation
+			(personType,populationType,houseId,populationId,defaultLivingHouse) 
+		values
+			(#personType#,#populationType#,#houseId#,#populationId#,#defaultLivingHouse#)
+	</insert>
+	</sqlMap>

@@ -1,0 +1,258 @@
+package com.tianque.plugin.dataManage.location.actualHouseTemp.controller;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.apache.struts2.convention.annotation.Namespace;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.actualHouse.domain.HouseInfo;
+import com.tianque.baseInfo.actualHouse.service.ActualHouseService;
+import com.tianque.plugin.dataManage.base.AbstractDataManageController;
+import com.tianque.plugin.dataManage.base.service.AbstractDataManageService;
+import com.tianque.plugin.dataManage.location.actualHouseTemp.domain.ActualHouseTemp;
+import com.tianque.plugin.dataManage.util.DataManageBaseInfoTypes;
+
+/**
+ * 数据管理 - 实有房屋控制类。
+ */
+@Namespace("/plugin/dataManage/actualHouseTempManage")
+@Transactional
+@Controller("actualHouseTempController")
+@Scope("request")
+public class ActualHouseTempController extends
+		AbstractDataManageController<ActualHouseTemp, HouseInfo> {
+	@Autowired
+	private ActualHouseService actualHouseService;
+	@Autowired
+	@Qualifier("actualHouseTempService")
+	private AbstractDataManageService locationDataManageService;
+
+	@Resource(name = "actualHouseTempService")
+	public void setDataManageService(AbstractDataManageService abstractDataManageServiceImpl) {
+		replaceDataManageService(locationDataManageService);
+	}
+
+	public String getBigType() {
+		return DataManageBaseInfoTypes.HOUSE;
+	}
+
+	public ActualHouseTemp getTemp() {
+		return temp;
+	}
+
+	public void setTemp(ActualHouseTemp temp) {
+		this.temp = temp;
+	}
+
+	public ActualHouseTemp getHouseInfo() {
+		return population;
+	}
+
+	public ActualHouseTemp getPopulation() {
+		return population;
+	}
+
+	public void setHouseInfo(ActualHouseTemp houseInfo) {
+		this.population = houseInfo;
+	}
+
+	@Override
+	public List getCompareList(ActualHouseTemp temp, HouseInfo target) {
+		/*
+		 * if (target.getIsRentalHouse().equals("true")) { // 是出租房
+		 * DataManageBaseInfoForLocationUtil.getActualHouseCommonList(temp,
+		 * target); //
+		 * DataManageBaseInfoForLocationUtil.getRentalHouseCommonList(temp, //
+		 * target); } else {
+		 * DataManageBaseInfoForLocationUtil.getActualHouseCommonList(temp,
+		 * target); } List compareList = new ArrayList(); Map map = new
+		 * HashMap(); map.put("notNull", "true"); map.put("label", "房屋编号");
+		 * map.put("tempValue", "" + temp.getHouseCode()); map.put("realValue",
+		 * "" + target.getHouseCode()); map.put("argType", "str");
+		 * map.put("submitName", "houseCode"); compareList.add(map); map = new
+		 * HashMap(); map.put("notNull", "false"); map.put("label", "是否出租房");
+		 * map.put("tempValue", "" + temp.getIsRentalHouse());
+		 * map.put("realValue", "" + target.getIsRentalHouse());
+		 * map.put("argType", "boolean"); map.put("submitName",
+		 * "isRentalHouse"); compareList.add(map); map = new HashMap();
+		 * map.put("notNull", "true"); map.put("label", "房屋地址");
+		 * map.put("tempValue", "" + temp.getAddressType().getId() +
+		 * temp.getCommunity() + " 小区 " + temp.getBlock() + " 幢 " +
+		 * temp.getUnit() + " 单元 " + temp.getRoom() + " 室 " +
+		 * temp.getAddress()); map.put("realValue", "" +
+		 * target.getAddressType().getId() + target.getCommunity() + " 小区 " +
+		 * target.getBlock() + " 幢 " + target.getUnit() + " 单元 " +
+		 * target.getRoom() + " 室 " + target.getAddress()); map.put("argType",
+		 * "strs"); map.put("submitName", new String[] { "addressType.id",
+		 * "community", "block", "unit", "room", "address" });
+		 * map.put("addressType", "" + target.getAddressType().getId());
+		 * map.put("addressTypeTemp", "" + temp.getAddressType().getId());
+		 * map.put("community", "" + target.getCommunity());
+		 * map.put("communityTemp", "" + temp.getCommunity()); map.put("block",
+		 * "" + target.getBlock()); map.put("blockTemp", "" + temp.getBlock());
+		 * map.put("unit", "" + target.getUnit()); map.put("unitTemp", "" +
+		 * temp.getUnit()); map.put("room", "" + target.getRoom());
+		 * map.put("roomTemp", "" + temp.getRoom()); map.put("address", "" +
+		 * target.getAddress()); map.put("addressTemp", "" + temp.getAddress());
+		 * compareList.add(map); map = new HashMap(); map.put("notNull",
+		 * "false"); map.put("label", "建筑物名称"); map.put("tempValue", "" +
+		 * temp.getBuildingName()); map.put("realValue", "" +
+		 * target.getBuildingName()); map.put("argType", "str");
+		 * map.put("submitName", "buildingName"); compareList.add(map); map =
+		 * new HashMap(); map.put("notNull", "false"); map.put("label",
+		 * "建筑物用途"); map.put("tempValue", temp.getBuildingUses() == null ? "-1"
+		 * : "" + temp.getBuildingUses().getId()); map.put("realValue",
+		 * target.getBuildingUses() == null ? "-1" : "" +
+		 * target.getBuildingUses().getId()); map.put("PropertyDict",
+		 * "@com.tianque.domain.property.PropertyTypes@BUILDING_USES");
+		 * map.put("argType", "PropertyDict"); map.put("submitName",
+		 * "buildingUses.id"); compareList.add(map);
+		 * map = new HashMap(); map.put("notNull", "false"); map.put("label",
+		 * "物管单位名称"); map.put("tempValue", "" + temp.getPropertyName());
+		 * map.put("realValue", "" + target.getPropertyName());
+		 * map.put("argType", "str"); map.put("submitName", "propertyName");
+		 * compareList.add(map); map = new HashMap(); map.put("notNull",
+		 * "false"); map.put("label", "代表人/业主"); map.put("tempValue", "" +
+		 * temp.getManager()); map.put("realValue", "" +
+		 * target.getHouseOwner()); map.put("argType", "str");
+		 * map.put("submitName", "manager"); compareList.add(map); map = new
+		 * HashMap(); map.put("notNull", "false"); map.put("label", "身份证号");
+		 * map.put("tempValue", "" + temp.getHouseOwnerIdCardNo());
+		 * map.put("realValue", "" + target.getHouseOwnerIdCardNo());
+		 * map.put("argType", "str"); map.put("submitName",
+		 * "houseOwnerIdCardNo"); compareList.add(map); map = new HashMap();
+		 * map.put("notNull", "false"); map.put("label", "代表人电话");
+		 * map.put("tempValue", "" + temp.getTelephone()); map.put("realValue",
+		 * "" + target.getTelephone()); map.put("argType", "str");
+		 * map.put("submitName", "telephone"); compareList.add(map); map = new
+		 * HashMap(); map.put("notNull", "false"); map.put("label", "房屋户型");
+		 * map.put("tempValue", "" + temp.getHouseDoorModel());
+		 * map.put("realValue", "" + target.getHouseDoorModel());
+		 * map.put("argType", "str"); map.put("submitName", "houseDoorModel");
+		 * compareList.add(map); map = new HashMap(); map.put("notNull",
+		 * "false"); map.put("label", "建成年份"); map.put("tempValue", "" +
+		 * temp.getBuiltYear()); map.put("realValue", "" +
+		 * target.getBuiltYear()); map.put("argType", "str");
+		 * map.put("submitName", "builtYear"); compareList.add(map); map = new
+		 * HashMap(); map.put("notNull", "false"); map.put("label", "本户建筑面积");
+		 * map.put("tempValue", "" + temp.getHouseArea()); map.put("realValue",
+		 * "" + target.getHouseArea()); map.put("argType", "str");
+		 * map.put("submitName", "houseArea"); compareList.add(map); map = new
+		 * HashMap(); map.put("notNull", "false"); map.put("label", "房屋结构");
+		 * map.put("tempValue", temp.getHouseStructure() == null ? "-1" : "" +
+		 * temp.getHouseStructure().getId()); map.put("realValue",
+		 * target.getHouseStructure() == null ? "-1" : "" +
+		 * target.getHouseStructure().getId()); map.put("PropertyDict",
+		 * "@com.tianque.domain.property.PropertyTypes@LETTINGHOUSE_STRUTS");
+		 * map.put("argType", "PropertyDict"); map.put("submitName",
+		 * "houseStructure.id"); compareList.add(map); map = new HashMap();
+		 * map.put("notNull", "false"); map.put("label", "房屋用途");
+		 * map.put("tempValue", temp.getHouseUses() == null ? "-1" : "" +
+		 * temp.getHouseUses().getId()); map.put("realValue",
+		 * target.getHouseUses() == null ? "-1" : "" +
+		 * target.getHouseUses().getId()); map.put("PropertyDict",
+		 * "@com.tianque.domain.property.PropertyTypes@HOUSE_USES");
+		 * map.put("argType", "PropertyDict"); map.put("submitName",
+		 * "houseUses.id"); compareList.add(map); map = new HashMap();
+		 * map.put("notNull", "false"); map.put("label", "房屋来源");
+		 * map.put("tempValue", "" + temp.getHouseSource().getId() +
+		 * temp.getOwnProperty().getId()); map.put("realValue", "" +
+		 * target.getHouseSource().getId() + target.getOwnProperty().getId());
+		 * map.put("argType", "strs"); map.put("submitName", new String[] {
+		 * "houseSource.id", "ownProperty.id" }); map.put("houseSource", "" +
+		 * target.getHouseSource().getId()); map.put("houseSourceTemp", "" +
+		 * temp.getHouseSource().getId()); map.put("ownProperty", "" +
+		 * target.getOwnProperty().getId()); map.put("ownPropertyTemp", "" +
+		 * temp.getOwnProperty().getId()); compareList.add(map); map = new
+		 * HashMap(); map.put("notNull", "false"); map.put("label", "房屋凭证");
+		 * map.put("tempValue", temp.getHousingVouchers() == null ? "-1" : "" +
+		 * temp.getHousingVouchers().getId()); map.put("realValue",
+		 * target.getHousingVouchers() == null ? "-1" : "" +
+		 * target.getHousingVouchers().getId()); map.put("PropertyDict",
+		 * "@com.tianque.domain.property.PropertyTypes@HOUSING_VOUCHERS");
+		 * map.put("argType", "PropertyDict"); map.put("submitName",
+		 * "housingVouchers.id"); compareList.add(map); map = new HashMap();
+		 * map.put("notNull", "false"); map.put("label", "房屋权证号");
+		 * map.put("tempValue", "" + temp.getHouseRightNumber());
+		 * map.put("realValue", "" + target.getHouseRightNumber());
+		 * map.put("argType", "str"); map.put("submitName", "houseRightNumber");
+		 * compareList.add(map); map = new HashMap(); map.put("notNull",
+		 * "false"); map.put("label", "发证时间"); map.put("tempValue", "" +
+		 * DateUtil.formateYMD(temp.getHouseRightNumberDate()));
+		 * map.put("realValue", "" +
+		 * DateUtil.formateYMD(target.getHouseRightNumberDate()));
+		 * map.put("argType", "strDate"); map.put("submitName",
+		 * "houseRightNumberDate"); compareList.add(map); map = new HashMap();
+		 * map.put("notNull", "false"); map.put("label", "土地凭证");
+		 * map.put("tempValue", temp.getLandDocuments() == null ? "-1" : "" +
+		 * temp.getLandDocuments().getId()); map.put("realValue",
+		 * target.getLandDocuments() == null ? "-1" : "" +
+		 * target.getLandDocuments().getId()); map.put("PropertyDict",
+		 * "@com.tianque.domain.property.PropertyTypes@LAND_DOCUMENTS");
+		 * map.put("argType", "PropertyDict"); map.put("submitName",
+		 * "landDocuments.id"); compareList.add(map); map = new HashMap();
+		 * map.put("notNull", "false"); map.put("label", "土地权证号");
+		 * map.put("tempValue", "" + temp.getLandRightsNumbe());
+		 * map.put("realValue", "" + target.getLandRightsNumbe());
+		 * map.put("argType", "str"); map.put("submitName", "landRightsNumbe");
+		 * compareList.add(map); map = new HashMap(); map.put("notNull",
+		 * "false"); map.put("label", "发证时间"); map.put("tempValue", "" +
+		 * DateUtil.formateYMD(temp.getLandRightsNumbeDate()));
+		 * map.put("realValue", "" +
+		 * DateUtil.formateYMD(target.getLandRightsNumbeDate()));
+		 * map.put("argType", "strDate"); map.put("submitName",
+		 * "landRightsNumbeDate"); compareList.add(map); map = new HashMap();
+		 * map.put("notNull", "false"); map.put("label", "产权人类型");
+		 * map.put("tempValue", temp.getPropertyTypes() == null ? "-1" : "" +
+		 * temp.getPropertyTypes().getId()); map.put("realValue",
+		 * target.getPropertyTypes() == null ? "-1" : "" +
+		 * target.getPropertyTypes().getId()); map.put("PropertyDict",
+		 * "@com.tianque.domain.property.PropertyTypes@PROPERTY_TYPES");
+		 * map.put("argType", "PropertyDict"); map.put("submitName",
+		 * "propertyTypes.id"); compareList.add(map); map = new HashMap();
+		 * map.put("notNull", "false"); map.put("label", "产权人姓名");
+		 * map.put("tempValue", "" + temp.getName()); map.put("realValue", "" +
+		 * target.getName()); map.put("argType", "str"); map.put("submitName",
+		 * "name"); compareList.add(map); map = new HashMap();
+		 * map.put("notNull", "false"); map.put("label", "证件类型");
+		 * map.put("tempValue", temp.getCertificateType() == null ? "-1" : "" +
+		 * temp.getCertificateType().getId()); map.put("realValue",
+		 * target.getCertificateType() == null ? "-1" : "" +
+		 * target.getCertificateType().getId()); map.put("PropertyDict",
+		 * "@com.tianque.domain.property.PropertyTypes@LETTINGCERTIFICATE_TYPE"
+		 * ); map.put("argType", "PropertyDict"); map.put("submitName",
+		 * "certificateType.id"); compareList.add(map); map = new HashMap();
+		 * map.put("notNull", "false"); map.put("label", "证件号码");
+		 * map.put("tempValue", "" + temp.getCertificateNumbe());
+		 * map.put("realValue", "" + target.getCertificateNumbe());
+		 * map.put("argType", "str"); map.put("submitName", "certificateNumbe");
+		 * compareList.add(map); map = new HashMap(); map.put("notNull",
+		 * "false"); map.put("label", "产权人电话"); map.put("tempValue", "" +
+		 * temp.getPropertyPersonTel()); map.put("realValue", "" +
+		 * target.getPropertyPersonTel()); map.put("argType", "str");
+		 * map.put("submitName", "propertyPersonTel"); compareList.add(map); map
+		 * = new HashMap(); map.put("notNull", "false"); map.put("label",
+		 * "联系手机"); map.put("tempValue", "" + temp.getPropertyPersonMobile());
+		 * map.put("realValue", "" + target.getPropertyPersonMobile());
+		 * map.put("argType", "str"); map.put("submitName",
+		 * "propertyPersonMobile"); compareList.add(map); map = new HashMap();
+		 * map.put("notNull", "false"); map.put("label", "备注");
+		 * map.put("tempValue", "" + temp.getRemark()); map.put("realValue", ""
+		 * + target.getRemark()); map.put("argType", "str");
+		 * map.put("submitName", "remark"); compareList.add(map);
+		 */
+		return null;
+	}
+
+	@Override
+	public HouseInfo getTargetById(Long id) {
+		return actualHouseService.getHouseInfoById(id);
+	}
+
+}

@@ -1,0 +1,48 @@
+package com.tianque.plugin.weChat.service.impl;
+
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.tianque.core.base.AbstractBaseService;
+import com.tianque.plugin.weChat.dao.WeChatGroupDao;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+import com.tianque.plugin.weChat.domain.user.WeChatGroup;
+import com.tianque.plugin.weChat.service.WeChatGroupService;
+import com.tianque.plugin.weChat.service.WeChatService;
+
+@Component("weChatGroupService")
+public class WeChatGroupServiceImpl extends AbstractBaseService implements WeChatGroupService {
+	private static Logger logger = Logger.getLogger(WeChatGroupServiceImpl.class);
+
+	@Autowired
+	private WeChatService weChatService;
+	@Autowired
+	private WeChatGroupDao weChatGroupDao;
+
+	@Override
+	public boolean saveWeChatGroup(TencentUser tencentUser) {
+		List<WeChatGroup> weChatGroupList = weChatService.getWeChatGroupList(tencentUser);
+		if (weChatGroupList == null) {
+			return false;
+		} else {
+			deleteWeChatGroupByWeChatUserId(tencentUser.getWeChatUserId());
+			for (WeChatGroup group : weChatGroupList) {
+				weChatGroupDao.saveWeChatGroup(group);
+			}
+			return true;
+		}
+	}
+
+	@Override
+	public WeChatGroup getGroupByGroupIdAndWeChatUserId(WeChatGroup weChatGroup) {
+		return weChatGroupDao.getGroupByGroupIdAndWeChatUserId(weChatGroup);
+	}
+
+	@Override
+	public void deleteWeChatGroupByWeChatUserId(String weChatUserId) {
+		weChatGroupDao.deleteWeChatGroupByWeChatUserId(weChatUserId);
+	}
+}

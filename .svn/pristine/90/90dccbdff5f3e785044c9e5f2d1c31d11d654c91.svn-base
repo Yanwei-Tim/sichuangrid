@@ -1,0 +1,185 @@
+package com.tianque.mobile.mobileDictionary.service.impl;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.util.FileUtil;
+import com.tianque.core.util.GridProperties;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.domain.Organization;
+import com.tianque.domain.Session;
+import com.tianque.domain.User;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.exception.base.SystemUtilException;
+import com.tianque.mobile.mobileDictionary.dao.MobileDictionaryDao;
+import com.tianque.mobile.mobileDictionary.domain.MobileDictionary;
+import com.tianque.mobile.mobileDictionary.domain.vo.MobileDictionaryVo;
+import com.tianque.mobile.mobileDictionary.service.MobileDictionaryService;
+
+@Service("mobileDictionaryService")
+public class MobileDictionaryServiceImpl implements MobileDictionaryService {
+
+	@Autowired
+	private MobileDictionaryDao mobileDictionaryDao;
+
+	private MobileDictionary md;
+
+	public static final String fileName = "mobileDictionary";
+
+	public MobileDictionaryServiceImpl() {
+		if (ThreadVariable.getSession() == null) {
+			try {
+				init();
+			} catch (Exception e) {
+				throw new ServiceValidationException("初始化手机端字典项文件配置用户失败", e);
+			}
+		}
+	}
+
+	@Override
+	public List<MobileDictionary> findAllMobileDictionary() throws Exception {
+		return mobileDictionaryDao.findMobileDictionaryLists();
+	}
+
+	@Override
+	public void addOrUpdateMobileDictionary() throws Exception {
+		int val = mobileDictionaryDao.countMobileDictionary();
+		if (val > 0) {// 已有值，做修改操作
+			List<MobileDictionary> lists = mobileDictionaryDao
+					.findMobileDictionaryLists();
+			md = lists.get(0);
+			md.setFileUrl(createFile());
+			md.setVersion(md.getVersion() + 1l);
+			md.setRenewDate(new Date());
+			mobileDictionaryDao.updateMobileDictionary(md);
+		} else {
+			md = new MobileDictionary();
+			md.setFileUrl(createFile());
+			md.setVersion(1l);
+			md.setRenewDate(new Date());
+			mobileDictionaryDao.addMobileDictionary(md);
+		}
+
+	}
+
+	private String createFile() {
+		File tempfileFolder = new File(FileUtil.getWebRoot() + File.separator
+				+ "uploadFile" + File.separator + "upload" + File.separator
+				+ fileName + File.separator);
+		if (!tempfileFolder.exists() && !tempfileFolder.isDirectory()) {
+			tempfileFolder.mkdirs();
+		}
+
+		File uploadFile = new File(FileUtil.getWebRoot() + File.separator
+				+ "uploadFile" + File.separator + "upload" + File.separator
+				+ fileName + File.separator + fileName + ".txt");
+		if (uploadFile.isFile() && uploadFile.exists()) {
+			uploadFile.delete();
+		}
+		PrintWriter pw = null;
+		try {
+
+			pw = new PrintWriter(new FileOutputStream(uploadFile.getPath()));
+			pw.write(getDictionarys());
+
+		} catch (Exception e) {
+
+			throw new SystemUtilException("操作异常", e);
+
+		} finally {
+			if (pw != null) {
+				pw.flush();
+				pw.close();
+			}
+		}
+
+		String path = File.separator + GridProperties.UPLOAD_FILE_FOLDER
+				+ File.separator + fileName + File.separator + fileName
+				+ ".txt";
+		return path;
+
+	}
+
+	private String getDictionarys() throws Exception {
+		JSONObject jsonObj_ALL = new JSONObject();
+
+		Map<String, List<Map>> dataMap = getMapData();
+
+		jsonObj_ALL.putAll(dataMap);
+		return jsonObj_ALL.toString();
+	}
+
+	private Map<String, List<Map>> getMapData() {
+		List<MobileDictionaryVo> dataList = mobileDictionaryDao
+				.findAllDictsForList();
+		Map<String, List<Map>> resultMap = new HashMap<String, List<Map>>();
+
+		for (MobileDictionaryVo vo : dataList) {
+			String domainName = vo.getDomainName();
+
+			Map tempMap = new HashMap();
+			tempMap.put("id", vo.getId());
+			tempMap.put("displayName", vo.getDisplayName());
+			tempMap.put("fullPinyin", vo.getFullPinyin());
+			tempMap.put("simplePinyin", vo.getSimplePinyin());
+			tempMap.put("internalId", vo.getInternalId());
+			tempMap.put("domainId", vo.getDomainId());
+
+			List<Map> tempList = resultMap.get(domainName);
+			if (tempList == null) {// 从未添加过该大类，进行大类添加处理
+				List<Map> list = new ArrayList<Map>();
+				list.add(tempMap);
+				resultMap.put(domainName, list);
+			} else {// 小类添加
+				tempList.add(tempMap);
+			}
+		}
+
+		return resultMap;
+	}
+
+	public MobileDictionary getMd() {
+		return md;
+	}
+
+	public void setMd(MobileDictionary md) {
+		this.md = md;
+	}
+
+	public void init() throws Exception {
+		Session session = new Session();
+		session.setUserName("admin");
+		session.setUserRealName("超级管理员");
+		session.setAccessIp("127.0.0.1");
+		session.setAccessTime(CalendarUtil.now("yyyy-MM-dd hh:mm:ss"));
+		session.setLoginDate(CalendarUtil.now("yyyy-MM-dd hh:mm:ss"));
+		session.setLoginDate(CalendarUtil.now("yyyy-MM-dd hh:mm:ss"));
+		session.setLogin(true);
+		session.setUserId(1L);
+		session.setSessionId(UUID.randomUUID().toString());
+		Organization org = new Organization();
+		org.setId(1L);
+		org.setOrgInternalCode("1.1.");
+		session.setOrganization(org);
+		session.setOrgInternalCode("1.1.");
+		User user = new User();
+		user.setUserName("admin");
+		user.setOrganization(org);
+		ThreadVariable.setUser(user);
+		ThreadVariable.setSession(session);
+	}
+
+}

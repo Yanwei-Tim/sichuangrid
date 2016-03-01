@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="myProfileAttachFile">
+	<typeAlias alias="myProfileAttachFile" type="com.tianque.resourcePool.domain.MyProfileAttachFile" />
+	<parameterMap id="myProfileAttachFileParams" class="myProfileAttachFile">
+		<parameter property="createDate" />
+		<parameter property="createUser" />
+		<parameter property="myPrifile" />
+		<parameter property="fileActualUrl" />
+		<parameter property="fileName" />
+		<parameter property="fileSize" />
+		<parameter property="id" />
+		<parameter property="updateDate" />
+		<parameter property="updateUser" />
+	</parameterMap>
+
+	<resultMap id="myProfileAttachFileResult" class="myProfileAttachFile">
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="myPrifile.id" column="myProfileId" />
+		<result property="fileActualUrl" column="fileActualUrl" />
+		<result property="fileName" column="fileName" />
+		<result property="fileSize" column="fileSize" />
+		<result property="id" column="id" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+	</resultMap>
+
+	<insert id="addMyProfileAttachFile" parameterClass="myProfileAttachFile">
+	<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_myProfileAttachfiles.NEXTVAL AS ID FROM DUAL ]]>
+	</selectKey>
+	insert into myProfileAttachfiles(myProfileId,createDate,createUser,fileActualUrl,fileName,fileSize,id)
+	VALUES(#myPrifile.id#,#createDate#,#createUser#,#fileActualUrl#,#fileName#,#fileSize#,#id#)
+	</insert>
+
+	<update id="updateMyProfileAttachFile" parameterClass="myProfileAttachFile">
+		update myProfileAttachfiles set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="createDate">
+				createDate=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="createUser">
+				createUser=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="RESOURCEPOOLID">
+				myProfileId=#myPrifile.id#
+			</isNotNull>
+			<isNotNull prepend="," property="fileActualUrl">
+				fileActualUrl=#fileActualUrl#
+			</isNotNull>
+			<isNotNull prepend="," property="fileName">
+				fileName=#fileName#
+			</isNotNull>
+			<isNotNull prepend="," property="fileSize">
+				fileSize=#fileSize#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+		 where id=#id#
+		</dynamic>
+	</update>
+
+	<select id="getMyProfileAttachFileByMyProfileId" parameterClass="java.lang.Long"
+	resultMap="myProfileAttachFileResult">
+	select * from myProfileAttachfiles where myProfileId=#value#
+	</select>
+	
+	<delete id="deleteMyProfileAttachFileById" parameterClass="java.lang.Long">
+ 	 delete from myProfileAttachfiles where id=#value#
+	</delete>
+
+	<delete id="deleteMyProfileAttachFileByMyProfileId" parameterClass="java.lang.Long">
+ 	 delete from myProfileAttachfiles where myProfileId=#value#
+	</delete>
+	
+	<delete id="deleteMyProfileAttachFileByMyProfileIds" >
+ 	 delete from myProfileAttachfiles where 
+ 	<iterate  conjunction="," open="myProfileId in (" close=")">
+		#[]#
+	</iterate>
+	</delete>
+
+	<delete id="deleteresourcePoolAttachFileByYearId" parameterClass="java.lang.Long">
+ 	 delete from myProfileAttachfiles where dailyYearId=#value#
+	</delete>
+
+	<select id="getSimpleMyProfileAttachFileById" parameterClass="java.lang.Long" resultMap="myProfileAttachFileResult">
+	<![CDATA[select * from myProfileAttachfiles where id=#value#]]>
+	</select>
+
+
+</sqlMap>

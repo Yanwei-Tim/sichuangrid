@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchPublicPlace">
+	<typeAlias alias="SearchPublicPlaceVo" type="com.tianque.domain.vo.SearchPublicPlaceVo"/>
+	<sql id="sql_where">
+		 from publicPlace where orgInternalCode like #orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="unitName">
+				<isNotEmpty property="unitName" prepend=" and ">
+					(placeName like #unitName#||'%' or fullPinyin like #unitName#||'%' or simplePinyin like #unitName#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="placeAddress">
+				<isNotEmpty property="placeAddress" prepend=" and ">
+					placeAddress like #placeAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="licenseDate">
+				<isNotNull property="licenseDate" prepend=" and ">
+					licenseDate <![CDATA[>=]]>
+					#licenseDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endLicenseDate">
+				<isNotNull property="endLicenseDate" prepend=" and ">
+					licenseDate <![CDATA[<=]]>
+					#endLicenseDate#
+				</isNotNull>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="manager">
+				<isNotEmpty property="manager" prepend=" and ">
+					manager like #manager#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="openingDate">
+				<isNotNull property="openingDate" prepend=" and ">
+					openingDate <![CDATA[>=]]>
+					#openingDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endOpeningDate">
+				<isNotNull property="endOpeningDate" prepend=" and ">
+					openingDate <![CDATA[<=]]>
+					#endOpeningDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="category">
+				<isNotEmpty property="category" prepend=" and ">
+					category like #category#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="registrationNumber">
+				<isNotEmpty property="registrationNumber" prepend=" and ">
+					registrationNumber like #registrationNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="buildingStructure">
+				<isNotEmpty property="buildingStructure" prepend=" and ">
+					buildingStructure like #buildingStructure#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="totalArea">
+				<isNotNull property="totalArea" prepend=" and ">
+					totalArea <![CDATA[>=]]>
+					#totalArea#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endTotalArea">
+				<isNotNull property="endTotalArea" prepend=" and ">
+					totalArea <![CDATA[<=]]>
+					#endTotalArea#
+				</isNotNull>
+			</isPropertyAvailable>
+
+				<isPropertyAvailable property="operationArea">
+				<isNotNull property="operationArea" prepend=" and ">
+					operationArea <![CDATA[>=]]>
+					#operationArea#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endOperationArea">
+				<isNotNull property="endOperationArea" prepend=" and ">
+					operationArea <![CDATA[<=]]>
+					#endOperationArea#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="cloakroom">
+				<isNotEmpty property="cloakroom" prepend=" and ">
+					cloakroom like #cloakroom#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="vouchedPeopleCount">
+				<isNotNull property="vouchedPeopleCount" prepend=" and ">
+					vouchedPeopleCount <![CDATA[>=]]>
+					#vouchedPeopleCount#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endVouchedPeopleCount">
+				<isNotNull property="endVouchedPeopleCount" prepend=" and ">
+					vouchedPeopleCount <![CDATA[<=]]>
+					#endVouchedPeopleCount#
+				</isNotNull>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="privateRoomCount">
+				<isNotNull property="privateRoomCount" prepend=" and ">
+					privateRoomCount <![CDATA[>=]]>
+					#privateRoomCount#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endPrivateRoomCount">
+				<isNotNull property="endPrivateRoomCount" prepend=" and ">
+					privateRoomCount <![CDATA[<=]]>
+					#endPrivateRoomCount#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="surrounding">
+				<isNotEmpty property="surrounding" prepend=" and ">
+					surrounding like #surrounding#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="placeLevel">
+				<isNotEmpty property="placeLevel" prepend=" and ">
+					placeLevel like #placeLevel#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="passageway">
+				<isNotEmpty property="passageway" prepend=" and ">
+					passageway like #passageway#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="innerStructure">
+				<isNotEmpty property="innerStructure" prepend=" and ">
+					innerStructure like #innerStructure#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="true">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="false">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="attentionExtentId" >
+				<isNotEmpty property="attentionExtentId" prepend=" and ">
+					attentionExtentId = #attentionExtentId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isNotEmpty property="hasServiceTeamMember" prepend=" and ">
+				<isEqual property="hasServiceTeamMember" compareValue="0">
+					id in (select objectId from serviceMemberHasObject where objectType='PUBLICPLACE')
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="1">
+					id not in (select objectId from serviceMemberHasObject where objectType='PUBLICPLACE')	 
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="-1">
+					1=1	 
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="hasServiceRecord" prepend=" and ">
+				<isEqual property="hasServiceRecord" compareValue="0">
+					 id in (select objectId from serviceRecordRelyObject where objectType='PUBLICPLACE')
+				</isEqual>
+				<isEqual property="hasServiceRecord" compareValue="1">
+					 id not in (select objectId from serviceRecordRelyObject where objectType='PUBLICPLACE')	 
+				</isEqual>
+				<isEqual property="hasServiceRecord" compareValue="-1">
+					1=1	 
+				</isEqual>
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+
+	<select id="countPlaces" parameterClass="SearchPublicPlaceVo" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="searchPlaces" parameterClass="SearchPublicPlaceVo" resultMap="publicPlace.publicPlaceResultForList">
+			select publicPlace.*,'$importantLocationType$' as locationType 
+			<include refid="sql_where" />
+			<dynamic>
+				<isPropertyAvailable property="sortField" prepend="order by">
+ 					<isNotNull property="sortField">$sortField$</isNotNull>
+ 					<isNotNull property="order">$order$</isNotNull>
+ 				</isPropertyAvailable>
+			</dynamic>
+	</select>
+</sqlMap>

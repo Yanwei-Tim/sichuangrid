@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="replyMessage">
+	<typeAlias alias="ReplyMessage" type="com.tianque.plugin.weChat.domain.inbox.ReplyMessage"/>
+	<resultMap id="replyMessageResult" class="ReplyMessage">
+		<result property="replyMessageId" column="reply_Message_Id"/>
+		<result property="inboxId" column="inbox_Id"/>
+		<result property="content" column="content"/>
+		<result property="receiveUser" column="receive_User"/>
+		<result property="createDate" column="create_Date"/>
+		<result property="createUser" column="create_user"/>
+		<result property="wechatUserId" column="WECHAT_USER_ID"/>
+		<result property="preciseInboxId" column="precise_inbox_id"/>
+		<result property="fromUserName" column="from_user_name"/>
+		<result property="isIssue" column="is_issue"/>
+		<result property="serviceId" column="service_id"/>
+	</resultMap>
+	
+	<sql id="sql_where">
+		<isNotEmpty prepend=" and " property="replyMessage.inboxId">
+        	inbox_Id=#replyMessage.inboxId#
+        </isNotEmpty>
+        <isNotEmpty prepend=" and " property="replyMessage.preciseInboxId">
+        	precise_inbox_id=#replyMessage.preciseInboxId#
+        </isNotEmpty>
+	</sql>
+	
+	<insert id="saveReplyMessage" parameterClass="ReplyMessage">
+		<selectKey resultClass="java.lang.Long" keyProperty="replyMessageId">
+			<![CDATA[
+				SELECT s_reply_Message.NEXTVAL AS replyMessageId FROM DUAL
+			]]>
+		</selectKey>
+		insert into reply_Message
+		(REPLY_MESSAGE_ID,INBOX_ID,PRECISE_INBOX_ID,CONTENT,RECEIVE_USER,CREATE_DATE,WECHAT_USER_ID,FROM_USER_NAME,IS_ISSUE,SERVICE_ID,CREATE_USER)
+		values
+		(#replyMessageId#,#inboxId#,#preciseInboxId#,#content#,#receiveUser#,#createDate#,#wechatUserId#,#fromUserName#,#isIssue#,#serviceId#,#createUser#)
+	</insert>
+	
+	<delete id="deleteReplyMessageByInboxId" parameterClass="java.lang.Long"> 
+		delete from reply_message where inbox_id=#value#
+	</delete>
+	<delete id="deleteReplyMessageByPreciseInboxId" parameterClass="java.lang.Long"> 
+		delete from reply_message where precise_inbox_id=#value#
+	</delete>
+	
+	<select id="countFindReplyMessages" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		select count(*) from REPLY_MESSAGE where 1=1
+		<include refid="sql_where" />
+	</select>
+	<select id="countRMByInboxId" parameterClass="java.lang.Long"
+		resultClass="java.lang.Long">
+		select count(reply_message_id) from reply_message where inbox_id =#value#
+	</select>
+	<select id="countRMByPreciseInboxId" parameterClass="java.lang.Long"
+		resultClass="java.lang.Long">
+		select count(reply_message_id) from reply_message where precise_inbox_id =#value#
+	</select>
+	<select id="findReplyMessages" parameterClass="java.util.Map"
+		resultMap="replyMessageResult">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom" > 
+			    <include refid="common.sql_select_page_start"/>
+			</isNotNull>
+		 </isPropertyAvailable>
+			select * from REPLY_MESSAGE where 1=1
+		 	<include refid="sql_where" />
+		 	 order by create_Date DESC
+		 <isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom" >
+				<include refid="common.sql_select_page_end"/>
+			</isNotNull>
+		 </isPropertyAvailable>
+	</select>
+	<select id="findReplyMessagesByInboxId" parameterClass="java.lang.Long"
+		resultMap="replyMessageResult">
+		select * from reply_message where inbox_id =#value#   order by create_Date DESC
+	</select>
+	<select id="findReplyMessagesByPreciseInboxId" parameterClass="java.lang.Long"
+		resultMap="replyMessageResult">
+		select * from reply_message where precise_inbox_id =#value#   order by create_Date DESC
+	</select>
+	<select id="findReplyMessagesByOpenIdAndDealState" parameterClass="java.util.Map"
+		resultMap="replyMessageResult">
+		select * from reply_message where from_user_name =#fromUserName# and  is_issue=#isIssue#
+	</select>
+	
+	
+	<update id="updateReplyMessageById" parameterClass="ReplyMessage">
+		update reply_message set
+		inbox_Id = #inboxId#,
+		content = #content#,
+		receive_User = #receiveUser#,
+		create_Date = #createDate#,
+		create_user = #createUser#,
+		wechat_user_id = #wechatUserId#,
+		precise_inbox_id = #preciseInboxId#,
+		from_user_name = #fromUserName#,
+		is_issue = #isIssue#,
+		service_id = #serviceId#
+		where reply_Message_Id =
+		#replyMessageId#
+	</update>
+</sqlMap>

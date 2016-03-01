@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="CompanyPlaceBase">
+	<typeAlias alias="companyPlaceBase" type="com.tianque.baseInfo.companyPlace.domain.CompanyPlaceBase" />
+	<typeAlias alias="companyPlace" type="com.tianque.baseInfo.companyPlace.domain.CompanyPlace" />
+	<typeAlias alias="companyPlaceVo" type="com.tianque.baseInfo.companyPlace.domain.vo.CompanyPlaceVo" />
+	 <resultMap class="companyPlace" id="companyPlace_ResultMap">
+	    <result column="ID"  property="id" />
+	    <result column="ORG" property="org.id" />
+	    <result column="ORGINTERNALCODE"  property="orginternalcode" />
+	    <result column="NAME"  property="name" />
+	    <result column="ATTENTIONEXTENT"  property="attentionextent.id" />
+	    <result column="ADDRESS"  property="address" />
+	    <result column="ISEMPHASIS"  property="isEmphasis" />
+	    <result column="ISEMPHASISDATE"  property="isEmphasisDate" />
+	    <result column="ISEMPHASISREASON"  property="isEmphasisReason" />
+	    <result column="SOURCESSTATE"  property="sourcesState" />
+	    <result column="IMGURL"  property="imgUrl" />
+	    <result column="CREATEUSER" property="createUser" />
+	    <result column="UPDATEUSER"  property="updateUser" />
+	    <result column="CREATEDATE"  property="createDate" />
+	    <result column="UPDATEDATE"  property="updateDate" />
+  	</resultMap>
+  	
+  	<resultMap class="companyPlace" id="companyPlace_all_ResultMap">
+	    <result column="ID"  property="id" />
+	    <result column="ORG" property="org.id" />
+	    <result column="ORGINTERNALCODE"  property="orginternalcode" />
+	    <result column="NAME"  property="name" />
+	    <result column="ATTENTIONEXTENT"  property="attentionextent.id" />
+	    <result column="ADDRESS"  property="address" />
+	    <result column="ISEMPHASIS"  property="isEmphasis" />
+	    <result column="ISEMPHASISDATE"  property="isEmphasisDate" />
+	    <result column="ISEMPHASISREASON"  property="isEmphasisReason" />
+	    <result column="SOURCESSTATE"  property="sourcesState" />
+	    <result column="IMGURL"  property="imgUrl" />
+	    
+	    <result column="cid" property="cid" />
+	    <result column="BASEID" property="baseId" />
+	    <result column="TYPE" property="type.id" />
+	    <result column="CLASSIFICATION" property="classifiCation.id"/>
+	    <result column="CLASSIFICATIONEN"  property="classifiCationEn" />
+	    <result column="CATEGORY" property="category.id"  />
+	    <result column="USERNAME" property="userName" />
+	    <result column="MOBILENUMBER" property="mobileNumber"  />
+	    <result column="TELEPHONE" property="telePhone"  />
+	    <result column="FAXNUMBER" property="faxNumber" />
+	    <result column="AREA" property="area"  />
+	    <result column="COVEREDAREA" property="coveredArea"  />
+	    <result column="REMARKS" property="remarks" />
+	    <result column="HASLICENSE" property="hasLicense"  />
+	    <result column="BUSINESSLICENSENO" property="businessLicenseNo"  />
+	    <result column="ORGCODE" property="orgCode"  />
+	    <result column="CLOAKROOM" property="cloakRoom"  />
+	    <result column="SCALETYPE" property="scaleType.id"  />
+	    <result column="PARTYCOUNTNUMBER" property="partyCountNumber" />
+	    <result column="NETWORKCARDNO" property="networkCardNo" />
+	    <result column="REGISTEREDCAPITAL" property="registeredCapital"  />
+	 	<result column="REGISTEREDCAPITALNO" property="registeredCapitalNo"  />
+	    <result column="BEGINTIME" property="begintime" />
+	    <result column="ENDTIME" property="endtime" />
+	    <result column="BUSINESSAREA" property="businessArea"  />
+	    <result column="DIGVOLUME" property="digVolume" />
+	    <result column="FILLVOLUME" property="fillVolume"  />
+	    <result column="EMAIL" property="email"  />
+	    <result column="HOSPITALNATURE" property="hospitalNature.id" />
+	    <result column="GENERALSTORAGE" property="generalStorage" />
+	    <result column="GENERALTYPE" property="generalType" />
+	    <result column="FAXNNO" property="faxNo" />
+	    <result column="NOWIP" property="nowip"  />
+	    <result column="COUNTNO" property="countNo" />
+	    <result column="GENERALMANAGE" property="generalManage" />
+	    <result column="GENERALMENTE" property="generalMente" />
+	    <result column="FIREAUDITOPINIONNO" property="fireAuditOpinionNo"  />
+	    <result column="INTERNETBARNO" property="internetBarNo"  />
+	    <result column="LEGALVICEPRINCIPAL" property="legalVicePrincipal"  />
+	    <result column="SCHOOLNATURE" property="schoolNature.id"  />
+	    <result column="SCHOOLNAMEEN" property="schoolNameEn"  />
+	    <result column="SCHOOLWEBSITE" property="schoolWebSite"  />
+	    <result column="ECONOMICNATURE" property="economicNature.id"  />
+	    <result column="MANAGEMENTLEVEL" property="managementLevel.id"  />
+	    <result column="FIRELEVEL" property="fireLevel.id" />
+	    
+	    <result column="CREATEUSER" property="createUser" />
+	    <result column="UPDATEUSER"  property="updateUser" />
+	    <result column="CREATEDATE"  property="createDate" />
+	    <result column="UPDATEDATE"  property="updateDate" />
+	    <result column="OPERATINGBRAND" property="operatingBrand.id"  />
+    	<result column="OPERATINGMODE" property="operatingMode.id"  />
+	    <!-- <result property="lastRecordTime" column="lastRecordTime" /> -->  
+  	</resultMap>
+  	
+  	<sql id="queryHeader_sql">
+  	 select 
+	  	  cpb.ID,cpb.ORG,cpb.ORGINTERNALCODE,cpb.NAME,cpb.ATTENTIONEXTENT,cpb.ADDRESS,cpb.ISEMPHASIS,cpb.ISEMPHASISDATE,cpb.ISEMPHASISREASON,cpb.SOURCESSTATE,cpb.IMGURL,
+	      cp.ID as CID,cp.BASEID,cp.TYPE,cp.CLASSIFICATION,cp.CLASSIFICATIONEN,cp.CATEGORY,cp.USERNAME,cp.MOBILENUMBER,cp.TELEPHONE,cp.FAXNUMBER,cp.AREA,cp.COVEREDAREA,cp.REMARKS,cp.HASLICENSE,cp.BUSINESSLICENSENO,
+	      cp.ORGCODE,cp.CLOAKROOM,cp.SCALETYPE,cp.PARTYCOUNTNUMBER,cp.NETWORKCARDNO,cp.REGISTEREDCAPITAL,cp.REGISTEREDCAPITALNO,cp.BEGINTIME,cp.ENDTIME,cp.BUSINESSAREA,cp.DIGVOLUME,cp.FILLVOLUME,cp.EMAIL,cp.HOSPITALNATURE,cp.GENERALSTORAGE,
+	      cp.GENERALTYPE,cp.FAXNNO,cp.NOWIP,cp.COUNTNO,cp.GENERALMANAGE,cp.GENERALMENTE,cp.FIREAUDITOPINIONNO,cp.INTERNETBARNO,cp.LEGALVICEPRINCIPAL,cp.SCHOOLNATURE,cp.SCHOOLNAMEEN,cp.SCHOOLWEBSITE,
+	      cp.ECONOMICNATURE,cp.MANAGEMENTLEVEL,cp.FIRELEVEL,cp.CREATEUSER,cp.UPDATEUSER,cp.CREATEDATE,cp.UPDATEDATE,cp.OPERATINGBRAND,cp.OPERATINGMODE
+      from companyplacebase cpb ,companyplace cp 
+  	</sql>
+  	<!-- 根据cid查询baseid -->
+  	<sql id="queryBaseidByCid_sql">
+  		(select baseid from companyplace where id = #cid#)
+  	</sql>
+  	<!-- 条件查询 -->
+  	<sql id="queryWhere_sql">
+  		<isNotEmpty property="conditionsValue" prepend=",">
+  			companyplacebusiness cpbs
+  			where cpb.id = cp.baseid 
+  			and   cp.id  = cpbs.companyPlaceId
+  		</isNotEmpty>
+  		<isEmpty property="conditionsValue" prepend="where">
+  			cpb.id = cp.baseid
+  		</isEmpty>
+  		<isNotEmpty property="orginternalcode" prepend="and">
+  			cpb.ORGINTERNALCODE like #orginternalcode#||'%'
+  		</isNotEmpty>
+  		<isNotEmpty property="address" prepend="and">
+  			cpb.address like #address#||'%'
+  		</isNotEmpty>
+  		<isNotEmpty property="name" prepend="and">
+  			cpb.name like #name#||'%'
+  		</isNotEmpty>
+  		<isNotEmpty property="userName" prepend="and">
+  			cp.USERNAME like #userName#||'%'
+  		</isNotEmpty>
+  		<isNotEmpty property="mobileNumber" prepend="and">
+  			cp.MOBILENUMBER like #mobileNumber#||'%'
+  		</isNotEmpty>
+  		<isNotEmpty property="telePhone" prepend="and">
+  			cp.TELEPHONE like #telePhone#||'%'
+  		</isNotEmpty>
+  		<isNotEmpty property="faxNumber" prepend="and">
+  			cp.FAXNUMBER like #faxNumber#||'%'
+  		</isNotEmpty>
+  		<isNotEmpty property="orgCode" prepend="and">
+  			cp.ORGCODE like #orgCode#||'%'
+  		</isNotEmpty>
+  		<isNotEmpty property="businessLicenseNo" prepend="and">
+  			cp.BUSINESSLICENSENO like #businessLicenseNo#||'%'
+  		</isNotEmpty>
+  		<isNotEmpty property="managementLevel.id" prepend="and">
+  			cp.MANAGEMENTLEVEL = #managementLevel.id#
+  		</isNotEmpty>
+  		<isNotEmpty property="fireLevel.id" prepend="and">
+  			cp.FIRELEVEL = #fireLevel.id#
+  		</isNotEmpty>
+  		<isNotEmpty property="economicNature.id" prepend="and">
+  			cp.ECONOMICNATURE = #economicNature.id#
+  		</isNotEmpty>
+  		<isNotEmpty property="conditionsValue" prepend="and">
+  			cpbs.iskeytype=#conditionsValue#
+  		</isNotEmpty>
+  		<isNotEmpty property="attentionextent.id" prepend="and">
+  			cpb.ATTENTIONEXTENT = #attentionextent.id#
+  		</isNotEmpty>
+  		<isNotEmpty property="isEmphasis" prepend="and">
+  			cpb.ISEMPHASIS = #isEmphasis#
+  		</isNotEmpty>
+  		<isEmpty property="isEmphasis" prepend="and">
+  			cpb.ISEMPHASIS = 0
+  		</isEmpty>
+  		<isNotEmpty property="scaleType.id" prepend="and">
+  			cp.SCALETYPE = #scaleType.id#
+  		</isNotEmpty>
+  		<isNotEmpty property="type.id" prepend="and">
+  			cp.TYPE = #type.id#
+  		</isNotEmpty>
+  		<isNotEmpty property="classifiCation.id" prepend="and">
+  			cp.CLASSIFICATION = #classifiCation.id#
+  		</isNotEmpty>
+  		<isNotEmpty property="category.id" prepend="and">
+  			cp.CATEGORY = #category.id#
+  		</isNotEmpty>
+  		<isNotEmpty property="classifiCationEn" prepend="and">
+  			cp.CLASSIFICATIONEN = #classifiCationEn#
+  		</isNotEmpty>
+  	</sql>
+  	
+  	<!-- 分页查询 （组织机构过滤） -->
+  	<select id="queryCompanyPlaceForPageResult" resultMap="companyPlace_all_ResultMap"  parameterClass="companyPlaceVo">
+  		<include refid="queryHeader_sql"/>
+  		<!-- 条件 -->
+  		<include refid="queryWhere_sql"/>
+  		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+  	</select>
+  	<select id="queryCompanyPlaceForPageResultCount" resultClass="java.lang.Integer"  parameterClass="companyPlaceVo">
+  		select count(*) from companyplacebase cpb , companyplace cp 
+  		<!-- 条件 -->
+  		<include refid="queryWhere_sql"/>
+  	</select>
+  	 	  	
+  	<!--根据条件查询列表 -->
+  	<select id="queryCompanyPlaceForList" resultMap="companyPlace_all_ResultMap"  parameterClass="companyPlaceVo">
+  		<include refid="queryHeader_sql"/>
+  		<!-- 条件 -->
+  		<include refid="queryWhere_sql"/>
+  	</select>
+    	
+  	<!-- 根据主键 批量删除 -->
+  	<delete id="batchDeleteCompanyPlaceBaseByIds" parameterClass="java.lang.Long">
+  		delete from companyplacebase c where c.id= <include refid="queryBaseidByCid_sql"/>
+  	</delete>
+  	<!-- 根据主键 删除 -->
+  	<delete id="deleteCompanyPlaceBaseById" parameterClass="java.lang.Long">
+  		delete from companyplacebase c where c.id= #id#
+  	</delete>
+  	
+  	
+	<!-- 根据主键修改 -->
+	<update id="updateCompanyPlaceBaseById" parameterClass="companyPlace">
+	 	update  companyplacebase cpb 
+	  	set cpb.name = #name# ,
+		  	cpb.ATTENTIONEXTENT =#attentionextent.id# , 
+		  	cpb.ADDRESS = #address#,
+		  	cpb.IMGURL = #imgUrl#,
+		  	cpb.UPDATEUSER = #updateUser#,
+		  	cpb.UPDATEDATE = #updateDate#
+	  	where cpb.id = <include refid="queryBaseidByCid_sql"/>
+	</update>
+		<!-- 根据主键修改组织机构(网格转移)-->
+	<update id="updateCompanyPlaceBaseOrgById" parameterClass="companyPlace">
+	 	update  companyplacebase cpb 
+	  	set 
+	  		cpb.ORG = #org.id#,
+	  		cpb.ORGINTERNALCODE = #orginternalcode#,
+		  	cpb.UPDATEUSER = #updateUser#,
+		  	cpb.UPDATEDATE = #updateDate#
+	  	where cpb.id = <include refid="queryBaseidByCid_sql"/>
+	</update>
+	<!-- 根据场所表的主键修改base表的状态 -->
+	<update id="updateCompanyPlaceBaseEmphasisById" parameterClass="companyPlace">
+		update  companyplacebase cpb 
+	  	set 
+		  	cpb.ISEMPHASIS = #isEmphasis#,
+		  	cpb.ISEMPHASISDATE = #isEmphasisDate#,
+		  	cpb.ISEMPHASISREASON = #isEmphasisReason#,
+		  	cpb.UPDATEUSER = #updateUser#,
+		  	cpb.UPDATEDATE = #updateDate#
+	  	where cpb.id =  <include refid="queryBaseidByCid_sql"/>
+	</update>
+	<!-- 新增  -->	  	
+	<insert id="addCompanyPlaceBase" parameterClass="companyPlace"  >
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_COMPANYPLACEBASE.NEXTVAL AS ID FROM DUAL]]>
+	</selectKey>
+	   insert into COMPANYPLACEBASE (ID, ORG, ORGINTERNALCODE, NAME, 
+	   			ATTENTIONEXTENT, ADDRESS, ISEMPHASIS, ISEMPHASISDATE, ISEMPHASISREASON, 
+	   			SOURCESSTATE, PCORMOBILE,IMGURL, CREATEUSER,UPDATEUSER, CREATEDATE, UPDATEDATE)
+	   values (#id#, #org.id#, #orginternalcode#, #name#,
+	   			#attentionextent.id#, #address#, default, #isEmphasisDate#,#isEmphasisReason#,
+	  			#sourcesState#,#pcOrMobile#, #imgUrl#, #createUser#, #updateUser#, #createDate#,#updateDate#)
+	</insert>
+	<!-- 根据名称  查询 单位 ID 组织机构ID过滤 转移使用-->
+	<select id="getCompanyPlaceBaseIdByNameAndOrgid" resultClass="java.lang.String" parameterClass="companyPlace">
+		select id from companyplacebase where name = #name# and org = #org.id#
+	</select>
+	<!-- 根据名称  查询 单位 实体 组织机构ID过滤-->
+	<select id="getCompanyPlaceBaseByNameAndOrgid" resultMap="companyPlace_ResultMap" parameterClass="companyPlace">
+		select * from companyplacebase where name = #name# and org = #org.id#
+	</select>
+	<!-- 根据名称  查询 单位ID 组织机构ID过滤 (排除自己的id)-->
+	<select id="getCompanyPlaceBaseIdExcIdByNameAndOrgid" resultClass="java.lang.Integer" parameterClass="companyPlace">
+		select count(*) from companyplacebase cpb,companyplace cp where cpb.id = cp.baseid and cpb.name = #name# and cpb.org = #org.id# and cp.classifiCation = #classifiCation.id#
+		<isNotEmpty property="id" prepend="and">
+  			 cpb.id != #id#
+  		</isNotEmpty>
+	</select>
+	<!-- 根据名称  查询单位实体 织机构ID过滤 (排除自己的id)-->
+	<select id="getCompanyPlaceBaseExcIdByNameAndOrgid" resultMap="companyPlace_ResultMap" parameterClass="companyPlace">
+		select * from companyplacebase where name = #name# and org = #org.id# and id !=  <include refid="queryBaseidByCid_sql"/>
+	</select>
+	
+	<!-- 根据场所表的id查询场所以及基础信息 -->
+	<select id="getCompanyPlaceInfoByCid" parameterClass="java.lang.Long" resultMap="companyPlace_all_ResultMap">
+		<include refid="queryHeader_sql"/>
+		where 	cpb.id = cp.baseid and  cp.id = #cid#
+	</select>
+	<!-- 根据名称自动完成（name ,orgID） -->
+	 <select id="queryCompanyplaceInfoLikeNameForList" parameterClass="companyPlace" resultMap="companyPlace_ResultMap">
+	 	  select * from companyplacebase cpb where cpb.name like #name#||'%'  and cpb.org = #org.id#
+	 </select>
+	 
+	<!-- 删除规上规下企业 -->
+	<update id="updateCompanyPlaceScaleTypeByCid" parameterClass="java.lang.Long">
+		update  companyplace cp
+	  	set 
+		  	cp.SCALETYPE = ''
+	  	where cp.id = #cid#
+	</update>
+	
+	<!-- 批量删除规上规下企业 -->
+	<update id="updateCompanyPlaceScaleTypeByCids" parameterClass="map">
+		update  companyplace cp set cp.SCALETYPE = ''
+	  	<dynamic prepend="WHERE">
+			<isNotNull property="ids">
+				cp.id in
+				<iterate property="ids" conjunction="," open="(" close=")">
+					#ids[]#
+				</iterate>
+			</isNotNull>
+			<isNull property="ids">
+				cp.id = ''
+			</isNull>
+		</dynamic>
+	</update>
+	
+	<select id="getLastRecordTime" resultClass="java.util.Date" parameterClass="companyPlace">
+		select max(OCCURDATE) from servicerecords 
+		where id in (select recordId from serviceRecordRelyObject 
+								where objectType=#classifiCationEn# and objectId=#cid#)
+	</select>
+</sqlMap>

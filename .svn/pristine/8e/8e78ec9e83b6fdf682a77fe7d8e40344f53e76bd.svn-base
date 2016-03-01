@@ -1,0 +1,4 @@
+----数据管理
+insert into moduletable (ID, ENAME, ACTIVE, BEANNAME, TABLENAME, ORGIDCOLUMN, ORGCODECOLUMN, EXECUTETYPE, ISMAINTABLE, EXECUTELEVEL, OPERATEMODE, COUNTSCRIPT, SELECTSCRIPT, UPDATESCRIPT, DELETESCRIPT, CREATEUSER, CREATEDATE, UPDATEUSER, UPDATEDATE)
+values (S_MODULETABLE.NEXTVAL, 'dataManagePluginManagement', 1, 'dataManageDBOrgChangeHandler', null, null, '', 1, 0, 1, 1, '', '', '', '', 'admin', sysdate, '', sysdate);
+commit;

@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="rentalHouse">
+	<typeAlias alias="rentalHouse" type="com.tianque.baseInfo.rentalHouse.domain.RentalHouse"/>
+	<typeAlias alias="PropertyDict" type="com.tianque.domain.PropertyDict" />
+	<typeAlias alias="PropertyDomain" type="com.tianque.domain.PropertyDomain" />
+	<typeAlias alias="SearchHouseInfoVo" type="com.tianque.domain.vo.SearchHouseInfoVo" />
+
+	<resultMap id="rentalHoseResult" class="rentalHouse" extends="houseInfoBaseResult.houseInfoBaseResult">
+		<result property="usage.id" column="usage" />
+		<result property="houseFileNum" column="houseFileNum" />
+		<result property="lessorType.id" column="lessorType" />
+		<result property="rentalPerson" column="rentalPerson" />
+		<result property="rentalCertificateType.id" column="rentalCertificateType" />
+		<result property="rentalCertificateNumbe" column="rentalCertificateNumbe" />
+		<result property="rentalTelephone" column="rentalTelephone" />
+		<result property="rentalMobileNumber" column="rentalMobileNumber" />
+		<result property="lessorAddress" column="lessorAddress" />
+		<result property="hiddenDangerLevel.id" column="hiddenDangerLevel" />
+		<result property="mangerTypes.id" column="mangerTypes" />
+		<result property="lessorDate" column="lessorDate" />
+		<result property="roomNumber" column="roomNumber" />
+		<result property="rentMonth" column="rentMonth" />
+		<result property="isFireChannels" column="isFireChannels" />
+		<result property="isSafetyChannel" column="isSafetyChannel" />
+		<result property="isSignGuarantee" column="isSignGuarantee" />
+		<result property="isEmphasis" column="isEmphasis" />
+		 <!--fateson add  -->
+		 <result property="houseId" column="houseId"/>
+	     <result property="rentalHouseProperty.id" column="RENTALPROPERTY" />
+	      <result property="rentalType.id" column="type" />
+	       <result property="registDate" column="registdate" />
+	        <result property="limitPersons" column="limitpersons" />
+	         <result property="hiddenRectification" column="hiddenrectification" />
+	</resultMap>
+	
+	<resultMap id="rentalHoseResultForList" class="rentalHouse" extends="rentalHoseResult">
+		<result property="houseType" column="locationType"  nullValue="" />
+		<result property="hasServiceTeamMember" column="{id=id,locationType=locationType}" select="locationBaseInfo.hasServiceTeamMemberQuery" />
+		<result property="lastRecordTime" column="{id=id,locationType=locationType}" select="locationBaseInfo.hasServiceTeamRecordQuery"/>
+	</resultMap>
+	
+	<sql id="serviceTeamSearchInfo">
+		<isNotNull property="hasServiceTeamMember" prepend=" and ">
+			<isEqual property="hasServiceTeamMember" compareValue="0">
+			   id in (select objectId from serviceMemberHasObject where objectType='$locationType$' )
+			</isEqual>
+			<isEqual property="hasServiceTeamMember" compareValue="1">
+				id not in (select objectId from serviceMemberHasObject where objectType='$locationType$' )
+			</isEqual>
+		</isNotNull>
+		
+		<isNotNull property="hasServiceTeamRecord" prepend=" and ">
+			<isEqual property="hasServiceTeamRecord" compareValue="0">
+				id in (select objectId from serviceRecordRelyObject where objectType='$locationType$' )
+			</isEqual>
+			<isEqual property="hasServiceTeamRecord" compareValue="1">
+				id not in (select objectId from serviceRecordRelyObject where objectType='$locationType$' )
+			</isEqual>
+		</isNotNull>
+	</sql>
+
+	<insert id="addRentalHouse" parameterClass="rentalHouse">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_rentalhouse.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO RentalHouse
+		(	<include refid="commonHouseInfo.addHouseInfoFields"/>
+			,usage,houseFileNum,lessorType,rentalPerson,rentalCertificateType,rentalCertificateNumbe,rentalTelephone,rentalMobileNumber,
+			lessorAddress,hiddenDangerLevel,mangerTypes,lessorDate,roomNumber,rentMonth,isFireChannels,isSafetyChannel,isSignGuarantee,isEmphasis
+			<!-- fateson add  -->
+			,rentalproperty,registdate,type,limitpersons,hiddenrectification,houseId
+			
+		)
+		VALUES
+		(
+			<include refid="commonHouseInfo.addHouseInfoData"/>
+			,#usage.id#,#houseFileNum#,#lessorType.id#,#rentalPerson#,#rentalCertificateType.id#,#rentalCertificateNumbe#,#rentalTelephone#,#rentalMobileNumber#,
+			#lessorAddress#,#hiddenDangerLevel.id#,#mangerTypes.id#,#lessorDate#,#roomNumber#,#rentMonth#,#isFireChannels#,#isSafetyChannel#,#isSignGuarantee#,#isEmphasis#
+			<!-- fateson add  -->                                                  
+			,#rentalHouseProperty.id#,#registDate#,#rentalType.id#,#limitPersons#,#hiddenRectification#,#houseId#
+			
+		)
+	</insert>
+
+	<update id="updateRentalHouseBaseInfo" parameterClass="rentalHouse">
+		update RentalHouse set
+            	<include refid="commonHouseInfo.updateHouseInfo"/>
+            	,rentalPerson = #rentalPerson#
+            	,LessorAddress = #lessorAddress#
+				,RentalMobileNumber = #rentalMobileNumber#
+				,usage=#usage.id#
+				,hiddenDangerLevel=#hiddenDangerLevel.id#
+				,type=#rentalType.id#
+            	,rentalproperty=#rentalHouseProperty.id#
+				,RentalTelephone = #rentalTelephone#
+            where id=#id#
+	</update>
+
+	<update id="updateRentalHouseBusinessInfo" parameterClass="rentalHouse">
+		update RentalHouse set
+            	usage=#usage.id#,
+            	houseFileNum=#houseFileNum#,
+            	lessorType=#lessorType.id#,
+            	rentalPerson=#rentalPerson#,
+            	rentalCertificateType=#rentalCertificateType.id#,
+            	rentalCertificateNumbe=#rentalCertificateNumbe#,
+            	rentalTelephone=#rentalTelephone#,
+            	rentalMobileNumber=#rentalMobileNumber#,
+            	lessorAddress=#lessorAddress#,
+            	hiddenDangerLevel=#hiddenDangerLevel.id#,
+            	mangerTypes=#mangerTypes.id#,
+            	lessorDate=#lessorDate#,
+            	roomNumber=#roomNumber#,
+            	rentMonth=#rentMonth#,
+            	isFireChannels=#isFireChannels#,
+            	isSafetyChannel=#isSafetyChannel#,
+            	isSignGuarantee=#isSignGuarantee#,
+            	isEmphasis=#isEmphasis#,
+            	rentalproperty=#rentalHouseProperty.id#,
+            	registdate=#registDate#,
+            	type=#rentalType.id#,
+            	limitpersons=#limitPersons#,
+            	hiddenrectification=#hiddenRectification#
+            where id=#id#
+	</update>
+
+	<update id="updateHouseBusinessInfoForPopulation" parameterClass="rentalHouse">
+		update RentalHouse set
+				houseUses=#houseUses.id#,
+				addressType=#addressType.id#,
+				address=#address#,
+				community=#community#,
+				block=#block#,
+				unit=#unit#,
+				room=#room#,
+				propertyTypes=#propertyTypes.id#,
+				name=#name#,
+				fullPinyin=#fullPinyin#,
+				simplePinyin=#simplePinyin#,
+				certificateType=#certificateType.id#,
+				certificateNumbe=#certificateNumbe#,
+				propertyPersonTel=#propertyPersonTel#,
+				propertyPersonMobile=#propertyPersonMobile#,
+            	usage=#usage.id#,
+            	hiddenDangerLevel=#hiddenDangerLevel.id#,
+            	rentalPerson=#rentalPerson#,
+            	rentalTelephone=#rentalTelephone#,
+            	rentalMobileNumber=#rentalMobileNumber#,
+            	lessorAddress=#lessorAddress#,
+            	rentalproperty=#rentalHouseProperty.id#,
+            	type=#rentalType.id#,
+            	remark=#remark#
+            where id=#id#
+	</update>
+
+	<update id="updateRentalHouseInfoForMobile" parameterClass="rentalHouse">
+		update RentalHouse set
+            	<include refid="commonHouseInfo.updateHouseInfo"/>
+            	,rentalPerson = #rentalPerson#
+            	,LessorAddress = #lessorAddress#
+				,RentalMobileNumber = #rentalMobileNumber#
+				,usage=#usage.id#
+				,hiddenDangerLevel=#hiddenDangerLevel.id#
+				,type=#rentalType.id#
+            	,rentalproperty=#rentalHouseProperty.id#
+				,RentalTelephone = #rentalTelephone#
+				,houseFileNum=#houseFileNum#
+				,lessorType=#lessorType.id#
+				,rentalCertificateType=#rentalCertificateType.id#
+				,rentalCertificateNumbe=#rentalCertificateNumbe#
+				,mangerTypes=#mangerTypes.id#
+				,registdate=#registDate#
+				,lessorDate=#lessorDate#
+				,roomNumber=#roomNumber#
+				,limitpersons=#limitPersons#
+				,rentMonth=#rentMonth#
+				,hiddenrectification=#hiddenRectification#
+				,isSignGuarantee=#isSignGuarantee#
+				,isSafetyChannel=#isSafetyChannel#
+				,isFireChannels=#isFireChannels#
+            where id=#id#
+	</update>
+
+	<update id="updateEmphasiseById" parameterClass="java.util.Map">
+		update RentalHouse set isEmphasis=#isEmphasis# where id=#houseId#
+	</update>
+
+	<delete id="deleteRentalHouseById" parameterClass="java.lang.Long">
+		delete from RentalHouse where id=#value#
+	</delete>
+	<delete id="deleteRentalHouseByIds" parameterClass="java.util.Map">
+		delete from RentalHouse where id 
+		<iterate open="(" close=")" prepend=" in " conjunction="," property="idList">
+			#idList[]#
+		</iterate>
+	</delete>
+
+	<delete id="deleteHouseInfoByHouseCode" parameterClass="java.lang.Long">
+		delete from RentalHouse h where h.housecode in (select hi.housecode from rentalHouse hi where hi.id=#value#)
+	</delete>
+
+	<delete id="deleteHousehasactualpopulationByHouseId" parameterClass="java.lang.Long">
+		delete from househasactualpopulation where houseid=#value#
+	</delete>
+
+	<select id="countHouseByBuildingId" parameterClass="string" resultClass="int">
+		select count(*) from RentalHouse where buildingId=#value#
+	</select>
+
+	<update id="updateBuildingId" parameterClass="rentalHouse">
+		update RentalHouse set buildingId=#buildingId#,updateDate=#updateDate#,updateUser=#updateUser# where id=#id#
+	</update>
+
+	<select id="getSimpleHouseInfoById" parameterClass="java.lang.Long" resultMap="rentalHoseResult">
+		select * from RentalHouse where id=#value#
+	</select>
+	<select id="getRentalHouseInfoByHouseId" parameterClass="java.lang.Long" resultMap="rentalHoseResult">
+		select * from RentalHouse where HOUSEID=#value#
+	</select>
+
+	<select id="getRentalHouseInfoById" parameterClass="java.util.Map" resultMap="rentalHoseResult">
+		<![CDATA[select * from RentalHouse h
+			where h.houseCode in (select hi.houseCode from RentalHouse hi where hi.id=#houseId#)]]>
+	</select>
+
+	<sql id="sql_where">
+		from RentalHouse
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="address">
+				<isNotNull property="address" prepend=" and ">
+					address like #address#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="buildingId">
+				<isNotNull property="buildingId" prepend=" and ">
+					buildingId = #buildingId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isBuildingId">
+				<isNotNull property="isBuildingId" prepend=" and ">
+					buildingId is null
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="searchAllHouseInfos" parameterClass="SearchHouseInfoVo" resultMap="rentalHoseResultForList">
+		select RentalHouse.*,'$locationType$' as locationType
+		from RentalHouse
+		<include refid="commonHouseInfo.search_sql_where" />
+		
+		<include refid="rentalHouse.serviceTeamSearchInfo"/>
+		
+		<isPropertyAvailable property="isEmphasis">
+			<isNotNull prepend=" and " property="isEmphasis">
+				isEmphasis=#isEmphasis#
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	<select id="countHouseInfos" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="findHouseInfos" parameterClass="java.util.Map"
+		resultMap="rentalHoseResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<sql id="search_sql_where">
+		from RentalHouse
+		<include refid="commonHouseInfo.search_sql_where" />
+
+		<isPropertyAvailable property="rentalPerson">
+			<isNotEmpty prepend=" and " property="rentalPerson">
+				rentalPerson=#rentalPerson#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="roomNumber">
+			<isNotEmpty prepend=" and " property="roomNumber">
+				roomNumber=#roomNumber#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isNotEmpty prepend=" and " property="registerDate">
+			createDate like to_date(#registerDate#,'yyyy-mm-dd')
+		</isNotEmpty>
+		<isNotNull prepend=" and " property="rentalProperty.id">
+			rentalProperty=#rentalProperty.id#
+		</isNotNull>
+		<isNotNull prepend=" and " property="type.id">
+			type=#type.id#
+		</isNotNull>
+		<isNotEmpty prepend=" and " property="limitPersonsFrom">
+			<![CDATA[ limitPersons >= #limitPersonsFrom# ]]>
+		</isNotEmpty>
+		<isNotEmpty prepend=" and " property="limitPersonsTo">
+			<![CDATA[ limitPersons <= #limitPersonsTo# ]]>
+		</isNotEmpty>
+		<isNotNull prepend=" and " property="realityPersonsFrom">
+			<![CDATA[ realityPersons >= #realityPersonsFrom# ]]>
+		</isNotNull>
+		<isNotNull prepend=" and " property="realityPersonsTo">
+			<![CDATA[ realityPersons <= #realityPersonsTo# ]]>
+		</isNotNull>
+		<isPropertyAvailable property="hiddenDangerLevel">
+			<isNotNull prepend=" and " property="hiddenDangerLevel.id">
+				hiddenDangerLevel=#hiddenDangerLevel.id#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isNotNull prepend=" and " property="usage.id">
+			usage=#usage.id#
+		</isNotNull>
+		<isNotNull prepend=" and " property="lessorType.id">
+			lessorType=#lessorType.id#
+		</isNotNull>
+		<isNotEmpty prepend=" and " property="houseFileNum">
+			houseFileNum like #houseFileNum#||'%'
+		</isNotEmpty>
+		<isNotNull prepend=" and " property="mangerTypes.id">
+			mangerTypes=#mangerTypes.id#
+		</isNotNull>
+		<isNotNull property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+					isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+					isEmphasis = #isEmphasis# 
+				</isEqual>
+			</isNotNull>
+		<isNotNull prepend=" and " property="lessorDateFrom">
+			<![CDATA[ lessorDate >= #lessorDateFrom# ]]>
+		</isNotNull>
+		<isNotNull prepend=" and " property="lessorDateEnd">
+			<![CDATA[ lessorDate <= #lessorDateEnd# ]]>
+		</isNotNull>
+		<isNotNull prepend=" and " property="rentMonthFrom">
+			<![CDATA[ rentMonth >= #rentMonthFrom# ]]>
+		</isNotNull>
+		<isNotNull prepend=" and " property="rentMonthEnd">
+			<![CDATA[ rentMonth <= #rentMonthEnd# ]]>
+		</isNotNull>
+		<isNotEmpty prepend=" and " property="roomNumberFrom">
+			<![CDATA[ roomNumber >= #roomNumberFrom# ]]>
+		</isNotEmpty>
+		<isNotEmpty prepend=" and " property="roomNumberEnd">
+			<![CDATA[ roomNumber <= #roomNumberEnd# ]]>
+		</isNotEmpty>
+		<isNotNull prepend=" and " property="isFireChannels">
+			<isEqual property="isFireChannels" compareValue="1">
+			isFireChannels=#isFireChannels#
+			</isEqual>
+			<isEqual property="isFireChannels" compareValue="0">
+			(isFireChannels=#isFireChannels# or isFireChannels is null)
+			</isEqual>
+		</isNotNull>
+		<isNotNull prepend=" and " property="isSafetyChannel">
+			<isEqual property="isSafetyChannel" compareValue="1">
+			isSafetyChannel=#isSafetyChannel#
+			</isEqual>
+			<isEqual property="isSafetyChannel" compareValue="0">
+			(isSafetyChannel=#isSafetyChannel# or isSafetyChannel is null)
+			</isEqual>
+		</isNotNull>
+		<isNotNull prepend=" and " property="isSignGuarantee">
+		<isEqual property="isSignGuarantee" compareValue="1">
+				isSignGuarantee=#isSignGuarantee#
+				</isEqual>
+			<isEqual property="isSignGuarantee" compareValue="0">
+			(isSignGuarantee=#isSignGuarantee# or isSignGuarantee is null)
+			</isEqual>
+		</isNotNull>
+		
+		<include refid="serviceTeamSearchInfo"/>
+	</sql>
+
+	
+	<select id="countSearchHouseInfo" parameterClass="SearchHouseInfoVo" resultClass="int">
+		select count(*)
+		<include refid="search_sql_where" />
+	</select>
+	<select id="searchHouseInfo" parameterClass="SearchHouseInfoVo" resultMap="rentalHoseResultForList">
+		select RentalHouse.*,'$locationType$' as locationType
+		<include refid="search_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="getHouseInfoByHouseCodeAndOrgId" parameterClass="java.util.Map" resultMap="rentalHoseResult">
+		SELECT * FROM RentalHouse where houseCode = #houseCode# and orgId = #organizationId#
+		<isNotEmpty property="logoutType" prepend="and">
+			isEmphasis=#logoutType#
+		</isNotEmpty>
+	</select>
+	
+	
+	<select id="getHouseInfoByAddressAndOrgId" parameterClass="java.util.Map" resultMap="rentalHoseResult">
+		SELECT * FROM RentalHouse where address = #address# and orgId = #organizationId#
+		<isNotEmpty property="logoutType" prepend="and">
+			isEmphasis=#logoutType#
+		</isNotEmpty>
+	</select>
+	
+	
+
+	<sql id="houseInfosForPageByTagSql">
+	 from RentalHouse
+	 where
+	 <isNotNull property="tag">
+	 (houseCode like $tag$||'%' or address like $tag$||'%')	 AND
+	 </isNotNull>
+	 buildingId is null
+	</sql>
+
+	<select id="countHouseInfosForPageByTag" parameterClass="map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="houseInfosForPageByTagSql" />
+	</select>
+
+	<select id="findHouseInfosForPageByTag" parameterClass="map" resultMap="rentalHoseResult">
+		<include refid="common.sql_select" />
+		<include refid="houseInfosForPageByTagSql" />
+	</select>
+
+	<select id="countHouseInfosByBuildingIdForPage" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from RentalHouse where buildingId=#buildingId#
+	</select>
+	<select id="findHouseInfosByBuildingIdForPage" parameterClass="map" resultMap="rentalHoseResult">
+		select * from RentalHouse where buildingId=#buildingId#
+	</select>
+
+	<update id="unbindHousePropertyById" parameterClass="long">
+		update RentalHouse set buildingId=null,centerX=null,centerY=null where id=#value#
+	</update>
+
+	<select id="getHouseInfoByAddress" parameterClass="java.lang.String" resultMap="rentalHoseResult">
+		select * from RentalHouse where address=#address#
+	</select>
+	<select id="serchRentalHouseByHouseCode" parameterClass="java.util.Map" resultMap="rentalHoseResult">
+		select * from  RentalHouse where housecode=#houseCode# and orgId=#orgId#
+	</select>
+	<select id="getHouseInfoByHouseId" parameterClass="java.util.Map" resultMap="rentalHoseResult">
+		select * from  RentalHouse where houseId=#houseId#
+		<isNotEmpty property="logoutType" prepend="and">
+			isEmphasis=#logoutType#
+		</isNotEmpty>
+	</select>
+	
+	<select id="serchRentalHouseByHouseId" parameterClass="java.util.Map" resultMap="rentalHoseResult">
+		select * from  RentalHouse where houseId=#houseId# and orgId=#orgId#
+	</select>
+	
+	<update id="updateRentalHouseInfoByNewHouseId" parameterClass="java.util.Map">
+		update RentalHouse set houseId=#newHouseId# where houseId=#oldHouseId#
+	</update>
+	
+</sqlMap>

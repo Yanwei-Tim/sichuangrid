@@ -1,0 +1,108 @@
+package com.tianque.openLayersMap.util;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @Description:地图count相关的缓存的key有些是从领导视图处获取的数据所有key是 
+ *                                                   和领导视图的一样的但是领导视图的key很乱所有在此处整理
+ * @author zhangyouwei@hztianque.com
+ * @date: 2014-7-13 下午02:33:19
+ */
+public class GisCountViewCacheKey {
+
+	/** 出租房 */
+	public static final String RENTALHOUSE_MODE = "rentalHouse";
+	/** 非出租房 */
+	public static final String ACTUALHOUSE_MODE = "actualHouse";
+
+	/** 特殊人群 */
+	/** 吸毒人员 */
+	public static final String DRUGGY_KEY = "DRUGGYS";
+	public static final String DRUGGY_MODE = "druggy";
+	/** 社区矫正人员 */
+	public static final String RECTIFICATIVEPERSON_KEY = "RECTIFICATIVEPERSONS";
+	public static final String RECTIFICATIVEPERSON_MODE = "rectificativePerson";
+	/** 严重精神障碍患者 */
+	public static final String MENTALPATIENT_KEY = "MENTALPATIENTS";
+	public static final String MENTALPATIENT_MODE = "mentalPatient";
+	/** 刑释解教人员 */
+	public static final String POSITIVEINFO_KEY = "POSITIVEINFOS";
+	public static final String POSITIVEINFO_MODE = "positiveInfo";
+	/** 重点上访人员 */
+	public static final String SUPERIORVISIT_KEY = "SUPERIORVISITS";
+	public static final String SUPERIORVISIT_MODE = "superiorVisit";
+	/** 危险品从业人员 */
+	public static final String DANGEROUSGOODSPRACTITIONER_KEY = "DANGEROUSGOODSPRACTITIONERS";
+	public static final String DANGEROUSGOODSPRACTITIONER_MODE = "dangerousGoodsPractitioner";
+	/** 重点青少年 */
+	public static final String IDLEYOUTH_KEY = "IDLEYOUTHS";
+	public static final String IDLEYOUTH_MODE = "idleYouth";
+	/** 其他人员 */
+	public static final String OTHERATTENTIONPERSONNEL_KEY = "OTHERATTENTIONPERSONNELS";
+	public static final String OTHERATTENTIONPERSONNEL_MODE = "otherAttentionPersonnel";
+	/** 艾滋病人员 */
+	public static final String AIDSPOPULATION_KEY = "AIDSPOPULATIONS";
+	public static final String AIDSPOPULATION_MODE = "aidspopulation";
+
+	/** 特殊人员 */
+	public static Map<String, String> keyPersonMap = new HashMap<String, String>();
+
+	/** 关怀对象 */
+	/** 老年人 */
+	public static final String ELDERLYPEOPLE_KEY = "elderlyPeople";
+	public static final String ELDERLYPEOPLE_MODE = "elderlyPeople";
+	/** 残疾人 */
+	public static final String HANDICAPPED_KEY = "handicappeds";
+	public static final String HANDICAPPED_MODE = "handicapped";
+	/** 优抚对象 */
+	public static final String OPTIMALOBJECT_KEY = "optimalObjects";
+	public static final String OPTIMALOBJECT_MODE = "optimalObject";
+	/** 需救助人员 */
+	public static final String AIDNEEDPOPULATION_KEY = "aidNeedPopulation";
+	public static final String AIDNEEDPOPULATION_MODE = "aidNeedPopulation";
+	/** 失业人员 */
+	public static final String UNEMPLOYEDPEOPLE_KEY = "unemployedPeople";
+	public static final String UNEMPLOYEDPEOPLE_MODE = "unemployedPeople";
+	/** carePerson关怀对象 */
+	public static Map<String, String> carePersonMap = new HashMap<String, String>();
+
+	/** 其他关注对象 */
+	/** 育龄妇女 */
+	public static final String NURTURESWOMEN_KEY = "nurturesWomen";
+	public static final String NURTURESWOMEN_MODE = "nurturesWomen";
+	/** otherPerson其他关注对象 */
+	public static Map<String, String> otherPersonMap = new HashMap<String, String>();
+	/** 所有的业务人员 */
+	public static Map<String, String> allBusinessPersonMap = new HashMap<String, String>();
+	static {
+
+		/** otherPerson其他关注对象 */
+		otherPersonMap.put(NURTURESWOMEN_KEY, NURTURESWOMEN_MODE);
+
+		/** 关怀对象 */
+		carePersonMap.put(ELDERLYPEOPLE_KEY, ELDERLYPEOPLE_MODE);
+		carePersonMap.put(HANDICAPPED_KEY, HANDICAPPED_MODE);
+		carePersonMap.put(OPTIMALOBJECT_KEY, OPTIMALOBJECT_MODE);
+		carePersonMap.put(AIDNEEDPOPULATION_KEY, AIDNEEDPOPULATION_MODE);
+		carePersonMap.put(UNEMPLOYEDPEOPLE_KEY, UNEMPLOYEDPEOPLE_MODE);
+
+		/** 特殊人员 */
+		keyPersonMap.put(DRUGGY_KEY, DRUGGY_MODE);
+		keyPersonMap.put(RECTIFICATIVEPERSON_KEY, RECTIFICATIVEPERSON_MODE);
+		keyPersonMap.put(MENTALPATIENT_KEY, MENTALPATIENT_MODE);
+		keyPersonMap.put(POSITIVEINFO_KEY, POSITIVEINFO_MODE);
+		keyPersonMap.put(SUPERIORVISIT_KEY, SUPERIORVISIT_MODE);
+		keyPersonMap.put(DANGEROUSGOODSPRACTITIONER_KEY,
+				DANGEROUSGOODSPRACTITIONER_MODE);
+		keyPersonMap.put(IDLEYOUTH_KEY, IDLEYOUTH_MODE);
+		keyPersonMap.put(OTHERATTENTIONPERSONNEL_KEY,
+				OTHERATTENTIONPERSONNEL_MODE);
+		keyPersonMap.put(AIDSPOPULATION_KEY, AIDSPOPULATION_MODE);
+
+		allBusinessPersonMap.putAll(otherPersonMap);
+		allBusinessPersonMap.putAll(carePersonMap);
+		allBusinessPersonMap.putAll(keyPersonMap);
+	}
+
+}

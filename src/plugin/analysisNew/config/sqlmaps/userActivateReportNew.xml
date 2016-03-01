@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="UserActivateReportNew">
+	<typeAlias alias="UserActivateReportNew" type="com.tianque.plugin.analysisNew.domain.UserActivateReport"/>
+	<resultMap class="UserActivateReportNew" id="userActivateReportSimpleResultMap">
+		<!-- <result property="id" column="id"/> -->
+		<result property="year" column="year"/>
+		<result property="month" column="month"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="organization.orgInternalCode" column="orgInternalCode"/>
+		<result property="organization.orgName" column="orgName"/>
+		
+		<result property="townCount" column="townCount"/>
+		<result property="communityAllCount" column="communityAllCount"/><!--社区层级总组织数-->
+		<result property="villageCount" column="villageCount"/>
+		
+		<result property="townActivateCount" column="townActivateCount"/>
+		<result property="communityAllCountPercentage" column="communityAllCountPercentage"/><!--社区层级总参与组织数-->
+		<result property="villageActivateCount" column="villageActivateCount"/>
+		
+		<result property="agencyOfOpinionCount" column="agencyOfOpinionCount"/>
+		<result property="issueDealCount" column="issueDealCount"/>
+		<result property="townAccountCount" column="townAccountCount"/><!--乡镇层级账号总数-->
+		<result property="townActiveAccountCount" column="townActiveAccountCount"/><!--乡镇层级月活跃度数-->
+		<result property="communityAccountCount" column="communityAccountCount"/><!--社区层级账号总数-->
+		<result property="communityWeekActiveCount" column="communityWeekActiveCount"/><!--社区层级周活跃度数-->
+		<result property="communityMonthActiveCount" column="communityMonthActiveCount"/><!--社区层级月活跃数-->
+	</resultMap>
+	<!-- 提供与统计活跃数 -->	
+	<resultMap class="UserActivateReportNew" id="userActivateReportRateResultMap">
+		 <result property="id" column="id"/> 
+		<result property="year" column="year"/>
+		<result property="month" column="month"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="organization.orgInternalCode" column="orgInternalCode"/>
+		<result property="organization.orgName" column="orgName"/>
+		
+		<result property="townCount" column="townCount"/>
+		<result property="communityCount" column="communityCount"/>
+		<result property="villageCount" column="villageCount"/>
+		
+		<result property="townActivateCount" column="townActivateCount"/>
+		<result property="communityActivateCount" column="communityActivateCount"/>
+		<result property="villageActivateCount" column="villageActivateCount"/>
+		
+		<result property="agencyOfOpinionCount" column="agencyOfOpinionCount"/>
+		<result property="issueDealCount" column="issueDealCount"/>
+		<result property="townAccountCount" column="townAccountCount"/>
+		<result property="townActiveAccountCount" column="townActiveAccountCount"/>
+		<result property="communityAccountCount" column="communityAccountCount"/>
+		<result property="communityWeekActiveCount" column="communityWeekActiveCount"/>
+		<result property="communityMonthActiveCount" column="communityMonthActiveCount"/>
+	</resultMap>
+	
+	<insert id="addUserActivateReport" parameterClass="UserActivateReportNew">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_userActivateReports.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		insert into userActivateReports_$year$_$month$ (
+			id,year,month,orgId,orginternalcode,orgName,townCount,communityCount,villageCount,townActivateCount,communityActivateCount,villageActivateCount,agencyOfOpinionCount,
+			issueDealCount,townAccountCount,townActiveAccountCount,communityAccountCount,communityWeekActiveCount,communityMonthActiveCount,statisticsType,createUser,createDate
+		) values (
+			#id#,#year#,#month#,#organization.id#,#organization.orgInternalCode#,#organization.orgName#,#townCount#,#communityCount#,#villageCount#,#townActivateCount#,#communityActivateCount#,
+			#villageActivateCount#,#agencyOfOpinionCount#,#issueDealCount#,#townAccountCount#,#townActiveAccountCount#,#communityAccountCount#,
+			#communityWeekActiveCount#,#communityMonthActiveCount#,#statisticsType#,#createUser#,#createDate#
+		)
+	</insert>
+	<!-- 删除某个月的数据 -->
+	<delete id="deleteAllDataByYearAndMonth" parameterClass="java.util.Map">
+		delete userActivateReports_$year$_$month$
+	</delete>
+	<!--  -->
+	<select id="querySimpleUserActivateReportForList" parameterClass="java.util.Map" resultMap="userActivateReportSimpleResultMap">
+		select id as orgId,null as statisticsType,
+		        orginternalcode as orgInternalCode,
+		        orgName as orgName,
+		        #year# as year,
+		        #month# as month,
+		        (select count(*)
+		           from organizations o
+		          where o.orglevel = #townOrgLevel# 
+		          	and o.orgType=#orgType#
+		            and o.orginternalcode like org.orginternalcode || '%') as townCount, <!-- 乡镇数 -->
+		    (select count(*)
+		           from organizations o
+		          where o.orglevel = #villageOrgLevel# 
+		          	and o.orgType=#orgType#
+		            and o.orginternalcode like org.orginternalcode || '%') as communityAllCount, <!--社区组织机构总数-->
+		        (select count(*)
+		           from organizations o
+		          where o.orglevel = #villageOrgLevel# 
+		          	and o.orgType=#orgType#
+		            and o.orginternalcode like org.orginternalcode || '%'
+		            and (o.orgname like '%村' or o.orgname like '%村民委员会' or
+               			 	o.orgname like '%农村工作中心站' or o.orgname like '%村委会')) as villageCount, <!--村数  社区数=社区组织机构总数 - 村数 -->
+		      (select count(distinct(u.organizationid))
+		          from users u
+		          left join organizations o on o.id = u.organizationid
+		         where o.orglevel = #townOrgLevel# 
+		         	and o.orgType=#orgType#
+		           and u.state=2 
+		           and o.orginternalcode like org.orginternalcode || '%') as townActivateCount, <!--乡镇参与数-->
+		           (select count(distinct(tt.orgid))
+		             from (select (case
+		                            when t.orglevel = #villageOrgLevel# then
+		                             orgid
+		                            else
+		                             orgParentid
+		                           end) as orgid
+		                 
+		                     from (select u.organizationid  as orgid,
+		                                  o.parentid        as orgParentid,
+		                                  o.orglevel        as orglevel,
+		                                  o.orginternalcode as orginternalcode
+		                             from users u
+		                             left join organizations o on o.id = u.organizationid
+		                            where o.orglevel <![CDATA[<= #villageOrgLevel#]]> 
+		                            	and o.orgType=#orgType#
+		                                and u.state = 2
+		                              ) t) tt
+		            left join organizations o on o.id = tt.orgid
+		           	where (o.orgname like '%村' or o.orgname like '%村民委员会' or
+                		 		o.orgname like '%农村工作中心站' or o.orgname like '%村委会')
+		           and o.orginternalcode like org.orginternalcode || '%') as villageActivateCount,<!-- 村参与数 -->		           
+		        (select count(distinct(tt.orgid))
+		           from (select (case
+		                           when t.orglevel = #villageOrgLevel# then
+		                            orgid
+		                           when t.orglevel <![CDATA[< #villageOrgLevel#]]> then
+                            			orgParentid
+		                           else
+		                            0
+		                         end) as orgid
+		                 
+		                    from (select u.organizationid  as orgid,
+		                                  o.parentid        as orgParentid,
+		                                 o.orglevel        as orglevel,
+		                                 o.orginternalcode as orginternalcode
+		                            from users u
+		                            left join organizations o on o.id = u.organizationid
+		                           where o.orglevel <![CDATA[<= #villageOrgLevel#]]> 
+		                           	 and o.orgType=#orgType#
+		                             and u.state = 2 
+		                             ) t) tt
+		           left join organizations o on o.id = tt.orgid
+		          	where o.orginternalcode like org.orginternalcode || '%') as communityAllCountPercentage,<!--社区层级参与数=社区层级参与总数-村参与数-->	           
+		       (select count(*)
+		           from users u
+		           left join organizations o on o.id = u.organizationid 
+		          where o.orglevel  <![CDATA[=]]>  #townOrgLevel#  
+		          	and u.state=2  
+		           and o.orginternalcode like org.orginternalcode || '%') as townAccountCount , <!---乡镇一级开通账号总数--> 
+		           
+		           (select count(*)
+		           from users u
+		           left join organizations o on o.id = u.organizationid 
+		          where o.orglevel  <![CDATA[<=]]>  #villageOrgLevel#  
+		          	and u.state=2  
+		           and o.orginternalcode like org.orginternalcode || '%') as communityAccountCount , <!--社区一级开通账号总数--> 
+		           
+				( select nvl(sum(count(distinct t.userName)), 0) as townActiveAccountCount
+				   from (select s.orgid orgid, s.username username
+				           from systemlogs_$year$_$month$ s
+				           left join organizations o on o.id = s.orgid
+				          where operation like '用户登录成功%'
+				            and o.orglevel = #townOrgLevel# 
+				            group by to_char(s.operatetime, 'yyyy-mm-dd'), s.username, s.orgid) t
+				            left join organizations o on t.orgid = o.id 
+         				 where o.orginternalcode like org.orginternalcode || '%'
+				  group by username, orgid
+				 having count(username) > 19 ) townActiveAccountCount,<!--乡镇层级月活跃度数-->
+				
+				 ( select nvl(sum(count(distinct t.userName)), 0) as communityWeekActiveCount
+				   from (select s.orgid orgid, s.username username
+				           from systemlogs_$year$_$month$ s
+				           left join organizations o on o.id = s.orgid
+				          where operation like '用户登录成功%' 
+				            and o.orglevel = #villageOrgLevel# and s.operatetime >= #lastWeekDate#  <!--lastWeekDate：本月最后一周的开始日期-->
+				            group by to_char(s.operatetime, 'yyyy-mm-dd'), s.username, s.orgid) t
+				            left join organizations o on t.orgid = o.id 
+          					where o.orginternalcode like org.orginternalcode || '%'
+				  group by username, orgid
+				 having count(username) > 4 ) communityWeekActiveCount,<!--社区层级周活跃度数-->
+				
+				( select nvl(sum(count(distinct t.userName)), 0) as communityMonthActiveCount
+				   from (select s.orgid orgid, s.username username
+				           from systemlogs_$year$_$month$ s
+				           left join organizations o on o.id = s.orgid
+				          where operation like '用户登录成功%'
+				            and o.orglevel = #villageOrgLevel# 
+				            group by to_char(s.operatetime, 'yyyy-mm-dd'), s.username, s.orgid) t
+				            left join organizations o on t.orgid = o.id 
+          					where o.orginternalcode like org.orginternalcode || '%'
+				  group by username, orgid
+				 having count(username) > 19 ) communityMonthActiveCount, <!--社区层级月活跃度数-->
+		        ( select count(1) issueDealCount from issuesteps s ,organizations o
+		         where s.createdate <![CDATA[<]]> #startDate# and  s.createdate >= #lastMonthDate# and s.statecode=#stateCode# and s.targetinternalcode like org.orginternalcode || '%' and s.target=o.id ) issueDealCount,<!--上月已办结数据总数-->
+		          (select count(*)
+		          from issues i
+		          left join issuesteps itep on i.id = itep.issue
+		         where i.issuetypedomainid =(select id
+                 					 from issuetypedomains itd
+                 					 where itd.domainname = '社情民意收集')
+		           and itep.statecode = #stateCode#
+		           and itep.createdate between #lastMonthDate# and #startDate#
+		           and itep.targetinternalcode like org.orginternalcode || '%') agencyOfOpinionCount <!--上月社情民意收集数-->
+		  from organizations org
+		 where  org.orglevel = #orgLevel# 
+		 and org.orgType=#orgType#
+		   order by org.seq,org.orginternalCode
+	</select>
+	<!-- 查询历史记录 -->
+	<select id="queryUserActivateReportHistoryForList" parameterClass="java.util.Map" resultMap="userActivateReportRateResultMap">
+		 select * from userActivateReports_$year$_$month$ where statisticsType = #statisticsType# and orginternalcode like #orgCode#||'%'
+	</select>
+	
+</sqlMap>

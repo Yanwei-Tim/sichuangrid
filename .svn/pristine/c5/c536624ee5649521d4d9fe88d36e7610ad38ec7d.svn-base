@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="CompanyPlaceBusiness">
+	<typeAlias alias="companyPlaceBusiness" type="com.tianque.baseInfo.companyPlace.domain.CompanyPlaceBusiness" />
+	<resultMap class="companyPlaceBusiness" id="companyPlaceBusiness_ResultMap">
+	    <result column="ID"  property="id" />
+	    <result column="isKeyType" property="isKeyType" />
+	    <result column="HIDDANGERINFO"  property="hiddangerInfo" />
+	    <result column="correctionInfo"  property="correctionInfo" />
+	    <result column="listedCorrection"  property="listedCorrection" />
+	    <result column="listedLeve"  property="listedLeve" />
+	    <result column="correctionBeiginDate"  property="correctionBeiginDate" />
+	    <result column="correctionEndDate"  property="correctionEndDate" />
+	    <result column="effectassessment"  property="effectassessment.id" />
+	    <result column="POLLUTIONTYPE"  property="pollutionType.id" />
+	    <result column="pollutionInfo"  property="pollutionInfo" />
+	    <result column="companyPlaceId"  property="companyPlaceId" />
+	    <result column="CREATEUSER" property="createUser" />
+	    <result column="UPDATEUSER"  property="updateUser" />
+	    <result column="CREATEDATE"  property="createDate" />
+	    <result column="UPDATEDATE"  property="updateDate" />
+  	</resultMap>
+  	
+  	<insert id="addCompanyPlaceBusiness" parameterClass="companyPlaceBusiness">
+  		<selectKey resultClass="java.lang.Long" keyProperty="id">
+    	<![CDATA[ SELECT s_COMPANYPLACEBUSINESS.NEXTVAL AS id FROM dual ]]>
+		</selectKey>
+		<![CDATA[ insert into CompanyPlaceBusiness
+		(id,ISKEYTYPE,HIDDANGERINFO,CORRECTIONINFO,LISTEDCORRECTION,LISTEDLEVE,CORRECTIONBEIGINDATE,CORRECTIONENDDATE,EFFECTASSESSMENT,POLLUTIONTYPE,POLLUTIONINFO,COMPANYPLACEID,createUser,UPDATEUSER,createDate,UPDATEDATE)
+		values
+		(#id#,#isKeyType#,#hiddangerInfo#,#correctionInfo#,#listedCorrection#,#listedLeve#,#correctionBeiginDate#,#correctionEndDate#,#effectassessment.id#,#pollutionType.id#,#pollutionInfo#,#companyPlaceId#,#createUser#,#updateUser#,#createDate#,#updateDate#) ]]>
+  	</insert>
+  	
+  	<select id="getCompanyPlaceBusiness" resultMap="companyPlaceBusiness_ResultMap"  parameterClass="java.lang.Long">
+  		select * from CompanyPlaceBusiness where id = #value#
+  	</select>
+  	
+  	<select id="getCompanyPlaceBusinessByMap" parameterClass="map" resultMap="companyPlaceBusiness_ResultMap">
+  		select * from CompanyPlaceBusiness  where id= #businessId# and isKeyType = #isKeyType#
+  	</select>
+  	
+  	<delete id="deleteCompanyPlaceBusiness" parameterClass="java.lang.Long">
+  		delete from CompanyPlaceBusiness  where id= #id#
+  	</delete>
+  	
+  	<update id="updateCompanyPlaceBusiness" parameterClass="companyPlaceBusiness">
+  		update CompanyPlaceBusiness cb set cb.id=#id#
+  		<isNotNull prepend="," property="isKeyType">
+  			cb.ISKEYTYPE = #isKeyType#
+  		</isNotNull>
+  		<isNotNull prepend="," property="hiddangerInfo">
+  			cb.HIDDANGERINFO = #hiddangerInfo#
+  		</isNotNull>
+  		<isNotNull prepend="," property="correctionInfo">
+  			cb.CORRECTIONINFO = #correctionInfo#
+  		</isNotNull>
+  		<isNotNull prepend="," property="listedCorrection">
+  			cb.LISTEDCORRECTION = #listedCorrection#
+  		</isNotNull>
+  		<isNotNull prepend="," property="listedLeve">
+  			cb.listedLeve= #listedLeve#
+  		</isNotNull>
+  		<isNotNull prepend="," property="correctionBeiginDate">
+  			cb.CORRECTIONBEIGINDATE = #correctionBeiginDate#
+  		</isNotNull>
+  		<isNotNull prepend="," property="correctionEndDate">
+  			cb.CORRECTIONENDDATE = #correctionEndDate#
+  		</isNotNull>
+  		<isNotNull prepend="," property="effectassessment.id">
+  			cb.EFFECTASSESSMENT = #effectassessment.id#
+  		</isNotNull>
+  		<isNotNull prepend="," property="pollutionType.id">
+  			cb.POLLUTIONTYPE = #pollutionType.id#
+  		</isNotNull>
+  		<isNotNull prepend="," property="pollutionInfo">
+  			cb.POLLUTIONINFO = #pollutionInfo#
+  		</isNotNull>
+  		where cb.id=#id#
+  	</update>  	
+  	
+  	<select id="queryCompanyPlaceBusinessByCompanyPlaceIdForList" resultMap="companyPlaceBusiness_ResultMap"  parameterClass="java.lang.Long">
+  		SELECT * FROM COMPANYPLACEBUSINESS WHERE COMPANYPLACEID = #value#
+  	</select>
+  	<delete id="deleteCompanyPlaceBusinessByCompanyPalceId"  parameterClass="java.lang.Long">
+  		DELETE FROM COMPANYPLACEBUSINESS  WHERE COMPANYPLACEID = #companyPlaceId#
+  	</delete>
+  	
+</sqlMap>

@@ -1,0 +1,248 @@
+package com.tianque.baseInfo.primaryOrg.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Actions;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.baseInfo.primaryOrg.domain.GridTeam;
+import com.tianque.baseInfo.primaryOrg.domain.vo.GridTeamVo;
+import com.tianque.baseInfo.primaryOrg.service.GridTeamService;
+import com.tianque.controller.ControllerHelper;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.util.DialogMode;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.vo.GridPage;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.property.OrganizationLevel;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+@Scope("request")
+@Namespace("/baseinfo/gridTeamManage")
+@Controller("gridTeamController")
+public class GridTeamController extends BaseAction {
+
+	private Long id;
+	private Organization organization;
+	private GridTeam gridTeam;
+	private List<GridTeamVo> gridTeamStatistics = new ArrayList<GridTeamVo>();
+	private String ids;
+	private String sidx;
+	private String sord;
+
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private GridTeamService gridTeamService;
+
+	/**
+	 * 列表查询
+	 */
+	@Action(value = "findGridTeamForPageResult", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String findGridTeamForPageResult() throws Exception {
+		if (gridTeam == null || gridTeam.getOrganization() == null
+				|| gridTeam.getOrganization().getId() == null) {
+			errorMessage = "查询失败，未获得组织机构信息";
+			return ERROR;
+		}
+		PageInfo<GridTeam> pageInfo = new PageInfo<GridTeam>();
+		pageInfo = gridTeamService.findGridTeamForList(gridTeam, page, rows,
+				sidx, sord);
+		for (GridTeam gridTeamMember : pageInfo.getResult()) {
+			gridTeamMember.getOrganization().setOrgName(
+					ControllerHelper.getRelativeName(gridTeamMember
+							.getOrganization().getId(),
+							organizationDubboService, organization.getId()));
+		}
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	@Action(value = "maintainGridTeamInfo", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridTeam", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String maintainGridInfo() throws Exception {
+		if (gridTeam == null) {
+			errorMessage = "操作失败，数据未获得";
+			return ERROR;
+		}
+		if (gridTeam.getId() != null) {
+			//所属网格（读取帐号中所属组织机构里的最后一个层级）
+			gridTeam = gridTeamService.updateGridTeam(gridTeam);
+		} else {
+			gridTeam = gridTeamService.addGridTeam(gridTeam);
+		}
+		return SUCCESS;
+	}
+
+	/***
+	 * 新增或修改
+	 */
+	@Action(value = "addOrUpdateGridTeamInfo", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridTeam", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String addOrUpdateGridTeamInfo() throws Exception {
+		if (gridTeam == null) {
+			errorMessage = "操作失败，数据未获得";
+			return ERROR;
+		}
+		if (gridTeam.getId() != null) {
+			gridTeam = gridTeamService.updateGridTeam(gridTeam);
+		} else {
+			gridTeam = gridTeamService.addGridTeam(gridTeam);
+		}
+		return SUCCESS;
+	}
+
+	/***
+	 * 界面跳转控制
+	 */
+	@Actions(value = { @Action(value = "dispatchOperate", results = {
+			@Result(name = "success", location = "/baseinfo/gridTeam/maintainGridTeamDialog.jsp"),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) }) })
+	public String dispatchOperate() throws Exception {
+		if (DialogMode.ADD_MODE.equals(mode)) {
+			if (organization == null || organization.getId() == null) {
+				errorMessage = "操作失败，未获得组织机构参数";
+				return ERROR;
+			}
+			Organization fullOrgById = organizationDubboService
+					.getFullOrgById(organization.getId());
+			if (fullOrgById.getOrgLevel().getInternalId() != OrganizationLevel.VILLAGE
+					&& fullOrgById.getOrgLevel().getInternalId() != OrganizationLevel.TOWN
+					&& fullOrgById.getOrgLevel().getInternalId() != OrganizationLevel.DISTRICT) {
+				errorMessage = "操作失败，只能社区、街道、区县层级新增";
+				return ERROR;
+			}
+			organization = organizationDubboService
+					.getSimpleOrgById(organization.getId());
+			organization.setOrgName(ControllerHelper
+					.getOrganizationRelativeName(organization.getId(),
+							organizationDubboService));
+		}
+		if (DialogMode.EDIT_MODE.equals(mode)
+				|| DialogMode.VIEW_MODE.equals(mode)) {
+			if (gridTeam == null || gridTeam.getId() == null) {
+				errorMessage = "操作失败，未获得数据信息";
+				return ERROR;
+			}
+			gridTeam = gridTeamService.getGridTeamById(gridTeam.getId());
+			gridTeam.getOrganization().setFullOrgName(
+					ControllerHelper.getOrganizationRelativeName(gridTeam
+							.getOrganization().getId(),
+							organizationDubboService));
+			gridTeam.getOrganization().setOrgName(
+					organizationDubboService.getSimpleOrgById(
+							gridTeam.getOrganization().getId()).getOrgName());
+		}
+		return SUCCESS;
+	}
+
+	/***
+	 * 数据删除
+	 */
+	@Action(value = "deleteGridTeamByIds", results = {
+			@Result(name = "success", type = "json", params = { "root", "true",
+					"ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String deleteGridTeamByIds() throws Exception {
+		if (!StringUtil.isStringAvaliable(ids)) {
+			errorMessage = "删除数据失败，未得到正确参数";
+			return ERROR;
+		}
+		gridTeamService.deleteGridTeamByIds(ids.split(","));
+		return SUCCESS;
+	}
+
+	/***
+	 * 网格员报表
+	 */
+	@Action(value = "gridTeamStatistics", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridTeamStatistics", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String gridTeamStatistics() throws Exception {
+		if (organization == null || organization.getId() == null) {
+			errorMessage = "未获得组织机构参数,获取网格员报表失败";
+			return ERROR;
+		}
+		gridTeamStatistics = gridTeamService.gridTeamStatistics(organization
+				.getId());
+		return SUCCESS;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public Organization getOrganization() {
+		return organization;
+	}
+
+	public void setOrganization(Organization organization) {
+		this.organization = organization;
+	}
+
+	public GridTeam getGridTeam() {
+		return gridTeam;
+	}
+
+	public void setGridTeam(GridTeam gridTeam) {
+		this.gridTeam = gridTeam;
+	}
+
+	public String getIds() {
+		return ids;
+	}
+
+	public void setIds(String ids) {
+		this.ids = ids;
+	}
+
+	public List<GridTeamVo> getGridTeamStatistics() {
+		return gridTeamStatistics;
+	}
+
+	public void setGridTeamStatistics(List<GridTeamVo> gridTeamStatistics) {
+		this.gridTeamStatistics = gridTeamStatistics;
+	}
+
+	public String getSidx() {
+		return sidx;
+	}
+
+	public void setSidx(String sidx) {
+		this.sidx = sidx;
+	}
+
+	public String getSord() {
+		return sord;
+	}
+
+	public void setSord(String sord) {
+		this.sord = sord;
+	}
+
+}

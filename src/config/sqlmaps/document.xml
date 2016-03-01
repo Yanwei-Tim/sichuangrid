@@ -1,0 +1,554 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="document">
+	<typeAlias alias="document" type="com.tianque.working.domain.Document" />
+	<typeAlias alias="userHasDocuments" type="com.tianque.working.domain.UserHasDocuments" />
+	<typeAlias alias="searchDocumentVo" type="com.tianque.working.domain.SearchDocumentVo" />
+	<typeAlias alias="docAttachFiles" type="com.tianque.working.domain.DocumentsHasAttachFiles" />
+	<typeAlias alias="documentsHasOrg" type="com.tianque.working.domain.DocumentsHasOrg" />
+	<typeAlias alias="documentsHasUser" type="com.tianque.working.domain.DocumentsHasUser" />
+	<typeAlias alias="documentSignVo" type="com.tianque.working.domain.DocumentSignVo" />
+	<typeAlias type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" alias="ClobStringTypeHandler"/>
+	
+	<resultMap class="documentSignVo" id="documentSignVoResult">
+		<result property="documentId" column="documentId"/>
+		<result property="userId" column="userId"/>
+		<result property="documentTitle" column="documentTitle"/>
+		<result property="receviesType" column="receviesType"/>
+		<result property="isSign" column="isSign"/>
+		<result property="signContent" column="signContent"/>
+		<result property="signDate" column="signDate"/>
+		<result property="sinerUserName" column="sinerUserName"/>
+		<result property="isReminder" column="isReminder"/>
+	</resultMap>
+	
+	<resultMap class="userHasDocuments" id="userHasDocumentsResult">
+		<result property="id" column="id"/>
+		<result property="userId" column="userId"/>
+		<result property="documentId" column="documentId"/>
+		<result property="postObj" column="postObj"/>
+	</resultMap>
+	
+	<resultMap class="document" id="documentHistoryResult">
+		<result property="id" column="id"/>
+		<result property="title" column="title"/>
+		<result property="documentNo" column="documentNo"/>
+		<result property="dispatchState" column="dispatchState"/>
+		<result property="dispatchDate" column="dispatchDate"/>
+		<result property="dispatchUnit" column="dispatchUnit"/>
+		<result property="theme"        column="theme"/>
+		<result property="secretDegree.id" column="secretDegree"/>
+		<result property="urgentDegree.id" column="urgentDegree"/>
+		<result property="synchroDocs" column="synchroDocs"/>
+		<result property="attachFiles" column="attachFiles"/>
+		<result property="fullPinyin" column="fullPinyin"/>
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="orgId" column="orgId"/>
+		<result property="userId" column="userId"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="createDate" column="createDate"/>
+		<result property="contents" column="contents"/>
+	</resultMap>
+	
+	<resultMap class="document" id="docResult" extends="documentHistoryResult">
+		<result property="receiversNames" column="receiversNames"/>
+		<result property="receiversNamesCopy" column="receiversNamesCopy"/>
+		<result property="sendUserIds" column="sendUserIds"/>
+		<result property="copyUserIds" column="copyUserIds"/>
+	</resultMap>
+	
+	<resultMap class="document" id="docTrasmitResult" extends="docResult">
+		<result property="approvalOpinion" column="approvalOpinion"/>
+		<!--下面这四个 字段是 用来在 收文管理中查看收文信息的 时候需要用到的字段-->
+		<result property="receiptContent" column="receiptContent"/>
+		<result property="signDate" column="signDate"/>
+		<result property="signer" column="signer"/>
+	</resultMap>
+	
+	<resultMap class="document" id="receiveDocResultList" extends="docResult">
+		<result property="signState" column="signState" />
+		<result property="signDate" column="signDate"/>
+		<result property="signer" column="signer"/>
+		<result property="postObj" column="postObj"/>
+		<result property="receiptContent" column="receiptContent"/>
+		<result property="readState" column="readState"/>
+		<result property="readDate" column="readDate"/>
+	</resultMap>
+	
+	<resultMap class="document" id="searchDocResultResult" extends="docResult">
+		<result property="signState" column="isSign" />
+		<result property="signDate" column="signDate"/>
+		<result property="signer" column="signer"/>
+		<result property="receiptContent" column="signcontent"/>
+		<result property="readState" column="readState"/>
+		<result property="readDate" column="readDate"/>
+	</resultMap>
+	
+	<resultMap class="docAttachFiles" id="docfilesResult">
+		<result property="fileName" column="fileName"/>
+		<result property="fileActualUrl" column="physicsFullFileName"/>
+		<result property="fileId" column="moduleObjectId"/>
+	</resultMap>
+	
+	<resultMap class="document" id="receiveDocResultListForHistory" extends="documentHistoryResult">
+		<result property="id" column="documentId"/>
+		<result property="organizationId" column="organizationId"/>
+		<result property="signState" column="signState" />
+		<result property="signDate" column="signDate"/>
+		<result property="signer" column="signer"/>
+		<result property="receiptContent" column="receiptContent"/>
+	</resultMap>
+
+	<insert id="adddispatchDocuments" parameterClass="document">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_documents.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		documents (id,title,documentNo,dispatchState,dispatchDate,transmitDate,dispatchUnit,theme,secretDegree,urgentDegree,synchroDocs,attachFiles,contents,createUser,createDate,updateUser,updateDate,fullPinyin,simplePinyin,orgId,userId,receiversNames,receiversNamesCopy,sendUserIds,copyUserIds)
+		VALUES(#id#,#title#,#documentNo#,#dispatchState#,#dispatchDate#,#transmitDate#,#dispatchUnit#,#theme#,#secretDegree.id#,#urgentDegree.id#,#synchroDocs#,#attachFiles#,#contents,handler=ClobStringTypeHandler#,#createUser#,#createDate#,#updateUser#,#updateDate#,#fullPinyin#,#simplePinyin#,#orgId#,#userId#,#receiversNames#,#receiversNamesCopy#,#sendUserIds#,#copyUserIds#)
+	</insert>
+	
+	
+	<update id="updateDocument" parameterClass="document"> 
+		update documents set 
+			title =#title#,
+			documentNo =#documentNo#,
+			dispatchUnit =#dispatchUnit#,
+			theme=#theme#,
+			secretDegree=#secretDegree.id#,
+			urgentDegree=#urgentDegree.id#,
+			attachFiles=#attachFiles#,
+			contents=#contents#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#,
+			receiversNames=#receiversNames#,
+			receiversNamesCopy=#receiversNamesCopy#,
+			sendUserIds=#sendUserIds#,
+			copyUserIds=#copyUserIds#
+			
+		where id = #id#
+	</update>
+	<update id="updateDocDispatchState" parameterClass="document"> 
+		update documents set 
+			dispatchState =#dispatchState#,
+			dispatchDate=#dispatchDate#
+		where id = #id#
+	</update>
+	<update id="updateDocSynchroDocs" parameterClass="document"> 
+		update documents set 
+			synchroDocs =#synchroDocs#
+		where id = #id#
+	</update>
+
+	<select id="getDocumentsById" parameterClass="long" resultMap="docResult">
+		select * from documents  where id=#id#
+	</select>
+	
+	<select id="getDocumentsByIdAndUserId" parameterClass="map" resultMap="docTrasmitResult">
+		select d.*,u.approvalOpinion,u.signdate signDate,u.signcontent receiptContent,signer signer from documents d,userhasdocuments u where d.id=u.documentid and d.id=#documentId# and u.userid=#userId#
+	</select>
+	
+	<select id="getDocfilesByDocumentId" parameterClass="map" resultMap="docfilesResult">
+	select * from attachFiles 
+	where moduleKey=#moduleKey# and moduleObjectId in (select id from documentsHasAttachFiles 
+	where documentId=#id#)  
+	</select>
+	
+	<select id="getDocfilesById" parameterClass="map" resultMap="docfilesResult">
+		select * from attachFiles where moduleKey=#moduleKey#  and moduleObjectId=#fileId#
+	</select>
+	
+	<delete id="deleteDispatchDocById" parameterClass="long" >
+		delete from documents where id=#id# 
+	</delete>
+    <!--<delete id="deleteDocumentsHasOrgByDocId" parameterClass="long">
+		delete from documentsHasOrg where documentId=#id# 
+	</delete>-->
+	<delete id="deleteDocumentsHasAttachFiles" parameterClass="long" >
+		delete from documentsHasAttachFiles where documentId=#documentId# 
+	</delete>
+	
+	<delete id="deleteAttachFiles" parameterClass="map" >
+	delete from attachFiles 
+	where moduleKey=#moduleKey# and moduleObjectId in (select id from documentsHasAttachFiles 
+	where documentId=#id#)    
+	</delete>
+	
+	<select id="countDispatchDocuments" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from documents doc where doc.userId=#userId#
+         <dynamic prepend="and">
+			<isNotEmpty property="dispatchState">doc.dispatchState=#dispatchState#</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="findDispatchDocuments" parameterClass="map"	resultMap="docResult">
+		select * from documents doc where  doc.userId=#userId#
+		<dynamic prepend="and">
+		<isPropertyAvailable property="dispatchState">
+				<isNotNull property="dispatchState" >
+					<isEqual property="dispatchState" compareValue="unSend">
+						dispatchState = #dispatchState#
+					</isEqual>
+					<isEqual property="dispatchState" compareValue="sended">
+						(dispatchState = #dispatchState# or dispatchState = 'transmit')
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+		<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<insert id="addDocAttachFiles" parameterClass="map">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_documentsHasAttachFiles.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO	documentsHasAttachFiles
+		(id,documentId,fileType)
+		VALUES
+		(#id#,#documentId#,#fileType#)
+	</insert>
+<sql id="sql_where">
+ <dynamic>
+   <isPropertyAvailable property="title" >
+	<isNotEmpty property="title" prepend=" and ">
+	( title like  '%'||#title#||'%'  or  fullPinyin  like  '%'||#title#||'%'  or  simplePinyin like  '%'||#title#||'%')
+	</isNotEmpty>
+   </isPropertyAvailable>
+   <isPropertyAvailable property="documentNo">
+     <isNotEmpty prepend=" and " property="documentNo">
+      documentNo  like #documentNo#||'%'
+     </isNotEmpty>
+    </isPropertyAvailable>
+    <isPropertyAvailable property="theme">
+       <isNotEmpty prepend=" and " property="theme">
+        theme like '%'||#theme#||'%'
+       </isNotEmpty>
+    </isPropertyAvailable>
+    <isPropertyAvailable property="createDateStart">
+       <isNotEmpty prepend=" and " property="createDateStart">
+       <![CDATA[ createDate >= #createDateStart# ]]>
+     </isNotEmpty>
+    </isPropertyAvailable>
+      <isPropertyAvailable property="createDateEnd">
+     <isNotEmpty prepend=" and " property="createDateEnd">
+     	<![CDATA[ createDate <= #createDateEnd# ]]>
+     </isNotEmpty> 
+    </isPropertyAvailable>
+    <isPropertyAvailable property="transmitDateStart">
+       <isNotEmpty prepend=" and " property="transmitDateStart">
+       <![CDATA[ transmitDate >= #transmitDateStart# ]]>
+     </isNotEmpty>
+    </isPropertyAvailable>
+      <isPropertyAvailable property="transmitDateEnd">
+     <isNotEmpty prepend=" and " property="transmitDateEnd">
+     	<![CDATA[ transmitDate <= #transmitDateEnd# ]]>
+     </isNotEmpty> 
+    </isPropertyAvailable>
+     <isPropertyAvailable property="signDateStart">
+       <isNotEmpty prepend=" and " property="signDateStart">
+       <![CDATA[ signDate >= #signDateStart# ]]>
+     </isNotEmpty>
+    </isPropertyAvailable>
+      <isPropertyAvailable property="signDateEnd">
+     <isNotEmpty prepend=" and " property="signDateEnd">
+     	<![CDATA[ signDate <= #signDateEnd# ]]>
+     </isNotEmpty> 
+    </isPropertyAvailable>
+    <isPropertyAvailable property="createYear">
+     <isNotEmpty prepend=" and " property="createYear">
+     <![CDATA[TO_CHAR(createDate,'yyyy')  = #createYear# ]]>
+     </isNotEmpty> 
+    </isPropertyAvailable>
+    <isPropertyAvailable property="secretDegree">
+     <isNotEmpty prepend=" and " property="secretDegree.id">
+     	secretDegree=#secretDegree.id#
+     </isNotEmpty>
+     </isPropertyAvailable>
+      <isPropertyAvailable property="urgentDegree">
+      <isNotEmpty prepend=" and " property="urgentDegree.id">
+     	urgentDegree=#urgentDegree.id#
+     </isNotEmpty>
+     </isPropertyAvailable>
+     <isPropertyAvailable property="contents">
+      <isNotEmpty prepend=" and " property="contents">
+     	contents like  '%'||#contents,handler=ClobStringTypeHandler#||'%'
+     </isNotEmpty>
+     </isPropertyAvailable>
+      <isPropertyAvailable property="synchroDocs">
+      <isNotEmpty prepend=" and " property="synchroDocs">
+     	synchroDocs  = #synchroDocs#
+     </isNotEmpty>
+     </isPropertyAvailable>
+     <isPropertyAvailable property="attachFiles" prepend=" and ">
+     <isNotEmpty  property="attachFiles">
+     	 attachFiles = #attachFiles# 
+     </isNotEmpty>
+     </isPropertyAvailable>
+  </dynamic>
+</sql>
+<select id="countSearchDispatchDocuments" parameterClass="searchDocumentVo" resultClass="java.lang.Integer">
+		select count(*) from documents doc where doc.userId=#userId#
+         <dynamic prepend="and">
+			<isNotEmpty property="dispatchState">doc.dispatchState=#dispatchState#</isNotEmpty>
+		</dynamic>
+		<include refid="sql_where" />
+</select>	
+<select id="searchDispatchDocuments" parameterClass="searchDocumentVo" resultMap="docResult">
+		select * from documents doc where doc.userId=#userId#
+        <dynamic prepend="and">
+			<isNotEmpty property="dispatchState">doc.dispatchState=#dispatchState#</isNotEmpty>
+		</dynamic>
+		<include refid="sql_where" />
+		<dynamic prepend="order by">  createDate desc
+		</dynamic>
+</select>
+
+	<select id="countReceiveDocuments" parameterClass="map" resultClass="java.lang.Integer">
+		select count(1) from documents d,userhasdocuments u 
+		where d.id = u.documentid and
+		u.userid=#userId#
+		<dynamic prepend="and">
+			<isNotEmpty property="signState">u.isSign=#signState#</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="findReceiveDocuments" parameterClass="map"	resultMap="receiveDocResultList">
+		select  d.*,u.issign signState,u.signdate signDate,u.signcontent receiptContent,readState readState,u.postObj postObj,
+				signer signer,u.readDate readDate from documents d,userhasdocuments u 
+		where d.id = u.documentid and
+		u.userid=#userId#
+		<dynamic prepend="and">
+			<isNotEmpty property="signState">u.isSign=#signState#</isNotEmpty>
+		</dynamic>
+		order by isSign asc
+		<dynamic>
+			<isPropertyAvailable property="sortField" prepend=",">
+				<isNotNull property="sortField">
+					$sortField$
+				</isNotNull>
+				<isNotNull property="order">
+					$order$
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!--历史公文数据删除-->
+	<update id="updateDocHasUsersDeleteByDocIdAndUserId" parameterClass="map"> 
+		update documentsHasUsers set 
+			readState=#readState#
+		where documentid = #documentId# and userId=#userId#
+	</update>
+
+<!--公文改造后代码-->
+<insert id="addUserHasDocuments" parameterClass="userHasDocuments">
+	<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_userHasDocuments.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+	insert into userHasDocuments
+	(id,documentId,userId,isSign,signDate,signUserId,signContent,readState,postObj,approvalOpinion) 
+	values
+	(#id#,#documentId#,#userId#,#isSign#,#signDate#,#signUserId#,#signContent#,#readState#,#postObj#,#approvalOpinion#)
+</insert>
+<!--根据公文ID删除公文与用户关系-->
+<delete id="deleteUserHasDocument" parameterClass="java.lang.Long">
+	delete from userHasDocuments where documentId=#documentId#
+</delete>
+
+<!--根据公文ID查询可以收取公文的用户-->
+<select id="getUserByDocumentsId" parameterClass="java.lang.Long" resultMap="userHasDocumentsResult">
+	select id,userId,documentId,postObj from userHasDocuments where documentId=#documentId#
+</select>
+
+<!--签收文件-->
+<update id="signDocumentsById" parameterClass="java.util.Map">
+	update userHasDocuments set isSign=#isSign# ,signDate=#signDate#,signContent=#signContent#,signer=#signer#,signUserid=#signUserid#
+	where DOCUMENTID=#documentId# and USERID=#userId#
+</update>
+<!--更改阅读状态和阅读时间-->
+<update id="updateDocumentReadState" parameterClass="java.util.Map">
+	update userHasDocuments set READSTATE=#readState#,READDATE=#readDate# where DOCUMENTID=#documentId# and USERID=#userId#
+</update>
+
+<!--根据公文ID和用户ID删除公文与用户关系-->
+<delete id="deleteUserHasDocuments" parameterClass="java.util.Map">
+	delete from userHasDocuments where documentId=#documentId# and userId=#userId#
+</delete>
+
+<!--查询用户未签收的公文数-->
+<select id="countNotSignDoc" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+	select count(1) from userHasDocuments  u where u.userid=#userId# and u.issign=0 
+</select>
+
+<!--查询用户未阅读的公文数-->
+<select id="countNotReadDoc" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+	select count(1) from userHasDocuments  u where u.userid=#userId# and u.readstate=0
+</select>
+
+<sql id="search_sql">
+	 <dynamic>
+	   <isPropertyAvailable property="title" >
+		<isNotEmpty property="title" prepend=" and ">
+		( d.title like  '%'||#title#||'%'  or  d.fullPinyin  like  '%'||#title#||'%'  or  d.simplePinyin like  '%'||#title#||'%')
+		</isNotEmpty>
+	   </isPropertyAvailable>
+	   
+	   <isPropertyAvailable property="documentNo">
+    	 <isNotEmpty prepend=" and " property="documentNo">
+    	  d.documentNo  like #documentNo#||'%'
+    	 </isNotEmpty>
+       </isPropertyAvailable>
+       
+       <isPropertyAvailable property="theme">
+	       <isNotEmpty prepend=" and " property="theme">
+	        d.theme like '%'||#theme#||'%'
+	       </isNotEmpty>
+       </isPropertyAvailable>
+       
+       <isPropertyAvailable property="signDateStart">
+	       <isNotNull prepend=" and " property="signDateStart">
+	      	 <![CDATA[ u.signDate >= #signDateStart# ]]>
+	      </isNotNull>
+      </isPropertyAvailable>
+   
+	   	<isPropertyAvailable property="signDateEnd">
+	     <isNotEmpty prepend=" and " property="signDateEnd">
+	     	<![CDATA[ u.signDate <= #signDateEnd# ]]>
+	     </isNotEmpty> 
+	    </isPropertyAvailable>
+	    
+	    <isPropertyAvailable property="secretDegree">
+	     <isNotEmpty prepend=" and " property="secretDegree.id">
+	     	d.secretDegree=#secretDegree.id#
+	     </isNotEmpty>
+       </isPropertyAvailable>
+       
+       	<isPropertyAvailable property="urgentDegree">
+	      <isNotEmpty prepend=" and " property="urgentDegree.id">
+	     	d.urgentDegree=#urgentDegree.id#
+	      </isNotEmpty>
+	     </isPropertyAvailable>
+		    
+		   <isPropertyAvailable property="contents">
+		      <isNotEmpty prepend=" and " property="contents">
+		     	d.contents like  '%'||#contents#||'%'
+		     </isNotEmpty>
+	     </isPropertyAvailable>
+	     
+	     <isPropertyAvailable property="synchroDocs">
+		      <isNotEmpty prepend=" and " property="synchroDocs">
+		     	d.synchroDocs  = #synchroDocs#
+		     </isNotEmpty>
+	     </isPropertyAvailable>
+	     <isPropertyAvailable property="attachFiles" prepend=" and ">
+		     <isNotEmpty  property="attachFiles">
+		     	 d.attachFiles = #attachFiles# 
+		     </isNotEmpty>
+	     </isPropertyAvailable>
+	 </dynamic>
+</sql>
+
+<!--收公文高级搜索-->
+<select id="searchDocumentsByConditionCount" parameterClass="searchDocumentVo" resultClass="java.lang.Integer">
+	select count(1) from documents d,userhasdocuments u where d.id = u.documentid and u.userid=#userId#
+	<include refid="search_sql"/>
+</select>
+
+<select id="searchDocumentsByCondition" parameterClass="searchDocumentVo" resultMap="searchDocResultResult">
+	select * from documents d,userhasdocuments u where d.id = u.documentid and u.userid=#userId#
+	<include refid="search_sql"/>
+	<dynamic prepend="order by">
+		d.createDate desc
+	</dynamic>
+</select>
+
+<select id="findReceiveDocumentsListByIds" parameterClass="map"	resultMap="receiveDocResultList">
+		select d.*,u.issign signState,u.signdate signDate,u.signcontent receiptContent,readState readState,u.postObj postObj,
+				signer signer,u.readDate readDate from documents d,userhasdocuments u where d.id = u.documentid and d.id=#ids#
+</select>
+
+<!--查询公文签收信息-->
+<select id="findReminderInfoByDocumentId" parameterClass="java.lang.Long" resultMap="documentSignVoResult">
+select d.id documentId,d.title documentTitle,u.userid userId,u.postobj receviesType,u.issign isSign,u.signcontent signContent,
+       u.signdate signDate,u.signer sinerUserName,u.isreminder isReminder
+	   from documents d,userhasdocuments u where d.id=u.documentid and u.documentid=#documentId#
+	
+</select>
+
+<!--公文历史数据查询-->
+<select id="countDispatchDocumentsForHistory" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from documents doc where doc.orgId=#orgId# and doc.createDate <![CDATA[< #historyDate# ]]>
+         <dynamic prepend="and">
+			<isNotEmpty property="documentTitle">doc.title like #documentTitle# || '%'</isNotEmpty>
+		</dynamic>
+</select>
+<select id="findDispatchDocumentsForHistory" parameterClass="map"	resultMap="documentHistoryResult">
+		select * from documents doc where doc.orgId=#orgId#  and doc.createDate <![CDATA[< #historyDate# ]]>
+		<isNotEmpty property="documentTitle" prepend="and">doc.title like #documentTitle# || '%'</isNotEmpty>
+		<dynamic prepend="order by">
+		<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+
+<!--收公文历史数据查询-->
+<select id="countReceiveDocumentsForHistory" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from documents doc,documentsHasOrg docHasOrg
+   		where doc.id= docHasOrg.documentId and docHasOrg.organizationId=#organizationId# and docHasOrg.documentsHasOrgId not in(
+   		select documentsHasOrgId from documentshasusers where readState=0 and documentshasusers.userId=#userId#
+    	) and doc.createDate <![CDATA[< #historyDate# ]]>
+    	<isNotEmpty property="documentTitle" prepend="and">
+    		doc.title like #documentTitle# || '%'
+    	</isNotEmpty>
+</select>
+
+<select id="findReceiveDocumentsForHistory" parameterClass="map" resultMap="receiveDocResultListForHistory">
+		select * from documents doc,documentsHasOrg docHasOrg
+   		where doc.id= docHasOrg.documentId and docHasOrg.organizationId=#organizationId# and docHasOrg.documentsHasOrgId not in(
+   		select documentsHasOrgId from documentshasusers where readState=0 and documentshasusers.userId=#userId#
+    	)
+    	and doc.createDate <![CDATA[< #historyDate# ]]>
+    	<isNotEmpty property="documentTitle" prepend="and">
+    		doc.title like #documentTitle# || '%'
+    	</isNotEmpty>
+		order by signstate asc
+		<dynamic>
+			<isPropertyAvailable property="sortField" prepend=",">
+				<isNotNull property="sortField">
+					$sortField$
+				</isNotNull>
+				<isNotNull property="order">
+					$order$
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+</select>
+
+<!--根据公文ID和用户ID查询该公文用户是否已经收到-->
+<select id="countUserHasDocument" parameterClass="map" resultClass="java.lang.Integer">
+	select count(1) from userhasdocuments where documentId = #documentId# and userId=#userId#
+</select>
+
+<delete id="deleteDocumentsHasAttachFileByFileId" parameterClass="Long">
+	delete from documentsHasAttachFiles where id=#value#
+</delete>
+
+<delete id="deleteAttachFilesByFileId" parameterClass="map">
+	delete from attachFiles where moduleKey=#moduleKey# and moduleobjectid=#fileId#
+</delete>
+
+</sqlMap>

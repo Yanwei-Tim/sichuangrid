@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="templateMessageRecord">
+	<typeAlias alias="TemplateMessageRecord"
+		type="com.tianque.plugin.weChat.domain.messageTemplate.TemplateMessageRecord" />
+	<resultMap id="templateMessageRecordResult" class="TemplateMessageRecord">
+		<result property="id" column="id" />
+		<result property="templateId" column="templateId" />
+		<result property="title" column="title" />
+		<result property="templateNum" column="templateNum" />
+		<result property="primaryIndustry" column="primaryIndustry" />
+		<result property="twoStageIndustry" column="twoStageIndustry" />
+		<result property="weChatUserId" column="weChatUserId" />
+		<result property="org.id" column="orgId" />
+		<result property="org.orgInternalCode" column="orgInternalCode" />
+		
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<sql id="templateMessageRecord_sql_where">
+		from TEMPLATEMESSAGERECORD
+		<dynamic prepend="WHERE">
+			<isNotNull prepend=" and " property="templateMessageRecord.org.id">
+				orgId=#templateMessageRecord.org.id#
+			</isNotNull>
+			<isNotNull prepend=" and " property="templateMessageRecord.title">
+				title like '%'||#templateMessageRecord.title#||'%'
+			</isNotNull>
+			<isNotNull prepend=" and " property="templateMessageRecord.weChatUserId">
+				weChatUserId=#templateMessageRecord.weChatUserId#
+			</isNotNull>
+		</dynamic>
+	</sql>
+	
+	<insert id="addTemplateMessageRecord" parameterClass="TemplateMessageRecord">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_TEMPLATEMESSAGERECORD.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		insert into TEMPLATEMESSAGERECORD
+		(id,templateId,title,templateNum,primaryIndustry,twoStageIndustry,weChatUserId,
+		orgId,orgInternalCode,createUser,updateUser,createDate,updateDate)
+		values
+		(#id#,#templateId#,#title#,#templateNum#,#primaryIndustry#,#twoStageIndustry#,#weChatUserId#,
+		#org.id#,#org.orgInternalCode#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	<update id="updateTemplateMessageRecord" parameterClass="TemplateMessageRecord">
+		update TEMPLATEMESSAGERECORD set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="templateId">
+				templateId=#templateId#
+			</isNotNull>
+			<isNotNull prepend="," property="title">
+				title=#title#
+			</isNotNull>
+			<isNotNull prepend="," property="templateNum">
+				templateNum=#templateNum#
+			</isNotNull>
+			<isNotNull prepend="," property="primaryIndustry">
+				primaryIndustry=#primaryIndustry#
+			</isNotNull>
+			<isNotNull prepend="," property="twoStageIndustry">
+				twoStageIndustry=#twoStageIndustry#
+			</isNotNull>
+			<isNotNull prepend="," property="weChatUserId">
+				weChatUserId=#weChatUserId#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+		</dynamic>
+		   WHERE id=#id#
+	</update>
+	
+	<delete id="deleteTemplateMessageRecordById" parameterClass="java.lang.Long" >
+		delete from TEMPLATEMESSAGERECORD where id = #value# 
+	</delete>
+	
+	<select id="getTemplateMessageRecordById" parameterClass="java.lang.Long" resultMap="templateMessageRecordResult">
+		select * from TEMPLATEMESSAGERECORD where id = #value# 
+	</select>
+	
+	<select id="getTemplateMessageRecordByWidAndTid" parameterClass="java.util.Map" resultMap="templateMessageRecordResult">
+		select * from TEMPLATEMESSAGERECORD where weChatUserId = #weChatUserId# and orgId = #orgId# and templateId = #templateId#
+	</select>
+	
+	<select id="getTemplateMessageRecordByWidAndTnum" parameterClass="java.util.Map" resultMap="templateMessageRecordResult">
+		select * from TEMPLATEMESSAGERECORD where weChatUserId = #weChatUserId# and orgId = #orgId# and templateNum = #templateNum# 
+	</select>
+	
+	<select id="getTemplateMessageRecordByWidAndTitle" parameterClass="java.util.Map" resultMap="templateMessageRecordResult">
+		select * from TEMPLATEMESSAGERECORD where weChatUserId = #weChatUserId# and orgId = #orgId# and title = #title# 
+	</select>
+	
+	<select id="countTemplateMessageRecordList" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="templateMessageRecord_sql_where" />
+	</select>
+	
+	<select id="findTemplateMessageRecordList" parameterClass="java.util.Map" resultMap="templateMessageRecordResult">
+		<include refid="common.sql_select" />
+		<include refid="templateMessageRecord_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>

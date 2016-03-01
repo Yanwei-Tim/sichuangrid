@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="publicSecurityTwoDimensionMap">
+	<typeAlias alias="publicSecurityTwoDimensionMap" type="com.tianque.openLayersMap.domian.vo.PublicSecurityInfoVo" />
+		
+	<resultMap id="publicSecurityTwoDimensionMapResult" class="publicSecurityTwoDimensionMap">
+		<result column="id" property="id" />
+		<result column="code" property="code" />
+		<result column="address" property="address" />
+		<result column="centerLon" property="lon" />
+		<result column="centerLat" property="lat" />
+		<result column="centerLon2" property="lon2" />
+		<result column="centerLat2" property="lat2" />
+		<result column="type" property="type" />
+		<result column="orgId" property="organization.id" />
+		
+	</resultMap>
+	
+	<resultMap id="publicSecurityTwoDimensionMapPeripheryResult" extends="publicSecurityTwoDimensionMapResult" class="publicSecurityTwoDimensionMap">
+		<result column="distance" property="distance" />
+	</resultMap>
+	
+	<sql id="sql_where">
+			 from  $typeName$ t
+			     where  t.isEmphasis=0 
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					t.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isNotNull property="searchValue" prepend=" and ">
+					(t.code like '$searchValue$%' or t.address like '$searchValue$%')
+			</isNotNull>
+			<isNotEmpty property="screenCoordinateVo.minLon">
+				and (
+					<include refid="sql_screenCoordinateVo"/>
+						<isEqual property="isBound" compareValue="false">
+						or (t.centerLon is null and t.centerLat is null)
+					</isEqual>
+					<isEqual property="isBound" compareValue="true">
+						or (t.centerLon is not null and t.centerLat is not null)
+					</isEqual>
+				)
+			</isNotEmpty> 
+		</dynamic>
+	</sql>
+	
+	<sql id="refineSearch_where">
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					t.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isNotNull property="searchValue" prepend=" and ">
+					(t.code like '$searchValue$%' or t.address like '$searchValue$%')
+			</isNotNull>
+			<isNotEmpty property="screenCoordinateVo.minLon">
+				and (
+					<include refid="sql_screenCoordinateVo"/>
+					<isEqual property="isBound" compareValue="false">
+						or (t.centerLon is null and t.centerLat is null)
+					</isEqual>
+					<isEqual property="isBound" compareValue="true">
+						or (t.centerLon is not null and t.centerLat is not null)
+					</isEqual>
+				)
+			</isNotEmpty> 
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_screenCoordinateVo">
+		<dynamic>
+			<isPropertyAvailable property="searchInfoVo">
+				<isEqual property="searchInfoVo.gisType" compareValue="3D">
+					<isNotEmpty  property="screenCoordinateVo.minLon">
+						<![CDATA[ t.centerlon>#screenCoordinateVo.minLon# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+						<![CDATA[ t.centerlon<#screenCoordinateVo.maxLon# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+						<![CDATA[ t.centerlat>#screenCoordinateVo.minLat# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+						<![CDATA[ t.centerlat<#screenCoordinateVo.maxLat# ]]>
+					</isNotEmpty>
+				</isEqual>
+				<isNotEqual property="searchInfoVo.gisType" compareValue="3D">
+					<isNotEmpty  property="screenCoordinateVo.minLon">
+						<![CDATA[ t.centerlon2>#screenCoordinateVo.minLon# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+						<![CDATA[ t.centerlon2<#screenCoordinateVo.maxLon# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+						<![CDATA[ t.centerlat2>#screenCoordinateVo.minLat# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+						<![CDATA[ t.centerlat2<#screenCoordinateVo.maxLat# ]]>
+					</isNotEmpty>
+				</isNotEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<!-- 乡镇以下图层 列表查询	-->
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVo" parameterClass="java.util.Map" resultClass="Integer" >
+		select count(0) 
+		<include refid="sql_where"/>
+	</select>
+	
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVo" parameterClass="java.util.Map" resultMap="publicSecurityTwoDimensionMapResult" >
+		 <include refid="common.sql_page_start"/>
+			select t.id,t.code,t.address,t.centerLon,t.centerLat ,t.centerLon2,t.centerLat2,'$typeName$' type,t.orgId
+			<include refid="sql_where"/>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<!-- 乡镇以下精确搜索 列表查询	-->
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndTypeNameAndSearchValue" parameterClass="java.util.Map" resultClass="Integer" >
+		select 
+		 <iterate  property="publicList"  conjunction="+">
+			(select count(0) from  $publicList[].tableName$ t where t.isEmphasis=0
+          	<include refid="refineSearch_where"/>)   	
+		  </iterate> 
+	  as sum  from dual
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndTypeNameAndSearchValue" parameterClass="java.util.Map" resultMap="publicSecurityTwoDimensionMapResult" >
+		<include refid="common.sql_page_start"/>
+			select id,code,address,centerLon,centerLat,centerLon2,centerLat2,type,orgId from 
+			<iterate  property="publicList" open="("
+	          close=")"  conjunction="union" >
+				select t.id,t.code,t.address,t.centerLon,t.centerLat ,t.centerLon2,t.centerLat2,'$publicList[].tableName$' type,t.orgId
+				from $publicList[].tableName$ t
+				 where t.isEmphasis=0
+	          	<include refid="refineSearch_where"/>
+	        </iterate> 
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<!--根据Id和表名得到详情查看popup页面-->
+	<select id="getViewPopupInfoByIdAndTableName" parameterClass="java.util.Map" resultMap="publicSecurityTwoDimensionMapResult">
+		select t.id,t.code,t.address,t.centerLon,t.centerLat ,t.centerLon2,t.centerLat2,'$tableName$' type,t.orgId
+			from $tableName$ t  where t.id=#id#  and t.isEmphasis=0 
+	</select>
+	
+	<!-- 乡镇以上 搜索查询	-->
+	<select id="statisticTwoDimensionMapInfoByOrgInternalCodeAndScreenCoordinateVoAndTypeNameAndSearchValue" parameterClass="java.util.Map" resultClass="Integer" >
+		select (
+			select count(0)
+          	<include refid="sql_where"/>
+		)as sum from dual 	
+	</select>
+	
+	<!--绑定、解绑-->
+	<update id="updateTwoDimensionMap" parameterClass="publicSecurityTwoDimensionMap">
+	 <![CDATA[ 	
+		update $type$ set 
+			   centerLon=#lon#,
+			   centerLat=#lat#,
+			   centerLon2=#lon2#,
+			   centerLat2=#lat2#
+	     where id=#id#
+	  ]]>
+	</update>
+	
+	<sql id="periphery_sql_where">
+			<isNotNull property="circumInfoVo">
+				<isNotNull property="circumInfoVo.lon">
+					<isNotNull property="circumInfoVo.lat">
+						<isNotNull property="circumInfoVo.range" prepend=" , ">
+							<isEqual property="circumInfoVo.gisType" compareValue="3D">
+								round(sqrt(power(((#circumInfoVo.lon# - centerLon) * #PI# * #R#
+								* COS(((#circumInfoVo.lat# + centerLat) / 2) * #PI# / 180) / 180),2)
+								+ power(((#circumInfoVo.lat# - centerLat) *#PI# * #R# / 180),2)),2) 
+							</isEqual>
+							<isNotEqual property="circumInfoVo.gisType" compareValue="3D">
+								round(sqrt(power(((#circumInfoVo.lon# - centerLon2) * #PI# * #R#
+								* COS(((#circumInfoVo.lat# + centerLat2) / 2) * #PI# / 180) / 180),2)
+								+ power(((#circumInfoVo.lat# - centerLat2) *#PI# * #R# / 180),2)),2) 
+							</isNotEqual>
+							distance
+						</isNotNull>
+					</isNotNull>
+				</isNotNull>
+			</isNotNull>
+	</sql>
+	
+	
+	<!--周边搜索-->
+	
+	<select id="countTwoDimensionMapCircumInfoByElementsAndRangeAndCenterLonLat" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from 
+		 <iterate  property="typeList" open="(" close=")" conjunction="union">
+			(select  d.* 
+			<isNotNull property="circumInfoVo">
+				<isNotNull property="circumInfoVo.lon">
+					<isNotNull property="circumInfoVo.lat">
+						<isNotNull property="circumInfoVo.range" prepend=" , ">
+							<isEqual property="circumInfoVo.gisType" compareValue="3D">
+								round(sqrt(power(((#circumInfoVo.lon# - centerLon) * #PI# * #R#
+								* COS(((#circumInfoVo.lat# + centerLat) / 2) * #PI# / 180) / 180),2)
+								+ power(((#circumInfoVo.lat# - centerLat) *#PI# * #R# / 180),2)),2) 
+							</isEqual>
+							<isNotEqual property="circumInfoVo.gisType" compareValue="3D">
+								round(sqrt(power(((#circumInfoVo.lon# - centerLon2) * #PI# * #R#
+								* COS(((#circumInfoVo.lat# + centerLat2) / 2) * #PI# / 180) / 180),2)
+								+ power(((#circumInfoVo.lat# - centerLat2) *#PI# * #R# / 180),2)),2) 
+							</isNotEqual>
+							distance
+						</isNotNull>
+					</isNotNull>
+				</isNotNull>
+			</isNotNull>
+			  from $typeList[]$ d where d.isEmphasis=0 
+			  <isPropertyAvailable property="circumInfoVo">
+					<isNotNull property="circumInfoVo.queryStr" prepend="and">
+						(d.code like '$circumInfoVo.queryStr$%' or d.address like '$circumInfoVo.queryStr$%')
+					</isNotNull>
+				</isPropertyAvailable>
+				)
+		  </iterate> 
+	  t
+			where 1=1
+		<dynamic>
+			<isNotNull property="circumInfoVo">
+				<isNotNull property="circumInfoVo.range" prepend="and ">
+			 		t.distance &lt; #circumInfoVo.range#
+			 	</isNotNull>
+			</isNotNull>
+		</dynamic>
+		
+		
+	</select>
+	
+	<select id="findTwoDimensionMapCircumInfoByElementsAndRangeAndCenterLonLat" parameterClass="java.util.Map" resultMap="publicSecurityTwoDimensionMapPeripheryResult">
+		<include refid="common.sql_page_start"/>
+			select  * from 
+		 <iterate  property="typeList" open="(" close=")" conjunction="union">
+			(select  d.id,d.code,d.address,d.centerLon,d.centerLat ,d.centerLon2,d.centerLat2,'$typeList[]$' type,d.orgId
+			<isNotNull property="circumInfoVo">
+				<isNotNull property="circumInfoVo.lon">
+					<isNotNull property="circumInfoVo.lat">
+						<isNotNull property="circumInfoVo.range" prepend=" , ">
+							<isEqual property="circumInfoVo.gisType" compareValue="3D">
+								round(sqrt(power(((#circumInfoVo.lon# - centerLon) * #PI# * #R#
+								* COS(((#circumInfoVo.lat# + centerLat) / 2) * #PI# / 180) / 180),2)
+								+ power(((#circumInfoVo.lat# - centerLat) *#PI# * #R# / 180),2)),2) 
+							</isEqual>
+							<isNotEqual property="circumInfoVo.gisType" compareValue="3D">
+								round(sqrt(power(((#circumInfoVo.lon# - centerLon2) * #PI# * #R#
+								* COS(((#circumInfoVo.lat# + centerLat2) / 2) * #PI# / 180) / 180),2)
+								+ power(((#circumInfoVo.lat# - centerLat2) *#PI# * #R# / 180),2)),2) 
+							</isNotEqual>
+							distance
+						</isNotNull>
+					</isNotNull>
+				</isNotNull>
+			</isNotNull>
+			  from $typeList[]$ d where d.isEmphasis=0 
+			  <isPropertyAvailable property="circumInfoVo">
+					<isNotNull property="circumInfoVo.queryStr" prepend="and">
+						(d.code like '$circumInfoVo.queryStr$%' or d.address like '$circumInfoVo.queryStr$%')
+					</isNotNull>
+				</isPropertyAvailable>
+			)	
+		  </iterate> 
+	  t
+			where 1=1
+		<dynamic>
+			<isNotNull property="circumInfoVo">
+				<isNotNull property="circumInfoVo.range" prepend="and ">
+			 		t.distance &lt; #circumInfoVo.range#
+			 	</isNotNull>
+			</isNotNull>
+		</dynamic>
+			<isNotNull property="centerLon">
+				<isNotNull property="centerLat">	
+					<isNotNull property="range" prepend=" order by ">
+					 	 distance 
+					</isNotNull>
+				</isNotNull>
+			</isNotNull>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	
+	
+</sqlMap>

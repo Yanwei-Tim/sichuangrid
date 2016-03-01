@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="chatMenu">
+	<typeAlias alias="weChatMenu"
+		type="com.tianque.plugin.weChat.domain.user.WeChatMenu" />
+
+	<resultMap id="menuResult" class="weChatMenu">
+		<result property="id" column="menu_ID" />
+		<result property="menuName" column="menuName" />
+		<result property="menuKey" column="menuKey" />
+		<result property="menuType" column="menuType" />
+		<result property="isLeaf" column="isLeaf" />
+        <result property="parentId" column="parentId" />
+        
+		<result property="sourceID" column="sourceID" />
+		<result property="sourceDescription" column="source_description" />
+		<result property="sourceTypeDict.id" column="source_type" />
+		<result property="weChatUserId" column="WECHATUSERID" />
+		
+		<result property="url" column="url" />
+		<result property="rank" column="rank" />
+    
+
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	<insert id="saveWeChatMenu" parameterClass="weChatMenu">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT S_wechat_menu.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		insert into wechat_menu
+		(menu_ID,menuName,menuKey,menuType,isLeaf,parentId,sourceID,source_description,source_type,WECHATUSERID,url,rank,createUser,updateUser,createDate,updateDate)
+		values
+		(#id#,#menuName#,#menuKey#,#menuType#,#isLeaf#,#parentId#,#sourceID#,#sourceDescription#,#sourceTypeDict.id#,#weChatUserId#,#url#,#rank#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	</insert>
+	<update id="updateWeChatMenu" parameterClass="weChatMenu">
+		update wechat_menu set
+		<dynamic>
+			menu_ID=#id#
+			<isPropertyAvailable  prepend="," property="sourceID">
+			   sourceID=#sourceID#
+			</isPropertyAvailable>
+			
+			<isNotNull prepend="," property="sourceDescription">
+				source_description=#sourceDescription#
+			</isNotNull>
+			<isPropertyAvailable  prepend="," property="sourceTypeDict.id">
+				source_type=#sourceTypeDict.id#
+			</isPropertyAvailable>
+
+			<isNotNull prepend="," property="createUser">
+				createUser=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="createDate">
+				createDate=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+
+		</dynamic>
+		WHERE menu_ID=#id#
+	</update>
+	
+	<update id="updateWeChatMenuBySourceId" parameterClass="weChatMenu">
+		update wechat_menu set
+		<dynamic>
+			sourceID=#sourceID#
+			<isNotNull prepend="," property="sourceDescription">
+				source_description=#sourceDescription#
+			</isNotNull>
+	        <isNotNull prepend="," property="sourceTypeDict.id">
+				source_type=#sourceTypeDict.id#
+			</isNotNull>
+			<isNotNull prepend="," property="createUser">
+				createUser=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="createDate">
+				createDate=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+
+		</dynamic>
+		WHERE sourceID=#sourceID#
+	</update>
+	
+	<update id="updateWeChatMenuByWeChatUserId" parameterClass="weChatMenu">
+		update wechat_menu set
+		<dynamic>
+			WECHATUSERID=#weChatUserId#
+			<isPropertyAvailable  prepend="," property="sourceID">
+			   sourceID=#sourceID#
+			</isPropertyAvailable>
+			
+			<isNotNull prepend="," property="sourceDescription">
+				source_description=#sourceDescription#
+			</isNotNull>
+			<isPropertyAvailable  prepend="," property="sourceTypeDict.id">
+				source_type=#sourceTypeDict.id#
+			</isPropertyAvailable>
+			
+			<isNotNull prepend="," property="createUser">
+				createUser=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="createDate">
+				createDate=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+
+		</dynamic>
+		WHERE WECHATUSERID=#weChatUserId#
+	</update>
+
+	<sql id="sql_where">
+		<dynamic>
+				<isNotEmpty prepend=" and " property="weChatMenu.menuName">
+					m.menuName like '%'||#weChatMenu.menuName#||'%'
+				</isNotEmpty>
+				<isNotEmpty prepend=" and " property="weChatMenu.menuType" >
+					m.menuType =#weChatMenu.menuType#
+				</isNotEmpty>
+				<isGreaterThan prepend=" and " property="weChatMenu.isLeaf" compareValue ="0">
+					m.isLeaf =#weChatMenu.isLeaf#
+				</isGreaterThan>
+				<isNotEmpty prepend=" and " property="weChatMenu.sourceDescription">
+					m.source_description like '%'||#weChatMenu.sourceDescription#||'%'
+				</isNotEmpty>
+			    <isGreaterThan property="weChatMenu.sourceTypeDict.id" prepend=" and " compareValue ="0">
+					m.source_type =#weChatMenu.sourceTypeDict.id#
+				</isGreaterThan>
+				
+				<isNotEmpty prepend=" and " property="weChatMenu.weChatUserId">
+					m.WECHATUSERID in ($weChatMenu.weChatUserId$)
+				</isNotEmpty>
+		</dynamic>
+	</sql>
+
+	<select id="countFindWeChatMenu" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		select count(*) from wechat_menu m where 1=1
+		<include refid="sql_where" />
+	</select>
+
+
+	<select id="getWeChatMenuById" parameterClass="java.lang.Long"
+		resultMap="menuResult">
+		SELECT * FROM wechat_menu m WHERE m.menu_id=#value#
+	</select>
+	
+	
+	
+	<select id="getWeChatMenuBySourceId" parameterClass="java.lang.String"
+		resultMap="menuResult">
+		SELECT * FROM wechat_menu m WHERE m.sourceID like '%'||#value#||'%'
+	</select>
+	<select id="getWeChatMenuByWeChatUserIdAndIsleaf" parameterClass="java.util.Map"
+		resultMap="menuResult">
+		SELECT * FROM wechat_menu m WHERE m.WECHATUSERID=#weChatUserId# and m.isLeaf=#isLeaf#
+	</select>
+	
+	<select id="getWeChatMenuByWeChatUserIdAndRank" parameterClass="java.util.Map"
+		resultMap="menuResult">
+		SELECT * FROM wechat_menu m WHERE m.WECHATUSERID=#weChatUserId# and m.rank=#rank#
+	</select>
+	
+     <select id="getWeChatMenuByMenuKeyAndWeChatUserId" parameterClass="java.util.Map"
+		resultMap="menuResult">
+		SELECT * FROM wechat_menu m WHERE m.WECHATUSERID=#weChatUserId# and m.menuKey=#menuKey#
+	</select>
+    <delete id="deleteWeChatMenuByWeChatUserId">
+		delete from wechat_menu where  WECHATUSERID=#weChatUserId#
+	</delete>
+	<select id="findWeChatMenu" parameterClass="java.util.Map"
+		resultMap="menuResult">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_start" />
+			</isNotNull>
+		</isPropertyAvailable>
+		select * from wechat_menu m
+		where 1=1
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">m.$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_end" />
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+
+</sqlMap>

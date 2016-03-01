@@ -1,0 +1,160 @@
+package com.tianque.plugin.weChat.controller;
+
+import java.io.FileNotFoundException;
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.controller.ControllerHelper;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.GridPage;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.job.JobHelper;
+import com.tianque.plugin.weChat.domain.evaluationIssueHandle.EvaluationIssueHandle;
+import com.tianque.plugin.weChat.service.EvaluationIssueHandleService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+/**
+ * 评价事件处理
+ * 
+ * @author Administrator
+ *
+ */
+@Namespace("/evaluationIssueHandleManage")
+@Scope("prototype")
+@Controller("evaluationIssueHandleController")
+public class EvaluationIssueHandleController extends BaseAction {
+	private static Logger logger = LoggerFactory
+			.getLogger(EvaluationIssueHandleController.class);
+
+	@Autowired
+	private EvaluationIssueHandleService evaluationIssueHandleService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+
+	private EvaluationIssueHandle evaluationIssueHandle;
+
+	private String contentJson;
+
+	
+    @Action(value = "dispatch", results = {
+    		@Result(name = "search", location = "/wechat/evaluationIssueHandle/searchEvaluationIssueHandle.jsp")
+    		})
+	public String dispatch() throws Exception {
+   	
+		if (mode.equals("search")) {
+			return "search";
+		}
+		return ERROR;
+	}
+	
+	
+	
+	@Action(value = "addEvaluationIssueHandle", results = {
+			@Result(name = "success", type = "json", params = { "root", "true" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String addEvaluationIssueHandle() {
+		if (evaluationIssueHandle == null) {
+			errorMessage = "评价失败,未获取关键参数!";
+			return ERROR;
+		}
+		// 添加做伪登录
+		if (ThreadVariable.getSession() == null) {
+			JobHelper.createMockAdminSession();
+		}
+
+		String msg = evaluationIssueHandleService
+				.addEvaluationIssueHandle(evaluationIssueHandle);
+		if (msg.equals("success")) {
+			return SUCCESS;
+		} else {
+			errorMessage = msg;
+			return ERROR;
+		}
+	}
+
+	/**
+	 * 根据订单号查询单个事件处理评价
+	 * 
+	 * @return
+	 */
+	@Action(value = "findEvaluationIssueHandle", results = {
+			@Result(type = "json", name = "success", params = { "root",
+					"evaluationIssueHandle" }),
+			@Result(type = "json", name = "error", params = { "root",
+					"errorMessage" }) })
+	public String findEvaluationIssueHandle() {
+		if (evaluationIssueHandle == null) {
+			errorMessage = "服务单号为空!";
+			return ERROR;
+		}
+		if (evaluationIssueHandle.getSerialNumber() == null) {
+			errorMessage = "服务单号为空!";
+			return ERROR;
+		}
+
+		evaluationIssueHandle = evaluationIssueHandleService
+				.getEvaluationIssueHandleBySerialNumber(evaluationIssueHandle
+						.getSerialNumber());
+
+		if (evaluationIssueHandle != null) {
+			return SUCCESS;
+		} else {
+			errorMessage = "该事件暂无评价!";
+			return ERROR;
+		}
+	}
+
+	/**
+	 * 列表查询
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws InterruptedException
+	 */
+	@Action(value = "findEvaluationIssueHandles", results = {
+			@Result(type = "json", name = "success", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findEvaluationIssueHandles() {
+		try {
+			evaluationIssueHandle.setOrg(organizationDubboService
+					.getSimpleOrgById(evaluationIssueHandle.getOrg().getId()));
+			PageInfo<EvaluationIssueHandle> pageInfo = evaluationIssueHandleService
+					.findEvaluationIssueHandles(evaluationIssueHandle, page,
+							rows, sidx, sord);
+			ControllerHelper.processAllOrgName(pageInfo.getResult(),
+					organizationDubboService, new String[] { "org" });
+			gridPage = new GridPage(pageInfo);
+			return SUCCESS;
+		} catch (Exception e) {
+			logger.error("findEvaluationIssueHandlesERROR", e);
+			this.errorMessage = e.getMessage();
+			return ERROR;
+		}
+	}
+
+	public EvaluationIssueHandle getEvaluationIssueHandle() {
+		return evaluationIssueHandle;
+	}
+
+	public void setEvaluationIssueHandle(EvaluationIssueHandle evaluationIssueHandle) {
+		this.evaluationIssueHandle = evaluationIssueHandle;
+	}
+
+	public String getContentJson() {
+		return contentJson;
+	}
+
+	public void setContentJson(String contentJson) {
+		this.contentJson = contentJson;
+	}
+
+}

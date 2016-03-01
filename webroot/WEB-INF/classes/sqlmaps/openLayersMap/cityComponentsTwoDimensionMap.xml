@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="cityComponentsTwoDimensionMap">
+	<typeAlias alias="cityComponentsInfoVo" type="com.tianque.openLayersMap.domian.vo.CityComponentsInfoVo" />
+	<resultMap id="cityComponentsTwoDimensionMapResult" class="cityComponentsInfoVo">
+		<result property="id" column="id"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="partType.id" column="partType"/>
+		<result property="partName.id" column="partName"/>
+		<result property="dustbinCode" column="dustbinCode"/>
+		<result property="deptName" column="deptName"/>
+		<result property="ownershipUnitName" column="ownershipUnitName"/>
+		<result property="maintenanceUnitName" column="maintenanceUnitName"/>
+		<result property="address" column="address"/>
+		<result property="imgUrl" column="imgUrl"/>
+		<result property="lon" column="centerLon"/>
+		<result property="lat" column="centerLat"/>
+		<result property="lon2" column="centerLon2"/>
+		<result property="lat2" column="centerLat2"/>
+	</resultMap>
+	
+	<resultMap class="cityComponentsInfoVo" id="circumDustbinResult" extends="cityComponentsTwoDimensionMapResult">
+		<result column="distance" property="distance" />
+	</resultMap>
+	
+	<sql id="sql_screenCoordinateVo">
+		<dynamic>
+			<isPropertyAvailable property="searchInfoVo">
+				<isEqual property="searchInfoVo.gisType" compareValue="3D">
+					<isNotEmpty  property="screenCoordinateVo.minLon">
+						<![CDATA[ d.centerlon>#screenCoordinateVo.minLon# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+						<![CDATA[ d.centerlon<#screenCoordinateVo.maxLon# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+						<![CDATA[ d.centerlat>#screenCoordinateVo.minLat# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+						<![CDATA[ d.centerlat<#screenCoordinateVo.maxLat# ]]>
+					</isNotEmpty>
+				</isEqual>
+				<isNotEqual property="searchInfoVo.gisType" compareValue="3D">
+					<isNotEmpty  property="screenCoordinateVo.minLon">
+						<![CDATA[ d.centerlon2>#screenCoordinateVo.minLon# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+						<![CDATA[ d.centerlon2<#screenCoordinateVo.maxLon# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+						<![CDATA[ d.centerlat2>#screenCoordinateVo.minLat# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+						<![CDATA[ d.centerlat2<#screenCoordinateVo.maxLat# ]]>
+					</isNotEmpty>
+				</isNotEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_where">
+		<dynamic prepend="and">
+			(
+				<include refid="sql_screenCoordinateVo"/>
+				<isNotEmpty property="screenCoordinateVo.maxLon">
+					or (d.centerLon is null and d.centerLat is null)
+				</isNotEmpty>
+			)
+		</dynamic>
+	</sql>
+	
+	<sql id="selectReturnResult">
+		select d.id,d.orgId,d.orgInternalCode,d.partType,d.partName,d.dustbinCode,d.deptName,d.ownershipUnitName,d.maintenanceUnitName,d.address,d.imgUrl,d.centerLon,d.centerLat ,d.centerLon2,d.centerLat2 
+	</sql>
+	
+	<select id="countBoundedTwoDimensionMapInfoByOrgInternalCode" parameterClass="java.util.Map" resultClass="Integer">
+		select count(*) from dustbin where orgInternalCode like '$orgInternalCode$%' 
+		<isPropertyAvailable property="partType">
+			<isNotNull property="partType" prepend=" and ">
+				partType = #partType#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="partName">
+			<isNotNull property="partName" prepend=" and ">
+				partName = #partName#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="hasVideo">
+			<isNotNull property="hasVideo" prepend=" and ">
+				hasVideo = #hasVideo#
+			</isNotNull>
+		</isPropertyAvailable>
+		and centerLon is not null and centerLat is not null
+	</select>
+	
+	<!--乡镇一下图层列表	-->
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVo" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) from dustbin d where d.orgInternalCode like '$orgInternalCode$%' 
+		<include refid="sql_where"/>
+		<isPropertyAvailable property="partType">
+			<isNotNull property="partType" prepend=" and ">
+				partType = #partType#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="partName">
+			<isNotNull property="partName" prepend=" and ">
+				partName = #partName#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="hasVideo">
+			<isNotNull property="hasVideo" prepend=" and ">
+				hasVideo = #hasVideo#
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVo" parameterClass="java.util.Map"  resultMap="cityComponentsTwoDimensionMapResult">
+		<include refid="common.sql_page_start"/>
+			<include refid="selectReturnResult"/>
+			from dustbin d where d.orgInternalCode like '$orgInternalCode$%'
+			<include refid="sql_where"/>
+			<isPropertyAvailable property="partType">
+				<isNotNull property="partType" prepend=" and ">
+					partType = #partType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="partName">
+				<isNotNull property="partName" prepend=" and ">
+					partName = #partName#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="hasVideo">
+				<isNotNull property="hasVideo" prepend=" and ">
+					hasVideo = #hasVideo#
+				</isNotNull>
+			</isPropertyAvailable>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<!--乡镇一下搜索列表	-->
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValue" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) from dustbin d where d.orgInternalCode like '$orgInternalCode$%'
+		<include refid="sql_where"/>
+		<isPropertyAvailable property="hasVideo">
+			<isNotNull property="hasVideo" prepend=" and ">
+				hasVideo = #hasVideo#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="searchValue">
+			<isNotEmpty property="searchValue" prepend=" and ">
+				(d.dustbinCode like '$searchValue$%' or d.address like '$searchValue$%')
+			</isNotEmpty>
+		</isPropertyAvailable>		  
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValue" parameterClass="map" resultMap="cityComponentsTwoDimensionMapResult">
+		 <include refid="common.sql_page_start"/>
+			 <include refid="selectReturnResult"/>
+			from dustbin d where d.orgInternalCode like '$orgInternalCode$%'
+			<include refid="sql_where"/>
+			<isPropertyAvailable property="hasVideo">
+				<isNotNull property="hasVideo" prepend=" and ">
+					hasVideo = #hasVideo#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="searchValue">
+				<isNotEmpty property="searchValue" prepend=" and ">
+					(d.dustbinCode like '$searchValue$%' or d.address like '$searchValue$%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countBoundedTwoDimensionMapInfoByOrgInternalCodeAndSearchValue" parameterClass="java.util.Map" resultClass="Integer">
+		select count(*) from dustbin d where d.orgInternalCode like '$orgInternalCode$%'
+		and d.centerLon is not null and d.centerLat is not null
+		<isPropertyAvailable property="hasVideo">
+			<isNotNull property="hasVideo" prepend=" and ">
+				hasVideo = #hasVideo#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="searchValue">
+			<isNotEmpty property="searchValue" prepend=" and ">
+				(d.dustbinCode like '$searchValue$%' or d.address like '$searchValue$%')
+			</isNotEmpty>
+		</isPropertyAvailable>
+	</select>
+	
+	<update id="updateTwoDimensionMap" parameterClass="cityComponentsInfoVo">
+	 <![CDATA[ 	
+		update dustbin set centerLon=#lon#,centerLat=#lat#,centerLon2=#lon2#,centerLat2=#lat2#  where id=#id#
+	  ]]>
+	</update>
+	
+	<select id="getViewPopupInfoById" parameterClass="Long" resultMap="cityComponentsTwoDimensionMapResult">
+		<include refid="selectReturnResult"/>
+		from dustbin d  where d.id=#id#
+	</select>
+	
+	<select id="countTwoDimensionMapInfoSumByOrgInternalCode" parameterClass="java.lang.String" resultClass="Integer">
+		select count(*) from dustbin where orgInternalCode like '$orgInternalCode$%'
+	</select>
+	
+	<select id="findTwoDimensionMapCircumInfoByRangeAndCenterLonLat" parameterClass="map" resultMap="circumDustbinResult">
+		SELECT t.*  from (
+			select d.* 
+			<isNotNull property="circumInfoVo">
+				<isNotNull property="circumInfoVo.lon">
+					<isNotNull property="circumInfoVo.lat">
+						<isNotNull property="circumInfoVo.range" prepend=" , ">
+							<isEqual property="circumInfoVo.gisType" compareValue="3D">
+								round(sqrt(power(((#circumInfoVo.lon# - d.centerLon) * #PI# * #R#
+								* COS(((#circumInfoVo.lat# + d.centerLat) / 2) * #PI# / 180) / 180),2)
+								+ power(((#circumInfoVo.lat# - d.centerLat) *#PI# * #R# / 180),2)),2) 
+							</isEqual>
+							<isNotEqual property="circumInfoVo.gisType" compareValue="3D">
+								round(sqrt(power(((#circumInfoVo.lon# - d.centerLon2) * #PI# * #R#
+								* COS(((#circumInfoVo.lat# + d.centerLat2) / 2) * #PI# / 180) / 180),2)
+								+ power(((#circumInfoVo.lat# - d.centerLat2) *#PI# * #R# / 180),2)),2) 
+							</isNotEqual>
+							distance
+						</isNotNull>
+					</isNotNull>
+				</isNotNull>
+			</isNotNull>
+			FROM dustbin d where 1=1 
+					<isNotEmpty property="circumInfoVo.elements" prepend=" and ">
+						(d.partName in ($circumInfoVo.elements$)
+					</isNotEmpty>
+					<isPropertyAvailable property="hasVideo">
+						<isNotNull property="hasVideo" prepend=" or ">
+							d.hasVideo = #hasVideo#
+						</isNotNull>
+					</isPropertyAvailable>
+					)
+			and (d.dustbinCode like #circumInfoVo.queryStr#||'%' or d.address like #circumInfoVo.queryStr#||'%')
+		) t 
+		where t.distance <![CDATA[< ]]> #circumInfoVo.range#
+	</select>
+	
+</sqlMap>

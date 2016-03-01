@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	
+	<package name="actualHouseMobileManage" namespace="/mobile/actualHouseMobileManage" extends="default">
+		<default-class-ref class="actualHouseMobileAdapter"></default-class-ref>
+
+		<action name="updateActualHouse" method="updateActualHouse">
+		    <result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+		
+		<action name="addActualHouse" method="addActualHouse">
+		    <result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+		    <result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+	    </action>
+		
+	    
+	    <action name="findActualHouseList" method="findActualHouseList">
+		    <result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+	    
+	    <action name="deleteActualHouse" method="deleteHouseInfo">
+		    <result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+	</package>
+</struts>

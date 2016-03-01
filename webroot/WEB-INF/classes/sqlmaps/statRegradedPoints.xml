@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="statRegradedPoints">
+    <typeAlias alias="StatRegradedPoint" type="com.tianque.domain.StatRegradedPoint"/>
+    <resultMap class="StatRegradedPoint" id="simpleStatRegradedPointResult">
+        <result property="org.id" column="org"/>
+        <result property="orgName" column="orgName"/>
+        <result property="yellowAmout" column="yellowAmout"/>
+        <result property="redAmout" column="redAmout"/>
+        <result property="deductPointByPerson" column="deductPointByPerson"/>
+        <result property="addPointByPerson" column="addPointByPerson"/>
+        <result property="assessmentUser" column="assessmentUser"/>
+        <result property="amoutPoint" column="amoutPoint"/>
+    </resultMap>
+    <resultMap class="StatRegradedPoint" id="fullStatRegradedPointResult">
+        <result property="id" column="id"/>
+        <result property="parentOrg.id" column="parentOrg"/>
+        <result property="org.id" column="org"/>
+        <result property="orgName" column="orgName"/>
+        <result property="yellowAmout" column="yellowAmout"/>
+        <result property="redAmout" column="redAmout"/>
+        <result property="deductPointByPerson" column="deductPointByPerson"/>
+        <result property="addPointByPerson" column="addPointByPerson"/>
+        <result property="assessmentUser" column="assessmentUser"/>
+        <result property="amoutPoint" column="amoutPoint"/>
+        <result property="year" column="year"/>
+        <result property="month" column="month"/>
+        <result property="audited" column="audited"/>
+        <result property="auditUser" column="auditUser"/>
+        <result property="auditDate" column="auditDate"/>
+        <result property="createUser" column="createUser"/>
+        <result property="createDate" column="createDate"/>
+        <result property="updateUser" column="updateUser"/>
+        <result property="updateDate" column="updateDate"/>
+    </resultMap>
+    <insert id="addStatRegradedPoint" parameterClass="StatRegradedPoint">
+        <selectKey keyProperty="id" resultClass="java.lang.Long">
+            <![CDATA[select s_statRegradedPoint.NEXTVAL as id from dual]]>
+        </selectKey>
+        insert into statRegradedPoint (id,parentOrg,org,orgName,yellowAmout,redAmout,deductPointByPerson,
+                addPointByPerson,assessmentUser,amoutPoint,year,month,auditUser,audited,auditDate,createUser,createDate,updateUser,updateDate)
+        values
+        (#id#,#parentOrg.id#,#org.id#,#orgName#,#yellowAmout#,#redAmout#,#deductPointByPerson#,
+                #addPointByPerson#,#assessmentUser#,#amoutPoint#,#year#,#month#,#auditUser#,#audited#,#auditDate#,#createUser#,#createDate#,#updateUser#,#updateDate#)
+    </insert>
+    <!-- <sql id="sql_where">
+       <isNotNull prepend="and" property="statDate">
+           <![CDATA[
+               to_char(applicationDate,'yyyyMM') = $statDate$
+           ]]>
+       </isNotNull>
+    </sql> -->
+    
+    <sql id="sql_where">
+    	<isNotNull property="startDate" prepend="and">
+        	applicationDate <![CDATA[>=]]> #startDate#
+    	</isNotNull>
+       <isNotNull prepend="and" property="endDate">
+           applicationDate <![CDATA[<]]> #endDate#
+       </isNotNull>
+    </sql>
+    
+    <select id="getSimpleStatRegradedPoints" parameterClass="java.util.Map" resultMap="simpleStatRegradedPointResult">
+        <![CDATA[
+            select 
+                (select id from organizations where id = vOrg.id) org,
+                (select orgname from  organizations org where org.id = vOrg.id) orgName,
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'yellowCard'  and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where"/>
+        <![CDATA[) yellowAmout,]]>
+        <![CDATA[
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'redCard' and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where"/>
+        <![CDATA[
+                  ) redAmout,
+        ]]>
+        <![CDATA[
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'byPerson' and pointType=-1 and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where"/>
+        <![CDATA[
+                  ) deductPointByPerson,
+        ]]>
+        <![CDATA[
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'byPerson' and pointType=1 and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where"/>
+        <![CDATA[
+                  ) addPointByPerson,
+        ]]> <![CDATA[
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'assessmentUser' and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where"/>
+        <![CDATA[
+                  ) assessmentUser,
+        ]]>
+        <![CDATA[
+                (select decode(sum(points*pointType),'',0,sum(points*pointType)) + 100 from regradedPoints where targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where"/>
+        <![CDATA[
+                ) amoutPoint
+        ]]>
+        <![CDATA[
+            from organizations vOrg 
+        ]]>
+        <dynamic prepend="where">
+           <isPropertyAvailable property="targeOrgId">
+               <isNotNull property="targeOrgId" prepend="and">
+                   vOrg.Parentid = $targeOrgId$
+               </isNotNull>
+           </isPropertyAvailable>
+           <isPropertyAvailable property="orgType">
+		       <isNotEmpty property="orgType" prepend="and">
+		           vOrg.orgType = $orgType$
+		       </isNotEmpty>
+           </isPropertyAvailable>
+        </dynamic>
+        <dynamic prepend="order by">
+            <isPropertyAvailable property="sortField">
+                <isNotNull property="sortField">$sortField$</isNotNull>
+                <isNotNull property="order">$order$</isNotNull>
+            </isPropertyAvailable>
+        </dynamic>
+    </select>
+    
+    <select id="countSimpleStatRegradedPoints" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    	<![CDATA[
+            select count(vOrg.id) id
+            from organizations vOrg 
+        ]]>
+        <dynamic prepend="where">
+           <isPropertyAvailable property="targeOrgId">
+               <isNotNull property="targeOrgId" prepend="and">
+                   vOrg.Parentid = $targeOrgId$
+               </isNotNull>
+           </isPropertyAvailable>
+           <isPropertyAvailable property="orgType">
+		       <isNotEmpty property="orgType" prepend="and">
+		           vOrg.orgType = $orgType$
+		       </isNotEmpty>
+           </isPropertyAvailable>
+        </dynamic>
+    </select>
+    
+    <select id="getFullStatRegradedPoints" parameterClass="java.util.Map" resultMap="fullStatRegradedPointResult">
+        <![CDATA[select * from statRegradedPoint stat,organizations vOrg where parentOrg = #parentOrgId# and vOrg.id = stat.org]]>
+        <isPropertyAvailable property="year">
+            <isNotEmpty prepend="and" property="year"> 
+                year = #year#
+            </isNotEmpty>
+        </isPropertyAvailable>
+        <isPropertyAvailable property="month">
+            <isNotEmpty prepend="and" property="month"> 
+                month = #month#
+            </isNotEmpty>
+        </isPropertyAvailable>
+        <isPropertyAvailable property="orgType">
+            <isNotEmpty property="orgType" prepend="and">
+                   vOrg.orgType = #orgType#
+            </isNotEmpty>
+        </isPropertyAvailable>
+        <dynamic prepend="order by">
+            <isPropertyAvailable property="sortField">
+                <isNotNull property="sortField">$sortField$</isNotNull>
+                <isNotNull property="order">$order$</isNotNull>
+            </isPropertyAvailable>
+        </dynamic>
+    </select>
+    <select id="getStatRegradedPointById" parameterClass="java.lang.Long" resultMap="fullStatRegradedPointResult">
+        select * from statRegradedPoint where id = #value#
+    </select>
+    
+    <sql id="sql_where_date">
+    	<isNotNull property="startDate" prepend="and">
+        	applicationDate <![CDATA[>=]]> to_date('$startDate$','yyyy-MM-dd')
+    	</isNotNull>
+       <isNotNull prepend="and" property="endDate">
+           applicationDate <![CDATA[<]]> to_date('$endDate$','yyyy-MM-dd')
+       </isNotNull>
+    </sql>
+    
+    <statement id="createRegradedPointStatTable" parameterClass="java.util.Map">
+    	create table regradedPoints_$year$_$month$ as (
+    	<![CDATA[
+            select 
+                (select id from organizations where id = vOrg.id) org,
+                (select orgname from  organizations org where org.id = vOrg.id) orgName,
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'yellowCard'  and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[) yellowAmout,]]>
+        <![CDATA[
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'redCard' and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[
+                  ) redAmout,
+        ]]>
+        <![CDATA[
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'byPerson' and pointType=-1 and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[
+                  ) deductPointByPerson,
+        ]]>
+        <![CDATA[
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'byPerson' and pointType=1 and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[
+                  ) addPointByPerson,
+        ]]> <![CDATA[
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'assessmentUser' and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[
+                  ) assessmentUser,
+        ]]>
+        <![CDATA[
+                (select decode(sum(points*pointType),'',0,sum(points*pointType)) from regradedPoints where targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[
+                ) amoutPoint
+        ]]>
+        <![CDATA[
+            from organizations vOrg where orgLevel >= $orgLevel$
+        ]]>
+        )
+    </statement>
+    
+    <statement id="dropRegradedPointStatTable" parameterClass="java.util.Map">
+    	drop table regradedPoints_$year$_$month$
+    </statement>
+    
+    <select id="getSimpleStatRegradedPointsNew" parameterClass="java.util.Map" resultMap="simpleStatRegradedPointResult">
+	    select org,
+	       max(orgName) as orgName,
+	       sum(yellowamout) as yellowamout,
+	       sum(redamout) as redamout,
+	       sum(deductpointbyperson) as deductpointbyperson,
+	       sum(addpointbyperson) as addpointbyperson,
+	       sum(assessmentuser) as assessmentuser,
+	       sum(amoutpoint) + 100 as amoutpoint
+	       from
+		 <iterate property="list" conjunction="union all" open="("  close=")" >
+			 select    o.id as org,
+				       o.orgname,
+				       r.yellowamout,
+				       r.redamout,
+				       r.deductpointbyperson,
+				       r.addpointbyperson,
+				       r.assessmentuser,
+				       r.amoutpoint
+				  from regradedPoints_$list[].year$_$list[].month$ r, organizations o
+				 where r.org(+) = o.id
+				   and parentid = $list[].targeOrgId$ and orgType = $list[].orgType$
+		</iterate>
+		 group by org
+    </select>
+    
+    <delete id="deleteRegradedPointStatTableByOrgId" parameterClass="java.util.Map">
+    	delete from regradedPoints_$year$_$month$ where org = #targeOrgId#
+    </delete>
+    
+    <insert id="insertRegradedPointStatTableByOrgId" parameterClass="java.util.Map">
+    	insert into regradedPoints_$year$_$month$ 
+		(
+    	<![CDATA[
+            select 
+                (select id from organizations where id = vOrg.id) org,
+                (select orgname from  organizations org where org.id = vOrg.id) orgName,
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'yellowCard'  and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[) yellowAmout,]]>
+        <![CDATA[
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'redCard' and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[
+                  ) redAmout,
+        ]]>
+        <![CDATA[
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'byPerson' and pointType=-1 and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[
+                  ) deductPointByPerson,
+        ]]>
+        <![CDATA[
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'byPerson' and pointType=1 and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[
+                  ) addPointByPerson,
+        ]]> <![CDATA[
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'assessmentUser' and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[
+                  ) assessmentUser,
+        ]]>
+        <![CDATA[
+                (select decode(sum(points*pointType),'',0,sum(points*pointType)) from regradedPoints where targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[
+                ) amoutPoint
+        ]]>
+        <![CDATA[
+            from organizations vOrg where id = #targeOrgId#
+        ]]>
+        )
+    </insert>
+    
+    <insert id="insertRegradedPointStatTableByOrgCode" parameterClass="java.util.Map">
+    	insert into regradedPoints_$year$_$month$ 
+		(
+    	<![CDATA[
+            select 
+                (select id from organizations where id = vOrg.id) org,
+                (select orgname from  organizations org where org.id = vOrg.id) orgName,
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'yellowCard'  and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[) yellowAmout,]]>
+        <![CDATA[
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'redCard' and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[
+                  ) redAmout,
+        ]]>
+        <![CDATA[
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'byPerson' and pointType=-1 and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[
+                  ) deductPointByPerson,
+        ]]>
+        <![CDATA[
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'byPerson' and pointType=1 and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[
+                  ) addPointByPerson,
+        ]]> <![CDATA[
+                (select decode(sum(points),'',0,sum(points)) from regradedPoints where regradedType = 'assessmentUser' and targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[
+                  ) assessmentUser,
+        ]]>
+        <![CDATA[
+                (select decode(sum(points*pointType),'',0,sum(points*pointType)) from regradedPoints where targeorg = vOrg.Id
+        ]]>
+        <include refid="sql_where_date"/>
+        <![CDATA[
+                ) amoutPoint
+        ]]>
+        <![CDATA[
+            from organizations vOrg where orginternalcode like #orgCode# || '%'
+        ]]>
+        )
+    </insert>
+</sqlMap>

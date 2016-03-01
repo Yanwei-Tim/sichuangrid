@@ -1,0 +1,355 @@
+if(!window.TQMap){
+	window.TQMap = function(option){if(this.TQMap) this.TQMap(option);};
+}
+$.extend(TQMap,{
+	IS_TRANSFORMAT:false,  //二三维地图切换时，是否需进行坐标转换,默认值
+	isTransformat:false,  
+	gisType:"2D"
+})
+TQCache= new HashMap()//用于缓存数据
+TQMap.GisType = {M2D:"2D",M3D:"3D",MS:"MS"};
+TQMap.MAPTYPE = "default";
+
+$.ajax({
+	async:false,
+	url:PATH+"/gisUtilManage/findStaticProperties.action?className=GisProperties",
+	success:function(data){
+		$.extend(TQMap,data);
+		if(TQMap.MAPTYPE=="oldSichuan"){
+			TQMap.OrgMap.isOrgMapActive = true;
+		}
+	}
+})
+
+TQMap.log = function(obj){
+	if(window && window.console && window.console.log){
+		window.console.log(obj);
+	}
+}
+TQMap.destroy = function(obj) {/**销毁释放对象*/
+	try {
+		if(!obj) return;
+		for(var property in obj){
+			delete obj[property];
+		}
+		obj = null;
+		delete obj;
+	} catch (e) {
+		this.log("TQMap.destroy("+obj+") error："+e);
+	}
+}
+TQMap.ajax = function(option){
+	var op = {
+			cache:false,  //是否缓存数据
+			abort:false, //唯一性Ajax请求，即同handle下的请求，会先终止之前的请求
+			handle:"handle"
+	}
+	try {
+		var idfop = $.extend({},op,option)
+		for ( var pro in op) {
+			delete option[pro];
+		}
+		if(idfop.abort){
+			if(this.ajax[idfop.handle]) this.ajax[idfop.handle].abort();//终止之前发出的ajax请求
+		}
+		var key = "";
+		var successFunc = option.success;
+		if(idfop.url && idfop.cache){
+			key = TQUtil.toString({url:idfop.url,data:idfop.data});
+			var value = TQCache.get(key);
+			if(value && successFunc){ 
+				successFunc(value);
+				return;
+			}
+		}
+		this.ajax[idfop.handle] = $.ajax($.extend(option,{
+			success:function(data){
+				if(idfop.url && idfop.cache){
+					TQCache.put(key,data);
+				}
+				if(successFunc) successFunc(data);
+			}
+		}));
+	} catch (e) {
+		this.log("TQMap.ajax("+option+") error："+e);
+	}
+}
+TQMap.jsonp = function(option){
+	return this.ajax($.extend({
+		cache:false,
+		dataType: "jsonp",
+	  	jsonp: "callback"
+	},option))
+}
+TQMap.async = function(fn,option,time) {/**异步执行方法*/
+    if (!fn) return;
+    var _func = function(option){
+    	return function(){
+    		if(typeof(fn) == "function"){
+    			return fn(option);
+    	    }else if(typeof(fn) == "string"){
+    	    	return eval(fn)(option);
+    	    }
+    	}
+    }
+    return setTimeout(_func(option), time?time:1);
+}
+TQMap.setTimeout = function(func,time) {/**异步执行方法*/
+	if(func){
+		var _func = function(){
+	    	return function(){
+	    		func()
+	    	}
+	    }
+		if(!this.TimOutHandle){
+			this.TimOutHandle = {};
+		}
+		clearTimeout(this.TimOutHandle[func.toString()]);
+		this.TimOutHandle[func.toString()] =setTimeout(_func(), time?time:1);
+	}
+}
+
+//为特定的组织机构      初始化    特定的值
+TQMap.OrgMap ={
+	isOrgMapActive:false,
+	data:[
+	    //departNo:组织机构国标，gisType：默认显示地图类型，onlyType：是否仅有一种地图图层，isTransformat：是否需要进行坐标转换
+  		{departNo:"511622",gisType:"3D",onlyType:false,isTransformat:true,lon:106.28,lat:30.35,zoom:2},          //武胜县
+		{departNo:"511423",gisType:"3D",onlyType:true,isTransformat:false,lon:103.377113,lat:29.912354,zoom:2},   //洪雅县
+		{departNo:"513401",gisType:"3D",onlyType:false,isTransformat:false,lon:102.2571685643,lat:27.88546472723,zoom:2},   //西昌
+		{departNo:"510115",gisType:"3D",onlyType:true,isTransformat:false,lon:103.8549311020,lat:30.68666271134,zoom:2}   //温江
+	],
+	extend:function(option){
+		return $.extend(this,option);
+	},
+	getByOrgDepartNo:function(orgDepartNo){
+		var that = this;
+		if(orgDepartNo==null || that.data==null) return null;
+		for(var i=0;i<that.data.length;i++){
+			var orgMapInfo = that.data[i];
+			if(orgMapInfo!=null && orgDepartNo.indexOf(orgMapInfo.departNo) == 0){
+				return orgMapInfo;
+			}
+		}
+		return null;
+	},
+	prevInfo:null,
+	init:function(){},
+	change:function(orgMapInfo){
+		$("#"+orgMapInfo.gisType).click();
+	},
+	changeGisType:function(mapId,nowGisType,orgDepartNo){
+		if(!this.isOrgMapActive) return;
+		var imap = $("#"+mapId).TqMap("get","map");
+		var that = this;
+		TQMap.isTransformat = TQMap.IS_TRANSFORMAT;
+		var orgMapInfo = that.getByOrgDepartNo(orgDepartNo);
+		if(mapId=="systemMap" && orgDepartNo.indexOf("513401")==0 &&　orgMapInfo!=null){
+			orgMapInfo.onlyType=true;
+		}
+		if(orgMapInfo!=null){
+			TQMap.isTransformat = orgMapInfo.isTransformat;
+		}
+		if(imap==null && orgMapInfo!=null){
+			that.init(orgMapInfo);
+		}
+		if(orgMapInfo==null || orgMapInfo.onlyType!=true){
+			if(that.prevInfo!=null){
+				that.change(that.prevInfo);
+				that.prevInfo = null;
+			}
+			return orgMapInfo;
+		}else{
+			if(imap!=null && orgMapInfo.onlyType==true){
+				if(that.prevInfo==null){
+					that.prevInfo = $.extend(imap.getCenter(),{
+						zoom:imap.zoom,
+						gisType:nowGisType
+					})
+				}
+				that.change(orgMapInfo);
+			}
+		}
+		return orgMapInfo;
+	}
+}
+
+/**
+ * 点是否在区域点集合内
+ */
+function checkPointInPolygonPoints(point,geometryStr){
+	//point is Object like {x:11,y:11}
+	var xyObj=TQConvert.toXYObj(geometryStr+"");
+	if(TQUtil.pointInPolygon(point,xyObj)){
+		return true;
+	}
+	return false;
+}
+/**
+ * 为绑定而设置的，点是否在区域点集合内
+ */
+function checkPointInPolygonPointsForBind(point,geometryStr){
+	//point is Object like {x:11,y:11}
+	var delt = $("#map").TqMap("get","map").getResolutionForZoom(1);
+	var delt2 = Math.sqrt(Math.pow(delt,2)/2);
+	var x = point.x;
+	var y = point.y;
+	var points = [{x:x+delt,y:y},{x:x+delt2,y:y+delt2},
+	              {x:x,y:y+delt},{x:x-delt2,y:y+delt2},
+	              {x:x-delt,y:y},{x:x-delt2,y:y-delt2},
+	              {x:x,y:y-delt},{x:x+delt2,y:y-delt2}
+	             ]
+	var result="";
+	for (var i = 0; i < points.length; i++) {
+		var point = points[i];
+		result += point.x + " " + point.y;
+		if (i < points.length - 1) {
+			result += ",";
+		}
+	}
+	var points = "POLYGON((" + result + "))";
+	var polygon1 = OpenLayers.Geometry.fromWKT(points);
+	var polygon2 = OpenLayers.Geometry.fromWKT(geometryStr);
+	return polygon1.intersects(polygon2);
+//	var xyObj=TQConvert.toXYObj(geometryStr+"");
+//	if(TQUtil.pointInPolygon(point,xyObj)){
+//		return true;
+//	}
+//	return false;
+}
+
+/**
+ * 面是否在区域点集合内
+ */
+function checkPolygonsInPolygon(features,feature){
+	//point is Object like {x:11,y:11}
+//	var polygon1=TQConvert.toXYObj(geometryStr1+"");
+//	var polygon2=TQConvert.toXYObj(geometryStr2+"");
+//	if(TQUtil.polygonInPolygon(polygon1,polygon2)){
+//		return true;
+//	}
+//	return false;
+	var result = false;
+	var postData = {};
+	if(features==null || features.length==0) return true;
+	for ( var i = 0; i < features.length; i++) {
+		var param = "geometrys["+i+"]"
+		postData[param] = features[i].geometry+"";
+	}
+	postData["points"] = feature.geometry+"";
+	$.ajax({
+		async:false,
+		type:"post",
+		url:PATH+"/gisUtilManage/isPolygonsInPolygon.action",
+		data:postData,
+		success:function(data){
+			result = data;
+		}
+	})
+	return result;
+}
+
+/**获取本级组织机构区域*/
+function getGis2DLayerDataByOrgId(orgId,callback){
+	var result="";
+	TQMap.ajax({
+		method:'post',
+		async: callback? true : false,
+		cache:true,
+		url:PATH+'/system/gis2DLayerManage/getGis2DLayerByOrganizationId.action',
+		data:{ "organization.id":orgId,"gisType":TQMap.gisType },
+		success:function(data){
+			if(data && typeof data != "string"){ result = TQConvert.toPoints(data); }
+			callback(result);
+		}
+	});
+	return result;
+}
+/**获取下辖组织机构区域*/
+function getUnderGis2DLayersByOrgId(orgId,callback){
+	var result="";
+	TQMap.ajax({
+		method:'post',
+		async: callback? true : false,
+		cache:true,
+		url:PATH+"/system/gis2DLayerManage/getUnderGis2DLayersByOrgId.action",
+		data:{ "organization.id":orgId,"gisType":TQMap.gisType },
+		success:function(data){
+			if(data && typeof data != "string"){ result = data; }
+			callback(result);
+		}
+	});
+	return result;
+}
+
+/**获取本级组织机构区域*/
+function getSimpleOrgById(orgId){
+	var result="";
+	TQMap.ajax({
+		method:'post',
+		async:false,
+		url:PATH+'/sysadmin/orgManage/getSimpleOrgById.action',
+		data:{ "id":orgId },
+		success:function(data){
+			result = data;
+		}
+	});
+	return result;
+}
+
+function getBubbleUrl(index){
+	var urlPath = "/resource/openLayersMap/images/";
+	var imgurlArray = new Array("a.png","b.png","c.png","d.png","e.png","f.png","g.png","h.png","i.png","j.png");
+	if(imgurlArray[index]==undefined){return urlPath+"bubble.png";}
+	return urlPath+imgurlArray[index];
+}
+
+function getMouseoverBubble(index) {
+	var imgurlArrayUrl=getBubbleUrl(index);
+	return '<img src="'+imgurlArrayUrl+'" />';
+}
+
+function getMouseoverBubbleUrl(index){
+	var urlPath = "/resource/openLayersMap/images/";
+	var imgurlArray = new Array("a.fw.png","b.fw.png","c.fw.png","d.fw.png","e.fw.png","f.fw.png","g.fw.png","h.fw.png","i.fw.png","j.fw.png");
+	if(imgurlArray[index]==undefined){return urlPath+"bubble_GLUE.fw.png";}
+	return urlPath+imgurlArray[index];
+}
+
+function getBubble(index) {
+	var imgurlArrayUrl=getBubbleUrl(index);
+	return '<img src="'+imgurlArrayUrl+'" />';
+}
+
+function getFillColorUrl(index){
+	var imgurlArray = new Array(
+			"#ee9900","#ffd400","#7fb80e","#102b6a","#f47920","#ffc20e","#666600",
+			"#3300CC","#FFCCCC","#66FF66","#3399CC","#0000FF","#FF9933","#990099");
+	var i = index%imgurlArray.length;
+	if(imgurlArray[i]==undefined){return "#ee9900";}
+	return imgurlArray[i];
+}
+
+//获取图标路径
+function getIconUrl(iconUrl,index){
+	var imgurlArray = new Array("A.png","B.png","C.png","D.png","E.png","F.png","G.png","H.png","I.png","J.png");
+	if(imgurlArray[index]==undefined){return ""+iconUrl+"/default.png";}
+	return iconUrl+"/"+imgurlArray[index];	
+}
+
+//获取鼠标悬停的图标路径
+function getMouseoverIconUrl(iconUrl,index){
+	var imgurlArray = new Array("A_cur.png","B_cur.png","C_cur.png","D_cur.png","E_cur.png","F_cur.png","G_cur.png","H_cur.png","I_cur.png","J_cur.png");
+	if(imgurlArray[index]==undefined){return ""+iconUrl+"/default_cur.png";}
+	return iconUrl+"/"+imgurlArray[index];
+}
+
+//marker鼠标跟随事件
+function markerMousemove(e){
+	e.xy.x=e.xy.x+5;//使marker坐标偏离 防止点到图片 影响点击事件
+	e.xy.y=e.xy.y-5;
+	$("#map").TqMap("moveTo",{objectName:"marker",e:e});
+	e.xy.x=e.xy.x-5;//回复原始坐标 保证地图移动顺利
+	e.xy.y=e.xy.y+5;
+}
+    

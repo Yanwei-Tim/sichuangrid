@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" 
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="keyAreasOfInvestigationInfoWorkingRecord">
+<typeAlias alias="KeyAreasOfInvestigationInfoWorkingRecord" type="com.tianque.domain.workingRecord.KeyAreasOfInvestigationInfoWorkingRecord" />
+
+	<insert id="addKeyAreasOfInvestigationInfoWorkingRecord" parameterClass="KeyAreasOfInvestigationInfoWorkingRecord">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_workingRecord.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into workingRecord
+		(id,orgId,orgInternalCode,areaName,dailyDirectoryId,dailyYearId,dealDate,content,
+		dailyLogType,mainProblem,policiesAndMeasures,
+		createDate,createUser)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#areaName#,#dailyDirectory.id#,
+		#dailyYear.id#,#dealDate#,#content#,#dailyLogType.id#,#mainProblem#,#policiesAndMeasures#,
+		#createDate#,#createUser#)
+	</insert>
+	<update id="updateKeyAreasOfInvestigationInfoWorkingRecord" parameterClass="KeyAreasOfInvestigationInfoWorkingRecord">
+		update workingRecord set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="areaName">
+				areaName=#areaName#
+			</isNotNull>
+			<isNotNull prepend="," property="dailyDirectory">
+				dailyDirectoryId=#dailyDirectory.id#
+			</isNotNull>
+			<isNotNull prepend="," property="dailyYear">
+				dailyYearId=#dailyYear.id#
+			</isNotNull>
+			<isNotNull prepend="," property="dealDate">
+				dealDate=#dealDate#
+			</isNotNull>
+			<isNotNull prepend="," property="content">
+				content=#content#
+			</isNotNull>
+			<isNotNull prepend="," property="dailyLogType">
+				dailyLogType=#dailyLogType.id#
+			</isNotNull>
+			<isNotNull prepend="," property="mainProblem">
+				mainProblem=#mainProblem#
+			</isNotNull>
+			<isNotNull prepend="," property="policiesAndMeasures">
+				policiesAndMeasures=#policiesAndMeasures#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+	<select id="getKeyAreasOfInvestigationInfoWorkingRecordById" parameterClass="java.lang.Long"
+		resultMap="workingRecord.keyAreasOfInvestigationInfoWorkingRecordResult">
+		select * from workingRecord where id=#value#
+	</select>
+	<sql id="sql_where">
+		from workingRecord
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId in ( $dailyDirectoryId$ )
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<delete id="deleteKeyAreasOfInvestigationInfoWorkingRecordById" parameterClass="java.lang.Long">
+		delete from workingRecord where id=#value#
+	</delete>
+	<select id="findKeyAreasOfInvestigationInfoWorkingRecord" parameterClass="java.util.Map"
+		resultMap="workingRecord.keyAreasOfInvestigationInfoWorkingRecordResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countKeyAreasOfInvestigationInfoWorkingRecord" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+</sqlMap>

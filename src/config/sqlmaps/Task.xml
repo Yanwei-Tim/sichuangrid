@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="task">
+	<typeAlias alias="task" type="com.tianque.task.domain.Task" />
+	<resultMap id="taskResultMap" class="task">
+		<result column="id" property="id" />
+		<result column="name" property="name" />
+		<result column="taskgroup" property="taskGroup" />
+		<result column="description" property="description" />
+		<result column="ployid" property="taskPloy.id" />
+		<result column="config" property="config" />
+		<result column="closed" property="closed" />
+	</resultMap>
+	
+	<sql id="search_task_sql_where">
+		from task
+		<dynamic prepend="WHERE">
+			<!-- 后置匹配 -->
+			<isNotEmpty prepend="and" property="name">
+					name like #name#||'%' 
+			</isNotEmpty>
+		</dynamic>
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<select id="selectPageListCount" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="search_task_sql_where" />
+	</select>
+	<select id="selectPageList" resultMap="taskResultMap">
+		<include refid="common.sql_select" />
+		<include refid="search_task_sql_where" />
+	</select>
+	<insert id="addTask" parameterClass="task">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			select
+			s_TASK.NEXTVAL as id from dual
+		</selectKey>
+		insert into task(id,name,taskgroup,description,ployId,config,closed) 
+		values(#id#,#name#,#taskGroup#,#description#,#taskPloy.id#,#config#,#closed#) 
+	</insert>
+	<select id="getTaskById" parameterClass="task" resultMap="taskResultMap">
+		<include refid="common.sql_select" /> from task where id=#id#
+	</select>
+	<update id="updateTaskById" parameterClass="task">
+		update task
+		<dynamic prepend="set">
+			<isNotNull prepend="," property="name">
+				name = #name#
+		  </isNotNull>
+		  <isNotNull prepend="," property="taskGroup">
+				taskGroup = #taskGroup#
+		  </isNotNull>
+		  <isNotNull prepend="," property="description">
+				description = #description#
+		  </isNotNull>
+		  <isNotNull prepend="," property="taskPloy.id">
+				ployId = #taskPloy.id#
+		  </isNotNull>
+		  <isNotNull prepend="," property="config">
+				config = #config#
+		  </isNotNull>
+		   <isNotNull prepend="," property="closed">
+				closed = #closed#
+		  </isNotNull>
+		</dynamic>
+		where id=#id#
+	</update>
+	<update id="changeTaskById" parameterClass="task">
+		update task set closed = #closed# where id=#id#
+	</update>
+	<select id="getTaskByPloyId" parameterClass="task" resultClass="java.lang.Long">
+		<include refid="common.sql_count" /> from task where ployId = #taskPloy.id#
+	</select>
+	<delete id="deleteTaskById" parameterClass="task">
+		delete from task where id=#id#
+	</delete>
+	<delete id="deleteTaskByIds" parameterClass="java.util.List">
+		delete from task
+		<iterate prepend="where id in" open="(" close=")" conjunction=",">
+			#value[].id#
+		</iterate>
+	</delete>
+</sqlMap>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="userReadedVersion">
+	<typeAlias alias="userReaded" type="com.tianque.versionCheck.domain.UserReadedVersion" />
+
+	<insert id="addUserReaded" parameterClass="userReaded">
+		insert into userReadedVersionInfo (userId,readedVersionId) values (#userId#,#version#)
+	</insert>
+
+	<select id="getUserReaded" parameterClass="userReaded"
+		resultClass="java.lang.Long">
+		select count(*) from userReadedVersionInfo where userId=#userId# and readedVersionId=#version#
+	</select>
+
+</sqlMap>

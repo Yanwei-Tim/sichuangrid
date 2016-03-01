@@ -1,0 +1,988 @@
+package com.tianque.plugin.account.controller;
+
+import java.lang.reflect.InvocationTargetException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.account.api.LedgerFeedBackDubboService;
+import com.tianque.account.api.LedgerSteadyWorkDubboService;
+import com.tianque.account.api.ReplyFormDubboService;
+import com.tianque.account.api.ThreeRecordsIssueDubboService;
+import com.tianque.account.api.ThreeRecordsIssueProcessDubboService;
+import com.tianque.account.api.ThreeRecordsSearchIssueStepDubboService;
+import com.tianque.baseInfo.base.domain.Countrymen;
+import com.tianque.baseInfo.base.service.BaseInfoService;
+import com.tianque.controller.ControllerHelper;
+import com.tianque.controller.annotation.PermissionFilter;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.util.CollectionUtil;
+import com.tianque.core.util.GlobalValue;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.GridPage;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.User;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.plugin.account.constants.LedgerConstants;
+import com.tianque.plugin.account.constants.ThreeRecordsIssueConstants;
+import com.tianque.plugin.account.constants.ThreeRecordsIssueViewType;
+import com.tianque.plugin.account.domain.LedgerFeedBack;
+import com.tianque.plugin.account.domain.LedgerSteadyWork;
+import com.tianque.plugin.account.domain.LedgerSteadyWorkPeopleInfo;
+import com.tianque.plugin.account.domain.ReplyForm;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueAttachFile;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew;
+import com.tianque.plugin.account.toexcel.AccountExportHelper;
+import com.tianque.plugin.account.util.ComparisonAttribute;
+import com.tianque.plugin.account.util.DialogMode;
+import com.tianque.plugin.account.util.ThreeRecordOrgJudge;
+import com.tianque.plugin.account.util.ThreeRecordsIssueOperationUtil;
+import com.tianque.plugin.account.vo.LedgerSteadyWorkVo;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.userAuth.api.PropertyDictDubboService;
+
+@Controller("ledgerSteadyWorkController")
+@Scope("request")
+@Namespace("/threeRecordsIssue/ledgerSteadyWorkManage")
+public class LedgerSteadyWorkController extends BaseAction {
+
+	private Organization organization;
+	private String name;
+	private String viewType;
+	private String idCardNo;
+	private LedgerSteadyWork ledgerSteadyWork;
+	private String ledgerSteadyWorkPeopleInfosParm;
+	private String ids;
+	private Countrymen baseWorking;
+	/** 根据操作不同 可能是事件id、orgid、事件处理步骤id(issueStepId) */
+	private Long keyId;
+	private Long issueType;
+	private String seachValue;
+	private String leaderView;
+	private Long functionalOrgType;// 职能部门类型
+	private Integer viewProcess;// 是否是查询大屏滚动的数据
+	private Long orgLevel;
+	private Integer orgLevelInternalId;
+	private Long sourceType; // 事件来源
+	private Integer sourceTypeInternalId;
+	private Integer year;//台账年份
+	private Integer month;//台账月份
+	// 台账回复
+	private List<ReplyForm> replys;
+	private List<LedgerFeedBack> feedbacks;
+	/** 台账的处理记录 用于在页面上显示处理记录 */
+	private List<ThreeRecordsIssueLogNew> issueDealLogs;
+	/** 台账中包含的附件集合 用于在页面显示附件 */
+	private List<ThreeRecordsIssueAttachFile> issueAttachFiles = new ArrayList<ThreeRecordsIssueAttachFile>();
+	/** 台账处办理过程中添加的附件 用于页面显示 */
+	private Map<Long, List<ThreeRecordsIssueAttachFile>> issueLogAttachFiles = new HashMap<Long, List<ThreeRecordsIssueAttachFile>>();
+
+	@Autowired
+	private LedgerFeedBackDubboService ledgerFeedBackDubboService;
+	@Autowired
+	private PropertyDictDubboService propertyDictDubboService;
+	@Autowired
+	private BaseInfoService baseInfoService;
+	@Autowired
+	private LedgerSteadyWorkDubboService ledgerSteadyWorkDubboService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private ThreeRecordsSearchIssueStepDubboService searchIssueStepDubboService;
+	@Autowired
+	private ThreeRecordsIssueDubboService threeRecordsIssueDubboService;
+	@Autowired
+	private ReplyFormDubboService replyFormDubboService;
+	@Autowired
+	private ThreeRecordsIssueProcessDubboService threeRecordsIssueProcessDubboService;
+	private Map<String, Integer> countMap;
+
+	@Action(value = "addLedgerSteadyWork", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"ledgerSteadyWork", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+//	@PermissionFilter(ename = "addLedgerSteadyWorkRecord")
+	public String addLedgerSteadyWork() throws Exception {
+		if (ledgerSteadyWork == null) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		if (!StringUtils.isEmpty(ledgerSteadyWorkPeopleInfosParm)) {
+			ledgerSteadyWork
+					.setLedgerSteadyWorkPeopleInfos(analysisParameter(ledgerSteadyWorkPeopleInfosParm));
+		}
+		ledgerSteadyWork = ledgerSteadyWorkDubboService
+				.addLedgerSteadyWork(ledgerSteadyWork);
+		return SUCCESS;
+	}
+
+	@Action(value = "dispatchOperate", results = {
+			@Result(name = "success", location = "/account/steadyRecord/ledgerSteadyWorkDlg.jsp"),
+			@Result(name = "search", location = "/account/steadyRecord/searchSteadyWorkDlg.jsp"),
+			@Result(name = "print", location = "/account/steadyRecord/printSteadyWorkDlg.jsp"),
+			@Result(name = "viewNew", location = "/account/steadyRecord/viewLedgerSteadyWorkNewDlg.jsp") })
+	public String dispatchOperate() throws Exception {
+		if (DialogMode.ADD_MODE.equals(mode)) {
+
+			ledgerSteadyWork = ledgerSteadyWorkDubboService
+					.createTemporaryLedgerSteadyWork(ThreadVariable
+							.getOrganization().getId());
+
+		} else if (DialogMode.EDIT_MODE.equals(mode)
+				|| DialogMode.VIEW_MODE.equals(mode)) {
+			ledgerSteadyWork = ledgerSteadyWorkDubboService
+					.getFullLedgerSteadyWorkById(id);
+		} else if (DialogMode.SEARCH_MODE.equals(mode)) {
+			return mode;
+		} else if (DialogMode.VIEW_NEW_MODE.equals(mode)
+				|| DialogMode.PRINT_MODE.equalsIgnoreCase(mode)) {
+			return forwardToViewNew();
+		} else {
+			errorMessage = "参数错误！未知的类型";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "existedPoorPeopleByIdCardNo", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"ledgerSteadyWork", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String existedPoorPeopleByIdCardNo() throws Exception {
+		if (idCardNo == null) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		ledgerSteadyWork = ledgerSteadyWorkDubboService
+				.findByIdCardNo(idCardNo);
+		return SUCCESS;
+	}
+
+	/**
+	 * 导出
+	 */
+	@Action(value = "exportExcel", results = {
+			@Result(name = "success", type = "stream", params = { "contentType", "application/vnd.ms-excel;charset=ISO8859-1",
+					"inputName","inputStream","contentDisposition","attachment;filename=${downloadFileName}","bufferSize","4096"}),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String exportExcel() throws Exception {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		if (!hasPermission(keyId, null)
+				&& !ThreeRecordOrgJudge.isJgOrLxOrxW(ThreadVariable
+						.getOrganization())) {
+			return GlobalValue.NOT_HAVE_PERMISSION_RESULT;
+		}
+		ledgerSteadyWork = ledgerSteadyWorkDubboService
+				.getFullLedgerSteadyWorkById(keyId);
+		if (ledgerSteadyWork.getOccurOrg() != null) {
+			ledgerSteadyWork.setOccurOrg(organizationDubboService
+					.getSimpleOrgById(ledgerSteadyWork.getOccurOrg().getId()));
+		}
+		// // 查看时 增加查看台账记录
+		loadIssueOperationLogs(ledgerSteadyWork);
+		loadIssueFeedBacks(ledgerSteadyWork);
+		loadReply(ledgerSteadyWork);
+		if (null == ledgerSteadyWork.getLedgerSteadyWorkPeopleInfos()
+				|| ledgerSteadyWork.getLedgerSteadyWorkPeopleInfos().size() == 0) {
+			// 如果打印时附属困难群众为空，默认显示3个
+			List<LedgerSteadyWorkPeopleInfo> list = new ArrayList<LedgerSteadyWorkPeopleInfo>();
+			list.add(new LedgerSteadyWorkPeopleInfo());
+			list.add(new LedgerSteadyWorkPeopleInfo());
+			list.add(new LedgerSteadyWorkPeopleInfo());
+			list.add(new LedgerSteadyWorkPeopleInfo());
+			ledgerSteadyWork.setLedgerSteadyWorkPeopleInfos(list);
+		}
+		Map map=new HashMap();
+		map.put("p", ledgerSteadyWork);
+		map.put("issueDealLogs", issueDealLogs);
+		map.put("last3Logs", getLast3Logs(issueDealLogs));
+		map.put("feedbacks", feedbacks);
+		map.put("replys", replys);
+		inputStream = AccountExportHelper.exportLedgerSteadyDateToExcel(map);
+		downloadFileName = new String(("稳定台账信息登记卡"+ledgerSteadyWork.getSerialNumber()).getBytes("gbk"),
+				"ISO8859-1") + ".xls";
+		return SUCCESS;
+	}
+	
+	@Action(value = "getCountrymenByIdCardNoAndOrgInternalCode", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"baseWorking", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String getCountrymenByIdCardNoAndOrgInternalCode() throws Exception {
+		if (ledgerSteadyWork == null || ledgerSteadyWork.getIdCardNo() == null) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		baseWorking = baseInfoService.getBaseInfoByIdCardNo(ledgerSteadyWork
+				.getIdCardNo());
+		return SUCCESS;
+	}
+
+	@Action(value = "updateLedgerSteadyWork", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"ledgerSteadyWork", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	@PermissionFilter(ename = "updateLedgerSteadyWorkRecord")
+	public String updateLedgerSteadyWork() throws Exception {
+		if (ledgerSteadyWork == null || ledgerSteadyWork.getId() == null
+				|| ledgerSteadyWork.getId().longValue() == 0L) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		if (!StringUtils.isEmpty(ledgerSteadyWorkPeopleInfosParm)) {
+			ledgerSteadyWork
+					.setLedgerSteadyWorkPeopleInfos(analysisParameter(ledgerSteadyWorkPeopleInfosParm));
+		}
+		ledgerSteadyWorkDubboService.updateLedgerSteadyWork(ledgerSteadyWork);
+		return SUCCESS;
+	}
+
+	@Action(value = "deleteLedgerSteadyWork", results = {
+			@Result(name = "success", type = "json", params = { "root", "true",
+					"ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	@PermissionFilter(ename = "deleteLedgerSteadyWorkRecord")
+	public String deleteLedgerSteadyWork() throws Exception {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		User user = ThreadVariable.getUser();
+		if (user == null
+				|| user.getOrganization() == null
+				|| !(user.getOrganization().getDepartmentNo()
+						.endsWith(ThreeRecordsIssueConstants.COUNTY_LEDGER))) {
+			return GlobalValue.NOT_HAVE_PERMISSION_RESULT;
+		}
+		if (!hasPermission(keyId, null)
+				&& !ThreeRecordOrgJudge.isJg(ThreadVariable.getOrganization())) {
+			return GlobalValue.NOT_HAVE_PERMISSION_RESULT;
+		}
+		AttachFileUtil.removeIssueAllAttachFiles(keyId,
+				LedgerConstants.STEADYWORK, threeRecordsIssueDubboService);
+		ledgerSteadyWorkDubboService.deleteLedgerSteadyWorkById(keyId);
+		return SUCCESS;
+	}
+
+	@Action(value = "getIssueCount", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"countMap", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String getIssueCount() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数不对";
+			return ERROR;
+		}
+		if (orgLevel == null && orgLevelInternalId != null) {
+			List<PropertyDict> orgLevels = propertyDictDubboService
+					.findPropertyDictByDomainNameAndInternalId(
+							PropertyTypes.ORGANIZATION_LEVEL,
+							orgLevelInternalId);
+			if (orgLevels != null && orgLevels.size() > 0
+					&& orgLevels.get(0) != null) {
+				orgLevel = orgLevels.get(0).getId();
+			}
+		}
+		if (sourceType == null && sourceTypeInternalId != null) {
+			List<PropertyDict> sourceTypes = propertyDictDubboService
+					.findPropertyDictByDomainNameAndInternalId(
+							PropertyTypes.SOURCE_KIND, sourceTypeInternalId);
+			if (sourceTypes != null && sourceTypes.size() > 0
+					&& sourceTypes.get(0) != null) {
+				sourceType = sourceTypes.get(0).getId();
+			}
+		}
+		countMap = ledgerSteadyWorkDubboService.getIssueCount(keyId,
+				Long.valueOf(LedgerConstants.STEADYWORK), orgLevel, leaderView,
+				sourceType, functionalOrgType, year, month);
+		return SUCCESS;
+	}
+
+	@Action(value = "findIssueForView", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String findIssueForView() throws Exception {
+		if (orgLevel == null && orgLevelInternalId != null) {
+			List<PropertyDict> orgLevels = propertyDictDubboService
+					.findPropertyDictByDomainNameAndInternalId(
+							PropertyTypes.ORGANIZATION_LEVEL,
+							orgLevelInternalId);
+			if (orgLevels != null && orgLevels.size() > 0
+					&& orgLevels.get(0) != null) {
+				orgLevel = orgLevels.get(0).getId();
+			}
+		}
+		if (sourceType == null && sourceTypeInternalId != null) {
+			List<PropertyDict> sourceTypes = propertyDictDubboService
+					.findPropertyDictByDomainNameAndInternalId(
+							PropertyTypes.SOURCE_KIND, sourceTypeInternalId);
+			if (sourceTypes != null && sourceTypes.size() > 0
+					&& sourceTypes.get(0) != null) {
+				sourceType = sourceTypes.get(0).getId();
+			}
+		}
+		// 根据不同类型调用不同的service
+		if (ThreeRecordsIssueViewType.NEED.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsNeedDo();
+		} else if (ThreeRecordsIssueViewType.DONE.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsDone();
+		} else if (ThreeRecordsIssueViewType.PERIOD.equalsIgnoreCase(viewType)) {
+			return findPeriodCompletedList();
+		} else if (ThreeRecordsIssueViewType.COMPLETED
+				.equalsIgnoreCase(viewType)) {
+			return findCompletedIssueList();
+		} else if (ThreeRecordsIssueViewType.FEEDBACK
+				.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsFeedBack();
+		} else if (ThreeRecordsIssueViewType.ASSIGN.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsAssgin();
+		} else if (ThreeRecordsIssueViewType.SUBMIT.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsSubmit();
+		} else if (ThreeRecordsIssueViewType.SUPPORT.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsSupportDo();
+		} else if (ThreeRecordsIssueViewType.NOTICE.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsNoticeDo();
+		} else if (ThreeRecordsIssueViewType.CREATE_DONE
+				.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsCreateAndDone();
+		}
+		errorMessage = "参数错误，不能定处理类型";
+		return ERROR;
+	}
+
+	/***************************************************************************
+	 * 下辖事项-已办结案事项列表
+	 * 
+	 * @return
+	 */
+	private String findJurisdictionsDone() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerSteadyWorkVo> issues = ledgerSteadyWorkDubboService
+				.findJurisdictionsDone(keyId, page, rows, sidx, sord,
+						issueType, orgLevel, seachValue, functionalOrgType,
+						viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	/***************************************************************************
+	 * 下辖事项-待办事项列表
+	 * 
+	 * @return
+	 */
+	private String findJurisdictionsNeedDo() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerSteadyWorkVo> issues = ledgerSteadyWorkDubboService
+				.findJurisdictionsNeedDo(seachValue, keyId, page, rows, sidx,
+						sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType, year, month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	/***************************************************************************
+	 * 下辖事项-协办事项列表
+	 * 
+	 * @return
+	 */
+	private String findJurisdictionsSupportDo() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerSteadyWorkVo> issues = ledgerSteadyWorkDubboService
+				.findJurisdictionsSupportDo(seachValue, keyId, page, rows,
+						sidx, sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	/***************************************************************************
+	 * 下辖事项-抄告事项列表
+	 * 
+	 * @return
+	 */
+	private String findJurisdictionsNoticeDo() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerSteadyWorkVo> issues = ledgerSteadyWorkDubboService
+				.findJurisdictionsNoticeDo(seachValue, keyId, page, rows, sidx,
+						sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	/***************************************************************************
+	 * 下辖事项-已办和新建事项列表
+	 * 
+	 * @return
+	 */
+	private String findJurisdictionsCreateAndDone() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerSteadyWorkVo> issues = ledgerSteadyWorkDubboService
+				.findJurisdictionsCreateAndDone(seachValue, keyId, page, rows,
+						sidx, sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	private String findJurisdictionsSubmit() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerSteadyWorkVo> issues = ledgerSteadyWorkDubboService
+				.findJurisdictionsSubmit(seachValue, keyId, page, rows, sidx,
+						sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	private String findJurisdictionsFeedBack() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerSteadyWorkVo> issues = ledgerSteadyWorkDubboService
+				.findJurisdictionsFeedBack(seachValue, keyId, page, rows, sidx,
+						sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	private String findJurisdictionsAssgin() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerSteadyWorkVo> issues = ledgerSteadyWorkDubboService
+				.findJurisdictionsAssgin(seachValue, keyId, page, rows, sidx,
+						sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	private String findPeriodCompletedList() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerSteadyWorkVo> issues = ledgerSteadyWorkDubboService
+				.findJurisdictionsPeriodDone(seachValue, keyId, page, rows,
+						sidx, sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	private String findCompletedIssueList() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerSteadyWorkVo> issues = ledgerSteadyWorkDubboService
+				.findJurisdictionsSubstanceDone(seachValue, keyId, page, rows,
+						sidx, sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	private String forwardToViewNew() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		if (!hasPermission(keyId, null)
+				&& !ThreeRecordOrgJudge.isJgOrLxOrxW(ThreadVariable
+						.getOrganization())) {
+			return GlobalValue.NOT_HAVE_PERMISSION_RESULT;
+		}
+		ledgerSteadyWork = ledgerSteadyWorkDubboService
+				.getFullLedgerSteadyWorkById(keyId);
+		if (ledgerSteadyWork.getOccurOrg() != null) {
+			ledgerSteadyWork.setOccurOrg(organizationDubboService
+					.getSimpleOrgById(ledgerSteadyWork.getOccurOrg().getId()));
+		}
+		loadAttachFiles(ledgerSteadyWork);
+		// // 查看时 增加查看台账记录
+		loadIssueOperationLogs(ledgerSteadyWork);
+		loadIssueFeedBacks(ledgerSteadyWork);
+		loadReply(ledgerSteadyWork);
+		if (DialogMode.PRINT_MODE.equalsIgnoreCase(mode)) {
+			if (null == ledgerSteadyWork.getLedgerSteadyWorkPeopleInfos()
+					|| ledgerSteadyWork.getLedgerSteadyWorkPeopleInfos().size() == 0) {
+				// 如果打印时附属困难群众为空，默认显示3个
+				List<LedgerSteadyWorkPeopleInfo> list = new ArrayList<LedgerSteadyWorkPeopleInfo>();
+				list.add(new LedgerSteadyWorkPeopleInfo());
+				list.add(new LedgerSteadyWorkPeopleInfo());
+				list.add(new LedgerSteadyWorkPeopleInfo());
+				ledgerSteadyWork.setLedgerSteadyWorkPeopleInfos(list);
+			}
+			return DialogMode.PRINT_MODE;
+		}
+		return DialogMode.VIEW_NEW_MODE;
+	}
+
+	private void loadIssueFeedBacks(LedgerSteadyWork ledgerSteadyWork) {
+		if (ledgerSteadyWork == null) {
+			return;
+		}
+		feedbacks = ledgerFeedBackDubboService.getLedgerFeedByLedgerIdAndType(
+				ledgerSteadyWork.getId(), LedgerConstants.STEADYWORK);
+
+	}
+
+	/**
+	 * 加载台账的处理记录
+	 * 
+	 * @param selectIssue
+	 */
+	private void loadIssueOperationLogs(LedgerSteadyWork ledgerSteadyWork) {
+		issueDealLogs = threeRecordsIssueDubboService
+				.loadIssueOperationLogsByIssueId(ledgerSteadyWork.getId(),
+						Long.valueOf(LedgerConstants.STEADYWORK));
+		if (issueDealLogs != null) {
+			for (ThreeRecordsIssueLogNew log : issueDealLogs) {
+				log.setIssueStep(threeRecordsIssueProcessDubboService
+						.getSimpleIssueStepById(log.getIssueStep().getId()));
+				if (log.getDealType() == null) {//处理类型为空时表示为新增，用台账登记时间替换处理时间
+					log.setOperateTime(ledgerSteadyWork.getRegistrationTime());
+				}
+			}
+		}
+	}
+
+	private boolean hasPermission(Long ledgerId, Long stepId) {
+		boolean hasPermission = false;
+		String userOrgCode = ThreadVariable.getOrganization()
+				.getOrgInternalCode();
+		hasPermission = searchIssueStepDubboService.hasPermission(ledgerId,
+				LedgerConstants.STEADYWORK, stepId, userOrgCode);
+		return hasPermission;
+	}
+
+	/**
+	 * 加载台账的附件
+	 * 
+	 * @param selectIssue
+	 */
+	private void loadAttachFiles(LedgerSteadyWork ledgerSteadyWork) {
+		if (ledgerSteadyWork == null) {
+			return;
+		}
+		issueAttachFiles = threeRecordsIssueDubboService
+				.loadLedgerAndLogAttachFilesByLedgerIdAndType(
+						ledgerSteadyWork.getId(), LedgerConstants.STEADYWORK);
+		if (!CollectionUtil.isAvaliable(issueAttachFiles)) {
+			return;
+		}
+		ThreeRecordsIssueAttachFile file;
+		List<ThreeRecordsIssueAttachFile> logFiles;
+		for (int index = issueAttachFiles.size(); index > 0; index--) {
+			file = issueAttachFiles.get(index - 1);
+			if (isLogAttachFile(file)) {
+				logFiles = lookupLogFilesFromAllLogFile(file.getIssueLog()
+						.getId());
+				logFiles.add(file);
+				issueAttachFiles.remove(index - 1);
+			}
+		}
+	}
+
+	private List<ThreeRecordsIssueAttachFile> lookupLogFilesFromAllLogFile(
+			Long id) {
+		if (issueLogAttachFiles.containsKey(id)) {
+			return issueLogAttachFiles.get(id);
+		}
+		List<ThreeRecordsIssueAttachFile> files = new ArrayList<ThreeRecordsIssueAttachFile>();
+		issueLogAttachFiles.put(id, files);
+		return files;
+	}
+
+	private List<LedgerSteadyWorkPeopleInfo> analysisParameter(String parameter)
+			throws SecurityException, IllegalArgumentException,
+			NoSuchFieldException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException, ParseException {
+		if (StringUtils.isEmpty(parameter)) {
+			return null;
+		}
+		String[] objs = analysisObject(parameter);
+		List<LedgerSteadyWorkPeopleInfo> list = null;
+		if (objs != null && objs.length > 0) {
+			list = new ArrayList<LedgerSteadyWorkPeopleInfo>();
+			for (int i = 0; i < objs.length; i++) {
+				list.add(analysisFiled(objs[i]));
+			}
+		}
+		return list;
+	}
+
+	private String[] analysisObject(String parameter) {
+		if (StringUtils.isEmpty(parameter)) {
+			return null;
+		}
+		return parameter.split("},");
+	}
+
+	private LedgerSteadyWorkPeopleInfo analysisFiled(String object)
+			throws SecurityException, NoSuchFieldException,
+			IllegalArgumentException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException, ParseException {
+		if (StringUtils.isEmpty(object)) {
+			return null;
+		}
+		LedgerSteadyWorkPeopleInfo ledgerSteadyWorkPeopleInfo = new LedgerSteadyWorkPeopleInfo();
+		ComparisonAttribute.analysisFiled(object,
+				ledgerSteadyWorkPeopleInfo.getClass(),
+				ledgerSteadyWorkPeopleInfo);
+		return ledgerSteadyWorkPeopleInfo;
+	}
+	
+	private  List<ThreeRecordsIssueLogNew> getLast3Logs(List<ThreeRecordsIssueLogNew> issueDealLogs) {
+		List<ThreeRecordsIssueLogNew> last3Logs = new ArrayList();
+     	int j = 0;
+     	//取出最新三条处理记录
+     	if(issueDealLogs!=null&&issueDealLogs.size()!=0){
+	     	for (int i = issueDealLogs.size() - 1; i > 0; i--) {
+	     		if (j == 3){
+	     			break;
+	     		}
+	     		ThreeRecordsIssueLogNew log = issueDealLogs.get(i);
+	     		if (log.getDealType() == null)
+	     			continue;
+	     		if (log.getCompleteType() != null) {
+	     			last3Logs.add(log);
+	     			++j;
+	     		} else if (log.getTargeOrg() != null) {
+	     			++j;
+	     			last3Logs.add(log);
+	     		}
+	     	}
+     	}
+		return last3Logs;
+	}
+
+	private boolean isLogAttachFile(ThreeRecordsIssueAttachFile file) {
+		return file.getIssueLog() != null && file.getIssueLog().getId() != null;
+	}
+
+	private boolean legalKeyIdParam() {
+		return null != keyId;
+	}
+
+	private void loadReply(LedgerSteadyWork ledgerSteadyWork) {
+		if (ledgerSteadyWork == null) {
+			return;
+		}
+		replys = replyFormDubboService.getReplyFormAndFilesByLedgerIdAndType(
+				ledgerSteadyWork.getId(), LedgerConstants.STEADYWORK);
+	}
+
+	private void resolveIssueType() {
+		issueType = Long.valueOf(LedgerConstants.STEADYWORK);
+	}
+
+	public Organization getOrganization() {
+		return organization;
+	}
+
+	public void setOrganization(Organization organization) {
+		this.organization = organization;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getViewType() {
+		return viewType;
+	}
+
+	public void setViewType(String viewType) {
+		this.viewType = viewType;
+	}
+
+	public String getIdCardNo() {
+		return idCardNo;
+	}
+
+	public void setIdCardNo(String idCardNo) {
+		this.idCardNo = idCardNo;
+	}
+
+	public LedgerSteadyWork getLedgerSteadyWork() {
+		return ledgerSteadyWork;
+	}
+
+	public void setLedgerSteadyWork(LedgerSteadyWork ledgerSteadyWork) {
+		this.ledgerSteadyWork = ledgerSteadyWork;
+	}
+
+	public String getLedgerSteadyWorkPeopleInfosParm() {
+		return ledgerSteadyWorkPeopleInfosParm;
+	}
+
+	public void setLedgerSteadyWorkPeopleInfosParm(
+			String ledgerSteadyWorkPeopleInfosParm) {
+		this.ledgerSteadyWorkPeopleInfosParm = ledgerSteadyWorkPeopleInfosParm;
+	}
+
+	public String getIds() {
+		return ids;
+	}
+
+	public void setIds(String ids) {
+		this.ids = ids;
+	}
+
+	public Countrymen getBaseWorking() {
+		return baseWorking;
+	}
+
+	public void setBaseWorking(Countrymen baseWorking) {
+		this.baseWorking = baseWorking;
+	}
+
+	public Long getKeyId() {
+		return keyId;
+	}
+
+	public void setKeyId(Long keyId) {
+		this.keyId = keyId;
+	}
+
+	public Long getIssueType() {
+		return issueType;
+	}
+
+	public void setIssueType(Long issueType) {
+		this.issueType = issueType;
+	}
+
+	public String getSeachValue() {
+		return seachValue;
+	}
+
+	public void setSeachValue(String seachValue) {
+		this.seachValue = seachValue;
+	}
+
+	public String getLeaderView() {
+		return leaderView;
+	}
+
+	public void setLeaderView(String leaderView) {
+		this.leaderView = leaderView;
+	}
+
+	public Long getFunctionalOrgType() {
+		return functionalOrgType;
+	}
+
+	public void setFunctionalOrgType(Long functionalOrgType) {
+		this.functionalOrgType = functionalOrgType;
+	}
+
+	public Integer getViewProcess() {
+		return viewProcess;
+	}
+
+	public void setViewProcess(Integer viewProcess) {
+		this.viewProcess = viewProcess;
+	}
+
+	public Long getOrgLevel() {
+		return orgLevel;
+	}
+
+	public void setOrgLevel(Long orgLevel) {
+		this.orgLevel = orgLevel;
+	}
+
+	public Integer getOrgLevelInternalId() {
+		return orgLevelInternalId;
+	}
+
+	public void setOrgLevelInternalId(Integer orgLevelInternalId) {
+		this.orgLevelInternalId = orgLevelInternalId;
+	}
+
+	public Long getSourceType() {
+		return sourceType;
+	}
+
+	public void setSourceType(Long sourceType) {
+		this.sourceType = sourceType;
+	}
+
+	public Integer getSourceTypeInternalId() {
+		return sourceTypeInternalId;
+	}
+
+	public void setSourceTypeInternalId(Integer sourceTypeInternalId) {
+		this.sourceTypeInternalId = sourceTypeInternalId;
+	}
+
+	public List<ThreeRecordsIssueLogNew> getIssueDealLogs() {
+		return issueDealLogs;
+	}
+
+	public void setIssueDealLogs(List<ThreeRecordsIssueLogNew> issueDealLogs) {
+		this.issueDealLogs = issueDealLogs;
+	}
+
+	public List<ThreeRecordsIssueAttachFile> getIssueAttachFiles() {
+		return issueAttachFiles;
+	}
+
+	public void setIssueAttachFiles(
+			List<ThreeRecordsIssueAttachFile> issueAttachFiles) {
+		this.issueAttachFiles = issueAttachFiles;
+	}
+
+	public Map<Long, List<ThreeRecordsIssueAttachFile>> getIssueLogAttachFiles() {
+		return issueLogAttachFiles;
+	}
+
+	public void setIssueLogAttachFiles(
+			Map<Long, List<ThreeRecordsIssueAttachFile>> issueLogAttachFiles) {
+		this.issueLogAttachFiles = issueLogAttachFiles;
+	}
+
+	public List<LedgerFeedBack> getFeedbacks() {
+		return feedbacks;
+	}
+
+	public void setFeedbacks(List<LedgerFeedBack> feedbacks) {
+		this.feedbacks = feedbacks;
+	}
+
+	public List<ReplyForm> getReplys() {
+		return replys;
+	}
+
+	public void setReplys(List<ReplyForm> replys) {
+		this.replys = replys;
+	}
+
+	public Map<String, Integer> getCountMap() {
+		return countMap;
+	}
+
+	public void setCountMap(Map<String, Integer> countMap) {
+		this.countMap = countMap;
+	}
+
+	public Integer getYear() {
+		return year;
+	}
+
+	public void setYear(Integer year) {
+		this.year = year;
+	}
+
+	public Integer getMonth() {
+		return month;
+	}
+
+	public void setMonth(Integer month) {
+		this.month = month;
+	}
+
+}

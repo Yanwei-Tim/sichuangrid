@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="populationSpecializedInfo" extends="default" namespace="/baseinfo/populationSpecializedInfo">
+		<default-class-ref class="populationSpecializedInfoController"></default-class-ref>
+
+		<action name="proccessPopulationSpecializedInfo" method="proccessPopulationSpecializedInfo">
+			<result name="success" type="json">
+				<param name="root">actualPopulation</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="getPopulationSpecializedInfoByOrgIdAndIdCardNo" method="getPopulationSpecializedInfoByOrgIdAndIdCardNo">
+			<result name="success">
+				/baseinfo/commonPopulation/populationTypeInfo.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="getAllPopulationSpecializedInfoByOrgIdAndIdCardNo" method="getAllPopulationSpecializedInfoByOrgIdAndIdCardNo">
+			<result name="success">
+				/baseinfo/commonPopulation/populationInfo/${populationSpecializedType}.jsp?fromPopulationType=true
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+	</package>
+</struts>

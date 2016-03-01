@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="integratedIndicator">
+	<typeAlias alias="IntegratedIndicator" type="com.tianque.statRegrad.domain.IntegratedIndicator"/>
+	<resultMap class="IntegratedIndicator" id="integratedIndicatorMap">
+		<result property="id" column="id"/>
+		<result property="year" column="year"/>
+		<result property="month" column="month"/>
+		<result property="organization.id" column="orgid"/>
+		<result property="parentOrgId" column="parentorgid"/>
+		<result property="scord" column="scord"/>
+		<result property="grade" column="grade"/>
+		<result property="coefficient" column="coefficient"/>
+		<result property="issueSum" column="issueSum"/>
+		<result property="dealIssueSum" column="dealIssueSum"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+	</resultMap>
+	
+	<typeAlias alias="IssueGradeNode" type="com.tianque.statRegrad.domain.IssueGradeNode"/>
+	<resultMap id="issueGradeNodeResult" class="IssueGradeNode" >
+	    <result property="orgId" column="orgId"/>
+	    <result property="orgtype" column="orgtype"/>
+		<result property="parentId" column="parentId"/>
+		<result property="issueSum" column="issueSum"/>
+		<result property="dealIssueSum" column="dealIssueSum"/>
+	</resultMap>
+	
+	<insert id="statRegradedPoints" parameterClass="string">
+	insert into IntegratedIndicator
+	  (id,
+	   year,
+	   month,
+	   orgid,
+	   parentorgid,
+	   orgtype,
+	   issueSum,
+	   dealissueSum,
+	   createuser,
+	   createdate)
+	  select S_IntegratedIndicator.NEXTVAL,
+	         to_char(sysdate, 'yyyy'),
+	         to_char(sysdate, 'mm'),
+	         orgid,
+	         parentid,
+	         orgtype,
+	         issuesum,
+	         dealissueSum,
+	         'admin',
+	         sysdate
+	    from (select alldatas.*, temp.dealissueSum
+	            from (select orgid, parentid, orgtype, count(issue) as issueSum
+	                    from (select os.*, ip.issue
+	                            from (select it.target, it.issue
+	                                    from issuesteps it
+	                                   where it.entrydate between
+	                                         add_months(last_day(sysdate), -1) and
+	                                         add_months(last_day(sysdate) + 1, 0)) ip,
+	                                 (select id as orgid, parentid, orgtype
+	                                    from organizations
+	                                   where parentid is not null) os
+	                           where os.orgid = ip.target(+))
+	                   group by orgid, parentid, orgtype) alldatas,
+	                 (select orgid, count(issue) as dealissueSum
+	                    from (select os.*, ip.issue
+	                            from (select it.target, it.issue
+	                                    from issuesteps it
+	                                   where it.entrydate between
+	                                         add_months(last_day(sysdate), -1) and
+	                                         add_months(last_day(sysdate) + 1, 0)
+	                                     and it.statecode >= 500) ip,
+	                                 (select id as orgid
+	                                    from organizations
+	                                   where parentid is not null) os
+	                           where os.orgid = ip.target(+))
+	                   group by orgid) temp
+	           where alldatas.orgid = temp.orgid
+	           order by issuesum desc)
+	</insert>
+	
+	<update id="updateIntegratedIndicator" parameterClass="IntegratedIndicator">
+		update integratedindicator set
+		scord=#scord#,
+		grade=#grade#,
+		coefficient=#coefficient#
+		where id=#id#
+	</update>
+	
+	<select id="queryIssueGradeForList" parameterClass="java.lang.String" resultMap="issueGradeNodeResult" >
+	  select id orgId, parentid, orgtype, nvl(issueSum,0) issueSum, nvl(dealissueSum,0) dealissueSum
+	  from (select target,
+	               count(issue) issueSum,
+	               sum(decode(sign(statecode - 500), -1, 0, 1)) dealissueSum
+	          from issuesteps where to_char(entrydate, 'yyyymm') = #value#
+	         group by target) i,
+	       organizations o
+	 where o.id = i.target(+)
+	</select>
+	
+	<insert id="addIntegratedIndicator" parameterClass="IntegratedIndicator">
+		insert into IntegratedIndicator
+		(id,year,month,orgid,parentorgid,orgtype,scord,coefficient,grade,issueSum,dealissueSum,createuser,createdate)
+	    values(S_IntegratedIndicator.NEXTVAL,#year#,#month#,#organization.id#,#parentOrgId#,#organization.orgType.id#,#scord#,#grade#,#coefficient#,#issueSum#,#dealIssueSum#,'admin',sysdate)
+	</insert>
+	
+	<delete id="deleteIssueGrade" parameterClass="java.util.Map">
+	    delete from IntegratedIndicator where year = #year# and month = #month# 
+	    <isNotNull property="orgList" prepend=" and orgId in">
+		    <iterate property="orgList" conjunction="," open="(" close=")">
+			  #orgList[]#
+			 </iterate>
+	    </isNotNull>
+	</delete>
+	
+	<select id="countIssueSumByOrgType" resultClass="long" parameterClass="map">
+		select distinct issuesum from integratedindicator where to_char(createdate,'yyyy-mm')=to_char(sysdate,'yyyy-mm') and orgtype=#orgType#
+		and parentorgid=#parentOrgId#
+	</select>
+	
+	<select id="findIntegratedIndicatorByParentOrgIdAndYearAndMonth" parameterClass="map" resultMap="integratedIndicatorMap">
+		select * from integratedindicator where parentOrgId=#parentOrgId# and orgType=#orgType#
+		and createDate <![CDATA[>=]]> #startDate# and createDate <![CDATA[<]]> #endDate#
+	</select>
+	
+	<select id="findIntegratedIndicatorsByOrgType" resultMap="integratedIndicatorMap" parameterClass="map">
+		select * from integratedindicator where to_char(createdate,'yyyy-mm')=to_char(sysdate,'yyyy-mm') and orgtype=#orgType#
+		and parentorgid=#parentOrgId#
+	</select>
+</sqlMap>

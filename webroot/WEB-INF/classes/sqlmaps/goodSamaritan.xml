@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="goodSamaritan">
+	<!-- 注释说明 -->
+	<typeAlias alias="GoodSamaritan" type="com.tianque.baseInfo.goodSamaritan.domain.GoodSamaritan" />
+
+	<resultMap id="goodSamaritanResult" class="GoodSamaritan" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+		<result column="isEmphasis" property="isEmphasis" />
+		<result property="logoutDetail.logout" column="isEmphasis" />
+		<result property="logoutDetail.logoutReason" column="isEmphasisReason" />
+		<result property="logoutDetail.logoutDate" column="isEmphasisDate"/>
+		<result property="attentionExtent.id" column="attentionExtent"/>
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result property="baseInfoId" column="baseInfoId" />
+		<result column="addressInfoId" property="addressInfoId" />
+		<result property="sourcesState" column="sourcesState"/>
+		<result column="isHaveHouse" property="isHaveHouse"/>
+		<result column="noHouseReason" property="noHouseReason"/>
+		<result column="currentAddress" property="currentAddress" />
+		<result column="otherAddress" property="otherAddress" />
+		<result column="remark" property="remark" />
+		<!--业务备注  -->
+		<result property="disableGradeType.id" column="disableGradeType"/> 
+		<result property="sacrificeType.id" column="sacrificeType"/> 
+		<result property="insureSituationType.id" column="insureSituationType"/> 
+		<result property="insureSituationSmallType.id" column="insureSituationSmallType"/> 
+		<result property="actOccurred" column="actOccurred"/> 
+		<result property="awardYear" column="awardYear"/> 
+		<result property="awardType.id" column="awardType"/> 
+		<result property="difficultType.id" column="difficultType"/> 
+		<result property="confirmUnit" column="confirmUnit"/>
+		<result property="heroicDeeds" column="heroicDeeds"/> 
+		<!--end  -->
+	</resultMap>
+	
+	<sql id="fields">
+		uni.id,uni.baseinfoid,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.createUser,uni.updateUser,uni.createDate,uni.updateDate,uni.sourcesState,
+		uni.attentionExtent,uni.isEmphasis, uni.isEmphasisReason,uni.isEmphasisDate,uni.disableGradeType,uni.sacrificeType,uni.insureSituationType,uni.insureSituationSmallType,uni.actOccurred,
+		uni.awardYear,uni.awardType,uni.difficultType,uni.confirmUnit,uni.heroicDeeds
+	</sql>
+    
+	<insert id="addGoodSamaritan" parameterClass="GoodSamaritan">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_GoodSamaritan.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO goodSamaritan(
+			<include refid="populationBaseInfo.addBaseInfoFields"/>,
+			isEmphasis,attentionExtent,sourcesState,disableGradeType,sacrificeType,insureSituationType,insureSituationSmallType,actOccurred,
+		awardYear,awardType,difficultType,confirmUnit,heroicDeeds)
+		VALUES(
+			<include refid="populationBaseInfo.addBaseInfoData"/>,
+	        #isEmphasis#,#attentionExtent.id#,#sourcesState#,#disableGradeType.id#,#sacrificeType.id#,#insureSituationType.id#,#insureSituationSmallType.id#,#actOccurred#,
+		#awardYear#,#awardType.id#,#difficultType.id#,#confirmUnit#,#heroicDeeds#)
+	</insert>
+
+	<select id="getGoodSamaritanById" parameterClass="java.lang.Long" resultMap="goodSamaritanResult">
+	      select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+	      from goodSamaritan uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+	      where uni.id=#value#
+	</select>
+
+	<sql id="updateBusinessSql">
+	   <include refid="populationBaseInfo.updateBaseInfoSql"/>,
+   	   attentionExtent=#attentionExtent.id#,
+   	   disableGradeType=#disableGradeType.id#,sacrificeType=#sacrificeType.id#,insureSituationType=#insureSituationType.id#,insureSituationSmallType=#insureSituationSmallType.id#,actOccurred=#actOccurred#,
+		awardYear=#awardYear#,awardType=#awardType.id#,difficultType=#difficultType.id#,confirmUnit=#confirmUnit#,heroicDeeds=#heroicDeeds#
+	</sql>
+	
+	<update id="updateGoodSamaritan" parameterClass="GoodSamaritan">
+		update goodSamaritan set
+		<isNotEmpty property="isEmphasis">
+			isEmphasis=#isEmphasis#,
+		</isNotEmpty>
+		<include refid="updateBusinessSql"/>
+		<isNotNull prepend="," property="sourcesState">
+			sourcesState=#sourcesState#
+		</isNotNull>
+		where id = #id#
+	</update>
+
+	<update id="updateBusiness" parameterClass="GoodSamaritan">
+		 update goodSamaritan set
+		 <isNotEmpty property="isEmphasis">
+			isEmphasis=#isEmphasis#,
+		 </isNotEmpty>
+		 <include refid="updateBusinessSql"/>
+		 where id = #id#
+	</update>
+
+	<update id="updateGoodSamaritanEmphasis" parameterClass="GoodSamaritan">
+		 update goodSamaritan set
+		 <isNotEmpty property="isEmphasis">
+			isEmphasis = $isEmphasis$,
+		 </isNotEmpty>
+			updateUser = #updateUser#,
+			updateDate = #updateDate#
+		 where id = $id$
+	</update>
+
+	<update id="updateEmphasisById" parameterClass="map">
+		update goodSamaritan set isEmphasis=#isEmphasis#	where id=#id#
+	</update>
+
+	<delete id="deleteGoodSamaritanById" parameterClass="java.lang.Long">
+	    delete from goodSamaritan where id=#id#
+	</delete>
+
+	<sql id="sql_where">
+		from goodSamaritan uni left join baseInfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="name">
+				<isNotNull property="name" prepend=" and ">
+					name = #name#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="gender">
+				<isNotEmpty property="gender.id" prepend=" and ">
+					gender=#gender.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					id=#id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="organizationId">
+				<isNotNull property="organizationId" prepend=" and ">
+					orgId = #organizationId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) = upper(#idCardNo#)
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findGoodSamaritans" parameterClass="java.util.Map" resultMap="goodSamaritanResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countGoodSamaritans" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="countExsistedGoodSamaritan" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from goodSamaritan uni left join baseInfo b on uni.baseInfoId = b.id
+		<dynamic prepend="where">
+			<isPropertyAvailable property="organizationId" >
+				<isNotNull property="organizationId" prepend=" and ">
+					orgId = $organizationId$
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="besidesId" >
+				<isNotNull property="besidesId" prepend=" and ">
+					uni.id != $besidesId$
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo" >
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) = upper(#idCardNo#)
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="getByOrgIdAndIdCardNo" parameterClass="java.util.Map" resultMap="goodSamaritanResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		from goodSamaritan uni left join baseInfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where upper(idCardNo) = upper(#idCardNo#) and orgId = #orgId# 
+	</select>
+
+	<select id="getByIdCard" parameterClass="java.util.Map" resultMap="goodSamaritanResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		from goodSamaritan uni left join baseInfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where orgId=#orgId# and
+		<iterate property="idCardNoList" open="("  close=")"  conjunction="or">
+			upper(idCardNo) like upper(#idCardNoList[]#)
+		</iterate>
+	</select>
+
+	<update id="shiftGoodSamaritan" parameterClass="java.util.Map">
+		update goodSamaritan set orgId = #orgId#, orgInternalCode = #orgInternalCode# where id = #id#
+	</update>
+	
+	<select id="getGoodSamaritanByIdCardNoList" parameterClass="map" resultMap="goodSamaritanResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		from goodSamaritan uni left join baseInfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" AND ">
+					orgId = $orgId$
+				</isNotNull>
+			</isPropertyAvailable>
+			AND (
+			<iterate property="idCardNoList" conjunction="OR">
+				upper(idCardNo) like upper(#idCardNoList[]#)
+			</iterate>
+			)
+		</dynamic>
+	</select>
+
+	<!-- 移动数据需要的sql -->
+	<update id="updateDataMoveGoodSamaritanToOrg" parameterClass="java.util.Map">
+		update goodSamaritan set orgId = #orgId# , orgInternalCode = #orgInternalCode# where id = #id#
+	</update>
+	
+	<!-- 以下sql已经过时，需要启用请先修改  -->
+	<update id="updateBaseInfo" parameterClass="GoodSamaritan">
+		 update goodSamaritan set
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>
+		 ,isEmphasis=#isEmphasis#
+		  where id = #id#
+	</update>
+	
+	<update id="updateDeathAndLogoutStateById" parameterClass="map">
+		update goodSamaritan set
+		<isNotEmpty property="death">
+			isdeath = #death#
+		</isNotEmpty>
+		<isNotEmpty property="isEmphasis" prepend=",">
+			isEmphasis=#isEmphasis#
+		</isNotEmpty>
+		where id=#id#
+	</update>
+	
+    <update id="updateGoodSamaritansByIdCardNoFromBasePersonnel" parameterClass="GoodSamaritan">
+		update goodSamaritan set
+        <dynamic>
+			idCardNo=#idCardNo#
+			<isNotEmpty prepend="," property="name">
+				name=#name#
+			</isNotEmpty>
+			<isNotNull property="gender">
+				<isNotNull prepend="," property="gender.id">
+					gender=#gender.id#
+				</isNotNull>
+			</isNotNull>
+			<isNotEmpty prepend="," property="fullPinyin">
+				fullPinyin=#fullPinyin#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="simplePinyin">
+				simplePinyin=#simplePinyin#
+			</isNotEmpty>
+			where IDCARDNO=#idCardNo#
+		</dynamic>
+	</update>
+	
+	<select id="getIdByBaseinfoIdAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		SELECT id from goodSamaritan  
+		where baseinfoid=#baseInfoId# and orgId=#orgId#
+	</select>
+	
+	
+	<resultMap id="goodSamaritanResultForDefaultList" class="GoodSamaritan" 
+		extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForDefaultList">
+		<result property="attentionExtent.id" column="attentionExtent"/>
+	</resultMap>
+	<sql id="default_sql_where">
+	  from goodSamaritan uni 
+	  <dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findGoodSamaritanDefaultList" resultMap="goodSamaritanResultForDefaultList" parameterClass="map">
+	  select <include refid="fields"/> ,'$attentionPopulationType$' as populationType
+	  <include refid="default_sql_where" />
+	  ORDER BY ID DESC
+	</select>
+	
+	<select id="countGoodSamaritanDefaultList" resultClass="java.lang.Integer" parameterClass="map">
+		<![CDATA[select count(uni.id)]]>
+		<include refid="default_sql_where" />
+	</select>
+	
+</sqlMap>

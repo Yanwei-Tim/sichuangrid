@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="positioningTrajectory">
+	<typeAlias alias="positioningTrajectory" type="com.tianque.openLayersMap.positioningTrajectory.domian.PositioningTrajectory" />
+	
+	<resultMap id="positioningTrajectoryResult" class="positioningTrajectory">
+		<result column="id" property="id"/>
+		<result column="longitude" property="longitude" />
+		<result column="latitude" property="latitude" />
+		<result column="longitude2" property="longitude2" />
+		<result column="latitude2" property="latitude2" />
+		<result column="locateDate" property="locateDate" />
+		<result column="direction" property="direction" />
+		<result column="speed" property="speed" />
+		<result column="positionDescription" property="positionDescription" />
+		<result column="deviceNumber" property="deviceNumber" />
+		<result column="userName" property="userName" />
+		<result column="createDate" property="createDate" />
+		<result column="updateDate" property="updateDate" />
+		<result column="trackInfo" property="trackInfo" />
+	</resultMap>
+	
+	
+	<insert id="addPositioningTrajectory" parameterClass="positioningTrajectory">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_positioningTrajectory.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into positioningTrajectory
+		(id,longitude,latitude,longitude2,latitude2,locateDate,direction,speed,positionDescription, deviceNumber,userName,createDate,updateDate,trackInfo)
+		values
+		(#id#,#longitude#,#latitude#,#longitude2#,#latitude2#,#locateDate#,#direction#,#speed#,#positionDescription#,#deviceNumber#,#userName#,#createDate#,#updateDate#,#trackInfo#)
+	</insert>
+	
+	<!-- 根据ID查询 -->
+	<select id="getPositioningTrajectoryById" parameterClass="java.lang.Long" resultMap="positioningTrajectoryResult">
+		select * from positioningTrajectory where id=#value#
+	</select>
+	
+	<!-- 根据deviceNumber删除 -->
+	<delete id="deletePositioningTrajectoryByDeviceNumber" parameterClass="java.lang.String">
+		delete from positioningTrajectory where deviceNumber=#value#
+	</delete>
+	
+	<select id="countSearchPositioningTrajectoryByDeviceNumberAndLocateDate" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*)
+		from positioningTrajectory
+		<dynamic prepend="where"> 
+		<!--
+		<isPropertyAvailable property="deviceNumber">
+			<isNotEmpty property="deviceNumber"  prepend=" and ">
+				deviceNumber = #deviceNumber#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		-->
+		<isPropertyAvailable property="locateDateStart">
+			<isNotNull property="locateDateStart" prepend=" and ">
+				<![CDATA[ locateDate >= #locateDateStart# ]]>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="locateDateEnd">
+			<isNotNull property="locateDateEnd" prepend=" and ">
+				<![CDATA[ locateDate <= #locateDateEnd# ]]>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="userName">
+			<isNotEmpty property="userName"  prepend=" and ">
+				userName = #userName#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		</dynamic>
+	</select>	
+	
+	<select id="searchPositioningTrajectoryByDeviceNumberAndLocateDate" parameterClass="java.util.Map" resultMap="positioningTrajectoryResult">
+		select *
+		from positioningTrajectory 
+		<dynamic prepend="where">
+		<!--  <isPropertyAvailable property="deviceNumber">
+			<isNotEmpty property="deviceNumber"  prepend=" and ">
+				deviceNumber = #deviceNumber#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		-->
+		<isPropertyAvailable property="locateDateStart">
+			<isNotNull property="locateDateStart" prepend=" and ">
+				<![CDATA[ locateDate >= #locateDateStart# ]]>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="locateDateEnd">
+			<isNotNull property="locateDateEnd" prepend=" and ">
+				<![CDATA[ locateDate <= #locateDateEnd# ]]>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="userName">
+			<isNotEmpty property="userName"  prepend=" and ">
+				userName = #userName#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>	
+	
+	<update id="updateLonlatById" parameterClass="java.util.Map">
+		update positioningTrajectory
+		set longitude=#centerLon#,latitude=#centerLat#,longitude2=#centerLon2#,latitude2=#centerLat2#
+		where id = #id#
+	</update>
+</sqlMap>

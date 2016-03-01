@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="pacificUnionFounding">
+	<typeAlias alias="pacificUnionFounding" type="com.tianque.issue.domain.PacificUnionFounding" />
+	<resultMap class="pacificUnionFounding" id="pacificUnionFoundingMap">
+		<result property="year" column="year"/>
+		<result property="january" column="january"/>
+		<result property="february" column="february"/>
+		<result property="march" column="march"/>
+		<result property="april" column="april"/>
+		<result property="may" column="may"/>
+		<result property="june" column="june"/>
+		<result property="july" column="july"/>
+		<result property="august" column="august"/>
+		<result property="september" column="september"/>
+		<result property="october" column="october"/>
+		<result property="november" column="november"/>
+		<result property="december" column="december"/>
+		<result property="organization.id" column="orgid"/>
+		<result property="orgInternalCode" column="orginternalcode"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+	</resultMap>
+	
+	<resultMap class="pacificUnionFounding" id="fullPacificUnionFoundingMap">
+		<result property="organization.id" column="orgid"/>
+		<result property="organization.orgName" column="orgname"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="january" column="january"/>
+		<result property="february" column="february"/>
+		<result property="march" column="march"/>
+		<result property="april" column="april"/>
+		<result property="may" column="may"/>
+		<result property="june" column="june"/>
+		<result property="july" column="july"/>
+		<result property="august" column="august"/>
+		<result property="september" column="september"/>
+		<result property="october" column="october"/>
+		<result property="november" column="november"/>
+		<result property="december" column="december"/>
+	</resultMap>
+	
+	<resultMap class="pacificUnionFounding" id="simplePacificUnionFoundingMap">
+		<result property="id" column="id"/>
+		<result property="organization.id" column="orgid"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="january" column="january"/>
+		<result property="february" column="february"/>
+		<result property="march" column="march"/>
+		<result property="april" column="april"/>
+		<result property="may" column="may"/>
+		<result property="june" column="june"/>
+		<result property="july" column="july"/>
+		<result property="august" column="august"/>
+		<result property="september" column="september"/>
+		<result property="october" column="october"/>
+		<result property="november" column="november"/>
+		<result property="december" column="december"/>
+	</resultMap>
+	
+	<insert id="addPacificUnionFounding" parameterClass="pacificUnionFounding">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_peace_high_village.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		insert into peace_high_village
+		(
+		  id,
+		  orgid,
+		  orginternalcode,
+		  year,
+		  January,
+		  February, 
+		  March, 
+		  April, 
+		  May,
+		  June,
+		  July,
+		  August,
+		  September,
+		  October,
+		  November,
+		  December,
+		  createdate,
+		  createuser
+		) values
+		(
+		  #id#,
+		  #organization.id#,
+		  #orgInternalCode#,
+		  #year#,
+		  #january#,
+		  #february#, 
+		  #march#, 
+		  #april#, 
+		  #may#,
+		  #june#,
+		  #july#,
+		  #august#,
+		  #september#,
+		  #october#,
+		  #november#,
+		  #december#,
+		  #createDate#,
+		  #createUser#	
+		)
+	</insert>
+	
+	<delete id="deletePacificUnionFoundingsByYearAndParentOrgId" parameterClass="map">
+		delete from peace_high_village ph
+		 where ph.id in (select phv.id
+		                   from (select * from peace_high_village where year = #year#) phv,
+		                        organizations os
+		                  where os.id(+) = phv.orgid
+		                    and os.parentid=#parentOrgId#)
+	</delete>
+	
+	<select id="findPacificUnionFoundingsByYearAndParentOrgId" parameterClass="map" resultMap="fullPacificUnionFoundingMap">
+		select os.orgname,os.orginternalcode,os.id as orgid,
+	       phv.january,
+	       phv.february,
+	       phv.march,
+	       phv.april,
+	       phv.may,
+	       phv.june,
+	       phv.july,
+	       phv.august,
+	       phv.september,
+	       phv.october,
+	       phv.november,
+	       phv.december
+	  from (select *
+	          from peace_high_village
+	         where year = #year#) phv,
+	       organizations os
+	 where os.id = phv.orgid(+)
+           and os.parentid=#parentOrgId#
+     order by (select to_number(seq ||'00'|| os.seq) from organizations o where o.id=os.parentid)
+	</select>
+	
+	<!--迁移合并方法-->
+	<select id="getPacificUnionFoundingByOrgAndYear" parameterClass="pacificUnionFounding" resultMap="simplePacificUnionFoundingMap">
+		select * from peace_high_village phv where phv.orgid = #organization.id# and phv.year=#year#
+	</select>
+	<update id="updatePacificUnionFounding" parameterClass="pacificUnionFounding">
+		 update PEACE_HIGH_VILLAGE
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="organization.id" >
+        ORGID = #organization.id#
+      </isNotNull>
+      <isNotNull prepend="," property="organization.orgInternalCode" >
+        ORGINTERNALCODE = #organization.orgInternalCode#
+      </isNotNull>
+      <isNotNull prepend="," property="year" >
+        YEAR = #year#
+      </isNotNull>
+      <isNotNull prepend="," property="january" >
+        JANUARY = #january#
+      </isNotNull>
+      <isNotNull prepend="," property="february" >
+        FEBRUARY = #february#
+      </isNotNull>
+      <isNotNull prepend="," property="march" >
+        MARCH = #march#
+      </isNotNull>
+      <isNotNull prepend="," property="april" >
+        APRIL = #april#
+      </isNotNull>
+      <isNotNull prepend="," property="may" >
+        MAY = #may#
+      </isNotNull>
+      <isNotNull prepend="," property="june" >
+        JUNE = #june#
+      </isNotNull>
+      <isNotNull prepend="," property="july" >
+        JULY = #july#
+      </isNotNull>
+      <isNotNull prepend="," property="august" >
+        AUGUST = #august#
+      </isNotNull>
+      <isNotNull prepend="," property="september" >
+        SEPTEMBER = #september#
+      </isNotNull>
+      <isNotNull prepend="," property="october" >
+        OCTOBER = #october#
+      </isNotNull>
+      <isNotNull prepend="," property="november" >
+        NOVEMBER = #november#
+      </isNotNull>
+      <isNotNull prepend="," property="december" >
+        DECEMBER = #december#
+      </isNotNull>
+      <!--
+      <isNotNull prepend="," property="createdate" >
+        CREATEDATE = #createdate:DATE#
+      </isNotNull>
+      <isNotNull prepend="," property="createuser" >
+        CREATEUSER = #createuser:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="updatedate" >
+        UPDATEDATE = #updatedate:DATE#
+      </isNotNull>
+      <isNotNull prepend="," property="updateuser" >
+        UPDATEUSER = #updateuser:VARCHAR#
+      </isNotNull>
+       -->
+    </dynamic>
+    where ID = #id#
+	</update>
+</sqlMap>

@@ -1,0 +1,617 @@
+--新农村建设表
+create table NEWVILLAGE
+(
+  id                  NUMBER(10) not null,
+  orgid               NUMBER(10) not null,
+  orginternalcode     VARCHAR2(50),
+  basicInfoID      NUMBER(10) not null,
+  settlementsNumber number(10),
+  settlementsBuild number(10),
+  settlementsReform number(10),
+  settlementsProtect number(10),
+  involvingFarmers number(10),
+  houseCount number(10),
+  masonryStructure number(10),
+  noHouseCount number(10),
+  dangerousHouseCount number(10),
+  housingDifficultCount number(10),
+  lowRentHousing number(10),
+  createuser          VARCHAR2(32) not null,
+  updateuser          VARCHAR2(32),
+  createdate          DATE not null,
+  updatedate          DATE,
+  constraint pkNEWVILLAGE primary key (id)
+);
+
+  
+--产业发展表
+create table INDUSTRYDEVELOPMENT
+(
+  id                  NUMBER(10) not null,
+  orgid               NUMBER(10) not null,
+  orginternalcode     VARCHAR2(50),
+  basicInfoID      NUMBER(10) not null,
+  grainCrops number(12,2),
+  economicCrops number(12,2),
+  scalePlanting number(10),
+  pigNum number(10),
+  cattleSheepNum number(10),
+  poultryNum number(10),
+  aquaticProductNum number(12,2),
+  scaleBreed number(10),
+  specialistNum number(10),
+  familyFarmNum number(10),
+  plantingNum number(10),
+  createuser          VARCHAR2(32) not null,
+  updateuser          VARCHAR2(32),
+  createdate          DATE not null,
+  updatedate          DATE,
+  constraint pkINDUSTRYDEVELOPMENT primary key (id)
+);
+
+
+  
+  
+--基础设施建设
+create table INFRASTRUCTURE
+(
+  id                  NUMBER(10) not null,
+  orgid               NUMBER(10) not null,
+  orginternalcode     VARCHAR2(50),
+  basicInfoID      NUMBER(10) not null,  
+  villageRoad number(12,2),
+  villageHardenedRoad number(12,2),
+  villageMudKnotRoad number(12,2),
+  weirPoolNum number(10),
+  canalLength number(12,2),
+  drinkingWaterNum number(10),
+  isPowerGrid number(1),
+  biogasNum number(10),
+  involveHouseCount number(10),
+  isBroadbandVillage number(1),
+  cableTvCount number(10),
+  broadbandCount number(10),  
+  createuser          VARCHAR2(32) not null,
+  updateuser          VARCHAR2(32),
+  createdate          DATE not null,
+  updatedate          DATE,
+  constraint pkINFRASTRUCTURE primary key (id)
+);
+
+  
+  
+
+--公共服务表
+create table COMMONSERVICEINFO
+(
+  id                  NUMBER(10) not null,
+  orgid               NUMBER(10) not null,
+  orginternalcode     VARCHAR2(50),
+  basicInfoID      NUMBER(10) not null,
+  villageSchool number(10),
+  kindergarten number(10),
+  highSchool number(10),
+  clinic number(10),
+  socialWorkCenter number(10),
+  library number(10),
+  fitnessSquare number(12,2),
+  fitnessEquipment number(10),
+  entertainmentRoom number(10),
+  farmerSupermarket number(10),
+  createuser          VARCHAR2(32) not null,
+  updateuser          VARCHAR2(32),
+  createdate          DATE not null,
+  updatedate          DATE,
+  constraint pkPUBLICSERVICE primary key (id)
+);
+
+    
+
+	
+	
+--环境改造设表
+create table ENVIRONMENTALREFORM
+(
+  id                  NUMBER(10) not null,
+  orgid               NUMBER(10) not null,
+  orginternalcode     VARCHAR2(50),
+  basicInfoID		  NUMBER(10) not null,
+  garbageTank number(10),
+  toilets number(10),
+  treatmentFacilities number(10),
+  createuser          VARCHAR2(32) not null,
+  updateuser          VARCHAR2(32),
+  createdate          DATE not null,
+  updatedate          DATE,
+  constraint pkENVIRONMENTALREFORM primary key (id)
+);
+
+	
+--基层组织建设表
+create table ORGANIZATIONCONSTRUCTION
+(
+  id                  NUMBER(10) not null,
+  orgid               NUMBER(10) not null,
+  orginternalcode     VARCHAR2(50),
+  basicInfoID      NUMBER(10) not null,   
+  isPositionBuilding number(1),
+  threeSatisfaction number(5,2),
+  surveySatisfaction number(5,2),  
+  createuser          VARCHAR2(32) not null,
+  updateuser          VARCHAR2(32),
+  createdate          DATE not null,
+  updatedate          DATE,
+  constraint pkORGANIZATIONCONSTRUCTION primary key (id)
+);
+
+
+
+  --组织基础信息表
+create table basicInfomation(
+id number(10) not null,
+orgId number(10),
+orgCode varchar2(32),
+orgName varchar2(32),
+geographicalPosition varchar2(100),
+climate varchar2(60),
+totalArea number(12,2),
+cultivatedLandArea number(12,2),
+woodlandArea number(12,2),
+wastelandArea number(12,2),
+altitude number(4),
+soilProperties varchar2(32),
+basicIntroduction clob,
+imgUrl varchar2(225),
+createUser varchar2(32),
+createDate Date,
+updateUser varchar2(32),
+updateDate Date,
+constraint pkbasicInfomation primary key (id)
+);
+
+create sequence S_basicInfomation
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+comment on table basicInfomation
+  is '基础信息表';
+comment on column basicInfomation.id
+  is '主键ID';
+
+comment on column basicInfomation.orgId
+  is '组织机构ID';
+comment on column basicInfomation.orgCode
+  is '组织机构CODE';
+comment on column basicInfomation.orgName
+  is '组织机构名称';
+comment on column basicInfomation.geographicalPosition
+  is '地理位置';
+comment on column basicInfomation.climate
+  is '气候';
+comment on column basicInfomation.totalArea
+  is '总面积';
+comment on column basicInfomation.cultivatedLandArea
+  is '耕地面积';
+comment on column basicInfomation.woodlandArea
+  is '林地面积';
+comment on column basicInfomation.wastelandArea
+  is '荒地面积';
+comment on column basicInfomation.altitude
+  is '海拔';
+comment on column basicInfomation.soilProperties
+  is '土壤';
+comment on column basicInfomation.basicIntroduction
+  is '基础信息简介';
+
+
+create table newVillageLeaderTeams(
+id number(10) not null,
+name varchar2(32),
+gender number(1),
+duty varchar2(32),
+introduction clob,
+orgId number(10),
+orgCode varchar2(32),
+imageUrl varchar2(225),
+sort number(10),
+createUser varchar2(32),
+createDate Date,
+updateUser varchar2(32),
+updateDate Date,
+age number(3),
+educationDegree number(10),
+contactWay varchar(32),
+constraint pknewVillageLeaderTeams primary key (id)
+);
+comment on table newVillageLeaderTeams
+  is '新农村建设辖区领导班子表';
+comment on column newVillageLeaderTeams.id
+  is '主键ID';
+comment on column newVillageLeaderTeams.name
+  is '姓名';
+comment on column newVillageLeaderTeams.gender
+  is '性别';
+comment on column newVillageLeaderTeams.duty
+  is '职务';
+comment on column newVillageLeaderTeams.introduction
+  is '简介';
+comment on column newVillageLeaderTeams.orgId
+  is '组织机构ID';
+comment on column newVillageLeaderTeams.orgCode
+  is '组织机构CODE';
+comment on column newVillageLeaderTeams.imageUrl
+  is '图片路径';
+comment on column newVillageLeaderTeams.sort
+  is '排序字段';
+  
+create sequence S_newVillageLeaderTeams
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+create table newvillageBasic(
+id number(10) not null,
+orgId number(10) ,
+orgCode varchar2(32),
+year number(10),
+quarter number(10),
+reportStatus number(1) default 0,
+reportDate date,
+reportUser varchar2(32),
+checkStatus number(1) default 0,
+checkDate date,
+checkUser varchar2(32),
+isPlaning number(1),
+createuser          VARCHAR2(32) not null,
+updateuser          VARCHAR2(32),
+createdate          DATE not null,
+updatedate          DATE,
+constraint pknewvillageBasic primary key (id)
+);
+comment on table newvillageBasic
+  is '新农村建设基础表';
+comment on column newvillageBasic.year
+  is '年';
+comment on column newvillageBasic.quarter
+  is '季度';
+comment on column newvillageBasic.reportStatus
+  is '上报状态 0:未上报 1:已上报';
+comment on column newvillageBasic.reportDate
+  is '上报时间';
+comment on column newvillageBasic.checkStatus
+  is '审核状态 0:未审核 1:审核通过 2:审核不通过';
+comment on column newvillageBasic.checkDate
+  is '审核时间';
+comment on column newvillageBasic.reportUser
+  is '上报人';
+comment on column newvillageBasic.checkUser
+  is '审核人';
+  
+create sequence S_newvillageBasic
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+
+create sequence S_villageReportSummary
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+create table villageReportSummary(
+id number(10) not null,
+orgId number(10),
+orgCode varchar2(32),
+reportOrgId number(10),
+reportOrgName varchar2(32),
+year number(4),
+quarter number(1),
+checkStatus number(1),
+checkDate Date,
+checkUser varchar2(32),
+reportStatus number(1),
+reportDate Date,
+reportUser varchar2(32),
+reportIds clob,
+newVillageData clob,
+basicYearInfoData clob,
+commonServiceInfoData clob,
+environmentalReformData clob,
+industryDevelopmentData clob,
+infrastructureData clob,
+organizationConstructionData clob,
+capitalInvestedData clob,
+farmerPerIncomeInfoData clob,
+isPlaning number(1),
+createUser varchar2(32),
+createDate Date,
+updateUser varchar2(32),
+updateDate Date,
+constraint pkvillageReportSummary primary key (id)
+);
+comment on table villageReportSummary
+  is '新村建设上报汇总表';
+comment on column villageReportSummary.id
+  is '主键ID';
+comment on column villageReportSummary.orgId
+  is '接收数据单位ID';
+comment on column villageReportSummary.orgCode
+  is '接收数据单位code';
+comment on column villageReportSummary.reportOrgId
+  is '上报单位ID';
+comment on column villageReportSummary.year
+  is '年';
+comment on column villageReportSummary.quarter
+  is '季度';
+comment on column villageReportSummary.checkStatus
+  is '数据审核状态 0：未审核 1：审核通过 2：审核不通过';
+comment on column villageReportSummary.reportStatus
+  is '上报状态 0：未上报 1：已上报';
+comment on column villageReportSummary.reportIds
+  is '上报数据IDs';
+comment on column villageReportSummary.newVillageData
+  is '新村建设数据冗余';
+comment on column villageReportSummary.basicYearInfoData
+  is '基本信息数据冗余';
+comment on column villageReportSummary.commonServiceInfoData
+  is '公共服务数据冗余';
+comment on column villageReportSummary.environmentalReformData
+  is '环境改造数据冗余';
+comment on column villageReportSummary.industryDevelopmentData
+  is '产业发展数据冗余';
+comment on column villageReportSummary.infrastructureData
+  is '基础设施数据冗余';
+comment on column villageReportSummary.organizationConstructionData
+  is '基层组织数据冗余';
+comment on column villageReportSummary.capitalInvestedData
+  is '资金投入数据冗余';
+comment on column villageReportSummary.organizationConstructionData
+  is '农民人均可支配收入数据冗余';
+  
+create table leadingEnterprise(
+id number(10) not null,
+orgId number(10) not null,
+orgCode varchar2(32),
+enterpriseName varchar2(60) ,
+chargePerson varchar2(30),
+phoneNumber varchar2(20),
+address varchar2(100),
+registeredCapital number(12,2),
+registeredDate Date,
+economicCharacter number(10),
+licenseNumber varchar2(60),
+bodyCode varchar2(40),
+remark varchar2(600),
+createUser varchar2(32),
+createDate Date,
+updateUser varchar2(32),
+updateDate Date,
+constraint pkleadingEnterprise primary key (id)
+);
+comment on table leadingEnterprise is
+'龙头企业信息表';
+comment on column leadingEnterprise.id is
+'ID';
+comment on column leadingEnterprise.orgId  is
+'组织机构ID';
+comment on column leadingEnterprise.orgCode is
+'组织机构编码';
+comment on column leadingEnterprise.enterpriseName is
+'企业名称';
+comment on column leadingEnterprise.chargePerson is
+'负责人';
+comment on column leadingEnterprise.phoneNumber is
+'联系电话';
+comment on column leadingEnterprise.address is
+'地址';
+comment on column leadingEnterprise.registeredCapital is
+'注册资金';
+comment on column leadingEnterprise.registeredDate is
+'注册时间';
+comment on column leadingEnterprise.economicCharacter is
+'经济性质';
+comment on column leadingEnterprise.licenseNumber is
+'营业执照';
+comment on column leadingEnterprise.bodyCode is
+'组织机构代码';
+comment on column leadingEnterprise.remark is
+'备注';
+
+create sequence s_leadingEnterprise
+increment by 1
+start with 1
+ maxvalue 9999999999
+ minvalue 1
+ cache 20;
+  
+--数据库序列
+
+create sequence S_CAPITALINVESTED
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+create sequence S_FARMERPERINCOMEINFO
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+create sequence S_BASICYEARINFO
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+--数据库表
+  
+--资金投入表
+create table CAPITALINVESTED
+(
+  id                  NUMBER(10) not null,
+  orgid               NUMBER(10) not null,
+  orginternalcode     VARCHAR2(50),
+  basicInfoID		  NUMBER(10) not null,
+  centralProvinceInvested 		  NUMBER(12,2),
+  municipalityInvested	  NUMBER(12,2),
+  countyInvested  	  NUMBER(12,2),
+  financialInvested	  NUMBER(12,2),
+  industryAndCommerceInvested 	  	  NUMBER(12,2),
+  farmerInvested 	  	  NUMBER(12,2),
+  createuser          VARCHAR2(32) not null,
+  updateuser          VARCHAR2(32),
+  createdate          DATE not null,
+  updatedate          DATE,
+  constraint pkCAPITALINVESTED primary key (id)
+);
+comment on table CAPITALINVESTED
+  is '资金投入';
+comment on column CAPITALINVESTED.id
+  is '主键ID';
+comment on column CAPITALINVESTED.orgid
+  is '组织ID';
+comment on column CAPITALINVESTED.orginternalcode
+  is '组织层级';
+comment on column CAPITALINVESTED.basicInfoID
+  is '基础信息ID';
+comment on column CAPITALINVESTED.centralProvinceInvested
+  is '中央/省份投入资金';
+comment on column CAPITALINVESTED.municipalityInvested
+  is '市投入资金';
+comment on column CAPITALINVESTED.countyInvested
+  is '县资金投入';
+comment on column CAPITALINVESTED.financialInvested
+  is '金融投入资金';
+comment on column CAPITALINVESTED.industryAndCommerceInvested
+  is '工商投入资金';
+comment on column CAPITALINVESTED.farmerInvested
+  is '农民自筹资金';
+comment on column CAPITALINVESTED.createuser
+  is '创建人';
+comment on column CAPITALINVESTED.updateuser
+  is '修改人';
+comment on column CAPITALINVESTED.createdate
+  is '创建时间';
+comment on column CAPITALINVESTED.updatedate
+  is '修改时间';
+
+    
+
+	
+	
+--农民人均可支配收入表
+create table FARMERPERINCOMEINFO
+(
+  id                  NUMBER(10) not null,
+  orgid               NUMBER(10) not null,
+  orginternalcode     VARCHAR2(50),
+  basicInfoID		  NUMBER(10) not null,
+  farmerPerIncome		  NUMBER(12,2),
+  increaseRate  	  NUMBER(12,2),
+  createuser          VARCHAR2(32) not null,
+  updateuser          VARCHAR2(32),
+  createdate          DATE not null,
+  updatedate          DATE,
+  constraint pkFARMERPERINCOMEINFO primary key (id)
+);
+comment on table FARMERPERINCOMEINFO
+  is '农民人均可支配收入';
+comment on column FARMERPERINCOMEINFO.id
+  is '主键ID';
+comment on column FARMERPERINCOMEINFO.orgid
+  is '组织ID';
+comment on column FARMERPERINCOMEINFO.orginternalcode
+  is '组织层级';
+comment on column FARMERPERINCOMEINFO.basicInfoID
+  is '基础信息ID';
+comment on column FARMERPERINCOMEINFO.farmerPerIncome
+  is '人均收入值';
+  comment on column FARMERPERINCOMEINFO.increaseRate
+  is '收入增长率';
+comment on column FARMERPERINCOMEINFO.createuser
+  is '创建人';
+comment on column FARMERPERINCOMEINFO.updateuser
+  is '修改人';
+comment on column FARMERPERINCOMEINFO.createdate
+  is '创建时间';
+comment on column FARMERPERINCOMEINFO.updatedate
+  is '修改时间';
+
+  
+--每年填写的需审核的农村基本信息
+create table BASICYEARINFO
+(
+  id                  NUMBER(10) not null,
+  orgid               NUMBER(10) not null,
+  orginternalcode     VARCHAR2(50),
+  basicInfoID		  NUMBER(10) not null,
+  totalArea			  NUMBER(12,2),
+  cultivatedLandArea		NUMBER(12,2),
+  woodlandArea			  NUMBER(12,2),
+  wastelandArea			  NUMBER(12,2),
+  landTransfer			  NUMBER(12,2),
+  totalHouseholdsNum			  NUMBER(10),
+  totalPeopleNum			  NUMBER(10),
+  outWorkNum			  NUMBER(10),
+  totalEconomicIncome			  NUMBER(12,2),
+  totalCollectiveEconomicIncome			  NUMBER(12,2),
+  createuser          VARCHAR2(32) not null,
+  updateuser          VARCHAR2(32),
+  createdate          DATE not null,
+  updatedate          DATE,
+  constraint pkBASICYEARINFO primary key (id)
+);
+comment on table BASICYEARINFO
+  is '农民人均可支配收入';
+comment on column BASICYEARINFO.id
+  is '主键ID';
+comment on column BASICYEARINFO.orgid
+  is '组织ID';
+comment on column BASICYEARINFO.orginternalcode
+  is '组织层级';
+comment on column BASICYEARINFO.basicInfoID
+  is '基础信息ID';
+comment on column BASICYEARINFO.totalArea
+  is '总面积';
+comment on column BASICYEARINFO.cultivatedLandArea
+  is '耕地面积';
+comment on column BASICYEARINFO.woodlandArea
+  is '林地面积';
+comment on column BASICYEARINFO.wastelandArea
+  is '荒地面积';
+comment on column BASICYEARINFO.woodlandArea
+  is '林地面积';
+comment on column BASICYEARINFO.landTransfer
+  is '土地流转面积';
+comment on column BASICYEARINFO.totalHouseholdsNum
+  is '总户数';
+comment on column BASICYEARINFO.totalPeopleNum
+  is '总人数';
+comment on column BASICYEARINFO.outWorkNum
+  is '外出务工人数';
+comment on column BASICYEARINFO.totalEconomicIncome
+  is '农村经济总收入';
+comment on column BASICYEARINFO.totalCollectiveEconomicIncome
+  is '村集体经济总收入';
+comment on column BASICYEARINFO.createuser
+  is '创建人';
+comment on column BASICYEARINFO.updateuser
+  is '修改人';
+comment on column BASICYEARINFO.createdate
+  is '创建时间';
+comment on column BASICYEARINFO.updatedate
+  is '修改时间';  
+
+commit;

@@ -1,0 +1,131 @@
+package com.tianque.plugin.taskList.daoImpl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.dao.DataAccessException;
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.plugin.taskList.constants.Constants;
+import com.tianque.plugin.taskList.dao.DruggyTaskDao;
+import com.tianque.plugin.taskList.domain.DruggyTask;
+
+@Repository("druggyTaskDao")
+public class DruggyTaskDaoImpl extends AbstractBaseDao implements DruggyTaskDao {
+
+	@Override
+	public void updateDruggyTask(DruggyTask druggyTask) {
+		try {
+			getSqlMapClientTemplate().update("druggyTask.updateDruggyTask", druggyTask);
+		} catch (DataAccessException e) {
+			throw new ServiceValidationException("修改吸毒人员走访信息出错", e);
+		}
+	}
+
+	@Override
+	public DruggyTask addDruggyTask(DruggyTask druggyTask) {
+		Long id = (Long) getSqlMapClientTemplate().insert("druggyTask.addDruggyTask", druggyTask);
+		return getDruggyTaskById(id);
+	}
+
+	@Override
+	public void deleteDruggyTaskByIds(List ids) {
+		getSqlMapClientTemplate().delete("druggyTask.deleteDruggyTaskById", ids);
+
+	}
+
+	@Override
+	public PageInfo<DruggyTask> getDruggyTaskList(DruggyTask druggyTask, Integer pageNum,
+			Integer pageSize, String sidx, String sord) {
+		Map map = new HashMap();
+		map.put("orgCode", druggyTask.getOrganization().getOrgInternalCode());
+		map.put("order", sord);
+		map.put("sortField", sidx);
+		map.put("mode", druggyTask.getMode());
+		map.put("funOrgId", druggyTask.getFunOrgId());
+		map.put("modulekey", Constants.REPLY_DRUGGYTASK_KEY);
+		if (druggyTask.getStatus() != null) {
+			map.put("status", druggyTask.getStatus());
+		}
+		Integer countNum = (Integer) getSqlMapClientTemplate().queryForObject(
+				"druggyTask.countDruggyTask", map);
+		List<DruggyTask> list = new ArrayList<DruggyTask>();
+		if (pageNum == null || pageSize == null) {
+			list = getSqlMapClientTemplate().queryForList("druggyTask.findDruggyTask", map);
+			return new PageInfo<DruggyTask>(1, countNum, countNum, list);
+		} else {
+			list = getSqlMapClientTemplate().queryForList("druggyTask.findDruggyTask", map,
+					(pageNum - 1) * pageSize, pageSize);
+			return new PageInfo<DruggyTask>(pageNum, pageSize, countNum, list);
+		}
+
+	}
+
+	@Override
+	public DruggyTask getDruggyTaskById(Long id) {
+		try {
+			return (DruggyTask) getSqlMapClientTemplate().queryForObject("druggyTask.getById", id);
+		} catch (DataAccessException e) {
+			throw new ServiceValidationException("获取吸毒人员走访信息出错", e);
+		}
+	}
+
+	@Override
+	public PageInfo searchDruggyTaskList(DruggyTask druggyTask, Integer pageNum, Integer pageSize,
+			String sidx, String sord) {
+		Map map = new HashMap();
+		if (druggyTask.getConditionEndDate() != null) {
+			map.put("conditionEndDate",
+					CalendarUtil.getLastDaySecoend(druggyTask.getConditionEndDate()));
+		}
+		if (druggyTask.getConditionSignEndDate() != null) {
+			map.put("conditionSignEndDate",
+					CalendarUtil.getLastDaySecoend(druggyTask.getConditionSignEndDate()));
+		}
+		map.put("fastSearchKeyWords", druggyTask.getFastSearchKeyWords());
+		map.put("conditionStartDate", druggyTask.getConditionStartDate());
+		map.put("conditionSignStartDate", druggyTask.getConditionSignStartDate());
+		map.put("name", druggyTask.getName());
+		map.put("orgCode", druggyTask.getOrganization().getOrgInternalCode());
+		map.put("status", druggyTask.getStatus());
+		map.put("hasReplay", druggyTask.getHasReplay());
+		map.put("hasException", druggyTask.getHasException());
+		map.put("order", sord);
+		map.put("sortField", sidx);
+		map.put("mode", druggyTask.getMode());
+		map.put("funOrgId", druggyTask.getFunOrgId());
+		map.put("helpPeople", druggyTask.getHelpPeople());
+		map.put("idCard", druggyTask.getIdCard());
+		map.put("phone", druggyTask.getPhone());
+		map.put("druggyId", druggyTask.getDruggyId());
+		Integer countNum = (Integer) getSqlMapClientTemplate().queryForObject(
+				"druggyTask.countSearchDruggyTask", map);
+		List<DruggyTask> list = new ArrayList<DruggyTask>();
+		if (pageNum == null || pageSize == null) {
+			list = getSqlMapClientTemplate().queryForList("druggyTask.searchDruggyTask", map);
+			return new PageInfo<DruggyTask>(1, countNum, countNum, list);
+		} else {
+			list = getSqlMapClientTemplate().queryForList("druggyTask.searchDruggyTask", map,
+					(pageNum - 1) * pageSize, pageSize);
+			return new PageInfo<DruggyTask>(pageNum, pageSize, countNum, list);
+		}
+	}
+
+	@Override
+	public List<DruggyTask> searchDruggyTaskByName(DruggyTask druggyTask) {
+		List<DruggyTask> druggyTaskList = new ArrayList<DruggyTask>();
+		Map map = new HashMap();
+		map.put("name", druggyTask.getName());
+		map.put("orgCode", druggyTask.getOrganization().getOrgInternalCode());
+		druggyTaskList = getSqlMapClientTemplate().queryForList(
+				"druggyTask.searchDruggyTaskByName", map);
+		return druggyTaskList;
+	}
+
+}

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="weChatGroup">
+	<typeAlias alias="WeChatGroup" type="com.tianque.plugin.weChat.domain.user.WeChatGroup"/>
+	<resultMap id="weChatGroupResult" class="WeChatGroup">
+		<result property="weChatGroupId" column="WECHAT_GROUP_ID"/>
+		<result property="name" column="NAME"/>
+		<result property="weChatUserId" column="WECHAT_USER_ID"/>
+		<result property="groupId" column="GROUP_ID"/>
+		
+		<result property="countFan" column="count_fan" />
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+		
+	</resultMap>
+	
+	<update id="updateWeChatGroupById" parameterClass="WeChatGroup">
+		update WECHAT_GROUP set
+		<dynamic>
+			WECHAT_GROUP_ID=#weChatGroupId#
+			<isNotNull prepend="," property="name">
+				NAME=#name#
+			</isNotNull>
+			
+			<isNotNull prepend="," property="createUser">
+				createUser=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="createDate">
+				createDate=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+		</dynamic>
+		WHERE 	WECHAT_GROUP_ID=#weChatGroupId#
+	</update>
+	<insert id="saveWeChatGroup" parameterClass="WeChatGroup">
+		<selectKey resultClass="java.lang.Long" keyProperty="weChatGroupId">
+			<![CDATA[
+				SELECT s_WeChat_Group.NEXTVAL AS weChatGroupId FROM DUAL
+			]]>
+		</selectKey>
+		insert into WECHAT_GROUP
+		(WECHAT_GROUP_ID,NAME,WECHAT_USER_ID,GROUP_ID,count_Fan,createUser,createDate,updateUser,updateDate)
+		values
+		(#weChatGroupId#,#name#,#weChatUserId#,#groupId#,#countFan#,#createUser#,#createDate#,#updateUser#,#updateDate#)
+	</insert>
+	
+	
+	<select id="getGroupListByName" parameterClass="java.lang.String" resultClass="java.lang.Long">
+		select GROUP_ID from WECHAT_GROUP where NAME=#name#
+	</select>
+	
+	<select id="getGroupByGroupIdAndWeChatUserId" parameterClass="WeChatGroup" resultMap="weChatGroupResult">
+		select * from WECHAT_GROUP where WECHAT_USER_ID=#weChatUserId# and GROUP_ID=#groupId#
+	</select>
+	
+	<select id="getWeChatGroupById" parameterClass="WeChatGroup" resultMap="weChatGroupResult">
+		select * from WECHAT_GROUP where WECHAT_GROUP_ID=#weChatGroupId#
+	</select>
+	
+	<select id="getGroupListWeChatUserId" parameterClass="java.lang.String" resultMap="weChatGroupResult">
+		select * from WECHAT_GROUP where WECHAT_USER_ID=#weChatUserId# order by GROUP_ID ASC
+	</select>
+	
+	<select id="getGroupListByOrgId" parameterClass="java.lang.Long" resultMap="weChatGroupResult">
+		select * from wechat_group g where g.wechat_user_id in 
+			(select t.wechat_user_id from tencent_user t where t.org_id=#value#) order by g.group_id asc
+	</select>
+	
+	<delete id="deleteWeChatGroupByWeChatUserId" parameterClass="java.lang.String">
+		delete from WECHAT_GROUP where WECHAT_USER_ID=#weChatUserId# 
+	</delete>
+	
+	<sql id="sql_where">
+		<dynamic>
+				<isNotEmpty prepend=" and " property="WeChatGroup.name">
+					g.name like '%'||#WeChatGroup.name#||'%'
+				</isNotEmpty>
+				<isNotEmpty prepend=" and " property="WeChatGroup.weChatUserId">
+					g.WECHAT_USER_ID in ($WeChatGroup.weChatUserId$)
+				</isNotEmpty>
+		</dynamic>
+	</sql>
+	<select id="countFindWeChatGroup" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		select count(*) from WECHAT_GROUP g where 1=1
+		<include refid="sql_where" />
+	</select>
+	<select id="findWeChatGroup" parameterClass="java.util.Map"
+		resultMap="weChatGroupResult">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_start" />
+			</isNotNull>
+		</isPropertyAvailable>
+		select * from WECHAT_GROUP g
+		where 1=1
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">g.$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_end" />
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	
+</sqlMap>

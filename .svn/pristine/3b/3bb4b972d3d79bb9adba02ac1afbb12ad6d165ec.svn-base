@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="positiveInfo">
+	<!-- 注释说明 -->
+	<typeAlias alias="PositiveInfo" type="com.tianque.baseInfo.positiveInfo.domain.PositiveInfo" />
+	<typeAlias alias="SearchPositiveInfoVo" type="com.tianque.domain.vo.SearchPositiveInfoVo" />
+	<resultMap id="positiveInfoResult" class="PositiveInfo" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResult">
+		<result property="positiveInfoType.id" column="positiveInfoType" />
+		<result property="isRepeat" column="isRepeat" />
+		<result property="releaseOrBackDate" column="releaseOrBackDate" />
+		<result property="resettlementDate" column="resettlementDate" />
+		<result property="laborEduAddress" column="laborEduAddress" />
+		<result property="imprisonmentDate" column="imprisonmentDate" />
+		<result property="caseReason" column="caseReason" />
+		<result property="agoProfession.id" column="agoProfession" />
+		<result property="noResettlementReason" column="noResettlementReason" />
+		<result property="isCrime" column="isCrime" />
+		<result property="crimeDate" column="crimeDate" />
+		<result property="criminalBehavior" column="criminalBehavior" />
+	</resultMap>
+	<!-- 这两个resultMap内容一致，继承关系不一样 -->
+	<resultMap id="positiveInfoResultForList" class="PositiveInfo" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+		<result property="positiveInfoType.id" column="positiveInfoType" />
+		<result property="isRepeat" column="isRepeat" />
+		<result property="releaseOrBackDate" column="releaseOrBackDate" />
+		<result property="resettlementDate" column="resettlementDate" />
+		<result property="laborEduAddress" column="laborEduAddress" />
+		<result property="imprisonmentDate" column="imprisonmentDate" />
+		<result property="caseReason" column="caseReason" />
+		<result property="agoProfession.id" column="agoProfession" />
+		<result property="noResettlementReason" column="noResettlementReason" />
+		<result property="isCrime" column="isCrime" />
+		<result property="crimeDate" column="crimeDate" />
+		<result property="criminalBehavior" column="criminalBehavior" />
+	</resultMap>
+	
+	<resultMap id="positiveInfoResultForDefaultList" class="PositiveInfo" 
+		extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForDefaultList">
+		<result property="positiveInfoType.id" column="positiveInfoType" />
+		<result property="isRepeat" column="isRepeat" />
+		<result property="releaseOrBackDate" column="releaseOrBackDate" />
+		<result property="resettlementDate" column="resettlementDate" />
+		<result property="laborEduAddress" column="laborEduAddress" />
+		<result property="imprisonmentDate" column="imprisonmentDate" />
+		<result property="caseReason" column="caseReason" />
+		<result property="agoProfession.id" column="agoProfession" />
+		<result property="noResettlementReason" column="noResettlementReason" />
+		<result property="isCrime" column="isCrime" />
+		<result property="crimeDate" column="crimeDate" />
+		<result property="criminalBehavior" column="criminalBehavior" />
+	</resultMap>
+
+    <resultMap id="mobilePositiveInfoMap" class="PositiveInfo" extends="positiveInfoResultForDefaultList">
+       <!-- 用于手机接口返回走访数量 -->
+    <result property="interviewCount" column="interviewCount" />
+    </resultMap>
+   
+	<sql id="fields">
+	        uni.id,uni.createDate,uni.createUser,uni.updateUser,uni.updateDate,uni.householdId,helpEducator
+			,uni.positiveInfoType,uni.caseReason,uni.imprisonmentDate,uni.laborEduAddress
+			,uni.releaseOrBackDate,uni.isRepeat,uni.criminalBehavior,uni.agoProfession,uni.isCrime,uni.resettlementDate,uni.crimeDate,
+			uni.noResettlementReason,uni.attentionExtent,uni.sourcesState,uni.orgId,uni.orgInternalCode,
+			uni.resettlement,uni.baseinfoid,uni.addressInfoId,uni.isEmphasis,uni.isEmphasisReason,uni.isEmphasisDate
+	</sql>
+	<!-- 添加一行信息 -->
+	<insert id="addPositiveInfo" parameterClass="PositiveInfo">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_POSITIVEINFOS.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO positiveInfos
+		(
+			<include refid="populationBaseInfo.addBaseInfoFields"/>
+			,positiveInfoType,caseReason,imprisonmentDate,laborEduAddress
+			,releaseOrBackDate,isRepeat,criminalBehavior,agoProfession,isCrime,resettlementDate,crimeDate,
+			noResettlementReason,attentionExtent,sourcesState,isEmphasis
+		)
+		values
+		(
+			<include refid="populationBaseInfo.addBaseInfoData"/>
+			,#positiveInfoType.id#,#caseReason#,#imprisonmentDate#,#laborEduAddress#,#releaseOrBackDate#,
+			#isRepeat#,#criminalBehavior#,#agoProfession.id#,#isCrime#,#resettlementDate#,
+			#crimeDate#,#noResettlementReason#,#attentionExtent.id#,#sourcesState#,#isEmphasis#
+		)
+	</insert>
+	<!-- 查看某一规正人员的详细信息 -->
+	<select id="getPositiveInfoById" parameterClass="Long" resultMap="positiveInfoResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from positiveInfos uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.id = #value#
+	</select>
+	<select id="getByOrgIdAndIdCardNo" parameterClass="map"
+		resultMap="positiveInfoResult">
+	 select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/> ,<include refid="addressInfo.addressInfoFields"/>
+	  	 from positiveInfos uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+	  	  where uni.orgId = #orgId# and upper(b.idCardNo)=upper(#idCardNo#)
+	</select>
+
+	<!-- 删除一行信息 -->
+	<delete id="deletePositiveInfoById" parameterClass="java.lang.Long">
+		delete from
+		positiveInfos where id=#id#
+	</delete>
+
+	<sql id="sql_where">
+		from positiveInfos uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where 1=1
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findPositiveInfo" resultMap="positiveInfoResultForList"
+		parameterClass="PositiveInfo">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		,'$attentionPopulationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countPositiveInfo" parameterClass="PositiveInfo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(uni.id)]]>
+		<include refid="sql_where" />
+	</select>
+	
+	<sql id="default_sql_where">
+	  from positiveInfos uni 
+	  <dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findPositiveInfoDefaultList" resultMap="mobilePositiveInfoMap" parameterClass="map">
+	  select <include refid="fields"/> 
+	  ,(select count(1) from positiveinforecord m where m.positiveinfoid=uni.id ) as interviewCount 
+	  <include refid="default_sql_where" />
+	  ORDER BY ID DESC
+	</select>
+	
+	<select id="countPositiveInfoDefaultList" resultClass="java.lang.Integer" parameterClass="map">
+		<![CDATA[select count(uni.id)]]>
+		<include refid="default_sql_where" />
+	</select>
+	
+	<update id="updatePositiveInfo" parameterClass="PositiveInfo">
+		update positiveInfos set
+			<include refid="populationBaseInfo.updateBaseInfoSql"/>,
+			<isNotEmpty property="isEmphasis">
+				isEmphasis = #isEmphasis#,
+			</isNotEmpty>
+			positiveInfoType=#positiveInfoType.id#,
+			caseReason=#caseReason#,
+			imprisonmentDate=#imprisonmentDate#,
+			laborEduAddress=#laborEduAddress#,
+			releaseOrBackDate=#releaseOrBackDate#,
+			isRepeat=#isRepeat#,
+			criminalBehavior=#criminalBehavior#,
+			agoProfession=#agoProfession.id#,
+			isCrime=#isCrime#,
+			resettlementDate=#resettlementDate#,
+			crimeDate=#crimeDate#,
+			noResettlementReason=#noResettlementReason#,
+			attentionExtent=#attentionExtent.id#
+		where id=#id#
+	</update>
+	
+	<update id="updateBaseInfo" parameterClass="PositiveInfo">
+		update positiveInfos set
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>
+		<include refid="populationBaseInfo.updateBussLogoutDetail"/>
+		where id=#id#
+	</update>
+	<update id="updateBusiness" parameterClass="PositiveInfo">
+		update positiveInfos set
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>,
+		<isNotEmpty property="isEmphasis">
+			isEmphasis = #isEmphasis#,
+		</isNotEmpty>
+		positiveInfoType=#positiveInfoType.id#,
+		caseReason=#caseReason#,
+		imprisonmentDate=#imprisonmentDate#,
+		laborEduAddress=#laborEduAddress#,
+		releaseOrBackDate=#releaseOrBackDate#,
+		isRepeat=#isRepeat#,
+		criminalBehavior=#criminalBehavior#,
+		agoProfession=#agoProfession.id#,
+		isCrime=#isCrime#,
+		resettlementDate=#resettlementDate#,
+		crimeDate=#crimeDate#,
+		noResettlementReason=#noResettlementReason#,
+		attentionExtent=#attentionExtent.id#
+		where id=#id#
+	</update>
+	<update id="updateEmphasiseById" parameterClass="map">
+		update positiveInfos set isEmphasis = #isEmphasis# where id=#id#
+	</update>
+
+	<select id="findPositiveInfoByOrgIdAndIdCardNos" resultMap="positiveInfoResult"
+		parameterClass="java.util.Map">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/> ,<include refid="addressInfo.addressInfoFields"/>
+		 from positiveInfos uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/>
+		 where 1=1
+		<dynamic>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId=#orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+				and(
+				<iterate property="idCardNos" conjunction="or">
+						upper(idCardNo) like upper(#idCardNos[]#)
+				</iterate>
+				)
+		</dynamic>
+	</select>
+	<update id="updateDeathAndLogoutStateById" parameterClass="map">
+		update positiveInfos set
+		<isNotEmpty property="death">
+			isdeath = #death#
+		</isNotEmpty>
+		<isNotEmpty property="isEmphasis" prepend=",">
+			isEmphasis=#isEmphasis#
+		</isNotEmpty>
+		where id=#id#
+	</update>
+
+	<select id="findPositiveInfoByDate" parameterClass="map" resultMap="positiveInfoResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from positiveInfos uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where positiveinfoType = #positiveTypeId#
+		and (sysDate - add_months(releaseorbackDate,#time#)) > = 0
+		and isEmphasis =0
+	</select>
+	<select id="getByIdCard" parameterClass="java.util.Map"
+		resultMap="positiveInfoResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from positiveInfos uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgId=#orgId#
+		and
+		<iterate property="idCardNoList" open="("  close=")"  conjunction="or">
+		    upper(idCardNo) = upper(#idCardNoList[]#)
+		</iterate>
+	</select>
+	
+	
+		<!-- 移动数据需要的sql -->
+	<update id="updateDataMovePositiveInfoToOrg" parameterClass="java.util.Map">
+		update positiveInfos set orgId = #orgId# , orgInternalCode = #orgInternalCode# where id = #id#
+	</update>
+	
+	
+	
+	<!--fateson add   -->
+	<select id="countPositiveInfosForPage" parameterClass="PositiveInfo"
+		resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM positiveinfos WHERE orgInternalCode LIKE
+		'$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findPositiveInfosForPage" parameterClass="PositiveInfo"
+		resultMap="positiveInfoResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType 
+		FROM positiveinfos uni left join baseinfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		WHERE uni.orgInternalCode LIKE '$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = $isEmphasis$
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="ORDER BY">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countPositiveInfosBySearchVo" parameterClass="SearchPositiveInfoVo"
+		resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM positiveinfos WHERE orgInternalCode LIKE
+		'$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findPositiveInfosBySearchVo" parameterClass="SearchPositiveInfoVo"
+		resultMap="positiveInfoResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType 
+		FROM positiveinfos uni left join baseinfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		WHERE uni.orgInternalCode LIKE '$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = $isEmphasis$
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="ORDER BY">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<select id="getIdByBaseinfoIdAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		SELECT id from positiveinfos  
+		where baseinfoid=#baseInfoId# and orgId=#orgId#
+	</select>
+	
+	
+</sqlMap>
+

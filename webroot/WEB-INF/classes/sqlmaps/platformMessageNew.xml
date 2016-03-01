@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="platformMessageNew">
+
+	<typeAlias alias="platformMessage" type="com.tianque.platformMessage.domain.PlatformMessage" />
+	<typeAlias alias="SearchPlatformMessageVo" type="com.tianque.platformMessage.domain.SearchPlatformMessageVo"/>
+	
+	
+	<resultMap class="platformMessage" id="platformMessageResults">
+		<result property="id" column="id" />
+		<result property="title" column="title" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="content" column="content" />
+		<result property="historyMessage" column="historyMessage" />
+		<result property="messageType" column="messageType" />
+		<result property="url" column="url" />
+		<result property="roleOrgId" column="roleOrgId" />
+		<result property="sender.id" column="senderId" />
+		<result property="sendDate" column="sendDate" />
+		<result property="sendType" column="sendType" />
+		<result property="receiverType" column="receiverType" />
+		<result property="receiverId" column="receiverId" />
+		<result property="receiverNames" column="receiverNames" />
+		<result property="originatorsName" column="originatorsName" />
+		<result property="originatorsDate" column="originatorsDate" />
+	</resultMap>
+	
+	<!-- 收件箱 -->
+	<resultMap class="platformMessage" id="inboxPlatformMessageResult" extends="platformMessageResults">
+		<result property="readState" column="readState" />
+		<result property="readDate" column="readDate" />
+	</resultMap>
+	
+	<sql id="search_system_messages" >
+		<isPropertyAvailable property="isAdmin" >
+			<isNotNull property="isAdmin" prepend=" and ">
+				<isEqual compareValue="1" property="isAdmin">
+					senderid = 1
+				</isEqual>
+				<isEqual compareValue="0" property="isAdmin">
+					<![CDATA[ senderid <> 1  ]]>
+				</isEqual>
+			</isNotNull>
+		</isPropertyAvailable>
+	</sql>
+	
+	<sql id="messageTypeCondition">
+		messageType in 
+		<iterate property="platformMessageTypes" open="(" close=")" conjunction=",">
+			#platformMessageTypes[]#
+		</iterate>
+	</sql> 
+	
+	<!-- user收件箱消息数量 -->
+	<select id="countUserInboxPlatformMessage" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	  	select count(*) from userhasplatformmessages up where 
+		<include refid="messageTypeCondition"/>
+		<include refid="search_system_messages"/>
+		and deleteState = 0 and userId = #userId#
+	</select>
+	<!-- user收件箱消息列表 -->
+	<select id="findUserInboxPlatformMessage" parameterClass="java.util.Map" resultMap="inboxPlatformMessageResult">
+		<dynamic>
+			<isPropertyAvailable property="startRow">
+				<isNotNull property="startRow">
+					select * from (select rownum row_num,t1.* from (
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		select * from inboxPlatformMessages ipm where exists (
+			select 1 from userhasplatformmessages up where 
+			ipm.id = up.pmid and
+		<include refid="messageTypeCondition"/>
+		<include refid="search_system_messages"/>  
+			and deleteState = 0 and userId = #userId#
+		)
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>	
+		<dynamic>
+			<isPropertyAvailable property="startRow">
+				<isNotNull property="startRow">
+				) t1 where rownum<![CDATA[<=]]>#endRow# ) where row_num<![CDATA[>]]>#startRow#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- user收件箱未读消息数量 -->
+	<select id="getUserUnreadUserPlatformMessageFromInbox" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from userhasplatformmessages up where 
+		<include refid="messageTypeCondition"/>
+		and deleteState = 0 and  readState = 0  and userId = #userId# 
+	</select>
+	
+	<!-- 收件箱未读消息列表-->
+	<select id="findUnreadInboxPlatformMessage" parameterClass="java.util.Map" resultMap="inboxPlatformMessageResult">
+		select * from inboxPlatformMessages ipm where exists(select 1 from userhasplatformmessages up 
+			   where ipm.id = up.pmId and 
+		<include refid="messageTypeCondition"/>
+			   and deleteState = 0 and readState = 0	and userId = #userId#) 
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>	
+	</select>
+	
+	<update id="markUserInboxPlatgformMessageRead" parameterClass="platformMessage">
+		update userhasplatformmessages set readState = 1 , readDate = #readDate# where userId = #receiverId# and pmId = #id#
+	</update>
+	
+	
+	<!-- 收件箱查询条件 -->
+	<sql id="inbox_sql_where">
+		<dynamic>
+		  	from (
+			   select * from inboxPlatformMessages ipm where exists(select 1 from userhasplatformmessages up 
+			   where ipm.id = up.pmId and deleteState = 0  
+			<isNotNull property="readState" prepend=" and ">
+					readState = #readState#			   
+			</isNotNull>
+			   and userId = #userId#)
+			<include refid="search_system_messages"/>
+			) pm
+			where  pm.messageType in 
+			<iterate property="platformMessageTypes" open="(" close=")" conjunction=",">
+				#platformMessageTypes[]#
+			</iterate>
+			<isPropertyAvailable property="title" >
+				<isNotEmpty property="title" prepend=" and ">
+                    pm.title like #title#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="content">
+				<isNotEmpty property="content" prepend=" and ">
+					pm.content like '%'||#content#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sendTimeStart" >
+				<isNotNull property="sendTimeStart" prepend=" and ">
+				<![CDATA[pm.SendDate >= #sendTimeStart#]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sendTimeEnd" >
+				<isNotNull property="sendTimeEnd" prepend=" and ">
+				<![CDATA[pm.SendDate <= #sendTimeEnd#]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="hasAttach" >
+				<isNotNull property="hasAttach" prepend=" and ">
+					<isEqual compareValue="1" property="hasAttach">
+                    	pm.id in (select pmId from platformmessagesattachfiles where attachType = 2 )
+					</isEqual>
+					<isEqual compareValue="0" property="hasAttach">
+                    	pm.id not in (select pmId from platformmessagesattachfiles where attachType = 2 )
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sendUserId" >
+				<isNotEmpty property="sendUserId" prepend=" and ">
+					pm.senderId = #sendUserId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="messageType" >
+				<isNotEmpty property="messageType" prepend=" and ">
+					<isEqual property="messageType" compareValue="20">
+					<![CDATA[pm.messageType <> 0]]>
+					</isEqual>
+					<isNotEqual property="messageType" compareValue="20">
+                    	pm.messageType = #messageType#
+					</isNotEqual>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fastSearchCondition">
+				<isNotEmpty property="fastSearchCondition" prepend=" and ">
+					( pm.title like #fastSearchCondition#||'%' or pm.content like #fastSearchCondition#||'%' )
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="countSearchInboxPlatformMessage" parameterClass="SearchPlatformMessageVo" resultClass="int">
+		select count(pm.id)
+		<include refid="inbox_sql_where"/>
+	</select>
+	
+	<select id="searchInboxPlatformMessage" parameterClass="SearchPlatformMessageVo" 
+		resultMap="inboxPlatformMessageResult">
+		select pm.* 
+		<include refid="inbox_sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+				</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>

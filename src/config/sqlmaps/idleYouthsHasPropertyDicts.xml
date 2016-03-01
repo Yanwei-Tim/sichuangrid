@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="IdleYouthsHasPropertyDicts">
+	<typeAlias alias="idleYouthsHasPropertyDicts" type="com.tianque.baseInfo.idleYouth.domain.IdleYouthsHasPropertyDicts" />
+	<resultMap id="idleYouthsHasPropertyDictsResult" class="idleYouthsHasPropertyDicts">
+		<result column="IDLEYOUTHSID" property="idleYouthsid" />
+		<result column="PROPERTYDICTID" property="propertydictId" />
+	</resultMap>
+	
+	<insert id="addIdleYouthsHasPropertyDicts" parameterClass="idleYouthsHasPropertyDicts">
+		insert into idleYouthsHasPropertyDicts
+		values(#idleYouthsid#,#propertydictId#)
+	</insert>
+	
+	<delete id="deleteIdleYouthsHasPropertyDictsByIdleYouthId" parameterClass="java.lang.Long">
+		delete from idleYouthsHasPropertyDicts where idleYouthsId = #value#
+	</delete>
+
+    <update id="updateIdleYouthsHasPropertyDictsByIdleYouthId" parameterClass="map">
+		update idleYouthsHasPropertyDicts set idleYouthsId = #newIdleYouthsId# where idleYouthsId=#idleYouthId#
+	</update>
+	
+	<select id="queryIdleYouthsHasPropertyDictsByIdleYouthIdForList" parameterClass="java.lang.Long" resultMap="idleYouthsHasPropertyDictsResult">
+		select i.idleyouthsid,i.propertydictid from idleYouthsHasPropertyDicts i where i.idleYouthsId = #value#
+	</select>
+</sqlMap>

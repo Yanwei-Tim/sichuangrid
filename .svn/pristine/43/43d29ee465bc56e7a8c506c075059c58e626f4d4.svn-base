@@ -1,0 +1,1061 @@
+package com.tianque.plugin.account.controller;
+
+import java.lang.reflect.InvocationTargetException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.account.api.LedgerFeedBackDubboService;
+import com.tianque.account.api.LedgerPoorPeopleDubboService;
+import com.tianque.account.api.ReplyFormDubboService;
+import com.tianque.account.api.ThreeRecordsIssueDubboService;
+import com.tianque.account.api.ThreeRecordsIssueProcessDubboService;
+import com.tianque.account.api.ThreeRecordsSearchIssueStepDubboService;
+import com.tianque.baseInfo.base.domain.Countrymen;
+import com.tianque.baseInfo.base.service.BaseInfoService;
+import com.tianque.baseInfo.householdStaff.domain.HouseholdStaff;
+import com.tianque.baseInfo.householdStaff.service.HouseholdStaffService;
+import com.tianque.controller.ControllerHelper;
+import com.tianque.controller.annotation.PermissionFilter;
+import com.tianque.controller.vo.HouseholdStaffVo;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.util.CollectionUtil;
+import com.tianque.core.util.GlobalValue;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.GridPage;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.User;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.plugin.account.constants.LedgerConstants;
+import com.tianque.plugin.account.constants.ThreeRecordsIssueConstants;
+import com.tianque.plugin.account.constants.ThreeRecordsIssueViewType;
+import com.tianque.plugin.account.domain.LedgerFeedBack;
+import com.tianque.plugin.account.domain.LedgerPoorPeople;
+import com.tianque.plugin.account.domain.LedgerPoorPeopleMember;
+import com.tianque.plugin.account.domain.ReplyForm;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueAttachFile;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew;
+import com.tianque.plugin.account.toexcel.AccountExportHelper;
+import com.tianque.plugin.account.util.ComparisonAttribute;
+import com.tianque.plugin.account.util.DialogMode;
+import com.tianque.plugin.account.util.ThreeRecordOrgJudge;
+import com.tianque.plugin.account.util.ThreeRecordsIssueOperationUtil;
+import com.tianque.plugin.account.vo.LedgerPoorPeopleVo;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.userAuth.api.PropertyDictDubboService;
+
+@Controller("ledgerPoorPeopleController")
+@Scope("request")
+@Namespace("/threeRecordsIssue/ledgerPoorPeopleManage")
+public class LedgerPoorPeopleController extends BaseAction {
+
+	private Organization organization;
+	private Long id;
+	private String name;
+	private String viewType;
+	private String idCardNo;
+	private LedgerPoorPeople ledgerPoorPeople;
+	private String ledgerPoorPeopleMembersParm;
+	private String ids;
+	private Countrymen baseWorking;
+	/** 根据操作不同 可能是台账id、orgid、台账处理步骤id(issueStepId) */
+	private Long keyId;
+	private Long issueType;
+	private String seachValue;
+	private String leaderView;
+	private Long functionalOrgType;// 职能部门类型
+	private Integer viewProcess;// 是否是查询大屏滚动的数据
+	private Long orgLevel;
+	private Integer orgLevelInternalId;
+	private Long sourceType; // 台账来源
+	private Integer sourceTypeInternalId;
+	private List<LedgerFeedBack> feedbacks;
+	private Integer year;//台账创建年份查询
+	private Integer month;//台账创建月份查询
+	// 台账回复
+	private List<ReplyForm> replys;
+	/** 台账的处理记录 用于在页面上显示处理记录 */
+	private List<ThreeRecordsIssueLogNew> issueDealLogs;
+	/** 台账中包含的附件集合 用于在页面显示附件 */
+	private List<ThreeRecordsIssueAttachFile> issueAttachFiles = new ArrayList<ThreeRecordsIssueAttachFile>();
+	/** 台账处办理过程中添加的附件 用于页面显示 */
+	private Map<Long, List<ThreeRecordsIssueAttachFile>> issueLogAttachFiles = new HashMap<Long, List<ThreeRecordsIssueAttachFile>>();
+	private HouseholdStaffVo householdStaffVo;
+	@Autowired
+	private LedgerFeedBackDubboService ledgerFeedBackDubboService;
+	@Autowired
+	private PropertyDictDubboService propertyDictDubboService;
+	@Autowired
+	private BaseInfoService baseInfoService;
+	@Autowired
+	private LedgerPoorPeopleDubboService ledgerPoorPeopleDubboService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private ThreeRecordsSearchIssueStepDubboService searchIssueStepDubboService;
+	@Autowired
+	private ThreeRecordsIssueDubboService threeRecordsIssueDubboService;
+	@Autowired
+	private ReplyFormDubboService replyFormDubboService;
+
+	@Autowired
+	private HouseholdStaffService householdStaffService;
+	@Autowired
+	private ThreeRecordsIssueProcessDubboService threeRecordsIssueProcessDubboService;
+	private Map<String, Integer> countMap;
+
+	@Action(value = "addLedgerPoorPeople", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"ledgerPoorPeople", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	@PermissionFilter(ename = "addDifficultPeopleRecord")
+	public String addLedgerPoorPeople() throws Exception {
+		if (ledgerPoorPeople == null) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		if (!StringUtils.isEmpty(ledgerPoorPeopleMembersParm)) {
+			ledgerPoorPeople
+					.setLedgerPoorPeopleMembers(analysisParameter(ledgerPoorPeopleMembersParm));
+		}
+		ledgerPoorPeople = ledgerPoorPeopleDubboService
+				.addLedgerPoorPeople(ledgerPoorPeople);
+		return SUCCESS;
+	}
+
+	@Action(value = "dispatchOperate", results = {
+			@Result(name = "success", location = "/account/difficultPeopleRecord/poorPeopleDlg.jsp"),
+			@Result(name = "search", location = "/account/difficultPeopleRecord/searchPoorPeopleDlg.jsp"),
+			@Result(name = "print", location = "/account/difficultPeopleRecord/printPoorPeopleDlg.jsp"),
+			@Result(name = "viewNew", location = "/account/difficultPeopleRecord/viewLedgerPoorPeopleNewDlg.jsp") })
+	public String dispatchOperate() throws Exception {
+		if (DialogMode.ADD_MODE.equals(mode)) {
+			ledgerPoorPeople = ledgerPoorPeopleDubboService
+					.createTemporaryLedgerPoorPeople(ThreadVariable
+							.getOrganization().getId());
+		} else if (DialogMode.EDIT_MODE.equals(mode)) {
+			ledgerPoorPeople = ledgerPoorPeopleDubboService
+					.getFullLedgerPoorPeopleById(id);
+		} else if (DialogMode.SEARCH_MODE.equals(mode)) {
+			return mode;
+		} else if (DialogMode.VIEW_NEW_MODE.equals(mode)
+				|| DialogMode.PRINT_MODE.equalsIgnoreCase(mode)) {
+			return forwardToViewNew();
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "existedPoorPeopleByIdCardNo", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"ledgerPoorPeople", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String existedPoorPeopleByIdCardNo() throws Exception {
+		if (idCardNo == null) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		ledgerPoorPeople = ledgerPoorPeopleDubboService
+				.findByIdCardNo(idCardNo);
+		return SUCCESS;
+	}
+
+	/**
+	 * 导出
+	 */
+	@Action(value = "exportExcel", results = {
+			@Result(name = "success", type = "stream", params = { "contentType", "application/vnd.ms-excel;charset=ISO8859-1",
+					"inputName","inputStream","contentDisposition","attachment;filename=${downloadFileName}","bufferSize","4096"}),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String exportExcel() throws Exception {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		if (!hasPermission(keyId, null) && !ThreeRecordOrgJudge.isJgOrLxOrxW(ThreadVariable.getOrganization())) {
+			return GlobalValue.NOT_HAVE_PERMISSION_RESULT;
+		}
+		ledgerPoorPeople = ledgerPoorPeopleDubboService
+				.getFullLedgerPoorPeopleById(keyId);
+		loadAttachFiles(ledgerPoorPeople);
+		// // 查看时 增加查看台账记录
+		loadIssueOperationLogs(ledgerPoorPeople);
+		loadIssueFeedBacks(ledgerPoorPeople);
+		loadReply(ledgerPoorPeople);
+		if (null == ledgerPoorPeople.getLedgerPoorPeopleMembers()
+				|| ledgerPoorPeople.getLedgerPoorPeopleMembers().size() == 0) {
+			List<LedgerPoorPeopleMember> list = new ArrayList<LedgerPoorPeopleMember>();
+			/*
+			 * 用于打印四个家庭成员信息
+			 */
+			list.add(new LedgerPoorPeopleMember());
+			list.add(new LedgerPoorPeopleMember());
+			list.add(new LedgerPoorPeopleMember());
+			list.add(new LedgerPoorPeopleMember());
+			ledgerPoorPeople.setLedgerPoorPeopleMembers(list);
+		}
+		if(ledgerPoorPeople.getLedgerPoorPeopleMembers().size() < 4){
+			for(int i=0;i<4-ledgerPoorPeople.getLedgerPoorPeopleMembers().size();i++){
+				ledgerPoorPeople.getLedgerPoorPeopleMembers().add(new LedgerPoorPeopleMember());
+			}
+		}
+		Map map=new HashMap();
+		map.put("p", ledgerPoorPeople);
+		map.put("issueDealLogs", issueDealLogs);
+		map.put("last3Logs", getLast3Logs(issueDealLogs));
+		map.put("feedbacks", feedbacks);
+		inputStream = AccountExportHelper.exportLedgerPoorPeopleDateToExcel(map);
+		downloadFileName = new String(("困难台账信息登记卡"+ledgerPoorPeople.getSerialNumber()).getBytes("gbk"),
+				"ISO8859-1") + ".xls";
+		return SUCCESS;
+	}
+	
+	@Action(value = "getCountrymenByIdCardNoAndOrgInternalCode", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"baseWorking", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String getCountrymenByIdCardNoAndOrgInternalCode() throws Exception {
+		if (householdStaffVo == null
+				|| StringUtils.isEmpty(householdStaffVo.getIdCardNo())) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		baseWorking = baseInfoService.getBaseInfoByIdCardNo(householdStaffVo
+				.getIdCardNo());
+		if (baseWorking != null && ThreadVariable.getOrganization() != null) {
+
+			List<HouseholdStaff> list = householdStaffService
+					.findHouseholdStaffList(householdStaffVo, ThreadVariable
+							.getOrganization().getId(), sidx, sord);
+			if (list != null && list.size() > 0) {
+				HouseholdStaff householdStaff = list.get(0);
+				baseWorking.setHouseCode(householdStaff.getAccountNumber());
+				baseWorking.setCurrentAddress(householdStaff
+						.getCurrentAddress());
+			}
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "updateLedgerPoorPeople", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"ledgerPoorPeople", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	@PermissionFilter(ename = "updateDifficultPeopleRecord")
+	public String updateLedgerPoorPeople() throws Exception {
+		if (ledgerPoorPeople == null || ledgerPoorPeople.getId() == null
+				|| ledgerPoorPeople.getId().longValue() == 0L) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		if (!StringUtils.isEmpty(ledgerPoorPeopleMembersParm)) {
+			ledgerPoorPeople
+					.setLedgerPoorPeopleMembers(analysisParameter(ledgerPoorPeopleMembersParm));
+		}
+		ledgerPoorPeopleDubboService.updateLedgerPoorPeople(ledgerPoorPeople);
+		return SUCCESS;
+	}
+
+	@Action(value = "deleteLedgerPoorPeople", results = {
+			@Result(name = "success", type = "json", params = { "root", "true",
+					"ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	@PermissionFilter(ename = "deleteDifficultPeopleRecord")
+	public String deleteLedgerPoorPeople() throws Exception {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		User user = ThreadVariable.getUser();
+		if (user == null
+				|| user.getOrganization() == null
+				|| !(user.getOrganization().getDepartmentNo()
+						.endsWith(ThreeRecordsIssueConstants.COUNTY_LEDGER))) {
+			return GlobalValue.NOT_HAVE_PERMISSION_RESULT;
+		}
+		if (!hasPermission(keyId, null) && !ThreeRecordOrgJudge.isJg(ThreadVariable.getOrganization())) {
+			return GlobalValue.NOT_HAVE_PERMISSION_RESULT;
+		}
+		AttachFileUtil.removeIssueAllAttachFiles(keyId, LedgerConstants.POORPEOPLE, threeRecordsIssueDubboService);
+		ledgerPoorPeopleDubboService.deleteLedgerPoorPeopleById(keyId);
+		return SUCCESS;
+	}
+	
+	@Action(value = "getIssueCount", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"countMap", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String getIssueCount(){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数不对";
+			return ERROR;
+		}
+		if (orgLevel == null && orgLevelInternalId != null) {
+			List<PropertyDict> orgLevels = propertyDictDubboService
+					.findPropertyDictByDomainNameAndInternalId(
+							PropertyTypes.ORGANIZATION_LEVEL,
+							orgLevelInternalId);
+			if (orgLevels != null && orgLevels.size() > 0
+					&& orgLevels.get(0) != null) {
+				orgLevel = orgLevels.get(0).getId();
+			}
+		}
+		if (sourceType == null && sourceTypeInternalId != null) {
+			List<PropertyDict> sourceTypes = propertyDictDubboService
+					.findPropertyDictByDomainNameAndInternalId(
+							PropertyTypes.SOURCE_KIND, sourceTypeInternalId);
+			if (sourceTypes != null && sourceTypes.size() > 0
+					&& sourceTypes.get(0) != null) {
+				sourceType = sourceTypes.get(0).getId();
+			}
+		}
+		countMap = ledgerPoorPeopleDubboService.getIssueCount(keyId, Long.valueOf(LedgerConstants.POORPEOPLE), orgLevel, leaderView, sourceType, functionalOrgType, year, month);
+		return SUCCESS;
+	}
+
+	@Action(value = "findIssueForView", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String findIssueForView() throws Exception {
+		if (orgLevel == null && orgLevelInternalId != null) {
+			List<PropertyDict> orgLevels = propertyDictDubboService
+					.findPropertyDictByDomainNameAndInternalId(
+							PropertyTypes.ORGANIZATION_LEVEL,
+							orgLevelInternalId);
+			if (orgLevels != null && orgLevels.size() > 0
+					&& orgLevels.get(0) != null) {
+				orgLevel = orgLevels.get(0).getId();
+			}
+		}
+		if (sourceType == null && sourceTypeInternalId != null) {
+			List<PropertyDict> sourceTypes = propertyDictDubboService
+					.findPropertyDictByDomainNameAndInternalId(
+							PropertyTypes.SOURCE_KIND, sourceTypeInternalId);
+			if (sourceTypes != null && sourceTypes.size() > 0
+					&& sourceTypes.get(0) != null) {
+				sourceType = sourceTypes.get(0).getId();
+			}
+		}
+		// 根据不同类型调用不同的service
+		if (ThreeRecordsIssueViewType.NEED.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsNeedDo();
+		} else if (ThreeRecordsIssueViewType.DONE.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsDone();
+		} else if (ThreeRecordsIssueViewType.PERIOD.equalsIgnoreCase(viewType)) {
+			return findPeriodCompletedList();
+		} else if (ThreeRecordsIssueViewType.COMPLETED
+				.equalsIgnoreCase(viewType)) {
+			return findCompletedIssueList();
+		} else if (ThreeRecordsIssueViewType.FEEDBACK
+				.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsFeedBack();
+		} else if (ThreeRecordsIssueViewType.ASSIGN.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsAssgin();
+		} else if (ThreeRecordsIssueViewType.SUBMIT.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsSubmit();
+		} else if (ThreeRecordsIssueViewType.FOLLOW.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsFollow();
+		} else if (ThreeRecordsIssueViewType.SUPPORT.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsSupportDo();
+		} else if (ThreeRecordsIssueViewType.NOTICE.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsNoticeDo();
+		} else if (ThreeRecordsIssueViewType.CREATE_DONE
+				.equalsIgnoreCase(viewType)) {
+			return findJurisdictionsCreateAndDone();
+		} else {
+			errorMessage = "参数错误，无法定位处理类型";
+			return ERROR;
+		}
+	}
+
+	/***************************************************************************
+	 * 下辖事项-已办结案事项列表
+	 * 
+	 * @return
+	 */
+	@Action(value = "findJurisdictionsDone", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String findJurisdictionsDone() throws Exception {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数不对";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerPoorPeopleVo> issues = ledgerPoorPeopleDubboService
+				.findJurisdictionsDone(keyId, page, rows, sidx, sord,
+						issueType, orgLevel, seachValue, functionalOrgType,
+						viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	/***************************************************************************
+	 * 下辖事项-协办事项列表
+	 * 
+	 * @return
+	 */
+	@Action(value = "findJurisdictionsSupportDo", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String findJurisdictionsSupportDo() throws Exception {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数不对";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerPoorPeopleVo> issues = ledgerPoorPeopleDubboService
+				.findJurisdictionsSupportDo(seachValue, keyId, page, rows,
+						sidx, sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	/***************************************************************************
+	 * 下辖事项-抄告事项列表
+	 * 
+	 * @return
+	 */
+	@Action(value = "findJurisdictionsNoticeDo", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String findJurisdictionsNoticeDo() throws Exception {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数不对";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerPoorPeopleVo> issues = ledgerPoorPeopleDubboService
+				.findJurisdictionsNoticeDo(seachValue, keyId, page, rows, sidx,
+						sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	/***************************************************************************
+	 * 下辖事项-已办和新建事项列表
+	 * 
+	 * @return
+	 */
+	@Action(value = "findJurisdictionsCreateAndDone", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String findJurisdictionsCreateAndDone() throws Exception {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数不对";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerPoorPeopleVo> issues = ledgerPoorPeopleDubboService
+				.findJurisdictionsCreateAndDone(seachValue, keyId, page, rows,
+						sidx, sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	/***************************************************************************
+	 * 下辖事项-待办事项列表
+	 * 
+	 * @return
+	 */
+	@Action(value = "findJurisdictionsNeedDo", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String findJurisdictionsNeedDo() throws Exception {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数不对";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerPoorPeopleVo> issues = ledgerPoorPeopleDubboService
+				.findJurisdictionsNeedDo(seachValue, keyId, page, rows, sidx,
+						sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	private String findJurisdictionsSubmit() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数不对";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerPoorPeopleVo> issues = ledgerPoorPeopleDubboService
+				.findJurisdictionsSubmit(seachValue, keyId, page, rows, sidx,
+						sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	private String findJurisdictionsFeedBack() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数不对";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerPoorPeopleVo> issues = ledgerPoorPeopleDubboService
+				.findJurisdictionsFeedBack(seachValue, keyId, page, rows, sidx,
+						sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	private String findJurisdictionsAssgin() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数不对";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerPoorPeopleVo> issues = ledgerPoorPeopleDubboService
+				.findJurisdictionsAssgin(seachValue, keyId, page, rows, sidx,
+						sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	private String findPeriodCompletedList() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数不对";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerPoorPeopleVo> issues = ledgerPoorPeopleDubboService
+				.findJurisdictionsPeriodDone(seachValue, keyId, page, rows,
+						sidx, sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	private String findCompletedIssueList() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数不对";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerPoorPeopleVo> issues = ledgerPoorPeopleDubboService
+				.findJurisdictionsSubstanceDone(seachValue, keyId, page, rows,
+						sidx, sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	private String findJurisdictionsFollow() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数不对";
+			return ERROR;
+		}
+		resolveIssueType();
+		PageInfo<LedgerPoorPeopleVo> issues = ledgerPoorPeopleDubboService
+				.findJurisdictionsFollow(seachValue, keyId, page, rows, sidx,
+						sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType,year,month);
+		String[] params = ThreeRecordsIssueOperationUtil
+				.getViewprocessParams(viewProcess);
+		issues = ControllerHelper.processAllOrgRelativeName(issues,
+				organizationDubboService, params, null);
+		gridPage = new GridPage(issues);
+		return SUCCESS;
+	}
+
+	private String forwardToViewNew() {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		if (!hasPermission(keyId, null) && !ThreeRecordOrgJudge.isJgOrLxOrxW(ThreadVariable.getOrganization())) {
+			return GlobalValue.NOT_HAVE_PERMISSION_RESULT;
+		}
+		ledgerPoorPeople = ledgerPoorPeopleDubboService
+				.getFullLedgerPoorPeopleById(keyId);
+		loadAttachFiles(ledgerPoorPeople);
+		// // 查看时 增加查看台账记录
+		loadIssueOperationLogs(ledgerPoorPeople);
+		loadIssueFeedBacks(ledgerPoorPeople);
+		loadReply(ledgerPoorPeople);
+		if (DialogMode.PRINT_MODE.equalsIgnoreCase(mode)) {
+			if (null == ledgerPoorPeople.getLedgerPoorPeopleMembers()
+					|| ledgerPoorPeople.getLedgerPoorPeopleMembers().size() == 0) {
+				List<LedgerPoorPeopleMember> list = new ArrayList<LedgerPoorPeopleMember>();
+				/*
+				 * 用于打印三个家庭成员信息
+				 */
+				list.add(new LedgerPoorPeopleMember());
+				list.add(new LedgerPoorPeopleMember());
+				list.add(new LedgerPoorPeopleMember());
+				ledgerPoorPeople.setLedgerPoorPeopleMembers(list);
+			}
+			return DialogMode.PRINT_MODE;
+		}
+		return DialogMode.VIEW_NEW_MODE;
+	}
+
+	private void loadIssueFeedBacks(LedgerPoorPeople ledgerPoorPeople) {
+		if (ledgerPoorPeople == null) {
+			return;
+		}
+		feedbacks = ledgerFeedBackDubboService.getLedgerFeedByLedgerIdAndType(
+				ledgerPoorPeople.getId(), LedgerConstants.POORPEOPLE);
+
+	}
+
+	/*
+	 * 加载回复内容
+	 */
+	private void loadReply(LedgerPoorPeople ledgerPoorPeople) {
+		if (ledgerPoorPeople == null) {
+			return;
+		}
+		replys = replyFormDubboService.getReplyFormAndFilesByLedgerIdAndType(
+				ledgerPoorPeople.getId(), LedgerConstants.POORPEOPLE);
+	}
+
+	/**
+	 * 加载台账的处理记录
+	 * 
+	 * @param selectIssue
+	 */
+	private void loadIssueOperationLogs(LedgerPoorPeople ledgerPoorPeople) {
+		if (ledgerPoorPeople == null) {
+			return;
+		}
+		issueDealLogs = threeRecordsIssueDubboService
+				.loadIssueOperationLogsByIssueId(ledgerPoorPeople.getId(), Long
+						.valueOf(LedgerConstants.POORPEOPLE));
+		if(issueDealLogs != null){
+			for(ThreeRecordsIssueLogNew log : issueDealLogs){
+				log.setIssueStep(threeRecordsIssueProcessDubboService.getSimpleIssueStepById(log.getIssueStep().getId()));
+				if(log.getDealType() == null){//处理类型为空时表示为新增，用台账登记时间替换处理时间
+					log.setOperateTime(ledgerPoorPeople.getRegistrationTime());
+				}
+			}
+		}
+
+	}
+
+	private boolean hasPermission(Long ledgerId, Long stepId) {
+		boolean hasPermission = false;
+		String userOrgCode = ThreadVariable.getOrganization()
+				.getOrgInternalCode();
+		hasPermission = searchIssueStepDubboService.hasPermission(ledgerId,
+				LedgerConstants.POORPEOPLE, stepId, userOrgCode);
+		return hasPermission;
+	}
+
+	/**
+	 * 加载台账的附件
+	 * 
+	 * @param selectIssue
+	 */
+	private void loadAttachFiles(LedgerPoorPeople ledgerPoorPeople) {
+		if (ledgerPoorPeople == null) {
+			return;
+		}
+		issueAttachFiles = threeRecordsIssueDubboService
+				.loadLedgerAndLogAttachFilesByLedgerIdAndType(ledgerPoorPeople
+						.getId(), LedgerConstants.POORPEOPLE);
+		if (!CollectionUtil.isAvaliable(issueAttachFiles)) {
+			return;
+		}
+		ThreeRecordsIssueAttachFile file;
+		List<ThreeRecordsIssueAttachFile> logFiles;
+		for (int index = issueAttachFiles.size(); index > 0; index--) {
+			file = issueAttachFiles.get(index - 1);
+			if (isLogAttachFile(file)) {
+				logFiles = lookupLogFilesFromAllLogFile(file.getIssueLog()
+						.getId());
+				logFiles.add(file);
+				issueAttachFiles.remove(index - 1);
+			}
+		}
+	}
+
+	private List<ThreeRecordsIssueAttachFile> lookupLogFilesFromAllLogFile(
+			Long id) {
+		if (issueLogAttachFiles.containsKey(id)) {
+			return issueLogAttachFiles.get(id);
+		}
+		List<ThreeRecordsIssueAttachFile> files = new ArrayList<ThreeRecordsIssueAttachFile>();
+		issueLogAttachFiles.put(id, files);
+		return files;
+
+	}
+
+	private List<LedgerPoorPeopleMember> analysisParameter(String parameter)
+			throws Exception {
+		if (StringUtils.isEmpty(parameter)) {
+			return null;
+		}
+		String[] objs = analysisObject(parameter);
+		List<LedgerPoorPeopleMember> list = null;
+		if (objs != null && objs.length > 0) {
+			list = new ArrayList<LedgerPoorPeopleMember>();
+			for (int i = 0; i < objs.length; i++) {
+				list.add(analysisFiled(objs[i]));
+			}
+		}
+		return list;
+	}
+
+	private String[] analysisObject(String parameter) {
+		if (StringUtils.isEmpty(parameter)) {
+			return null;
+		}
+		return parameter.split("},");
+	}
+
+	private LedgerPoorPeopleMember analysisFiled(String object)
+			throws ParseException, SecurityException, IllegalArgumentException,
+			NoSuchFieldException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException {
+		if (StringUtils.isEmpty(object)) {
+			return null;
+		}
+		LedgerPoorPeopleMember ledgerPoorPeopleMember = new LedgerPoorPeopleMember();
+		ComparisonAttribute.analysisFiled(object, ledgerPoorPeopleMember
+				.getClass(), ledgerPoorPeopleMember);
+		return ledgerPoorPeopleMember;
+	}
+
+	private boolean isLogAttachFile(ThreeRecordsIssueAttachFile file) {
+		return file.getIssueLog() != null && file.getIssueLog().getId() != null;
+	}
+
+	private  List<ThreeRecordsIssueLogNew> getLast3Logs(List<ThreeRecordsIssueLogNew> issueDealLogs) {
+		List<ThreeRecordsIssueLogNew> last3Logs = new ArrayList();
+     	int j = 0;
+     	//取出最新三条处理记录
+     	if(issueDealLogs!=null&&issueDealLogs.size()!=0){
+	     	for (int i = issueDealLogs.size() - 1; i > 0; i--) {
+	     		if (j == 3){
+	     			break;
+	     		}
+	     		ThreeRecordsIssueLogNew log = issueDealLogs.get(i);
+	     		if (log.getDealType() == null)
+	     			continue;
+	     		if (log.getCompleteType() != null) {
+	     			last3Logs.add(log);
+	     			++j;
+	     		} else if (log.getTargeOrg() != null) {
+	     			++j;
+	     			last3Logs.add(log);
+	     		}
+	     	}
+     	}
+		return last3Logs;
+	}
+	
+	private boolean legalKeyIdParam() {
+		return null != keyId;
+	}
+
+	private void resolveIssueType() {
+		issueType = Long.valueOf(LedgerConstants.POORPEOPLE);
+	}
+
+	public Organization getOrganization() {
+		return organization;
+	}
+
+	public void setOrganization(Organization organization) {
+		this.organization = organization;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getViewType() {
+		return viewType;
+	}
+
+	public void setViewType(String viewType) {
+		this.viewType = viewType;
+	}
+
+	public String getIdCardNo() {
+		return idCardNo;
+	}
+
+	public void setIdCardNo(String idCardNo) {
+		this.idCardNo = idCardNo;
+	}
+
+	public LedgerPoorPeople getLedgerPoorPeople() {
+		return ledgerPoorPeople;
+	}
+
+	public void setLedgerPoorPeople(LedgerPoorPeople ledgerPoorPeople) {
+		this.ledgerPoorPeople = ledgerPoorPeople;
+	}
+
+	public String getLedgerPoorPeopleMembersParm() {
+		return ledgerPoorPeopleMembersParm;
+	}
+
+	public void setLedgerPoorPeopleMembersParm(
+			String ledgerPoorPeopleMembersParm) {
+		this.ledgerPoorPeopleMembersParm = ledgerPoorPeopleMembersParm;
+	}
+
+	public String getIds() {
+		return ids;
+	}
+
+	public void setIds(String ids) {
+		this.ids = ids;
+	}
+
+	public Countrymen getBaseWorking() {
+		return baseWorking;
+	}
+
+	public void setBaseWorking(Countrymen baseWorking) {
+		this.baseWorking = baseWorking;
+	}
+
+	public Long getOrgLevel() {
+		return orgLevel;
+	}
+
+	public void setOrgLevel(Long orgLevel) {
+		this.orgLevel = orgLevel;
+	}
+
+	public Integer getOrgLevelInternalId() {
+		return orgLevelInternalId;
+	}
+
+	public void setOrgLevelInternalId(Integer orgLevelInternalId) {
+		this.orgLevelInternalId = orgLevelInternalId;
+	}
+
+	public Long getSourceType() {
+		return sourceType;
+	}
+
+	public void setSourceType(Long sourceType) {
+		this.sourceType = sourceType;
+	}
+
+	public Integer getSourceTypeInternalId() {
+		return sourceTypeInternalId;
+	}
+
+	public void setSourceTypeInternalId(Integer sourceTypeInternalId) {
+		this.sourceTypeInternalId = sourceTypeInternalId;
+	}
+
+	public Long getKeyId() {
+		return keyId;
+	}
+
+	public void setKeyId(Long keyId) {
+		this.keyId = keyId;
+	}
+
+	public Long getIssueType() {
+		return issueType;
+	}
+
+	public void setIssueType(Long issueType) {
+		this.issueType = issueType;
+	}
+
+	public String getSeachValue() {
+		return seachValue;
+	}
+
+	public void setSeachValue(String seachValue) {
+		this.seachValue = seachValue;
+	}
+
+	public String getLeaderView() {
+		return leaderView;
+	}
+
+	public void setLeaderView(String leaderView) {
+		this.leaderView = leaderView;
+	}
+
+	public Long getFunctionalOrgType() {
+		return functionalOrgType;
+	}
+
+	public void setFunctionalOrgType(Long functionalOrgType) {
+		this.functionalOrgType = functionalOrgType;
+	}
+
+	public Integer getViewProcess() {
+		return viewProcess;
+	}
+
+	public void setViewProcess(Integer viewProcess) {
+		this.viewProcess = viewProcess;
+	}
+
+	public List<ThreeRecordsIssueLogNew> getIssueDealLogs() {
+		return issueDealLogs;
+	}
+
+	public void setIssueDealLogs(List<ThreeRecordsIssueLogNew> issueDealLogs) {
+		this.issueDealLogs = issueDealLogs;
+	}
+
+	public List<ThreeRecordsIssueAttachFile> getIssueAttachFiles() {
+		return issueAttachFiles;
+	}
+
+	public void setIssueAttachFiles(
+			List<ThreeRecordsIssueAttachFile> issueAttachFiles) {
+		this.issueAttachFiles = issueAttachFiles;
+	}
+
+	public Map<Long, List<ThreeRecordsIssueAttachFile>> getIssueLogAttachFiles() {
+		return issueLogAttachFiles;
+	}
+
+	public void setIssueLogAttachFiles(
+			Map<Long, List<ThreeRecordsIssueAttachFile>> issueLogAttachFiles) {
+		this.issueLogAttachFiles = issueLogAttachFiles;
+	}
+
+	public List<LedgerFeedBack> getFeedbacks() {
+		return feedbacks;
+	}
+
+	public void setFeedbacks(List<LedgerFeedBack> feedbacks) {
+		this.feedbacks = feedbacks;
+	}
+
+	public List<ReplyForm> getReplys() {
+		return replys;
+	}
+
+	public void setReplys(List<ReplyForm> replys) {
+		this.replys = replys;
+	}
+
+	public HouseholdStaffVo getHouseholdStaffVo() {
+		return householdStaffVo;
+	}
+
+	public void setHouseholdStaffVo(HouseholdStaffVo householdStaffVo) {
+		this.householdStaffVo = householdStaffVo;
+	}
+
+	public Map<String, Integer> getCountMap() {
+		return countMap;
+	}
+
+	public void setCountMap(Map<String, Integer> countMap) {
+		this.countMap = countMap;
+	}
+
+	public Integer getYear() {
+		return year;
+	}
+
+	public void setYear(Integer year) {
+		this.year = year;
+	}
+
+	public Integer getMonth() {
+		return month;
+	}
+
+	public void setMonth(Integer month) {
+		this.month = month;
+	}
+
+}

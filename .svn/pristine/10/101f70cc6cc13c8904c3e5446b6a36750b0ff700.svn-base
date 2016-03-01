@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="searchPrimaryOrganizationDataNewColumnVo" >
+  <typeAlias alias="primaryOrganizationDataColumnTwoVo" type="com.tianque.plugin.analyzing.domain.PrimaryOrganizationDataColumnTwoVo"/>
+  <resultMap id="baseResultMap" class="primaryOrganizationDataColumnTwoVo" >
+    <result property="org.orgName" column="ORGNAME"/>
+    <result property="partyCommitteeCount" column="partyCommitteeCount"/>
+    <result property="partyCommitteeMemberCount" column="partyCommitteeMemberCount"/>
+    <result property="partyTeamCount" column="partyTeamCount"/>
+    <result property="partyTeamMemberCount" column="partyTeamMemberCount"/>
+    <result property="autonomyTeamCount" column="autonomyTeamCount"/>
+    <result property="autonmoyTeamMemberCount" column="autonmoyTeamMemberCount"/>
+    <result property="masseDutyCount" column="masseDutyCount" />
+    <result property="masseDutyMemberCount" column="masseDutyMemberCount"/>
+    <result property="postulantTeamCount" column="postulantTeamCount"/>
+    <result property="postulantTeamMemberCount" column="postulantTeamMemberCount"/>
+  </resultMap>
+
+  <select id="getPrimaryOrganizationDataColumnVo" parameterClass="java.util.Map"  resultMap="baseResultMap">
+	  SELECT ORG.ORGNAME ORGNAME,
+	       (SELECT COUNT(*)
+	          FROM PRIMARYORGANIZATIONS p
+	         WHERE P.TEAMCLASS = #partyCommitteeTeamClass#
+	           AND P.TEAMTYPE IN (#partyCommitteeTeamTypeOne#, #partyCommitteeTeamTypeTwo#, #partyCommitteeTeamTypeThree#, #partyCommitteeTeamTypeFour#)
+	           and p.orginternalcode like org.orginternalcode || '%') AS partyCommitteeCount,
+	       (select count(m.id) partyCommitteeMemberCount
+	          from primaryorganizations p
+	          left join primarymembersorgtype t on p.id = t.primaryorgid
+	          left join primarymembers m on t.primarymembersid = m.id
+	         where P.TEAMCLASS = #partyCommitteeTeamClass#
+	           AND P.TEAMTYPE IN (#partyCommitteeTeamTypeOne#, #partyCommitteeTeamTypeTwo#, #partyCommitteeTeamTypeThree#, #partyCommitteeTeamTypeFour#)
+	           AND M.ISHAVEJOB = 0
+	           and p.orginternalcode like org.orginternalcode || '%') AS partyCommitteeMemberCount,
+	       (SELECT COUNT(*)
+	          FROM PRIMARYORGANIZATIONS p
+	         WHERE P.TEAMCLASS = #partyTeamClass#
+	           and p.orginternalcode like org.orginternalcode || '%') AS partyTeamCount,
+	       (select count(m.id) partyTeamMemberCount
+	          from primaryorganizations p
+	          left join primarymembersorgtype t on p.id = t.primaryorgid
+	          left join primarymembers m on t.primarymembersid = m.id
+	         where P.TEAMCLASS = #partyTeamClass#
+	           AND M.ISHAVEJOB = 0
+	           and p.orginternalcode like org.orginternalcode || '%') AS partyTeamMemberCount,
+	       (SELECT COUNT(*)
+	          FROM PRIMARYORGANIZATIONS p
+	         WHERE P.TEAMCLASS = #autonomyTeamClass#
+	           and p.orginternalcode like org.orginternalcode || '%') AS autonomyTeamCount,
+	       (select count(m.id) autonmoyTeamMemberCount
+	          from primaryorganizations p
+	          left join primarymembersorgtype t on p.id = t.primaryorgid
+	          left join primarymembers m on t.primarymembersid = m.id
+	         where P.TEAMCLASS = #autonomyTeamClass#
+	           AND M.ISHAVEJOB = 0
+	           and p.orginternalcode like org.orginternalcode || '%') AS autonmoyTeamMemberCount,
+	       (SELECT COUNT(*)
+	          FROM PRIMARYORGANIZATIONS p
+	         WHERE P.TEAMCLASS = #masseDutyTeamClass#
+	           and p.orginternalcode like org.orginternalcode || '%') AS masseDutyCount,
+	       (select count(m.id) masseDutyMemberCount
+	          from primaryorganizations p
+	          left join primarymembersorgtype t on p.id = t.primaryorgid
+	          left join primarymembers m on t.primarymembersid = m.id
+	         where P.TEAMCLASS = #masseDutyTeamClass#
+	           AND M.ISHAVEJOB = 0
+	           and p.orginternalcode like org.orginternalcode || '%') AS masseDutyMemberCount,
+	       (SELECT COUNT(*)
+	          FROM PRIMARYORGANIZATIONS p
+	         WHERE P.TEAMCLASS = #postulantTeamClass#
+	           and p.orginternalcode like org.orginternalcode || '%') AS postulantTeamCount,
+	       (select count(m.id) postulantTeamMemberCount
+	          from primaryorganizations p
+	          left join primarymembersorgtype t on p.id = t.primaryorgid
+	          left join primarymembers m on t.primarymembersid = m.id
+	         where P.TEAMCLASS = #postulantTeamClass#
+	           AND M.ISHAVEJOB = 0
+	           and p.orginternalcode like org.orginternalcode || '%') AS postulantTeamMemberCount
+	  FROM ORGANIZATIONS ORG
+	  WHERE ORG.Parentid = #parentOrgId# order by ORG.seq
+	  
+  </select>
+</sqlMap>

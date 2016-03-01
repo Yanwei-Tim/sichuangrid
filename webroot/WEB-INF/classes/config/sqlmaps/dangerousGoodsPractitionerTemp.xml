@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="dangerousGoodsPractitionerTemp">
+    <typeAlias alias="DangerousGoodsPractitionerTemp" type="com.tianque.plugin.dataManage.population.dangerousGoodsPractitionerTemp.domain.DangerousGoodsPractitionerTemp" />
+  	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+  	
+  	<resultMap id="dangerousGoodsPractitionerTempResultForBase" class="DangerousGoodsPractitionerTemp" extends="attentionPopulationTempBaseInfo.attentionPopulationBaseInfoResult">
+		<result property="workingCertificate" column="workingCertificate" />
+		<result property="workingCertificateNo" column="workingCertificateNo" />
+		<result property="legalPerson" column="legalPerson" />
+		<result property="legalPersonTelephone" column="legalPersonTelephone" />
+		<result property="legalPersonMobileNumber" column="legalPersonMobileNumber" />
+		<result property="dangerousWorkingType.id" column="dangerousWorkingType" />
+		<result property="periodOfValidityStart" column="periodofvaliditystart"/>
+		<result property="periodOfValidityEnd" column="periodofvalidityend"/>
+	</resultMap>	                                                                                                   
+    <resultMap id="dangerousGoodsPractitionerTempResultForList" class="DangerousGoodsPractitionerTemp" extends="dangerousGoodsPractitionerTemp.dangerousGoodsPractitionerTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	<sql id="updateBusinessSql">
+	   dangerousWorkingType=#dangerousWorkingType.id#,
+	   legalPerson=#legalPerson#,
+	   legalPersonTelephone=#legalPersonTelephone#,
+	   legalPersonMobileNumber=#legalPersonMobileNumber#,
+	   workingCertificate=#workingCertificate#,
+	   workingCertificateNo=#workingCertificateNo#,
+	   periodofvaliditystart = #periodOfValidityStart#,
+   	   periodOfValidityEnd = #periodOfValidityEnd#,
+   	   attentionExtent=#attentionExtent.id#
+	</sql>
+	<sql id="claim_sql_where">
+		from DM_dangerousPractitioners_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	
+	<select id="findTempPageList" resultMap="dangerousGoodsPractitionerTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countTempList" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	
+	<insert id="addDangerousGoodsPractitionerTemp" parameterClass="DangerousGoodsPractitionerTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_dangerous_Temp.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO DM_dangerousPractitioners_Temp
+		(
+		<include refid="populationTempBaseInfo.addBaseInfoFields" />
+		,workingCertificate,
+		workingCertificateNo,
+		legalPerson,
+		legalPersonTelephone,
+		legalPersonMobileNumber,
+		dangerousWorkingType,
+		periodOfValidityStart,
+		periodOfValidityEnd,
+		isEmphasis,
+		attentionExtent,actualPopulationType,
+		<include refid="dataManage.addDataManage"/>
+		)
+		VALUES
+		(
+		<include refid="populationTempBaseInfo.addBaseInfoData" />
+		,#workingCertificate#,
+		#workingCertificateNo#,
+		#legalPerson#,
+		#legalPersonTelephone#,
+		#legalPersonMobileNumber#,
+		#dangerousWorkingType.id#,
+		#periodOfValidityStart#,
+		#periodOfValidityEnd#,
+		#isEmphasis#,
+		#attentionExtent.id#,#actualPopulationType#,
+		<include refid="dataManage.addValueDataManage"/>
+		)
+	</insert>
+	
+
+    <select id="getDangerousGoodsPractitionerTempById" parameterClass="Long"
+		resultMap="dangerousGoodsPractitionerTempResultForList">
+	  <![CDATA[
+	  	select * from DM_dangerousPractitioners_Temp where id = #value#
+	  ]]>
+	</select>
+	<delete id="deleteDangerousGoodsPractitionerTempById" parameterClass="Long">
+	   delete DM_dangerousPractitioners_Temp where id = #value#
+	</delete>
+	<update id="updateRepeatState" parameterClass="DangerousGoodsPractitionerTemp">
+		update DM_dangerousPractitioners_Temp d set repeatState = 0
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_dangerousPractitioners_Temp t group by t.idCardNo having count(*)>1) 
+	</update>
+	<update id="updateRepeatStateForDelete" parameterClass="DangerousGoodsPractitionerTemp">
+		update DM_dangerousPractitioners_Temp d set repeatState = 1
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_dangerousPractitioners_Temp t group by t.idCardNo having count(*)=1) 
+	</update>
+	<update id="updateDangerousGoodsPractitionerTemp" parameterClass="DangerousGoodsPractitionerTemp">
+		update DM_dangerousPractitioners_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		,
+		<include refid="dangerousGoodsPractitionerTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<select id="getDangerousGoodsPractitionerTempByInId" parameterClass="Long"
+		resultMap="dangerousGoodsPractitionerTempResultForList">
+	  <![CDATA[
+	  	select * from DM_dangerousPractitioners_Temp where inId = #value#
+	  ]]>
+	</select>
+	
+	<!-- 新写内容 -->
+	<select id="countFindTemps" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	<select id="findTemps" resultMap="dangerousGoodsPractitionerTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<update id="updateDangerousGoodsPractitionerTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_dangerousPractitioners_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	<update id="updateDangerousGoodsPractitionerTempBase" parameterClass="DangerousGoodsPractitionerTemp">
+		update DM_dangerousPractitioners_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updateDangerousGoodsPractitionerTempBusiness" parameterClass="DangerousGoodsPractitionerTemp">
+		update DM_dangerousPractitioners_Temp set
+		<include refid="dangerousGoodsPractitionerTemp.updateBusinessSql" />
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+</sqlMap>

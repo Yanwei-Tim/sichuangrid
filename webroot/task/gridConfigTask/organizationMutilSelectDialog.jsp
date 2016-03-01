@@ -1,0 +1,64 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<%@ include file="/includes/baseInclude.jsp"%>
+
+<script type="text/javascript" src="<s:url value="/resource/getScript/gridConfigTask/jquery.ztree.all-3.4.min.js"/>" ></script>
+<link rel="stylesheet" type="text/css" href="<s:url value='/resource/css/zTree/zTreeStyle.css'/>" />
+<script type="text/javascript" src="<s:url value="/resource/getScript/gridConfigTask/organizationMutilSelectDialog.js"/>"></script>
+
+<ul id="ulOrgTreeNodeList" class="ztree"></ul>
+<input type="hidden" id="orgIdFieldId"  value="orgConfigTaskIds"/>
+<input type="hidden" id="orgNameFieldId"  value="orgConfigTaskNames"/>
+<input type="hidden" id="orgConfigTaskNames"  value="${orgNameFieldId }"/>
+<form id="configTaskSelectForm" action="${path}/baseInfo/gridConfigTaskManage/addGridConfigTaskByOrgids.action" method="post" >
+	<div>
+		<input type="hidden" id="mode" name="mode" value="<s:property value='#parameters.mode' />" />
+		<input type="hidden" id="type" name="type" value="<s:property value='#parameters.type' />" />
+		<input type="hidden" id="orgConfigTaskIds" name="ids" value=""/>
+		<input type="hidden" id="orgLevel" name="organization.orgLevel.id" value="<s:property value='#parameters.orgLevel' />" />
+		<input type="hidden" id="orgId" name="organization.id" value="<s:property value='#parameters.orgId' />" />
+	</div>
+</form>
+
+<script>
+
+$(document).ready(function() {
+	$.fn.zTree.init($("#ulOrgTreeNodeList"), settings);
+	$("#configTaskSelectForm").formValidate({
+		promptPosition : "bottomLeft",
+		submitHandler : function(form) {
+			if($("#orgConfigTaskIds").val()==""){
+				$.messageBox({level:'error',message:"请先选择网格配置！"});
+				return;
+			}
+			$(form).ajaxSubmit({
+				success : function(data) {
+					if (data != null && typeof(data)=='boolean') {
+						$("#gridConfigTaskList").trigger("reloadGrid");
+						$.messageBox({message : "配置信息新增成功!"});
+						reloads();
+					} else {
+						$.messageBox({level:'error',message:data});
+					}
+					$("#gridConfigTaskDialog").dialog("close");
+				},
+				error : function(XMLHttpRequest,textStatus,errorThrown) {
+					alert("提交数据时发生错误");
+				}
+			});
+		},
+		rules : {
+			
+		},
+		messages : {
+			
+		}
+	});
+});
+
+//给查看时用，设置节点不可选
+function setZTreeUnable(){
+	
+}
+</script>

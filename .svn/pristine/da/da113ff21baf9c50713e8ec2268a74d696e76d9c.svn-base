@@ -1,0 +1,613 @@
+TQ.companyPlaceList = function (dfop){
+
+	//设置查询列表参数
+	function getPostDataForList(){
+		var condition = $("#searchByCondition").val();
+		var initParam = {
+				"org.id":function(){return currentOrgId;},
+				"companyPlaceVo.org.id":function(){return currentOrgId;},
+				"modulKey":modulKey,
+				"modul":modulValue
+		}
+		if(condition != '请输入单位名称'){
+			initParam = $.extend(initParam,{"companyPlaceVo.name":condition});
+		}
+		return initParam;
+	}
+	$(document).ready(function(){
+		loadList();
+		$("#searchByConditionButton").click(function(event){
+			fastSearchFun();
+		});
+		$("#refreshSearchKey").click(function(){
+			$("#searchByCondition").attr("value","请输入单位名称");
+		});
+		$("#search").click(function(event){
+			searchFun();
+		});
+		$("#add").click(function(event){
+			addFun();
+		});
+		$("#delete").click(function(){
+			deleteFun();
+		});
+		$("#import").click(function(event){
+			importFun();
+		});
+		$("#export").click(function(event){
+	        exportFun();
+	    });
+		$("#reload").click(function(event){
+			reloadFun();
+		});
+
+		//转移
+		$("#transfer").click(function(event){
+			var selectedIds = $("#companyPlaceList").jqGrid("getGridParam", "selarrrow");
+			if(selectedIds.length == 0){
+				$.messageBox({level:'warn',message:"请选择一条或多条记录，再进行转移！"});
+				return;
+			}
+			for(var i=0;i<selectedIds.length;i++){
+				var rowData_Popu=$("#companyPlaceList").getRowData(selectedIds[i]);
+				if(rowData_Popu.isEmphasis==1){
+					$.messageBox({level:'warn',message:"所选记录中存在已取消关注（或已注销、死亡）记录，无法转移！"});
+					 return;
+				}
+			}
+			$.confirm({
+				title:"转移"+modulTitle,
+				message:"转移"+modulTitle+"数据，确认转移？",
+				okFunc: function() {
+					moveCompanyPlace(event,selectedIds);
+				}
+			});
+		});
+		//转移信息
+		function moveCompanyPlace(event,selectedIds){
+			var encryptIds=deleteOperatorByEncrypt("companyPlace",selectedIds,"encryptId");
+			var allOrgId = getOrgIdsByIds("companyPlace",selectedIds,"organization.id");
+			$("#moveDataDialog").createDialog({
+				width: 500,
+				height: 300,
+				title:"转移"+modulTitle+"信息",
+				url:PATH+'/baseinfo/companyPlaceTransfer/transferDispatchByEncrypt.action?orgId='+getCurrentOrgId()+"&ids="+encryptIds+"&type="+modulValue+"&modulKey="+modulKey+"&orgIds="+allOrgId,
+				buttons: {
+					"保存" : function(event){
+				      $("#maintainShiftForm").submit();
+				   },
+				   "关闭" : function(){
+				        $(this).dialog("close");
+				   }
+				}
+			});
+		}
+		function loadList(){
+			$("#companyPlaceList").jqGridFunction({
+				datatype: "local",
+			   	colModel:dfop.colModel,
+				ondblClickRow:function (rowid){
+					if(dfop.hasViewCompanyPlace=='true'){
+						viewCompanyPlace(rowid);
+					}
+				},
+				loadComplete: afterLoad,
+				onSelectAll:function(aRowids,status){ },
+				multiselect:true,
+				onSelectRow:function(){setHouseInfoOperateButton();}
+			});
+			if(getCurrentOrgId()!="" && getCurrentOrgId()!=null){
+				onOrgChanged(getCurrentOrgId(),isGrid());
+			}
+		}
+	
+		//添加
+		function addFun(){
+			if (!isgridBol){
+				$.messageBox({level:"warn",message:"请先选择网格级别组织机构进行新增！"});
+				return;
+			}
+			if (currentOrgId==null||currentOrgId==""){
+				$.notice({level:'warn',
+						message:'请先选择一个网格级别组织!'});
+			}else{
+				$("#companyPlaceMaintanceDialog").createTabDialog({
+						model :"add",
+						title:"新增"+modulTitle,
+						width: 800,
+						height: 600,
+						tabs:[
+								{title:'基本信息',url:PATH+'/baseinfo/companyPlaceManage/dispatchOperate.action?dailogName=companyPlaceMaintanceDialog&mode=add&modulType='+modulType+'&modul='+modulValue+'&modulKey='+modulKey+'&companyPlace.org.id='+getCurrentOrgId()},
+								{title:'业务信息',url:PATH+'/baseinfo/companyPlaceBusinessManage/dispatch.action?dailogName=companyPlaceMaintanceDialog&mode=add&modulKey='+modulKey}
+							],
+						close : function(){
+						$("#companyPlaceList").trigger("reloadGrid");
+						}
+						
+				});
+			}
+		}
+		//删除方法
+		function deleteFun(){
+			var rowIds = $("#companyPlaceList").jqGrid("getGridParam", "selarrrow");
+			if(rowIds.length ==0){
+				 $.messageBox({level:"warn",message:"请选择一条或多条记录，再进行删除！"});
+				 return;
+			}
+			deleteCompanyPlace(event,rowIds);
+		}
+		function getImportDataTypeKey(key) {
+			var dataType='';
+			if(key == 'PublicPlace'){
+				dataType="NewPublicPlace";
+			}else if(key == 'TrafficPlace'){
+				dataType="TrafficPlace";
+			}
+			else if(key == 'EntertainmentPlace'){
+				dataType="EntertainmentPlace";
+			}
+			else if(key == 'TradePlace'){
+				dataType="TradePlace";
+			}
+			else if(key == 'InternetServicesPlace'){
+				dataType="NewInternetbar";
+			}
+			else if(key == 'AccommodationServicesPlace'){
+				dataType="AccommodationServicesPlace";
+			}
+			else if(key == 'FoodServicesPlace'){
+				dataType="NewFoodServicesPlace";
+			}
+			else if(key == 'TravelingPlace'){
+				dataType="TravelingPlace";
+			}
+			else if(key == 'ConstructionPlace'){
+				dataType="ConstructionPlace";
+			}
+			else if(key == 'OtherPlace'){
+				dataType="OtherPlace";
+			}
+			else if(key == 'PartyGovernmentOrganCompany'){
+				dataType="PartyGovernmentOrganCompany";
+			}
+			else if(key == 'EducationCompany'){
+				dataType="NewSchools";
+			}
+			else if(key == 'MedicalHygieneCompany'){
+				dataType="NewHospital";
+			}
+			else if(key == 'DangerousStoreCompany'){
+				dataType="NewDangerousChemicalsunit";
+			}
+			else if(key == 'OtherCompany'){
+				dataType="OtherCompany";
+			}
+			return dataType;
+		}
+		function startRowFun(){
+			var startRow=5;
+			if("CONSTRUCTIONPLACE"==modulKey){
+				startRow=6;
+			}
+			return startRow;
+		}
+		
+
+		//导入方法
+		function importFun(){
+			$("#companyPlaceMaintanceDialog").createDialog({
+				width: 400,
+				height: 230,
+				title:'数据导入',
+				url:PATH+'/common/import.jsp?isNew=1&dataType='+getImportDataTypeKey(modulValue)+'&dialog=companyPlaceMaintanceDialog&startRow='+startRowFun()+'&templates='+dfop.templates+'&listName=companyPlaceList',
+				buttons:{
+						"导入" : function(event){
+					      $("#mForm").submit();
+					   },
+				   "关闭" : function(){
+				        $(this).dialog("close");
+				   }
+				},
+				shouldEmptyHtml:false
+			});
+		}
+		//导出方法
+		function exportFun(){
+			var postData = $("#companyPlaceList").getPostData();
+			if ($("#companyPlaceList").getGridParam("records")>0){	
+	            $("#companyPlaceMaintanceDialog").createDialog({
+	                width: 250,
+	                height: 200,
+	                title:'导出'+modulTitle,
+	                url:PATH+'/common/exportExcel.jsp',
+	                postData:{
+	                	gridName:'companyPlaceList',
+	                    downloadUrl:PATH+"/baseinfo/searchCompanyPlace/downloadCompanyPlace.action"
+	                 }, 
+	                buttons: {
+	                    "导出" : function(event){
+	                    	exceldownloadSubmitForm();
+	                        $(this).dialog("close");
+	                    },
+	                    "关闭" : function(){
+	                        $(this).dialog("close");
+	                    }
+	                },
+	                shouldEmptyHtml:false
+	            });
+	        }else{
+	        	$.messageBox({level:'warn',message:"列表中没有数据，不能导出！"});
+	        }
+		}
+		
+		function reloadFun(){
+			$("#conditionMark").val("fast_hosueCode");
+			$("#searchByCondition").attr("value","请输入单位名称");
+			onOrgChanged(getCurrentOrgId(),isGrid());
+		}
+	});
+	/********************************/
+	function fastSearchFun(){
+			var condition = $("#searchByCondition").val();
+			if(condition == '请输入单位名称'){ 
+				$.messageBox({level:'warn',message:'请输入单位名称再查询'});
+				return;
+			}
+			$("#companyPlaceList").setGridParam({
+				url:PATH+'/baseinfo/companyPlaceManage/queryCompanyPlaceList.action',
+				datatype: "json",
+				page:1
+			});
+			$("#companyPlaceList").setPostData(getPostDataForList());
+			$("#companyPlaceList").trigger("reloadGrid");
+		}
+	function searchFun(){
+			$("#actualHouseDialog").createDialog({
+				width: 650,
+				height: 420,
+				datatype: "json",
+				title:modulTitle+'-高级查询',
+				url:PATH+'/baseinfo/companyPlaceManage/dispatchOperate.action?mode=search&companyPlaceVo.org.id='+currentOrgId+'&modulKey='+modulKey+'',
+				buttons: {
+					"查询" : function(event){
+						searchCompanyPlaceInfo();
+		   				$(this).dialog("close");
+		   			},
+			   		"关闭" : function(){
+			        	$(this).dialog("close");
+			   		}
+				}
+			});
+		}
+	//搜索
+	function searchCompanyPlaceInfo() {	
+		var postData = $("#maintainForm").serializeObject();
+		//var postData = $.extend({},{"companyPlaceVo.name":condition}) ;
+		$("#companyPlaceList").setGridParam({
+			url:PATH+'/baseinfo/companyPlaceManage/queryCompanyPlaceList.action',
+			datatype: "json",
+			page:1
+		});
+		$("#companyPlaceList").setPostData(postData);
+		$("#companyPlaceList").trigger("reloadGrid");
+	}
+
+
+	/********************************/
+	function getSelectedIds(){
+		var selectedRowIds = $("#companyPlaceList").jqGrid("getGridParam", "selarrrow");
+		return selectedRowIds;
+	}
+
+	function afterLoad(){
+		setHouseInfoOperateButton();
+	}
+	function setHouseInfoOperateButton(){
+		var selectedCounts = getActualjqGridMultiSelectCount("companyPlaceList");
+		var count = $("#companyPlaceList").jqGrid("getGridParam","records");
+		if(selectedCounts == count && count > 0){
+			jqGridMultiSelectState("companyPlaceList", true);
+		}else{
+			jqGridMultiSelectState("companyPlaceList", false);
+		}
+	}
+
+
+	function viewCompanyPlacePopulation(rowid){
+		if(rowid==null){
+	 		return;
+		}
+		var houseInfo =  $("#companyPlaceList").getRowData(rowid);
+		$("#companyPlaceMaintanceDialog").createDialog({
+			width: 820,
+			height: 530,
+			title:'查看',
+			modal : true,
+			url:PATH+'/baseinfo/actualHouseManage/dispatchactualHousePopulationByOrgIdAndHouseIdByEncrypt.action?houseInfo.organization.id='+houseInfo['organization.id']+'&houseInfo.id='+houseInfo.encryptId,
+			buttons: {
+			   "关闭" : function(){
+			        $(this).dialog("close");
+			   }
+			}
+		});
+	}
+
+
+	function printQrcode(){
+		$.dialogLoading("open");
+		$("#qrcodeDialog").printArea();
+		$("#qrcodeDialog").dialog("close");
+		$.dialogLoading("close");
+	}
+
+	/****************工具方法*********************/
+
+	function getSelectedIdLast(){
+		var selectedId;
+		var selectedIds = $("#companyPlaceList").jqGrid("getGridParam", "selarrrow");
+		for(var i=0;i<selectedIds.length;i++){
+			selectedId = selectedIds[i];
+		}
+		return selectedId;
+	}
+	//取消关注
+	$("#cancelEmphasise").click(function(event){
+		if($(this).attr("disabled")=="disabled"){
+			return;
+		}
+		var selectedId =getSelectedIds();
+		var cancelEmphasise=new Array();
+		var temp=new Array();
+		if(selectedId == null || selectedId.length<=0){
+			$.messageBox({level:'warn',message:"请选择一条或多条记录，再进行取消关注！"});
+			return;
+		}
+		for(var i=0;i<selectedId.length;i++){
+			var rowData = $("#companyPlaceList").getRowData(selectedId[i]);
+			if(rowData.isEmphasis==0 || rowData.isEmphasis=="0"){
+				cancelEmphasise.push(selectedId[i]);
+				}else{
+					temp.push(selectedId[i]);
+					}
+			}
+		selectedId=cancelEmphasise;
+		if(selectedId==null||selectedId.length==0){
+			$.messageBox({level:'warn',message:"没有可取消关注的数据！"});
+			return;
+		}
+		var selectedIds="";
+		for(var i=0;i<selectedId.length;i++){
+			selectedIds+=selectedId[i]+",";
+		}
+		if(selectedIds.length=2){
+			selectedIds=selectedId;
+			}
+		var encryptIds=deleteOperatorByEncrypt("companyPlace",selectedIds,"encryptId");
+		$("#companyPlaceMaintanceDialog").createDialog({
+			width:450,
+			height:210,
+			title:'取消关注提示',
+			modal:true,
+			url:PATH+'/baseinfo/commonPopulation/emphasiseConditionForCompanyPlaceDlg.jsp?locationIds='+encryptIds+'&isEmphasis=1&modulKey='+modulKey+'&type=companyPlace',
+			buttons: {
+			   "保存" : function(event){
+				   $("#emphasisForm").submit();
+					//$(this).dialog("close");
+			   },
+			   "关闭" : function(){
+			        $(this).dialog("close");
+			   }
+			}
+		});
+	});
+	//重新关注
+	$("#reEmphasise").click(function(){
+		if($(this).attr("disabled")=="disabled"){
+			return;
+		}
+		var selectedId = getSelectedIds();
+		var reEmphasise=new Array();
+		var temp=new Array();
+		if(selectedId == null || selectedId.length<=0){
+			$.messageBox({level:'warn',message:"请选择一条或多条记录，再重新关注！"});
+			return;
+		}
+		for(var i=0;i<selectedId.length;i++){
+			var rowData = $("#companyPlaceList").getRowData(selectedId[i]);
+			if(rowData.isEmphasis==1||rowData.isEmphasis=="1"){
+				reEmphasise.push(selectedId[i]);
+				}else{
+					temp.push(selectedId[i]);
+					}
+			}
+		selectedId=reEmphasise;
+		if(selectedId==null||selectedId.length==0){
+			$.messageBox({level:'warn',message:"没有可重新关注的数据！"});
+			return;
+		}
+		var selectedIds="";
+		for(var i=0;i<selectedId.length;i++){
+			selectedIds+=selectedId[i]+",";
+		}
+		if(selectedIds.length=2){
+			selectedIds=selectedId;
+			}
+		var encryptIds=deleteOperatorByEncrypt("companyPlace",selectedIds,"encryptId");
+		$.ajax({
+			url:PATH+"/baseinfo/searchCompanyPlace/updateEmphasiseByEncryptId.action?modulKey="+modulKey,
+			data:{
+				"locationIds": encryptIds,
+				"location.isEmphasis":0
+			},
+			success:function(responseData){
+				if(null==temp || temp.length==0){
+					$.messageBox({message:modulTitle+"重新关注成功 ！ "});
+				}else{
+					$.messageBox({level:'warn',message:"除选中的红色数据外,其余"+modulTitle+"重新关注成功 ！ "});
+				}
+				notExecute=temp;
+				$("#companyPlaceList").trigger("reloadGrid");
+				//toggleButtonState();
+				//checkExport();
+			}
+		});
+	});
+	//治安负责人
+	$("#superviseServiceTeamMember").click(function(event){
+		var selectedIds = $("#companyPlaceList").jqGrid("getGridParam", "selarrrow");
+		if(selectedIds.length>1){
+			$.messageBox({level : 'warn',message:"同时只能操作一条记录！"});
+			 return;
+		}
+		if(selectedIds==null ||selectedIds =="" || selectedIds.length < 1){
+			$.messageBox({level : 'warn',message:"请先选择一条记录，再进行操作！"});
+			 return;
+		}
+		var selectedId = selectedIds;
+		var rowData=$("#companyPlaceList").getRowData(selectedId);
+		if(rowData.isEmphasis == '1'){
+			$.messageBox({level:'warn',message:"该条数据已注销!"});
+			return;
+		}
+		var locationName = rowData.name;
+		var key=rowData.classifiCationEn;
+		$("#companyPlaceMaintanceDialog").createDialog({
+			width:860,
+			height:600,
+			title:'治安负责人情况',
+			url:PATH+'/baseinfo/routerManage/maintainServiceMemberForLocationByEncrypt.action?dailogName=service&module='+key+'&id='+rowData.encryptId,
+			postData:{"name":locationName},		
+			buttons: {
+		   		"关闭" : function(){
+		        	$(this).dialog("close");
+		   		}
+			},
+			close: function(event, ui) {$("#companyPlaceList").trigger("reloadGrid");}
+		});
+	});
+	//巡场情况
+	$("#superviseRecord").click(function(event){
+		var selectedIds = $("#companyPlaceList").jqGrid("getGridParam", "selarrrow");
+		if(selectedIds.length>1){
+			$.messageBox({level : 'warn',message:"同时只能操作一条记录！"});
+			 return;
+		}
+		if(selectedIds==null ||selectedIds =="" || selectedIds.length < 1){
+			$.messageBox({level : 'warn',message:"请先选择一条记录，再进行操作！"});
+			 return;
+		}
+		var selectedId = selectedIds;
+		var rowData=$("#companyPlaceList").getRowData(selectedId);
+		if(rowData.isEmphasis == '1'){
+			$.messageBox({level:'warn',message:"该条数据已注销!"});
+			return;
+		}
+		var locationName = rowData.name;
+		var populationType=rowData.classifiCationEn;
+		$("#companyPlaceMaintanceDialog").createDialog({
+			width:860,
+			height:600,
+			title:'巡场情况',
+			url:PATH+'/baseinfo/routerManage/maintainServiceRecordForPopulationByEncrypt.action?populationType='+populationType+'&name='+encodeURIComponent(locationName)+'&id='+rowData.encryptId+'&showRecordType=1',
+			buttons: {
+		   		"关闭" : function(){
+		        	$(this).dialog("close");
+		   		}
+			},
+			close: function(event, ui) {$("#companyPlaceList").trigger("reloadGrid");}
+		});
+	});
+}
+
+
+//修改操作
+function updateCompanyPlace(event,cids){
+	var companyPlace = $("#companyPlaceList").getRowData(cids);
+	$("#companyPlaceMaintanceDialog").createTabDialog({
+		title:'修改'+modulTitle,
+		width: 800,
+		height: 600,
+		postData:{
+			id : cids+'',
+			mode:'edit'
+		},
+		tabs:[
+			{title:'基本信息',url:'/baseinfo/companyPlaceManage/dispatchOperateByEncrypt.action?&modulType='+modulType+'&modul='+modulValue+'&modulKey='+modulKey+'&mode=edit&cids='+companyPlace.encryptId+''},
+			{title:'业务信息',url:'/baseinfo/companyPlaceBusinessManage/dispatchByEncrypt.action?mode=edit&companyPlaceId='+companyPlace.encryptId+'&modulKey='+modulKey+'&type='+companyPlace.classifiCationEn}
+		],
+		close : function(){
+			$("#companyPlaceList").trigger("reloadGrid");
+		}
+	});
+	var evt = event || window.event;
+	if(typeof evt!="object"){return false;}
+	if (window.event) { 
+	evt.cancelBubble=true; 
+	} else { 
+	evt.stopPropagation(); 
+	} 
+}
+//删除操作
+function deleteCompanyPlace(event,rowIds){
+	if(rowIds==null){
+		$.messageBox({level:'warn',message:'没有选中任何记录！'});
+		return ;
+	}
+	var encryptIds=deleteOperatorByEncrypt("companyPlace",rowIds,"encryptId");
+	
+	$.confirm({
+		title:"确认删除",
+		message:"确定要删除所选的单位场所记录吗?",
+		okFunc: function(){
+			$.ajax({
+				url:PATH+"/baseinfo/companyPlaceManage/delCompanyPlaceOperationByEncrypt.action",
+				type:"post",
+				data:{
+					"mode":"delete",
+					"cids":encryptIds+"",
+					"modulKey":modulKey+""
+					},
+				success:function(data){
+						if(data == true || data =="true"){
+							$("#companyPlaceList").trigger("reloadGrid");
+						    $.messageBox({message:"已经成功删除选中的记录"});
+						}else{
+							
+							}
+			    }
+		    });
+	   }
+ 	});
+ 	
+	var evt = event || window.event;
+	if(typeof evt!="object"){return false;}
+	if (window.event) { 
+	evt.cancelBubble=true; 
+	} else { 
+	evt.stopPropagation(); 
+	} 
+}
+
+function viewCompanyPlace(rowid){
+	if(rowid==null){
+ 		return;
+	}
+	var companyPlace =  $("#companyPlaceList").getRowData(rowid);
+	$("#companyPlaceMaintanceDialog").createDialog({
+		width: 825,
+		height: 580,
+		title:'查看'+modulTitle+'信息',
+		modal : true,
+		url:PATH+'/baseinfo/companyPlace/companyPlaceViewDlg.jsp?cid='+companyPlace.encryptId+'&modulKey='+modulKey+'&key='+companyPlace.classifiCationEn+'&name='+companyPlace.name+'&pollution='+companyPlace.pollution,
+		buttons: {
+			/**
+				"打印" : function(){
+					printChoose(rowid);
+	  	  		 },
+			**/
+		   "关闭" : function(){
+		        $(this).dialog("close");
+		   }
+		}
+	});
+}

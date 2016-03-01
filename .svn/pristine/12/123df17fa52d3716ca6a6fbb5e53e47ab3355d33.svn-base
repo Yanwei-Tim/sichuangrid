@@ -1,0 +1,1062 @@
+package com.tianque.baseInfo.unemployedPeople.service;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.actualHouse.domain.HouseInfo;
+import com.tianque.baseInfo.actualHouse.service.ActualHouseService;
+import com.tianque.baseInfo.base.domain.ActualPopulation;
+import com.tianque.baseInfo.base.domain.Countrymen;
+import com.tianque.baseInfo.base.domain.LogoutDetail;
+import com.tianque.baseInfo.base.service.BaseInfoPopulationTemplateImpl;
+import com.tianque.baseInfo.base.service.BaseInfoService;
+import com.tianque.baseInfo.base.service.PopulationRelationService;
+import com.tianque.baseInfo.unemployedPeople.dao.UnemployedPeopleDao;
+import com.tianque.baseInfo.unemployedPeople.domain.UnemployedPeople;
+import com.tianque.baseInfo.utils.Utils;
+import com.tianque.cache.PageInfoCacheThreadLocal;
+import com.tianque.cache.UpdateType;
+import com.tianque.core.cache.constant.MemCacheConstant;
+import com.tianque.core.datatransfer.ExcelImportHelper;
+import com.tianque.core.globalSetting.service.GlobalSettingService;
+import com.tianque.core.globalSetting.util.GlobalSetting;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.Chinese2pinyin;
+import com.tianque.core.util.NewBaseInfoTables;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.domain.vo.SearchUnemployedPeopleVo;
+import com.tianque.excel.definition.SpecialGroupsContext;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.service.ActualPopulationProcessorService;
+import com.tianque.service.HousePopulationMaintanceService;
+import com.tianque.service.PopulationProccessorService;
+import com.tianque.service.helper.ManagePopulationByHouseHelper;
+import com.tianque.service.util.PopulationCatalog;
+import com.tianque.service.util.PopulationType;
+import com.tianque.service.vo.IsEmphasis;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.util.Arrays;
+import com.tianque.util.IdCardUtil;
+import com.tianque.util.PluginServiceHelpUtil;
+import com.tianque.validate.AbstractCountrymenValidator;
+
+@Transactional
+@Service("unemployedPeopleService")
+public class UnemployedPeopleServiceImpl extends BaseInfoPopulationTemplateImpl
+		implements UnemployedPeopleService, PopulationProccessorService {
+
+	private static final String CACHE_ADDUNEMPLOYEDPEOPLE_VALUE = "CACHE_ADDUNEMPLOYEDPEOPLE";
+	private static final String CACHE_ADDUNEMPLOYEDPEOPLEBASEINFO_VALUE = "CACHE_ADDUNEMPLOYEDPEOPLEBASEINFO";
+
+	@Autowired
+	@Qualifier("unemployedPeopleValidator")
+	private AbstractCountrymenValidator<UnemployedPeople> unemployedPeopleValidator;
+	@Autowired
+	private UnemployedPeopleDao unemployedPeopleDao;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private GlobalSettingService globalSettingService;
+	@Autowired
+	private ActualPopulationProcessorService actualPopulationProcessorService;
+	@Autowired
+	private PropertyDictService propertyDictService;
+	@Autowired
+	private ActualHouseService actualHouseService;
+	@Autowired
+	private PopulationRelationService populationRelationService;
+	@Autowired
+	private ManagePopulationByHouseHelper managePopulationByHouseHelper;
+	@Autowired
+	private HousePopulationMaintanceService housePopulationMaintanceService;
+	@Autowired
+	private BaseInfoService baseInfoService;
+
+	// @Autowired
+	// private CacheService cacheService;
+
+	@Resource(name = "unemployedPeopleDao")
+	public void setBaseInfoPopulationBaseDao(
+			UnemployedPeopleDao unemployedPeopleDao) {
+		super.setBaseInfoPopulationBaseDao(unemployedPeopleDao);
+	}
+
+	@Override
+	public Map<String, Map<String, Object>> getPopulationSpecializedInfoByOrgIdAndIdCardNo(
+			Long orgId, String idCardNo) {
+		UnemployedPeople unemployedPeople = unemployedPeopleDao
+				.getByOrgIdAndIdCardNo(orgId, idCardNo);
+		if (null == unemployedPeople) {
+			return null;
+		}
+		unemployedPeople = unemployedPeopleDao
+				.getFullUnemployedPeopleById(unemployedPeople.getId());
+		unemployedPeople
+				.setTrainingIntention(getEmploymentIntentionList(unemployedPeople
+						.getId()));
+		unemployedPeople
+				.setEmploymentIntention(getEmploymentIntentionList(unemployedPeople
+						.getId()));
+		Map<String, Object> unemployedPeopleMap = new HashMap<String, Object>();
+		unemployedPeopleMap.put("id", unemployedPeople.getId());
+		unemployedPeopleMap.put("isEmphasis", unemployedPeople.getIsEmphasis());
+		unemployedPeopleMap.put("registerNumber",
+				unemployedPeople.getRegisterNumber());
+		unemployedPeopleMap.put("upEnterWorkDate",
+				unemployedPeople.getUpEnterWorkDate());
+		unemployedPeopleMap.put("originalWorkUnit",
+				unemployedPeople.getOriginalWorkUnit());
+		unemployedPeopleMap.put("originalWorkUnitType",
+				unemployedPeople.getOriginalWorkUnitType());
+		unemployedPeopleMap.put("title", unemployedPeople.getTitle());
+		unemployedPeopleMap.put("unemploymentDate",
+				unemployedPeople.getUnemploymentDate());
+		unemployedPeopleMap.put("technologyLevel",
+				unemployedPeople.getTechnologyLevel());
+		unemployedPeopleMap.put("unemploymentReason",
+				unemployedPeople.getUnemploymentReason());
+		unemployedPeopleMap.put("participatedPrograms",
+				unemployedPeople.getParticipatedPrograms());
+		unemployedPeopleMap.put("unemployedPeopleType",
+				unemployedPeople.getUnemployedPeopleType());
+		unemployedPeopleMap.put("specialtySkills",
+				unemployedPeople.getSpecialtySkills());
+		unemployedPeopleMap.put("employmentIntention",
+				unemployedPeople.getEmploymentIntention());
+		unemployedPeopleMap.put("trainingIntention",
+				unemployedPeople.getTrainingIntention());
+		unemployedPeopleMap.put("attentionExtent",
+				unemployedPeople.getAttentionExtent());
+		Map<String, Map<String, Object>> map = new HashMap<String, Map<String, Object>>();
+		map.put(PopulationType.UNEMPLOYED_PEOPLE, unemployedPeopleMap);
+		return map;
+	}
+
+	@Override
+	public void updatePopulationBaseInfo(ActualPopulation actualPopulation) {
+		UnemployedPeople unemployedPeople = unemployedPeopleDao
+				.getByOrgIdAndIdCardNo(actualPopulation.getOrganization()
+						.getId(), actualPopulation.getIdCardNo());
+		if (null == unemployedPeople) {
+			return;
+		}
+		Long id = unemployedPeople.getId();
+		copyProperties(unemployedPeople, actualPopulation);
+		unemployedPeople.setId(id);
+		updateUnemployedPeople(unemployedPeople);
+
+	}
+
+	@Override
+	public void deletePopulationByPopulationId(Long populationId) {
+		if (null != populationId) {
+			this.deleteUnemployedPeopleById(populationId);
+			this.deletePopulationTypeByPopulationIdAndType(populationId,
+					PopulationType.UNEMPLOYED_PEOPLE);
+		}
+	}
+
+	@Override
+	public Long proccessPopulationSpecializedInfo(
+			ActualPopulation actualPopulation, String[] populationType,
+			Map<String, Object> population) {
+		actualPopulation
+				.setAttentionPopulationType(NewBaseInfoTables.UNEMPLOYEDPEOPLE_KEY);
+		Long orgId = Long
+				.valueOf(((String[]) population.get("organization.id"))[0]);
+		String idCardNo = ((String[]) population.get("idCardNo"))[0];
+		UnemployedPeople unemployedPeople = unemployedPeopleDao
+				.getByOrgIdAndIdCardNo(orgId, idCardNo);
+		if (!com.tianque.util.Arrays.hasObjectInArray(populationType,
+				PopulationType.UNEMPLOYED_PEOPLE)) {
+			if (null != unemployedPeople) {
+				unemployedPeople.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+				updateEmphasiseById(unemployedPeople.getId(),
+						IsEmphasis.IsNotEmphasis);
+			}
+		} else {
+			if (null == unemployedPeople) {
+				unemployedPeople = new UnemployedPeople();
+				copyProperty(actualPopulation, population, unemployedPeople);
+				addUnemployedPeople(unemployedPeople);
+				List<Long> employmentIntentionIds = Arrays.getLongsFromArray(
+						population, "employmentIntentionIds");
+				this.addEmploymentIntention(unemployedPeople.getId(),
+						employmentIntentionIds);
+				List<Long> trainingIntentionIds = Arrays.getLongsFromArray(
+						population, "trainingIntentionIds");
+				this.addTrainingIntention(unemployedPeople.getId(),
+						trainingIntentionIds);
+			} else {
+				Long id = unemployedPeople.getId();
+				copyProperty(actualPopulation, population, unemployedPeople);
+				unemployedPeople.setId(id);
+				unemployedPeople.setIsEmphasis(IsEmphasis.Emphasis);
+				List<Long> employmentIntentionIds = Arrays.getLongsFromArray(
+						population, "employmentIntentionIds");
+				List<Long> trainingIntentionIds = Arrays.getLongsFromArray(
+						population, "trainingIntentionIds");
+				updateUnemployedPeopleBusiness(unemployedPeople,
+						trainingIntentionIds, employmentIntentionIds);
+				updateEmphasiseById(unemployedPeople.getId(),
+						IsEmphasis.Emphasis);
+			}
+		}
+		return unemployedPeople == null
+				|| unemployedPeople.getIsEmphasis() == IsEmphasis.IsNotEmphasis
+						.longValue() ? null : unemployedPeople.getId();
+	}
+
+	private void updateEmphasiseById(Long id, Long isEmphasis) {
+		LogoutDetail logoutDetail = new LogoutDetail();
+		logoutDetail.setLogout(isEmphasis);
+		updateLogOutByPopulationTypeAndId(logoutDetail,
+				BaseInfoTables.UNEMPLOYEDPEOPLE_KEY, id);
+	}
+
+	private void copyProperty(ActualPopulation actualPopulation,
+			Map<String, Object> population, UnemployedPeople unemployedPeople) {
+		copyProperties(unemployedPeople, actualPopulation);
+		unemployedPeople.setRegisterNumber(Arrays.getStringValueFromArray(
+				population, "registerNumber"));
+		unemployedPeople.setUpEnterWorkDate(Arrays.getDateValueFromArray(
+				population, "upEnterWorkDate"));
+		unemployedPeople.setOriginalWorkUnit(Arrays.getStringValueFromArray(
+				population, "originalWorkUnit"));
+		unemployedPeople.setOriginalWorkUnitType(Arrays
+				.getStringValueFromArray(population, "originalWorkUnitType"));
+		unemployedPeople.setTitle(Arrays.getStringValueFromArray(population,
+				"title"));
+		unemployedPeople.setUnemploymentDate(Arrays.getDateValueFromArray(
+				population, "unemploymentDate"));
+		unemployedPeople.setTechnologyLevel(Arrays.getPropertyDictFromArray(
+				population, "technologyLevel.id"));
+		unemployedPeople.setUnemploymentReason(Arrays.getPropertyDictFromArray(
+				population, "unemploymentReason.id"));
+		unemployedPeople.setParticipatedPrograms(Arrays
+				.getStringValueFromArray(population, "participatedPrograms"));
+		unemployedPeople
+				.setUnemployedPeopleType(Arrays.getPropertyDictFromArray(
+						population, "unemployedPeopleType.id"));
+		unemployedPeople.setSpecialtySkills(Arrays.getStringValueFromArray(
+				population, "specialtySkills"));
+
+		unemployedPeople.setAttentionExtent(Arrays.getPropertyDictFromArray(
+				population, "attentionExtent.id"));
+		unemployedPeople
+				.setAttentionPopulationType(BaseInfoTables.UNEMPLOYEDPEOPLE_KEY);
+	}
+
+	@Override
+	public UnemployedPeople addUnemployedPeople(
+			UnemployedPeople unemployedPeople) {
+		try {
+			if (!ExcelImportHelper.isImport.get()) {
+				unemployedPeopleValidator(unemployedPeople);
+			}
+			if (checkDataExitInCache(unemployedPeople,
+					MemCacheConstant.CACHE_ADDUNEMPLOYEDPEOPLE,
+					CACHE_ADDUNEMPLOYEDPEOPLE_VALUE)) {
+				return unemployedPeople;
+			}
+			return add(unemployedPeople);
+		} catch (Exception e) {
+			logger.error("", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(unemployedPeople,
+					MemCacheConstant.CACHE_ADDUNEMPLOYEDPEOPLE);
+		}
+	}
+
+	private UnemployedPeople add(UnemployedPeople unemployedPeople) {
+		autoFilled(unemployedPeople);
+		autoIsDeath(unemployedPeople);
+		try {
+			List<PropertyDict> listE = unemployedPeople
+					.getEmploymentIntention();
+			List<PropertyDict> listT = unemployedPeople.getTrainingIntention();
+			contructCurrentAddress(unemployedPeople);
+			Countrymen temp = populationRelationService.businessOption(
+					unemployedPeople,
+					unemployedPeople.getActualPopulationType());
+			unemployedPeople.setBaseInfoId(temp.getBaseInfoId());
+			unemployedPeople.setAddressInfoId(temp.getAddressInfoId());
+			unemployedPeople.setSourcesState(null);
+			unemployedPeople = unemployedPeopleDao.add(unemployedPeople);
+			populationRelationService.addPopulationRelation(temp.getId(),
+					unemployedPeople.getActualPopulationType(),
+					unemployedPeople.getId(),
+					BaseInfoTables.UNEMPLOYEDPEOPLE_KEY);
+			if (listE != null && listE.size() > 0) {
+				List<Long> list = new ArrayList<Long>();
+				for (PropertyDict propertyDict : listE) {
+					list.add(propertyDict.getId());
+				}
+				addEmploymentIntention(unemployedPeople.getId(), list);
+			}
+			if (listT != null && listT.size() > 0) {
+				List<Long> list = new ArrayList<Long>();
+				for (PropertyDict propertyDict : listT) {
+					list.add(propertyDict.getId());
+				}
+				addTrainingIntention(unemployedPeople.getId(), list);
+			}
+			unemployedPeople.setHouseId(temp.getHouseId());
+			// proccessHouseBind(unemployedPeople);
+			rebuildHouseAddress(unemployedPeople);
+
+			if (IsEmphasis.Emphasis.equals(unemployedPeople.getIsEmphasis())) {
+				// 缓存计数器
+				PageInfoCacheThreadLocal.increment(
+						MemCacheConstant.getCachePageKey(UnemployedPeople.class
+								.getSimpleName()), unemployedPeople, 1);
+			}
+			return unemployedPeople;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类UnemployedPeopleServiceImpl的addUnemployedPeople方法出现异常，原因：",
+					"新增信息出现错误", e);
+		}
+	}
+
+	/**
+	 * 如果人口的房屋信息（CurrentAddress）不为空，并且房屋id不存在，新增一个房屋，并且建立关联关系, 如果房屋id不为空直接建立关联关系
+	 * 如果房屋信息为空,并且有房屋id不为空，则删除人房关系
+	 * 
+	 * @param householdStaff
+	 */
+	private void rebuildHouseAddress(UnemployedPeople householdStaff) {
+
+		if (householdStaff.getIsHaveHouse() != null
+				&& householdStaff.getIsHaveHouse()
+				&& householdStaff.getCurrentAddress() != null) {
+
+			if (null == householdStaff.getHouseId()
+					|| householdStaff.getHouseId().equals(01L)) {
+				// 新增一个实有房屋,并且建立人房关系
+				HouseInfo houseInfo = new HouseInfo();
+				houseInfo.setAddress(householdStaff.getCurrentAddress());
+				houseInfo.setAddressType(propertyDictService
+						.findPropertyDictByDomainNameAndDictDisplayName(
+								PropertyTypes.CURRENT_ADDRESS_TYPE, "其他"));
+				houseInfo.setOrganization(householdStaff.getOrganization());
+				houseInfo
+						.setHouseOperateSource(NewBaseInfoTables.UNEMPLOYEDPEOPLE_KEY);
+				houseInfo = actualHouseService.addHouseInfo(houseInfo);
+
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.UNEMPLOYED_PEOPLE, householdStaff,
+						houseInfo.getId());
+			} else if (householdStaff.getHouseId() != null) {
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.UNEMPLOYED_PEOPLE, householdStaff,
+						householdStaff.getHouseId());
+			}
+		} else {
+			housePopulationMaintanceService.releaseHouse(
+					PopulationCatalog.UNEMPLOYED_PEOPLE,
+					householdStaff.getId(), householdStaff.getHouseId());
+		}
+	}
+
+	@Override
+	public UnemployedPeople getUnemployedPeopleById(Long id) {
+		if (id == null) {
+			throw new BusinessValidationException("id没有获得");
+		}
+		UnemployedPeople unemployedPeople = unemployedPeopleDao.get(id);
+		if (unemployedPeople != null) {
+			unemployedPeople
+					.setEmploymentIntention(getEmploymentIntentionList(unemployedPeople
+							.getId()));
+			unemployedPeople
+					.setTrainingIntention(getTrainingIntentionList(unemployedPeople
+							.getId()));
+		}
+		return unemployedPeople;
+	}
+
+	@Override
+	public UnemployedPeople getFullUnemployedPeopleById(Long id) {
+		if (id == null) {
+			throw new BusinessValidationException("id没有获得");
+		}
+		UnemployedPeople people = unemployedPeopleDao
+				.getFullUnemployedPeopleById(id);
+		List<Long> EmployIds = unemployedPeopleDao
+				.getEmploymentIntentionIdsByEmploymentId(people.getId());
+		List<Long> TrainingIds = unemployedPeopleDao
+				.getTrainingIntentionIdsByEmploymentId(people.getId());
+		people.setEmploymentIntention(propertyDictService
+				.findPropertyDictByIds(Utils.analyticalIds(EmployIds)));
+		people.setTrainingIntention(propertyDictService
+				.findPropertyDictByIds(Utils.analyticalIds(TrainingIds)));
+		return people;
+	}
+
+	@Override
+	public PageInfo<UnemployedPeople> findUnemployedPeopleForPageByOrgInternalCode(
+			Long orgId, Integer pageNum, Integer pageSize, String sidx,
+			String sord, Long isEmphasis) {
+		if (orgId == null) {
+			return constructEmptyPageInfo();
+		} else {
+			Organization org = organizationDubboService.getSimpleOrgById(orgId);
+			if (org == null) {
+				return constructEmptyPageInfo();
+			} else {
+				/*
+				 * UnemployedPeople unemployedPeople = new UnemployedPeople();
+				 * unemployedPeople
+				 * .setOrgInternalCode(org.getOrgInternalCode());
+				 * unemployedPeople.setSortField(sidx);
+				 * unemployedPeople.setOrder(sord);
+				 * unemployedPeople.setIsEmphasis(isEmphasis); return
+				 * unemployedPeopleDao.findPagerUsingCacheBySearchVo(orgId,
+				 * unemployedPeople, pageNum, pageSize, "Unemployedpeople",
+				 * MemCacheConstant .getCachePageKey(UnemployedPeople.class
+				 * .getSimpleName()));
+				 */
+
+				Map<String, Object> query = new HashMap<String, Object>();
+				query.put("orgInternalCode", org.getOrgInternalCode());
+				query.put("isEmphasis", isEmphasis);
+				PageInfo<UnemployedPeople> pageInfos = unemployedPeopleDao
+						.findPagerUsingCacheBySearchVo(
+								orgId,
+								query,
+								pageNum,
+								pageSize,
+								"UnemployedPeopleDefaultList",
+								MemCacheConstant
+										.getCachePageKey(UnemployedPeople.class));
+				fitCountrymen(pageInfos);
+				fitServiceMemberHasObject(BaseInfoTables.UNEMPLOYEDPEOPLE_KEY,
+						pageInfos);
+
+				return pageInfos;
+
+				// return unemployedPeopleDao
+				// .findUnemployedPeopleForPageByOrgInternalCode(
+				// org.getOrgInternalCode(), pageNum, pageSize,
+				// sidx, sord, isEmphasis);
+			}
+		}
+	}
+
+	private PageInfo<UnemployedPeople> constructEmptyPageInfo() {
+		PageInfo<UnemployedPeople> result = new PageInfo<UnemployedPeople>();
+		result.setResult(new ArrayList<UnemployedPeople>());
+		return result;
+	}
+
+	@Override
+	public UnemployedPeople updateUnemployedPeople(
+			UnemployedPeople unemployedPeople) {
+		unemployedPeopleValidator(unemployedPeople);
+		autoFilled(unemployedPeople);
+		// if (unemployedPeople.isDeath()) {
+		// unemployedPeople.setIsEmphasis(1L);
+		// this.deletePopulationTypeByPopulationIdAndType(unemployedPeople
+		// .getId(), PopulationType.UNEMPLOYED_PEOPLE);
+		// }
+		try {
+			List<PropertyDict> listE = unemployedPeople
+					.getEmploymentIntention();
+			List<PropertyDict> listT = unemployedPeople.getTrainingIntention();
+			List<Long> trainingIntentionIds = new ArrayList<Long>();
+			List<Long> employmentIntentionIds = new ArrayList<Long>();
+			if (listE != null && listE.size() > 0) {
+				for (PropertyDict propertyDict : listE) {
+					employmentIntentionIds.add(propertyDict.getId());
+				}
+			}
+
+			if (listT != null && listT.size() > 0) {
+				for (PropertyDict propertyDict : listT) {
+					trainingIntentionIds.add(propertyDict.getId());
+				}
+			}
+			updateUnemployedPeopleBaseInfo(unemployedPeople);
+			updateUnemployedPeopleBusiness(unemployedPeople,
+					trainingIntentionIds, employmentIntentionIds);
+			return unemployedPeople;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类UnemployedPeopleServiceImpl的updateUnemployedPeople方法出现异常，原因：",
+					"修改信息出现错误", e);
+		}
+	}
+
+	@Override
+	public boolean deleteUnemployedPeopleById(Long id) {
+		if (id == null) {
+			throw new BusinessValidationException("id不能为空");
+		}
+		UnemployedPeople unemployedPeople = unemployedPeopleDao.get(id);
+		if (unemployedPeople != null) {
+			unemployedPeopleDao
+					.deleteEmploymentIntentionByUnemployedPeopleId(id);
+
+			unemployedPeople
+					.setPopulationTypeBean(getPopulationRelationService()
+							.getBusinessPopulationTypeBean(id,
+									PopulationType.UNEMPLOYED_PEOPLE));
+			getRecoverDatasService().deleteActualPopulation(unemployedPeople);
+			populationRelationService.businessDeletePopulationRelation(id,
+					PopulationType.UNEMPLOYED_PEOPLE);
+
+			unemployedPeopleDao.deleteTrainingIntentionByUnemployedPeopleId(id);
+			unemployedPeopleDao.delete(id);
+			try {
+				PluginServiceHelpUtil.doService("routerService",
+						"deleteServiceTeamHasObjectsAndServiceMemberHasObject",
+						new Class[] { String.class, Long.class },
+						PopulationType.UNEMPLOYED_PEOPLE, id);
+				/** 删除时对关联的事件和服务记录进行orgId和idCardNo赋值 */
+				PluginServiceHelpUtil.doService("routerService",
+						"setOrgIdAndCardNoOrName", new Class[] { Long.class,
+								String.class, String.class, Long.class },
+						unemployedPeople.getOrganization().getId(),
+						unemployedPeople.getIdCardNo(),
+						PopulationType.UNEMPLOYED_PEOPLE, id);
+
+				if (IsEmphasis.Emphasis
+						.equals(unemployedPeople.getIsEmphasis())) {
+					// 缓存计数器
+					PageInfoCacheThreadLocal.decrease(MemCacheConstant
+							.getCachePageKey(UnemployedPeople.class
+									.getSimpleName()), unemployedPeople, 1);
+				}
+			} catch (Exception e) {
+				logger.error("", e);
+			}
+		}
+		return true;
+	}
+
+	@Override
+	public void deleteUnemployedPeopleByIds(Long[] ids) {
+		if (ids == null || ids.length == 0) {
+			throw new BusinessValidationException("传入参数为空");
+		}
+		try {
+			for (int i = 0; i < ids.length; i++) {
+				deleteUnemployedPeopleById(ids[i]);
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类UnemployedPeopleServiceImpl的deleteUnemployedPeopleByIds方法出现异常，原因：",
+					"删除吸毒人员信息出现错误", e);
+		}
+	}
+
+	@Override
+	public void deleteUnemployedPeoplesByIdList(List<Long> idList) {
+		if (idList == null) {
+			throw new BusinessValidationException("idList不能为空");
+		}
+		for (Long id : idList) {
+			this.deleteUnemployedPeopleById(id);
+		}
+	}
+
+	@Override
+	public UnemployedPeople getUnemployedPeopleByIdCardNoAndOrganizationId(
+			String idCardNo, Long organizationId) {
+		if (idCardNo == null || organizationId == null) {
+			throw new BusinessValidationException("参数错误");
+		}
+		String idCardNo15 = "";
+		String idCardNo18 = "";
+		if (idCardNo.length() == 15) {
+			idCardNo15 = idCardNo;
+			idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		} else if (idCardNo.length() == 18) {
+			idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+			idCardNo18 = idCardNo;
+		}
+		return unemployedPeopleDao
+				.getUnemployedPeopleByIdCardNoAndOrganizationId(idCardNo15,
+						idCardNo18, organizationId);
+	}
+
+	@Override
+	public boolean hasDuplicateUnemployedPeople(Long orgId, String idCardNo,
+			Long exceptedId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return false;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		// String idCardNo15 = "";
+		// String idCardNo18 = "";
+		// if (idCardNo.length() == 15) {
+		// idCardNo15 = idCardNo;
+		// idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		// } else if (idCardNo.length() == 18) {
+		// idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+		// idCardNo18 = idCardNo;
+		// }
+		Countrymen countrymen = baseInfoService.getBaseInfoByIdCardNo(idCardNo);
+		if (countrymen == null) {
+			return false;
+		}
+		Long exsited = unemployedPeopleDao.getIdByBaseinfoIdAndOrgId(
+				countrymen.getId(), orgId);
+		return exceptedId == null ? exsited != null
+				: (exsited != null && !exceptedId.equals(exsited));
+	}
+
+	@Override
+	public UnemployedPeople hasDuplicateUnemployedPeople(Long orgId,
+			String idCardNo) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return null;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		String idCardNo15 = "";
+		String idCardNo18 = "";
+		if (idCardNo.length() == 15) {
+			idCardNo15 = idCardNo;
+			idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		} else if (idCardNo.length() == 18) {
+			idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+			idCardNo18 = idCardNo;
+		}
+		return unemployedPeopleDao
+				.getUnemployedPeopleByIdCardNoAndOrganizationId(idCardNo15,
+						idCardNo18, orgId);
+
+	}
+
+	// public Druggy hasDuplicateDruggy(Long orgId, String idCardNo)
+	// {
+	// try {
+	// idCardNo = idCardNo.toUpperCase();
+	// List<String> list = new ArrayList<String>();
+	// list.add(idCardNo);
+	// if (idCardNo.length() == 18) {
+	// list.add(IdCardUtil.idCardNo18to15(idCardNo));
+	// } else if (idCardNo.length() == 15) {
+	// list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+	// list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+	// }
+	// return druggyDao.getByIdCard(list, orgId);
+	//
+	// } catch (Exception e) {
+	// throw new
+	// ServiceValidationException("类DruggyServiceImpl的hasDuplicateDruggy方法出现异常，"判断吸毒人员身份证号是否存在出现错误",e);
+	// }
+	// }
+	@Override
+	public UnemployedPeople updateUnemployedPeopleByIdCardNo(String idCardNo,
+			Long orgId, UnemployedPeople domain) {
+		UnemployedPeople older = this
+				.getUnemployedPeopleByIdCardNoAndOrganizationId(idCardNo, orgId);
+		domain.setId(older.getId());
+		domain.setCreateDate(older.getCreateDate());
+		domain.setCreateUser(older.getCreateUser());
+		return updateUnemployedPeople(domain);
+	}
+
+	@Override
+	public List<UnemployedPeople> updateDeathByIds(List<Long> populationIds,
+			Boolean death) {
+		List<UnemployedPeople> populationList = new ArrayList<UnemployedPeople>();
+		for (Long id : populationIds) {
+			UnemployedPeople population = this.getUnemployedPeopleById(id);
+			updateLogOutByPopulationTypeAndId(
+					LogoutDetail.buildLogoutDetail(death),
+					BaseInfoTables.UNEMPLOYEDPEOPLE_KEY, population.getId());
+			baseInfoService.updateDeathStateById(population.getBaseInfoId(),
+					death, population.getIdCardNo(), population
+							.getOrganization().getId(), population
+							.getOrgInternalCode(),
+					NewBaseInfoTables.UNEMPLOYEDPEOPLE_KEY);
+			// 缓存计数器
+			PageInfoCacheThreadLocal.increment(MemCacheConstant
+					.getCachePageKey(UnemployedPeople.class.getSimpleName()),
+					population, 1);
+			populationList.add(population);
+		}
+		return populationList;
+	}
+
+	@Override
+	public PageInfo<UnemployedPeople> searchUnemployedPeoples(Integer pageNum,
+			Integer pageSize, String sortField, String order,
+			SearchUnemployedPeopleVo searchUnemployedPeopleVo,
+			List<String> employmentIntentionIds,
+			List<String> trainingIntentionIds) {
+		searchUnemployedPeopleVo.setSortField(sortField);
+		searchUnemployedPeopleVo.setOrder(order);
+		searchUnemployedPeopleVo.setEmploymentIntention(employmentIntentionIds);
+		searchUnemployedPeopleVo.setTrainingIntention(trainingIntentionIds);
+		PageInfo<UnemployedPeople> pageInfo = unemployedPeopleDao
+				.searchUnemployedPeoples(pageNum, pageSize,
+						searchUnemployedPeopleVo);
+		pageInfo.setResult(setDictValueForList(pageInfo.getResult()));
+		return pageInfo;
+
+	}
+
+	@Override
+	public List<UnemployedPeople> searchAllUnemployedPeoples(String sortField,
+			String order, SearchUnemployedPeopleVo searchUnemployedPeopleVo,
+			List<String> employmentIntentionIds,
+			List<String> trainingIntentionIds) {
+		searchUnemployedPeopleVo.setSortField(sortField);
+		searchUnemployedPeopleVo.setOrder(order);
+		searchUnemployedPeopleVo.setEmploymentIntention(employmentIntentionIds);
+		searchUnemployedPeopleVo.setTrainingIntention(trainingIntentionIds);
+		List<UnemployedPeople> list = setDictValueForList(unemployedPeopleDao
+				.searchAllUnemployedPeoples(searchUnemployedPeopleVo));
+		if (GlobalSetting.NOT_DEPENDENT
+				.equals(globalSettingService
+						.getGlobalValue(GlobalSetting.BUSINESS_DEPENDENT_ACTUAL_POPULATION))) {
+			return list;
+		} else {
+			if (null != list && list.size() > 0) {
+				ActualPopulation actualPopulation = null;
+				for (UnemployedPeople unemployedPeople : list) {
+					actualPopulation = actualPopulationProcessorService
+							.getActualPopulationbyOrgIdAndIdCardNo(
+									unemployedPeople.getOrganization().getId(),
+									unemployedPeople.getIdCardNo());
+					if (null != actualPopulation) {
+						unemployedPeople.setHouseCode(actualPopulation
+								.getHouseCode());
+						unemployedPeople.setNoHouseReason(actualPopulation
+								.getNoHouseReason());
+					}
+				}
+			}
+			return list;
+		}
+	}
+
+	@Override
+	public UnemployedPeople updateUnemployedPeopleBaseInfo(
+			UnemployedPeople unemployedPeople) {
+		ValidateResult validateResult = unemployedPeopleValidator
+				.validateBaseInfo(unemployedPeople);
+		if (validateResult.hasError()) {
+			throw new BusinessValidationException(
+					validateResult.getErrorMessages());
+		}
+		if (hasDuplicateUnemployedPeople(unemployedPeople.getOrganization()
+				.getId(), unemployedPeople.getIdCardNo(),
+				unemployedPeople.getId())) {
+			throw new BusinessValidationException("该网格下已存在相同身份证号码");
+		}
+		autoFilled(unemployedPeople);
+		if (unemployedPeople.isDeath()) {
+			unemployedPeople.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+			unemployedPeople.setLogoutDetail(buildLogoutDetail(unemployedPeople
+					.isDeath()));
+			// 缓存计数器
+			PageInfoCacheThreadLocal.decrease(MemCacheConstant
+					.getCachePageKey(UnemployedPeople.class.getSimpleName()),
+					unemployedPeople, 1);
+		}
+		contructCurrentAddress(unemployedPeople);
+		// proccessHouseBind(unemployedPeople);
+		Countrymen temp = populationRelationService.businessOption(
+				unemployedPeople, unemployedPeople.getActualPopulationType());
+		unemployedPeople.setHouseId(temp.getHouseId());
+		rebuildHouseAddress(unemployedPeople);
+		unemployedPeopleDao.updateTableUpdateDateById(unemployedPeople.getId());
+		return unemployedPeople;
+	}
+
+	private LogoutDetail buildLogoutDetail(Boolean death) {
+		LogoutDetail result = new LogoutDetail();
+		if (death) {
+			result.setLogoutDate(new Date());
+			result.setLogoutReason(LogoutDetail.LOGOUT_REASON_FOR_DEATH);
+			result.setLogout(IsEmphasis.IsNotEmphasis);
+		} else if (!death) {
+			result.setLogout(IsEmphasis.Emphasis);
+		}
+		return result;
+	}
+
+	@Override
+	public UnemployedPeople updateUnemployedPeopleBusiness(
+			UnemployedPeople unemployedPeople, List<Long> trainingIntentionIds,
+			List<Long> employmentIntentionIds) {
+		ValidateResult validateResult = unemployedPeopleValidator
+				.validateSpecializedInfo(unemployedPeople);
+		if (validateResult.hasError()) {
+			throw new BusinessValidationException(
+					validateResult.getErrorMessages());
+		}
+		regrantEmploymentIntentionIds(unemployedPeople.getId(),
+				employmentIntentionIds);
+		regrantTrainingIntentionIds(unemployedPeople.getId(),
+				trainingIntentionIds);
+		unemployedPeople = unemployedPeopleDao.updateBusiness(unemployedPeople);
+		PageInfoCacheThreadLocal.update(
+				MemCacheConstant.getCachePageKey(UnemployedPeople.class),
+				unemployedPeople, UpdateType.BUSINESS);
+		return unemployedPeople;
+	}
+
+	private void unemployedPeopleValidator(UnemployedPeople unemployedPeople) {
+		ValidateResult validateResult = unemployedPeopleValidator
+				.validate(unemployedPeople);
+		if (validateResult.hasError()) {
+			throw new BusinessValidationException(
+					validateResult.getErrorMessages());
+		}
+		if (hasDuplicateUnemployedPeople(unemployedPeople.getOrganization()
+				.getId(), unemployedPeople.getIdCardNo(),
+				unemployedPeople.getId())) {
+			throw new BusinessValidationException("该网格下已存在相同身份证号码");
+		}
+	}
+
+	private void autoFilled(UnemployedPeople unemployedPeople) {
+		unemployedPeople.setIdCardNo(unemployedPeople.getIdCardNo()
+				.toUpperCase());
+		autoFillOrganizationInternalCode(unemployedPeople);
+		autoFillChinesePinyin(unemployedPeople);
+		autoFillBirthday(unemployedPeople);
+	}
+
+	private void autoIsDeath(UnemployedPeople unemployedPeople) {
+		if (unemployedPeople.isDeath()) {
+			unemployedPeople.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+		} else {
+			unemployedPeople.setIsEmphasis(IsEmphasis.Emphasis);
+		}
+	}
+
+	private void autoFillOrganizationInternalCode(
+			UnemployedPeople unemployedPeople) {
+		Organization org = organizationDubboService
+				.getSimpleOrgById(unemployedPeople.getOrganization().getId());
+		if (org == null) {
+			throw new BusinessValidationException("找不到指定的网格");
+		}
+		unemployedPeople.setOrgInternalCode(org.getOrgInternalCode());
+	}
+
+	private void autoFillBirthday(UnemployedPeople unemployedPeople) {
+		if (StringUtil.isStringAvaliable(unemployedPeople.getIdCardNo())) {
+			unemployedPeople.setBirthday(IdCardUtil
+					.parseBirthday(unemployedPeople.getIdCardNo()));
+		}
+	}
+
+	private void autoFillChinesePinyin(UnemployedPeople unemployedPeople) {
+		Map<String, String> pinyin = Chinese2pinyin
+				.changeChinese2Pinyin(unemployedPeople.getName());
+		unemployedPeople.setSimplePinyin(pinyin.get("simplePinyin"));
+		unemployedPeople.setFullPinyin(pinyin.get("fullPinyin"));
+	}
+
+	@Override
+	public void addEmploymentIntention(Long unemployedPeopleId,
+			List<Long> employmentIntentionIds) {
+		if (null != employmentIntentionIds
+				&& employmentIntentionIds.size() != 0) {
+			for (Long employmentIntentionId : employmentIntentionIds) {
+				unemployedPeopleDao.addEmploymentIntention(unemployedPeopleId,
+						employmentIntentionId);
+			}
+		}
+
+	}
+
+	@Override
+	public void addEmploymentIntention(Long unemployedPeopleId,
+			Long employmentIntentionId) {
+		if (null != employmentIntentionId && unemployedPeopleId != null) {
+			unemployedPeopleDao.addEmploymentIntention(unemployedPeopleId,
+					employmentIntentionId);
+		}
+	}
+
+	@Override
+	public void addTrainingIntention(Long unemployedPeopleId,
+			List<Long> trainingIntentionIds) {
+		if (null != trainingIntentionIds && trainingIntentionIds.size() != 0) {
+			for (Long trainingIntentionId : trainingIntentionIds) {
+				unemployedPeopleDao.addTrainingIntention(unemployedPeopleId,
+						trainingIntentionId);
+			}
+		}
+
+	}
+
+	@Override
+	public void addTrainingIntention(Long unemployedPeopleId,
+			Long trainingIntentionId) {
+		if (null != trainingIntentionId && unemployedPeopleId != null) {
+			unemployedPeopleDao.addTrainingIntention(unemployedPeopleId,
+					trainingIntentionId);
+		}
+
+	}
+
+	@Override
+	public void regrantEmploymentIntentionIds(Long unemployedPeopleId,
+			List<Long> employmentIntentionIds) {
+		try {
+			unemployedPeopleDao
+					.deleteEmploymentIntentionByUnemployedPeopleId(unemployedPeopleId);
+			this.addEmploymentIntention(unemployedPeopleId,
+					employmentIntentionIds);
+		} catch (Exception e) {
+			if (ExcelImportHelper.isImport.get()) {
+				return;
+			}
+		}
+	}
+
+	@Override
+	public void regrantTrainingIntentionIds(Long unemployedPeopleId,
+			List<Long> trainingIntentionIds) {
+		try {
+			unemployedPeopleDao
+					.deleteTrainingIntentionByUnemployedPeopleId(unemployedPeopleId);
+			this.addTrainingIntention(unemployedPeopleId, trainingIntentionIds);
+		} catch (Exception e) {
+			if (ExcelImportHelper.isImport.get()) {
+				return;
+			}
+		}
+	}
+
+	@Override
+	public String[][] getExportPopertyArray() {
+		if (GlobalSetting.NOT_DEPENDENT
+				.equals(globalSettingService
+						.getGlobalValue(GlobalSetting.BUSINESS_DEPENDENT_ACTUAL_POPULATION))) {
+			return SpecialGroupsContext.getUnemployedPeoplePropertyArraySlf();
+		} else {
+			return SpecialGroupsContext.getUnemployedPeoplePropertyArrayRla();
+		}
+	}
+
+	public UnemployedPeople getUnemployedPeopleByIdCardNo(String idCardNo,
+			Long orgId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return null;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		List<String> list = new ArrayList<String>();
+		list.add(idCardNo);
+		if (idCardNo.length() == 18) {
+			list.add(IdCardUtil.idCardNo18to15(idCardNo));
+		} else if (idCardNo.length() == 15) {
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+		}
+		return unemployedPeopleDao.getByIdCard(list, orgId);
+	}
+
+	@Override
+	public UnemployedPeople addUnemployedPeopleBaseInfo(
+			UnemployedPeople unemployedPeople) {
+		ValidateResult validateResult = unemployedPeopleValidator
+				.validateBaseInfo(unemployedPeople);
+		if (validateResult.hasError()) {
+			throw new BusinessValidationException(
+					validateResult.getErrorMessages());
+		}
+		if (hasDuplicateUnemployedPeople(unemployedPeople.getOrganization()
+				.getId(), unemployedPeople.getIdCardNo(),
+				unemployedPeople.getId())) {
+			throw new BusinessValidationException("该网格下已存在相同身份证号码");
+		}
+		try {
+			if (checkDataExitInCache(unemployedPeople,
+					MemCacheConstant.CACHE_ADDUNEMPLOYEDPEOPLEBASEINFO,
+					CACHE_ADDUNEMPLOYEDPEOPLEBASEINFO_VALUE)) {
+				return unemployedPeople;
+			}
+			return add(unemployedPeople);
+		} catch (Exception e) {
+			logger.error("", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(unemployedPeople,
+					MemCacheConstant.CACHE_ADDUNEMPLOYEDPEOPLEBASEINFO);
+		}
+	}
+
+	@Override
+	public Integer getCount(SearchUnemployedPeopleVo searchUnemployedPeopleVo) {
+		return unemployedPeopleDao.getCount(searchUnemployedPeopleVo);
+	}
+
+	@Override
+	public void deleteBusinessPopulationDuplicate(Long id) {
+		this.deleteUnemployedPeopleById(id);
+
+	}
+
+	private List<PropertyDict> getEmploymentIntentionList(Long id) {
+		List<Long> employmentIntentionIds = unemployedPeopleDao
+				.getEmploymentIntentionIdsByEmploymentId(id);
+		return propertyDictService.findPropertyDictByIds(Utils
+				.analyticalIds(employmentIntentionIds));
+	}
+
+	private List<PropertyDict> getTrainingIntentionList(Long id) {
+		List<Long> trainingIntentionIds = unemployedPeopleDao
+				.getTrainingIntentionIdsByEmploymentId(id);
+		return propertyDictService.findPropertyDictByIds(Utils
+				.analyticalIds(trainingIntentionIds));
+	}
+
+	private List<UnemployedPeople> setDictValueForList(
+			List<UnemployedPeople> list) {
+		if (list != null && list.size() > 0) {
+			for (UnemployedPeople unemployedPeople : list) {
+				unemployedPeople
+						.setEmploymentIntention(getEmploymentIntentionList(unemployedPeople
+								.getId()));
+				unemployedPeople
+						.setTrainingIntention(getTrainingIntentionList(unemployedPeople
+								.getId()));
+
+				ActualPopulation actualPopulation = actualPopulationProcessorService
+						.getActualPopulationbyOrgIdAndIdCardNo(unemployedPeople
+								.getOrganization().getId(), unemployedPeople
+								.getIdCardNo());
+				unemployedPeople.setHouseCode(actualPopulation.getHouseCode());
+			}
+		}
+		return list;
+	}
+
+}

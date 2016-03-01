@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		CREATEDATE as createDate ,
+		UPDATEDATE as updateDate ,
+		ORGID as orgId ,
+		ORGINTERNALCODE as orgInternalCode ,
+		CREATEUSER as createUser ,
+		UPDATEUSER as updateUser ,
+		IMGURL as imgUrl ,
+		BASECASE as baseCase 
+	FROM BASIC_CASE	
+ -->	
+<sqlMap namespace="basicCase">	
+	
+	<typeAlias alias="BasicCase" type="com.tianque.partyBuilding.baseInfos.domain.BasicCase"/>
+	<typeAlias alias="SearchBasicCaseVo" type="com.tianque.partyBuilding.baseInfos.domain.vo.SearchBasicCaseVo" />
+	<typeAlias alias="ClobStringTypeHandler" type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+	
+	<resultMap id="basicCaseResult" class="BasicCase">
+		<result property="id" column="ID"/>
+		<result property="organization.id" column="ORGID"/>
+		<result property="orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="imgUrl" column="IMGURL"/>
+		<result property="baseCase" column="BASECASE" typeHandler="ClobStringTypeHandler"/>
+		<result property="baseInfoType" column="baseInfoType"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+	</resultMap>
+	
+
+
+	<select id="getBasicCaseById" parameterClass="java.lang.Long" resultMap="basicCaseResult">
+		select * from BASIC_CASE where id=#value#
+	</select>
+	
+	<insert id="addBasicCase" parameterClass="BasicCase">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_BASICCASE.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into BASIC_CASE (ID , CREATEDATE , UPDATEDATE , ORGID , ORGINTERNALCODE , CREATEUSER , UPDATEUSER , IMGURL , BASECASE,baseInfoType ) 
+		values(#id#, #createDate#, #updateDate#, #organization.id#, #orgInternalCode#, #createUser#, #updateUser#, #imgUrl#, #baseCase,handler=ClobStringTypeHandler#,#baseInfoType#)	
+	</insert>
+	
+	<update id="updateBasicCase" parameterClass="BasicCase">
+		update BASIC_CASE set id = #id# 
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="organization.id">
+					ORGID = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="imgUrl">
+					IMGURL = #imgUrl#
+				</isNotNull>
+				<isNotNull prepend="," property="baseCase">
+					BASECASE = #baseCase#
+				</isNotNull>
+				<isNotNull prepend="," property="baseInfoType">
+					baseInfoType = #baseInfoType#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteBasicCaseById" parameterClass="java.lang.Long">	
+		delete  from BASIC_CASE where id = #value#	
+	</delete>
+	
+	<sql id="findBasicCasesBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="maxCreateDate">
+					<isNotEmpty prepend="and" property="maxCreateDate">
+						CREATEDATE  <![CDATA[<=]]> #maxCreateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minCreateDate">
+					<isNotEmpty prepend="and" property="minCreateDate">
+						CREATEDATE  <![CDATA[>=]]> #minCreateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="maxUpdateDate">
+					<isNotEmpty prepend="and" property="maxUpdateDate">
+						UPDATEDATE  <![CDATA[<=]]> #maxUpdateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minUpdateDate">
+					<isNotEmpty prepend="and" property="minUpdateDate">
+						UPDATEDATE  <![CDATA[>=]]> #minUpdateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="createUser">
+					<isNotEmpty prepend="and" property="createUser">
+						CREATEUSER  like #createUser# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="updateUser">
+					<isNotEmpty prepend="and" property="updateUser">
+						UPDATEUSER  like #updateUser# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="imgUrl">
+					<isNotEmpty prepend="and" property="imgUrl">
+						IMGURL  like #imgUrl# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="baseCase">
+					<isNotEmpty prepend="and" property="baseCase">
+						BASECASE  like #baseCase# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+	<select id="findBasicCasesBySearchVo" parameterClass="SearchBasicCaseVo" resultMap="basicCaseResult">
+		select * from BASIC_CASE
+		<include refid="findBasicCasesBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countBasicCasesBySearchVo" parameterClass="SearchBasicCaseVo" resultClass="java.lang.Integer">
+		select count(0) from BASIC_CASE
+		<include refid="findBasicCasesBySearchVo_sql_where" />
+	</select>
+	
+	<select id="findBasicCaseByIdAndOrgId" resultMap="basicCaseResult"
+		parameterClass="java.util.Map">
+		select * from (select * from basic_case order by createDate desc) where rownum =1
+		<dynamic>
+			<isNotNull prepend="and" property="id">
+				id=#id#
+			</isNotNull>
+			<isNotNull prepend="and" property="orgId">
+				orgId=#orgId#
+			</isNotNull>
+			order by createDate desc
+		</dynamic>
+	</select>
+	
+	<select id="getByIdAndOrgIdAndType" resultMap="basicCaseResult" parameterClass="java.util.Map">
+		select * from basic_case where rownum =1
+		<dynamic>
+			<isNotNull prepend="and" property="id">
+				id=#id#
+			</isNotNull>
+			<isNotNull prepend="and" property="orgId">
+				orgId=#orgId#
+			</isNotNull>
+			<isNotEmpty property="baseInfoType" prepend="and">
+	        	baseInfoType = #baseInfoType#
+	        </isNotEmpty>
+	        <isEmpty property="baseInfoType" prepend="and">
+            	baseInfoType is null
+            </isEmpty>
+			order by createDate desc
+		</dynamic>
+	</select>
+	
+</sqlMap>

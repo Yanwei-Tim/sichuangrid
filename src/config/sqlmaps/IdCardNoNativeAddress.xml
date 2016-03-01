@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="idCardNoNativeAddress">
+	<typeAlias alias="IdCardNoNativeAddress" type="com.tianque.domain.vo.IdCardNoNativeAddress" />
+	<resultMap id="idCardNoNativeAddressResult" class="IdCardNoNativeAddress">
+		<result property="sixthIdCardNo" column="sixthIdCardNo" />
+		<result property="address" column="address" />
+	</resultMap>
+	
+	<insert id="addIdCardNoNativeAddress" parameterClass="IdCardNoNativeAddress">
+		insert into IdCardNoNativeAddress
+		(sixthIdCardNo,address)
+		values
+		(#sixthIdCardNo#,#address#)
+	</insert>
+	
+	<select id="getIdCardNoNativeAddressBySixthIdCardNo" parameterClass="IdCardNoNativeAddress" resultMap="idCardNoNativeAddressResult">
+		select * from IdCardNoNativeAddress where sixthIdCardNo=#sixthIdCardNo#
+	</select>
+</sqlMap>

@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="incidentsSpace">
+   	<typeAlias alias="Incidents" type="com.tianque.incident.domain.Incidents"/>
+	<typeAlias alias="IncidentSteps" type="com.tianque.incident.domain.IncidentSteps"/>
+	<typeAlias alias="IncidentStepFeedbacks" type="com.tianque.incident.domain.IncidentStepFeedbacks"/>
+	<typeAlias alias="IncidentType" type="com.tianque.incident.domain.IncidentType" />
+	
+    <resultMap class="IncidentType" id="planedIncidentType">
+    	<result column="id" property="id" />
+    	<result column="name" property="name" />
+    	<result column="subjection"   property="subjection.id"/>
+    	<result column="degreed"      property="degreed"/>
+    </resultMap>  
+    
+	<resultMap  id="incidents" class="Incidents">
+	   <result column="id" property="id" />
+	   <result column="title" property="title" />
+	   <result column="category"   property="category.id" />
+	   <result column="subdivision"  property="subdivision" />
+	   <result column="subdivision"  property="incidentType" select="incidentsSpace.loadIncidentType"/>
+	   <result column="degree"   property="degree.id" />
+	   <result column="sourcetype"  property="sourceType" />
+	   <result column="applicant"   property="applicant" />
+	   <result column="applydate"  property="applyDate" />
+	   <result column="occuraddress"   property="occurAddress" />
+	   <result column="range"   property="range" />
+	   <result column="content"  property="content" />
+	   <result column="status"   property="status" />
+	   <result column="incident"   property="incident" />
+	   <result column="censorreason"  property="censorreason" />
+	   <result column="source"  property="source" />
+	   <result column="sourceType" property="sourceType"/>
+	   <result column="buildingId" property="gisInfo.buildingId" />
+	   <result column="centerX"  property="gisInfo.centerX" />
+	   <result column="centerY" property="gisInfo.centerY" /> 
+	</resultMap>
+	
+	<resultMap  id="incidentSteps" class="IncidentSteps">
+	   <result column="id" property="id" />
+	   <result column="incidentid" property="incidents.id" />
+	   <result column="executedate" property="executeDate" />
+	   <result column="executed" property="executed" />
+	   <result column="executeuser" property="executeUser" />
+	   <result column="steptype" property="stepType" />
+	   <result column="seqindex" property="seqIndex" />
+	   <result column="plancontent" property="planContent" />
+	   <result column="actualcontent" property="actualContent" />
+	   <result column="stepname" property="stepName"/>
+	</resultMap>
+	
+	<resultMap  id="incidentStepFeedbacks" class="IncidentStepFeedbacks">
+	   <result column="id" property="id" />
+	   <result column="incidentstepid" property="incidentSteps.id" />
+	   <result column="feedbackuser"   property="feedBackUser" />
+	   <result column="feedbackdate"  property="feedBackDate" />
+	   <result column="content"  property="content" />
+	</resultMap>
+	<resultMap id="caseLibraryIncidentStepFeedbacks" class="IncidentSteps"  extends="incidentSteps"> 
+		<result column="id"   property="incidentStepFeedBackList"  select="incidentsSpace.loadIncidentStepFeedbacks"/>
+	</resultMap>
+	<select id="findIncidentStepFeedbackList" parameterClass="java.lang.Long" resultMap="incidentStepFeedbacks">
+	   select * from incidentstepfeedbacks where incidentstepid =#value#
+	</select>
+	
+	
+    <select id="findIncidentsList" parameterClass="Incidents" resultMap="incidents">
+         select * from incidents
+         <dynamic prepend="where">
+            <isPropertyAvailable property="id">
+                 <isNotNull property="id" prepend="and" >
+                   id = #id#
+                </isNotNull>
+             </isPropertyAvailable>
+             <isPropertyAvailable property="status">
+                 <isNotNull property="status" prepend="and" >
+                   status = #status#
+                </isNotNull>
+             </isPropertyAvailable>
+             <isPropertyAvailable property="category">
+                 <isNotNull property="category" prepend="and" >
+                   category = #category.id#
+                </isNotNull>
+             </isPropertyAvailable>
+              <isPropertyAvailable property="subdivision">
+                 <isNotNull property="subdivision" prepend="and" >
+                   subdivision = #subdivision#
+                </isNotNull>
+             </isPropertyAvailable>
+              <isPropertyAvailable property="degree">
+                 <isNotNull property="degree" prepend="and" >
+                   degree = #degree.id#
+                </isNotNull>
+             </isPropertyAvailable>
+         </dynamic>
+    </select>
+    <select id="loadIncidentType" parameterClass="java.lang.Long" resultMap="planedIncidentType">
+    	select * from incidenttypes where id=#value#
+    </select>
+      
+   <update id="updateIncidentsHandle" parameterClass="Incidents" >
+       update incidents  set category =#category.id# , subdivision =#subdivision#, degree=#degree.id#,
+       range =#range# , status =#status# , incident =#incident# ,auditer=#auditer#,auditdate=#auditDate#, 
+       updateuser = #updateUser#,updateDate = #updateDate#   where  id= #id#
+   </update>
+   
+   <update id="updateIncidentsCaseLibrary" parameterClass="Incidents" >
+       update incidents  set censorreason =#censorreason# ,auditer=#auditer#,auditdate=#auditDate#,
+       status =#status# , incident =#incident#, updateuser = #updateUser# ,updateDate = #updateDate# where  id= #id#
+   </update>
+   
+   <select id="findIncidentSteps"  parameterClass="IncidentSteps" resultMap="incidentSteps">
+     select *  from incidentSteps 
+    <dynamic prepend="where">
+      <isPropertyAvailable property="id">
+        <isNotNull property="id" prepend="and">
+         id= #id#
+        </isNotNull>
+     </isPropertyAvailable>
+     <isPropertyAvailable property="incidents">
+        <isNotNull property="incidents" prepend="and">
+         incidentid= #incidents.id#
+        </isNotNull>
+     </isPropertyAvailable>
+     </dynamic>
+     <dynamic prepend=" order by">
+	    steptype , seqindex
+	  </dynamic>  
+   </select>
+   
+   <update id="updateIncidentsteps"  parameterClass="IncidentSteps" >
+     update incidentsteps  set actualcontent =#actualContent# ,executedate =#executeDate#,
+      executeuser =#executeUser#,executed=#executed#, updateuser = #updateUser# ,updateDate = #updateDate#
+      <dynamic prepend="where">
+       <isPropertyAvailable property="id">
+          <isNotNull property="id" prepend="and">
+            id = #id#
+         </isNotNull>
+       </isPropertyAvailable>
+     </dynamic>
+   </update>
+    
+    <insert id="addIncidents" parameterClass="Incidents" >
+       <selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[select s_incidents.nextval as id from dual]]>
+	   </selectKey>
+	   insert into incidents (id,title,category,subdivision,degree,sourcetype,applicant,
+       applydate,occuraddress,range,content,status,source,createuser,createdate,
+       buildingId,centerX,centerY)values 
+       (#id#,#title#,#category.id#,#subdivision#,#degree.id#,#sourceType#,#applicant#,
+       #applyDate#,#occurAddress#,#range#,#content#,#status#,#source#,#createUser#,#createDate#,
+       #gisInfo.buildingId#,#gisInfo.centerX#,#gisInfo.centerX#)
+    </insert>
+    <update id="updateEarlyWarningIncidents" parameterClass="Incidents">
+    	update incidents set
+    		title=#title#,
+    		category=#category.id#,
+    		subdivision=#subdivision#,
+    		degree=#degree.id#,
+    		sourcetype=#sourceType#,
+    		applicant=#applicant#,
+      	    applydate= #applyDate#,
+      	    occuraddress=#occurAddress#,
+      	    range=#range#,
+      	    content=#content#,
+      	    status=#status#,
+      	    buildingId=#gisInfo.buildingId#,
+			centerX =#gisInfo.centerX#,
+			centerY = #gisInfo.centerY#
+    	where id=#id#
+    </update>
+     <insert id="addIncidentsteps" parameterClass="IncidentSteps" >
+       <selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[select s_incidentsteps.nextval as id from dual]]>
+	   </selectKey>
+	   insert into incidentsteps (id,incidentid,executedate,executed,executeuser,steptype,
+       seqindex,plancontent,actualcontent,createuser,createdate,stepname)
+       values(#id#,#incidents.id#,#executeDate#,#executed#,#executeUser#,#stepType#,#seqIndex#,
+       #planContent#,#actualContent#,#createUser#,#createDate#,#stepName#)
+    </insert>
+    
+    <insert id="addIncidentStepFeedbacks" parameterClass="IncidentStepFeedbacks" >
+       <selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[select s_incidentstepfeedbacks.nextval as id from dual]]>
+	   </selectKey>
+	   insert into incidentstepfeedbacks (id,incidentstepid,feedbackuser,feedbackdate,content)
+       values(#id#,#incidentSteps.id#,#feedBackUser#,#feedBackDate#,#content#)
+    </insert>
+    <select id="loadCaseLibraryList" parameterClass="Incidents" resultMap="incidents">
+    	select * from incidents where   status =#status# 
+    		  <isPropertyAvailable property="id">
+		        <isNotEmpty property="id" prepend=" and ">
+		        	 subdivision= #id#
+		        </isNotEmpty>
+		     </isPropertyAvailable>
+		     
+		     <isPropertyAvailable property="category">
+		     	<isNotNull property="category.id" prepend=" and ">
+		     		category=#category.id#
+		     	</isNotNull>
+		     </isPropertyAvailable>
+		     <isPropertyAvailable property="degree">
+		     	<isNotNull property="degree.id" prepend=" and ">
+		     		degree=#degree.id#
+		     	</isNotNull>
+		     </isPropertyAvailable>
+		     <dynamic>
+		      	order by degree asc, subdivision asc
+		     </dynamic>
+    </select>
+    
+    <select id="loadCaseLibrary" parameterClass="long" resultMap="incidents">
+    		select * from incidents where  id =#id# 
+    </select>
+    
+    <select id="loadloadIncidentSteps" parameterClass="long" resultMap="caseLibraryIncidentStepFeedbacks">
+    	select * from incidentsteps where incidentid =#id# order by seqIndex asc,executeDate asc
+    </select>
+    
+    <select id="loadIncidentStepFeedbacks" parameterClass="long" resultMap="incidentStepFeedbacks">
+    	select * from incidentstepfeedbacks where incidentstepid=#id#
+    </select>
+    <select id="findPlansSubdivisionBySubjection" parameterClass="java.lang.Long" resultMap="planedIncidentType">
+    	select *  from  incidenttypes where subjection =#id#
+    </select>
+    
+</sqlMap>

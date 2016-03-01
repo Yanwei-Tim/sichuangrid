@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		CREATEDATE as createDate ,
+		UPDATEDATE as updateDate ,
+		ORGID as orgId ,
+		GENDER as gender ,
+		SORT as sort ,
+		ORGCODE as orgCode ,
+		NAME as name ,
+		CREATEUSER as createUser ,
+		UPDATEUSER as updateUser ,
+		DUTY as duty ,
+		IMAGEURL as imageUrl ,
+		INTRODUCTION as introduction 
+	FROM PARTYWORK_MEMBERS	
+ -->	
+<sqlMap namespace="partyworkMembers">	
+	
+	<typeAlias alias="PartyworkMembers" type="com.tianque.partyBuilding.baseInfos.domain.PartyworkMembers"/>
+	<typeAlias alias="SearchPartyworkMembersVo" type="com.tianque.partyBuilding.baseInfos.domain.vo.SearchPartyworkMembersVo" />
+	
+	<resultMap id="partyworkMembersResult" class="PartyworkMembers">
+		<result property="id" column="ID"/>
+		
+		<result property="organization.id" column="ORGID"/>
+		<result property="gender.id" column="GENDER"/>
+		<result property="sort" column="SORT"/>
+		<result property="orgCode" column="ORGCODE"/>
+		<result property="name" column="NAME"/>
+		<result property="duty" column="DUTY"/>
+		<result property="imageUrl" column="IMAGEURL"/>
+		<result property="introduction" column="INTRODUCTION"/>
+		<result property="baseInfoType" column="baseInfoType"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+	</resultMap>
+	
+
+
+	<select id="getPartyworkMembersById" parameterClass="java.lang.Long" resultMap="partyworkMembersResult">
+		select * from PARTYWORK_MEMBERS where id=#value#
+	</select>
+	
+	<insert id="addPartyworkMembers" parameterClass="PartyworkMembers">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_PARTYWORK_MEMBERS.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into PARTYWORK_MEMBERS (ID , CREATEDATE , UPDATEDATE , ORGID , GENDER , SORT , ORGCODE , NAME , CREATEUSER , UPDATEUSER , DUTY , IMAGEURL , INTRODUCTION ,baseInfoType) 
+		values(#id#, #createDate#, #updateDate#, #organization.id#, #gender.id#, #sort#, #orgCode#, #name#, #createUser#, #updateUser#, #duty#, #imageUrl#, #introduction#,#baseInfoType#)	
+	</insert>
+	
+	<update id="updatePartyworkMembers" parameterClass="PartyworkMembers">
+		update PARTYWORK_MEMBERS set id = #id# 
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="organization.id">
+					ORGID = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="gender.id">
+					GENDER = #gender.id#
+				</isNotNull>
+				<isNotNull prepend="," property="sort">
+					SORT = #sort#
+				</isNotNull>
+				<isNotNull prepend="," property="orgCode">
+					ORGCODE = #orgCode#
+				</isNotNull>
+				<isNotNull prepend="," property="name">
+					NAME = #name#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="duty">
+					DUTY = #duty#
+				</isNotNull>
+				<isNotNull prepend="," property="imageUrl">
+					IMAGEURL = #imageUrl#
+				</isNotNull>
+				<isNotNull prepend="," property="introduction">
+					INTRODUCTION = #introduction#
+				</isNotNull>
+				<isNotNull prepend="," property="baseInfoType">
+					baseInfoType = #baseInfoType#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deletePartyworkMembersById" parameterClass="java.lang.Long">	
+		delete  from PARTYWORK_MEMBERS where id = #value#	
+	</delete>
+	
+	<sql id="findPartyworkMemberssBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="maxCreateDate">
+					<isNotEmpty prepend="and" property="maxCreateDate">
+						CREATEDATE  <![CDATA[<=]]> #maxCreateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minCreateDate">
+					<isNotEmpty prepend="and" property="minCreateDate">
+						CREATEDATE  <![CDATA[>=]]> #minCreateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="maxUpdateDate">
+					<isNotEmpty prepend="and" property="maxUpdateDate">
+						UPDATEDATE  <![CDATA[<=]]> #maxUpdateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minUpdateDate">
+					<isNotEmpty prepend="and" property="minUpdateDate">
+						UPDATEDATE  <![CDATA[>=]]> #minUpdateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="gender">
+					<isNotEmpty prepend="and" property="gender">
+						GENDER = #gender#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="sort">
+					<isNotEmpty prepend="and" property="sort">
+						SORT = #sort#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="orgCode">
+					<isNotEmpty prepend="and" property="orgCode">
+						ORGCODE  like #orgCode# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="name">
+					<isNotEmpty prepend="and" property="name">
+						NAME  like #name# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="createUser">
+					<isNotEmpty prepend="and" property="createUser">
+						CREATEUSER  like #createUser# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="updateUser">
+					<isNotEmpty prepend="and" property="updateUser">
+						UPDATEUSER  like #updateUser# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="duty">
+					<isNotEmpty prepend="and" property="duty">
+						DUTY  like #duty# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="imageUrl">
+					<isNotEmpty prepend="and" property="imageUrl">
+						IMAGEURL  like #imageUrl# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="introduction">
+					<isNotEmpty prepend="and" property="introduction">
+						INTRODUCTION  like #introduction# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+	<select id="findPartyworkMemberssBySearchVo" parameterClass="SearchPartyworkMembersVo" resultMap="partyworkMembersResult">
+		select * from PARTYWORK_MEMBERS
+		<include refid="findPartyworkMemberssBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countPartyworkMemberssBySearchVo" parameterClass="SearchPartyworkMembersVo" resultClass="java.lang.Integer">
+		select count(0) from PARTYWORK_MEMBERS
+		<include refid="findPartyworkMemberssBySearchVo_sql_where" />
+	</select>
+	
+	<select id="getPartyWorkMembersListByOrgId" resultMap="partyworkMembersResult" parameterClass="PartyworkMembers" >
+		select * from PARTYWORK_MEMBERS
+		<dynamic prepend="where">
+	        <isNotNull property="organization.id" prepend="and">
+	        	orgId = #organization.id#
+	        </isNotNull>
+	        <isNotEmpty property="baseInfoType" prepend="and">
+	        	baseInfoType = #baseInfoType#
+	        </isNotEmpty>
+	        <isEmpty property="baseInfoType" prepend="and">
+            	baseInfoType is null
+            </isEmpty>
+       </dynamic>
+       order by sort asc
+	</select>
+
+</sqlMap>

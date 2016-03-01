@@ -1,0 +1,275 @@
+package com.tianque.plugin.taskList.controller;
+
+import org.apache.struts2.convention.annotation.Action;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.alibaba.dubbo.common.logger.Logger;
+import com.alibaba.dubbo.common.logger.LoggerFactory;
+import com.tianque.controller.vo.OrganizationTreeData;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.vo.GridPage;
+import com.tianque.domain.Organization;
+import com.tianque.plugin.taskList.domain.GridConfigTaskVo;
+import com.tianque.plugin.taskList.domain.OrgTreeNode;
+import com.tianque.plugin.taskList.service.GridConfigTaskService;
+
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.ExtTreeData;
+import com.tianque.domain.PropertyDict;
+import com.tianque.userAuth.api.PropertyDictDubboService;
+
+
+@Scope("request")
+@Namespace("/baseInfo/gridConfigTaskManage")
+@Controller("gridConfigTaskController")
+public class GridConfigTaskController extends BaseAction {
+	private static Logger logger = LoggerFactory
+			.getLogger(GridConfigTaskController.class);
+	
+	@Autowired
+	private PropertyDictDubboService propertyDictDubboService;
+	@Autowired
+	private GridConfigTaskService gridConfigTaskService;
+	
+	//组织机构，页面有关组织机构参数都往这传，避免定义多个参数
+	private Organization organization;
+	//职能部门配置清单树
+	List<Organization>organizations;
+	//当前选中的组织机构
+	private List<ExtTreeData> extTreeDatas;
+	private PropertyDict orgType;
+	//配置清单配置树
+	private List<OrgTreeNode> orgTreeNodeList;
+	private String pid;
+	//新增修改和批量删除配置时选则的orgids
+	private String ids;
+	//职能部门配置清单，页面有关配置清单参数都往这传，避免定义多个参数
+	private GridConfigTaskVo gridConfigTaskVo;
+	private String type;//服务清单和业务清单的配置使用同一套代码
+	
+	/**
+	 * 职能部门分页
+	 * @return
+	 * @throws Exception
+	 */
+	@Action(value = "findGridConfigTasks", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String findGridConfigTasks() throws Exception {
+		if(organization==null||organization.getId()==null ||!StringUtil.isStringAvaliable(type)){
+			logger.error("配置清单列表查询时参数错误");
+			throw new RuntimeException("参数错误");
+		}
+		gridPage = new GridPage(gridConfigTaskService.findGridConfigTasks(
+				organization.getId(),type,page, rows, sidx, sord));
+
+		return SUCCESS;
+	}
+	
+
+	/**
+	 * 查询登录账号是否有配置职能部门配置清单
+	 * @return
+	 * @throws Exception
+	 */
+	@Action(value = "isHasGridTaskList", results = {
+			@Result(name = "success", type = "json", params = { "root", "gridConfigTaskVo.isHasConfig" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String isHasGridTaskList() throws Exception {
+		if(!StringUtil.isStringAvaliable(type)){
+			errorMessage="查询出错，未获得类别";
+			return ERROR;
+		}
+		gridConfigTaskVo=new GridConfigTaskVo();
+		gridConfigTaskVo.setIsHasConfig(gridConfigTaskService.isHasGridTaskList(type));
+		return SUCCESS;
+	}
+	
+	/**
+	 * 加载职能部门配置清单树
+	 * @return
+	 * @throws Exception
+	 */
+	@Action(value = "orgSelectComponent", results = { @Result(name = "Task", location = "/includes/orgConfigTaskListSelect.jsp"),
+			@Result(name = "ServiceList", location = "/includes/orgConfigserviceListSelect.jsp")})
+	public String orgSelectComponent() throws Exception {
+		if(organization==null||organization.getId()==null || !StringUtil.isStringAvaliable(type)){
+			logger.error("配置清单列表查询时参数错误");
+			throw new RuntimeException("参数错误");
+		}
+		Long orgId=organization.getId();
+		organizations=gridConfigTaskService.getOrgSelectComponent(orgId,type);
+		if(organizations==null){
+			organizations=new ArrayList<Organization>();
+		}
+		if(orgId!=null&&orgId.equals(ThreadVariable.getOrganization().getId())){
+			organization=ThreadVariable.getOrganization();
+		}
+		if(organizations.size()>0){
+			orgType=propertyDictDubboService.getPropertyDictById(organizations.get(0).getOrgLevel().getId());
+			for(Organization organization:organizations){
+				organization.setOrgLevel(orgType);
+			}
+		}
+		return type;
+	}
+	
+	/**
+	 * 加载职能部门配置清单树(异步)
+	 * @return
+	 * @throws Exception
+	 */
+	@Action(value = "ajaxOrgConfigTaskTree", results = { @Result(type = "json", params = {
+	"root", "extTreeDatas", "ignoreHierarchy", "false",
+	"excludeNullProperties", "true" }) })
+	public String ajaxOrgConfigTaskTree() throws Exception {
+		if(organization==null||organization.getId()==null || !StringUtil.isStringAvaliable(type)){
+			logger.error("配置清单列表查询时参数错误");
+			throw new RuntimeException("参数错误");
+		}
+		organizations=gridConfigTaskService.getOrgSelectComponent(organization.getId(),type);
+		extTreeDatas = new ArrayList<ExtTreeData>();
+		if(organizations.size()>0){
+			orgType=propertyDictDubboService.getPropertyDictById(organizations.get(0).getOrgLevel().getId());
+			for(Organization organization:organizations){
+				organization.setOrgLevel(orgType);
+				extTreeDatas.add(new OrganizationTreeData(organization));
+			}
+		}
+		return SUCCESS;
+	}
+	
+	/**
+	 * 新增，修改，查看时加载配置清单配置组织树
+	 * 
+	 * @return
+	 */
+	@Action(value = "getAuthorizedOraganiztionTreeNodelist", results = { @Result(name = "success", type = "json", params = {
+			"root", "orgTreeNodeList", "excludeNullProperties", "false" }) })
+	public String getAuthorizedOraganiztionTreeNodelist() {
+		if(organization==null||organization.getId()==null || !StringUtil.isStringAvaliable(type)){
+			logger.error("配置清单列表查询时参数错误");
+			throw new RuntimeException("参数错误");
+		}
+		orgTreeNodeList = gridConfigTaskService.getOrganizationTreeByParentId(organization.getId(),pid,mode,type);
+		if (orgTreeNodeList == null) {
+			orgTreeNodeList = new java.util.ArrayList<OrgTreeNode>();
+		}
+		return SUCCESS;
+	}
+	
+	/**
+	 * 新增、修改
+	 * @return
+	 * @throws Exception
+	 */
+	@Action(value = "addGridConfigTaskByOrgids", results = {
+			@Result(name = "success", type = "json", params = { "root","true"})})
+	public String addGridConfigTaskByOrgids() throws Exception {
+		if(!StringUtil.isStringAvaliable(type)){
+			errorMessage="操作失败，未获得类别";
+			return ERROR;
+		}
+		gridConfigTaskService.addGridConfigTaskByOrgids(ids, organization,mode,type);
+		return SUCCESS;
+	}
+	
+	/**
+	 * 删除
+	 * @return
+	 */
+	@Action(value = "deleteCheckedOrg", results = {
+			@Result(name = "success", type = "json", params = { "root","true"})})
+	public String deleteCheckedOrg(){
+		if(!StringUtil.isStringAvaliable(ids) || !StringUtil.isStringAvaliable(type)){
+			logger.error("参数错误");
+			throw new RuntimeException("参数错误");
+		}
+		gridConfigTaskService.deleteCheckedOrg(ids,type);
+		return SUCCESS;
+	}
+	
+	public List<Organization> getOrganizations() {
+		return organizations;
+	}
+	public void setOrganizations(List<Organization> organizations) {
+		this.organizations = organizations;
+	}
+
+	public Organization getOrganization() {
+		return organization;
+	}
+
+	public void setOrganization(Organization organization) {
+		this.organization = organization;
+	}
+
+	public List<ExtTreeData> getExtTreeDatas() {
+		return extTreeDatas;
+	}
+
+	public void setExtTreeDatas(List<ExtTreeData> extTreeDatas) {
+		this.extTreeDatas = extTreeDatas;
+	}
+
+	public PropertyDict getOrgType() {
+		return orgType;
+	}
+
+	public void setOrgType(PropertyDict orgType) {
+		this.orgType = orgType;
+	}
+
+	public List<OrgTreeNode> getOrgTreeNodeList() {
+		return orgTreeNodeList;
+	}
+
+	public void setOrgTreeNodeList(List<OrgTreeNode> orgTreeNodeList) {
+		this.orgTreeNodeList = orgTreeNodeList;
+	}
+
+	public String getPid() {
+		return pid;
+	}
+
+	public void setPid(String pid) {
+		this.pid = pid;
+	}
+
+	public String getIds() {
+		return ids;
+	}
+
+	public void setIds(String ids) {
+		this.ids = ids;
+	}
+
+	public GridConfigTaskVo getGridConfigTaskVo() {
+		return gridConfigTaskVo;
+	}
+
+	public void setGridConfigTaskVo(GridConfigTaskVo gridConfigTaskVo) {
+		this.gridConfigTaskVo = gridConfigTaskVo;
+	}
+
+
+	public String getType() {
+		return type;
+	}
+
+
+	public void setType(String type) {
+		this.type = type;
+	}
+	
+}

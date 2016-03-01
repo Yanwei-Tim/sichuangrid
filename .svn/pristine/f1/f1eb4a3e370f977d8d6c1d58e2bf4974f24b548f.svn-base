@@ -1,0 +1,126 @@
+package com.tianque.plugin.taskList.daoImpl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.plugin.taskList.dao.HiddenDangerDao;
+import com.tianque.plugin.taskList.domain.HiddenDanger;
+import com.tianque.plugin.taskList.domain.HiddenDangerVo;
+
+/**
+ * 发现安全隐患dao实现
+ * 
+ * @author GAOHU
+ *
+ */
+@Repository("hiddenDangerDao")
+public class HiddenDangerDaoImpl extends AbstractBaseDao implements HiddenDangerDao {
+
+	@Override
+	public HiddenDanger getHiddenDangerById(Long id) {
+		return (HiddenDanger) getSqlMapClientTemplate().queryForObject(
+				"hiddenDanger.getHiddenDangerById", id);
+	}
+
+	@Override
+	public HiddenDanger addHiddenDanger(HiddenDanger hiddenDanger) {
+		Long id = (Long) getSqlMapClientTemplate().insert("hiddenDanger.addHiddenDanger",
+				hiddenDanger);
+		return getHiddenDangerById(id);
+	}
+
+	@Override
+	public void deleteHiddenDanger(List<Long> ids) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("ids", ids);
+		getSqlMapClientTemplate().delete("hiddenDanger.deleteHiddenDangerByIds", map);
+
+	}
+
+	@Override
+	public HiddenDanger updateHiddenDanger(HiddenDanger hiddenDanger) {
+		getSqlMapClientTemplate().update("hiddenDanger.updateHiddenDanger", hiddenDanger);
+		return getHiddenDangerById(hiddenDanger.getId());
+
+	}
+
+	@Override
+	public PageInfo<HiddenDanger> searchHiddenDanger(HiddenDangerVo hiddenDangerVo,
+			Integer pageNum, Integer pageSize, String sortField, String order) {
+
+		PageInfo<HiddenDanger> pageInfo = new PageInfo<HiddenDanger>();
+
+		Integer countNum = (Integer) getSqlMapClientTemplate().queryForObject(
+				"hiddenDanger.countHiddenDangerByVo",
+				getConditionMapOut(hiddenDangerVo, sortField, order));
+		int pageCount = 0;
+		if (pageSize != 0 && countNum > 0) {
+			pageCount = (countNum - 1) / pageSize + 1;
+		} else {
+			pageNum = pageNum > pageCount ? pageCount : pageNum;
+		}
+
+		if (countNum > 0) {
+			List<HiddenDanger> list = getSqlMapClientTemplate().queryForList(
+					"hiddenDanger.searchHiddenDanger",
+					getConditionMapOut(hiddenDangerVo, sortField, order), (pageNum - 1) * pageSize,
+					pageSize);
+			pageInfo.setResult(list);
+		} else {
+			pageInfo.setResult(new ArrayList<HiddenDanger>());
+		}
+		pageInfo.setCurrentPage(pageNum);
+		pageInfo.setPerPageSize(pageSize);
+		pageInfo.setTotalRowSize(countNum);
+		return pageInfo;
+	}
+	
+	private Map getConditionMapOut(HiddenDangerVo condition, String sortField, String order) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		if (condition == null) {
+			return map;
+		}
+
+		// "hiddenDangerVo.exceptionType.id":conditionExceptionType,
+		if (condition.getSignDateEnd() != null) {
+			condition.setSignDateEnd(CalendarUtil.getLastDaySecoend(condition.getSignDateEnd()));
+		}
+		if (condition.getDiscoverDateEnd() != null) {
+			condition.setDiscoverDateEnd(CalendarUtil.getLastDaySecoend(condition
+					.getDiscoverDateEnd()));
+		}
+		map.put("fastSearchKeyWords", condition.getFastSearchKeyWords());
+		map.put("orgInternalCode", condition.getOrgInternalCode());
+		map.put("discoverDateStart", condition.getDiscoverDateStart());
+		map.put("discoverDateEnd", condition.getDiscoverDateEnd());
+		map.put("address", condition.getAddress());
+		map.put("exceptionType", condition.getExceptionTypeId());
+		map.put("exceptionSituation", condition.getExceptionSituation());
+		map.put("ishandle", condition.getIshandle());
+		map.put("hasReplay", condition.getHasReplay());
+		map.put("cellName", condition.getCellName());
+		map.put("signUserName", condition.getSignUserName());
+		map.put("signDateStart", condition.getSignDateStart());
+		map.put("signDateEnd", condition.getSignDateEnd());
+		map.put("remark", condition.getRemark());
+		map.put("sortField", sortField);
+		map.put("order", order);
+		map.put("mode", condition.getMode());
+		map.put("funOrgId", condition.getFunOrgId());
+		return map;
+	}
+
+	@Override
+	public HiddenDanger updateHiddenDangerSignDetail(HiddenDanger hiddenDanger) {
+		getSqlMapClientTemplate().update("hiddenDanger.updateHiddenDangerSignDetail", hiddenDanger);
+		return getHiddenDangerById(hiddenDanger.getId());
+	}
+
+}

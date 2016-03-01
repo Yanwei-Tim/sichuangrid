@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchdangerousChemicalsUnit">
+	<typeAlias alias="SearchDangerousChemicalsUnitVo" type="com.tianque.domain.vo.SearchDangerousChemicalsUnitVo"/>
+   <sql id="sql_where">
+		from dangerousChemicalsUnit 
+			where 1=1
+		 <dynamic >
+	        <isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+         <isPropertyAvailable property="unitName">
+            <isNotEmpty prepend=" and " property="unitName">
+            	(unitName like #unitName#||'%' or fullPinyin like #unitName#||'%' or simplePinyin like #unitName#||'%')
+            </isNotEmpty>
+          </isPropertyAvailable>
+          <isPropertyAvailable property="unitAddress">
+            <isNotEmpty prepend=" and " property="unitAddress">
+            	unitAddress like #unitAddress#||'%'
+            </isNotEmpty>
+          </isPropertyAvailable>
+            <isPropertyAvailable property="superintendent">
+            <isNotEmpty prepend=" and " property="superintendent">
+            	superintendent like #superintendent#||'%'
+            </isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="telephone">
+             <isNotEmpty prepend=" and " property="telephone">
+            	telephone like #telephone#||'%'
+            </isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="unitType">
+             <isNotEmpty prepend=" and " property="unitType">
+            	unitType like #unitType#||'%'
+            </isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="commodityType">
+             <isNotEmpty prepend=" and " property="commodityType">
+            	commodityType  like  #commodityType#||'%'
+            </isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="copyScope">
+             <isNotEmpty prepend=" and " property="copyScope">
+            	copyScope like #copyScope#||'%'
+            </isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="storageDevice">
+            <isNotEmpty prepend=" and " property="storageDevice">
+            	storageDevice like #storageDevice#||'%'
+             </isNotEmpty>
+             </isPropertyAvailable>
+             <isPropertyAvailable property="isEmphasis">
+			 	<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="true">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="false">
+						isEmphasis = #isEmphasis# 
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+              <isPropertyAvailable property="startLogOutTime">
+             <isNotEmpty prepend=" and " property="startLogOutTime">
+             <![CDATA[ logOutTime >= #startLogOutTime# ]]>
+            </isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="endLogOutTime">
+             <isNotEmpty prepend=" and " property="endLogOutTime">
+             <![CDATA[ logOutTime <= #endLogOutTime# ]]>
+            </isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="logOutReason">
+            <isNotEmpty prepend=" and " property="logOutReason">
+            	logOutReason  like #logOutReason#||'%'
+            </isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="attentionExtentId" >
+				<isNotEmpty property="attentionExtentId" prepend=" and ">
+					attentionExtentId = #attentionExtentId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isNotEmpty property="hasServiceTeamMember" prepend=" and ">
+				<isEqual property="hasServiceTeamMember" compareValue="0">
+					id in (select objectId from serviceMemberHasObject where objectType='DANGEROUSCHEMICALSUNIT')
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="1">
+					id not in (select objectId from serviceMemberHasObject where objectType='DANGEROUSCHEMICALSUNIT')	 
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="-1">
+					1=1	 
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="hasServiceRecord" prepend=" and ">
+				<isEqual property="hasServiceRecord" compareValue="0">
+					 id in (select objectId from serviceRecordRelyObject where objectType='DANGEROUSCHEMICALSUNIT')
+				</isEqual>
+				<isEqual property="hasServiceRecord" compareValue="1">
+					 id not in (select objectId from serviceRecordRelyObject where objectType='DANGEROUSCHEMICALSUNIT')	 
+				</isEqual>
+				<isEqual property="hasServiceRecord" compareValue="-1">
+					1=1	 
+				</isEqual>
+			</isNotEmpty>
+         </dynamic>
+	</sql>
+	<select id="countSearchDangerousChemicalsUnit" parameterClass="map" resultClass="int">
+		select count(*)
+		<include refid="sql_where" />
+	</select>
+	<select id="countFastSearchDangerousChemicalsUnit" parameterClass="SearchDangerousChemicalsUnitVo" resultClass="int">
+		select count(*)
+		from dangerousChemicalsUnit where orgInternalCode like #orgInternalCode#||'%'
+		<isPropertyAvailable property="unitName">
+				<isNotNull property="unitName">
+					<isNotEmpty property="unitName" prepend=" and ">
+						(unitName like #unitName#||'%' or fullPinyin like #unitName#||'%' or simplePinyin like #unitName#||'%')
+					</isNotEmpty>
+				</isNotNull>
+		</isPropertyAvailable>
+		
+		<!-- fateson update -->
+			  <isPropertyAvailable property="isEmphasis">
+			 	<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="true">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="false">
+						isEmphasis = #isEmphasis# 
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			 
+	</select>
+	<select id="searchFastDangerousChemicalsUnit" parameterClass="SearchDangerousChemicalsUnitVo" resultMap="dangerousChemicalsUnit.dangerousChemicalsUnitResultForList">
+		select dangerousChemicalsUnit.*,'$importantLocationType$' as locationType 
+		from dangerousChemicalsUnit 
+		where orgInternalCode like #orgInternalCode#||'%'
+		<isPropertyAvailable property="unitName">
+				<isNotEmpty property="unitName" prepend=" and ">
+					(unitName like '$unitName$%' or fullPinyin like #unitName#||'%' or simplePinyin like #unitName#||'%')
+				</isNotEmpty>
+		</isPropertyAvailable>
+		<!--fateson update  -->
+		 <isPropertyAvailable property="isEmphasis">
+			 	<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="true">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="false">
+						isEmphasis = #isEmphasis# 
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="searchDangerousChemicalsUnit" parameterClass="SearchDangerousChemicalsUnitVo" resultMap="dangerousChemicalsUnit.dangerousChemicalsUnitResultForList">
+		select dangerousChemicalsUnit.*,'$importantLocationType$' as locationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countDangerousChemicalsUnit" parameterClass="SearchDangerousChemicalsUnitVo" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	<select id="findDangerousChemicalsUnitList" parameterClass="java.util.Map" resultMap="dangerousChemicalsUnit.dangerousChemicalsUnitResult">
+		select * 
+		<include refid="sql_where" />
+	</select>
+</sqlMap>

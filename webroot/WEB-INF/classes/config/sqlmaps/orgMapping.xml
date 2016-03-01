@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="OrgMapping">
+	<typeAlias alias="orgMapping" type="com.tianque.plugin.orgchange.domain.OrgMapping" />
+	<resultMap id="orgMappingResult" class="orgMapping">
+		<result property="orgChangeInfo.id" column="orgChangeId"/>
+		<result property="oldOrgId" column="oldOrgId"/>
+		<result property="oldOrgCode" column="oldOrgCode"/>
+		<result property="newOrgId" column="newOrgId"/>
+		<result property="newOrgCode" column="newOrgCode"/>
+		<result property="createDate" column="createDate"/>
+	</resultMap>
+	
+	<insert id="addOrgMapping" parameterClass="orgMapping">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_OrgMapping.NEXTVAL as id from dual ]]>
+		</selectKey>
+	</insert>
+	
+	<select id="queryOrgMappingForList" parameterClass="java.lang.Long" resultMap="orgMappingResult">
+		select * from orgMapping where orgChangeId = #orgChangeId#
+	</select>
+	
+	<delete id="deleteOrgMapping" parameterClass="java.lang.Long">
+		delete from orgMapping where orgChangeId = #orgChangeId#
+	</delete>
+	
+</sqlMap>

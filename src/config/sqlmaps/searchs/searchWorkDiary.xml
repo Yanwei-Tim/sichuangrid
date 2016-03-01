@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="searchWorkDiary">
+	
+	<sql id="sql_where">
+		<dynamic>
+			<isPropertyAvailable property="diaryType" >
+				<isNotEmpty prepend=" and " property="diaryType">
+					<![CDATA[ diaryType = #diaryType# ]]>  	
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workPlace" >
+				<isNotEmpty prepend=" and " property="workPlace">
+					<![CDATA[ workPlace like '$workPlace$%' ]]>  	
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workTimeEnd" >
+				<isNotEmpty prepend=" and " property="workTimeEnd">
+					<![CDATA[ workTime <= #workTimeEnd# ]]>  	
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workTimeStart" >
+				<isNotEmpty prepend=" and " property="workTimeStart">
+					<![CDATA[ workTime >= #workTimeStart# ]]>  	
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workUser" >
+				<isNotEmpty prepend=" and " property="workUser">
+					<![CDATA[ workUserName like '$workUser$%' ]]>  	
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workContent" >
+				<isNotEmpty prepend=" and " property="workContent">
+					<![CDATA[ workContent like '%'||#workContent#||'%' ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="countWorkDiarysForPageByOrgId" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from workDiarys where orgId=#orgId#
+		<include refid="sql_where"/>
+	</select>
+
+	<select id="searchWorkDiarysForPageByOrgId" parameterClass="java.util.Map" resultMap="workDiary.workDiaryResult">
+		select * from workDiarys where orgId=#orgId#
+		<include refid="sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countWorkDiarysForPageByOrgInternalCode" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from workDiarys where orgInternalCode like #orgInternalCode#||'%'
+		<include refid="sql_where"/>
+	</select>
+
+	<select id="searchWorkDiarysForPageByOrgInternalCode" parameterClass="java.util.Map" resultMap="workDiary.workDiaryResult">
+		select * from workDiarys where orgInternalCode like #orgInternalCode#||'%'
+		<include refid="sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>

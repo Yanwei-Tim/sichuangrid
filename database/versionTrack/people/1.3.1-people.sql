@@ -1,0 +1,2 @@
+insert into permissions (id,cname,ename,permissionType,moduleName,parentId,enable,normalUrl,leaderUrl,indexId)
+    VALUES(s_permissions.NEXTVAL,'数据恢复中心','recoverDatasManagement',1,'系统管理',(select id from permissions where ename='baseSystemManagement'),1,'/hotModuel/recoverDatas/searchFrom.jsp','',8);

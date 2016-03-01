@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="villageReportSummary">
+	<typeAlias alias="villageReportSummary" type="com.tianque.newVillage.domain.ReportDataSummary" />
+	
+	<resultMap id="villageReportSummaryRsult" class="villageReportSummary">
+	    <result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgCode" />
+		<result property="reportOrg.id" column="reportOrgId" />
+		<result property="reportOrg.orgName" column="reportOrgName" />
+		<result property="reportIds" column="reportIds" />
+		<result property="newVillageData" column="newVillageData" />
+		<result property="basicYearInfoData" column="basicYearInfoData" />
+		<result property="commonServiceInfoData" column="commonServiceInfoData" />
+		<result property="environmentalReformData" column="environmentalReformData" />
+		<result property="industryDevelopmentData" column="industryDevelopmentData" />
+		<result property="infrastructureData" column="infrastructureData" />
+		<result property="organizationConstructionData" column="organizationConstructionData" />
+		<result property="capitalInvestedData" column="capitalInvestedData" />
+		<result property="farmerPerIncomeInfoData" column="farmerPerIncomeInfoData" />
+		<result property="year" column="year" />
+		<result property="quarter" column="quarter" />
+		<result property="isPlaning" column="isPlaning" />
+		<result property="reportStatus" column="reportStatus" />
+		<result property="reportDate" column="reportDate" />
+		<result property="reportUser" column="reportUser" />
+		<result property="checkStatus" column="checkStatus" />
+		<result property="checkDate" column="checkDate" />
+		<result property="checkUser" column="checkUser" />        
+		
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+
+	<insert id="addVillageReportSummary" parameterClass="villageReportSummary">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_newvillageBasic.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into VillageReportSummary
+		(id,orgId,orgCode,isPlaning,reportOrgId,reportOrgName,reportIds,year,newVillageData,basicYearInfoData,commonServiceInfoData,environmentalReformData,
+		industryDevelopmentData,infrastructureData,organizationConstructionData,capitalInvestedData,farmerPerIncomeInfoData,quarter,reportStatus,reportDate,
+		reportUser,checkStatus,checkDate,checkUser,createUser,createDate,updateDate)
+		values
+		(#id#,#organization.id#,#organization.orgInternalCode#,#isPlaning#,#reportOrg.id#,#reportOrg.orgName#,#reportIds#,#year#,#newVillageData#,#basicYearInfoData#,#commonServiceInfoData#,#environmentalReformData#,
+		#industryDevelopmentData#,#infrastructureData#,#organizationConstructionData#,#capitalInvestedData#,#farmerPerIncomeInfoData#,#quarter#,#reportStatus#,#reportDate#,
+		#reportUser#,#checkStatus#,#checkDate#,#checkUser#,#createUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	 <!--修改上报状态-->
+	 <update id="updateReportSummaryReportStatus" parameterClass="java.util.Map">
+	 	update VillageReportSummary set reportStatus = #reportStatus# ,reportDate=#reportDate#,reportUser=#reportUser# where id=#id#
+	 </update>
+	 <!--修改上报状态-->
+	 <update id="updateReportSummaryCheckStatus" parameterClass="java.util.Map">
+	 	update VillageReportSummary set checkStatus = #checkStatus# ,checkDate=#checkDate#,checkUser=#checkUser# where id=#id#
+	 </update>
+	 <!--根据ID删除上报数据-->
+	 <delete id="deleteReportSummaryById" parameterClass="java.lang.Long">
+	 	delete from VillageReportSummary where id=#id#
+	 </delete>
+	 
+	 <select id="countReportSummaryForList" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	 	select count(1) from VillageReportSummary where orgId=#orgId# and isPlaning=#isPlaning#
+	 	<isNotNull property="year">
+	 		and year=#year#
+	 	</isNotNull>
+	 	<isNotNull property="quarter">
+	 		and quarter=#quarter#
+	 	</isNotNull>
+	 </select>
+	 
+	 
+	 
+	 <!--列表查询-->
+	 <select id="findReportSummaryForList" parameterClass="java.util.Map" resultMap="villageReportSummaryRsult">
+	 	select * from VillageReportSummary where orgId=#orgId# and isPlaning=#isPlaning#
+	 	<isNotNull property="year">
+	 		and year=#year#
+	 	</isNotNull>
+	 	<isNotNull property="quarter">
+	 		and quarter=#quarter#
+	 	</isNotNull>
+	 	<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">
+				<isEqual property="sortField" compareValue="reportOrg.orgName">
+					reportOrgName
+				</isEqual>
+				<isNotEqual property="sortField" compareValue="reportOrg.orgName">
+					$sortField$
+				</isNotEqual>
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	 </select>
+	 
+	 <!--根据IDS查询数据-->
+	  <select id="findReportSummaryByIds" parameterClass="java.util.Map" resultMap="villageReportSummaryRsult">
+	  	select * from VillageReportSummary where 1=1
+	  	<isNotNull property="idList">
+		  	<iterate prepend=" and "  property="idList" conjunction="or" open="(" close=")">
+								id in ($idList[]$)
+			</iterate>
+		</isNotNull>
+	  </select>
+	  
+	  
+	  <!--根据ID查询数据-->
+	  <select id="getReportSummaryById" parameterClass="java.lang.Long" resultMap="villageReportSummaryRsult">
+	  	select * from VillageReportSummary where id=#id#
+	  </select>
+	  
+	  <!-- 报表统计 -->
+	 <select id="countAllReportSummaryForList" parameterClass="java.util.Map" resultMap="villageReportSummaryRsult">
+	 	select * from VillageReportSummary where orgId=#orgId# and checkStatus=1 and isPlaning=#isPlaning#
+	 	<isNotNull property="year">
+	 		and year=#year#
+	 	</isNotNull>
+	 	<isNotNull property="quarter">
+	 		and quarter=#quarter#
+	 	</isNotNull>
+	 </select>
+	 
+	 <!--根据时间段查询数据-->
+	 <select id="findReportSummaryByYear" parameterClass="java.util.Map" resultMap="villageReportSummaryRsult">
+	 	select * from VillageReportSummary where orgId=#orgId# and isPlaning=#isPlaning# and checkStatus=1
+	 	<isEqual property="isIncludeCurrent" compareValue="true">
+	 		and year <![CDATA[<=]]> #year#
+	 	</isEqual>
+	 	<isEqual property="isIncludeCurrent" compareValue="false">
+	 		and year <![CDATA[<]]> #year#
+	 	</isEqual>
+	 </select>
+	 
+</sqlMap>

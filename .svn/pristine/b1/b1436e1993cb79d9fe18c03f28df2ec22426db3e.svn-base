@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="reply" >
+  <typeAlias alias="reply" type="com.tianque.serviceList.domain.Reply" />
+  <resultMap id="replyResult" class="reply">
+    <result column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="replyDate" property="replyDate"/>
+    <result column="replypeople" property="replyPeople"/>
+    <result column="replyContent" property="replyContent"/>
+    <result column="service_id" property="serviceId" jdbcType="DECIMAL" />
+    <result column="service_type" property="serviceType" jdbcType="DECIMAL" />
+  </resultMap>
+  <insert id="addReply" parameterClass="reply" >
+  	<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_reply.NEXTVAL as id from dual ]]>
+	</selectKey>
+    insert into reply (ID, replyDate, replypeople, replyContent,service_id,service_type)
+    values (#id#, #replyDate#,#replyPeople#,#replyContent#,#serviceId#,#serviceType#)
+  </insert>
+  
+  <delete id="deleteReply" parameterClass="java.util.Map" >
+    delete from reply
+    where service_id = #id:DECIMAL# and service_type=#type:DECIMAL#
+  </delete>
+  
+  <select id="getReplyById" resultMap="replyResult" parameterClass="java.lang.Long" >
+    select ID, replyDate, replypeople, replyContent,service_id,service_type
+    from reply
+    where ID = #id:DECIMAL# 
+  </select>
+  
+  <select id="getReplyByIdAndType" resultMap="replyResult" parameterClass="java.util.Map" >
+    select ID, replyDate, replypeople, replyContent,service_id,service_type
+    from reply
+    where service_id = #id:DECIMAL# and service_type=#type:DECIMAL#
+  </select>
+  
+  <delete id="deleteReplyById" parameterClass="java.lang.Long" >
+    delete from reply
+    where id = #id:DECIMAL#
+  </delete>
+  
+  <sql id='search_where'>
+  	
+  </sql>
+  
+  <select id="countReplysBySearchVo" parameterClass="reply" resultClass="java.lang.Integer" >
+    select count(0) from reply
+    where service_id=#serviceId# and service_type=#serviceType#
+  </select>
+  
+  <select id="findReplysBySearchVo" parameterClass="reply" resultMap="replyResult">
+      	select ID, replyDate, replypeople, replyContent,service_id,service_type
+      	 from reply
+      	 where service_id=#serviceId# and service_type=#serviceType#
+	</select>
+</sqlMap>

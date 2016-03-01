@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="fireSafetyEnterprise">
+	<!-- 注释说明 -->
+	<typeAlias alias="FireSafetyEnterprise" type="com.tianque.domain.FireSafetyEnterprise" />
+
+	<parameterMap class="FireSafetyEnterprise" id="fireSafetyEnterprise" >
+		<parameter property="organization"/>
+		<parameter property="registeredCapital"/>
+		<parameter property="employeeAmount"/>
+		<parameter property="partyMemberAmount"/>
+		<parameter property="area"/>
+		<parameter property="isRiskEnterprise"/>
+		<parameter property="type"/>
+		<parameter property="name"/>
+		<parameter property="businessLicense"/>
+		<parameter property="legalPerson"/>
+		<parameter property="industry"/>
+		<parameter property="hiddenCases"/>
+		<parameter property="hiddenRectification"/>
+		<parameter property="remark"/>
+		<parameter property="fullPinyin"/>
+		<parameter property="simplePinyin"/>
+		<parameter property="orgInternalCode"/>
+		<parameter property="enterpriseTelephone"/>
+		<parameter property="fax"/>
+		<parameter property="imgUrl"/>
+		<parameter property="telephone"/>
+		<parameter property="mobileNumber"/>
+		<parameter property="address"/>
+		<parameter property="id"/>
+		<parameter property="createUser"/>
+		<parameter property="createDate"/>
+		<parameter property="updateUser"/>
+		<parameter property="updateDate"/>
+		<parameter property="keyType"/>
+		<parameter property="isEmphasis"/>
+		<parameter property="logOutReason"/>
+		<parameter property="logOutTime"/>
+		<parameter property="attentionExtent"/>
+	</parameterMap>
+
+	<resultMap class="FireSafetyEnterprise" id="fireSafetyEnterpriseResult" extends="locationBaseInfo.locationBaseInfoResult">
+		<result property="organization.id" column="orgId"/>
+		<result property="registeredCapital" column="registeredCapital"/>
+		<result property="employeeAmount" column="employeeAmount"/>
+		<result property="partyMemberAmount" column="partyMemberAmount"/>
+		<result property="area" column="area"/>
+		<result property="isRiskEnterprise" column="isRiskEnterprise"/>
+		<result property="type.id" column="type"/>
+		<result property="name" column="name"/>
+		<result property="businessLicense" column="businessLicense"/>
+		<result property="legalPerson" column="legalPerson"/>
+		<result property="industry.id" column="industry"/>
+		<result property="hiddenCases" column="hiddenCases"/>
+		<result property="hiddenRectification" column="hiddenRectification"/>
+		<result property="remark" column="remark"/>
+		<result property="fullPinyin" column="fullPinyin"/>
+		<result property="simplePinyin" column="simplePinyin"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="enterpriseTelephone" column="enterpriseTelephone"/>
+		<result property="fax" column="fax"/>
+		<result property="imgUrl" column="imgUrl" />
+		<result property="telephone" column="telephone"/>
+		<result property="mobileNumber" column="mobileNumber"/>
+		<result property="address" column="address"/>
+		<result property="keyType" column="keyType"/>
+		<result property="areaString" column="area"/>
+		<result column="isEmphasisReason" property="logOutReason" />
+		<result column="isEmphasisDate" property="logOutTime" />
+		<result column="attentionExtent" property="attentionExtent.id"/>
+	</resultMap>
+	<!-- 为列表显示准备的返回值 -->
+	<resultMap class="FireSafetyEnterprise" id="fireSafetyEnterpriseResultForList" extends="locationBaseInfo.locationBaseInfoResultForList">
+		<result property="organization.id" column="orgId"/>
+		<result property="registeredCapital" column="registeredCapital"/>
+		<result property="employeeAmount" column="employeeAmount"/>
+		<result property="partyMemberAmount" column="partyMemberAmount"/>
+		<result property="area" column="area"/>
+		<result property="isRiskEnterprise" column="isRiskEnterprise"/>
+		<result property="type.id" column="type"/>
+		<result property="name" column="name"/>
+		<result property="businessLicense" column="businessLicense"/>
+		<result property="legalPerson" column="legalPerson"/>
+		<result property="industry.id" column="industry"/>
+		<result property="hiddenCases" column="hiddenCases"/>
+		<result property="hiddenRectification" column="hiddenRectification"/>
+		<result property="remark" column="remark"/>
+		<result property="fullPinyin" column="fullPinyin"/>
+		<result property="simplePinyin" column="simplePinyin"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="enterpriseTelephone" column="enterpriseTelephone"/>
+		<result property="fax" column="fax"/>
+		<result property="imgUrl" column="imgUrl" />
+		<result property="telephone" column="telephone"/>
+		<result property="mobileNumber" column="mobileNumber"/>
+		<result property="address" column="address"/>
+		<result property="keyType" column="keyType"/>
+		<result property="areaString" column="area"/>
+		<result column="isEmphasisReason" property="logOutReason" />
+		<result column="isEmphasisDate" property="logOutTime" />
+		<result column="attentionExtent" property="attentionExtent.id"/>
+		<result property="sourcesState" column="sourcesState"/>
+	</resultMap>
+	<insert id="addFireSafetyEnterprise" parameterClass="FireSafetyEnterprise">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_enterprises.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into enterprises (id,orgId,registeredCapital,employeeAmount,partyMemberAmount,area,industry,isRiskEnterprise,type,createDate,name,businessLicense,legalPerson,hiddenCases,hiddenRectification,remark,createUser,fullPinyin,simplePinyin,orgInternalCode,telephone,enterpriseTelephone,mobileNumber,fax,address,keyType,isEmphasis,imgUrl,attentionExtent,sourcesState,updateDate,updateUser)
+		values(#id#,#organization.id#,#registeredCapital#,#employeeAmount#,#partyMemberAmount#,#area#,#industry.id#,#isRiskEnterprise#,#type.id#,#createDate#,#name#,#businessLicense#,#legalPerson#,#hiddenCases#,#hiddenRectification#,#remark#,#createUser#,#fullPinyin#,#simplePinyin#,#orgInternalCode#,#telephone#,#enterpriseTelephone#,#mobileNumber#,#fax#,#address#,#keyType#,#isEmphasis#,#imgUrl#,#attentionExtent.id#,#sourcesState#,#updateDate#,#updateUser#)
+	</insert>
+
+	<select id="getFireSafetyEnterpriseById" parameterClass="java.lang.Long" resultMap="fireSafetyEnterpriseResult">
+		<![CDATA[ SELECT * FROM enterprises WHERE id = #value# ]]>
+	</select>
+
+	<select id="countFireSafetyEnterprisesForListPage" parameterClass="map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		 from enterprises where orgInternalCode like '$orgInternalCode$%'
+	</select>
+
+	<select id="findFireSafetyEnterprisesForListPage" parameterClass="map" resultMap="fireSafetyEnterpriseResult">
+		<include refid="common.sql_select"/>
+		 from enterprises where orgInternalCode like '$orgInternalCode$%'
+		 <dynamic prepend="order by">
+		 	<isNotNull property="sortField">$sortField$</isNotNull>
+		 	<isNotNull property="order">$order$</isNotNull>
+		 </dynamic>
+	</select>
+
+	<select id="countFireSafetyEnterprisesForListPageByKeyType" parameterClass="map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		 from enterprises where orgInternalCode like '$orgInternalCode$%' and keyType=#keyType#
+		 <dynamic>
+		 	<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		 </dynamic>
+	</select>
+
+	<select id="findFireSafetyEnterprisesForListPageByKeyType" parameterClass="map" resultMap="fireSafetyEnterpriseResultForList">
+		 select enterprises.*,'$importantLocationType$' as locationType from enterprises where orgInternalCode like '$orgInternalCode$%' and keyType=#keyType#
+		 <dynamic>
+		 	<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		 </dynamic>
+		 <dynamic prepend="order by">
+		 	<isNotNull property="sortField">$sortField$</isNotNull>
+		 	<isNotNull property="order">$order$</isNotNull>
+		 </dynamic>
+	</select>
+
+	<update id="updateFireSafetyEnterprise" parameterClass="FireSafetyEnterprise">
+		update enterprises set
+		<dynamic>
+			id = #id#,
+			registeredCapital = #registeredCapital#,
+			employeeAmount = #employeeAmount#,
+			partyMemberAmount = #partyMemberAmount#,
+			imgUrl=#imgUrl#,
+			area = #area#
+			<isNotNull prepend="," property="organization.id">
+				orgId = #organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="industry.id">
+				industry = #industry.id#
+			</isNotNull>
+			<isNotNull prepend="," property="isRiskEnterprise">
+				isRiskEnterprise = #isRiskEnterprise#
+			</isNotNull>
+			<isNotNull prepend="," property="type.id">
+				type = #type.id#
+			</isNotNull>
+			<isNotNull prepend="," property="name">
+				name = #name#
+			</isNotNull>
+			<isNotNull prepend="," property="businessLicense">
+				businessLicense = #businessLicense#
+			</isNotNull>
+			<isNotNull prepend="," property="legalPerson">
+				legalPerson = #legalPerson#
+			</isNotNull>
+			<isNotNull prepend="," property="hiddenCases">
+				hiddenCases = #hiddenCases#
+			</isNotNull>
+			<isNotNull prepend="," property="hiddenRectification">
+				hiddenRectification = #hiddenRectification#
+			</isNotNull>
+			<isNotNull prepend="," property="remark">
+				remark = #remark#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode = #orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="telephone">
+				telephone = #telephone#
+			</isNotNull>
+			<isNotNull prepend="," property="enterpriseTelephone">
+				enterpriseTelephone = #enterpriseTelephone#
+			</isNotNull>
+			<isNotNull prepend="," property="mobileNumber">
+				mobileNumber = #mobileNumber#
+			</isNotNull>
+			<isNotNull prepend="," property="fax">
+				fax = #fax#
+			</isNotNull>
+			<isNotNull prepend="," property="address">
+				address = #address#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser = #updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate = #updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="fullPinyin">
+				fullPinyin = #fullPinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="simplePinyin">
+				simplePinyin = #simplePinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="isEmphasis">
+				isEmphasis = #isEmphasis#
+			</isNotNull>
+			<isNotNull prepend="," property="attentionExtent">
+				attentionExtent = #attentionExtent.id#
+			</isNotNull>
+			where id = #id#
+		</dynamic>
+	</update>
+
+	<delete id="deleteFireSafetyEnterpriseById" parameterClass="java.lang.Long">
+		delete from enterprises where id = #value#
+	</delete>
+
+	<select id="findFireSafetyEnterpriseByNameAndOrgId" parameterClass="map" resultMap="fireSafetyEnterpriseResult">
+		select * from enterprises where name = #name# and orgId = #orgId#
+	</select>
+
+	<select id="getFireSafetyEnterpriseByNameAndOrgIdAndKeyType" parameterClass="map" resultMap="fireSafetyEnterpriseResult">
+		select * from enterprises where name = #name# and orgId = #orgId# and keyType =#keyType#
+	</select>
+
+	<select id="getFireSafetyEnterpriseByName" parameterClass="java.util.Map"
+		resultMap="fireSafetyEnterpriseResult">
+		select * from enterprises where  name=#name# and orgId=#id#
+	</select>
+	<typeAlias alias="ComprehensiveManageMember" type="com.tianque.domain.ComprehensiveManageMember" />
+	<parameterMap class="ComprehensiveManageMember" id="comprehensiveManageMemberParams">
+		<parameter property="id"/>
+		<parameter property="createUser"/>
+		<parameter property="createDate"/>
+		<parameter property="updateUser"/>
+		<parameter property="updateDate"/>
+		<parameter property="enterpriseId"/>
+		<parameter property="type"/>
+		<parameter property="name"/>
+		<parameter property="telephone"/>
+		<parameter property="mobileNumber"/>
+		<parameter property="fullPinyin"/>
+		<parameter property="simplePinyin"/>
+	</parameterMap>
+
+	<resultMap class="ComprehensiveManageMember" id="comprehensiveManageMemberResult">
+		<result property="id" column="id"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="enterpriseId" column="enterpriseId"/>
+		<result property="type.id" column="type"/>
+		<result property="name" column="name"/>
+		<result property="telephone" column="telephone"/>
+		<result property="mobileNumber" column="mobileNumber"/>
+		<result property="fullPinyin" column="fullPinyin"/>
+		<result property="simplePinyin" column="simplePinyin"/>
+	</resultMap>
+
+	<insert id="addComprehensiveManageMember" parameterClass="ComprehensiveManageMember">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_comprehensiveManageMembers.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into comprehensiveManageMembers (id, createUser, createDate, enterpriseId, type, name, telephone, mobileNumber, fullPinyin, simplePinyin)
+		values(#id#, #createUser#, #createDate#, #enterpriseId#, #type.id#, #name#, #telephone#,#mobileNumber#, #fullPinyin#, #simplePinyin#)
+	</insert>
+
+	<select id="getComprehensiveManageMemberById" parameterClass="java.lang.Long" resultMap="comprehensiveManageMemberResult">
+		select * from comprehensiveManageMembers where id = #value#
+	</select>
+
+	<select id="findComprehensiveManageMembersByEnterpriseId" parameterClass="java.lang.Long" resultMap="comprehensiveManageMemberResult">
+		select * from comprehensiveManageMembers where enterpriseId = #value#
+	</select>
+
+	<select id="findFireSafetyEnterpriseByNameAndOrgIdAndId" parameterClass="map" resultMap="fireSafetyEnterpriseResult">
+		select * from enterprises where name = #name# and
+		orgId = #orgId#
+		<isNotNull property="id" prepend=" and ">
+			<![CDATA[
+				id!=#id#
+			]]>
+		</isNotNull>
+	</select>
+
+	<delete id="deleteComprehensiveManageMemberById" parameterClass="java.lang.Long">
+		delete from comprehensiveManageMembers where id = #value#
+	</delete>
+
+	<delete id="deleteComprehensiveManageMemberByEnterpriseId" parameterClass="java.lang.Long">
+		delete from comprehensiveManageMembers where enterpriseId = #value#
+	</delete>
+
+	<update id="updateComprehensiveManageMember">
+		update comprehensiveManageMembers set
+		<dynamic>
+			id = id
+			<isNotNull prepend="," property="name">
+				name = #name#
+			</isNotNull>
+			<isNotNull prepend="," property="telephone">
+				telephone = #telephone#
+			</isNotNull>
+			<isNotNull prepend="," property="mobileNumber">
+				mobileNumber = #mobileNumber#
+			</isNotNull>
+			<isNotNull prepend="," property="fullPinyin">
+				fullPinyin = #fullPinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="simplePinyin">
+				simplePinyin = #simplePinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser = #updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate = #updateDate#
+			</isNotNull>
+			where id = #id#
+		</dynamic>
+	</update>
+	<update id="updateEmphasiseById" parameterClass="map">
+		update enterprises set isEmphasis=#isEmphasis#,isEmphasisReason=#logOutReason# ,isEmphasisDate = #logOutTime#
+		where id=#id#
+	</update>
+</sqlMap>

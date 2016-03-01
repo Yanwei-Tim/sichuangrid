@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="overseaPersonnelTemp">
+
+	<typeAlias alias="OverseaPersonnelTemp" type="com.tianque.plugin.dataManage.population.overseaPersonnelTemp.domain.OverseaPersonnelTemp" />
+	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+	
+	
+	<resultMap id="overseaPersonnelTempResultForBase" class="OverseaPersonnelTemp" >
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="gender.id" column="gender" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="birthday" column="birthday" />
+		<result property="certificateNo" column="certificateNo" />
+		<result property="nationality" column="nationality" />
+		<result property="certificateType.id" column="certificateType" />
+		<result property="arrivalTime" column="arrivalTime" />
+		<result property="leaveTime" column="leaveTime" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="telephone" column="telephone" />
+		<result property="workUnit" column="workUnit" />
+		<result property="remark" column="remark" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="imgUrl" column="imgUrl" />
+		<result property="currentAddress" column="currentAddress" />
+		<result property="logOut" column="logOut" />
+		<result property="currentAddressType.id" column="currentAddressType"/>
+		<result property="community" column="community"/>
+		<result property="block" column="block"/>
+		<result property="unit" column="unit"/>
+		<result property="room" column="room"/>
+		<result property="profession.id" column="profession"/>
+		<result property="englishName" column="englishName"/>
+		<result property="certificateStrartDay" column="certificateStrartDay"/>
+		<result property="certificateEndDay" column="certificateEndDay"/>
+		<result property="inflowReason" column="inflowReason"/>
+		<result column="isHaveHouse" property="isHaveHouse" />
+		<result column="noHouseReason" property="noHouseReason" />
+		<result column="email" property="mail" />
+	</resultMap>
+	
+	<resultMap id="overseaPersonnelTempResultForList" class="OverseaPersonnelTemp" extends="overseaPersonnelTemp.overseaPersonnelTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<sql id="addBaseInfoFields">
+		id,name,gender,orgId,orgInternalCode,birthday,mobileNumber,telephone,workUnit,remark,fullPinyin,
+		simplePinyin,createDate,createUser,imgUrl,currentAddress,currentAddressType,community,block,unit,room,isHaveHouse,noHouseReason,email
+	</sql>
+	
+	<sql id="addBaseInfoData">
+		#id#,#name#,#gender.id#,#organization.id#,#orgInternalCode#,#birthday#,#mobileNumber#,#telephone#,
+		#workUnit#,#remark#,#fullPinyin#,#simplePinyin#,#createDate#,#createUser#,#imgUrl#,#currentAddress#,
+		#currentAddressType.id#,#community#,#block#,#unit#,#room#,#isHaveHouse#,#noHouseReason#,#email#
+	</sql>
+	
+	<sql id="updateBaseInfoSql">
+		updateUser = #updateUser#
+		,updateDate = #updateDate#
+		,name = #name#
+		,birthday = #birthday#
+		,email = #mail#
+		<isNotNull property="gender" prepend=",">
+	    	gender = #gender.id#
+		 </isNotNull>
+		,fullPinyin = #fullPinyin#
+		,simplePinyin = #simplePinyin#
+	    ,currentAddress = #currentAddress#
+	    <!-- 为什么加上这个判断 不可以把currentAddressType设置为null吗
+	    <isNotNull property="currentAddressType" prepend=",">
+	    -->
+		,currentAddressType=#currentAddressType.id#
+		,community=#community#
+		,block=#block#
+		,unit=#unit#
+		,room=#room#
+		,mobileNumber = #mobileNumber#
+		,telephone=#telephone#
+		,workUnit = #workUnit#
+		,remark = #remark#
+		,noHouseReason = #noHouseReason#
+		,isHaveHouse = #isHaveHouse#
+		,imgUrl = #imgUrl#
+		,inflowReason = #inflowReason#
+		
+		<isNotNull property="actualPopulationType" prepend=",">
+	    	actualPopulationType = #actualPopulationType#
+		 </isNotNull>
+	</sql>
+
+	<insert id="addOverseaPersonnelTemp" parameterClass="OverseaPersonnelTemp">
+	    <selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_overseaPersonnel_TEMP.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO DM_overseaPersonnel_TEMP
+		(
+		<include refid="overseaPersonnelTemp.addBaseInfoFields"/>
+		,certificateNo,nationality,certificateType,arrivalTime,leaveTime,profession,englishName,certificateStrartDay
+		,certificateEndDay,inflowReason,logout,logoutReason,logoutDate,
+		<include refid="dataManage.addDataManage"/>
+		)
+		VALUES(
+		<include refid="overseaPersonnelTemp.addBaseInfoData"/>
+		,#certificateNo#,#nationality#,#certificateType.id#,#arrivalTime#,#leaveTime#,#profession.id#,#englishName#,#certificateStrartDay#
+		,#certificateEndDay#,#inflowReason#,#logoutDetail.logout#,#logoutDetail.logoutReason#,#logoutDetail.logoutDate#,
+		<include refid="dataManage.addValueDataManage"/>
+		)
+	</insert>
+
+	<select id="getOverseaPersonnelTempById" parameterClass="java.lang.Long"
+		resultMap="overseaPersonnelTempResultForList">
+		<![CDATA[select * from DM_overseaPersonnel_TEMP where id=#value#]]>
+	</select>
+	
+	<sql id="claim_sql_where">
+		from DM_overseaPersonnel_TEMP where 1=1
+		<dynamic>
+			<isPropertyAvailable property="mode" >
+				<isEqual property="mode" compareValue="claimList">
+					<isNotEmpty property="targetOrg" prepend="and">
+						(orgInternalCode like #targetOrg.orgInternalCode#||'%' or 
+						#targetOrg.orgInternalCode# like orgInternalCode||'%')
+					</isNotEmpty>
+					<isNotEmpty property="dispose" prepend="and">
+						dispose = #dispose#
+					</isNotEmpty>
+					<isNotEmpty property="claimAvailable" prepend="and">
+						claimavailable = #claimAvailable#
+					</isNotEmpty>
+				</isEqual>
+				<isEqual property="mode" compareValue="importList">
+					<isPropertyAvailable property="importDepartment" prepend="and">
+						<isNotEmpty property="importDepartment">
+							importdepartmentid = #importDepartment.id#
+						</isNotEmpty>
+					</isPropertyAvailable>
+				</isEqual>
+			</isPropertyAvailable>
+			<isNotEmpty property="orgId" prepend="and">
+					orgId=#orgId#
+			</isNotEmpty>
+			<isNotEmpty property="searchArgs" prepend=" and ">
+					(name like '%'||#searchArgs#||'%' or CERTIFICATENO like '%'||#searchArgs#||'%' or ENGLISHNAME like '%'||#searchArgs#||'%')
+			</isNotEmpty>
+			
+			<isNotEmpty property="dataState" prepend="and">
+				claimState 
+				<isEqual property="dataState" compareValue="0">
+					<![CDATA[<]]> 10
+				</isEqual>
+				<isEqual property="dataState" compareValue="10">
+					<![CDATA[>]]>= 10
+				</isEqual>
+				<isEqual  property="dataState" compareValue="-1">
+					<![CDATA[>]]>-1
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="dateType" prepend="and">
+				<isEqual property="dateType" compareValue="import">
+					<isNotEmpty property="beginDate">
+						<![CDATA[importDate >= #beginDate#]]> 
+					</isNotEmpty>
+					<isNotEmpty property="endDate">
+						<isNotEmpty property="beginDate">
+							and
+						</isNotEmpty>
+						<![CDATA[importDate <= #endDate#]]>
+					</isNotEmpty>
+				</isEqual>
+				<isEqual property="dateType" compareValue="claim">
+					<isNotEmpty property="beginDate">
+						<![CDATA[claimDate >= #beginDate#]]>
+					</isNotEmpty>
+					<isNotEmpty property="endDate">
+						<isNotEmpty property="beginDate">
+							and
+						</isNotEmpty>
+						<![CDATA[claimDate <= #endDate#]]>
+					</isNotEmpty>
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="name" prepend="and">
+					name like '%'||#name#||'%' or ENGLISHNAME like '%'||#name#||'%'
+			</isNotEmpty>
+			
+			<isNotEmpty property="address" prepend="and">
+					address like '%'||#address#||'%'
+			</isNotEmpty>
+			
+			<isNotEmpty property="idCardNo" prepend="and">
+					CERTIFICATENO like '%'||#idCardNo#||'%'
+			</isNotEmpty>
+			
+			<isNotEmpty property="currentAddress" prepend="and">
+					otherAddress like '%'||#currentAddress#||'%'
+			</isNotEmpty>
+			
+			<isNotNull  property="gender.id" prepend=" and ">
+					gender = #gender.id# 
+			</isNotNull>
+		</dynamic>
+	</sql>
+	
+	<select id="countFindTemps" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	<select id="findTemps" resultMap="overseaPersonnelTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<delete id="deleteOverseaPersonnelTempById" parameterClass="Long">
+	   delete DM_overseaPersonnel_TEMP where id = #value#
+	</delete>
+	<sql id="updateBusinessSql">
+		certificateNo=#certificateNo#,
+		nationality=#nationality#,
+		certificateType=#certificateType.id#,
+		arrivalTime=#arrivalTime#,
+		leaveTime=#leaveTime#,
+		logOut=#logOut#,
+		profession=#profession.id#,
+		englishName=#englishName#,
+		certificateStrartDay=#certificateStrartDay#,
+		certificateEndDay=#certificateEndDay#
+	</sql>
+	<update id="updateOverseaPersonnelTemp" parameterClass="OverseaPersonnelTemp">
+		update DM_overseaPersonnel_TEMP set
+		<include refid="overseaPersonnelTemp.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		,<include refid="overseaPersonnelTemp.updateBusinessSql" />
+		where id=#id#
+	</update>
+	<update id="updateOverseaPersonnelTempBase" parameterClass="OverseaPersonnelTemp">
+		update DM_overseaPersonnel_TEMP set
+		<include refid="overseaPersonnelTemp.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updateOverseaPersonnelTempBusiness" parameterClass="OverseaPersonnelTemp">
+		update DM_overseaPersonnel_TEMP set
+		<include refid="overseaPersonnelTemp.updateBusinessSql" />
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updateOverseaPersonnelTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_overseaPersonnel_TEMP set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+
+</sqlMap>

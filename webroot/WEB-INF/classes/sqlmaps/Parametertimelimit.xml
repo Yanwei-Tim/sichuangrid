@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		DEPARTMENTLEVEL as departmentlevel ,
+		USELEVEL as uselevel ,
+		ORGTYPE as orgtype ,
+		HANDLELIMIT as handlelimit ,
+		TRANSFERREDLIMIT as transferredlimit ,
+		CIRCULATIONLIMIT as circulationlimit 
+	FROM PARAMETERTIMELIMIT	
+ -->	
+<sqlMap namespace="parametertimelimit">	
+	
+	<typeAlias alias="Parametertimelimit" type="com.tianque.xichang.working.parameterEvaluation.timeLimit.domain.Parametertimelimit"/>
+	<typeAlias alias="SearchParametertimelimitVo" type="com.tianque.xichang.working.parameterEvaluation.timeLimit.domain.vo.SearchParametertimelimitVo" />
+	
+	<resultMap id="parametertimelimitResult" class="Parametertimelimit">
+		<result property="id" column="ID"/>
+		<result property="departmentlevel.id" column="DEPARTMENTLEVEL"/>
+		<result property="uselevel.id" column="USELEVEL"/>
+		<result property="orgtype.id" column="ORGTYPE"/>
+		<result property="handlelimit" column="HANDLELIMIT"/>
+		<result property="transferredlimit" column="TRANSFERREDLIMIT"/>
+		<result property="circulationlimit" column="CIRCULATIONLIMIT"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+	</resultMap>
+	
+
+
+	<select id="getParametertimelimitById" parameterClass="java.lang.Long" resultMap="parametertimelimitResult">
+		select * from PARAMETERTIMELIMIT where id=#value#
+	</select>
+	
+	<insert id="addParametertimelimit" parameterClass="Parametertimelimit">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_PARAMETERTIMELIMIT.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into PARAMETERTIMELIMIT (ID , DEPARTMENTLEVEL , USELEVEL , ORGTYPE , HANDLELIMIT , TRANSFERREDLIMIT , CIRCULATIONLIMIT ,CREATEUSER,CREATEDATE) 
+		values(#id#, #departmentlevel.id#, #uselevel.id#, #orgtype.id#, #handlelimit#, #transferredlimit#, #circulationlimit#,#createUser#,#createDate#)	
+	</insert>
+	
+	<update id="updateParametertimelimit" parameterClass="Parametertimelimit">
+		update PARAMETERTIMELIMIT set id = #id# 
+				<isNotNull prepend="," property="departmentlevel">
+					DEPARTMENTLEVEL = #departmentlevel.id#
+				</isNotNull>
+				<isNotNull prepend="," property="uselevel">
+					USELEVEL = #uselevel.id#
+				</isNotNull>
+				<isNotNull prepend="," property="orgtype">
+					ORGTYPE = #orgtype.id#
+				</isNotNull>
+				<isNotNull prepend="," property="handlelimit">
+					HANDLELIMIT = #handlelimit#
+				</isNotNull>
+				<isNotNull prepend="," property="transferredlimit">
+					TRANSFERREDLIMIT = #transferredlimit#
+				</isNotNull>
+				<isNotNull prepend="," property="circulationlimit">
+					CIRCULATIONLIMIT = #circulationlimit#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					updateUser = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					updateDate = #updateDate#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteParametertimelimitById" parameterClass="java.lang.Long">	
+		delete  from PARAMETERTIMELIMIT where id = #value#	
+	</delete>
+	
+	<sql id="findParametertimelimitsBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="departmentlevel">
+					<isNotEmpty prepend="and" property="departmentlevel">
+						DEPARTMENTLEVEL = #departmentlevel.id#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="uselevel">
+					<isNotEmpty prepend="and" property="uselevel">
+						USELEVEL = #uselevel.id#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="orgtype">
+					<isNotEmpty prepend="and" property="orgtype">
+						ORGTYPE = #orgtype.id#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="handlelimit">
+					<isNotEmpty prepend="and" property="handlelimit">
+						HANDLELIMIT = #handlelimit#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="transferredlimit">
+					<isNotEmpty prepend="and" property="transferredlimit">
+						TRANSFERREDLIMIT = #transferredlimit#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="circulationlimit">
+					<isNotEmpty prepend="and" property="circulationlimit">
+						CIRCULATIONLIMIT = #circulationlimit#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+	<select id="findParametertimelimitsBySearchVo" parameterClass="SearchParametertimelimitVo" resultMap="parametertimelimitResult">
+		select * from PARAMETERTIMELIMIT
+		<include refid="findParametertimelimitsBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countParametertimelimitsBySearchVo" parameterClass="SearchParametertimelimitVo" resultClass="java.lang.Integer">
+		select count(0) from PARAMETERTIMELIMIT
+		<include refid="findParametertimelimitsBySearchVo_sql_where" />
+	</select>
+	
+	<select id="getParametertimelimitByOrgTypeAndOrgLevel" parameterClass="map" resultMap="parametertimelimitResult">
+		select * from PARAMETERTIMELIMIT where USELEVEL=#orgLevel# and ORGTYPE=#orgType#
+	</select>
+
+	<select id="getDefaultParametertimelimit" resultMap="parametertimelimitResult">
+		select * from PARAMETERTIMELIMIT where DEPARTMENTLEVEL is null
+	</select>
+	
+	<select id="getParametertimelimitByDepartment" parameterClass="java.lang.Long" resultMap="parametertimelimitResult">
+		select * from PARAMETERTIMELIMIT where DEPARTMENTLEVEL =#value#
+	</select>
+	
+</sqlMap>

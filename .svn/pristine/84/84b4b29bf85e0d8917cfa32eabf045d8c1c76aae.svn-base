@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="orgLoginStanals">
+	<typeAlias alias="orgLoginStanals" type="com.tianque.plugin.analyzing.domain.OrgLoginStanals" />
+	<typeAlias alias="orgLoginLog" type="com.tianque.domain.OrgLoginLog" />
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization" />
+	<typeAlias alias="User" type="com.tianque.domain.User" />
+
+	<resultMap id="orgLoginStanalsResult" class="orgLoginStanals">
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgName" property="orgName"/>
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="userName" property="userName"/>
+		<result column="name" property="name"/>
+
+		<result column="workday_month" property="workday_month" />
+		<result column="loggedday_month" property="loggedday_month" />
+
+		<result column="workday_week1" property="workday_week1" />
+		<result column="loggedday_week1" property="loggedday_week1" />
+
+		<result column="workday_week2" property="workday_week2" />
+		<result column="loggedday_week2" property="loggedday_week2" />
+
+		<result column="workday_week3" property="workday_week3" />
+		<result column="loggedday_week3" property="loggedday_week3" />
+
+		<result column="workday_week4" property="workday_week4" />
+		<result column="loggedday_week4" property="loggedday_week4" />
+
+		<result column="workday_week5" property="workday_week5" />
+		<result column="loggedday_week5" property="loggedday_week5" />
+
+		<result column="year" property="year" />
+		<result column="month" property="month" />
+		<result column="loginStanalDate" property="loginStanalDate" />
+	</resultMap>
+
+	<resultMap id="orgLoginLogResult" class="orgLoginLog">
+		<result property="orgId" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="lastLogginDate" column="lastLogginDate" />
+	</resultMap>
+	
+	<resultMap id="userResult" class="orgLoginStanals">
+	    <result column="userName" property="userName"/>
+		<result column="organizationid" property="organization.id"/>
+		<result column="orginternalcode" property="orgInternalCode" />
+	</resultMap>
+	
+	<resultMap id="map" class="java.util.HashMap">  
+     <result property="username" column="username" javaType="java.lang.String" />  
+     <result property="num" column="num" javaType="java.lang.Integer" />  
+   </resultMap>  
+
+	<insert id="addOrgLoginStanals" parameterClass="orgLoginStanals">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_orgLoginStanals.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into OrgLoginStanals
+		(id,username,orgId,orgInternalCode,workday_month,loggedday_month,
+		workday_week1,loggedday_week1,workday_week2,loggedday_week2,
+		workday_week3,loggedday_week3,workday_week4,loggedday_week4,
+		workday_week5,loggedday_week5,year,month,loginStanalDate)
+		values
+		(#id#,#userName#,#organization.id#,#orgInternalCode#,#workday_month#,#loggedday_month#,
+		#workday_week1#,#loggedday_week1#,#workday_week2#,#loggedday_week2#,
+		#workday_week3#,#loggedday_week3#,#workday_week4#,#loggedday_week4#,
+		#workday_week5#,#loggedday_week5#,#year#,#month#,#loginStanalDate#)
+	</insert>
+
+	<select id="getOrgLoginStanalsForList" parameterClass="java.util.Map"
+		resultMap="orgLoginStanalsResult">
+		select s.*,o.orgName,nvl(u.userName,o.orgName) name from OrgLoginStanals s,users u, organizations o where s.username=u.username(+) and  s.orgid = o.id 
+		 <isNotNull property="organizationId">
+		 	and s.orgid 
+			 <iterate property="organizationId" conjunction="," open="in (" close=")">
+					#organizationId[]#
+			 </iterate>
+		 </isNotNull>
+		 and s.year=#year# and s.month=#month#
+		 order by o.orglevel desc,o.seq asc,name
+	</select>
+	<select id="getRootOrgLoginStanalsForList" parameterClass="java.util.Map"
+		resultMap="orgLoginStanalsResult">
+		select s.*,o.orgName,nvl(u.userName,o.orgName) name from OrgLoginStanals s,users u, organizations o where  s.username=u.username(+) and s.orgid = o.id  and o.orgType = #orgType#
+		 and s.orgid =#orgId# and s.year=#year# and s.month=#month#
+		 order by o.seq asc
+	</select>
+	<select id="getOrgLoginStanalsById" parameterClass="java.lang.Long"
+		resultMap="orgLoginStanalsResult">
+		select * from OrgLoginStanals where id=#id#
+	</select>
+
+	<delete id="deleteOrgLoginStanals" parameterClass="java.util.Map">
+		delete from OrgLoginStanals where year=#year# and month=#month#
+	</delete>
+
+	<select id="getLoginedCountByWorkDay" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(s.id) from organizations o,systemlogs s,users u
+		where o.orginternalcode =#orgInternalCode# and u.organizationid = o.id and o.orgType = #orgType#
+		and u.username = s.username and s.operation ='用户登录成功!'
+		and  s.operatetime =#workdate#
+	</select>
+
+	<select id="getOrgLoginLogListByStartAndEndWorkDay" parameterClass="java.util.Map" resultMap="orgLoginLogResult">
+		select t.orgid as orgId,t.orginternalcode as orgInternalCode,t.operatetime as lastLogginDate from systemlogs t,organizations o
+		where t.id in( select max(id) from systemlogs
+		where operation ='用户登录成功!' and orgInternalCode like '$orgInternalCode$%'
+		and operatetime <![CDATA[ >= ]]>#startworkdate# and operatetime <![CDATA[ < ]]>#endworkdate#
+		group by to_char(operatetime, 'yyyy-MM-dd'),orgid
+    	) and t.orgid =o.id and o.orgType = #orgType#
+	</select>
+	
+	<select id="findOrganizationsByOrgInternalCode"  resultClass="Organization">
+	     select id,orgInternalCode from organizations where 1=1
+        <dynamic>
+            <isPropertyAvailable property="orgInternalCode">
+                <isNotEmpty property="orgInternalCode" prepend="and">
+                    orgInternalCode like '$orgInternalCode$%'
+                </isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="orgType">
+                <isNotEmpty property="orgType" prepend="and">
+                    orgType  = #orgType#
+                </isNotEmpty>
+            </isPropertyAvailable>
+        </dynamic>
+	</select>
+	<delete id="deleteOrgLoginStanalsByOrgId" parameterClass="java.lang.Long">
+	   delete from orgLoginStanals where orgid=#value#
+	</delete>
+	
+	<!-- 查询在某个月 之前并包括当月创建的用户 -->
+	<select id="findUsersByCreateDate" parameterClass="java.lang.Integer" resultMap="userResult">
+	  <![CDATA[select userName,organizationid,orginternalcode from users where  to_char(createdate, 'yyyyMM') <= #value# ]]>
+	</select>
+	
+	<select id="getWorkDay" parameterClass="java.util.Map" resultMap="map">
+		select username, count(username) num
+		   from (
+		   <isNotEmpty property="firstTableName">
+		   select username
+		           from $firstTableName$
+		          where to_char(operatetime, 'yyyy-MM-dd') in
+		          <iterate property="list" open="(" close=")" conjunction=",">#list[]#</iterate> 
+		            and operation = '用户登录成功!'
+		          group by to_char(operatetime, 'yyyy-MM-dd'), username
+		   </isNotEmpty>
+		   <isNotEmpty property="secondeTableName">
+		   union all
+		   select username
+		           from $secondeTableName$
+		          where to_char(operatetime, 'yyyy-MM-dd') in
+		          <iterate property="list" open="(" close=")" conjunction=",">#list[]#</iterate> 
+		            and operation = '用户登录成功!'
+		          group by to_char(operatetime, 'yyyy-MM-dd'), username
+		   </isNotEmpty>       
+		          )
+		  group by username
+	</select>
+</sqlMap>

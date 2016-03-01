@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+<sqlMap namespace="caseImageUpload">	
+	<typeAlias alias="CaseImageUpload" type="com.tianque.partyBuilding.baseInfos.domain.CaseImageUpload"/>
+	<typeAlias alias="SearchCaseImageUploadVo" type="com.tianque.partyBuilding.baseInfos.domain.vo.SearchCaseImageUploadVo" />
+	
+	<resultMap id="caseImageUploadResult" class="CaseImageUpload">
+		<result property="id" column="ID"/>
+		<result property="organization.id" column="ORGID"/>
+		<result property="orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="imgUrl" column="IMGURL"/>
+		<result property="baseInfoType" column="baseInfoType"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+	</resultMap>
+	
+	<select id="getCaseImageUploadById" parameterClass="java.lang.Long" resultMap="caseImageUploadResult">
+		select * from CaseImageUpload where id=#value#
+	</select>
+	
+	<insert id="addCaseImageUpload" parameterClass="CaseImageUpload">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_CASEIMAGEUPLOAD.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into CaseImageUpload (ID , CREATEDATE , UPDATEDATE , ORGID , ORGINTERNALCODE , CREATEUSER , UPDATEUSER , IMGURL,baseInfoType  ) 
+			values(#id#, #createDate#, #updateDate#, #organization.id#, #orgInternalCode#, #createUser#, #updateUser#, #imgUrl#,#baseInfoType#)	
+	</insert>
+	
+	<update id="updateCaseImageUpload" parameterClass="CaseImageUpload">
+		update CaseImageUpload set id = #id# 
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="organization.id">
+					ORGID = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="imgUrl">
+					IMGURL = #imgUrl#
+				</isNotNull>
+				<isNotNull prepend="," property="baseInfoType">
+					baseInfoType = #baseInfoType#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteCaseImageUploadById" parameterClass="java.lang.Long">	
+		delete  from CaseImageUpload where id = #value#	
+	</delete>
+	
+	<select id="getCaseImageUploadsByOrgId"  parameterClass="java.lang.Long" resultMap="caseImageUploadResult">
+		select * from CaseImageUpload where orgId = #value# and baseInfoType is null order by id desc 
+	</select>
+	
+	<select id="findByOrgIdAndType"  parameterClass="java.util.Map" resultMap="caseImageUploadResult">
+		select * from CaseImageUpload 
+		<dynamic prepend="where">
+	        <isNotNull property="orgId" prepend="and">
+	        	orgId = #orgId#
+	        </isNotNull>
+	        <isNotEmpty property="baseInfoType" prepend="and">
+	        	baseInfoType = #baseInfoType#
+	        </isNotEmpty>
+	        <isEmpty property="baseInfoType" prepend="and">
+            	baseInfoType is null
+            </isEmpty>
+       </dynamic>
+		order by id desc 
+	</select>
+	
+	<delete id="deleteCaseImageUploadByIdAndOrgId" parameterClass="java.util.Map">	
+		delete  from CaseImageUpload where id = #id# and orgId = #orgId# 
+	</delete>
+	
+</sqlMap>

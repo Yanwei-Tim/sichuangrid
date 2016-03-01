@@ -1,0 +1,4487 @@
+--增加人口的冗余字段
+alter table floatingPopulations add (MARKBIRTHDAY date);
+alter table floatingPopulations add (MARKGENDER NUMBER(10));
+
+alter table HOUSEHOLDSTAFFS add (MARKBIRTHDAY date);
+alter table HOUSEHOLDSTAFFS add (MARKGENDER NUMBER(10));
+
+--增加冗余字段的序列
+create index INDEX_FLOAT_MARKBIRTHDAY on floatingPopulations (MARKBIRTHDAY);
+create index INDEX_FLOAT_MARKGENDER on floatingPopulations (MARKGENDER);
+
+create index INDEX_HOUSEHOLD_MARKBIRTHDAY on HOUSEHOLDSTAFFS (MARKBIRTHDAY);
+create index INDEX_HOUSEHOLD_MARKGENDER on HOUSEHOLDSTAFFS (MARKGENDER);
+--流动人口冗余数据转移
+UPDATE FLOATINGPOPULATIONS
+ SET (MARKBIRTHDAY,MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE BASEINFOID = B.ID);
+COMMIT;
+--户籍人口冗余数据转移
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+where t1.id >0 and t1.id <= 100000 ; 
+commit;
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+where t1.id >100000 and t1.id <= 200000 ; 
+commit;
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+where t1.id >200000 and t1.id <= 300000 ; 
+commit;
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+where t1.id >300000 and t1.id <= 400000 ; 
+commit;
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+where t1.id >400000 and t1.id <= 500000 ; 
+commit;
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+where t1.id >500000 and t1.id <= 600000 ; 
+commit;
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+where t1.id >600000 and t1.id <= 700000 ; 
+commit;
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+where t1.id >700000 and t1.id <= 800000 ; 
+commit;
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+where t1.id >800000 and t1.id <= 900000 ; 
+commit;
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+where t1.id >900000 and t1.id <= 1000000 ; 
+commit;
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+where t1.id >1000000 and t1.id <= 1100000 ; 
+commit;
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+where t1.id >1100000 and t1.id <= 1200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >1200000 and t1.id <= 1300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >1300000 and t1.id <= 1400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >1400000 and t1.id <= 1500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >1500000 and t1.id <= 1600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >1600000 and t1.id <= 1700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >1700000 and t1.id <= 1800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >1800000 and t1.id <= 1900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >1900000 and t1.id <= 2000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >2000000 and t1.id <= 2100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >2100000 and t1.id <= 2200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >2200000 and t1.id <= 2300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >2300000 and t1.id <= 2400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >2400000 and t1.id <= 2500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >2500000 and t1.id <= 2600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >2600000 and t1.id <= 2700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >2700000 and t1.id <= 2800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >2800000 and t1.id <= 2900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >2900000 and t1.id <= 3000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >3000000 and t1.id <= 3100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >3100000 and t1.id <= 3200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >3200000 and t1.id <= 3300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >3300000 and t1.id <= 3400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >3400000 and t1.id <= 3500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >3500000 and t1.id <= 3600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >3600000 and t1.id <= 3700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >3700000 and t1.id <= 3800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >3800000 and t1.id <= 3900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >3900000 and t1.id <= 4000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >4000000 and t1.id <= 4100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >4100000 and t1.id <= 4200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >4200000 and t1.id <= 4300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >4300000 and t1.id <= 4400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >4400000 and t1.id <= 4500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >4500000 and t1.id <= 4600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >4600000 and t1.id <= 4700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >4700000 and t1.id <= 4800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >4800000 and t1.id <= 4900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >4900000 and t1.id <= 5000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >5000000 and t1.id <= 5100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >5100000 and t1.id <= 5200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >5200000 and t1.id <= 5300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >5300000 and t1.id <= 5400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >5400000 and t1.id <= 5500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >5500000 and t1.id <= 5600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >5600000 and t1.id <= 5700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >5700000 and t1.id <= 5800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >5800000 and t1.id <= 5900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >5900000 and t1.id <= 6000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >6000000 and t1.id <= 6100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >6100000 and t1.id <= 6200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >6200000 and t1.id <= 6300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >6300000 and t1.id <= 6400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >6400000 and t1.id <= 6500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >6500000 and t1.id <= 6600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >6600000 and t1.id <= 6700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >6700000 and t1.id <= 6800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >6800000 and t1.id <= 6900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >6900000 and t1.id <= 7000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >7000000 and t1.id <= 7100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >7100000 and t1.id <= 7200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >7200000 and t1.id <= 7300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >7300000 and t1.id <= 7400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >7400000 and t1.id <= 7500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >7500000 and t1.id <= 7600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >7600000 and t1.id <= 7700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >7700000 and t1.id <= 7800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >7800000 and t1.id <= 7900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >7900000 and t1.id <= 8000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >8000000 and t1.id <= 8100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >8100000 and t1.id <= 8200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >8200000 and t1.id <= 8300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >8300000 and t1.id <= 8400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >8400000 and t1.id <= 8500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >8500000 and t1.id <= 8600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >8600000 and t1.id <= 8700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >8700000 and t1.id <= 8800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >8800000 and t1.id <= 8900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >8900000 and t1.id <= 9000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >9000000 and t1.id <= 9100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >9100000 and t1.id <= 9200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >9200000 and t1.id <= 9300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >9300000 and t1.id <= 9400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >9400000 and t1.id <= 9500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >9500000 and t1.id <= 9600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >9600000 and t1.id <= 9700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >9700000 and t1.id <= 9800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >9800000 and t1.id <= 9900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >9900000 and t1.id <= 10000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >10000000 and t1.id <= 10100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >10100000 and t1.id <= 10200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >10200000 and t1.id <= 10300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >10300000 and t1.id <= 10400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >10400000 and t1.id <= 10500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >10500000 and t1.id <= 10600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >10600000 and t1.id <= 10700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >10700000 and t1.id <= 10800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >10800000 and t1.id <= 10900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >10900000 and t1.id <= 11000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >11000000 and t1.id <= 11100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >11100000 and t1.id <= 11200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >11200000 and t1.id <= 11300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >11300000 and t1.id <= 11400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >11400000 and t1.id <= 11500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >11500000 and t1.id <= 11600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >11600000 and t1.id <= 11700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >11700000 and t1.id <= 11800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >11800000 and t1.id <= 11900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >11900000 and t1.id <= 12000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >12000000 and t1.id <= 12100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >12100000 and t1.id <= 12200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >12200000 and t1.id <= 12300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >12300000 and t1.id <= 12400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >12400000 and t1.id <= 12500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >12500000 and t1.id <= 12600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >12600000 and t1.id <= 12700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >12700000 and t1.id <= 12800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >12800000 and t1.id <= 12900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >12900000 and t1.id <= 13000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >13000000 and t1.id <= 13100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >13100000 and t1.id <= 13200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >13200000 and t1.id <= 13300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >13300000 and t1.id <= 13400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >13400000 and t1.id <= 13500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >13500000 and t1.id <= 13600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >13600000 and t1.id <= 13700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >13700000 and t1.id <= 13800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >13800000 and t1.id <= 13900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >13900000 and t1.id <= 14000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >14000000 and t1.id <= 14100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >14100000 and t1.id <= 14200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >14200000 and t1.id <= 14300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >14300000 and t1.id <= 14400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >14400000 and t1.id <= 14500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >14500000 and t1.id <= 14600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >14600000 and t1.id <= 14700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >14700000 and t1.id <= 14800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >14800000 and t1.id <= 14900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >14900000 and t1.id <= 15000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >15000000 and t1.id <= 15100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >15100000 and t1.id <= 15200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >15200000 and t1.id <= 15300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >15300000 and t1.id <= 15400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >15400000 and t1.id <= 15500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >15500000 and t1.id <= 15600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >15600000 and t1.id <= 15700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >15700000 and t1.id <= 15800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >15800000 and t1.id <= 15900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >15900000 and t1.id <= 16000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >16000000 and t1.id <= 16100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >16100000 and t1.id <= 16200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >16200000 and t1.id <= 16300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >16300000 and t1.id <= 16400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >16400000 and t1.id <= 16500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >16500000 and t1.id <= 16600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >16600000 and t1.id <= 16700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >16700000 and t1.id <= 16800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >16800000 and t1.id <= 16900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >16900000 and t1.id <= 17000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >17000000 and t1.id <= 17100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >17100000 and t1.id <= 17200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >17200000 and t1.id <= 17300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >17300000 and t1.id <= 17400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >17400000 and t1.id <= 17500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >17500000 and t1.id <= 17600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >17600000 and t1.id <= 17700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >17700000 and t1.id <= 17800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >17800000 and t1.id <= 17900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >17900000 and t1.id <= 18000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >18000000 and t1.id <= 18100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >18100000 and t1.id <= 18200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >18200000 and t1.id <= 18300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >18300000 and t1.id <= 18400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >18400000 and t1.id <= 18500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >18500000 and t1.id <= 18600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >18600000 and t1.id <= 18700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >18700000 and t1.id <= 18800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >18800000 and t1.id <= 18900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >18900000 and t1.id <= 19000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >19000000 and t1.id <= 19100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >19100000 and t1.id <= 19200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >19200000 and t1.id <= 19300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >19300000 and t1.id <= 19400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >19400000 and t1.id <= 19500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >19500000 and t1.id <= 19600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >19600000 and t1.id <= 19700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >19700000 and t1.id <= 19800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >19800000 and t1.id <= 19900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >19900000 and t1.id <= 20000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >20000000 and t1.id <= 20100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >20100000 and t1.id <= 20200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >20200000 and t1.id <= 20300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >20300000 and t1.id <= 20400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >20400000 and t1.id <= 20500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >20500000 and t1.id <= 20600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >20600000 and t1.id <= 20700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >20700000 and t1.id <= 20800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >20800000 and t1.id <= 20900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >20900000 and t1.id <= 21000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >21000000 and t1.id <= 21100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >21100000 and t1.id <= 21200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >21200000 and t1.id <= 21300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >21300000 and t1.id <= 21400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >21400000 and t1.id <= 21500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >21500000 and t1.id <= 21600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >21600000 and t1.id <= 21700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >21700000 and t1.id <= 21800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >21800000 and t1.id <= 21900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >21900000 and t1.id <= 22000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >22000000 and t1.id <= 22100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >22100000 and t1.id <= 22200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >22200000 and t1.id <= 22300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >22300000 and t1.id <= 22400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >22400000 and t1.id <= 22500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >22500000 and t1.id <= 22600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >22600000 and t1.id <= 22700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >22700000 and t1.id <= 22800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >22800000 and t1.id <= 22900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >22900000 and t1.id <= 23000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >23000000 and t1.id <= 23100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >23100000 and t1.id <= 23200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >23200000 and t1.id <= 23300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >23300000 and t1.id <= 23400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >23400000 and t1.id <= 23500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >23500000 and t1.id <= 23600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >23600000 and t1.id <= 23700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >23700000 and t1.id <= 23800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >23800000 and t1.id <= 23900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >23900000 and t1.id <= 24000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >24000000 and t1.id <= 24100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >24100000 and t1.id <= 24200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >24200000 and t1.id <= 24300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >24300000 and t1.id <= 24400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >24400000 and t1.id <= 24500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >24500000 and t1.id <= 24600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >24600000 and t1.id <= 24700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >24700000 and t1.id <= 24800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >24800000 and t1.id <= 24900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >24900000 and t1.id <= 25000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >25000000 and t1.id <= 25100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >25100000 and t1.id <= 25200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >25200000 and t1.id <= 25300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >25300000 and t1.id <= 25400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >25400000 and t1.id <= 25500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >25500000 and t1.id <= 25600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >25600000 and t1.id <= 25700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >25700000 and t1.id <= 25800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >25800000 and t1.id <= 25900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >25900000 and t1.id <= 26000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >26000000 and t1.id <= 26100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >26100000 and t1.id <= 26200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >26200000 and t1.id <= 26300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >26300000 and t1.id <= 26400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >26400000 and t1.id <= 26500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >26500000 and t1.id <= 26600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >26600000 and t1.id <= 26700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >26700000 and t1.id <= 26800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >26800000 and t1.id <= 26900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >26900000 and t1.id <= 27000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >27000000 and t1.id <= 27100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >27100000 and t1.id <= 27200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >27200000 and t1.id <= 27300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >27300000 and t1.id <= 27400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >27400000 and t1.id <= 27500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >27500000 and t1.id <= 27600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >27600000 and t1.id <= 27700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >27700000 and t1.id <= 27800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >27800000 and t1.id <= 27900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >27900000 and t1.id <= 28000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >28000000 and t1.id <= 28100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >28100000 and t1.id <= 28200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >28200000 and t1.id <= 28300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >28300000 and t1.id <= 28400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >28400000 and t1.id <= 28500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >28500000 and t1.id <= 28600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >28600000 and t1.id <= 28700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >28700000 and t1.id <= 28800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >28800000 and t1.id <= 28900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >28900000 and t1.id <= 29000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >29000000 and t1.id <= 29100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >29100000 and t1.id <= 29200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >29200000 and t1.id <= 29300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >29300000 and t1.id <= 29400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >29400000 and t1.id <= 29500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >29500000 and t1.id <= 29600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >29600000 and t1.id <= 29700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >29700000 and t1.id <= 29800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >29800000 and t1.id <= 29900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >29900000 and t1.id <= 30000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >30000000 and t1.id <= 30100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >30100000 and t1.id <= 30200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >30200000 and t1.id <= 30300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >30300000 and t1.id <= 30400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >30400000 and t1.id <= 30500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >30500000 and t1.id <= 30600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >30600000 and t1.id <= 30700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >30700000 and t1.id <= 30800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >30800000 and t1.id <= 30900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >30900000 and t1.id <= 31000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >31000000 and t1.id <= 31100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >31100000 and t1.id <= 31200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >31200000 and t1.id <= 31300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >31300000 and t1.id <= 31400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >31400000 and t1.id <= 31500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >31500000 and t1.id <= 31600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >31600000 and t1.id <= 31700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >31700000 and t1.id <= 31800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >31800000 and t1.id <= 31900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >31900000 and t1.id <= 32000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >32000000 and t1.id <= 32100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >32100000 and t1.id <= 32200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >32200000 and t1.id <= 32300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >32300000 and t1.id <= 32400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >32400000 and t1.id <= 32500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >32500000 and t1.id <= 32600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >32600000 and t1.id <= 32700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >32700000 and t1.id <= 32800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >32800000 and t1.id <= 32900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >32900000 and t1.id <= 33000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >33000000 and t1.id <= 33100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >33100000 and t1.id <= 33200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >33200000 and t1.id <= 33300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >33300000 and t1.id <= 33400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >33400000 and t1.id <= 33500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >33500000 and t1.id <= 33600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >33600000 and t1.id <= 33700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >33700000 and t1.id <= 33800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >33800000 and t1.id <= 33900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >33900000 and t1.id <= 34000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >34000000 and t1.id <= 34100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >34100000 and t1.id <= 34200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >34200000 and t1.id <= 34300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >34300000 and t1.id <= 34400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >34400000 and t1.id <= 34500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >34500000 and t1.id <= 34600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >34600000 and t1.id <= 34700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >34700000 and t1.id <= 34800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >34800000 and t1.id <= 34900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >34900000 and t1.id <= 35000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >35000000 and t1.id <= 35100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >35100000 and t1.id <= 35200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >35200000 and t1.id <= 35300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >35300000 and t1.id <= 35400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >35400000 and t1.id <= 35500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >35500000 and t1.id <= 35600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >35600000 and t1.id <= 35700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >35700000 and t1.id <= 35800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >35800000 and t1.id <= 35900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >35900000 and t1.id <= 36000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >36000000 and t1.id <= 36100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >36100000 and t1.id <= 36200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >36200000 and t1.id <= 36300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >36300000 and t1.id <= 36400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >36400000 and t1.id <= 36500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >36500000 and t1.id <= 36600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >36600000 and t1.id <= 36700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >36700000 and t1.id <= 36800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >36800000 and t1.id <= 36900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >36900000 and t1.id <= 37000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >37000000 and t1.id <= 37100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >37100000 and t1.id <= 37200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >37200000 and t1.id <= 37300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >37300000 and t1.id <= 37400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >37400000 and t1.id <= 37500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >37500000 and t1.id <= 37600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >37600000 and t1.id <= 37700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >37700000 and t1.id <= 37800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >37800000 and t1.id <= 37900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >37900000 and t1.id <= 38000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >38000000 and t1.id <= 38100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >38100000 and t1.id <= 38200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >38200000 and t1.id <= 38300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >38300000 and t1.id <= 38400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >38400000 and t1.id <= 38500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >38500000 and t1.id <= 38600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >38600000 and t1.id <= 38700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >38700000 and t1.id <= 38800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >38800000 and t1.id <= 38900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >38900000 and t1.id <= 39000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >39000000 and t1.id <= 39100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >39100000 and t1.id <= 39200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >39200000 and t1.id <= 39300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >39300000 and t1.id <= 39400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >39400000 and t1.id <= 39500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >39500000 and t1.id <= 39600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >39600000 and t1.id <= 39700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >39700000 and t1.id <= 39800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >39800000 and t1.id <= 39900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >39900000 and t1.id <= 40000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >40000000 and t1.id <= 40100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >40100000 and t1.id <= 40200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >40200000 and t1.id <= 40300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >40300000 and t1.id <= 40400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >40400000 and t1.id <= 40500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >40500000 and t1.id <= 40600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >40600000 and t1.id <= 40700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >40700000 and t1.id <= 40800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >40800000 and t1.id <= 40900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >40900000 and t1.id <= 41000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >41000000 and t1.id <= 41100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >41100000 and t1.id <= 41200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >41200000 and t1.id <= 41300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >41300000 and t1.id <= 41400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >41400000 and t1.id <= 41500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >41500000 and t1.id <= 41600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >41600000 and t1.id <= 41700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >41700000 and t1.id <= 41800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >41800000 and t1.id <= 41900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >41900000 and t1.id <= 42000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >42000000 and t1.id <= 42100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >42100000 and t1.id <= 42200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >42200000 and t1.id <= 42300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >42300000 and t1.id <= 42400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >42400000 and t1.id <= 42500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >42500000 and t1.id <= 42600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >42600000 and t1.id <= 42700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >42700000 and t1.id <= 42800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >42800000 and t1.id <= 42900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >42900000 and t1.id <= 43000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >43000000 and t1.id <= 43100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >43100000 and t1.id <= 43200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >43200000 and t1.id <= 43300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >43300000 and t1.id <= 43400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >43400000 and t1.id <= 43500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >43500000 and t1.id <= 43600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >43600000 and t1.id <= 43700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >43700000 and t1.id <= 43800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >43800000 and t1.id <= 43900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >43900000 and t1.id <= 44000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >44000000 and t1.id <= 44100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >44100000 and t1.id <= 44200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >44200000 and t1.id <= 44300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >44300000 and t1.id <= 44400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >44400000 and t1.id <= 44500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >44500000 and t1.id <= 44600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >44600000 and t1.id <= 44700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >44700000 and t1.id <= 44800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >44800000 and t1.id <= 44900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >44900000 and t1.id <= 45000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >45000000 and t1.id <= 45100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >45100000 and t1.id <= 45200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >45200000 and t1.id <= 45300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >45300000 and t1.id <= 45400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >45400000 and t1.id <= 45500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >45500000 and t1.id <= 45600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >45600000 and t1.id <= 45700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >45700000 and t1.id <= 45800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >45800000 and t1.id <= 45900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >45900000 and t1.id <= 46000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >46000000 and t1.id <= 46100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >46100000 and t1.id <= 46200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >46200000 and t1.id <= 46300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >46300000 and t1.id <= 46400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >46400000 and t1.id <= 46500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >46500000 and t1.id <= 46600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >46600000 and t1.id <= 46700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >46700000 and t1.id <= 46800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >46800000 and t1.id <= 46900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >46900000 and t1.id <= 47000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >47000000 and t1.id <= 47100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >47100000 and t1.id <= 47200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >47200000 and t1.id <= 47300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >47300000 and t1.id <= 47400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >47400000 and t1.id <= 47500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >47500000 and t1.id <= 47600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >47600000 and t1.id <= 47700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >47700000 and t1.id <= 47800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >47800000 and t1.id <= 47900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >47900000 and t1.id <= 48000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >48000000 and t1.id <= 48100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >48100000 and t1.id <= 48200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >48200000 and t1.id <= 48300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >48300000 and t1.id <= 48400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >48400000 and t1.id <= 48500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >48500000 and t1.id <= 48600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >48600000 and t1.id <= 48700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >48700000 and t1.id <= 48800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >48800000 and t1.id <= 48900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >48900000 and t1.id <= 49000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >49000000 and t1.id <= 49100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >49100000 and t1.id <= 49200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >49200000 and t1.id <= 49300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >49300000 and t1.id <= 49400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >49400000 and t1.id <= 49500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >49500000 and t1.id <= 49600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >49600000 and t1.id <= 49700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >49700000 and t1.id <= 49800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >49800000 and t1.id <= 49900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >49900000 and t1.id <= 50000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >50000000 and t1.id <= 50100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >50100000 and t1.id <= 50200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >50200000 and t1.id <= 50300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >50300000 and t1.id <= 50400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >50400000 and t1.id <= 50500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >50500000 and t1.id <= 50600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >50600000 and t1.id <= 50700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >50700000 and t1.id <= 50800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >50800000 and t1.id <= 50900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >50900000 and t1.id <= 51000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >51000000 and t1.id <= 51100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >51100000 and t1.id <= 51200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >51200000 and t1.id <= 51300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >51300000 and t1.id <= 51400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >51400000 and t1.id <= 51500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >51500000 and t1.id <= 51600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >51600000 and t1.id <= 51700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >51700000 and t1.id <= 51800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >51800000 and t1.id <= 51900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >51900000 and t1.id <= 52000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >52000000 and t1.id <= 52100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >52100000 and t1.id <= 52200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >52200000 and t1.id <= 52300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >52300000 and t1.id <= 52400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >52400000 and t1.id <= 52500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >52500000 and t1.id <= 52600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >52600000 and t1.id <= 52700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >52700000 and t1.id <= 52800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >52800000 and t1.id <= 52900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >52900000 and t1.id <= 53000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >53000000 and t1.id <= 53100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >53100000 and t1.id <= 53200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >53200000 and t1.id <= 53300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >53300000 and t1.id <= 53400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >53400000 and t1.id <= 53500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >53500000 and t1.id <= 53600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >53600000 and t1.id <= 53700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >53700000 and t1.id <= 53800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >53800000 and t1.id <= 53900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >53900000 and t1.id <= 54000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >54000000 and t1.id <= 54100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >54100000 and t1.id <= 54200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >54200000 and t1.id <= 54300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >54300000 and t1.id <= 54400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >54400000 and t1.id <= 54500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >54500000 and t1.id <= 54600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >54600000 and t1.id <= 54700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >54700000 and t1.id <= 54800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >54800000 and t1.id <= 54900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >54900000 and t1.id <= 55000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >55000000 and t1.id <= 55100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >55100000 and t1.id <= 55200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >55200000 and t1.id <= 55300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >55300000 and t1.id <= 55400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >55400000 and t1.id <= 55500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >55500000 and t1.id <= 55600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >55600000 and t1.id <= 55700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >55700000 and t1.id <= 55800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >55800000 and t1.id <= 55900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >55900000 and t1.id <= 56000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >56000000 and t1.id <= 56100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >56100000 and t1.id <= 56200000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >56200000 and t1.id <= 56300000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >56300000 and t1.id <= 56400000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >56400000 and t1.id <= 56500000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >56500000 and t1.id <= 56600000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >56600000 and t1.id <= 56700000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >56700000 and t1.id <= 56800000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >56800000 and t1.id <= 56900000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >56900000 and t1.id <= 57000000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >57000000 and t1.id <= 57100000 ; 
+commit;
+
+
+update householdstaffs t1 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID) 
+
+where t1.id >57100000 and t1.id <= 57200000 ; 
+commit;
+
+
+
+
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >57200000 and t1.id <= 57300000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >57300000 and t1.id <= 57400000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >57400000 and t1.id <= 57500000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >57500000 and t1.id <= 57600000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >57600000 and t1.id <= 57700000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >57700000 and t1.id <= 57800000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >57800000 and t1.id <= 57900000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >57900000 and t1.id <= 58000000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >58000000 and t1.id <= 58100000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >58100000 and t1.id <= 58200000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >58200000 and t1.id <= 58300000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >58300000 and t1.id <= 58400000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >58400000 and t1.id <= 58500000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >58500000 and t1.id <= 58600000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >58600000 and t1.id <= 58700000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >58700000 and t1.id <= 58800000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >58800000 and t1.id <= 58900000 ; 
+commit;
+
+
+update householdstaffs t1 
+ 
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >58900000 and t1.id <= 59000000 ; 
+commit;
+
+
+
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >59000000 and t1.id <= 59100000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >59100000 and t1.id <= 59200000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >59200000 and t1.id <= 59300000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >59300000 and t1.id <= 59400000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >59400000 and t1.id <= 59500000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >59500000 and t1.id <= 59600000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >59600000 and t1.id <= 59700000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >59700000 and t1.id <= 59800000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >59800000 and t1.id <= 59900000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >59900000 and t1.id <= 60000000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >60000000 and t1.id <= 60100000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >60100000 and t1.id <= 60200000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >60200000 and t1.id <= 60300000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >60300000 and t1.id <= 60400000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >60400000 and t1.id <= 60500000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >60500000 and t1.id <= 60600000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >60600000 and t1.id <= 60700000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >60700000 and t1.id <= 60800000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >60800000 and t1.id <= 60900000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >60900000 and t1.id <= 61000000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >61000000 and t1.id <= 61100000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >61100000 and t1.id <= 61200000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >61200000 and t1.id <= 61300000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >61300000 and t1.id <= 61400000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >61400000 and t1.id <= 61500000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >61500000 and t1.id <= 61600000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >61600000 and t1.id <= 61700000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >61700000 and t1.id <= 61800000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >61800000 and t1.id <= 61900000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >61900000 and t1.id <= 62000000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >62000000 and t1.id <= 62100000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >62100000 and t1.id <= 62200000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >62200000 and t1.id <= 62300000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >62300000 and t1.id <= 62400000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >62400000 and t1.id <= 62500000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >62500000 and t1.id <= 62600000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >62600000 and t1.id <= 62700000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >62700000 and t1.id <= 62800000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >62800000 and t1.id <= 62900000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >62900000 and t1.id <= 63000000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >63000000 and t1.id <= 63100000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >63100000 and t1.id <= 63200000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >63200000 and t1.id <= 63300000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >63300000 and t1.id <= 63400000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >63400000 and t1.id <= 63500000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >63500000 and t1.id <= 63600000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >63600000 and t1.id <= 63700000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >63700000 and t1.id <= 63800000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >63800000 and t1.id <= 63900000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >63900000 and t1.id <= 64000000 ; 
+commit;
+
+
+update householdstaffs t1 
+
+SET (t1.MARKBIRTHDAY,t1.MARKGENDER)=(SELECT BIRTHDAY,GENDER FROM BASEINFO B WHERE t1.BASEINFOID = B.ID)
+where t1.id >64000000 and t1.id <= 64100000 ; 
+commit;

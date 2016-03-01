@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="OrgChangeLog">
+	<typeAlias alias="orgChangeLog" type="com.tianque.plugin.orgchange.domain.OrgChangeLog" />
+	<resultMap id="orgChangeLogResult" class="orgChangeLog">
+		<result property="id" column="id"/>
+		<result property="orgChangeId" column="orgChangeId"/>
+		<result property="moduleName" column="moduleName"/>
+		<result property="ename" column="ename"/>
+		<result property="tableName" column="tableName"/>
+		<result property="startTime" column="startTime"/>
+		<result property="operateType" column="operateType"/>
+		<result property="endTime" column="endTime"/>
+		<result property="logType" column="logType"/>
+		<result property="description" column="description"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+	
+	<insert id="addLog" parameterClass="orgChangeLog">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_OrgChangeLog.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into orgChangeLog(
+		id,orgChangeId,moduleName,ename,tableName,startTime,operateType,endTime,logType,description,
+		createUser,createDate,updateUser,updateDate
+		)values(
+		#id#,#orgChangeId#,#moduleName#,#ename#,#tableName#,#startTime#,#operateType#,#endTime#,#logType#,#description#,
+		#createUser#,#createDate#,#updateUser#,#updateDate#
+		)
+	</insert>
+	
+	<update id="updateLog" parameterClass="orgChangeLog">
+		update orgChangeLog set
+		operateType=#operateType#,
+		endTime=#endTime#,
+		logType=#logType#,
+		description=#description#,
+		updateUser=#updateUser#,
+		updateDate=#updateDate#
+		where id = #id#
+	</update>
+	
+	<select id="queryLogForList" parameterClass="orgChangeLog" resultMap="orgChangeLogResult">
+		select * from orgChangeLog
+	</select>
+	
+	<select id="queryOrgChangeLogInfoByIdForPageResultCount" parameterClass="java.util.Map"  resultClass="java.lang.Integer" >
+		select count(*) from orgChangeLog where  orgChangeId=#id#
+	</select>
+	
+	<select id="queryOrgChangeLogInfoByIdForPageResult" parameterClass="java.util.Map"  resultMap="orgChangeLogResult" >
+		select * from orgChangeLog where  orgChangeId=#id#
+		<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getCount" parameterClass="orgChangeLog" resultClass="java.lang.Integer">
+	   select count(*) from orgChangeLog
+	</select>
+	
+	<select id="getOrgChangeLogById" parameterClass="java.lang.Long" resultClass="orgChangeLog">
+		select * from orgChangeLog where id=#id#
+	</select>
+	
+</sqlMap>

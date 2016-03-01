@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="RoleUpdateLog">
+	<typeAlias alias="roleUpdateLog" type="com.tianque.rolelog.domain.RoleUpdateLog" />
+    <resultMap id="roleUpdateLogResult" class="roleUpdateLog">
+	    <result property="id" column="id" />
+		<result property="role.id" column="POSITIONID" />
+		<result property="role.roleName" column="POSITIONNAME" />
+		<result property="permission.cname" column="PERMISSIONNAME" />
+		<result property="permission.id" column="PERMISSIONID" />
+		<result property="operateType" column="OPERATETYPE" />
+		<result property="operateDate" column="OPERATEDATE" />
+		<result property="createUser" column="CREATEUSER" />
+		<result property="createDate" column="CREATEDATE" />
+    </resultMap>
+    
+    <insert id="addRoleUpdateLog" parameterClass="roleUpdateLog">
+    	<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_roleUpdateLog.NEXTVAL as id from dual]]>
+		</selectKey>
+		insert into ROLEUPDATELOGS(
+		id,POSITIONID,POSITIONNAME,PERMISSIONID,PERMISSIONNAME,OPERATETYPE,OPERATEDATE,CREATEUSER,CREATEDATE
+		)values(
+		#id#,#role.id#,#role.roleName#,#permission.id#,#permission.cname#,#operateType#,#operateDate#,#createUser#,#createDate#
+		)
+    </insert>
+</sqlMap>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="jobMonitor">
+	<typeAlias alias="JobMonitor" type="com.tianque.sysadmin.domain.JobMonitor" />
+	<resultMap id="jobMonitorResult" class="JobMonitor">
+		<result property="id" column="id" />
+		<result property="jobname" column="jobname" />
+		<result property="startDate" column="startDate" />
+		<result property="entDate" column="entDate" />
+		<result property="remark" column="remark" />
+		<result property="success" column="success" />
+	</resultMap>
+
+
+	<insert id="addJobMonitor" parameterClass="JobMonitor">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_jobmonitor.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO jobmonitor
+		(id,jobname,startDate,entDate,remark,success)
+		VALUES(#id#,#jobname#,#startDate#,#entDate#,#remark#,#success#)
+	</insert>
+	
+	<update id="updateJobMonitor" parameterClass="map">
+		update jobmonitor set entDate=#entDate#,remark=#remark#,success=#success# where id=#id#
+	</update>
+	
+	<select id="findJobMonitor" resultMap="jobMonitorResult"
+		parameterClass="java.util.Map">
+		<![CDATA[select * from jobmonitor where 1=1]]>
+		<dynamic>
+			<isPropertyAvailable property="grade">
+				<isNotNull property="grade" prepend=" and ">
+					<isEqual property="grade" compareValue="1">
+						success = #grade#
+					</isEqual>
+					<isEqual property="grade" compareValue="0">
+						success = #grade#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countJobMonitor" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id) from jobmonitor where 1=1 ]]>
+				<dynamic>
+			<isPropertyAvailable property="grade">
+				<isNotNull property="grade" prepend=" and ">
+					<isEqual property="grade" compareValue="1">
+						success = #grade#
+					</isEqual>
+					<isEqual property="grade" compareValue="0">
+						success= #grade#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+
+</sqlMap>

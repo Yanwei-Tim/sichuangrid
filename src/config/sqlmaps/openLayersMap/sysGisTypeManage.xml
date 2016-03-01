@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gisTypeManage">
+	<typeAlias alias="GisTypeManage" type="com.tianque.openLayersMap.domian.GisTypeManage" />
+	<resultMap id="gisTypeManageResult" class="GisTypeManage">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="key" column="key" />
+		<result property="innerName" column="innerName" />
+		<result property="innerKey" column="innerKey" />
+		<result property="checked" column="checked" />
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="tableName" column="tableName" />
+		<result property="orgFiled" column="orgFiled" />
+		<result property="permissionName" column="permissionName" />
+	</resultMap>
+	
+	<insert id="addGisTypeManage" parameterClass="GisTypeManage">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT gisTypeManages_squ.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO gisTypeManages(id,name,key,innerName,innerKey,checked,createDate,createUser,tableName,orgFiled,permissionName)
+		values (#id#,#name#,#key#,#innerName#,#innerKey#,#checked#,#createDate#,#createUser#,#tableName#,#orgFiled#,#permissionName#)
+	</insert>
+	
+	<update id="updateGisTypeManage" parameterClass="GisTypeManage">
+		update gisTypeManages set
+		<dynamic>
+			id=#id#
+			<isNotNull property="name" prepend=",">
+				name = #name#
+			</isNotNull>
+			<isNotNull property="key" prepend=",">
+				key = #key#
+			</isNotNull>
+			<isNotNull property="innerName" prepend=",">
+				innerName = #innerName#
+			</isNotNull>
+			<isNotNull property="innerKey" prepend=",">
+				innerKey = #innerKey#
+			</isNotNull>
+			<isNotNull property="checked" prepend=",">
+				checked = #checked#
+			</isNotNull>
+			<isNotNull property="updateDate" prepend=",">
+				updateDate = #updateDate#
+			</isNotNull>
+			<isNotNull property="updateUser" prepend=",">
+				updateUser = #updateUser#
+			</isNotNull>
+			<isNotNull property="tableName" prepend=",">
+				tableName = #tableName#
+			</isNotNull>
+			<isNotNull property="orgFiled" prepend=",">
+				orgFiled = #orgFiled#
+			</isNotNull>
+			<isNotNull property="permissionName" prepend=",">
+				permissionName = #permissionName#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+	
+	<delete id="deleteGisTypeManageById" parameterClass="java.lang.Long">
+		delete from gisTypeManages where id=#id#
+	</delete>
+	
+	<delete id="deleteGisTypeManageByInnerKeyOfNull">
+		delete from gisTypeManages where innerKey is null
+	</delete>
+	
+	<select id="findGisTypeManageById" resultMap="gisTypeManageResult" parameterClass="java.lang.Long">
+		<![CDATA[select * from gisTypeManages where id=#id# ]]>
+	</select>
+	
+	<select id="findGisTypesByInnerType" parameterClass="java.util.Map" resultMap="gisTypeManageResult">
+		<![CDATA[ select * from gisTypeManages g where g.innerKey = #innerKey# ]]>
+	</select>
+	
+	<select id="countGisTypesByInnerType" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[ select count(*) from gisTypeManages g where g.innerKey = #innerKey# ]]>
+	</select>
+	
+	<select id="findGisTypesByInnerTypeOfNull" parameterClass="java.util.Map" resultMap="gisTypeManageResult">
+		<![CDATA[ select * from gisTypeManages g where g.innerKey is null ]]>
+	</select>
+	
+	<select id="countGisTypesByInnerTypeOfNull" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[ select count(*) from gisTypeManages g where g.innerKey is null ]]>
+	</select>
+	
+	<select id="getNeedGisTypeManagesByInnerType" parameterClass="java.util.Map" resultMap="gisTypeManageResult">
+		 select * from gisTypeManages g where g.checked=1 and g.innerKey = #innerKey# 
+			<isPropertyAvailable property="keyType">
+				<isEqual property="keyType" compareValue="1">
+						and key not in ('householdStaff','floatingPopulation')
+				</isEqual>
+			</isPropertyAvailable>
+	</select>
+	
+	<select id="hasDuplicateGisTypeManage" parameterClass="java.util.Map" resultMap="gisTypeManageResult">
+		<![CDATA[ select * from gisTypeManages g where g.key=#key# or g.name=#name# ]]>
+	</select>
+	
+	<select id="getGisTypeManagesByKey" parameterClass="java.util.Map" resultMap="gisTypeManageResult">
+		<![CDATA[ select * from gisTypeManages g where g.key=#key# and rownum=1]]>
+	</select>
+	
+	<select id="getGisTypeManagesByTableName" parameterClass="java.util.Map" resultMap="gisTypeManageResult">
+		<![CDATA[ select * from gisTypeManages g where g.tableName=#tableName# and rownum=1]]>
+	</select>
+	
+	<select id="getGisTypeManageByTableNameAndKeyType" parameterClass="java.util.Map" resultMap="gisTypeManageResult">
+		select * from gisTypeManages where tableName=#tableName# 
+		<isPropertyAvailable property="keyType">
+			<isNotEqual property="keyType" compareValue="NULL">
+				<isNotNull prepend="and" property="keyType" >
+					key = #keyType#
+				</isNotNull>
+			</isNotEqual>
+		</isPropertyAvailable>
+	</select>
+	
+</sqlMap>

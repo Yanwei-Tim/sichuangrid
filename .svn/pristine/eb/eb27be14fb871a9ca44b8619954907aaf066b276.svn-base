@@ -1,0 +1,116 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib"%>
+<jsp:include page="/includes/baseInclude.jsp" />
+<%@ taglib prefix="s" uri="/struts-tags" %>
+<s:action name="getOrgByDepartmentNo" var="getOrgByDepartmentNo" executeResult="false" namespace="/sysadmin/orgManage" >
+	<s:param name="organization.departmentNo" value="#parameters.departmentNo"></s:param>
+</s:action>
+<div id="tabLevelChart" >
+	<div id="importantPersonlPie" style="width:380px;height: 300px" class="SigmaReport" ></div>
+</div>
+<input type="hidden" value="<s:property value='@java.net.URLDecoder@decode(#parameters.orgName,\"utf-8\")'/>" id="orgName-Gis"/>
+
+
+<script type="text/javascript">
+var tab = 1;
+$(document).ready(function(){
+	if($.browser.version=='6.0'){
+	}
+	if(getCurrentOrgId()){
+		if('<s:property value="#parameters.siteName"/>'=="place"){
+			$("#place").click();
+		}else{
+			$("#tabLevelChart li:first a:first").click();
+			}
+	}
+});
+
+
+$("#importantPersonlPie").pieChart({
+	url:"${path}/baseInfoStat/statisticsPersonnel/getStatisticsImportantPersonlPie.action?orgId=<s:property value='#getOrgByDepartmentNo.organization.id'/>&year=2012&month=4&typeTableName=IMPORTANTPERSONNEL",
+	moduleName: $("#orgName-Gis").val()+"特殊人群",
+	onClick : function(event){
+		var url = '';
+		var title = '';
+		var width = 900;
+		var height = 600;
+		if(event.point.name.indexOf("刑释人员") != -1){
+			title='刑释人员';
+			url = '${path}/baseinfo/positiveInfo/positiveInfoListForStatistics.jsp';
+		}else if(event.point.name.indexOf("社区矫正人员") != -1){
+			title='社区矫正人员';
+			url = '${path}/baseinfo/rectify/rectifiyListForStatistics.jsp';
+		}else if(event.point.name.indexOf("重点青少年") != -1){
+			title='重点青少年';
+			url = '${path}/baseinfo/idleYouth/idleYouthListForStatistics.jsp';
+		}else if(event.point.name.indexOf("严重精神障碍患者") != -1){
+			title='严重精神障碍患者';
+			url = '${path}/baseinfo/mentalPatient/mentalPatientlistForStatistics.jsp';
+		}else if(event.point.name.indexOf("吸毒人员") != -1){
+			title='吸毒人员';
+			url = '${path}/baseinfo/druggyManage/druggyListForStatistics.jsp';
+		}else if(event.point.name.indexOf("重点上访人员") != -1){
+			title='重点上访人员';
+			url = '${path}/baseinfo/superiorVisit/superiorVisitListForStatistics.jsp';
+		}else if(event.point.name.indexOf("需救助人员") != -1){
+			title='需救助人员';
+			url = '${path}/baseinfo/poorPeopleManage/poorPeopleListForStatistics.jsp';
+		}else if(event.point.name.indexOf("危险品从业人员") != -1){
+			title='危险品从业人员';
+			url = '${path}/baseinfo/dangerousGoodsPractitioner/dangerousGoodsPractitionerListForStatistisc.jsp';
+		}else if(event.point.name.indexOf("其他人员") != -1){
+			title='其他人员';
+			url = '${path}/baseinfo/otherAttentionPersonnel/otherAttentionPersonnelListForStatistics.jsp';
+		}
+		showInfo(url, title, width, height);
+	}
+});
+function onOrgChanged1(){
+	document.title = $("#plen_char").text();
+	$("#importantPersonlColumn").columnChart({
+		url: "${path}/baseInfoStat/statisticsPersonnel/getStatisticsImportantPersonlColumn.action?orgId="+getCurrentOrgId(),
+		moduleName:"特殊人群"
+	});
+	tab = 1;
+}
+
+function onOrgChanged2(){
+	document.title = $("#place").text();
+	$("#importantPersonlColumn").columnChart({
+		url: "${path}/baseInfoStat/statisticsPlace/getStatisticsImportantPlaceColumn.action?orgId="+getCurrentOrgId(),
+		moduleName:"重点场所"
+	});
+	$("#importantPersonlPie").pieChart({
+		url:"${path}/baseInfoStat/statisticsPlace/getStatisticsImportantPlacePie.action?orgId="+getCurrentOrgId(),
+		moduleName:"重点场所",
+		onClick:function(event){
+			var url = '';
+			var title = '';
+			var width = 900;
+			var height = 600;
+	
+			if(event.point.name.indexOf("安全生产重点") != -1){
+				title='安全生产重点';
+				url = '${path}/baseinfo/siteinfo/enterprise/enterpriseListForStatistics.jsp?keyType=safetyProductionKey';
+			}else if(event.point.name.indexOf("消防安全重点") != -1){
+				title='消防安全重点';
+				url = '${path}/baseinfo/siteinfo/fireSafety/fireSafetyEnterpriseListForStatistics.jsp?keyType=fireSafetyKey';
+			}else if(event.point.name.indexOf("治安重点") != -1){
+				title='治安重点';
+				url = '${path}/baseinfo/siteinfo/enterprise/securityEnterpriseListForStatistics.jsp?keyType=securityKey';
+			}else if(event.point.name.indexOf("学校") != -1){
+				title='学校';
+				url = '${path}/baseinfo/siteinfo/school/schoolListForStatistics.jsp';
+			}else if(event.point.name.indexOf("其他场所") != -1){
+				title='其他场所';
+				url = '${path}/baseinfo/siteinfo/otherLocale/otherLocaleListForStatistics.jsp';
+			}
+			showInfo(url, title, width, height);
+		}
+	});
+	tab = 2;
+}
+
+
+
+</script>

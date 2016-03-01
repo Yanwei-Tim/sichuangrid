@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="activityRecord">
+	<typeAlias alias="ActivityRecord" type="com.tianque.partyBuilding.activityRecords.domain.ActivityRecords"/>
+	<typeAlias alias="ActivityRecordsAttachFiles" type="com.tianque.partyBuilding.activityRecords.domain.ActivityRecordsAttachFiles"/>
+	<typeAlias alias="SearchOrganizationVo" type="com.tianque.partyBuilding.activityRecords.domain.vo.SearchOrganizationVo"/>
+	<typeAlias alias="ActivityRecordsVo" type="com.tianque.partyBuilding.activityRecords.domain.vo.ActivityRecordsVo"/>
+	<typeAlias type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" alias="ClobStringTypeHandler"/>
+	<!-- 组织活动类-->
+	<resultMap class="ActivityRecord" id="activityRecordResult">
+		<result property="id" column="id"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="organization.orgInternalCode" column="orgInternalCode"/>
+		<result property="organizationId" column="ORGANIZATIONID"/>
+		<result property="organizationType" column="ORGANIZATIONTYPE"/>
+		<result property="activityDate" column="ACTIVITYDATE"/>
+		<result property="activityPlace" column="ACTIVITYPLACE"/>
+		<result property="activityTheme" column="ACTIVITYTHEME"/>
+		<result property="organizer" column="ORGANIZER"/>
+		<result property="participant" column="PARTICIPANT"/>
+		<result property="details" column="DETAILS"/>
+		<result property="isAttachment" column="isAttachment"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+	
+	<resultMap class="ActivityRecord" id="activityRecordAllResult" extends="activityRecordResult">
+		<result property="organizationName" column="ORGANIZATIONNAME"/>
+	</resultMap>
+	<!-- 组织活动类对应的附件-->
+	<resultMap class="ActivityRecordsAttachFiles" id="activityRecordsAttachFilesResult">
+	    <result property="id" column="id"/>
+	    <result property="activityRecordId" column="ACTIVITYRECORDID"/>
+	    <result property="fileName" column="fileName" />
+	    <result property="fileActualUrl" column="fileActualUrl"/>
+	    <result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+  	</resultMap>
+  	<!-- 组织活动所在组织的的组织名称-->
+  	<resultMap class="SearchOrganizationVo" id="searchOrganizationVoResult">
+	    <result property="organizationId" column="ORGANIZATIONID"/>
+	    <result property="organizationType" column="ORGANIZATIONTYPE" />
+	    <result property="organizationName" column="ORGANIZATIONNAME"/>
+  	</resultMap>
+  	<!--新增组织活动-->
+  	<insert id="addActivityRecord" parameterClass="ActivityRecord" >
+  		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_activityRecords.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into activityRecords(
+		id,orgId,orgInternalCode,organizationId,organizationType,activityDate,activityPlace,activityTheme,organizer,
+		participant,details,isAttachment,createUser,createDate,updateUser,updateDate) values(
+		#id#,#organization.id#,#organization.orgInternalCode#,#organizationId#,#organizationType#,#activityDate#,#activityPlace#,#activityTheme#,#organizer#,
+		#participant#,#details#,#isAttachment#,#createUser#,#createDate#,#updateUser#,#updateDate#
+		)
+  	</insert>
+  	<!--新增组织活动的附件 -->
+  	<insert id="addActivityRecordAttachFiles" parameterClass="ActivityRecordsAttachFiles">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_ActivityRecordsAttachFiles.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into activityRecordsAttachFiles 
+		(id,activityRecordId,fileName,fileActualUrl,createUser,createDate,updateDate,updateUser) 
+     	VALUES(#id#,#activityRecordId#,#fileName#,#fileActualUrl#,#createUser#,#createDate#,#updateDate#,#updateUser#)
+	</insert>
+	<!-- 根据id修改组织活动记录-->
+	<update id="updateActivityRecord" parameterClass="ActivityRecord">
+		update activityRecords set 
+			activityDate=#activityDate#,
+			activityPlace=#activityPlace#,
+			activityTheme=#activityTheme#,
+			organizer=#organizer#,
+			participant=#participant#,
+			details=#details#,
+			isAttachment=#isAttachment#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#
+				where id=#id#
+	</update>
+	
+  	<!--根据组织活动的id查询组织活动-->
+  	<select id="getActivityRecordById" parameterClass="java.lang.Long" resultMap="activityRecordResult">
+		<![CDATA[select id,orgId,orgInternalCode,organizationId,organizationType,activityDate,activityPlace,activityTheme,organizer,
+		participant,details,isAttachment,createUser,createDate,updateUser,updateDate from activityRecords where id=#value#]]>
+  	</select>
+  	<!--根据组织的名称匹配查询组织的Id,name，以及对应的organizationType-->
+  	<select id="findOrganizationByType" parameterClass="map" resultMap="searchOrganizationVoResult" >
+		select 
+			id as organizationId,
+			#organizationType# as organizationType,
+			$organizationName$ as organizationName 
+			from $table$ where orgInternalCode like #orgInternalCode#||'%' and $organizationName$ like '%'||#name#||'%'	
+  	</select>
+  	<!--根据组织的id查询出组织（用于设置组织活动记录的组织活动所在组织的名称）-->
+  	<select id="findOrganizationById" parameterClass="map" resultMap="searchOrganizationVoResult" >
+		select 
+			id as organizationId,
+			#organizationType# as organizationType,
+			$organizationName$ as organizationName 
+			from $table$ where id=#organizationId#
+  	</select>
+  	<!--根据参数的不同统计所在区域的所有的组织活动 或者是该组织下所有的组织活动记录 -->
+  	<select id="countActivityRecord" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[select count(*) from activityRecords where organizationType=#organizationType#]]>
+		<dynamic>
+ 			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend="and">
+						orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="organizationId">
+				<isNotNull property="organizationId" prepend="and">
+						organizationId = #organizationId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty property="orgInternalCode" prepend="and">
+						ORGINTERNALCODE like #orgInternalCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<!-- 根据参数的不同统计所在区域的所有的组织活动 或者是该组织下所有的组织活动记录 -->
+	<select id="findAllActivityRecord" parameterClass="map" resultMap="activityRecordAllResult">
+		select 
+		ar.id as id,
+		ar.orgId as orgId,
+		ar.orgInternalCode as orgInternalCode,
+		ar.organizationId as organizationId,
+		ar.organizationType as organizationType,
+		ar.activityDate as activityDate,
+		ar.activityPlace as activityPlace,
+		ar.activityTheme as activityTheme,
+		ar.organizer as organizer,
+		ar.participant as participant,
+		ar.details as details,
+		ar.isAttachment as isAttachment,
+		ar.createUser as createUser,
+		ar.createDate as createDate,
+		ar.updateUser as updateUser,
+		ar.updateDate as updateDate,
+		t.$organizationName$ as organizationName
+		 from activityRecords ar,$table$ t where ar.organizationId=t.id and ar.organizationType=#organizationType#
+ 		<dynamic>
+ 			<isPropertyAvailable property="organizationId">
+				<isNotNull property="organizationId" prepend="and">
+						organizationId = #organizationId#
+				</isNotNull>
+			</isPropertyAvailable>
+ 			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend="and">
+						ar.orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty property="orgInternalCode" prepend="and">
+						ar.ORGINTERNALCODE like #orgInternalCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+ 			<isPropertyAvailable property="sortField" prepend="order by">
+ 				<isNotNull property="sortField">$sortField$</isNotNull>
+ 				<isNotNull property="order">$order$</isNotNull>
+ 			</isPropertyAvailable>
+ 		</dynamic>
+ 	</select>
+ 	
+ 	
+ 	<sql id="search_sql_where">
+		from activityRecords ar,$table$ t where ar.organizationId=t.id and ar.organizationType=#organizationType#
+			<isPropertyAvailable property="organization">
+				<isNotNull property="organization" prepend=" and ">
+					ar.orgId=#organization.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="organization">
+				<isNotEmpty property="organization" prepend=" and ">
+					ar.orgInternalCode like  #organization.orgInternalCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="activityDateStart" >
+				<isNotEmpty prepend=" and " property="activityDateStart">
+					<![CDATA[ ar.activityDate >= #activityDateStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="activityDateEnd">
+				<isNotEmpty prepend=" and " property="activityDateEnd">
+					<![CDATA[ ar.activityDate <= #activityDateEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="activityTheme">
+				<isNotEmpty property="activityTheme" prepend=" and ">
+					ar.activityTheme like #activityTheme#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="activityPlace">
+				<isNotEmpty property="activityPlace" prepend=" and ">
+					ar.activityPlace like #activityPlace#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="organizer">
+				<isNotEmpty property="organizer" prepend=" and ">
+					ar.organizer like #organizer#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="participant">
+				<isNotEmpty property="participant" prepend=" and ">
+					ar.participant like #participant#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="details">
+				<isNotEmpty property="details" prepend=" and ">
+					ar.details like #details#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="organizationId">
+				<isNotNull property="organizationId" prepend=" and ">
+					ar.organizationId = #organizationId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="organizationName">
+				<isNotEmpty property="organizationName" prepend=" and ">
+					t.$name$ like #organizationName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+	</sql>
+ 	
+ 	
+ 	<!-- 根据条件查询所有的符合条件的组织活动记录-->
+ 	<select id="countSearchActivityRecordsBySearchVo" parameterClass="ActivityRecordsVo" resultClass="java.lang.Integer">
+		select count(*)
+		<include refid="search_sql_where" />
+	</select>
+	<!-- 根据条件查询所有的符合条件的组织活动记录-->
+	<select id="searchActivityRecordsBySearchVo" parameterClass="ActivityRecordsVo" resultMap="activityRecordAllResult">
+		select 
+		ar.id as id,
+		ar.orgId as orgId,
+		ar.orgInternalCode as orgInternalCode,
+		ar.organizationId as organizationId,
+		ar.organizationType as organizationType,
+		ar.activityDate as activityDate,
+		ar.activityPlace as activityPlace,
+		ar.activityTheme as activityTheme,
+		ar.organizer as organizer,
+		ar.participant as participant,
+		ar.details as details,
+		ar.isAttachment as isAttachment,
+		ar.createUser as createUser,
+		ar.createDate as createDate,
+		ar.updateUser as updateUser,
+		ar.updateDate as updateDate,
+		t.$name$ as organizationName
+		<include refid="search_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+ 	<!--根据区域级别id和区域orgcode统计该组织或者改组织下辖的组织活动记录数-->
+ 	<select id="countActivityRecordByOrgIdOrgInternalCode" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from activityRecords where organizationType=#organizationType# 
+			<iterate prepend="and" property="orgIdsList" conjunction="or" open="(" close=")">
+				orgId in ($orgIdsList[]$)
+			</iterate>
+	</select>
+ 	 	<!-- 根据党组织id和党组织类型统计组织活动记录-->
+ 	<select id="countAllActivityRecordByOrganizationIdAndOrganizationType" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from activityRecords ar where ar.organizationId=#organizationId# and ar.organizationType=#organizationType# 
+			
+	</select>
+ 	 	<!-- 根据党组织id和党组织类型查询组织活动记录-->
+ 	<select id="findAllActivityRecordByOrganizationIdAndOrganizationType" parameterClass="map" resultMap="activityRecordResult">
+ 		select 
+		ar.id as id,
+		ar.orgId as orgId,
+		ar.orgInternalCode as orgInternalCode,
+		ar.organizationId as organizationId,
+		ar.organizationType as organizationType,
+		ar.activityDate as activityDate,
+		ar.activityPlace as activityPlace,
+		ar.activityTheme as activityTheme,
+		ar.organizer as organizer,
+		ar.participant as participant,
+		ar.details as details,
+		ar.isAttachment as isAttachment,
+		ar.createUser as createUser,
+		ar.createDate as createDate,
+		ar.updateUser as updateUser,
+		ar.updateDate as updateDate
+		from activityRecords ar where ar.organizationId=#organizationId# and ar.organizationType=#organizationType#
+ 	</select>
+ 	
+ 	<!-- 根据组织活动记录Id查询所有的附件 -->
+ 	<select id="findActivityRecordAttachFilesByActivityRecordId" parameterClass="java.lang.Long" resultMap="activityRecordsAttachFilesResult">
+    	<![CDATA[ select * from activityrecordsattachfiles where activityrecordId = #value#]]>
+  	</select>
+  	<!--根据附件id查询附件 -->
+  	<select id="findActivityRecordAttachFilesById" parameterClass="java.lang.Long" resultMap="activityRecordsAttachFilesResult">
+    	<![CDATA[ select * from activityrecordsattachfiles where id = #value#]]>
+  	</select>
+  	<!-- 根据id删除组织活动记录-->
+  	<delete id="deleteActivityRecordById" parameterClass="java.lang.Long">
+  		<![CDATA[ delete from activityRecords where id = #value#]]>
+  	</delete>
+  	<!-- 根据组织活动记录id删除组织活动记录附件-->
+  	<delete id="deleteActivityRecordAttachFilesByActivityRecordId" parameterClass="java.lang.Long">
+  		<![CDATA[ delete from activityrecordsattachfiles where activityrecordId = #value#]]>
+  	</delete>
+  	<!-- 根据id删除组织活动记录附件-->
+  	<delete id="deleteActivityRecordAttachFilesById" parameterClass="java.lang.Long">
+  		<![CDATA[ delete from activityrecordsattachfiles where id = #value#]]>
+  	</delete>
+  	<!-- 根据党组织id和党组织类型删除组织活动记录-->
+  	<delete id="deleteAllActivityRecordByOrganizationIdAndOrganizationType" parameterClass="map">
+  		<![CDATA[ delete from activityRecords where organizationId = #organizationId# and organizationType=#organizationType#]]>
+  	</delete>
+  	
+</sqlMap>

@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="statementStatistic">
+	<typeAlias alias="StatementStatistic" type="com.tianque.domain.StatementStatistic" />
+	<typeAlias alias="IssueLogNew" type="com.tianque.issue.domain.IssueLogNew" />
+	<typeAlias alias="PropertyDict" type="com.tianque.domain.PropertyDict" />
+
+	<resultMap id="issueLogResult" class="IssueLogNew">
+		<result property="forIssueLog.id" column="forIssueLogId" />
+		<result property="dealTime" column="dealTime" />
+	</resultMap>
+
+	<resultMap id="issueLogStartTimeResult" class="StatementStatistic">
+		<result property="startTime" column="startTime" />
+	</resultMap>
+
+	<resultMap id="propertyDictResult" class="PropertyDict">
+		<result property="id" column="id" />
+	</resultMap>
+
+	<resultMap id="statementStatisticResult" class="StatementStatistic">
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="statementNo" column="statementNo" />
+		<result property="statementType.id" column="statementTypeId" />
+		<result property="statementTotal" column="statementTotal" />
+		<result property="currentPeriodRegister" column="currentPeriodRegister" />
+		<result property="registerTotal" column="registerTotal" />
+		<result property="overdueNotAccepted" column="overdueNotAccepted" />
+		<result property="normalNotAccepted" column="normalNotAccepted" />
+		<result property="sevenDaysInDeal" column="sevenDaysInDeal" />
+		<result property="overtakeSevenDaysInDeal" column="overtakeSevenDaysInDeal" />
+		<result property="onScheduleHandle" column="onScheduleHandle" />
+		<result property="overdueHandle" column="overdueHandle" />
+		<result property="transferTotal" column="transferTotal" />
+		<result property="endTotal" column="endTotal" />
+		<result property="onScheduleRateOfEnd" column="onScheduleRateOfEnd" />
+		<result property="rateOfEnding" column="rateOfEnding" />
+		<result property="year" column="year" />
+		<result property="month" column="month" />
+	</resultMap>
+	<!--方法没有显式调用
+	<select id="findOrganizationIds" resultClass="java.lang.Long">
+		<![CDATA[
+		select id from
+		organizations
+		]]>
+	</select>-->
+
+	<select id="getIssueLogStartTime" resultMap="issueLogStartTimeResult">
+		<![CDATA[
+		select
+		min(createdate) as startTime from issuelogs
+		]]>
+	</select>
+
+
+	<!--  方法没有显式调用-->
+	<!--<select id="getStatementTypeByDomainNameAndDisplayName"
+		parameterClass="java.util.Map" resultMap="propertyDictResult">
+		<![CDATA[
+		select dict.id from propertydicts dict,propertydomains doma where dict.propertydomainid=doma.id
+		and doma.domainname=#domainName# and dict.displayname=#displayName#
+		]]>
+	</select> -->
+
+	<insert id="addStatementStatistic" parameterClass="StatementStatistic">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_statementStatistics.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		statementStatistics(id,orgId,orgInternalCode,statementNo,statementTypeId,statementTotal,
+		currentPeriodRegister,registerTotal,overdueNotAccepted,normalNotAccepted,sevenDaysInDeal,
+		overtakeSevenDaysInDeal,onScheduleHandle,overdueHandle,transferTotal,endTotal,
+		onScheduleRateOfEnd,rateOfEnding,year,month)
+		VALUES(#id#,#organization.id#,#orgInternalCode#,#statementNo#,#statementType.id#,
+		#statementTotal#,#currentPeriodRegister#,#registerTotal#,#overdueNotAccepted#,#normalNotAccepted#,
+		#sevenDaysInDeal#,#overtakeSevenDaysInDeal#,#onScheduleHandle#,#overdueHandle#,#transferTotal#,
+		#endTotal#,#onScheduleRateOfEnd#,#rateOfEnding#,#year#,#month#)
+	</insert>
+
+	<select id="getSimpleStatementStatisticById" parameterClass="java.lang.Long"
+		resultMap="statementStatisticResult">
+		select * from statementStatistics where id=#value#
+	</select>
+
+	<select id="getYearsByOrgId" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select distinct year from statementstatistics where orgId=#orgId# order by year desc
+		]]>
+	</select>
+
+	<select id="getMonthsByOrgId" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select month from statementstatistics where orgId=#orgId# and year=#year# and month is not null order by month
+		]]>
+	</select>
+
+	<sql id="sql_where">
+		from statementstatistics
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId=#orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="year">
+				<isNotNull property="year" prepend=" and ">
+					year=#year#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="month">
+				<isNotNull property="month" prepend=" and ">
+					month=#month#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="statementTypeId">
+				<isNotNull property="statementTypeId" prepend=" and ">
+					statementTypeId=#statementTypeId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findStatementStatistics" parameterClass="java.util.Map"
+		resultMap="statementStatisticResult">
+		select
+		id,orgId,orgInternalCode,statementNo,statementTypeId,statementTotal,
+		currentPeriodRegister,registerTotal,overdueNotAccepted,normalNotAccepted,
+		sevenDaysInDeal,overtakeSevenDaysInDeal,onScheduleHandle,overdueHandle,
+		transferTotal,endTotal,onScheduleRateOfEnd,rateOfEnding,year,month
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countStatementStatistics" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<sql id="count_sql_where">
+		<dynamic>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					targeOrgId=#orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty property="orgInternalCode" prepend=" and ">
+					targeOrgInternalcode like #orgInternalCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startTime">
+				<isNotNull property="startTime" prepend=" and ">
+				<![CDATA[
+					dealtime>=#startTime#
+				]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endTime">
+				<isNotNull property="endTime" prepend=" and ">
+				<![CDATA[
+					dealtime<=#endTime#
+				]]>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="getStatementTotal" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		<![CDATA[
+		select count(*) from issuelogs where dealState in
+		]]>
+		<iterate property="issueDealStates" open="(" close=")"
+			conjunction=",">
+			#issueDealStates[]#
+		</iterate>
+		<include refid="count_sql_where" />
+	</select>
+
+	<select id="getCurrentPeriodRegisterOrRegisterTotal"
+		parameterClass="java.util.Map" resultClass="java.lang.Long">
+		<![CDATA[
+		select count(*) from issuelogs where dealType in
+		]]>
+		<iterate property="issueDealTypes" open="(" close=")"
+			conjunction=",">
+			#issueDealTypes[]#
+		</iterate>
+		<include refid="count_sql_where" />
+	</select>
+
+	<select id="getTransferTotal" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		<![CDATA[
+		select count(*) from issuelogs where dealType in
+		]]>
+		<iterate property="issueDealTypes" open="(" close=")"
+			conjunction=",">
+			#issueDealTypes[]#
+		</iterate>
+		<include refid="count_sql_where" />
+	</select>
+
+	<select id="getEndTotal" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		<![CDATA[
+		select count(*) from issuelogs where dealState=#dealState#
+		]]>
+		<include refid="count_sql_where" />
+	</select>
+
+	<select id="getOnScheduleHandleOrOverdueHandle" parameterClass="java.util.Map"
+		resultMap="issueLogResult">
+		<![CDATA[
+		select forIssueLogId,dealTime from issuelogs where dealState in
+		]]>
+		<iterate property="issueDealStates" open="(" close=")"
+			conjunction=",">
+			#issueDealStates[]#
+		</iterate>
+		<include refid="count_sql_where" />
+	</select>
+
+	<select id="countOnScheduleHandleOrOverdueHandleByIssueLogId"
+		parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from issuelogs where id=#issueLogId# 
+		and dealtime>#startTime# and dealtime<#endTime#
+		]]>
+	</select>
+
+	<select id="getSevenDaysInDealOrOvertakeSevenDaysInDeal"
+		parameterClass="java.util.Map" resultMap="issueLogResult">
+		<![CDATA[
+		select forIssueLogId,dealTime from issuelogs where dealState=#dealState#
+		]]>
+		<include refid="count_sql_where" />
+	</select>
+
+	<select id="getOverdueNotAcceptedOrNormalNotAcceptedIssueLog"
+		parameterClass="java.util.Map" resultMap="issueLogResult">
+		<![CDATA[
+		select forIssueLogId,dealTime from issuelogs where dealState=#dealState#
+		]]>
+		<include refid="count_sql_where" />
+	</select>
+
+	<select id="countOverdueNotAcceptedOrNormalNotAcceptedByIssueLogId"
+		parameterClass="java.util.Map" resultMap="issueLogResult">
+		<![CDATA[
+		select count(*) from issuelogs where id=#issueLogId# 
+		and dealtime>#startTime# and dealtime<#endTime#
+		]]>
+	</select>
+
+	<sql id="sum_sql_where">
+		from statementstatistics
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId=#orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="statementTypeId">
+				<isNotNull property="statementTypeId" prepend=" and ">
+					statementTypeId=#statementTypeId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="getCurrentPeriodRegisterCount" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		<![CDATA[
+		select sum(currentPeriodRegister)
+		]]>
+		<include refid="sum_sql_where" />
+	</select>
+
+	<select id="getOverdueNotAcceptedCount" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		<![CDATA[
+		select sum(overdueNotAccepted)
+		]]>
+		<include refid="sum_sql_where" />
+	</select>
+
+	<select id="getNormalNotAcceptedCount" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		<![CDATA[
+		select sum(normalNotAccepted)
+		]]>
+		<include refid="sum_sql_where" />
+	</select>
+
+	<select id="getSevenDaysInDealCount" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		<![CDATA[
+		select sum(sevenDaysInDeal)
+		]]>
+		<include refid="sum_sql_where" />
+	</select>
+
+	<select id="getOvertakeSevenDaysInDealCount" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		<![CDATA[
+		select sum(overtakeSevenDaysInDeal)
+		]]>
+		<include refid="sum_sql_where" />
+	</select>
+
+	<select id="getOnScheduleHandleCount" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		<![CDATA[
+		select sum(onScheduleHandle)
+		]]>
+		<include refid="sum_sql_where" />
+	</select>
+
+	<select id="getOverdueHandleCount" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		<![CDATA[
+		select sum(overdueHandle)
+		]]>
+		<include refid="sum_sql_where" />
+	</select>
+</sqlMap>

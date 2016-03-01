@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="pyramidSalesManage" >
+  <typeAlias alias="pyramidSalesManage" type="com.tianque.serviceList.domain.PyramidSalesManage" />
+  <resultMap id="pyramidSalesManageResult" class="pyramidSalesManage" extends="serviceListCommon.serviceListCommonResult" >
+    <result column="PYRAMIDCATEGORY" property="pyramidCategory.id"/>
+    <result column="PERSONNEL" property="personnel"/>
+  </resultMap>
+  
+  <sql id="sql_where">
+  	
+  </sql>
+  
+  <select id="countPyramidSalesManagesBySearchVo" parameterClass="pyramidSalesManage" resultClass="java.lang.Integer" >
+    select count(0) from PYRAMIDSALESMANAGE
+    <include refid="serviceListCommon.sql_where" />
+  </select>
+  
+  <select id="findPyramidSalesManagesBySearchVo" parameterClass="pyramidSalesManage" resultMap="pyramidSalesManageResult">
+      	select ID, INPUTTIME, ADDRESS, CATEGORY, DETAILS, ISSIGN,ISREPLY,PYRAMIDCATEGORY,PERSONNEL,TELEPHONE,
+      		SIGNDATE, SIGNPEOPLE, CREATEDATE, CREATEUSER, UPDATEDATE, UPDATEUSER, REMAKE, SIGNCONTENT,ORGID,ORGINTERNALCODE 
+      		from PYRAMIDSALESMANAGE
+		<include refid="serviceListCommon.sql_where"/>
+		<include refid="serviceListCommon.order_by"/>
+	</select>
+  
+  <insert id="addPyramidSalesManage" parameterClass="pyramidSalesManage" >
+  	<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_pyramidSalesManage.NEXTVAL as id from dual ]]>
+	</selectKey>
+    insert into PYRAMIDSALESMANAGE (ID, INPUTTIME, ADDRESS, CATEGORY, DETAILS, ISSIGN,ISREPLY,PYRAMIDCATEGORY,PERSONNEL,
+      SIGNDATE, SIGNPEOPLE, CREATEDATE, CREATEUSER, UPDATEDATE, UPDATEUSER, REMAKE, SIGNCONTENT,ORGID,ORGINTERNALCODE,TELEPHONE)
+    values (#id:DECIMAL#, #inputTime#, #address:VARCHAR#, #category.id:DECIMAL#,
+      #details:VARCHAR#, #isSign:DECIMAL#, #isReply:DECIMAL#, #pyramidCategory.id#,#personnel#,#signDate#, #signPeople:VARCHAR#, #createDate#,
+      #createUser:VARCHAR#, #updateDate#, #updateUser:VARCHAR#, #remake:VARCHAR#,
+      #signContent:VARCHAR#,#organization.id:DECIMAL#,#organization.orgInternalCode:VARCHAR#,#telephone:VARCHAR#)
+  </insert>
+  
+  <update id="updatePyramidSalesManageAll" parameterClass="pyramidSalesManage" >
+    update PYRAMIDSALESMANAGE
+    set INPUTTIME = #inputTime#,
+      ADDRESS = #address:VARCHAR#,
+      CATEGORY = #category.id:DECIMAL#,
+      DETAILS = #details:VARCHAR#,
+      ISSIGN = #isSign:DECIMAL#,
+      ISREPLY = #isReply:DECIMAL#,
+      PYRAMIDCATEGORY = #pyramidCategory.id#,
+      PERSONNEL= #personnel#,
+      SIGNDATE = #signDate#,
+      SIGNPEOPLE = #signPeople:VARCHAR#,
+      CREATEDATE = #createDate#,
+      CREATEUSER = #createUser:VARCHAR#,
+      UPDATEDATE = #updateDate#,
+      UPDATEUSER = #updateUser:VARCHAR#,
+      REMAKE = #remake:VARCHAR#,
+      SIGNCONTENT = #signContent:VARCHAR#,
+      ORGID = #organization.id:DECIMAL#,
+      ORGINTERNALCODE = #organization.orgInternalCode#
+    where ID = #id:DECIMAL#
+  </update>
+  
+  <update id="updatePyramidSalesManage" parameterClass="pyramidSalesManage" >
+    update PYRAMIDSALESMANAGE
+    <dynamic prepend="set" >
+      <isNotNull prepend="," property="inputTime" >
+        INPUTTIME = #inputTime#
+      </isNotNull>
+      <isNotNull prepend="," property="address" >
+        ADDRESS = #address:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="category.id" >
+        CATEGORY = #category.id:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="details" >
+        DETAILS = #details:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="isSign" >
+        ISSIGN = #isSign:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="isReply" >
+        ISREPLY = #isReply:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="pyramidCategory.id" >
+        PYRAMIDCATEGORY = #pyramidCategory.id#
+      </isNotNull>
+      <isNotNull prepend="," property="personnel" >
+        PERSONNEL= #personnel#
+      </isNotNull>
+      <isNotNull prepend="," property="signDate" >
+        SIGNDATE = #signDate#
+      </isNotNull>
+      <isNotNull prepend="," property="signPeople" >
+        SIGNPEOPLE = #signPeople:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="createDate" >
+        CREATEDATE = #createDate#
+      </isNotNull>
+      <isNotNull prepend="," property="createUser" >
+        CREATEUSER = #createUser:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="updateDate" >
+        UPDATEDATE = #updateDate#
+      </isNotNull>
+      <isNotNull prepend="," property="updateUser" >
+        UPDATEUSER = #updateUser:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="remake" >
+        REMAKE = #remake:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="signContent" >
+        SIGNCONTENT = #signContent:VARCHAR#
+      </isNotNull>
+      <isNotNull prepend="," property="organization.id" >
+        ORGID = #organization.id:DECIMAL#
+      </isNotNull>
+      <isNotNull prepend="," property="organization.orgInternalCode" >
+        ORGINTERNALCODE = #organization.orgInternalCode#
+      </isNotNull>
+    </dynamic>
+    where ID = #id:DECIMAL#
+  </update>
+  
+  <delete id="deletePyramidSalesManageById" parameterClass="java.lang.Long" >
+    delete from PYRAMIDSALESMANAGE
+    where ID = #id:DECIMAL#
+  </delete>
+  
+  <select id="getPyramidSalesManageById" resultMap="pyramidSalesManageResult" parameterClass="java.lang.Long" >
+    select ID, INPUTTIME, ADDRESS, CATEGORY, DETAILS, ISSIGN,ISREPLY,PYRAMIDCATEGORY,PERSONNEL, SIGNDATE, SIGNPEOPLE, CREATEDATE,TELEPHONE,
+      CREATEUSER, UPDATEDATE, UPDATEUSER, REMAKE, SIGNCONTENT,ORGID,ORGINTERNALCODE
+    from PYRAMIDSALESMANAGE
+    where ID = #id:DECIMAL#
+  </select>
+  
+</sqlMap>

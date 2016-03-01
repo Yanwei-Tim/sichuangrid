@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="tianqueGrid" basedir=".">
+	
+	<property file="build.properties" />
+
+	<property name="src.dir" value="src/java" />
+	<property name="config.dir" value="src/config" />
+	<property name="classes.dir" value="webroot/WEB-INF/classes" />
+	<property name="web.dir" value="webroot" />
+	<property name="build.lib.dir" value="lib" />
+	<property name="runtime.lib.dir" value="webroot/WEB-INF/lib" />
+	<property name="sql.dir" value="database/tables" />
+	<property name="version" value="beta2.0" />
+	<property name="filename" value="wzGrids-${version}" />
+	<property name="zipfile" value="${filename}.zip" />
+	<property name="deploy.dir" value="../wzgrids_23432432432" />
+	
+	<path id="build.lib">
+		<fileset dir="${build.lib.dir}" includes="*.jar,*/*.jar" />
+	</path>
+
+	<path id="runtime.lib">
+		<fileset dir="${runtime.lib.dir}" includes="*.jar,*/*.jar" />
+	</path>
+	
+	<path id="all.lib">
+		<path refid="build.lib" />
+		<path refid="runtime.lib" />
+	</path>
+	
+	<target name="clean">
+		<delete dir="${classes.dir}"></delete>
+		<mkdir dir="${classes.dir}"/>
+	</target>
+	
+	<!-- 编译源代码 -->
+	<target name="compile" depends="clean">
+		<javac destdir="${classes.dir}" srcdir="${src.dir}:${config.dir}" encoding="UTF-8">
+			<classpath refid="all.lib" />
+		</javac>
+		<copy todir="${classes.dir}">
+			<fileset dir="${src.dir}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<copy todir="${classes.dir}">
+			<fileset dir="${config.dir}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+	</target>
+	
+	<!--注意，若要执行此命令，请带上参数-->
+	<target name="migration">
+		<java  fork="true" classname="com.tianque.init.Migration" classpath="${classes.dir}" classpathref="all.lib" >
+			<arg value="${environment}"/>
+			<arg value="${fromVersion}"/>
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+		</java>
+	</target>
+	
+</project>

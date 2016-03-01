@@ -1,0 +1,183 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<%@ include file="/includes/baseInclude.jsp"%>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib" %>
+<div id="dialog-form" title="队伍维护" class="container container_24">
+	 <form id="maintainForm" method="post"	action="${path}/baseInfo/villageConstructionManage/maintainVillageConstruction.action" >
+	 	 <pop:token/>
+	 	<input type="hidden" name="villageConstruction.organization.id" id="orgId" value="${organization.id }"/>
+	 	<input type="hidden" name="villageConstruction.organization.orgName" id="orgName" value="${organization.orgName }"/>
+	 	<input type="hidden" name="villageConstruction.id" id="villageConstructionId" value="${villageConstruction.id }"/>
+	 	<input type="hidden" name="villageConstruction.reportState" id="reportState" value="${villageConstruction.reportState }"/>
+		<div class="grid_3 lable-right">
+			<em class="form-req">*</em>
+			<label class="form-lbl">项目类型：</label>
+		</div>
+		<div class="grid_5">
+			<select name="villageConstruction.projectType.id" id="projectType" class="form-select {required:true,messages:{required:'项目类型必须选择'}}" >
+				<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@PROJECT_TYPE" defaultValue="${villageConstruction.projectType.id }"  showInternalId="true"/>
+			</select>
+		</div>
+		
+		<div class="grid_3 lable-right">
+			<em class="form-req">*</em>
+			<label class="form-lbl">建设分类：</label>
+		</div>
+		<div class="grid_5">
+			<select name="villageConstruction.buildingType.id" id="buildingType" class="form-select {required:true,messages:{required:'建设类别必须选择'}}" >
+				<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@BUILLDING_TYPE" defaultValue="${villageConstruction.buildingType.id }"  showInternalId="true"/>
+			</select>
+		</div>
+
+  		<div class="grid_3 lable-right">
+			<em class="form-req">*</em>
+			<label class="form-lbl">所属单位： </label>
+		</div>
+		<div class="grid_5">
+		   <input type="text"  name="villageConstruction.subordinateUnit" id="subordinateUnit" maxlength="30" value="${villageConstruction.subordinateUnit }" class="form-txt" readonly="readonly"/>
+  		</div>
+  		
+  		<div class='clearLine'>&nbsp;</div>
+		<div class="grid_3 lable-right">
+			<label class="form-lbl">项目编号： </label>
+		</div>
+		<div class="grid_5">
+		   <input type="text"  name="villageConstruction.projectNo" id="projectNo" maxlength="10" value="${villageConstruction.projectNo }" class="form-txt {maxlength:10,messages:{maxlength:'项目编号最多10个字符'}}"/>
+  		</div>
+  		
+		<div class="grid_3 lable-right">
+			<label class="form-lbl">项目名称： </label>
+		</div>
+		<div class="grid_5" >
+				<input id="projectName"  name="villageConstruction.projectName" maxlength="30" value="${villageConstruction.projectName }"  class="form-txt {maxlength:30,validatorName:true,messages:{maxlength:'项目名称最多30个字符',validatorName:'项目名称不能输入特殊字符'}}"/>
+		</div> 
+				
+		<div class="grid_3 lable-right">
+			<label class="form-lbl">项目地址： </label>
+		</div>
+		<div class="grid_5" >
+				<input id="projectAddress"  name="villageConstruction.projectAddress" maxlength="60" value="${villageConstruction.projectAddress }"  class="form-txt {maxlength:60,messages:{maxlength:'项目地址最多60个字符'}}" />
+		</div> 
+		<div class='clearLine'>&nbsp;</div>
+		<div class="grid_3 lable-right">
+			<label class="form-lbl">承建单位： </label>
+		</div>
+		<div class="grid_5" >
+				<input id="contractBuildUnit"  name="villageConstruction.contractBuildUnit" maxlength="30" value="${villageConstruction.contractBuildUnit }"  class="form-txt {maxlength:30,messages:{maxlength:'承建单位最多30个字符'}}"/>
+		</div> 
+		
+		<div class="grid_3 lable-right">
+			<label class="form-lbl">项目负责人： </label>
+		</div>
+		<div class="grid_5" >
+				<input id="personCharge"  name="villageConstruction.personCharge" maxlength="10" value="${villageConstruction.personCharge }"  class="form-txt {maxlength:10,messages:{maxlength:'承建人最多10个字符'}}"/>
+		</div> 
+		
+		<div class="grid_3 lable-right">
+			<label class="form-lbl">负责人联系方式： </label>
+		</div>
+		<div class="grid_5" >
+				<input id="personPhone"  name="villageConstruction.personPhone" maxlength="20" value="${villageConstruction.personPhone }"  class="form-txt {maxlength:20,telephone:true,messages:{maxlength:'承建人联系方式最多20个字符',telephone:'联系方式只能输入数字和-'}}"/>
+		</div> 
+		<div class='clearLine'>&nbsp;</div>
+		<div class="grid_3 lable-right">
+			<em class="form-req">*</em>
+			<label class="form-lbl">涉及户数： </label>
+		</div>
+		<div class="grid_5" >
+				<input id="involveNumber"  name="villageConstruction.involveNumber" maxlength="10" value="${villageConstruction.involveNumber }"  class="form-txt {maxlength:10,positiveInteger:true,messages:{maxlength:'涉及户数最多10个字符',positiveInteger:'涉及户数只能输入正整数'}}"/>
+		</div> 
+		
+  		<div class="grid_3 lable-right">
+  			<em class="form-req">*</em>
+			<label class="form-lbl">开工时间： </label>
+		</div>
+		<div class="grid_5" >
+		 <input type="text" id="startDate"  name="villageConstruction.startDate" readonly maxlength="30"   class="form-txt "
+				value="<fmt:formatDate value="${villageConstruction.startDate}" type="date" pattern="yyyy-MM-dd" />"/>
+		</div> 
+  		
+  		<div class="grid_3 lable-right">
+			<label class="form-lbl">完工时间： </label>
+		</div>
+		<div class="grid_5" >
+		 <input type="text" id="finishedDate"  name="villageConstruction.finishedDate" readonly maxlength="30"   class="form-txt "
+				value="<fmt:formatDate value="${villageConstruction.finishedDate}" type="date" pattern="yyyy-MM-dd" />"/>
+		</div> 
+		
+  		<div class='clearLine'>&nbsp;</div>
+  		<div class="grid_3 lable-right">
+			<label class="form-lbl">备注： </label>
+		</div>
+		<div class="grid_21 heightAuto">
+   			<textarea rows="5" cols="78" name="villageConstruction.remark" id="remark"  maxlength="200" class="form-txt" >${villageConstruction.remark}</textarea>
+   		</div>
+	</form>
+</div>	
+<script type="text/javascript">
+$(document).ready(function(){
+$('#startDate').datePicker({
+	yearRange:'1930:2030',
+	dateFormat:'yy-mm-dd',
+	maxDate:'+0d'
+});
+
+$('#finishedDate').datePicker({
+	yearRange:'1930:2030',
+	dateFormat:'yy-mm-dd'
+});
+jQuery.validator.addMethod("validatorName", validatorSpecialWord);
+
+function validatorSpecialWord(value,element){
+	if(value==null||value==undefined||value==""){return true}
+	var pattern = new RegExp("[`~!@%#$^&*()=|{}':;',　\\[\\]<>/? \\.；：%……+￥（）【】‘”“'。，、？ ！-]");
+	return this.optional(element)||!pattern.test(value) ; 
+}
+});
+$("#maintainForm").formValidate({
+	promptPosition: "bottomLeft",
+	submitHandler: function(form) {
+     $(form).ajaxSubmit({
+         success: function(data){
+	        	 if(data!=null){
+                	 $.messageBox({
+						message:data,
+						level: "error"
+					 });
+                 	return;
+                 }
+	        	 <c:if test='${mode=="add"}'>
+				    $.messageBox({message:"成功保存信息!"});
+			     </c:if>
+			     <c:if test='${mode=="edit"}'>
+				    $.messageBox({message:"成功保存修改信息!"});
+			     </c:if>
+			     $("#villageConstructionDialog").dialog("close");
+			     $("#villageConstructionList").trigger("reloadGrid");
+  	   },
+  	   error: function(XMLHttpRequest, textStatus, errorThrown){
+  	      alert("提交错误");
+  	   }
+  	  });
+},
+	rules:{
+		"villageConstruction.involveNumber":{
+			required:true
+		},
+		"villageConstruction.startDate":{
+			required:true
+		}
+
+	},
+	messages:{
+		"villageConstruction.involveNumber":{
+			required:"涉及户数必须填写"
+		},
+		"villageConstruction.startDate":{
+			required:"开工时间必须填写"
+		}
+	}
+});
+</script>

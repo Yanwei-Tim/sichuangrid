@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="issueStat">
+
+	<typeAlias alias="IssueDealStat" type="com.tianque.domain.IssueDealStat" />
+	<typeAlias alias="MonthDealingHistoryRecord" type="com.tianque.domain.IssueMonthEndDealingHistory" />
+
+	<parameterMap id="issueDealStatParams" class="IssueDealStat">
+		<parameter property="id"/>
+		<parameter property="org"/>
+		<parameter property="orgInternalCode"/>
+		<parameter property="orgLevel"/>
+		<parameter property="orgType"/>
+		<parameter property="year"/>
+		<parameter property="month"/>
+		<parameter property="statStartTime"/>
+		<parameter property="statEndTime"/>
+		<parameter property="monthAddCount"/>
+		<parameter property="yearAddCount"/>
+		<parameter property="totalAddCount"/>
+		<parameter property="monthNomalDealingCount"/>
+		<parameter property="monthOvertimeDealingCount"/>
+		<parameter property="monthNomalCompletedCount"/>
+		<parameter property="monthOvertimeCompletedCount"/>
+		<parameter property="yearCompletedCount"/>
+		<parameter property="totalCompletedCount"/>
+		<parameter property="monthComplededAddCount"/>
+		<parameter property="yearComplededAddCount"/>
+		<parameter property="totalComplededAddCount"/>
+		<parameter property="createDate" />
+		<parameter property="createUser" />
+		<parameter property="updateDate" />
+		<parameter property="updateUser" />
+	</parameterMap>
+
+	<parameterMap id="monthDealingHistoryRecordParams" class="MonthDealingHistoryRecord">
+		<parameter property="id"/>
+		<parameter property="org"/>
+		<parameter property="orgInternalCode"/>
+		<parameter property="orgLevel"/>
+		<parameter property="orgType"/>
+		<parameter property="year"/>
+		<parameter property="month"/>
+		<parameter property="overtimeStartTime"/>
+		<parameter property="overtimeEndTime"/>
+		<parameter property="issueSerialNumber"/>
+		<parameter property="issueId"/>
+		<parameter property="issueLogId"/>
+		<parameter property="issueOperationDescription"/>
+		<parameter property="createDate" />
+		<parameter property="createUser" />
+		<parameter property="updateDate" />
+		<parameter property="updateUser" />
+	</parameterMap>
+
+	<resultMap id="sumedIssueDealStatResult" class="IssueDealStat">
+		<result property="monthAddCount" column="monthAddCount" nullValue="0"/>
+		<result property="yearAddCount" column="yearAddCount" nullValue="0" />
+		<result property="totalAddCount" column="totalAddCount" nullValue="0"/>
+		<result property="monthNomalDealingCount" column="monthNomalDealingCount" nullValue="0"/>
+		<result property="monthOvertimeDealingCount" column="monthOvertimeDealingCount" nullValue="0"/>
+		<result property="monthNomalCompletedCount" column="monthNomalCompletedCount" nullValue="0"/>
+		<result property="monthOvertimeCompletedCount" column="monthOvertimeCompletedCount" nullValue="0"/>
+		<result property="yearCompletedCount" column="yearCompletedCount" nullValue="0"/>
+		<result property="totalCompletedCount" column="totalCompletedCount" nullValue="0"/>
+		<result property="monthComplededAddCount" column="monthComplededAddCount" nullValue="0"/>
+		<result property="yearComplededAddCount" column="yearComplededAddCount" nullValue="0"/>
+		<result property="totalComplededAddCount" column="totalComplededAddCount" nullValue="0"/>
+	</resultMap>
+
+
+	<resultMap id="issueDealStatResult" class="IssueDealStat">
+		<result property="id" column="id" />
+		<result property="org.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="orgLevel.id" column="orgLevelId" />
+		<result property="orgType.id" column="orgTypeId" />
+		<result property="year" column="statyear" />
+		<result property="month" column="statmonth" />
+		<result property="statStartTime" column="statStartTime" />
+		<result property="statEndTime" column="statEndTime" />
+		<result property="monthAddCount" column="monthAddCount" />
+		<result property="yearAddCount" column="yearAddCount" />
+		<result property="totalAddCount" column="totalAddCount" />
+		<result property="monthNomalDealingCount" column="monthNomalDealingCount" />
+		<result property="monthOvertimeDealingCount" column="monthOvertimeDealingCount" />
+		<result property="monthNomalCompletedCount" column="monthNomalCompletedCount" />
+		<result property="monthOvertimeCompletedCount" column="monthOvertimeCompletedCount" />
+		<result property="yearCompletedCount" column="yearCompletedCount" />
+		<result property="totalCompletedCount" column="totalCompletedCount"/>
+		<result property="monthComplededAddCount" column="monthComplededAddCount" />
+		<result property="yearComplededAddCount" column="yearComplededAddCount" />
+		<result property="totalComplededAddCount" column="totalComplededAddCount"/>
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+
+	<resultMap id="monthDealingHistoryRecordResult" class="MonthDealingHistoryRecord">
+		<result property="id" column="id" />
+		<result property="org.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="orgLevel.id" column="orgLevelId" />
+		<result property="orgType.id" column="orgTypeId" />
+		<result property="year" column="statyear" />
+		<result property="month" column="statmonth" />
+		<result property="overtimeStartTime" column="overtimeStartTime" />
+		<result property="overtimeEndTime" column="overtimeEndTime" />
+		<result property="issueSerialNumber" column="issueSerialNumber" />
+		<result property="issueId" column="issueId" />
+		<result property="issueLogId" column="issueLogId" />
+		<result property="issueOperationDescription" column="issueOperationDescription" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+
+	<insert id="addMonthDealingLogRecord" parameterClass="MonthDealingHistoryRecord">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_issueDealingHestories.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO issueMonthEndDealingHistories
+		(id,orgId,orgInternalCode,orgLevelId,orgTypeId,statyear,statmonth,overtimeStartTime,overtimeEndTime,issueId,issueLogId
+		,issueSerialNumber,issueOperationDescription,	createDate,createUser)
+		VALUES(#id#,#org.id#,#orgInternalCode#,#orgLevel.id#,#orgType.id#,#year#,#month#,#overtimeStartTime#,#overtimeEndTime#,#issueId#
+		,#issueLogId#,#issueSerialNumber#,#issueOperationDescription#,#createDate#,#createUser#)
+	</insert>
+
+	<select id="getMonthDealingLogRecordById" parameterClass="java.lang.Long" resultMap="monthDealingHistoryRecordResult">
+		<![CDATA[select * from issueMonthEndDealingHistories where id=#value#]]>
+	</select>
+
+	<delete id="deleteMonthDealingLogRecordByOrgInternalCodeMonthStartDate" parameterClass="map">
+		<![CDATA[delete from issueMonthEndDealingHistories where orgInternalCode like #orgInternalCode#||'%' and overtimeStartTime=#statStartTime#]]>
+	</delete>
+
+	<select id="findMonthDealingLogRecordsByOrgInternalCodeMonthStartDate" parameterClass="map" resultMap="monthDealingHistoryRecordResult">
+		<![CDATA[select * from issueMonthEndDealingHistories where orgInternalCode like #orgInternalCode#||'%' and overtimeStartTime = #statStartTime#]]>
+	</select>
+
+	<insert id="addIssueDealStat" parameterClass="IssueDealStat">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_issueDealStats.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO issueDealStats
+		(id,orgId,orgInternalCode,orgLevelId,orgTypeId,statyear,statmonth,statStartTime,statEndTime,monthAddCount,yearAddCount,totalAddCount
+		,monthNomalDealingCount	,monthOvertimeDealingCount,monthNomalCompletedCount,monthOvertimeCompletedCount,
+		yearCompletedCount,totalCompletedCount,monthComplededAddCount,yearComplededAddCount,totalComplededAddCount,createDate,createUser)
+		VALUES(#id#,#org.id#,#orgInternalCode#,#orgLevel.id#,#orgType.id#,#year#,#month#,#statStartTime#,#statEndTime#,#monthAddCount#,#yearAddCount#,#totalAddCount#,
+		#monthNomalDealingCount#,#monthOvertimeDealingCount#,#monthNomalCompletedCount#,#monthOvertimeCompletedCount#,#yearCompletedCount#,$totalCompletedCount$,
+		#monthComplededAddCount#,#yearComplededAddCount#,#totalComplededAddCount#,#createDate#,#createUser#)
+	</insert>
+
+	<select id="getIssueDealStatById" parameterClass="java.lang.Long" resultMap="issueDealStatResult">
+		<![CDATA[select * from issueDealStats where id=#value#]]>
+	</select>
+
+	<select id="findIssueDealStatsByOrgInternalCodeMonthStartDate" parameterClass="map" resultMap="issueDealStatResult">
+		<![CDATA[select * from issueDealStats where orgInternalCode like #orgInternalCode#||'%' and statStartTime = #statStartTime#]]>
+	</select>
+
+	<select id="getIssueDealStatsByOrgIdAndStatDate" parameterClass="map" resultMap="issueDealStatResult">
+		<![CDATA[select * from issueDealStats where orgid =$orgId$ and statStartTime = #statStartTime#]]>
+	</select>
+
+	<select id="sumIssueDealStatsByOrgInternalCodeAndStatDateAndOrgType" parameterClass="map" resultMap="sumedIssueDealStatResult">
+		<![CDATA[select sum(monthAddCount) monthAddCount,sum(yearAddCount) yearAddCount, sum(totalAddCount) totalAddCount,sum(monthNomalDealingCount) monthNomalDealingCount
+		,sum(monthOvertimeDealingCount) monthOvertimeDealingCount,sum(monthNomalCompletedCount) monthNomalCompletedCount,sum(monthOvertimeCompletedCount) monthOvertimeCompletedCount
+		,sum(yearCompletedCount) yearCompletedCount,sum(totalCompletedCount) totalCompletedCount,sum(monthComplededAddCount) monthComplededAddCount
+		,sum(yearComplededAddCount) yearComplededAddCount,sum(totalComplededAddCount) totalComplededAddCount from issueDealStats where orgInternalCode like #orgInternalCode#||'%'and orgTypeId=$orgTypeid$ and statStartTime = #statStartTime# ]]>
+	</select>
+
+	<delete id="deleteIssueDealStatsByOrgInternalCodeMonthStartDate" parameterClass="map">
+		<![CDATA[delete from issueDealStats where orgInternalCode like #orgInternalCode#||'%' and statStartTime=#statStartTime#]]>
+	</delete>
+
+	<delete id="deleteIssueDealStatsById" parameterClass="long">
+		<![CDATA[delete from issueDealStats where id=$value$]]>
+	</delete>
+	<delete id="deleteIssueDealStatsByOrgId" parameterClass="long">
+		<![CDATA[delete from issueDealStats where orgId=$value$]]>
+	</delete>
+	<select id="findIssueDealStatsByOrgId" parameterClass="long" resultMap="issueDealStatResult">
+		<![CDATA[select * from issueDealStats where orgid =$value$]]>
+	</select>
+
+	<update id="transferIssueDealStatToTargetOrg" parameterClass="java.util.Map">
+		update issueDealStats set orgid=$target$,orgInternalCode=#orgCode#
+		where orgid=$source$
+	</update>
+
+	<update id="updateIssueDealStats" parameterClass="IssueDealStat">
+		update issueDealStats set
+		orgid=$org.id$,
+		orgInternalCode=#orgInternalCode#,
+		orgLevelId=$orgLevel.id$,
+		orgTypeId=$orgType.id$,
+		monthAddCount=$monthAddCount$,
+		yearAddCount=$yearAddCount$,
+		totalAddCount=$totalAddCount$,
+		monthNomalDealingCount=$monthNomalDealingCount$,
+		monthOvertimeDealingCount=$monthOvertimeDealingCount$,
+		monthNomalCompletedCount=$monthNomalCompletedCount$,
+		monthOvertimeCompletedCount=$monthOvertimeCompletedCount$,
+		yearCompletedCount=$yearCompletedCount$,
+		totalCompletedCount=$totalCompletedCount$,
+		monthComplededAddCount=$monthComplededAddCount$,
+		yearComplededAddCount=$yearComplededAddCount$,
+		totalComplededAddCount=$totalComplededAddCount$
+		where id=$id$
+	</update>
+
+	<update id="updateIssueMonthEndHistoryToTarget" parameterClass="map">
+		update issueMonthEndDealingHistories set orgid=$target$,orgInternalCode=#orgCode#
+		where orgid=$source$
+	</update>
+
+</sqlMap>

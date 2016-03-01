@@ -1,0 +1,238 @@
+package com.tianque.mobile.task.impl;
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.property.OrganizationLevel;
+import com.tianque.domain.property.OrganizationType;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.mobile.base.BaseMobileAction;
+import com.tianque.mobile.task.MentalPatientTaskMobileAdapter;
+import com.tianque.plugin.taskList.constants.Constants;
+import com.tianque.plugin.taskList.controller.MentalPatientTaskController;
+import com.tianque.plugin.taskList.domain.MentalPatientTask;
+import com.tianque.plugin.taskList.service.MentalPatientTaskService;
+import com.tianque.sysadmin.service.PropertyDictService;
+
+@Scope("request")
+@Controller("mentalPatientTaskMobileAdapter")
+@Namespace("/baseinfo/mentalPatientTaskMobileManage")
+public class MentalPatientTaskMobileAdapterImpl extends BaseMobileAction implements
+		MentalPatientTaskMobileAdapter {
+
+	private Long orgId;
+	private MentalPatientTask mentalPatientTask;
+	private Long mentalPatientTaskId;
+	@Autowired
+	private MentalPatientTaskController mentalPatientTaskController;
+	@Autowired
+	private MentalPatientTaskService mentalPatientTaskService;
+	private String ids;
+	private Long id;
+	private String flag;
+	@Autowired
+	private PropertyDictService propertyDictService;
+	/** 附件名 **/
+	/* 一个参数  */
+	private String[] attachFiles;
+	/* 多个参数  */
+	private String[] attachFile;
+
+	/** 获取列表 */
+	@Action(value = "getMentalPatientTaskList", results = {
+			@Result(type = "json", name = "success", params = { "root", "gridPage",
+					"ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	@Override
+	public String getMentalPatientList() throws Exception {
+		mentalPatientTaskController.setOrgId(orgId);
+		mentalPatientTaskController.setMentalPatientTask(mentalPatientTask);
+		mentalPatientTaskController.getMentalPatientTaskList();
+		gridPage = mentalPatientTaskController.getGridPage();
+		return SUCCESS;
+	}
+
+	/**
+	 * 新增精神病人员任务走访记录
+	 */
+	@Action(value = "addMentalPatientTask", results = {
+			@Result(type = "json", name = "success", params = { "root", "true", "ignoreHierarchy",
+					"false" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	@Override
+	public String addMentalPatientTask() throws Exception {
+		fillAttachFileNames(mentalPatientTask);
+		mentalPatientTaskController.setMentalPatientTask(mentalPatientTask);
+		mentalPatientTaskController.addMentalPatientTask();
+		return SUCCESS;
+	}
+
+	/**
+	 * 修改精神病人员任务走访记录
+	 */
+	@Action(value = "updateMentalPatientTask", results = { @Result(type = "json", name = "success", params = {
+			"root", "true", "ignoreHierarchy", "false" }) })
+	@Override
+	public String updateMentalPatientTask() throws Exception {
+		fillAttachFileNames(mentalPatientTask);
+		mentalPatientTaskController.setMentalPatientTask(mentalPatientTask);
+		mentalPatientTaskController.updateMentalPatientTask();
+		return SUCCESS;
+	}
+
+	@Action(value = "getMentalPatientTaskIsSign", results = { @Result(type = "json", name = "success", params = {
+			"root", "flag", "ignoreHierarchy", "false" }) })
+	@Override
+	public String getMentalPatientTaskIsSign() throws Exception {
+		Organization currentUserOrg = ThreadVariable.getUser().getOrganization();
+		//获取职能部门
+		PropertyDict orgTypeDict = propertyDictService
+				.findPropertyDictByDomainNameAndDictDisplayName(PropertyTypes.ORGANIZATION_TYPE,
+						OrganizationType.FUNCTION_KEY);
+		if (!currentUserOrg.getOrgType().getId().equals(orgTypeDict.getId())) {
+			flag = Constants.ISADMINSTRATOR;
+			return SUCCESS;
+		} else {
+
+			//获取职能部门类型（公安部门）
+			PropertyDict policeOrgTypeDict = propertyDictService
+					.findPropertyDictByDomainNameAndDictDisplayName(
+							PropertyTypes.FUNCTIONAL_ORG_TYPE, Constants.POLICE_DEPARTMENT);
+			//获取职能部门类型（卫生部门）
+			PropertyDict justiceOrgTypeDict = propertyDictService
+					.findPropertyDictByDomainNameAndDictDisplayName(
+							PropertyTypes.FUNCTIONAL_ORG_TYPE, Constants.HEALTH_DEPARTMENT);
+			//获取组织结构层级（乡镇，县区）
+			PropertyDict orgLevelDict = propertyDictService
+					.findPropertyDictByDomainNameAndDictDisplayName(
+							PropertyTypes.ORGANIZATION_LEVEL, OrganizationLevel.TOWN_KEY);
+			if (currentUserOrg.getOrgType().getId().equals(orgTypeDict.getId())
+					&& currentUserOrg.getOrgLevel().getId().equals(orgLevelDict.getId())
+					&& currentUserOrg.getFunctionalOrgType().getId()
+							.equals(policeOrgTypeDict.getId())) {
+				flag = Constants.POLICE;
+			} else if (currentUserOrg.getOrgType().getId().equals(orgTypeDict.getId())
+					&& currentUserOrg.getOrgLevel().getId().equals(orgLevelDict.getId())
+					&& currentUserOrg.getFunctionalOrgType().getId()
+							.equals(justiceOrgTypeDict.getId())) {
+				flag = Constants.JUSTICE;
+			}
+			return SUCCESS;
+		}
+
+	}
+
+	/**
+	 * 删除精神病人员任务走访记录
+	 */
+	@Action(value = "deleteMentalPatientTask", results = { @Result(type = "json", name = "success", params = {
+			"root", "true", "ignoreHierarchy", "false" }) })
+	@Override
+	public String deleteMentalPatientTask() throws Exception {
+		mentalPatientTaskController.setIds(ids);
+		mentalPatientTaskController.deleteMentalPatientTask();
+		return SUCCESS;
+	}
+
+	/**
+	 * 查看精神病人员任务走访记录
+	 */
+	@Action(value = "viewMentalPatientTask", results = { @Result(type = "json", name = "success", params = {
+			"root", "mentalPatientTask", "ignoreHierarchy", "false" }) })
+	@Override
+	public String viewMentalPatientTask() throws Exception {
+		mentalPatientTaskController.setId(id);
+		mentalPatientTaskController.viewMentalPatientTask();
+		mentalPatientTask = mentalPatientTaskController.getMentalPatientTask();
+		return SUCCESS;
+	}
+
+	private void fillAttachFileNames(MentalPatientTask mentalPatientTask) {
+		String[] attachFileNames = new String[] {};
+		if (attachFiles != null && attachFiles.length != 0) {
+			attachFiles[0] = "," + attachFiles[0];
+			attachFileNames = attachFiles;
+		}
+		// 多个参数
+		if (attachFile != null && attachFile.length != 0) {
+			String[] strTmp = attachFile[0].split(",");
+			for (int i = 0; i < strTmp.length; i++) {
+				strTmp[i] = "," + strTmp[i];
+			}
+			attachFileNames = strTmp;
+		}
+		mentalPatientTask.setAttachFileNames(attachFileNames);
+	}
+
+	public MentalPatientTask getMentalPatientTask() {
+		return mentalPatientTask;
+	}
+
+	public void setMentalPatientTask(MentalPatientTask mentalPatientTask) {
+		this.mentalPatientTask = mentalPatientTask;
+	}
+
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+	public Long getMentalPatientTaskId() {
+		return mentalPatientTaskId;
+	}
+
+	public void setMentalPatientTaskId(Long mentalPatientTaskId) {
+		this.mentalPatientTaskId = mentalPatientTaskId;
+	}
+
+	public String getIds() {
+		return ids;
+	}
+
+	public void setIds(String ids) {
+		this.ids = ids;
+	}
+
+	public String getFlag() {
+		return flag;
+	}
+
+	public void setFlag(String flag) {
+		this.flag = flag;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String[] getAttachFiles() {
+		return attachFiles;
+	}
+
+	public void setAttachFiles(String[] attachFiles) {
+		this.attachFiles = attachFiles;
+	}
+
+	public String[] getAttachFile() {
+		return attachFile;
+	}
+
+	public void setAttachFile(String[] attachFile) {
+		this.attachFile = attachFile;
+	}
+
+}

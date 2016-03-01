@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="parameterConfig">
+
+	<typeAlias alias="ParameterConfig" type="com.tianque.xichang.working.parameterEvaluation.deductionStandard.domain.ParameterConfig" />
+
+	<resultMap id="parameterConfigResult" class="ParameterConfig">
+		<result property="id" column="id" />
+		<result property="handleScore" column="handleScore" />
+		<result property="transferredScore" column="transferredScore" />
+		<result property="circulationScore" column="circulationScore" />
+	</resultMap>
+	
+	
+	<insert id="addParameterConfig" parameterClass="ParameterConfig">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_parameterConfig.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO 
+		parameterConfig(id,handleScore,transferredScore,circulationScore) 
+		VALUES(#id#,#handleScore#,#transferredScore#,#circulationScore#) 
+	</insert>
+	
+	<select id="getParameterConfig" resultMap="parameterConfigResult">
+		select * from parameterConfig 
+	</select>
+	
+	<delete id="deleteParameterConfig">
+		delete from parameterConfig
+	</delete>
+	
+</sqlMap>

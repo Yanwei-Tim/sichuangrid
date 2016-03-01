@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="serviceTeamHasObjects">
+	<typeAlias alias="serviceTeamMemberVo" type="com.tianque.plugin.serviceTeam.serviceTeamMember.vo.ServiceTeamMemberVo"/>
+	<typeAlias alias="ServiceTeamHasObjects" type="com.tianque.plugin.serviceTeam.serviceTeamHasObjects.domain.ServiceTeamHasObjects"/>
+	<typeAlias alias="serviceTeamVo" type="com.tianque.plugin.serviceTeam.serviceTeamManage.vo.ServiceTeamVo"/>
+	<resultMap class="java.util.HashMap" id="serviceObjectInServiceTeam">
+		<result property="count" column="count" javaType="java.lang.Integer" />
+		<result property="objectType" column="objectType" javaType="java.lang.String"/>
+	</resultMap>
+	
+	<resultMap class="ServiceTeamHasObjects" id="serviceTeamHasObjectsResult">
+		<result property="id" column="id" />
+		<result property="teamId" column="teamId" />
+		<result property="memberId" column="memberId" />
+		<result property="objectType" column="objectType" />
+		<result property="objectId" column="objectId" />
+		<result property="objectLogout" column="objectLogout" />
+		<result property="onDuty" column="onDuty" />
+	</resultMap>
+	
+	<select id="countServiceObjectsForTeam" parameterClass="java.lang.Long" resultMap="serviceObjectInServiceTeam" >
+		select count(distinct OBJECTID) as count,objectType  
+		from serviceteamhasobject
+		where teamid=#value# and onDuty=1 and objectLogOut=1 group by objectType
+	</select>
+	
+	<select id="findServiceObjectInServiceTeam" parameterClass="serviceTeamMemberVo" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		from serviceteamhasobject
+		where teamid=#teamId# and memberid=#memberId# and onDuty=1 and objectLogOut=1
+	</select>
+	
+	<delete id="deleteServiceTeamHasObjects"  parameterClass="ServiceTeamHasObjects">
+		delete from serviceteamhasobject where memberId = #memberId#
+		<isNotEmpty prepend="and" property="teamId">
+			teamId=#teamId#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="objectId">
+			objectId=#objectId#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="objectType">
+			objectType=#objectType#
+		</isNotEmpty>
+	</delete>
+	
+	<delete id="deleteServiceTeamWithObjects" parameterClass="ServiceTeamHasObjects">
+    	delete from serviceteamhasobject where objectId=#objectId# and objectType=#objectType#
+    </delete>
+	
+	<insert id="addObjectAndTeamRelation" parameterClass="ServiceTeamHasObjects">
+	<selectKey resultClass="java.lang.Long" keyProperty="id">
+    	<![CDATA[ SELECT s_serviceTeamHasObject.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+	<![CDATA[
+		insert into serviceTeamHasObject (id,teamId, objectType,objectId,memberId)
+		VALUES (#id#,#teamId#, #objectType#,#objectId#,#memberId#) 
+	]]>
+	</insert>
+	
+	<update id="updateServiceTeamHasObjects" parameterClass="ServiceTeamHasObjects">
+		update serviceTeamHasObject set onDuty = #onDuty# where teamId =#teamId# 
+		and memberId = #memberId# 
+		<isNotEmpty prepend="and" property="objectId">
+			objectId=#objectId#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="objectType">
+			objectType=#objectType#
+		</isNotEmpty>
+	</update>
+	
+	<update id="updateServiceTeamWithObjects" parameterClass="ServiceTeamHasObjects">
+		update serviceTeamHasObject set objectLogout = #objectLogout# where objectId=#objectId# and objectType=#objectType#
+	</update>
+	
+	<select id="countAllServiceTeamObjects" parameterClass="serviceTeamVo" resultClass="java.lang.Integer">
+		select count(*) from   (select count(*),objecttype,objectid from serviceTeamHasObject 
+		where onDuty=1 
+		and objectLogOut=1  
+		and teamId in (select id from serviceTeams where orgCode like #org.orgInternalCode#||'%' and logOut=0 ) 
+		group by objectType,objectId)
+	</select>
+	
+	<update id="updateServiceTeamHasObjectForMove" parameterClass="java.util.Map">
+		update serviceteamhasobject set objectId=#newObjectId# where objectType=#objectType# and objectId=#oldObjectId#
+	</update>
+	<update id="updateServiceMemberHasObjectForMove" parameterClass="java.util.Map">
+		update servicememberhasobject set objectId=#newObjectId# where objectType=#objectType# and objectId=#oldObjectId#
+	</update>
+	
+	<update id="updateServiceTeamHasObjectForMovePosAndRec" parameterClass="java.util.Map">
+		update serviceteamhasobject set objectId=#newObjectId#,objectType=#newObjectType# where objectType=#objectType# and objectId=#oldObjectId#
+	</update>
+	<update id="updateServiceMemberHasObjectForMovePosAndRec" parameterClass="java.util.Map">
+		update servicememberhasobject set objectId=#newObjectId#,objectType=#newObjectType# where objectType=#objectType# and objectId=#oldObjectId#
+	</update>
+	
+	<!--迁移合并方法-->
+	<select id="queryServiceTeamHasObjectsForList" parameterClass="java.util.Map" resultMap="serviceTeamHasObjectsResult">
+		select * from  serviceTeamHasObject t1
+		where  t1.objectid = #oldObjectid#
+		and exists (select 1
+      	from serviceTeamHasObject t2
+    	where t2.objecttype=t1.objecttype and t1.teamid = t2.teamid and t1.memberid = t2.memberid 
+    	and t2.objectid = #newObjectid#) 
+        and t1.objecttype=#oldObjecttype#
+	</select>
+	
+</sqlMap>

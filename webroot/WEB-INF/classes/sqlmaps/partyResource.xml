@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<sqlMap namespace="partyresource">	
+	
+	<typeAlias alias="Partyresource" type="com.tianque.partyBuilding.organizations.domain.Partyresource"/>
+	<typeAlias alias="SearchPartyresourceVo" type="com.tianque.partyBuilding.organizations.domain.vo.SearchPartyresourceVo" />
+	
+	<resultMap id="partyresourceResult" class="Partyresource">
+		<result property="id" column="ID"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="telephone" column="TELEPHONE"/>
+		<result property="organization.id" column="ORGID"/>
+		<result property="organization.orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="manager" column="MANAGER"/>
+		<result property="name" column="NAME"/>
+		<result property="address" column="ADDRESS"/>
+		<result property="remark" column="REMARK"/>
+	</resultMap>
+	
+
+
+	<select id="getPartyresourceById" parameterClass="java.lang.Long" resultMap="partyresourceResult">
+		select * from PARTYRESOURCE where id=#value#
+	</select>
+	
+	<insert id="addPartyresource" parameterClass="Partyresource">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_PARTYRESOURCE.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into PARTYRESOURCE (ID , CREATEDATE , UPDATEDATE , TELEPHONE , ORGID , ORGINTERNALCODE , CREATEUSER , UPDATEUSER , MANAGER , NAME , ADDRESS , REMARK ) 
+		values(#id#, #createDate#, #updateDate#, #telephone#, #organization.id#, #organization.orgInternalCode#, #createUser#, #updateUser#, #manager#, #name#, #address#, #remark#)	
+	</insert>
+	
+	<update id="updatePartyresource" parameterClass="Partyresource">
+		update PARTYRESOURCE set id = #id# 
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="telephone">
+					TELEPHONE = #telephone#
+				</isNotNull>
+				<isNotNull prepend="," property="organization.id">
+					ORGID = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="organization.orgInternalCode">
+					ORGINTERNALCODE = #organization.orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="manager">
+					MANAGER = #manager#
+				</isNotNull>
+				<isNotNull prepend="," property="name">
+					NAME = #name#
+				</isNotNull>
+				<isNotNull prepend="," property="address">
+					ADDRESS = #address#
+				</isNotNull>
+				<isNotNull prepend="," property="remark">
+					REMARK = #remark#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deletePartyresourceById" parameterClass="java.lang.Long">	
+		delete  from PARTYRESOURCE where id = #value#	
+	</delete>
+	
+	<sql id="findPartyresourcesBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="organization.id">
+				<isNotNull property="organization.id" prepend=" and ">
+					orgid=#organization.id#
+				</isNotNull>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="telephone">
+					<isNotEmpty prepend="and" property="telephone">
+						TELEPHONE  like #telephone# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="manager">
+					<isNotEmpty prepend="and" property="manager">
+						MANAGER  like #manager# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="name">
+					<isNotEmpty prepend="and" property="name">
+						NAME  like #name# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="address">
+					<isNotEmpty prepend="and" property="address">
+						ADDRESS  like #address# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="remark">
+					<isNotEmpty prepend="and" property="remark">
+						REMARK  like #remark# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+	<select id="findPartyresourcesBySearchVo" parameterClass="SearchPartyresourceVo" resultMap="partyresourceResult">
+		select * from PARTYRESOURCE
+		<include refid="findPartyresourcesBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countPartyresourcesBySearchVo" parameterClass="SearchPartyresourceVo" resultClass="java.lang.Integer">
+		select count(0) from PARTYRESOURCE
+		<include refid="findPartyresourcesBySearchVo_sql_where" />
+	</select>
+	
+	<select id="getTownAndVillagePartyResourceNum" parameterClass="map" resultClass="java.lang.Integer">
+		select count(0) from PARTYRESOURCE where 1=1
+		<iterate prepend=" and "  property="orgIdsList" conjunction="or" open="(" close=")">
+			orgId in ($orgIdsList[]$)
+		</iterate>
+	</select>
+
+</sqlMap>

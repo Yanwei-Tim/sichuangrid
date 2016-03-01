@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="workDiary">
+	<typeAlias alias="WorkDiary" type="com.tianque.working.domain.WorkDiary"/>
+	<parameterMap class="WorkDiary" id="workDiaryParams">
+		<parameter property="id"/>
+		<parameter property="workTime"/>
+		<parameter property="workPlace"/>
+		<parameter property="organization"/>
+		<parameter property="orgInternalCode"/>
+		<parameter property="diaryType"/>
+		<parameter property="workContent"/>
+		<parameter property="workUserName"/>
+		<parameter property="createUser"/>
+		<parameter property="createDate"/>
+		<parameter property="updateUser"/>
+		<parameter property="updateDate"/>
+	</parameterMap>
+	
+	<resultMap class="WorkDiary" id="workDiaryResult">
+		<result property="id" column="id"/>
+		<result property="objectType" column="objectType"/>
+		<result property="objectId" column="objectId"/>
+		<result property="workTime" column="workTime"/>
+		<result property="workPlace" column="workPlace"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="diaryType.id" column="diaryType"/>
+		<result property="workContent" column="workContent"/>
+		<result property="workUserName" column="workUserName"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+	
+	<insert id="addWorkDiary" parameterClass="WorkDiary">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_workDiarys.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into workDiarys(id, objectType,objectId, workTime, workPlace, orgId, orgInternalCode, diaryType, workContent, workUserName, createUser, createDate, updateUser, updateDate)
+		values(#id#, #objectType#,#objectId#,#workTime#, #workPlace#, #organization.id#, #orgInternalCode#, #diaryType.id#, #workContent#, #workUserName#, #createUser#, #createDate#, #updateUser#, #updateDate#)
+	</insert>
+	
+	<select id="getWorkDiaryById" parameterClass="java.lang.Long" resultMap="workDiaryResult">
+		select * from workDiarys where id = #value#
+	</select>
+		
+	<select id="countWorkDiarysForPageByOrgInternalCode" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from workDiarys where OrgInternalCode like #orgInternalCode#||'%'
+	</select>
+	
+	<select id="findWorkDiarysForPageByOrgInternalCode" parameterClass="java.util.Map" resultMap="workDiaryResult">
+		select * from workDiarys where OrgInternalCode like #orgInternalCode#||'%'
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countWorkDiarysForPageByOrgId" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from workDiarys where orgId = #orgId# 
+	</select>
+	
+	<select id="findWorkDiarysForPageByOrgId" parameterClass="java.util.Map" resultMap="workDiaryResult">
+		select * from workDiarys where orgId = #orgId#
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<update id="updateWorkDiary" parameterClass="WorkDiary">
+		update workDiarys set 
+			<dynamic>
+			<isNotNull property="workTime">
+				workTime = #workTime#, 
+			</isNotNull>
+			<isNotNull property="objectType">
+				objectType = #objectType#, 
+			</isNotNull>
+			<isNotNull property="objectId">
+				objectId = #objectId#, 
+			</isNotNull>
+			<isNotNull property="workPlace">
+				workPlace = #workPlace#, 
+			</isNotNull>
+			<isNotNull property="diaryType">
+				diaryType = #diaryType.id#, 
+			</isNotNull>
+			<isNotNull property="workContent">
+				workContent = #workContent#, 
+			</isNotNull>
+			<isNotNull property="workTime">
+				workUserName = #workUserName#, 
+			</isNotNull>
+			<isNotNull property="updateUser">
+				updateUser = #updateUser#, 
+			</isNotNull>
+			<isNotNull property="updateDate">
+				updateDate = #updateDate#
+			</isNotNull>
+		</dynamic>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteWorkDiaryById" parameterClass="java.lang.Long">
+		delete workDiarys where id = #id#
+	</delete>
+	
+	<delete id="deleteWorkDiaryByIds">
+		delete workDiarys where  
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	
+	<select id="getWorkDiaryByObjectTypeAndObjectId" parameterClass="java.util.Map" resultMap="workDiaryResult">
+		select * from workDiarys where objectType = #objectType# and objectId = #objectId# 
+	</select>
+</sqlMap>

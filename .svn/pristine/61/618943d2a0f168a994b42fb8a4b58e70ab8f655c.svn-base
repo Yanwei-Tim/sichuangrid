@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="keyPersonTwoDimensionMap">
+	<typeAlias alias="keyPersonTwoDimensionMap" type="com.tianque.openLayersMap.domian.vo.KeyPersonInfoVo" />
+	
+	<resultMap id="keyPersonTwoDimensionMapResult" class="keyPersonTwoDimensionMap">
+		<result column="id" property="id" />
+		<result column="name" property="name" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="gender" property="gender.id" />
+		<result column="houseId" property="houseId" />
+		<result column="address" property="address" />
+		<result column="centerLon" property="lon" />
+		<result column="centerLat" property="lat" />
+		<result column="centerLon2" property="lon2" />
+		<result column="centerLat2" property="lat2" />
+	</resultMap>
+	
+	<resultMap id="keyPersonTwoDimensionMapResultHasOrgCode" extends="keyPersonTwoDimensionMapResult" class="keyPersonTwoDimensionMap">
+		<result column="orgInternalCode" property="orgInternalCode" />
+	</resultMap>
+	
+	<resultMap id="keyPersonTwoDimensionMapPeripheryResult" extends="keyPersonTwoDimensionMapResult" class="keyPersonTwoDimensionMap">
+		<result column="distance" property="distance" />
+		<result column="type" property="type" />
+	</resultMap>
+	
+	<resultMap class="keyPersonTwoDimensionMap" id="keyPersonTwoDimensionMapPeripheryResultWithTypeName" extends="keyPersonTwoDimensionMapResult">
+		<result property="genderName" column="genderName"/>
+		<result property="typeName" column="typeName"/>
+	</resultMap>
+	
+	<resultMap id="keyPersonSearchResult" extends="keyPersonTwoDimensionMapResult" class="keyPersonTwoDimensionMap">
+		<result column="typeName" property="typeName" />
+		<result column="type" property="type" />
+	</resultMap>
+	
+	<sql id="sql_screenCoordinateVo">
+		<isNotNull property="searchInfoVo">
+			<isEqual property="searchInfoVo.gisType" compareValue="3D">
+				<isNotEmpty  property="screenCoordinateVo.minLon">
+					<![CDATA[ h.centerlon>#screenCoordinateVo.minLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+					<![CDATA[ h.centerlon<#screenCoordinateVo.maxLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+					<![CDATA[ h.centerlat>#screenCoordinateVo.minLat# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+					<![CDATA[ h.centerlat<#screenCoordinateVo.maxLat# ]]>
+				</isNotEmpty>
+			</isEqual>
+			<isNotEqual  property="searchInfoVo.gisType"  compareValue="3D">
+				<isNotEmpty  property="screenCoordinateVo.minLon">
+					<![CDATA[ h.centerlon2>#screenCoordinateVo.minLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+					<![CDATA[ h.centerlon2<#screenCoordinateVo.maxLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+					<![CDATA[ h.centerlat2>#screenCoordinateVo.minLat# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+					<![CDATA[ h.centerlat2<#screenCoordinateVo.maxLat# ]]>
+				</isNotEmpty>
+			</isNotEqual>
+		</isNotNull>
+	</sql>
+	
+	<sql id="sql_where">
+  		 from  $typeName$ t 
+			 inner join HOUSEHOLDSTAFFS_$shardCode$ p
+			    on t.baseinfoid = p.baseinfoid  and p.logout = 0 and t.orgId = p.orgId
+			  left join baseinfo b on t.baseinfoid = b.id
+			  left join househasactualpopulation t1
+			    on t1.populationid = p.id
+			   and t1.persontype = 'all_actual_population'
+			   and t1.populationtype = 'householdStaff'
+			  left join houseinfo_$shardCode$ h
+			    on h.id = t1.houseid
+			    where  t.isEmphasis=0 
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					t.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isNotNull property="searchValue" prepend=" and ">
+					(b.name like '$searchValue$%' or b.idcardno like '$searchValue$%')
+			</isNotNull>
+			<isNotEmpty property="screenCoordinateVo.minLon">
+				and (
+					<include refid="sql_screenCoordinateVo"/>
+					<isEqual property="isBound" compareValue="false">
+						or (centerLon is null and centerLat is null)
+					</isEqual>
+				) 
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	<sql id="refineSearch_where">
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					t.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isNotNull property="searchValue" prepend=" and ">
+					(b.name like '$searchValue$%' or b.idcardno like '$searchValue$%')
+			</isNotNull>
+			<isNotEmpty property="screenCoordinateVo.minLon">
+				and (
+					<include refid="sql_screenCoordinateVo"/>
+					<isEqual property="isBound" compareValue="false">
+						or (h.centerLon is null and h.centerLat is null)
+					</isEqual>
+				)
+			</isNotEmpty> 
+		</dynamic>
+	</sql>
+	
+	<!-- 重点人员乡镇以下精确搜索条件 -->
+	<sql id="floatingRefineSearch_where">
+		 
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					t.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isNotNull property="searchValue" prepend=" and ">
+					(b.name like '$searchValue$%' or b.idcardno like '$searchValue$%')
+			</isNotNull>
+			<isNotEmpty property="screenCoordinateVo.minLon">
+				and (
+					<include refid="sql_screenCoordinateVo"/>
+					<isEqual property="isBound" compareValue="false">
+						or (h.centerLon is null and h.centerLat is null)
+					</isEqual>
+				)
+			</isNotEmpty> 
+			<isGreaterThan property="pageSize" compareValue="1000" >
+				and h.centerLon is not null and h.centerLat is not null
+			</isGreaterThan>
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_where_HOUSEHOLDSTAFFS">
+			 from  $typeName$ t 
+			 inner join HOUSEHOLDSTAFFS_$shardCode$ p
+			    on t.baseinfoid = p.baseinfoid and t.orgId = p.orgId
+			  left join baseinfo b on t.baseinfoid = b.id
+			  left join househasactualpopulation t1
+			    on t1.populationid = p.id
+			   and t1.persontype = 'all_actual_population'
+			   and t1.populationtype = 'householdStaff'
+			  left join houseinfo_$shardCode$ h
+			    on h.id = t1.houseid
+			     where  t.isEmphasis=0 
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					t.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isNotNull property="searchValue" prepend=" and ">
+					(b.name like '$searchValue$%' or b.idcardno like '$searchValue$%')
+			</isNotNull>
+			<isNotEmpty property="screenCoordinateVo.minLon">
+				and (
+					<include refid="sql_screenCoordinateVo"/>
+				)
+			</isNotEmpty> 
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_where_floatingpopulations">
+  		 from  $typeName$ t 
+			 inner join floatingpopulations p
+			    on t.baseinfoid = p.baseinfoid  and p.logout = 0 and t.orgId = p.orgId
+			  left join baseinfo b on t.baseinfoid = b.id
+			  left join househasactualpopulation t1
+			    on t1.populationid = p.id
+			   and t1.persontype = 'all_actual_population'
+			   and t1.populationtype = 'floatingPopulation'
+			  left join houseinfo_$shardCode$ h
+			    on h.id = t1.houseid
+			     where  t.isEmphasis=0 
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					t.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isNotNull property="searchValue" prepend=" and ">
+					(b.name like '$searchValue$%' or b.idcardno like '$searchValue$%')
+			</isNotNull>
+			<isNotEmpty property="screenCoordinateVo.minLon">
+				and (
+					<include refid="sql_screenCoordinateVo"/>
+				)
+			</isNotEmpty> 
+		</dynamic>
+	</sql>
+	
+	<select id="countTwoDimensionMapInfoByOrgInternalCodeAndTypeName"  resultClass="Integer" parameterClass="java.util.Map">
+		select count(*) from $typeName$ t, HOUSEHOLDSTAFFS_$shardCode$ p, houseInfo_$shardCode$ h ,househasactualpopulation t1
+			where t.isEmphasis=0   and t.baseinfoid = p.baseinfoid and p.id=t1.populationid and t1.houseid=h.id and t1.persontype = 'all_actual_population' and t1.populationtype = 'householdStaff'
+		<dynamic> 
+			<isNotNull prepend=" and " property="orgInternalCode">
+				t.orgInternalCode like '$orgInternalCode$%'
+			</isNotNull>
+		</dynamic>
+	</select>
+	
+	<!--<select id="countBoundedTwoDimensionMapInfoByOrgInternalCodeAndTypeName"  resultClass="Integer" parameterClass="java.util.Map">
+		select count(0) from $typeName$ t, HOUSEHOLDSTAFFS p, houseInfo h ,househasactualpopulation t1 
+			where t.isEmphasis=0    and t.baseinfoid = p.baseinfoid and p.id=t1.populationid and t1.houseid=h.id and t1.persontype = 'all_actual_population' and t1.populationtype = 'householdStaff'
+			  and (h.centerLon is not null and h.centerLat is not null)
+		<dynamic> 
+			<isNotNull prepend=" and " property="orgInternalCode">
+				t.orgInternalCode like '$orgInternalCode$%'
+			</isNotNull>
+		</dynamic>
+	</select>-->
+	
+	<!-- 乡镇以上 搜索查询	-->
+	<select id="statisticTwoDimensionMapInfoByOrgInternalCodeAndScreenCoordinateVoAndTypeNameAndSearchValue" parameterClass="java.util.Map" resultClass="Integer" >
+		select (
+			(select count(0) from $typeName$ t, HOUSEHOLDSTAFFS_$shardCode$ p left join baseinfo b on p.baseinfoid = b.id, houseInfo_$shardCode$ h ,househasactualpopulation t1 
+				where t.isEmphasis=0    and 
+				  t.baseinfoid = p.baseinfoid and p.id=t1.populationid and t1.houseid=h.id and t1.persontype = 'all_actual_population' and t1.populationtype = 'householdStaff'
+				  and (b.name like '$searchValue$%' or b.idcardno like '$searchValue$%') 
+				  and (h.centerLon is not null and h.centerLat is not null)
+			<dynamic> 
+				<isNotNull prepend=" and " property="orgInternalCode">
+					t.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</dynamic>)+
+			(select count(0) from $typeName$ t, FLOATINGPOPULATIONS p left join baseinfo b on p.baseinfoid = b.id, houseInfo_$shardCode$ h ,househasactualpopulation t1 
+				where  t.isEmphasis=0   and
+				  t.baseinfoid = p.baseinfoid and p.id=t1.populationid and t1.houseid=h.id and t1.persontype = 'all_actual_population' and t1.populationtype = 'floatingPopulation'
+				  and (b.name like '$searchValue$%' or b.idcardno like '$searchValue$%') 
+				  and (h.centerLon is not null and h.centerLat is not null)
+			<dynamic> 
+				<isNotNull prepend=" and " property="orgInternalCode">
+					t.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</dynamic>)
+		)as sum from dual 	
+	</select>
+		
+	<!-- 乡镇一下搜索列表	-->
+	<!-- <select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndTypeNameAndSearchValue" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0) 
+		<include refid="sql_where"/>
+	</select>-->
+	
+	<!--<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndTypeNameAndSearchValue" parameterClass="java.util.Map" resultMap="keyPersonTwoDimensionMapResult" >
+		select t.id,b.name,b.idcardNo,b.gender,t1.houseId,centerLon,centerLat ,centerLon2,centerLat2,h.address
+			<include refid="sql_where"/>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+	</select>-->
+	
+	<!-- 乡镇以下 列表查询	-->
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndTypeName" parameterClass="java.util.Map" resultClass="Integer" >
+		select
+			(select count(0) <include refid="sql_where_HOUSEHOLDSTAFFS"/>
+			)+
+			(select count(0) <include refid="sql_where_floatingpopulations"/>
+		) as sum from dual 
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndTypeName" parameterClass="java.util.Map" resultMap="keyPersonTwoDimensionMapPeripheryResultWithTypeName" >
+		<include refid="common.sql_page_start"/>
+			select t.id,b.name,b.idcardNo,b.gender,'' as genderName,t1.houseId,h.centerLon,h.centerLat ,h.centerLon2,h.centerLat2,h.address,
+			'householdStaff' typeName
+				<include refid="sql_where_HOUSEHOLDSTAFFS"/>
+				union all
+			select t.id,b.name,b.idcardNo,b.gender,'' as genderName,t1.houseId,h.centerLon,h.centerLat ,h.centerLon2,h.centerLat2,h.address,
+			'floatingPopulation' typeName
+				<include refid="sql_where_floatingpopulations"/>
+				<dynamic prepend="order by">
+					<isPropertyAvailable property="sortField">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+				</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<!-- 辖区分布列表	-->
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndTypeName" parameterClass="java.util.Map" resultClass="Integer">
+		select(select count(0) 
+			<include refid="sql_where"/>
+			)+(select count (0)
+			<include refid="sql_where_floatingpopulations"/>
+			) as sum from dual
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndTypeName" parameterClass="java.util.Map" resultMap="keyPersonTwoDimensionMapPeripheryResultWithTypeName" >
+		<include refid="common.sql_page_start"/>
+			select t.id,b.name,b.idcardNo,b.gender,t1.houseId,h.centerLon,h.centerLat ,h.centerLon2,h.centerLat2,h.address,'户籍人口' as typeName,'' as genderName
+				<include refid="sql_where"/>
+				union all
+				select t.id,b.name,b.idcardNo,b.gender,t1.houseId,h.centerLon,h.centerLat ,h.centerLon2,h.centerLat2,h.address,'流动人口' as typeName,'' as genderName
+				<include refid="sql_where_floatingpopulations"/>
+				<dynamic prepend="order by">
+					<isPropertyAvailable property="sortField">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+				</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<sql id="periphery_sql_where">
+		from HOUSEHOLDSTAFFS_$shardCode$ p left join baseinfo b on p.baseinfoid = b.id,househasactualpopulation hp,populationtypes pt,(
+			select h.id,centerlon,centerlat ,h.centerLon2,h.centerLat2,h.featureid,h.address
+			<isNotNull property="circumInfoVo">
+				<isNotNull property="circumInfoVo.lon">
+					<isNotNull property="circumInfoVo.lat" prepend=" , ">
+						<isEqual property="circumInfoVo.gisType" compareValue="3D">
+							round(sqrt(power(((#circumInfoVo.lon# - centerLon) * #PI# * #R#
+							* COS(((#circumInfoVo.lat# + centerLat) / 2) * #PI# / 180) / 180),2)
+							+ power(((#circumInfoVo.lat# - centerLat) *#PI# * #R# / 180),2)),2)  
+						</isEqual>
+						<isNotEqual property="circumInfoVo.gisType" compareValue="3D">
+							round(sqrt(power(((#circumInfoVo.lon# - centerLon2) * #PI# * #R#
+							* COS(((#circumInfoVo.lat# + centerLat2) / 2) * #PI# / 180) / 180),2)
+							+ power(((#circumInfoVo.lat# - centerLat2) *#PI# * #R# / 180),2)),2)  
+						</isNotEqual>
+						distance
+					</isNotNull>
+				</isNotNull>
+			</isNotNull>
+			from houseInfo_$shardCode$ h
+		) t where p.id=hp.POPULATIONID and hp.HOUSEID = t.id and pt.actualid=hp.POPULATIONID and  pt.actualtype='householdStaff' 
+		and hp.populationtype = 'householdStaff' and p.logout = 0
+		<isPropertyAvailable property="circumInfoVo">
+			<isNotNull property="circumInfoVo.elements" prepend=" and ">
+				upper(pt.populationtype) in ($circumInfoVo.elements$)
+			</isNotNull>
+		</isPropertyAvailable>
+		<isNotNull property="circumInfoVo">
+			<isNotNull property="circumInfoVo.range" prepend=" and">
+		 		t.distance &lt; #circumInfoVo.range#
+		 	</isNotNull>
+		</isNotNull>
+		<isPropertyAvailable property="circumInfoVo">
+			<isNotNull property="circumInfoVo.queryStr" prepend="and">
+				(b.name like '$circumInfoVo.queryStr$%' or b.idCardNo like '$circumInfoVo.queryStr$%')
+			</isNotNull>
+		</isPropertyAvailable>
+	</sql>
+	
+	<sql id="floating_periphery_sql_where">
+		from FLOATINGPOPULATIONS p left join baseinfo b on p.baseinfoid = b.id,househasactualpopulation hp,populationtypes pt,(
+			select h.id,centerlon,centerlat ,h.centerLon2,h.centerLat2,h.featureid,h.address
+			<isNotNull property="circumInfoVo">
+				<isNotNull property="circumInfoVo.lon">
+					<isNotNull property="circumInfoVo.lat" prepend=" , ">
+						<isEqual property="circumInfoVo.gisType" compareValue="3D">
+							round(sqrt(power(((#circumInfoVo.lon# - centerLon) * #PI# * #R#
+							* COS(((#circumInfoVo.lat# + centerLat) / 2) * #PI# / 180) / 180),2)
+							+ power(((#circumInfoVo.lat# - centerLat) *#PI# * #R# / 180),2)),2)  
+						</isEqual>
+						<isNotEqual property="circumInfoVo.gisType" compareValue="3D">
+							round(sqrt(power(((#circumInfoVo.lon# - centerLon2) * #PI# * #R#
+							* COS(((#circumInfoVo.lat# + centerLat2) / 2) * #PI# / 180) / 180),2)
+							+ power(((#circumInfoVo.lat# - centerLat2) *#PI# * #R# / 180),2)),2)  
+						</isNotEqual>
+						distance
+					</isNotNull>
+				</isNotNull>
+			</isNotNull>
+			from houseInfo_$shardCode$ h
+		) t where p.id=hp.POPULATIONID and hp.HOUSEID = t.id and pt.actualid=hp.POPULATIONID and  pt.actualtype='floatingPopulation'
+		and hp.populationtype = 'floatingPopulation' and p.logout = 0
+		<isPropertyAvailable property="circumInfoVo">
+			<isNotNull property="circumInfoVo.elements" prepend=" and ">
+				upper(pt.populationtype) in ($circumInfoVo.elements$)
+			</isNotNull>
+		</isPropertyAvailable>
+		<isNotNull property="circumInfoVo">
+			<isNotNull property="circumInfoVo.range" prepend=" and">
+				 t.distance &lt; #circumInfoVo.range#
+			</isNotNull>
+		</isNotNull>
+		<isPropertyAvailable property="circumInfoVo">
+			<isNotNull property="circumInfoVo.queryStr" prepend="and">
+				(b.name like '$circumInfoVo.queryStr$%' or b.idCardNo like '$circumInfoVo.queryStr$%')
+			</isNotNull>
+		</isPropertyAvailable>
+	</sql>
+	
+	<select id="findTwoDimensionMapCircumInfoByElementsAndRangeAndCenterLonLat" parameterClass="java.util.Map" resultMap="keyPersonTwoDimensionMapPeripheryResult">
+		<include refid="common.sql_page_start"/>
+			select pt.populationid as id,b.name,b.idCardNo,b.gender,pt.populationtype as type,t.address as address, t.id as houseid,  p.id as HOUSEHOLDSTAFFSId, t.featureid, t.centerlon, t.centerlat ,t.centerLon2,t.centerLat2,t.distance
+			<isNotNull property="centerLon">
+				<isNotNull property="centerLat">	
+					<isNotNull property="range" prepend=" , ">
+					 	round(t.distance,2) distance
+					</isNotNull>
+				</isNotNull>
+			</isNotNull>
+			<include refid="periphery_sql_where" />
+			union
+			select pt.populationid as id,b.name,b.idCardNo,b.gender,pt.populationtype as type,t.address as address, t.id as houseid,  p.id as floatpopulationsId, t.featureid, t.centerlon, t.centerlat ,t.centerLon2,t.centerLat2,t.distance
+			<isNotNull property="centerLon">
+				<isNotNull property="centerLat">	
+					<isNotNull property="range" prepend=" , ">
+					 	round(t.distance,2) distance
+					</isNotNull>
+				</isNotNull>
+			</isNotNull>
+			<include refid="floating_periphery_sql_where" />
+		<include refid="common.sql_page_end"/>
+	</select>
+
+	<select id="countGeneralCategoryTwoDimensionMapInfoByOrgInternalCode" parameterClass="java.lang.String" resultClass="Integer">
+		select count(0) from commonpopulations where type is not null and orgInternalCode like '$orgInternalCode$%'
+	</select>
+	<select id="countTwoDimensionMapCircumInfoByElementsAndRangeAndCenterLonLat" parameterClass="java.util.Map" resultClass="Integer">
+		
+		select( 
+		(select count(*)
+		<include refid="periphery_sql_where" />
+		)+(select count(*)
+		<include refid="floating_periphery_sql_where" />) 
+		)as sum from dual
+	</select>
+	
+	<select id="getViewPopupInfoByIdAndType" parameterClass="java.util.Map" resultMap="keyPersonTwoDimensionMapResultHasOrgCode">
+		select t.id,t.orgInternalCode as orgInternalCode,b.name,b.idcardNo,b.gender,'' as genderName,'householdStaff' as typeName,t1.houseId,h.centerLon,h.centerLat ,h.centerLon2,h.centerLat2,h.address
+			from $tableName$ t, HOUSEHOLDSTAFFS_$shardCode$ p left join baseinfo b on p.baseinfoid = b.id, houseInfo_$shardCode$ h ,househasactualpopulation t1  where t.id=#id# and t.baseinfoid = p.baseinfoid and t.orgid = p.orgid 
+		 and t.isEmphasis=0 and p.id=t1.populationid and t1.houseid=h.id and t1.populationtype='householdStaff'
+	  union
+		 select t.id,t.orgInternalCode as orgInternalCode,b.name,b.idcardNo,b.gender,'' as genderName,'floatingPopulation' as typeName,t1.houseId,h.centerLon,h.centerLat ,h.centerLon2,h.centerLat2,h.address
+		 from $tableName$ t, FLOATINGPOPULATIONS p left join baseinfo b on p.baseinfoid = b.id, houseInfo_$shardCode$ h ,househasactualpopulation t1  where t.id=#id# and t.baseinfoid = p.baseinfoid and t.orgid = p.orgid
+		 and t.isEmphasis=0 and p.id=t1.populationid and t1.houseid=h.id and t1.populationtype='floatingPopulation'
+	</select>
+	
+	<!-- 乡镇以下 列表查询	-->
+	<select id="countPageInfoByOrgInternalCodeAndScreenCoordinateVoAndTypeName" parameterClass="java.util.Map" resultClass="Integer" >
+		select (
+		  <iterate  property="personList" open="(" close=")" conjunction="+">
+			(select count(0) from $personList[].tableName$ t, HOUSEHOLDSTAFFS_$shardCode$ p left join baseinfo b on p.baseinfoid = b.id, houseInfo_$shardCode$ h ,househasactualpopulation t1 
+			where t.isEmphasis=0    and
+			  t.baseinfoid = p.baseinfoid and p.id=t1.populationid and t1.houseid=h.id and t1.persontype = 'all_actual_population' and t1.populationtype = 'householdStaff'
+          	<include refid="refineSearch_where"/>  )      	
+          	+
+			(select count(0) from $personList[].tableName$ t, FLOATINGPOPULATIONS p left join baseinfo b on p.baseinfoid = b.id, houseInfo_$shardCode$ h ,househasactualpopulation t1 
+			where  t.isEmphasis=0   and
+			  t.baseinfoid = p.baseinfoid and p.id=t1.populationid and t1.houseid=h.id and t1.persontype = 'all_actual_population' and t1.populationtype = 'floatingPopulation'
+			<include refid="floatingRefineSearch_where"/>)
+		 </iterate>	  
+	  )as sum  from dual
+	</select>
+	
+	<select id="findPageInfoByOrgInternalCodeAndScreenCoordinateVoAndTypeName" parameterClass="java.util.Map" resultMap="keyPersonSearchResult" >
+		<include refid="common.sql_page_start"/>
+			select * from 
+			<iterate  property="personList" open="("
+	          close=")" conjunction="union" >
+				select t.id,b.name,b.idcardNo,b.gender,t1.houseId,h.centerLon,h.centerLat ,h.centerLon2,h.centerLat2,h.address,'$personList[].name$' typeName,'$personList[].originalTableName$' type
+				from $personList[].tableName$ t, HOUSEHOLDSTAFFS_$shardCode$ p left join baseinfo b on p.baseinfoid = b.id, houseInfo_$shardCode$ h ,househasactualpopulation t1  where t.isEmphasis=0   and t.baseinfoid = p.baseinfoid 
+			    and p.id=t1.populationid and t1.houseid=h.id and t1.populationtype='householdStaff'
+	          	<include refid="refineSearch_where"/>
+	          	union
+				select t.id,b.name,b.idcardNo,b.gender,t1.houseId,h.centerLon,h.centerLat ,h.centerLon2,h.centerLat2,h.address,'$personList[].name$' typeName,'$personList[].originalTableName$' type
+				 from $personList[].tableName$ t, FLOATINGPOPULATIONS p left join baseinfo b on p.baseinfoid = b.id, houseInfo_$shardCode$ h ,househasactualpopulation t1  where t.isEmphasis=0   and  t.baseinfoid = p.baseinfoid 
+				 and p.id=t1.populationid and t1.houseid=h.id and t1.populationtype='floatingPopulation'
+					<include refid="floatingRefineSearch_where"/>
+	        </iterate> 
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+</sqlMap>

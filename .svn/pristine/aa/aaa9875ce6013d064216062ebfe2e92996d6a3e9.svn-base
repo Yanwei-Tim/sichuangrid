@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="builddatasManage" extends="default" namespace="/builddatasManage">
+		<default-class-ref class="builddatasController"></default-class-ref>
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/baseinfo/buildDatas/builddatasMaintainDlg.jsp
+			</result>
+			<result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		    <result name="bind">
+		    	/baseinfo/buildDatas/gis2Dbuilddatas.jsp
+		    </result>
+		</action>
+		<!-- id加密查看 -->
+		<action name="dispatchByEncrypt" method="dispatchByEncrypt">
+			<result name="success">
+				/baseinfo/buildDatas/builddatasMaintainDlg.jsp
+			</result>
+			<result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		
+		<action name="dispatchForGis" method="dispatch">
+			<result name="success">
+				/baseinfo/buildDatas/builddatasMaintainDlg_gis.jsp
+			</result>
+			<result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		<action name="addBuilddatas" method="addBuilddatas">
+		    <result name="success" type="json">
+		        <param name="root">builddatas</param>
+                <param name="ignoreHierarchy">false</param>
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		<action name="updateBuilddatas" method="updateBuilddatas">
+		    <result name="success" type="json">
+		        <param name="root">builddatas</param>
+                <param name="ignoreHierarchy">false</param>
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		<action name="deleteMultiBuilddatas" method="deleteMultiBuilddatas">
+			<result name="success" type="json">
+		        <param name="root">deleteIds</param>
+                <param name="ignoreHierarchy">false</param>
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		<!-- id加密删除 -->
+		<action name="deleteMultiBuilddatasByEncrypt" method="deleteMultiBuilddatasByEncrypt">
+			<result name="success" type="json">
+		        <param name="root">deleteIds</param>
+                <param name="ignoreHierarchy">false</param>
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		<action name="findBuilddatasByOrgInternalCode" method="findBuilddatasByOrgInternalCode">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		<action name="searchBuilddatas" method="searchBuilddatas">
+			<result name ="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		
+		<action name="searchBuilddatasByNameAndAddress" method="searchBuilddatasByNameAndAddress">
+			<result name ="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		
+		<action name="generatedLayout" method="generatedLayout">
+		    <result name="success">
+		        /baseinfo/buildDatas/buildLayout.jsp
+		    </result>
+		    <result name="layout">
+		       /baseinfo/buildDatas/editBuildLayout.jsp
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		
+		<action name="generatedLayoutForGis" method="generatedLayout">
+		    <result name="layout">
+		        /baseinfo/buildDatas/editBuildLayout.jsp
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		
+		<action name="changeLayoutData" method="changeLayoutData">
+		    <result name="success" type="json">
+		        <param name="root">true</param>
+                <param name="ignoreHierarchy">false</param>
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		
+		<action name="addBuildLayout" method="addBuildLayout">
+		    <result name="success" type="json">
+		        <param name="root">true</param>
+                <param name="ignoreHierarchy">false</param>
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+
+		<action name="updateHouseInfo" method="updateHouseInfo">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateHouseInfoByEncrypt" method="updateHouseInfoByEncrypt">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateActualCompanyInfo" method="updateActualCompanyInfo">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="unboundActualCompany" method="unboundActualCompany">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="boundKeyPlace" method="boundKeyPlace">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="unboundKeyPlace" method="unboundKeyPlace">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="getUnBoundedLocationList" method="getUnBoundedLocationList">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="input" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+			<action name="houseInfoListByBuildingId" method="findHouseInfosByBuildingIdForPage">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="findUnitInfosByBuildingIdForPage" method="findUnitInfosByBuildingIdForPage">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="findBoundKeyPlace" method="findBoundKeyPlace">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="findUnboundKeyPlace" method="findUnboundKeyPlace">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="getUnBoundedActualCompanyList" method="getUnBoundedActualCompanyList">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="getBuilddatasByBuildId" method="getBuilddatasByBuildId">
+		    <result name="success" type="json">
+		        <param name="root">builddatas</param>
+                <param name="ignoreHierarchy">false</param>
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		
+		<action name="deleteLayoutAndUpdateBuilddatasByBuildingId" method="deleteLayoutAndUpdateBuilddatasByBuildingId">
+		    <result name="success" type="json">
+		        <param name="root">true</param>
+                <param name="ignoreHierarchy">false</param>
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		
+		<action name="findHouseIdByPersonTypeAndHouseIds" method="findHouseIdByPersonTypeAndHouseIds">
+		    <result name="success" type="json">
+		        <param name="root">houseIds</param>
+                <param name="ignoreHierarchy">false</param>
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		<action name="boundBuilddatas" method="boundBuilding">
+		    <result name="success" type="json">
+		        <param name="root">true</param>
+                <param name="ignoreHierarchy">false</param>
+                <param name="callbackParameter">callback</param>
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		<action name="unboundBuilddatas" method="unboundBuilding">
+		    <result name="success" type="json">
+		        <param name="root">true</param>
+                <param name="ignoreHierarchy">false</param>
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		<action name="findLayoutAllTags" method="findLayoutAllTags">
+			<result name ="success" type="json">
+				<param name="root">layoutTagList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+	</package>
+</struts>

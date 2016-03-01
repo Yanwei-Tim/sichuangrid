@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="issueExtraction">
+
+	<select id="queryCompletedHistoryIssuesIds" resultClass="java.lang.Long">
+		SELECT ISSUEID ID FROM COMPLETEDISSUE WHERE DEALTIME <![CDATA[<= ]]> #endDate# AND MOVEMARK = 0 
+	</select>
+
+	<insert id="migrationIssuesDatas" parameterClass="java.util.ArrayList">
+		INSERT INTO ISSUES_HISTORY SELECT * FROM ISSUES IU WHERE IU.ID IN
+		<iterate open="(" close=")" conjunction=",">
+			#issueIds[]#
+		</iterate>
+	</insert>
+	<insert id="migrationIssueStepsDatas" parameterClass="java.util.ArrayList">
+		INSERT INTO ISSUESTEPS_HISTORY SELECT * FROM ISSUESTEPS STEPS WHERE
+		STEPS.ISSUE IN
+		<iterate open="(" close=")" conjunction=",">
+			#issueIds[]#
+		</iterate>
+	</insert>
+	<insert id="migrationIssueLogsDatas" parameterClass="java.util.ArrayList">
+		INSERT INTO ISSUELOGS_HISTORY SELECT * FROM ISSUELOGS IULOG WHERE
+		IULOG.ISSUEID IN
+		<iterate open="(" close=")" conjunction=",">
+			#issueIds[]#
+		</iterate>
+	</insert>
+	<insert id="migrationIssueStepsGroupDatas" parameterClass="java.util.ArrayList">
+		INSERT INTO ISSUESTEPGROUPS_HISTORY SELECT * FROM ISSUESTEPGROUPS
+		IUGROUP WHERE IUGROUP.ISSUE IN
+		<iterate open="(" close=")" conjunction=",">
+			#issueIds[]#
+		</iterate>
+	</insert>
+	<insert id="migrationCompletedissueDatas" parameterClass="java.util.ArrayList">
+		INSERT INTO COMPLETEDISSUE_HISTORY(
+			PUBLICLTYCASS,ISSUEID,TOPSTATE,DELAYSTATE,SERIALNUMBER,SUBJECT,STATUS,OCCURDATE,CURRENTORG,
+			OCCURORG,CREATEORG,TARGETORG,DEALTIME,SOURCEPERSON,SOURCEKIND,SOURCEMOBILE,URGENT,STEPID,SUPERVISELEVEL,
+			LASTORG,CREATEUSER,DEALSTATE,EVALUATETIME,EVALUATETYPE,EVALUATECONTENT,HOURS,MINUTE,TOPDATE,PORGID,
+			TORGID,CREATEORGINTERNALCODE,CRATEORGFUNCTIONALTYPE,CREATEORGLEVEL,ISSUEKIND,OCCURLOCATION,RELATEPEOPLECOUNT)
+		SELECT 
+			PUBLICLTYCASS,ISSUEID,TOPSTATE,DELAYSTATE,SERIALNUMBER,SUBJECT,STATUS,OCCURDATE,CURRENTORG,
+			OCCURORG,CREATEORG,TARGETORG,DEALTIME,SOURCEPERSON,SOURCEKIND,SOURCEMOBILE,URGENT,STEPID,SUPERVISELEVEL,
+			LASTORG,CREATEUSER,DEALSTATE,EVALUATETIME,EVALUATETYPE,EVALUATECONTENT,HOURS,MINUTE,TOPDATE,PORGID,
+			TORGID,CREATEORGINTERNALCODE,CRATEORGFUNCTIONALTYPE,CREATEORGLEVEL,ISSUEKIND,OCCURLOCATION,RELATEPEOPLECOUNT
+		FROM COMPLETEDISSUE CIU
+		WHERE CIU.ISSUEID IN
+		<iterate open="(" close=")" conjunction=",">
+			#issueIds[]#
+		</iterate>
+		AND CIU.MOVEMARK = 0 
+	</insert>
+
+	<delete id="deleteIssuesDatasByIdList" parameterClass="java.util.ArrayList">
+		DELETE FROM ISSUES IU WHERE IU.ID IN
+		<iterate open="(" close=")" conjunction=",">
+			#issueIds[]#
+		</iterate>
+	</delete>
+	<delete id="deleteIssueStepsDatasByIdList" parameterClass="java.util.ArrayList">
+		DELETE FROM ISSUESTEPS STEPS WHERE STEPS.ISSUE IN
+		<iterate open="(" close=")" conjunction=",">
+			#issueIds[]#
+		</iterate>
+	</delete>
+	<delete id="deleteIssueLogsDatasByIdList" parameterClass="java.util.ArrayList">
+		DELETE FROM ISSUELOGS IULOG WHERE IULOG.ISSUEID IN
+		<iterate open="(" close=")" conjunction=",">
+			#issueIds[]#
+		</iterate>
+	</delete>
+	<delete id="deleteIssueStepsGroupDatasByIdList" parameterClass="java.util.ArrayList">
+		DELETE FROM ISSUESTEPGROUPS IUGROUP WHERE IUGROUP.ISSUE IN
+		<iterate open="(" close=")" conjunction=",">
+			#issueIds[]#
+		</iterate>
+	</delete>
+	<delete id="deleteCompletedissueDatasByIdList" parameterClass="java.util.ArrayList">
+		DELETE FROM COMPLETEDISSUE CIU WHERE CIU.ISSUEID IN
+		<iterate open="(" close=")" conjunction=",">
+			#issueIds[]#
+		</iterate>
+		AND MOVEMARK = 1 
+	</delete>
+
+	<update id="updateMarkCompletedissueDatas" parameterClass="java.util.Map">
+		UPDATE COMPLETEDISSUE CIU SET CIU.MOVEMARK = #moveMark# WHERE
+		CIU.ISSUEID IN
+		<iterate open="(" close=")" conjunction="," property="issueIds">
+			#issueIds[]#
+		</iterate>
+		AND CIU.MOVEMARK = 0 
+	</update>
+
+</sqlMap>

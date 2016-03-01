@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" 
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="estateInformation">
+
+    <typeAlias alias="EstateInformation" type="com.tianque.domain.EstateInformation" />
+    
+    <resultMap id="estateInformationResult" class="EstateInformation">
+        <result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="proprietaryNo" property="proprietaryNo" />
+		<result column="housePropertyPlace" property="housePropertyPlace" />
+		<result column="landPermit" property="landPermit" />
+		<result column="houseEquity" property="houseEquity.id" />
+		<result column="coveredArea" property="coveredArea" />
+		<result column="floorArea" property="floorArea" />
+		<result column="buildingStructure" property="buildingStructure.id" />
+		<result column="structureYear" property="structureYear.id" />
+		<result column="isHasTapWater" property="isHasTapWater" />
+		<result column="isHasNet" property="isHasNet" />
+		<result column="isHasToilet" property="isHasToilet" />
+		<result column="isDangerousBuilding" property="isDangerousBuilding" />
+		<result column="isHire" property="isHire" />
+		<result column="occupiedNo" property="occupiedNo" />
+		<result column="occupiedAddress" property="occupiedAddress" />
+		<result column="createUser" property="createUser" />
+		<result column="updateUser" property="updateUser" />
+		<result column="createDate" property="createDate" />
+		<result column="updateDate" property="updateDate" />
+	</resultMap>
+	
+	<insert id="addEstateInformation" parameterClass="EstateInformation">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_estateInformation.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into estateInformation
+			(id,orgId,orgInternalCode,proprietaryNo,housePropertyPlace,landPermit,houseEquity,
+			 coveredArea,floorArea,buildingStructure,structureYear,isHasTapWater,isHasNet,
+			 isHasToilet,isDangerousBuilding,isHire,occupiedNo,occupiedAddress,createDate,createUser)
+		values 
+			(#id#,#organization.id#,#orgInternalCode#,#proprietaryNo#,#housePropertyPlace#,#landPermit#,#houseEquity.id#,
+			 #coveredArea#,#floorArea#,#buildingStructure.id#,#structureYear.id#,#isHasTapWater#,#isHasNet#,
+			 #isHasToilet#,#isDangerousBuilding#,#isHire#,#occupiedNo#,#occupiedAddress#,#createDate#,#createUser#)
+	</insert>
+	
+	<update id="updateEstateInformation">
+	    update estateInformation set 
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="proprietaryNo">
+				proprietaryNo=#proprietaryNo#
+			</isNotNull>
+			<isNotNull prepend="," property="housePropertyPlace">
+				housePropertyPlace=#housePropertyPlace#
+			</isNotNull>
+			<isNotNull prepend="," property="landPermit">
+				landPermit=#landPermit#
+			</isNotNull>
+			<isNotNull prepend="," property="houseEquity">
+				houseEquity=#houseEquity.id#
+			</isNotNull>
+			<isNotNull prepend="," property="coveredArea">
+				coveredArea=#coveredArea#
+			</isNotNull>
+			<isNotNull prepend="," property="floorArea">
+				floorArea=#floorArea#
+			</isNotNull>
+			<isNotNull prepend="," property="buildingStructure">
+				buildingStructure=#buildingStructure.id#
+			</isNotNull>
+			<isNotNull prepend="," property="structureYear">
+				structureYear=#structureYear.id#
+			</isNotNull>
+			<isNotNull prepend="," property="isHasTapWater">
+				isHasTapWater=#isHasTapWater#
+			</isNotNull>
+			<isNotNull prepend="," property="isHasNet">
+				isHasNet=#isHasNet#
+			</isNotNull>
+			<isNotNull prepend="," property="isHasToilet">
+				isHasToilet=#isHasToilet#
+			</isNotNull>
+			<isNotNull prepend="," property="isDangerousBuilding">
+				isDangerousBuilding=#isDangerousBuilding#
+			</isNotNull>
+			<isNotNull prepend="," property="isHire">
+				isHire=#isHire#
+			</isNotNull>
+			<isNotNull prepend="," property="occupiedNo">
+				occupiedNo=#occupiedNo#
+			</isNotNull>
+			<isNotNull prepend="," property="occupiedAddress">
+				occupiedAddress=#occupiedAddress#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+		 where id=#id#
+		</dynamic>
+	</update>
+	
+	<delete id="deleteEstateInformationById" parameterClass="java.lang.Long">
+		delete from estateInformation where id=#value#
+	</delete>
+	
+	<sql id="sql_where">
+		from estateInformation a 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					a.orgInternalCode like '%$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="getEstateInformationById" parameterClass="java.lang.Long" resultMap="estateInformationResult">
+		select * from estateInformation where id=#value#
+	</select>
+	
+	<select id="countEstateInformation" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />	
+	</select>
+	
+	<select id="findEstateInformations" parameterClass="java.util.Map" resultMap="estateInformationResult">
+		select a.* 
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getExistedProprietaryNoCount" parameterClass="EstateInformation" resultClass="java.lang.Integer">
+		select count(*) from estateInformation
+		       where proprietaryNo=#proprietaryNo#
+	</select>
+	
+	<select id="getExistedLandPermitCount" parameterClass="EstateInformation" resultClass="java.lang.Integer">
+		select count(*) from estateInformation
+		       where landPermit=#landPermit#
+	</select>
+</sqlMap>

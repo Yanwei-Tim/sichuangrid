@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="baseInfoStatType">
+	<typeAlias alias="BaseInfoStatType" type="com.tianque.plugin.analyzing.domain.BaseInfoStatType" />
+	<resultMap class="BaseInfoStatType" id="baseInfoStatTypeResult">
+		<result property="id" column="id"/>
+		<result property="typeName" column="typeName"/>
+		<result property="total" column="total"/>
+		<result property="startDate" column="startDate"/>
+		<result property="endDate" column="endDate"/>
+		<result property="year" column="year"/>
+		<result property="month" column="month"/>
+		<result property="baseinfoType" column="baseinfoType"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="createDate" column="createDate"/>
+		<result property="percentage" column="percentage"/>
+		<result property="sum" column="sum"/>
+		<result property="objectsum" column="objectsum"/>
+		<result property="monthcreate" column="monthcreate"/>
+	</resultMap>
+	<insert id="addBaseInfoStat" parameterClass="BaseInfoStatType">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_baseInfoStatType.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		insert into baseInfoStatType_$year$_$month$   (id,typeName,total,startDate,endDate,year,month,baseinfoType,orgInternalCode,percentage,isHelp,noHelp,recidivism,resited,sum,objectsum,monthcreate)
+		values(#id#,#typeName#,#total#,#startDate#,#endDate#,#year#,#month#,#baseinfoType#,#orgInternalCode#,#percentage#,#isHelp#,#noHelp#,#recidivism#,#resited#,#sum#,#objectsum#,#monthcreate#)
+	</insert>
+
+	<select id="getCountObjectByOrgInternalCodeAndMap" parameterClass="java.util.Map" resultClass="int">
+		select count(1) total from $tableName$ p where  p.isEmphasis =0  and p.orgInternalCode like '$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="positiveInfosType">
+				<isNotNull property="positiveInfosType" prepend=" and ">
+					p.positiveInfoType = #positiveInfosType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="detoxicateCase">
+				<isNotNull property="detoxicateCase" prepend=" and ">
+					p.detoxicateCase = #detoxicateCase#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="executeType">
+				<isNotNull property="executeType" prepend=" and ">
+					p.executeType = #executeType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dangerLevel">
+				<isNotNull property="dangerLevel" prepend=" and ">
+					p.dangerLevel = #dangerLevel#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="poorSource">
+				<isNotNull property="poorSource" prepend=" and ">
+					p.poorSource = #poorSource#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dangerousWorkingType">
+				<isNotNull property="dangerousWorkingType" prepend=" and ">
+					p.dangerousWorkingType = #dangerousWorkingType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="staffType">
+				<isNotNull property="staffType" prepend=" and ">
+					p.staffType = #staffType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="type">
+				<isNotNull property="type" prepend=" and ">
+					p.type = #type#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="hiddenTroubleLevel">
+				<isNotNull property="hiddenTroubleLevel" prepend=" and ">
+					p.hiddenTroubleLevel = #hiddenTroubleLevel#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="keytype">
+				<isNotNull property="keytype" prepend=" and ">
+					p.keytype = #keytype#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isResettlementdate">
+				<isNotNull property="isResettlementdate" prepend=" and ">
+					<isEqual property="isResettlementdate" compareValue="1">
+						p.Resettlementdate is not null
+					</isEqual>
+					<isEqual property="isResettlementdate" compareValue="0">
+						p.Resettlementdate is null
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isHelped">
+				<isNotNull property="isHelped" prepend=" and ">
+					<isEqual property="isHelped" compareValue="1">
+						p.id in (select personId from helpPersonnels where personType = #helpType#)
+					</isEqual>
+					<isEqual property="isHelped" compareValue="0">
+						p.id not in (select personId from helpPersonnels where personType = #helpType#)
+					</isEqual>
+					<isEqual property="isHelped" compareValue="3">
+						p.id in (select placeId from personincharges where placeType = #helpType#)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="recidivism">
+				<isNotNull property="recidivism" prepend=" and ">
+					p.isCrime=#recidivism#
+				</isNotNull>
+			</isPropertyAvailable>
+					<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					p.keyType=#keyType#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findBaeInfo" parameterClass="map" resultClass="java.util.HashMap" remapResults="true">
+    <![CDATA[
+       select sum(b.total) total,sum(b.sum) sum,sum(b.resited) resited,sum(b.recidivism) recidivism,sum(b.ishelp) help,sum(b.nohelp) nothelp,b.typename typeName  from baseInfoStatType_$year$_$month$ b where b.orginternalcode like '$orgInternalCode$%' and b.year =#year# and b.baseinfotype =#baseInfoType# and b.month=#month# group by b.typename
+    ]]>
+</select>
+
+<select id="getOBjectSumOrMonthCreate" parameterClass="map" resultClass="int">
+       select count(*) from  $tableName$ p  where p.orginternalcode like '$orgInternalCode$%'
+       <dynamic>
+       		<isPropertyAvailable property="createDate">
+				<isNotNull property="createDate" prepend=" and ">
+					p.createDate>=#createDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nextMonthStart">
+				<isNotNull property="nextMonthStart" prepend=" and ">
+					p.createDate<![CDATA[<]]>#nextMonthStart#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="keyType">
+				<isNotNull property="keyType" prepend=" and ">
+					p.keyType=#keyType#
+				</isNotNull>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="positiveInfoType">
+				<isNotNull property="positiveInfoType" prepend=" and ">
+					p.positiveInfoType = #positiveInfosType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="detoxicateCase">
+				<isNotNull property="detoxicateCase" prepend=" and ">
+					p.detoxicateCase = #detoxicateCase#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="executeType">
+				<isNotNull property="executeType" prepend=" and ">
+					p.executeType = #executeType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dangerLevel">
+				<isNotNull property="dangerLevel" prepend=" and ">
+					p.dangerLevel = #dangerLevel#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="poorSource">
+				<isNotNull property="poorSource" prepend=" and ">
+					p.poorSource = #poorSource#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dangerousWorkingType">
+				<isNotNull property="dangerousWorkingType" prepend=" and ">
+					p.dangerousWorkingType = #dangerousWorkingType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="staffType">
+				<isNotNull property="staffType" prepend=" and ">
+					p.staffType = #staffType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="type">
+				<isNotNull property="type" prepend=" and ">
+					p.type = #type#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="hiddenTroubleLevel">
+				<isNotNull property="hiddenTroubleLevel" prepend=" and ">
+					p.hiddenTroubleLevel = #hiddenTroubleLevel#
+				</isNotNull>
+			</isPropertyAvailable>
+       </dynamic>
+</select>
+	<delete id="deleteByYearAndMonth" parameterClass="map">
+	   delete from baseInfoStatType_$year$_$month$ where year=#year# and month=#month# and baseinfotype=#baseinfotype#
+	   and typename in
+	   <iterate open="(" close=")" conjunction="," property="types">
+	   #types[]#
+	   </iterate>
+	</delete>
+</sqlMap>

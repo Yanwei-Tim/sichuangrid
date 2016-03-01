@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" 
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="propertyDictLog">
+
+    <typeAlias alias="PropertyDictLog" type="com.tianque.mobile.mobileDictionary.domain.PropertyDictLog" />
+
+    <resultMap id="propertyDictLogResult" class="PropertyDictLog">
+		<result column="id" property="id" />
+		<result column="operateType" property="operateType" />
+		<result column="dictId" property="dictId" />
+		<result column="domainId" property="domainId" />
+		<result column="createDate" property="createDate" />
+	</resultMap>
+	
+	<select id="countPropertyDictLogsByParams" resultClass="java.lang.Integer" parameterClass="PropertyDictLog">
+		select count(0) from propertyDictLogs where createDate>#createDate#
+	</select>
+	
+	<insert id="addPropertyDictLog" parameterClass="PropertyDictLog">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_propertyDictLogs.NEXTVAL as id from dual ]]>
+	    </selectKey>
+	    insert into propertyDictLogs(id,operateType,dictId,domainId,createDate) 
+			values(#id#,#operateType#,#dictId#,#domainId#,#createDate#)
+	</insert>
+
+</sqlMap>
+

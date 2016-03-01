@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="newEconomicOrganizations">
+	<!-- 注释说明 -->
+	<typeAlias alias="NewEconomicOrganizations" type="com.tianque.domain.NewEconomicOrganizations" />
+	<typeAlias alias="NEOcondition" type="com.tianque.domain.vo.SearchNewEconomicOrganizationsVo" />
+	
+	<resultMap class="NewEconomicOrganizations" id="newEconomicOrganizationsResult">
+		<result property="id" column="id" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+				
+		<result property="name" column="name" />		
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="telephone" column="telephone" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="remark" column="remark" />
+		<result property="imgUrl" column="imgUrl" />	
+		
+		
+		<result property="residence" column="residence" />		
+		<result property="licenseNumber" column="licenseNumber" />		
+		<result property="validityStartDate" column="validityStartDate" />		
+		<result property="validityEndDate" column="validityEndDate" />		
+		<result property="style.id" column="style" />		
+		<result property="chief" column="chief" />
+		<result property="foxNumber" column="foxNumber" />	
+		<result property="area" column="area" />	
+		<result property="employeeNumber" column="employeeNumber" />	
+		<result property="partyMemberNumber" column="partyMemberNumber" />	
+		<result property="introduction" column="introduction" />	
+		<result property="honor" column="honor" />			
+		
+		<result property="isEmphasis" column="isEmphasis" />
+		<result property="logoutDetail.logoutDate" column="isEmphasisDate" />
+		<result property="logoutDetail.logoutReason" column="isEmphasisReason" />
+		<result property="logoutDetail.logoutDate" column="isEmphasisDate" />
+		<result property="sourcesState" column="sourcesState"/>
+	</resultMap>
+	
+	<resultMap class="NewEconomicOrganizations" id="newEconomicOrganizationsResultForList" >
+		<result property="id" column="id" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	
+		<result property="name" column="name" />		
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="telephone" column="telephone" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="remark" column="remark" />
+		<result property="imgUrl" column="imgUrl" />	
+		
+		<result property="hasServiceTeamMember" column="{id=id,objectType=objectType}" select="newEconomicOrganizations.hasServiceTeamMemberQuery" />
+		<result property="lastRecordTime" column="{id=id,objectType=objectType}" select="newEconomicOrganizations.hasServiceTeamRecordQuery"/>
+		
+		<result property="residence" column="residence" />		
+		<result property="licenseNumber" column="licenseNumber" />		
+		<result property="validityStartDate" column="validityStartDate" />		
+		<result property="validityEndDate" column="validityEndDate" />		
+		<result property="style.id" column="style" />		
+		<result property="chief" column="chief" />
+		<result property="foxNumber" column="foxNumber" />	
+		<result property="area" column="area" />	
+		<result property="employeeNumber" column="employeeNumber" />	
+		<result property="partyMemberNumber" column="partyMemberNumber" />	
+		<result property="introduction" column="introduction" />	
+		<result property="honor" column="honor" />			
+		
+		<result property="isEmphasis" column="isEmphasis" />
+		<result property="logoutDetail.logoutDate" column="isEmphasisDate" />
+		<result property="logoutDetail.logoutReason" column="isEmphasisReason" />
+		<result property="logoutDetail.logoutDate" column="isEmphasisDate" />
+		<result property="sourcesState" column="sourcesState"/>
+	</resultMap>
+
+	<select id="hasServiceTeamMemberQuery"  resultClass="java.lang.Long" > 
+		select count(*)  from serviceMemberHasObject where objectType = #objectType# and objectId=#id#
+	</select>
+	
+	<select id="hasServiceTeamRecordQuery" resultClass="java.util.Date">
+		select max(OCCURDATE) from servicerecords 
+		where id in (select recordId from serviceRecordRelyObject 
+								where objectType=#objectType# and objectId=#id#)
+	</select>
+	
+	<insert id="addNewEconomicOrganizations" parameterClass="NewEconomicOrganizations">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_newEconomicOrganizations.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into newEconomicOrganizations (id,name,telephone,mobileNumber,orgId,remark,fullPinyin,simplePinyin,orgInternalCode,createUser,createDate,updateUser,updateDate,imgUrl,isEmphasis,residence,licenseNumber,validityStartDate,validityEndDate,style,chief,foxNumber,area,employeeNumber,partyMemberNumber,introduction,honor,sourcesState)
+		values (#id#,#name#,#telephone#,#mobileNumber#,#organization.id#,#remark#,#fullPinyin#,#simplePinyin#,#orgInternalCode#,#createUser#,#createDate#,#updateUser#,#updateDate#,#imgUrl#,#isEmphasis#,#residence#,#licenseNumber#,#validityStartDate#,#validityEndDate#,#style.id#,#chief#,#foxNumber#,#area#,#employeeNumber#,#partyMemberNumber#,#introduction#,#honor#,#sourcesState#)
+	</insert>
+	<select id="getNewEconomicOrganizationsById" parameterClass="java.lang.Long" resultMap="newEconomicOrganizationsResult">
+	<![CDATA[SELECT * FROM newEconomicOrganizations where id = #value#]]>
+	</select>
+
+	<select id="countNewEconomicOrganizations" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		from newEconomicOrganizations
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode"  prepend=" and ">		
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+						(isEmphasis = #isEmphasis# or isEmphasis is null)
+				</isEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findNewEconomicOrganizations" parameterClass="java.util.Map"
+		resultMap="newEconomicOrganizationsResultForList">
+	      SELECT newEconomicOrganizations.*,'$objectType$' as objectType FROM newEconomicOrganizations
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode" prepend=" and ">
+				<isNotNull property="orgInternalCode">
+				orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+				  		isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+						(isEmphasis = #isEmphasis# or isEmphasis is null)
+				</isEqual>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<update id="updateNewEconomicOrganizations" parameterClass="NewEconomicOrganizations">
+		update newEconomicOrganizations set
+		<dynamic>
+			 updateUser = #updateUser#
+			,updateDate = #updateDate#
+			,name = #name#
+			,orgId = #organization.id#
+			,orgInternalCode = #orgInternalCode#
+			,fullPinyin = #fullPinyin#
+			,simplePinyin = #simplePinyin#
+			,mobileNumber = #mobileNumber#
+			,telephone=#telephone#
+			,remark = #remark#
+			,imgUrl = #imgUrl#
+		    ,isEmphasis=#isEmphasis#
+		    ,residence=#residence#
+		    ,licenseNumber=#licenseNumber#
+		    ,validityStartDate=#validityStartDate#
+		    ,validityEndDate=#validityEndDate#
+		    ,style=#style.id#
+		    ,chief=#chief#
+		    ,foxNumber=#foxNumber#
+		    ,area=#area#
+		    ,employeeNumber=#employeeNumber#
+		    ,partyMemberNumber=#partyMemberNumber#
+		    ,introduction=#introduction#
+		    ,honor=#honor#
+			where id = #id#
+		</dynamic>
+	</update>
+
+	<delete id="deleteNewEconomicOrganizations" parameterClass="java.lang.Long">
+		delete from newEconomicOrganizations where id = #value#
+	</delete>
+	
+	<delete id="deleteNewEconomicOrganizationsForMore" >
+		delete from newEconomicOrganizations where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	
+	<select id="findNewEconomicOrganizationsByOrgIdAndLicenseNumberAndName" parameterClass="map" resultMap="newEconomicOrganizationsResult">
+	<![CDATA[	select * from newEconomicOrganizations where orgId = #orgId# and (licenseNumber=#licenseNumber# or name=#name#)]]>
+	</select>
+
+
+	<select id="findNewEconomicOrganizationsByOrgIdAndName" parameterClass="map" resultMap="newEconomicOrganizationsResult">
+		select * from newEconomicOrganizations 
+		<dynamic prepend="where">
+			<isNotNull property="orgId" prepend=" and ">
+			orgId = #orgId# 
+			</isNotNull>
+			<isNotNull property="name" prepend=" and ">
+			name = #name# 
+			</isNotNull>
+		</dynamic>
+	</select>
+
+
+	<select id="findNewEconomicOrganizationsByOrgIdAndLicenseNumber" parameterClass="map" resultMap="newEconomicOrganizationsResult">
+		select * from newEconomicOrganizations 
+		<dynamic prepend="where">
+			<isNotNull property="orgId" prepend=" and ">
+			orgId = #orgId# 
+			</isNotNull>
+			<isNotNull property="licenseNumber" prepend=" and ">
+			licenseNumber = #licenseNumber# 
+			</isNotNull>
+		</dynamic>
+	</select>
+
+
+	<sql id="search_sql_where">
+		from newEconomicOrganizations
+		<dynamic prepend="where">
+ 			<isPropertyAvailable property="orgInternalCode"> 
+				<isNotNull property="orgInternalCode" prepend=" and "> 
+ 					orgInternalCode like #orgInternalCode#||'%' 
+ 				</isNotNull> 
+ 			</isPropertyAvailable> 
+ 			<isPropertyAvailable property="fastSearch"> 
+				<isNotNull property="fastSearch" prepend=" and "> 
+ 					(licenseNumber like  '%'||#fastSearch#||'%' or
+ 					(name like #fastSearch#||'%' or fullPinyin like #fastSearch#||'%' or simplePinyin like #fastSearch#||'%'))
+ 				</isNotNull>
+ 			</isPropertyAvailable> 
+			<isPropertyAvailable property="licenseNumber">
+				<isNotEmpty prepend=" and " property="licenseNumber">
+					licenseNumber like  '%'||#licenseNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty prepend=" and " property="name">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="validityStartDate" >
+				<isNotEmpty prepend=" and " property="validityStartDate">
+				<![CDATA[ validityStartDate <= #validityStartDate# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="validityEndDate">
+				<isNotEmpty prepend=" and " property="validityEndDate">
+				<![CDATA[ validityEndDate >= #validityEndDate# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="chief">
+				<isNotEmpty prepend=" and " property="chief">
+					chief like '%'||#chief#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>	
+			<isPropertyAvailable property="foxNumber">
+				<isNotEmpty prepend=" and " property="foxNumber">
+					foxNumber like #foxNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>	
+			<isPropertyAvailable property="introduction">
+				<isNotEmpty prepend=" and " property="introduction">
+					introduction like '%'||#introduction#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>	
+			<isPropertyAvailable property="honor">
+				<isNotEmpty prepend=" and " property="honor">
+					honor like '%'||#honor#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>	
+			
+			<isPropertyAvailable property="areaStart" >
+				<isNotEmpty prepend=" and " property="areaStart">
+				<![CDATA[ area >= #areaStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="areaEnd">
+				<isNotEmpty prepend=" and " property="areaEnd">
+				<![CDATA[ area <= #areaEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="employeeNumberStart" >
+				<isNotEmpty prepend=" and " property="employeeNumberStart">
+				<![CDATA[ employeeNumber >= #employeeNumberStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="employeeNumberEnd">
+				<isNotEmpty prepend=" and " property="employeeNumberEnd">
+				<![CDATA[ employeeNumber <= #employeeNumberEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			
+			<isPropertyAvailable property="partyMemberNumberStart" >
+				<isNotEmpty prepend=" and " property="partyMemberNumberStart">
+				<![CDATA[ partyMemberNumber >= #partyMemberNumberStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="partyMemberNumberEnd">
+				<isNotEmpty prepend=" and " property="partyMemberNumberEnd">
+				<![CDATA[ partyMemberNumber <= #partyMemberNumberEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="style">
+				<isNotEmpty prepend=" and " property="style">
+					style = #style#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="telephone">
+				<isNotEmpty prepend=" and " property="telephone">
+					telephone like #telephone#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty prepend=" and " property="mobileNumber">
+					mobileNumber like #mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="residence">
+				<isNotEmpty prepend=" and " property="residence">
+					residence like '%'||#residence#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>	
+			<isPropertyAvailable property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+						(isEmphasis = #isEmphasis# or isEmphasis is null)
+				</isEqual>
+			</isPropertyAvailable>
+		<isPropertyAvailable property="hasServiceTeamMember">
+		<isNotNull property="hasServiceTeamMember" prepend=" and ">
+			<isEqual property="hasServiceTeamMember" compareValue="0">
+				id in (select objectId from serviceMemberHasObject where objectType=#objectType#  )
+			</isEqual>	
+			<isEqual property="hasServiceTeamMember" compareValue="1">
+				id not in (select objectId from serviceMemberHasObject where objectType=#objectType#  )
+			</isEqual>
+		</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="hasServiceRecord">
+		<isNotNull property="hasServiceRecord" prepend=" and ">
+			<isEqual property="hasServiceRecord" compareValue="0">
+				id in (select objectId from serviceRecordRelyObject where objectType=#objectType#  )
+			</isEqual>	
+			<isEqual property="hasServiceRecord" compareValue="1">
+				id not in (select objectId from serviceRecordRelyObject where objectType=#objectType#  )
+			</isEqual>
+		</isNotNull>
+		</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+
+	<select id="countSearchNewEconomicOrganizations" parameterClass="NEOcondition" resultClass="int">
+		select count(*)
+		<include refid="search_sql_where" />
+	</select>
+	<select id="searchNewEconomicOrganizations" parameterClass="NEOcondition" resultMap="newEconomicOrganizationsResultForList">
+		select newEconomicOrganizations.*,'$objectType$' as objectType
+		<include refid="search_sql_where" />
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+				</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<update id="updateEmphasiseById" parameterClass="map">
+		update newEconomicOrganizations set isEmphasis=#isEmphasis#,isEmphasisReason=#logOutReason#,isEmphasisDate=#logOutTime# where id=#id#
+	</update>
+	
+	
+	<!--组织机构迁移合并方法-->
+	<select id="findRepeatNewEconomicOrganizationsForOrgChange" parameterClass="java.util.Map"  resultMap="newEconomicOrganizationsResult">
+		 select n1.*
+ 		 from newEconomicOrganizations n1
+ 		 where exists (select n2.licensenumber
+         from newEconomicOrganizations n2
+         where n2.orgid = #newOrgId#
+         and n1.licensenumber = n2.licensenumber )
+   		 and n1.orgid = #oldOrgId#
+	</select>
+	
+	<select id="findRepeatNewEconomicOrganizationsByNameForOrgChange" parameterClass="java.util.Map"  resultMap="newEconomicOrganizationsResult">
+		 select n1.*
+ 		 from newEconomicOrganizations n1
+ 		 where exists (select n2.name
+         from newEconomicOrganizations n2
+         where n2.orgid = #newOrgId#
+         and n1.name = n2.name )
+   		 and n1.orgid = #oldOrgId#
+	</select>
+</sqlMap>
+
+

@@ -1,0 +1,620 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="serviceTeamMember">
+	<typeAlias alias="serviceTeamMemberBase" type="com.tianque.plugin.serviceTeam.serviceTeamMember.domain.ServiceTeamMemberBase" />
+	<typeAlias alias="serviceTeamMember" type="com.tianque.plugin.serviceTeam.serviceTeamMember.domain.ServiceTeamMember" />
+	<typeAlias alias="serviceTeamMemberVo" type="com.tianque.plugin.serviceTeam.serviceTeamMember.vo.ServiceTeamMemberVo"/>
+	<typeAlias alias="serviceMemberInTeamVo" type="com.tianque.plugin.serviceTeam.serviceTeamMember.vo.ServiceMemberInTeamVo"/>
+	
+	<resultMap class="serviceMemberInTeamVo" id="serviceMemberInTeamVo_resutl">
+		<result property="serviceMemberId" column="serviceMemberId"/>
+		<result property="memberBaseId" column="memberBaseId"/>
+		<result property="teamId" column="teamId"/>
+		<result property="teamName" column="teamName"/>
+	</resultMap>
+	<resultMap class="serviceTeamMemberVo" id="serviceTeamMemberBase">
+		<result property="name" column="name" />
+		<result property="gender.id" column="gender" />
+		<result property="mobile" column="mobile" />
+		<result property="homePhone" column="homePhone" />
+		<result property="org.id" column="orgId" />
+		<result property="org.orgInternalCode" column="orgInternalCode" />
+		<result property="job" column="job" />
+		<result property="birthday" column="birthday" />
+		<result property="remark" column="remark" />
+	</resultMap>
+	<resultMap class="serviceTeamMemberVo" id="serviceTeamMemberBaseResult" extends="serviceTeamMember.serviceTeamMemberBase">
+			<result property="baseId" column="id" />
+	</resultMap>
+	
+	<resultMap class="serviceTeamMemberVo" id="serviceTeamMemberBase_Result" extends="serviceTeamMember.serviceTeamMemberBase">
+			<result property="baseId" column="baseId" />
+	</resultMap>
+	
+	<resultMap class="serviceTeamMemberVo" id="serviceTeam_Member_DetilResult" extends="serviceTeamMember.serviceTeamMemberBase">
+			<result property="memberBaseId" column="memberBaseId" />
+			<result property="memberId" column="memberId" />
+			<result property="teamId" column="teamId" />
+			<result property="teamName" column="teamName" />
+			<result property="teamType.id" column="teamType" />
+			<result property="position.id" column="position" />
+	</resultMap>
+	<!-- 服务记录库服务 记录所属人的查询 -->
+	<resultMap class="serviceTeamMemberVo" id="service_record_member" extends="serviceTeamMember.serviceTeamMemberBase">
+			<result property="memberId" column="memberId" />
+	</resultMap>
+	
+	<resultMap class="serviceTeamMemberVo" id="serviceTeamMemberForObject_DetilResult" >
+			<result property="memberBaseId" column="memberBaseId" />
+			<result property="teamName" column="teamName" />
+			<result property="position.id" column="position" />
+			<result property="teamType.id" column="teamType" />
+			<result property="memberName" column="memberName" />
+			<result property="gender.id" column="gender" />
+			<result property="mobile" column="mobile" />
+			<result property="homePhone" column="homePhone" />
+			<result property="org.id" column="orgId" />
+			<result property="org.orgInternalCode" column="orgInternalCode" />
+			<result property="job" column="job" />
+			<result property="birthday" column="birthday" />
+			<result property="remark" column="remark" />
+			<result property="teamId" column="teamId" />
+	</resultMap>
+	
+	<resultMap class="serviceTeamMemberVo" id="fullServiceTeamMemberVo" extends="serviceTeamMember.serviceTeamMemberBase">
+		<result property="baseId" column="baseId" />
+		<result property="teamId" column="teamId" />
+		<result property="memberId" column="memberId"/>
+		<result property="shiftDutyReason" column="shiftDutyReason"/>
+		<result property="shiftDutyDate" column="shiftDutyDate"/>
+		<result property="position.id" column="position" />
+		<result property="onDuty" column="onDuty" />
+	</resultMap>
+	
+	<insert id="addServiceTeamMemberBase" parameterClass="serviceTeamMemberBase">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+        <![CDATA[SELECT s_serviceTeamMemberBase.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		<![CDATA[insert into serviceTeamMemberBase
+		(id,name,gender,mobile,homePhone,job,remark, orgId,orgInternalCode,simplePinyin,fullPinyin,birthday,
+		createUser,createDate,updateDate,updateUser)
+		values
+		(#id#,#name#,#gender.id#,#mobile#,#homePhone#,#job#,
+		#remark#,#org.id#,#orgInternalCode#,#simplePinyin#,#fullPinyin#,#birthday#,#createUser#,#createDate#,
+		#updateDate#,#updateUser#)]]>
+	</insert>
+	<sql id="searchMemberVo">
+		<isNotEmpty property="orgScope" prepend="and">
+				<isEqual property="orgScope" compareValue="sameGrade">
+					<![CDATA[ orgInternalCode = #org.orgInternalCode# ]]>	
+				</isEqual>	
+				<isEqual property="orgScope" compareValue="allJurisdiction">
+					<![CDATA[ orgInternalCode like #org.orgInternalCode#||'%' ]]>	
+				</isEqual>
+				<isEqual property="orgScope" compareValue="directJurisdiction">
+					<![CDATA[ orgInternalCode like #org.orgInternalCode#||'__' ]]>	
+				</isEqual>	
+			</isNotEmpty>
+			
+			<isNotEmpty  property="gender.id" prepend=" and ">
+			<![CDATA[ gender = #gender.id# ]]>
+			</isNotEmpty>
+			<isNotEmpty  property="mobile" prepend=" and ">
+			<![CDATA[ mobile like #mobile#||'%' ]]>
+			</isNotEmpty>
+			<isNotEmpty  property="homePhone" prepend=" and ">
+			<![CDATA[ homePhone like #homePhone#||'%' ]]>
+			</isNotEmpty>
+			<isNotEmpty  property="name" prepend=" and ">
+			<![CDATA[ (name like #name#||'%' or simplepinyin like #name#||'%' or fullpinyin like #name#||'%') ]]>
+			</isNotEmpty>
+			<isNotNull property="onDuty" prepend=" and ">
+			<isEqual property="onDuty" compareValue="1">
+				<![CDATA[ onDuty = 1]]>	
+			</isEqual>	
+			<isEqual property="onDuty" compareValue="0">
+				<![CDATA[ onDuty = 0 ]]>	
+			</isEqual>
+		</isNotNull>
+	</sql>
+	
+	<!-- 从业务人员角度  查询团队成员列表 -->
+	<sql id="searchMemberFromTeamVo">
+			<isNotEmpty property="org.orgInternalCode" prepend="and">
+					<![CDATA[ mem.orgInternalCode like #org.orgInternalCode#||'%' ]]>	
+			</isNotEmpty>
+			<isNotNull property="teamType.id" prepend="and">
+				<isNotEqual property="teamType.id" compareValue="0">
+						mem.teamType = #teamType.id#
+				</isNotEqual>
+			</isNotNull>
+			<isNotEmpty property="teamName" prepend="and">
+				(mem.teamName like '%'||#teamName#||'%' or mem.teamFullpinyin like '%'||#teamName#||'%' or mem.teamSimplepinyin like '%'||#teamName#||'%')
+			</isNotEmpty>
+			<isNotEmpty  property="memberName" prepend=" and ">
+			<![CDATA[ (mem.memberName like #memberName#||'%' or mem.memberSimplepinyin like #memberName#||'%' or mem.memberFullpinyin like #memberName#||'%') ]]>
+			</isNotEmpty>
+	</sql>
+	
+	<sql id="order_sql">
+		<isPropertyAvailable property="sortField"  prepend="order by">
+			<isEqual property="sortField" compareValue="baseId">
+					<isNotNull property="sortField">'base.'||'id'</isNotNull>
+			</isEqual>
+			<isEqual property="sortField" compareValue="memberId" >
+					<isNotNull property="sortField">'det.'||'id'</isNotNull>
+			</isEqual>
+			<isNotEqual property="sortField" compareValue="memberId">
+				<isNotEqual property="sortField" compareValue="baseId">
+				    <isNotNull property="sortField">$sortField$</isNotNull>
+				</isNotEqual>
+			</isNotEqual>
+				<isNotNull property="order">$order$</isNotNull>
+		</isPropertyAvailable>
+	</sql>
+	
+	
+	<select id="findServiceTeamMemberVoPage" parameterClass="serviceTeamMemberVo" resultMap="fullServiceTeamMemberVo">
+	  select base.id as baseId,det.id as memberId, base.*,det.* from serviceTeamMemberBase base  , serviceTeamMemberDetails det
+	  where base.id(+)=det.baseId
+	 
+	   <include refid="searchMemberVo"/>
+	   <isNotEmpty property="teamId" prepend="and">
+	   	teamId =#teamId#
+	   </isNotEmpty>
+	
+		<include refid="order_sql"/>
+	</select>
+	<!-- 导出团队现有成员 -->
+	<select id="searchServiceTeamMemberForExport" parameterClass="serviceTeamMemberVo" resultMap="fullServiceTeamMemberVo">
+	  select base.id as baseId,det.id as memberId, base.*,det.* from serviceTeamMemberBase base  , serviceTeamMemberDetails det
+	  where base.id(+)=det.baseId
+	 
+	   <include refid="searchMemberVo"/>
+	   <isNotEmpty property="teamId" prepend="and">
+	   	teamId =#teamId#
+	   </isNotEmpty>
+	
+		<include refid="order_sql"/>
+	</select>
+	
+	<select id="findServiceTeamMemberBasesPageList" parameterClass="serviceTeamMemberVo" resultMap="serviceTeamMemberBase_Result">
+	  select base.id as baseId,base.* from serviceTeamMemberBase base where 1=1
+	   <include refid="searchMemberVo"/>
+	   <isPropertyAvailable property="sortField"  prepend="order by">
+			<isEqual property="sortField" compareValue="baseId">
+					<isNotNull property="sortField">baseId</isNotNull>
+			</isEqual>
+			<isNotEqual property="sortField" compareValue="baseId">
+			    <isNotNull property="sortField">$sortField$</isNotNull>
+			</isNotEqual>
+			<isNotNull property="order">$order$</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	<select id="countFindServiceTeamMemberBasesPageList" parameterClass="serviceTeamMemberVo" resultClass="java.lang.Integer">
+	  select count(*) from serviceTeamMemberBase base where 1=1
+	   <include refid="searchMemberVo"/>
+	</select>
+	
+	<select id="countServiceTeamMemberVoPage" parameterClass="serviceTeamMemberVo" resultClass="java.lang.Integer">
+	  select count(*) from serviceTeamMemberBase base  , serviceTeamMemberDetails det
+	  where base.id=det.baseId(+)
+	 
+	   <include refid="searchMemberVo"/>
+	   <isNotEmpty property="teamId" prepend="and">
+	   	teamId =#teamId#
+	   </isNotEmpty>
+	
+	</select>
+	
+	<select id="findServiceTeamMemberVoPageNotInTeam" parameterClass="serviceTeamMemberVo" resultMap="serviceTeamMemberBaseResult">
+	 select * from Serviceteammemberbase base where id not in (select baseId from serviceteammemberdetails where teamId = #teamId#)
+	   <include refid="searchMemberVo"/>
+	   and ORGINTERNALCODE like #org.orgInternalCode#||'%'
+		<include refid="order_sql"/>
+	</select>
+	
+	<select id="countServiceTeamMemberVoPageNotInTeam" parameterClass="serviceTeamMemberVo" resultClass="java.lang.Integer">
+	 select count(*) from Serviceteammemberbase where id not in (select baseId from serviceteammemberdetails where teamId = #teamId#)
+	   <include refid="searchMemberVo"/>
+	   and ORGINTERNALCODE like #org.orgInternalCode#||'%'
+	</select>
+	
+
+	<insert id="addTeamAndMemberRelation" parameterClass="serviceTeamMember">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+    	<![CDATA[ SELECT s_serviceTeamMemberDetails.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		<![CDATA[ insert into serviceTeamMemberDetails
+		(id,teamId,position,baseId,onDuty,createUser,createDate,updateUser,updateDate)
+		values
+		(#id#,#teamId#,#position.id#,#baseId#,#onDuty#, #createUser#,#createDate#,#updateUser#,#updateDate#) ]]>
+	</insert>  
+	
+	<delete id="reMoveTeamAndMemberRelation" parameterClass="java.lang.Long">
+		delete from serviceTeamMemberDetails where id = #memberId#
+	</delete>
+	
+	<select id="getServiceTeamMemberBaseById" parameterClass="long" resultMap="serviceTeamMemberBaseResult">
+		<![CDATA[ select * from serviceTeamMemberBase where id = #value# ]]>	
+	</select>
+	<select id="getServiceTeamMemberDetailsById" parameterClass="long" resultMap="fullServiceTeamMemberVo">
+		select base.id as baseId,det.id as memberId,base.*,det.* from serviceTeamMemberBase base  , serviceTeamMemberDetails det
+	 	 where base.id=det.baseId(+)
+	 	 and det.id=#value#
+	</select>
+      
+	<!-- 从业务人员角度  查询团队成员列表 -->
+	<select id="findServiceMemberFromTeams" parameterClass="serviceTeamMemberVo" resultMap="serviceTeamMemberForObject_DetilResult">
+		 select mem.memberName,
+		        mem.gender,
+		        mem.baseid as memberBaseId,
+		        mem.position,
+		        mem.mobile,
+		        mem.homephone,
+		        mem.teamName,
+		        mem.orgInternalCode,
+		        mem.job,
+		        mem.birthday,
+		        mem.memberFullpinyin,
+		        mem.teamFullpinyin,
+		        mem.memberSimplepinyin,
+		        mem.teamSimplepinyin,
+		        mem.remark,
+		        mem.orgId,
+		        mem.teamType,
+		        mem.teamId
+		   from (select b.name            as memberName,
+		                b.gender          as gender,
+		                d.id              as baseid,
+		                d.position        as position,
+		                b.mobile		  as mobile,
+		                b.homephone       as homephone,
+		                t.name            as teamName,
+		                b.orginternalcode as orginternalcode,
+		          		b.job			  as job,
+		                b.orgid		 	  as orgid,
+		                b.remark		  as remark,	
+		                b.birthday		  as birthday,
+				        b.fullpinyin      as memberFullpinyin,
+		                t.fullpinyin      as teamFullpinyin,
+		                b.simplepinyin    as memberSimplepinyin,
+		                t.simplepinyin    as teamSimplepinyin,
+		                t.teamtype		  as teamType,
+		                t.id			  as teamId
+		           from serviceteammemberdetails d,
+		                serviceteammemberbase    b,
+		                serviceteams             t
+		          where d.baseid(+) = b.id
+		            and d.teamid = t.id
+		            and d.onduty = 1
+		            and t.logout = 0
+		            <isNotEmpty property="org.orgInternalCode" prepend="and">
+					<![CDATA[ t.orgcode like #org.orgInternalCode#||'%' ]]>	
+					</isNotEmpty>
+		            ) mem
+		  where mem.baseid not in (select memberid
+		                           from servicememberhasobject g
+		                          where 
+		                          		teammember = 1
+										<isNotEmpty  property="objectType" prepend=" and ">
+											<![CDATA[ g.objectType = #objectType# ]]>
+										</isNotEmpty>		                            
+										<isNotEmpty  property="objectId" prepend=" and ">
+											<![CDATA[ g.objectId = #objectId# ]]>
+										</isNotEmpty>			                          
+		                             )
+		                            <include refid="searchMemberFromTeamVo"/>
+	</select>
+	<!-- 只查人，不查询团队是否有
+	<select id="findServiceMembersForServiceRecord" parameterClass="serviceTeamMemberVo" resultMap="serviceTeam_Member_DetilResult">
+		select mem.name,
+              mem.memberBaseId,
+              mem.memberId,
+              mem.gender,
+              mem.position,
+              mem.mobile,
+              mem.homePhone,
+              mem.orgId,
+              mem.orgInternalCode,
+              mem.job,
+              mem.birthday,
+              mem.remark,
+              mem.memberId,
+              mem.teamId,              
+              team.name as teamName,
+              team.id as teamId,
+              team.*
+         from (select base.id as memberBaseId,det.id as memberId,base.*, det.*
+                 from serviceteammemberbase base
+                right join serviceTeamMemberDetails det
+                   on base.id = det.baseId where det.onDuty=1) mem,
+              serviceteams team
+        where mem.teamId = team.id and team.logOut=0
+        <isNotEmpty  property="teamId" prepend=" and ">
+			<![CDATA[ teamId = #teamId# ]]>
+		</isNotEmpty>
+		<isNotEmpty  property="name" prepend=" and ">
+			<![CDATA[ (mem.name like #name#||'%' or mem.simplepinyin like #name#||'%' or mem.fullpinyin like #name#||'%') ]]>
+		</isNotEmpty>
+		<isNotEmpty  property="org.orgInternalCode" prepend=" and ">
+			orgInternalCode like #org.orgInternalCode#||'%'
+		</isNotEmpty> 
+	</select>
+	 -->
+	 <!-- 服务团队，服务记录库添加服务记录时服务人员只做查询人员不做人员是否在服务团队中的关联 -->
+	 <select id="findServiceMembersForServiceRecord" parameterClass="serviceTeamMemberVo" resultMap="service_record_member">
+		select mem.id as memberId,mem.* from serviceTeamMemberBase mem where 1=1
+		<isNotEmpty  property="name" prepend=" and ">
+			<![CDATA[ (mem.name like #name#||'%' or mem.simplepinyin like #name#||'%' or mem.fullpinyin like #name#||'%') ]]>
+		</isNotEmpty>
+		<isNotEmpty  property="org.orgInternalCode" prepend=" and ">
+			mem.orgInternalCode like #org.orgInternalCode#||'%'
+		</isNotEmpty> 
+	</select>
+	
+	<select id="countfindServiceMemberFromTeams" parameterClass="serviceTeamMemberVo" resultClass="java.lang.Integer">
+			 select count(*)
+		   from (select b.name            as memberName,
+		                b.gender          as gender,
+		                d.id              as baseid,
+		                d.position        as position,
+		                b.mobile		  as mobile,
+		                b.homephone       as homephone,
+		                t.name            as teamName,
+		                b.orginternalcode as orginternalcode,
+		          		b.job			  as job,
+		                b.orgid		 	  as orgid,
+		                b.remark		  as remark,	
+		                b.birthday		  as birthday,
+				        b.fullpinyin      as memberFullpinyin,
+		                t.fullpinyin      as teamFullpinyin,
+		                b.simplepinyin    as memberSimplepinyin,
+		                t.simplepinyin    as teamSimplepinyin,
+		                t.teamtype		  as teamType,
+		                t.id	          as teamId
+		           from serviceteammemberdetails d,
+		                serviceteammemberbase    b,
+		                serviceteams             t
+		          where d.baseid(+) = b.id
+		            and d.teamid = t.id
+		            and d.onduty = 1
+		            and t.logout = 0
+		            <isNotEmpty property="org.orgInternalCode" prepend="and">
+					<![CDATA[ t.orgcode like #org.orgInternalCode#||'%' ]]>	
+					</isNotEmpty>
+		            ) mem
+		  where mem.baseid not in (select memberid
+		                           from servicememberhasobject g
+		                          where 
+		                          		teammember = 1
+										<isNotEmpty  property="objectType" prepend=" and ">
+											<![CDATA[ g.objectType = #objectType# ]]>
+										</isNotEmpty>		                            
+										<isNotEmpty  property="objectId" prepend=" and ">
+											<![CDATA[ g.objectId = #objectId# ]]>
+										</isNotEmpty>			                          
+		                             )
+		<include refid="searchMemberFromTeamVo"/>
+	</select>
+	<!-- <select id="countfindServiceMemberFromTeams" parameterClass="serviceTeamMemberVo" resultClass="java.lang.Integer">
+		select count(*) from
+			(select base.*,det.*  from serviceteammemberbase base right join serviceTeamMemberDetails det 
+			on base.id= det.baseId) mem ,serviceteams team where mem.teamId=team.id
+		<include refid="searchMemberFromTeamVo"/>
+	</select> -->
+	
+	<update id="updateServiceTeamMemberBase" parameterClass="serviceTeamMemberBase">
+	<![CDATA[ 
+		update serviceTeamMemberBase set
+			name = #name#,
+			gender = #gender.id#,
+			mobile = #mobile#,
+			homePhone = #homePhone#,
+			job = #job#,
+			remark = #remark#,
+			birthday = #birthday#,
+			simplePinyin = #simplePinyin#,
+			fullPinyin = #fullPinyin#,
+			updateDate = #updateDate#,
+			updateUser = #updateUser#
+		where id = #id#
+	]]>
+	</update>
+
+	
+	<delete id="deleteServiceTeamMemberBase"  parameterClass="long">
+		<![CDATA[ delete from serviceTeamMemberBase where id = #value# ]]>
+	</delete>
+	
+	<delete id="deleteServiceTeamMemberBaseByIds">
+		delete from  serviceTeamMemberBase where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	
+	<update id="updateServiceTeamMemberOnDuty" parameterClass="serviceTeamMemberVo">
+		update serviceTeamMemberDetails set onDuty = #onDuty# where id = #memberId#
+	</update>
+	
+	<select id="countServiceTeamHasMembers" parameterClass="long"  resultClass="java.lang.Integer">
+		<include refid="common.sql_count" /> from serviceTeamMemberDetails where teamId = #value#
+	</select>
+	
+	<select id="countServiceTeamMembersHasRecords" parameterClass="long"  resultClass="java.lang.Integer">
+	select count(*) from serviceteams  where id in (select teamId from serviceteammemberdetails where baseId = #value# )
+	</select>
+	
+	<select id="getAllServiceTeamMembers" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		select count(*) from 
+		(select count(*),baseid 
+			from serviceteammemberdetails 
+			where onduty=1 
+			and baseid in (select id from serviceteammemberbase 
+															where orginternalcode like '%') 
+			group by baseid)
+	</select>
+	<select id="getServiceTeamMemberDetailsByBaseId" parameterClass="long" resultMap="fullServiceTeamMemberVo">
+		select base.id as baseId,det.id as memberId,base.*,det.* from serviceTeamMemberBase base  , serviceTeamMemberDetails det
+	 	 where base.id=det.baseId(+)
+	 	 and base.id=#value#
+	</select>
+	<select id="getServiceMemberInTeamVoByMemberId" parameterClass="long" resultMap="serviceMemberInTeamVo_resutl">
+	select t.id as teamId,t.name as teamName,d.id as serviceMemberId,d.baseId as memberBaseId from serviceteams t ,serviceTeamMemberDetails d 
+ 		where t.id=d.teamid(+)  and d.baseid in(select tt.baseid from  serviceTeamMemberDetails tt where tt.id=#value#) 
+	</select>
+	<!-- 为查重准备的列表显示查询方法 -->
+	<select id="countFindSameMembersByNameAndMobile" parameterClass="serviceTeamMemberVo" resultClass="java.lang.Integer">
+		select count(*) from serviceTeamMemberBase  where orgInternalCode like #org.orgInternalCode#||'%'
+		<isNotEmpty  property="name" prepend=" and ">
+			name = #name#
+		</isNotEmpty>
+		<isNotEmpty  property="mobile" prepend=" and ">
+			(mobile = #mobile# or mobile is null)
+		</isNotEmpty>
+		<![CDATA[ and id!=#baseId# ]]>
+	</select>
+	<select id="findSameMembersByNameAndMobile" parameterClass="serviceTeamMemberVo" resultMap="serviceTeamMemberBaseResult">
+		select * from serviceTeamMemberBase where orgInternalCode like #org.orgInternalCode#||'%'
+		<isNotEmpty  property="name" prepend=" and ">
+			name = #name#
+		</isNotEmpty>
+		<isNotEmpty  property="mobile" prepend=" and ">
+			(mobile = #mobile# or mobile is null)
+		</isNotEmpty>
+		<![CDATA[ and id!=#baseId# ]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findServiceMembersByBaseId" parameterClass="long" resultMap="fullServiceTeamMemberVo">
+		select base.id as baseId,det.id as memberId,base.*,det.* from serviceTeamMemberBase base,serviceTeamMemberDetails det
+	 	 where base.id=det.baseId
+	 	 and det.baseId=#value#
+	</select>
+	<update id="combine" parameterClass="serviceTeamMemberVo">
+		<![CDATA[update serviceTeamMemberDetails set
+			baseId = #baseId#
+			where id = #memberId#]]>
+	</update>
+	<update id="updateServiceTeamMemberOnDutyAndPosition" parameterClass="serviceTeamMemberVo">
+		update serviceTeamMemberDetails set onDuty = #onDuty# ,position=#position.id# where id = #memberId#
+	</update>
+	<update id="changeOrg" parameterClass="serviceTeamMemberBase">
+		update serviceTeamMemberBase set 
+		orgId=#org.id#,
+		orgInternalCode=#org.orgInternalCode# where id = #id#
+	</update>
+	
+	
+	
+	
+	
+	
+	<!--  查询团队成员列表 ，用于批量添加团队成员-->
+	<select id="findServiceMembersFromTeams" parameterClass="serviceTeamMemberVo" resultMap="serviceTeamMemberForObject_DetilResult">
+		 select mem.memberName,
+		        mem.gender,
+		        mem.baseid as memberBaseId,
+		        mem.position,
+		        mem.mobile,
+		        mem.homephone,
+		        mem.teamName,
+		        mem.orgInternalCode,
+		        mem.job,
+		        mem.birthday,
+		        mem.memberFullpinyin,
+		        mem.teamFullpinyin,
+		        mem.memberSimplepinyin,
+		        mem.teamSimplepinyin,
+		        mem.remark,
+		        mem.orgId,
+		        mem.teamType,
+		        mem.teamId
+		   from (select b.name            as memberName,
+		                b.gender          as gender,
+		                d.id              as baseid,
+		                d.position        as position,
+		                b.mobile		  as mobile,
+		                b.homephone       as homephone,
+		                t.name            as teamName,
+		                b.orginternalcode as orginternalcode,
+		          		b.job			  as job,
+		                b.orgid		 	  as orgid,
+		                b.remark		  as remark,	
+		                b.birthday		  as birthday,
+				        b.fullpinyin      as memberFullpinyin,
+		                t.fullpinyin      as teamFullpinyin,
+		                b.simplepinyin    as memberSimplepinyin,
+		                t.simplepinyin    as teamSimplepinyin,
+		                t.teamtype		  as teamType,
+		                t.id			  as teamId
+		           from serviceteammemberdetails d,
+		                serviceteammemberbase    b,
+		                serviceteams             t
+		          where d.baseid(+) = b.id
+		            and d.teamid = t.id
+		            and d.onduty = 1
+		            and t.logout = 0
+		            <isNotEmpty property="org.orgInternalCode" prepend="and">
+					<![CDATA[ t.orgcode like #org.orgInternalCode#||'%' ]]>	
+					</isNotEmpty>
+		            ) mem
+		  where  1=1   
+		    <isNotNull  property="memberBaseIds" prepend=" and ">
+				  mem.baseid not in (
+				   <iterate property="memberBaseIds" conjunction=",">
+					 #memberBaseIds[]#
+				   </iterate>)
+			</isNotNull>
+		   <include refid="searchMemberFromTeamVo"/>
+	</select>
+	
+	
+	
+	<select id="countFindServiceMembersFromTeams" parameterClass="serviceTeamMemberVo" resultClass="java.lang.Integer">
+			 select count(*)
+		   from (select b.name            as memberName,
+		                b.gender          as gender,
+		                d.id              as baseid,
+		                d.position        as position,
+		                b.mobile		  as mobile,
+		                b.homephone       as homephone,
+		                t.name            as teamName,
+		                b.orginternalcode as orginternalcode,
+		          		b.job			  as job,
+		                b.orgid		 	  as orgid,
+		                b.remark		  as remark,	
+		                b.birthday		  as birthday,
+				        b.fullpinyin      as memberFullpinyin,
+		                t.fullpinyin      as teamFullpinyin,
+		                b.simplepinyin    as memberSimplepinyin,
+		                t.simplepinyin    as teamSimplepinyin,
+		                t.teamtype		  as teamType,
+		                t.id	          as teamId
+		           from serviceteammemberdetails d,
+		                serviceteammemberbase    b,
+		                serviceteams             t
+		          where d.baseid(+) = b.id
+		            and d.teamid = t.id
+		            and d.onduty = 1
+		            and t.logout = 0
+		            <isNotEmpty property="org.orgInternalCode" prepend="and">
+					<![CDATA[ t.orgcode like #org.orgInternalCode#||'%' ]]>	
+					</isNotEmpty>
+		            ) mem
+		  where 	1=1  
+				  <isNotNull  property="memberBaseIds" prepend=" and ">
+				  mem.baseid not in (
+				   <iterate property="memberBaseIds" conjunction=",">
+								#memberBaseIds[]#
+						    </iterate>)
+				  </isNotNull>
+		        <include refid="searchMemberFromTeamVo"/>
+	</select>
+</sqlMap>
+

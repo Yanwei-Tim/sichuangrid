@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" 
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="reportWorkingRecord">
+<typeAlias alias="ReportWorkingRecord" type="com.tianque.working.domain.ReportWorkingRecord" />
+
+	<insert id="addReportWorkingRecord" parameterClass="ReportWorkingRecord">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_workingrecords.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into workingRecords
+		(id,orgId,orgInternalCode,name,dailyDirectoryId,dailyYearId,dealDate,content,
+		dailyLogType,submitState,submitTime,backTime,reportTime,
+		lister,dealPerson,expiredEntering,createDate,createUser)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#name#,#dailyDirectory.id#,
+		#dailyYear.id#,#dealDate#,#content#,#dailyLogType.id#,#submitState.id#,#submitTime#,
+		#backTime#,#reportTime#,#lister#,#dealPerson#,#expiredEntering#,
+		#createDate#,#createUser#)
+	</insert>
+	<update id="updateReportWorkingRecord" parameterClass="ReportWorkingRecord">
+		update workingRecords set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="dailyDirectory">
+				dailyDirectoryId=#dailyDirectory.id#
+			</isNotNull>
+			<isNotNull prepend="," property="dailyYear">
+				dailyYearId=#dailyYear.id#
+			</isNotNull>
+			<isNotNull prepend="," property="dealDate">
+				dealDate=#dealDate#
+			</isNotNull>
+			<isNotNull prepend="," property="content">
+				content=#content#
+			</isNotNull>
+			<isNotNull prepend="," property="dailyLogType">
+				dailyLogType=#dailyLogType.id#
+			</isNotNull>
+			<isNotNull prepend="," property="submitState">
+				submitState=#submitState.id#
+			</isNotNull>
+			<isNotNull prepend="," property="submitTime">
+				submitTime=#submitTime#
+			</isNotNull>
+			<isNotNull prepend="," property="backTime">
+				backTime=#backTime#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="lister">
+				lister=#lister#
+			</isNotNull>
+			<isNotNull prepend="," property="dealPerson">
+				dealPerson=#dealPerson#
+			</isNotNull>
+			<isNotNull prepend="," property="expiredEntering">
+				expiredEntering=#expiredEntering#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+	<select id="getReportWorkingRecordById" parameterClass="java.lang.Long"
+		resultMap="workingRecord.reportWorkingRecordResult">
+		select * from workingRecords where id=#value#
+	</select>
+	<sql id="sql_where">
+		from workingRecords
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId in ( $dailyDirectoryId$ )
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dealDate">
+				<isNotNull property="dealDate" prepend=" and ">
+					to_char(dealdate,'yyyy-mm') = #dealDate#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<delete id="deleteReportWorkingRecordById" parameterClass="java.lang.Long">
+		delete from workingRecords where id=#value#
+	</delete>
+	<select id="findReportWorkingRecord" parameterClass="java.util.Map"
+		resultMap="workingRecord.reportWorkingRecordNotHaveDetail">
+		select *
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countReportWorkingRecord" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	<update id="updateSubmitState" parameterClass="java.util.Map">
+		update workingRecords set id=#id#
+		<isNotNull prepend="," property="submitStateId">
+			submitState=#submitStateId#
+		</isNotNull>
+		<isNotNull prepend="," property="submitTime">
+			submitTime=#submitTime#
+		</isNotNull>
+		<isNotNull prepend="," property="expiredEntering">
+			expiredEntering=#expiredEntering#
+		</isNotNull>
+		where id=#id#
+	</update>
+		<update id="backWorkingRecord" parameterClass="java.util.Map">
+		update workingRecords set submitTime=null
+		<isNotNull prepend="," property="submitStateId">
+			submitState=#submitStateId#
+		</isNotNull>
+		<isNotNull prepend="," property="updateDate">
+			updateDate=#updateDate#
+		</isNotNull>
+		<isNotNull prepend="," property="backTime">
+			backTime=#backTime#
+		</isNotNull>
+		where id=#id#
+	</update>
+	<select id="findReportWorkingRecordByOrgIdAndDealDate" parameterClass="java.util.Map"
+		resultMap="workingRecord.reportWorkingRecordResult">
+		<include refid="common.sql_select" />
+		from workingRecords
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId = #dailyDirectoryId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dealDate">
+				<isNotNull property="dealDate" prepend=" and ">
+					to_char(dealdate,'yyyy-mm')=#dealDate#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<delete id="deleteReportWorkingRecordByYearId" parameterClass="java.lang.Long">
+		delete from workingRecords
+		where dailyYearId=#value#
+	</delete>
+
+	
+	<select id="findAllReportWorkingRecordByOrgIdAndYear" parameterClass="java.util.Map"
+		resultMap="workingRecord.reportWorkingRecordResult">
+		<include refid="common.sql_select" />
+		from workingRecords
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId = #dailyDirectoryId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dealDate">
+				<isNotNull property="dealDate" prepend=" and ">
+					to_char(dealdate,'yyyy')=#dealDate#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findReportWorkingRecordByStartDateAndEndDate" parameterClass="java.util.Map"
+		resultMap="workingRecord.reportWorkingRecordResult">
+		<include refid="common.sql_select" />
+		from workingRecords
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId = #dailyDirectoryId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startDate">
+				<isNotNull property="startDate" prepend="and">
+                    <![CDATA[reportTime >= #startDate#]]>   
+                </isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endDate">
+				<isNotNull property="endDate" prepend="and">
+                    <![CDATA[reportTime <= #endDate#]]>   
+                </isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findSunReportWorkingRecordByOrgIdAndDealDate" parameterClass="java.util.Map"
+		resultMap="workingRecord.reportWorkingRecordResult">
+		<include refid="common.sql_select" />
+		from workingRecords wr
+		<dynamic prepend="WHERE">
+			<!--
+				<isNotNull property="internalid" prepend=" and ">
+					exists(
+					select 1 from dailydirectorys d,propertydicts pd 
+					where wr.dailydirectoryid=d.id 
+					and d.directoryReportTypeId=pd.id and d.type=#type# 
+					and pd.propertydomainid=#propertydomainid# 
+					and pd.internalid=#internalid#
+					)
+				</isNotNull> -->
+				<isNotNull property="directoryReportTypeId" prepend=" and ">
+					exists(
+					select 1 from dailydirectorys d
+					where wr.dailydirectoryid=d.id 
+					and d.directoryReportTypeId = #directoryReportTypeId# and d.type=#type# 
+					)
+				</isNotNull>
+				<isNotNull property="dailyYearId" prepend=" and ">
+					exists(
+					select 1 from dailyyears dy 
+					where wr.dailyyearid = dy.id 
+					and dy.name = (select name from dailyyears where id = #dailyYearId#)
+					)
+				</isNotNull>
+				<isNotNull property="orgId" prepend=" and ">
+					wr.orgId = #orgId#
+				</isNotNull>
+				<isNotNull property="submitType" prepend=" and ">
+					wr.submitState = #submitType#
+				</isNotNull>
+				<isNotNull property="reportTime" prepend=" and ">
+					reportTime=#reportTime#
+				</isNotNull>
+		</dynamic>
+	</select>
+	<select id="findSunAllReportWorkingRecordByOrgIdAndYear" parameterClass="java.util.Map"
+		resultMap="workingRecord.reportWorkingRecordNotHaveDetail">
+		<include refid="common.sql_select" />
+		from workingRecords wr
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isNotNull property="directoryReportTypeId" prepend=" and ">
+					exists(select 1 from dailydirectorys d where wr.dailydirectoryid=d.id 
+					and d.directoryReportTypeId=#directoryReportTypeId# and d.type=#type# )
+				</isNotNull>
+			<isPropertyAvailable property="dailyYearId">
+				<isNotNull property="dailyYearId" prepend=" and ">
+					dailyYearId = #dailyYearId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+				<dynamic prepend=" order by ">
+			<isNotNull property="order">$order$</isNotNull>
+			asc
+		</dynamic>
+	</select>
+	
+	<select id="findSunAllReportWorkingRecordByOrgIdAndYearForQuert" parameterClass="java.util.Map"
+		resultMap="workingRecord.reportWorkingRecordNotHaveDetail">
+		<include refid="common.sql_select" />
+		from workingRecords wr
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<!--
+			<isNotNull property="propertydomainid" prepend=" and ">
+					exists(select 1 from dailydirectorys d,propertydicts pd where wr.dailydirectoryid=d.id 
+					and d.directoryReportTypeId=pd.id and d.type=#type# and pd.propertydomainid=#propertydomainid# and pd.internalid=#internalid#)
+				</isNotNull>-->
+				<isNotNull property="directoryReportTypeId" prepend=" and ">
+					exists(select 1 from dailydirectorys d where wr.dailydirectoryid=d.id 
+					and d.directoryReportTypeId=#directoryReportTypeId# and d.type=#type# )
+				</isNotNull>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId =#dailyDirectoryId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyYearId">
+				<isNotNull property="dailyYearId" prepend=" and ">
+					dailyYearId = #dailyYearId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend=" order by ">
+			<isNotNull property="order">$order$</isNotNull>
+			asc
+		</dynamic>
+	</select>
+	
+	<select id="summarizingJudge" parameterClass="java.util.Map"
+		resultMap="workingRecord.reportWorkingRecordResult">
+		<include refid="common.sql_select" />
+		from workingRecords
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="reportTime">
+				<isNotNull property="reportTime" prepend=" and ">
+					reportTime = #reportTime#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId=#dailyDirectoryId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findReportWorkingRecordByOrgIdAndReportTime" parameterClass="java.util.Map"
+		resultMap="workingRecord.reportWorkingRecordResult">
+		<include refid="common.sql_select" />
+		from workingRecords
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="reportTime">
+				<isNotNull property="reportTime" prepend="and">
+                    <![CDATA[reportTime <= #reportTime#]]>   
+                </isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId=#dailyDirectoryId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findMonthtWorkingRecordByOrgIdAndReportTime" parameterClass="java.util.Map"
+		resultMap="workingRecord.reportWorkingRecordResult">
+		<include refid="common.sql_select" />
+		from workingRecords
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="reportTime">
+				<isNotNull property="reportTime" prepend="and">
+                    <![CDATA[reportTime = #reportTime#]]>   
+                </isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId=#dailyDirectoryId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<select id="findReportWorkingRecords" parameterClass="java.util.Map" resultMap="workingRecord.reportWorkingRecordResult">
+		<include refid="common.sql_select" />
+		from workingRecords
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyYearId">
+				<isNotNull property="dailyYearId" prepend=" and ">
+					dailyYearId = #dailyYearId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId=#dailyDirectoryId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		ORDER BY reportTime DESC
+	</select>
+	
+</sqlMap>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="dataManageDBJob">
+
+	<!-- 查找是否有未处理数据 -->
+	<select id="countUnDisposeData" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count"/>
+		from $tableName$ where dispose = #dispose#
+	</select>
+	<!-- 查找未处理数据集合 -->
+	<select id="getUnDisposeData"  parameterClass="java.util.Map" resultClass="java.util.HashMap" remapResults="true">
+		<include refid="common.sql_page_start"/>
+		<include refid="common.sql_select"/>
+		from $tableName$ where dispose = #dispose# order by id
+		<include refid="common.sql_page_end"/>
+	</select>
+	<!-- 修改处理后可认领数据的状态 -->
+	<update id="updateCanClaimData" parameterClass="java.util.Map">
+		update $tableName$ set dispose = #dispose#,claimAvailable = #claimAvailable# where id = #id#
+	</update>
+	<!-- 查找重复数据 -->
+	<select id="getRepeatData" parameterClass="java.util.Map" resultClass="java.util.HashMap" remapResults="true">
+		<include refid="common.sql_select"/>
+		from $tableName$ where 
+		<isEqual property="tableName" compareValue="DM_overseaPersonnel_Temp">
+			certificateType = #certificateType# and certificateNo = #certificateNo#
+		</isEqual>
+		<isNotEqual property="tableName" compareValue="DM_overseaPersonnel_Temp">
+		$uniqueColumn$ = #uniqueValue# 
+		</isNotEqual>
+		and DISTRICTORGID = #orgValue# 
+		<dynamic>
+			<isPropertyAvailable property="claimAvailable" prepend="and">
+				claimAvailable = #claimAvailable#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="id">
+				and id != #id# 
+			</isPropertyAvailable>
+		
+		</dynamic>
+		order by id
+	</select> 
+	<!-- 修改重复数据 -->
+	<update id="updateRepeatData" parameterClass="java.util.Map">
+		update $tableName$ set dispose = #dispose#,claimState = #claimState#,claimAvailable=#claimAvailable#,claimDate='',claimUserId='',claimOrgId='',inId=''
+		 where id = #id#
+	</update>
+	<!-- 修改被认领重复数据 -->
+	<update id="updateBeClaimRepeatData"  parameterClass="java.util.Map">
+		update $tableName$ set claimState = #claimState# where $uniqueColumn$ = #uniqueValue# and DISTRICTORGID = #orgValue# and id != #id# and dispose=#dispose#
+	</update>
+</sqlMap>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+    
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="issueBusinessManage" extends="default" namespace="/issue/issueBusinessManage">
+		<default-class-ref class="issueBusinessController"></default-class-ref>
+		<action name="dispatchDeal" method="dispatchDeal">
+			<result name="deal">
+				/issue/issueManage/dealIssueDlg.jsp
+			</result>
+			<result name="simpleDeal">
+				/issue/issueManage/simpleDealDlg.jsp
+			</result>
+			<result name="toSupervise">
+                /issue/issueManage/superviseIssueDlg.jsp
+            </result>
+			<result name="toInstruct">
+				/issue/issueManage/commandIssueDlg.jsp
+            </result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="dealIssue" method="dealIssue">
+			<result name="success" type="json">
+				<param name="root">issueViewObject</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="simpleDeal" method="dealIssue">
+			<result name="success" type="json">
+				<param name="root">issueViewObject</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="supervise" method="supervise">
+			<result name="success" type="json">
+				<param name="root">issueViewObject</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="cancelSupervise" method="cancelSupervise">
+			<result name="success" type="json">
+				<param name="root">issueViewObject</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="instruct" method="instruct">
+			<result name="success" type="json">
+				<param name="root">issueViewObject</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="searchTransferTarget" method="searchTransferTarget">
+			<result name="success" type="json">
+				<param name="root">transferTargets</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="searchTellTarget" method="searchTellTarget">
+			<result name="success" type="json">
+				<param name="root">transferTargets</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="getUniqueTrgetAdminOrg" method="getUniqueTrgetAdminOrg">
+			<result name="success" type="json">
+				<param name="root">uniqueAdminTarget</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="conceptIssue" method="conceptIssue">
+			<result name="success" type="json">
+				<param name="root">issueViewObject</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

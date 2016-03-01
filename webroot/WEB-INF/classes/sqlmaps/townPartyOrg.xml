@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		FOUNDDATE as foundDate ,
+		CREATEDATE as createDate ,
+		UPDATEDATE as updateDate ,
+		IDCARDNO as idCardNo ,
+		TELEPHONE as telephone ,
+		MOBILENUMBER as mobileNumber ,
+		ORGID as orgId ,
+		TYPE as type ,
+		ORGINTERNALCODE as orgInternalCode ,
+		NAME as name ,
+		SECRETARY as secretary ,
+		CREATEUSER as createUser ,
+		UPDATEUSER as updateUser ,
+		ADDRESS as address 
+	FROM TOWN_PARTY_ORG	
+ -->	
+<sqlMap namespace="townPartyOrg">	
+	
+	<typeAlias alias="TownPartyOrg" type="com.tianque.partyBuilding.organizations.domain.TownPartyOrg"/>
+	<typeAlias alias="SearchTownPartyOrgVo" type="com.tianque.partyBuilding.organizations.domain.vo.SearchTownPartyOrgVo" />
+	
+	<resultMap id="TownPartyOrgResult" class="TownPartyOrg">
+		<result property="id" column="ID"/>
+		<result property="foundDate" column="FOUNDDATE"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="idCardNo" column="IDCARDNO"/>
+		<result property="telephone" column="TELEPHONE"/>
+		<result property="mobileNumber" column="MOBILENUMBER"/>
+		<result property="organization.id" column="ORGID"/>
+		<result property="type.id" column="TYPE"/>
+		<result property="orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="name" column="NAME"/>
+		<result property="secretary" column="SECRETARY"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="address" column="ADDRESS"/>
+	</resultMap>
+
+	<select id="getTownPartyOrgById" parameterClass="java.lang.Long" resultMap="TownPartyOrgResult">
+		select * from TOWN_PARTY_ORG where id=#value#
+	</select>
+	
+	<insert id="addTownPartyOrg" parameterClass="TownPartyOrg">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_TOWNPARTYORG.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into TOWN_PARTY_ORG (ID , FOUNDDATE , CREATEDATE , UPDATEDATE , IDCARDNO , TELEPHONE , MOBILENUMBER , ORGID , TYPE , ORGINTERNALCODE , NAME , SECRETARY , CREATEUSER , UPDATEUSER , ADDRESS ) 
+		values(#id#, #foundDate#, #createDate#, #updateDate#, #idCardNo#, #telephone#, #mobileNumber#, #organization.id#, #type.id#, #orgInternalCode#, #name#, #secretary#, #createUser#, #updateUser#, #address#)	
+	</insert>
+	
+	<update id="updateTownPartyOrg" parameterClass="TownPartyOrg">
+		update TOWN_PARTY_ORG set id = #id# 
+				<isNotNull prepend="," property="foundDate">
+					FOUNDDATE = #foundDate#
+				</isNotNull>
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="idCardNo">
+					IDCARDNO = #idCardNo#
+				</isNotNull>
+				<isNotNull prepend="," property="telephone">
+					TELEPHONE = #telephone#
+				</isNotNull>
+				<isNotNull prepend="," property="mobileNumber">
+					MOBILENUMBER = #mobileNumber#
+				</isNotNull>
+				<isNotNull prepend="," property="organization">
+					ORGID = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="type">
+					TYPE = #type.id#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="name">
+					NAME = #name#
+				</isNotNull>
+				<isNotNull prepend="," property="secretary">
+					SECRETARY = #secretary#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="address">
+					ADDRESS = #address#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteTownPartyOrgById" parameterClass="java.lang.Long">	
+		delete  from TOWN_PARTY_ORG where id = #value#	
+	</delete>
+	
+	<sql id="findTownPartyOrgBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$'
+				</isNotNull>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="maxFoundDate">
+					<isNotEmpty prepend="and" property="maxFoundDate">
+						FOUNDDATE  <![CDATA[<=]]> #maxFoundDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minFoundDate">
+					<isNotEmpty prepend="and" property="minFoundDate">
+						FOUNDDATE  <![CDATA[>=]]> #minFoundDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="idCardNo">
+					<isNotEmpty prepend="and" property="idCardNo">
+						IDCARDNO  like #idCardNo# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="telephone">
+					<isNotEmpty prepend="and" property="telephone">
+						TELEPHONE  like #telephone# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="mobileNumber">
+					<isNotEmpty prepend="and" property="mobileNumber">
+						MOBILENUMBER  like #mobileNumber# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="type">
+					<isNotEmpty prepend="and" property="type">
+						TYPE = #type#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="name">
+					<isNotEmpty prepend="and" property="name">
+						NAME  like #name# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="secretary">
+					<isNotEmpty prepend="and" property="secretary">
+						SECRETARY  like #secretary# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="address">
+					<isNotEmpty prepend="and" property="address">
+						ADDRESS  like #address# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+	<select id="findTownPartyOrgsBySearchVo" parameterClass="SearchTownPartyOrgVo" resultMap="TownPartyOrgResult">
+		select * from TOWN_PARTY_ORG
+		<include refid="findTownPartyOrgBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countTownPartyOrgsBySearchVo" parameterClass="SearchTownPartyOrgVo" resultClass="java.lang.Integer">
+		select count(0) from TOWN_PARTY_ORG
+		<include refid="findTownPartyOrgBySearchVo_sql_where" />
+	</select>
+
+	<select id="countTownPartyOrgByOrg" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) from TOWN_PARTY_ORG tpo where 
+		<iterate property="orgIdsList" conjunction="or" open="(" close=")">
+					tpo.orgId in ($orgIdsList[]$) 
+		</iterate>
+	</select>
+	
+	<select id="getByOrgIdAndName" parameterClass="map"  resultMap="TownPartyOrgResult">
+		select * from TOWN_PARTY_ORG where orgId=#orgId# and name=#name#
+	</select>
+</sqlMap>

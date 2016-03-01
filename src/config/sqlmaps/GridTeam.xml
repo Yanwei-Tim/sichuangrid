@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gridTeam">
+	<!-- 注释说明 -->
+	<typeAlias alias="gridTeam" type="com.tianque.baseInfo.primaryOrg.domain.GridTeam" />
+	<typeAlias alias="gridTeamVo" type="com.tianque.openLayersMap.domian.vo.GirdTeamVo" />
+	<typeAlias alias="statisticsGridTeamVo" type="com.tianque.baseInfo.primaryOrg.domain.vo.GridTeamVo" />
+	
+	<resultMap id="gridTeamResult" class="gridTeam">
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgCode" />
+		<result property="memeberName" column="memeberName" />
+		<result property="idCardNo" column="idCardNo" />
+		<result property="gender.id" column="gender" />
+		<result property="birthDate" column="birthDate" />
+		<result property="phoneNumber" column="phoneNumber" />
+		<result property="positionType.id" column="positionType" />
+		<result property="politicalBackground.id" column="political" />
+		<result property="education.id" column="education" />
+		<result property="isActivated" column="isActivated" />
+		<result property="activatedTime" column="activatedTime" />
+		<result property="registeredDate" column="registeredDate" />
+		<result property="remark" column="remark" />
+		<result property="user.id" column="userId" />
+		<result property="userDefinedGridName" column="userDefinedGridName" />
+		<result property="imageUrl" column="imageUrl" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	
+	<resultMap id="gridTeamVoResult" class="gridTeamVo">
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgCode" />
+		<result property="memeberName" column="memeberName" />
+		<result property="idCardNo" column="idCardNo" />
+		<result property="gender.id" column="gender" />
+		<result property="birthDate" column="birthDate" />
+		<result property="phoneNumber" column="phoneNumber" />
+		<result property="positionType.id" column="positionType" />
+		<result property="politicalBackground.id" column="political" />
+		<result property="education.id" column="education" />
+		<result property="isActivated" column="isActivated" />
+		<result property="activatedTime" column="activatedTime" />
+		<result property="registeredDate" column="registeredDate" />
+		<result property="remark" column="remark" />
+		<result property="userDefinedGridName" column="userDefinedGridName" />
+		<result property="imageUrl" column="imageUrl" />
+	</resultMap>
+	
+	<resultMap class="gridTeamVo" extends="gridTeamVoResult" id="gridTeamVoListResult">
+		<result property="lat" column="lat" />
+		<result property="lon" column="lon" />
+	</resultMap>
+
+	<resultMap class="statisticsGridTeamVo" id="gridTeamStatisticsResult">
+		<result property="org.orgName" column="orgName" />
+		<result property="sysGrids" column="sysGrids" />
+		<result property="userDefinedGrids" column="userDefinedGrids" />
+		<result property="fullTimeGridTeamCount" column="fullTimeGridTeamCount" />
+		<result property="partTimeGridTeamCount" column="partTimeGridTeamCount" />
+		<result property="phoneGridTeamCount" column="phoneGridTeamCount" />
+	</resultMap>
+	
+	
+	<insert id="addGridTeam" parameterClass="gridTeam">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_gridTeamMember.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO gridTeamMember
+		(
+			id,orgId,orgCode,memeberName,idCardNo,gender,birthDate,phoneNumber,positionType,political,education,isActivated,activatedTime,registeredDate,remark,
+			createUser,createDate,updateDate,userId,userDefinedGridName,imageUrl
+		)
+		values
+		(
+			#id#,#organization.id#,#organization.orgInternalCode#,#memeberName#,#idCardNo#,#gender.id#,#birthDate#,#phoneNumber#,#positionType.id#,#politicalBackground.id#,#education.id#,
+			#isActivated#,#activatedTime#,#registeredDate#,#remark#,#createUser#,#createDate#,#updateDate#,#user.id#,#userDefinedGridName#,#imageUrl#
+		)
+	</insert>
+	
+	<update id="updateGridTeam" parameterClass="gridTeam">
+		update gridTeamMember set
+		memeberName=#memeberName#,
+		idCardNo=#idCardNo#,
+		orgId=#organization.id#,
+		orgCode=#organization.orgInternalCode#,
+		gender=#gender.id#,
+		birthDate=#birthDate#,
+		phoneNumber=#phoneNumber#,
+		positionType=#positionType.id#,
+		political=#politicalBackground.id#,
+		education=#education.id#,
+		isActivated=#isActivated#,
+		activatedTime=#activatedTime#,
+		registeredDate=#registeredDate#,
+		remark=#remark#,
+		updateUser=#updateUser#,
+		updateDate=#updateDate#,
+		userId=#user.id#,
+		userDefinedGridName=#userDefinedGridName#,
+		imageUrl=#imageUrl#
+		where id=#id#
+	</update>
+	
+	<delete id="deleteGridTeamByIds">
+		 delete from  gridTeamMember where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	
+	<!-- 根据用户ids删除网格员 -->
+	<delete id="deleteGridTeamByUserIds">
+		 delete from  gridTeamMember where 
+		 <iterate  conjunction="," open="userId in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	
+	<select id="getGridTeamById" parameterClass="java.lang.Long" resultMap="gridTeamResult">
+		select * from gridTeamMember where id=#id# 
+	</select>
+	
+	<select id="countFindGridTeamForList" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(1) from gridTeamMember where orgCode like #orgCode# || '%' 
+		<isPropertyAvailable property="memeberName">
+			<isNotNull property="memeberName" prepend="and">
+				memeberName like #memeberName# ||'%'
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	
+	<select id="findGridTeamForList" parameterClass="java.util.Map" resultMap="gridTeamResult">
+		select * from gridTeamMember where orgCode like #orgCode# || '%' 
+		<isPropertyAvailable property="memeberName">
+			<isNotNull property="memeberName" prepend="and">
+				memeberName like #memeberName# ||'%'
+			</isNotNull>
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 网格员统计报表 -->
+	<select id="statisticsGridTeam" parameterClass="java.util.Map" resultMap="gridTeamStatisticsResult">
+		select orgName,
+			(select count(1) from organizations where orgInternalCode like org.orginternalcode || '%' and orgLevel=#gridOrgLevelId#) sysGrids,
+			(select count(1) from gridTeamMember where userDefinedGridName is not null and orgCode like org.orginternalcode || '%' ) userDefinedGrids,
+			(select count(1) from gridTeamMember where orgCode like org.orginternalcode || '%' and isActivated=1 and positionType=#fullTimeId#) fullTimeGridTeamCount,
+			(select count(1) from gridTeamMember where orgCode like org.orginternalcode || '%' and isActivated=1 and positionType=#partTimeId#) partTimeGridTeamCount,
+			(select count(1) from users 
+					where id in(select userid from userhasroles where roleId in(select id from roles where roleName='信息员' or roleName='农村信息员'))
+                    and organizationId in (select id from organizations where orginternalcode like org.orginternalcode || '%') and mobileUsable=1) phoneGridTeamCount 
+                    
+            from organizations org where org.parentId=#parentOrgId# order by org.seq
+	</select>
+	
+	<!-- 已激活的机构本级及下辖 的网格员数量 -->
+	<select id="countIsActivatedFindGridTeam" parameterClass="java.lang.String" resultClass="java.lang.Long">
+		select count(1) from gridTeamMember where orgCode like #orgCode# || '%' and isActivated=1
+	</select>
+	
+	<!-- 查询专职/兼职网格员 -->
+	<select id="countGridTeamByOrgAndPositionType" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(1) from gridTeamMember where orgCode like #orgCode# || '%' 
+			and isActivated=1 and positionType=#positionTypeId#
+	</select>
+	<!-- 查询手机账号的网格员 -->
+	<select id="oldCountPhoneGridTeam" parameterClass="java.lang.String" resultClass="java.lang.Long">
+		select count(1) from gridTeamMember gm join users u on gm.userId=u.id where gm.orgCode like #orgCode# || '%' 
+			and gm.isActivated=1 and u.mobileUsable=1
+	</select>
+	<!-- 查询手机账号的网格员(新) -->
+	<select id="countPhoneGridTeam" parameterClass="java.lang.String" resultClass="java.lang.Long">
+		select count(1) from users 
+					where id in(select userid from userhasroles where roleId in(select id from roles where roleName='信息员' or roleName='农村信息员'))
+                    and organizationId in (select id from organizations where orginternalcode like #orgCode# || '%') and mobileUsable=1
+	</select>
+	
+	<!-- 查询未定义的网格数量 -->
+	<select id="countUserDefinedGrid" parameterClass="java.lang.String" resultClass="java.lang.Long">
+		select count(1) from (select orgId,userDefinedGridName from gridTeamMember where userDefinedGridName is not null and orgCode like #orgCode# || '%'
+			GROUP BY orgId,userDefinedGridName) tb
+	</select>
+	
+	<!-- 根据电话号码来查询网格员 -->
+	<select id="getGridTeamByPhoneNumber" parameterClass="java.lang.String" resultMap="gridTeamResult">
+		select * from gridTeamMember where phoneNumber =#phoneNumber#
+	</select>
+	
+	<!-- 根据电话号码和组织机构来查询网格员(唯一) -->
+	<select id="getGridTeamByIdCardNo" parameterClass="java.util.Map" resultMap="gridTeamResult">
+		select * from gridTeamMember where orgId =#orgId# and idCardNo=#idCardNo#
+ 	</select>
+ 	
+	<!-- 根据用户id来查询网格员(系统用户和网格员关联) -->
+	<select id="getGridTeamByUserId" parameterClass="java.lang.Long" resultMap="gridTeamResult">
+		select * from gridTeamMember where userId =#userId#
+ 	</select>
+ 	
+ 	
+ 	<select id="countTwoDimensionMapPageInfoByOrgIdAndTypeName" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+ 		 select count(1) from gridTeamMember where 1 = 1
+ 		 <isNotNull property="orgCode">
+ 			 and orgCode like #orgCode# || '%' 
+ 		 </isNotNull>
+ 		 <isNotNull property="type">
+ 			 and positionType = #type#
+ 		 </isNotNull>
+ 		 and isActivated=1
+ 	</select>
+ 	
+ 	<select id="findTwoDimensionMapPageInfoByOrgIdAndTypeName" parameterClass="java.util.Map" resultMap="gridTeamVoListResult">
+ 		 select g.*,gi.centerx2 as lon,gi.centery2 as lat from gridTeamMember g left join gis2DLayers gi on g.orgid = gi.organization where 1 = 1
+ 		 <isNotNull property="orgCode">
+ 			 and orgCode like #orgCode# || '%' 
+ 		 </isNotNull>
+ 		 <isNotNull property="type">
+ 			 and positionType = #type#
+ 		 </isNotNull>
+ 		 and isActivated=1
+ 	</select>
+ 	
+ 	<select id="get2DMapInfoBySerachType" parameterClass="java.util.Map" resultClass="Integer">
+ 		select count(1) from gridTeamMember where 1 = 1
+ 		<isNotNull property="orgCode">
+ 			 and orgCode like #orgCode# || '%' 
+ 		 </isNotNull>
+ 		 <isNotNull property="serachType">
+ 			 and (IDCARDNO like '$searchValue$%' or MEMEBERNAME like '$searchValue$%')
+ 		 </isNotNull>
+ 		 and isActivated=1
+ 	</select>
+ 	
+ 	<select id="get2DMapInfoByRigthSerachType" parameterClass="java.util.Map" resultClass="Integer">
+ 		select count(1) from gridTeamMember where 1 = 1
+ 		<isNotNull property="orgCode">
+ 			 and orgCode like #orgCode# || '%' 
+ 		 </isNotNull>
+ 		 and isActivated=1
+ 	</select>
+ 	
+ 	
+ 	<select id="getGirdTeamVoInfoById" parameterClass="java.util.Map" resultMap="gridTeamVoResult">
+ 		select * from gridTeamMember where id = #id#
+ 	</select>
+</sqlMap>
+

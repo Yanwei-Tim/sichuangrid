@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="syncPermanentAddress">
+	
+	<update id="syncProvince" parameterClass="map">
+		update $tableName$ set $provinceColumnName$= #changedName#,updateDate=#updateDate# where $provinceColumnName$ = #province#
+	</update>
+	
+	<update id="syncCity" parameterClass="map">
+		update $tableName$ set $cityColumnName$= #changedName#,updateDate=#updateDate# where $provinceColumnName$ = #province# and $cityColumnName$ = #city#
+	</update>
+	
+	<update id="syncDistrict" parameterClass="map">
+		update $tableName$ set $districtColumnName$= #changedName#,updateDate=#updateDate# where $provinceColumnName$ = #province# and $cityColumnName$ =#city#
+		and $districtColumnName$ = #district#
+	</update>
+	
+
+</sqlMap>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="groupObj">
+	<typeAlias alias="groupObj" type="com.tianque.working.domain.GroupObj" />
+	<typeAlias
+		type="org.springframework.orm.ibatis.support.ClobStringTypeHandler"
+		alias="ClobStringTypeHandler" />
+	<resultMap id="groupObjResult" class="groupObj">
+		<result column="id" property="id" />
+		<result column="documentId" property="documentId" />
+		<result column="departmentGroupId" property="departmentGroupId" />
+		<result column="deleteState" property="deleteState" />
+		<result column="postObj" property="postObj" />
+	</resultMap>
+	
+	<insert id="addGroupObj" parameterClass="groupObj">
+	     <selectKey resultClass="java.lang.Long" keyProperty="id">
+	          <![CDATA[SELECT s_groupObjs.NEXTVAL as id from dual ]]>
+	     </selectKey>
+	     insert into groupObjs(id,documentId,departmentGroupId,deleteState,postObj)
+	     values(#id#,#documentId#,#departmentGroupId#,#deleteState#,#postObj#)
+	</insert>
+	
+	<select id="findGroupObjsByGroupId" parameterClass="java.lang.Long"
+	resultMap="groupObjResult">
+	     select * from groupObjs where departmentGroupId=#value#
+	</select>
+	
+	<update id="updateGroupObjByGroupIdAndDeleteState" parameterClass="java.util.Map">
+	     update groupObjs set deleteState=#deleteState# where departmentGroupId=#departmentGroupId#
+	</update>
+	
+	<delete id="deleteGroupObjByDocumentId" parameterClass="java.lang.Long">
+	   delete from groupObjs where documentId=#value#
+	 </delete>
+	 
+	 <select id="findGroupObjsByDocumentIdandPostObj" parameterClass="java.util.Map" 
+	 resultMap="groupObjResult">
+	     select * from groupObjs where documentId=#documentId# and postObj=#postObj# and deleteState=0
+	 </select>
+	 
+	 <select id="findGroupObjsByDocumentIdandDeleteState" parameterClass="java.util.Map" 
+	 resultMap="groupObjResult">
+	    select * from groupObjs where documentId=#documentId# and deleteState=#deleteState#
+	 </select>
+
+
+</sqlMap>

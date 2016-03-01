@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchUnsettledPopulation">
+<typeAlias alias="UnsettledPopulation" type="com.tianque.baseInfo.unsettledPopulation.domain.UnsettledPopulation" />
+  <resultMap class="UnsettledPopulation" id="unsettledPopulationResult">
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="gender.id" column="gender" />
+		<result property="idCardNo" column="idCardNo" />
+		<result property="name" column="name" />
+		<result property="usedName" column="usedName" />
+		<result property="birthday" column="birthday" />
+		<result property="province" column="province" />
+		<result property="city" column="city" />
+		<result property="district" column="district" />
+		<result property="nativePlaceAddress" column="nativePlaceAddress" />
+		<result property="currentAddress" column="currentAddress" />
+		<result property="telephone" column="telephone" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="politicalBackground.id" column="politicalBackground" />
+		<result property="maritalState.id" column="maritalState" />
+		<result property="stature" column="stature" />
+		<result property="nation.id" column="nation" />
+		<result property="faith.id" column="faith" />
+		<result property="schooling.id" column="schooling" />
+		<result property="bloodType.id" column="bloodType" />
+		<result property="email" column="email" />
+		<result property="workUnit" column="workUnit" />
+		<result property="remark" column="remark" />
+		<result property="isDeath" column="isDeath" />
+		<result property="logOut" column="logOut" />
+		<result property="logoutDetail.logoutDate" column="logoutDate"/>
+		<result property="logoutDetail.logoutReason" column="logOutReason"/>
+		<result property="otherAddress" column="otherAddress" />
+		<result property="certificateType.id" column="certificateType" />
+		<result property="certificateNo" column="certificateNo" />
+		<result property="career.id" column="career" />
+		<result property="unSettedTime" column="unSettedTime" />
+		<result property="unSettedReason.id" column="unSettedReason" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="imgUrl"  column="imgUrl"/>
+		<result property="currentAddressType.id" column="currentAddressType"/>
+		<result property="community"  column="community"/>
+		<result property="block" column="block"/>
+		<result property="unit"  column="unit"/>
+		<result property="room" column="room"/>
+		<result column="isHaveHouse" property="isHaveHouse" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="fullPinyin" column="fullPinyin"/>
+	</resultMap>
+	
+	<resultMap class="UnsettledPopulation" id="gisUnsettledPopulationResult" extends="unsettledPopulationResult">
+		<result property="actualType" column="actualType"/>
+	</resultMap>
+	
+   <sql id="sql_where">
+		from unsettledPopulations 
+		 <dynamic prepend="where">
+	        <isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+         <isPropertyAvailable property="idCardNo">
+            <isNotEmpty prepend=" and " property="idCardNo">
+            	upper(idCardNo) like upper(#idCardNo#)||'%'
+            </isNotEmpty>
+          </isPropertyAvailable>
+          <isPropertyAvailable property="gender">
+            <isNotEmpty prepend=" and " property="gender.id">
+            	gender  = #gender.id#
+            </isNotEmpty>
+          </isPropertyAvailable>
+          <isPropertyAvailable property="name">
+            <isNotEmpty prepend=" and " property="name">
+            	(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+            </isNotEmpty>
+           </isPropertyAvailable>
+              <isPropertyAvailable property="usedName">
+            <isNotEmpty prepend=" and " property="usedName">
+            	usedName like #usedName#||'%'
+            </isNotEmpty>
+            </isPropertyAvailable>
+              <isPropertyAvailable property="birthdayStart">
+            <isNotEmpty prepend=" and " property="birthdayStart">
+            	<![CDATA[ birthday >= #birthdayStart# ]]>
+            </isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="birthdayEnd">
+            <isNotEmpty prepend=" and " property="birthdayEnd">
+            	<![CDATA[ birthday <= #birthdayEnd# ]]>
+            </isNotEmpty> 
+            </isPropertyAvailable>
+            <isPropertyAvailable property="province">
+            <isNotEmpty prepend=" and " property="province">
+            	province=#province#
+            </isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="city">
+             <isNotEmpty prepend=" and " property="city">
+            	city=#city#
+            </isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="district">
+             <isNotEmpty prepend=" and " property="district">
+            	district=#district#
+            </isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="nativePlaceAddress">
+             <isNotEmpty prepend=" and " property="nativePlaceAddress">
+            	nativePlaceAddress  like  #nativePlaceAddress#||'%'
+            </isNotEmpty>
+            </isPropertyAvailable>
+            
+             <isPropertyAvailable property="politicalBackground">
+             <isNotEmpty prepend=" and " property="politicalBackground.id">
+            	politicalBackground = #politicalBackground.id#
+            </isNotEmpty>
+            </isPropertyAvailable>
+			 
+            <isPropertyAvailable property="currentAddress">
+            <isNotEmpty prepend=" and " property="currentAddress">
+            	currentAddress like #currentAddress#||'%'
+             </isNotEmpty>
+             </isPropertyAvailable>
+              <isPropertyAvailable property="telephone">
+            <isNotEmpty prepend=" and " property="telephone">
+            	telephone like '%'||#telephone#||'%'
+            </isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="mobileNumber">
+            <isNotEmpty prepend=" and " property="mobileNumber">
+            	mobileNumber like '%'||#mobileNumber#||'%'
+            </isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="maritalState">
+             <isNotEmpty prepend=" and " property="maritalState.id">
+            	maritalState=#maritalState.id#
+            </isNotEmpty>
+            </isPropertyAvailable>
+              <isPropertyAvailable property="stature">
+             <isNotEmpty prepend=" and " property="stature">
+            	stature like '%'||#stature#||'%'
+            </isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="nation">
+            <isNotEmpty prepend=" and " property="nation.id">
+            	nation=#nation.id#
+            </isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="faith">
+             <isNotEmpty prepend=" and " property="faith.id">
+            	faith =#faith.id#
+            </isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="certificateType">
+             <isNotEmpty prepend=" and " property="certificateType.id">
+            	certificateType= #certificateType.id#
+            </isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="certificateNo">
+             <isNotEmpty prepend=" and " property="certificateNo">
+            	certificateNo like '%'||#certificateNo#||'%'
+            </isNotEmpty>
+            </isPropertyAvailable>
+              <isPropertyAvailable property="unsettedTimeStart">
+             <isNotEmpty prepend=" and " property="unsettedTimeStart">
+             <![CDATA[ unSettedTime >= #unsettedTimeStart# ]]>
+            </isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="unsettedTimeEnd">
+             <isNotEmpty prepend=" and " property="unsettedTimeEnd">
+             <![CDATA[ unSettedTime <= #unsettedTimeEnd# ]]>
+            </isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="unSettedReason">
+            <isNotEmpty prepend=" and " property="unSettedReason.id">
+            	unSettedReason=#unSettedReason.id#
+            </isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="schooling">
+            <isNotEmpty prepend=" and " property="schooling.id">
+            	schooling=#schooling.id#
+            </isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="healthState">
+            <isNotEmpty prepend=" and " property="healthState.id">
+            	healthState=#healthState.id#
+            </isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="bloodType">
+             <isNotEmpty prepend=" and " property="bloodType.id">
+            	bloodType=#bloodType.id#
+            </isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="email">
+            <isNotEmpty prepend=" and " property="email">
+            	email like '%'||#email#||'%'
+            </isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="workUnit">
+             <isNotEmpty prepend=" and " property="workUnit">
+            	workUnit like '%'||#workUnit#||'%'
+            </isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="isDeath">
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="1">
+						isDeath = #isDeath#
+					</isEqual>
+					<isEqual property="isDeath" compareValue="0">
+						(isDeath = #isDeath# or isDeath is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logOut">
+				<isNotNull property="logOut" prepend=" and ">
+					<isEqual property="logOut" compareValue="1">
+						logOut = #logOut#
+					</isEqual>
+					<isEqual property="logOut" compareValue="0">
+						(logOut = #logOut# or logOut is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="career" >
+				<isNotEmpty property="career.id" prepend=" and ">
+					career = #career.id#
+				</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="fastSearchKeyWords">
+			<isNotNull property="fastSearchKeyWords" prepend=" and ">
+					(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+			</isNotNull>
+		</isPropertyAvailable>
+         </dynamic>
+	</sql>
+	<select id="countSearchUnsettledPopulation" parameterClass="map" resultClass="int">
+		select count(*)
+		<include refid="sql_where" />
+	</select>
+	<select id="searchUnsettledPopulation" parameterClass="map" resultMap="unsettledPopulationResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countFastSearchUnsettledPopulation" parameterClass="map" resultClass="int">
+		select count(*)
+		from UNSETTLEDPOPULATIONS where orgInternalCode like #orgInternalCode#||'%'
+		<isPropertyAvailable property="name">
+				<isNotNull property="name">
+					<isNotEmpty property="name" prepend=" and ">
+						(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+					</isNotEmpty>
+				</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="idCardNo" >
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="isDeath">
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="1">
+						isDeath = #isDeath#
+					</isEqual>
+					<isEqual property="isDeath" compareValue="0">
+						(isDeath = #isDeath# or isDeath is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logOut">
+				<isNotNull property="logOut" prepend=" and ">
+					<isEqual property="logOut" compareValue="1">
+						logOut = #logOut#
+					</isEqual>
+					<isEqual property="logOut" compareValue="0">
+						(logOut = #logOut# or logOut is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+						(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+				</isNotNull>
+			</isPropertyAvailable>
+	</select>
+	<select id="searchFastUnsettledPopulation" parameterClass="map" resultMap="unsettledPopulationResult">
+		select *
+		from UNSETTLEDPOPULATIONS where orgInternalCode like #orgInternalCode#||'%'
+		<isPropertyAvailable property="fastSearchKeyWords">
+			<isNotNull property="fastSearchKeyWords" prepend=" and ">
+					(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend=" and ">
+					(name like '$name$%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="idCardNo" >
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="isDeath">
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="1">
+						isDeath = #isDeath#
+					</isEqual>
+					<isEqual property="isDeath" compareValue="0">
+						(isDeath = #isDeath# or isDeath is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logOut">
+				<isNotNull property="logOut" prepend=" and ">
+					<isEqual property="logOut" compareValue="1">
+						logOut = #logOut#
+					</isEqual>
+					<isEqual property="logOut" compareValue="0">
+						(logOut = #logOut# or logOut is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countUnsettledPopulation" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	<select id="findUnsettledPopulationList" parameterClass="java.util.Map" resultMap="unsettledPopulationResult">
+		select * 
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="findUnsettledPopulation" parameterClass="java.util.Map" resultMap="unsettledPopulationResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="fingUnsettledPopulationByorgCodeForGis" parameterClass="map" resultMap="gisUnsettledPopulationResult">
+		select　'unsettledPopulation' as actualType, us.* from unsettledPopulations us where us.orgInternalCode like  #orgInternalCode#||'%'
+	</select>
+</sqlMap>

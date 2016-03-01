@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		CREATEDATE as createDate ,
+		UPDATEDATE as updateDate ,
+		ORGID as orgId ,
+		CLAIMPLANS as claimPlans ,
+		TELEPHONE as telephone ,
+		ORGINTERNALCODE as orgInternalCode ,
+		PROJECTNAME as projectName ,
+		CONTRACTOR as contractor ,
+		CREATEUSER as createUser ,
+		UPDATEUSER as updateUser ,
+		REMARK as remark ,
+		PROJECTCONTENT as projectContent 
+	FROM SERVICEPROJECT	
+ -->	
+<sqlMap namespace="serviceProject">	
+	
+	<typeAlias alias="ServiceProject" type="com.tianque.partyBuilding.doubleRegActivities.domain.ServiceProject"/>
+	<typeAlias alias="SearchServiceProjectVo" type="com.tianque.partyBuilding.doubleRegActivities.domain.Vo.SearchServiceProjectVo" />
+	<typeAlias alias="ClobStringTypeHandler" type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+	
+	<resultMap id="serviceprojectResult" class="ServiceProject">
+		<result property="id" column="ID"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="organization.id" column="ORGID"/>
+		<result property="claimPlans" column="CLAIMPLANS"/>
+		<result property="telephone" column="TELEPHONE"/>
+		<result property="orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="projectName" column="PROJECTNAME"/>
+		<result property="contractor" column="CONTRACTOR"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="remark" column="REMARK"/>
+		<result property="projectContent" column="PROJECTCONTENT" typeHandler="ClobStringTypeHandler"/>
+	</resultMap>
+	
+
+
+	<select id="getServiceProjectById" parameterClass="java.lang.Long" resultMap="serviceprojectResult">
+		select * from SERVICEPROJECT where id=#value#
+	</select>
+	
+	<insert id="addServiceProject" parameterClass="ServiceProject">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_SERVICEPROJECT.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into SERVICEPROJECT (ID , CREATEDATE , UPDATEDATE , ORGID , CLAIMPLANS , TELEPHONE , ORGINTERNALCODE , PROJECTNAME , CONTRACTOR , CREATEUSER , UPDATEUSER , REMARK , PROJECTCONTENT ) 
+		values(#id#, #createDate#, #updateDate#, #organization.id#, #claimPlans#, #telephone#, #orgInternalCode#, #projectName#, #contractor#, #createUser#, #updateUser#, #remark#, #projectContent,handler=ClobStringTypeHandler#)	
+	</insert>
+	
+	<update id="updateServiceProject" parameterClass="ServiceProject">
+		update SERVICEPROJECT set id = #id# 
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="organization.id">
+					ORGID = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="claimPlans">
+					CLAIMPLANS = #claimPlans#
+				</isNotNull>
+				<isNotNull prepend="," property="telephone">
+					TELEPHONE = #telephone#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="projectName">
+					PROJECTNAME = #projectName#
+				</isNotNull>
+				<isNotNull prepend="," property="contractor">
+					CONTRACTOR = #contractor#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="remark">
+					REMARK = #remark#
+				</isNotNull>
+				<isNotNull prepend="," property="projectContent">
+					PROJECTCONTENT = #projectContent#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteServiceProjectById" parameterClass="java.lang.Long">	
+		delete  from SERVICEPROJECT where id = #value#	
+	</delete>
+	<delete id="deleteServiceProjectByIds" parameterClass="java.util.Map">	
+		delete  from SERVICEPROJECT where id 
+				<iterate close=")" open="(" prepend=" in " conjunction="," property="idList">
+					#idList[]#
+				</iterate>
+	</delete>
+	
+	<sql id="findServiceProjectsBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="claimPlans">
+					<isNotEmpty prepend="and" property="claimPlans">
+						CLAIMPLANS like #claimPlans# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="telephone">
+					<isNotEmpty prepend="and" property="telephone">
+						TELEPHONE  like #telephone# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="projectName">
+					<isNotEmpty prepend="and" property="projectName">
+						PROJECTNAME  like #projectName# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="contractor">
+					<isNotEmpty prepend="and" property="contractor">
+						CONTRACTOR  like #contractor# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>			
+				<isPropertyAvailable property="remark">
+					<isNotEmpty prepend="and" property="remark">
+						REMARK  like #remark# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="projectContent">
+					<isNotEmpty prepend="and" property="projectContent">
+						PROJECTCONTENT  like #projectContent# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+	<select id="findServiceProjectsBySearchVo" parameterClass="SearchServiceProjectVo" resultMap="serviceprojectResult">
+		select * from SERVICEPROJECT
+		<include refid="findServiceProjectsBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countServiceProjectsBySearchVo" parameterClass="SearchServiceProjectVo" resultClass="java.lang.Integer">
+		select count(0) from SERVICEPROJECT
+		<include refid="findServiceProjectsBySearchVo_sql_where" />
+	</select>
+
+
+	<select id="getServiceProjectByProjectNameAndOrgId"  parameterClass="map"
+		resultMap="serviceprojectResult"> 
+		select * from SERVICEPROJECT where PROJECTNAME = #projectName# and orgId=#orgId#
+	</select>
+	
+	<select id="countClaimedByIdAndOrgId" parameterClass="java.util.Map" resultClass="Integer">
+		   select count(*)
+          from serviceproject s, reporthasproject r
+         where s.id = r.projectid and s.orgid=#orgId# and s.id=#id#
+	</select>
+</sqlMap>

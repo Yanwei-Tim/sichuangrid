@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="issueTypeStanal">
+	<typeAlias alias="IssueTypeStanal" type="com.tianque.domain.IssueTypeStanal" />
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization" />
+	<typeAlias alias="IssueTypeDomain" type="com.tianque.domain.IssueTypeDomain" />
+
+	<typeAlias alias="issueGrouyByOrgAndTypeResult" type="com.tianque.report.queryVo.OrgGroupedObject" />
+
+	<resultMap id="issueGrouyByOrgAndTypeResult" class="issueGrouyByOrgAndTypeResult">
+		<result property="orgId" column="orgId" />
+		<result property="subgroupid1" column="typeid" />
+		<result property="countresult1" column="issuecount" />
+		<result property="countresult2" column="domainid" />
+	</resultMap>
+	
+	<select id="statIssueCountByTimeGroupOrgAndType" parameterClass="java.util.Map"
+		resultMap="issueGrouyByOrgAndTypeResult">
+		select i.occurorg orgId,i.issuetypeid typeid ,count(*) issuecount ,min(i.issuetypedomainid) domainid
+		from issues i where 
+		i.createdate <![CDATA[ >= ]]>#startDate# and i.createdate<![CDATA[ <= ]]>#endDate#
+		and i.occurorginternalcode like #orgInternalCode#||'%'
+		group by i.occurorg,i.issuetypeid 
+	</select>
+
+	<resultMap id="issueGrouyByTypeResult" class="issueGrouyByOrgAndTypeResult">
+		<result property="subgroupid1" column="typeid" />
+		<result property="countresult1" column="issuecount" />
+	</resultMap>
+	
+	<select id="getPeriodIssueTypeStatInfoByOrgGroupByTypeDomain" parameterClass="java.util.Map"
+		resultMap="issueGrouyByTypeResult">
+		select domainid typeid,sum(count) issuecount from issuetypestanals
+		where  startDate <![CDATA[ >= ]]>#startDate# and endDate<![CDATA[ <= ]]>#endDate#
+		and orgId = $orgId$
+		group by domainid 
+	</select>
+
+	<select id="getPeriodIssueTypeStatDetailInfoByOrgAndTypeDomain" parameterClass="java.util.Map"
+		resultMap="issueGrouyByTypeResult">
+		select typeid typeid,sum(count) issuecount from issuetypestanals
+		where  startDate <![CDATA[ >= ]]>#startDate# and endDate<![CDATA[ <= ]]>#endDate#
+		and orgInternalCode like #orgcode#||'%'
+		and domainid = $domainid$
+		group by typeid
+	</select>
+	
+	<select id="getPeriodIssueTypeStatDetailInfoByOrgIdAndTypeDomain" parameterClass="java.util.Map"
+		resultMap="issueGrouyByTypeResult">
+		select typeid typeid,sum(count) issuecount from issuetypestanals
+		where  startDate <![CDATA[ >= ]]>#startDate# and endDate<![CDATA[ <= ]]>#endDate#
+		and orgId = $orgId$
+		and domainid = $domainid$
+		group by typeid
+	</select>
+
+	<select id="getPeriodIssueTypeStatInfoByOrgCodeGroupByTypeDomain" parameterClass="java.util.Map"
+		resultMap="issueGrouyByTypeResult">
+		select domainid typeid,sum(count) issuecount from issuetypestanals
+		where  year = #year# and month = #month#
+		and orgInternalCode like #orgcode#||'%'
+		group by domainid
+	</select>
+	
+	<select id="getPeriodIssueTypeStatInfoByOrgIdGroupByTypeDomain" parameterClass="java.util.Map"
+		resultMap="issueGrouyByTypeResult">
+		select domainid typeid,sum(count) issuecount from issuetypestanals
+		where  year = #year# and month = #month#
+		and orgId = #orgId#
+		group by domainid 
+	</select>
+	
+	<select id="getPeriodIssueTypeStatInfoListByOrgCodeGroupByTypeDomain" parameterClass="java.util.Map"
+		resultMap="issueGrouyByTypeResult">
+		select domainid typeid,sum(count) issuecount from issuetypestanals
+		where  startDate <![CDATA[ >= ]]>#startDate# and endDate<![CDATA[ <= ]]>#endDate#
+		and orgInternalCode like #orgcode#||'%'
+		group by domainid 
+	</select>
+	
+	<select id="getPeriodIssueTypeStatInfoListByOrgIdGroupByTypeDomain" parameterClass="java.util.Map"
+		resultMap="issueGrouyByTypeResult">
+		select domainid typeid,sum(count) issuecount from issuetypestanals
+		where  startDate <![CDATA[ >= ]]>#startDate# and endDate<![CDATA[ <= ]]>#endDate#
+		and orgId = #orgId#
+		group by domainid 
+	</select>
+
+	<resultMap id="issueStartTimeResult" class="IssueTypeStanal">
+		<result property="startTime" column="startTime" />
+	</resultMap>
+
+	<resultMap id="issueTypeStanalResult" class="IssueTypeStanal">
+		<result property="id" column="id" />
+		<result property="org.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="issueTypeDomain.id" column="domainId" />
+		<result property="issueType.id" column="typeId" />
+		<result property="domainName" column="domainName" />
+		<result property="typeName" column="typeName" />
+		<result property="count" column="count" />
+		<result property="startDate" column="startDate" />
+		<result property="endDate" column="endDate" />
+	</resultMap>
+
+	<resultMap id="issueTypeStanalDomainResult" class="IssueTypeStanal">
+		<result property="issueTypeDomain.id" column="domainId" />
+		<result property="domainName" column="domainName" />
+		<result property="count" column="count" />
+	</resultMap>
+	<resultMap id="issueTypeDomainResult" class="IssueTypeStanal">
+		<result property="issueTypeDomain.id" column="domainId" />
+		<result property="domainName" column="domainName" />
+	</resultMap>
+
+	<resultMap id="issueTypeStanalTypeResult" class="IssueTypeStanal">
+		<result property="issueType.id" column="typeId" />
+		<result property="typeName" column="typeName" />
+		<result property="count" column="count" />
+	</resultMap>
+
+	<resultMap id="issueTypeStanalDomainListResult" class="IssueTypeStanal">
+		<result property="id" column="id" />
+		<result property="domainName" column="domainName" />
+		<result property="count" column="count" />
+		<result property="startDate" column="startDate" />
+		<result property="endDate" column="endDate" />
+	</resultMap>
+
+	<resultMap id="issueTypeStanalTypeListResult" class="IssueTypeStanal">
+		<result property="issueType.id" column="typeId" />
+		<result property="typeName" column="typeName" />
+		<result property="count" column="count" />
+		<result property="startDate" column="startDate" />
+		<result property="endDate" column="endDate" />
+	</resultMap>
+
+	<select id="findOrganizations" resultClass="Organization">
+		<![CDATA[
+		select id,orgInternalCode from organizations
+		]]>
+	</select>
+	<select id="findOrganizationsByOrgInternalCode"  resultClass="Organization">
+	     select id,orgInternalCode from organizations where 1=1
+        <dynamic>
+            <isPropertyAvailable property="orgInternalCode">
+                <isNotEmpty property="orgInternalCode" prepend="and">
+                    orgInternalCode like #orgInternalCode#||'%'
+                </isNotEmpty>
+            </isPropertyAvailable>
+        </dynamic>
+	</select>
+
+	<select id="getIssueStartTime" resultMap="issueStartTimeResult">
+		<![CDATA[
+		select
+		min(createdate) as startTime from issues
+		]]>
+	</select>
+
+	<insert id="addIssueTypeStanal" parameterClass="IssueTypeStanal">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_IssueTypeStanals.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		IssueTypeStanals(id,orgId,orgInternalCode,domainId,typeId,domainName,typeName,count,startDate,endDate,year,month)
+		VALUES(#id#,#org.id#,#orgInternalCode#,#issueTypeDomain.id#,#issueType.id#,#domainName#,#typeName#,
+		#count#,#startDate#,#endDate#,#year#,#month#)
+	</insert>
+
+	<select id="getSimpleIssueTypeStanalById" parameterClass="java.lang.Long"
+		resultMap="issueTypeStanalResult">
+		<![CDATA[
+		select * from IssueTypeStanals where id=#value#
+		]]>
+	</select>
+
+	<select id="findIssueTypeDomains" parameterClass="java.lang.String" resultClass="IssueTypeDomain">
+		<![CDATA[
+		select id,domainName from issuetypeDomains where module=#value#
+		]]>
+	</select>
+
+	<select id="stanalIssueTypeDomains" parameterClass="java.util.Map"
+		resultMap="issueTypeStanalDomainResult">
+		select itd.id as domainId,itd.domainname as domainName,(
+		select
+		count(distinct(i.id)) from
+		issues i where
+		i.issuetypedomainid=itd.id 
+		and i.OCCURORG=#orgId#
+		<dynamic>
+			<isPropertyAvailable property="startDate">
+				<isNotEmpty property="startDate" prepend=" and ">
+					i.createDate<![CDATA[ >= ]]>#startDate#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endDate">
+				<isNotEmpty property="endDate" prepend=" and ">
+					i.createDate <![CDATA[< ]]>#endDate#
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+		) as count from issuetypedomains itd where itd.module=#issueType#
+	</select>
+    <select id="getIssueTypeDomains" parameterClass="java.lang.String" 
+		resultMap="issueTypeDomainResult">
+		 select it.id as domainId,it.domainname as domainName 
+         from issuetypedomains it where it.module=#value#
+	</select>
+	<select id="stanalIssueTypes" parameterClass="java.util.Map"
+		resultMap="issueTypeStanalTypeResult">
+		select it.id as typeId,it.issuetypename as typeName,(select count(*)
+		from issues i where
+		i.issuetypeid=it.id and 
+		i.OCCURORG = #orgId#
+		<dynamic>
+			<isPropertyAvailable property="startDate">
+				<isNotEmpty property="startDate" prepend=" and ">
+					i.createDate<![CDATA[ >= ]]>#startDate#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endDate">
+				<isNotEmpty property="endDate" prepend=" and ">
+					i.createDate <![CDATA[< ]]>#endDate#
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+		and
+		issuetypedomainid=$domainId$) as count from issuetypes it where
+		it.domainid=$domainId$
+	</select>
+
+	<sql id="sql_where">
+		from IssueTypeStanals
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId=#orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="domainId" prepend=" and ">
+				<isNotNull property="domainId">
+					domainId=#domainId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startDate">
+				<isNotNull property="startDate" prepend=" and ">
+					startDate <![CDATA[>=]]>
+					#startDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endDate">
+				<isNotNull property="endDate" prepend=" and ">
+					endDate<![CDATA[ <= ]]>
+					#endDate#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="stanalIssueTypeDomainList" parameterClass="java.util.Map"
+		resultMap="issueTypeStanalDomainListResult">
+		<![CDATA[
+		
+		select id,domainName,sum(count) as count,min(startDate) as startDate,max(endDate) as endDate 
+		from (select domainId as id,domainName,count,startDate,endDate
+		]]>
+		<include refid="sql_where" />
+		<![CDATA[
+		and typeId is null) group by id,domainName order by id
+		]]>
+	</select>
+
+	<select id="stanalIssueTypeList" parameterClass="java.util.Map"
+		resultMap="issueTypeStanalTypeListResult">
+		<![CDATA[
+		select typeId,typeName,sum(count) as count,min(startDate) as startDate,max(endDate) as endDate
+		from (select typeId,typeName,count,startDate,endDate
+		]]>
+		<include refid="sql_where" />
+		<![CDATA[
+		and typeId is not null) group by typeId,typeName order by typeId   
+		]]>
+	</select>
+	
+	<select id="issueTypeStanalCount" parameterClass="map" resultClass="int">
+	    select count(*) from issues
+        where occurorginternalcode like #orgCode#||'%'
+        <dynamic>
+            <isPropertyAvailable property="startDate">
+               <isNotEmpty property="startDate" prepend="and">
+	           occurDate<![CDATA[ >= ]]>#startDate#
+	        </isNotEmpty>
+	        </isPropertyAvailable>
+	        <isPropertyAvailable property="endDate">
+	            <isNotEmpty property="endDate" prepend="and">
+	           occurDate <![CDATA[<= ]]>#endDate#
+	         </isNotEmpty>
+	        </isPropertyAvailable> 
+	    </dynamic>
+	</select>
+	<delete id="deleteIssueTypeStanalByStartEndDateOrgCode">
+		delete from  IssueTypeStanals
+		<dynamic prepend="where">
+			<isNotNull property="startDate" prepend="and">
+				startDate <![CDATA[ >= ]]> #startDate#
+			</isNotNull>
+			<isNotNull property="endDate" prepend="and">
+				endDate <![CDATA[<= ]]> #endDate#
+			</isNotNull>
+			<isNotEmpty property="orgInternalCode" prepend="and">
+				orgInternalCode like #orgInternalCode#||'%'
+			</isNotEmpty>
+		</dynamic>
+	</delete>
+	<select id="getAllCountByOrgId" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		select COUNT(*) from IssueTypeStanals where orgInternalCode = #orginternalcode#
+	</select>
+	<delete id="deleteAllStatIssueByOrgId" parameterClass="java.lang.Long">
+		delete from IssueTypeStanals where orgid=#value#
+	</delete>
+	
+	<delete id="deleteIssueTypeStanalsById" parameterClass="long">
+		<![CDATA[delete from IssueTypeStanals where id=$value$]]>
+	</delete>
+	
+	<select id="findIssueTypeStanalsByOrgId" parameterClass="long" resultMap="issueTypeStanalResult">
+		<![CDATA[select * from IssueTypeStanals where orgid =$value$]]>
+	</select>
+	
+	<select id="getIssueTypeStanalsByOrgIdAndStatDate" parameterClass="map" resultMap="issueTypeStanalResult">
+		<![CDATA[select * from IssueTypeStanals where orgid =$orgId$ and startDate = #monthStart# and domainName = #domainName# and typeName = #typeName#]]>
+	</select>
+	
+	<update id="transferIssueTypeStanalToTargetOrg" parameterClass="map">
+		update IssueTypeStanals set orgid=$target$,orgInternalCode=#orgCode# 
+		where orgid=$source$
+	</update>
+	
+	<update id="updateIssueTypeStanals" parameterClass="IssueTypeStanal">
+		update IssueTypeStanals set 
+		orgid=$org.id$,
+		orgInternalCode=#orgInternalCode#,
+		count=$count$
+		where id=$id$
+	</update>
+	
+</sqlMap>

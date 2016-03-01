@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="versions">
+	<typeAlias alias="versions" type="com.tianque.version.domain.Versions" />
+
+	<resultMap id="versionsResult" class="versions">
+		<result column="id" property="id"/>
+		<result column="versionId" property="versionId" />
+		<result column="versionContent" property="versionContent" />
+	</resultMap>
+	<insert id="addVersion" parameterClass="versions">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+				select s_versions.NEXTVAL as id from dual
+		</selectKey>
+		insert into versions (id,versionId,versionContent) values (#id#,#versionId#,#versionContent#)
+	</insert>
+
+	<select id="findGridPage" resultMap="versionsResult">
+		select * from versions
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countfindGridPage" resultClass="java.lang.Integer">
+		select count(*) from versions
+	</select>
+	
+	
+	<select id="getVersionsById" parameterClass="java.lang.String"
+		resultMap="versionsResult">
+		<![CDATA[
+	  	select * from versions where versionId = #versionId#
+	  ]]>
+	</select>
+	
+	<update id="updateVersion"  parameterClass="java.util.Map">
+		update versions set versionId = #versionId#, versionContent = #versionContent# 
+		where versionId = #oldVersionId#
+	</update>
+
+</sqlMap>

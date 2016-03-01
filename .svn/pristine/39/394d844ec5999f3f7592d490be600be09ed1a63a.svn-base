@@ -1,0 +1,22 @@
+-- 严重精神障碍患者  新增精神病类型
+--BEAN
+alter table mentalpatients add psychosisType NUMBER(10) null;
+comment on column mentalpatients.psychosisType is '精神病类型';
+--TEMP
+alter table DM_mentalPatients_Temp add psychosisType NUMBER(10) null;
+comment on column DM_mentalPatients_Temp.psychosisType is '精神病类型';
+
+-- 精神病类型  新增精神病类型
+insert into propertydomains(id,domainname)
+	values(s_propertydomains.NEXTVAL,'精神病类型');
+
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, 
+       DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextval, (select id from propertydomains p where domainname='精神病类型'), 0, 1, 
+       '易肇事肇祸精神病', 'yzszhjsb', 'yizhaoshizhaohuojing', 'admin', '', sysdate, null);
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, 
+       DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextval, (select id from propertydomains p where domainname='精神病类型'), 1, 2, 
+       '间歇性精神病', 'jxxjsb', 'jianxiexingjingshenb', 'admin', '', sysdate, null);
+       
+commit;

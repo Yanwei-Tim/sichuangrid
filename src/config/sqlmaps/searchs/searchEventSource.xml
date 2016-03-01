@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="searchEventSource">
+	<typeAlias alias="eventSource" type="com.tianque.eventSource.domain.EventSource"/>
+	<typeAlias alias="SearchEVentSOurceVO" type="com.tianque.eventSource.domain.EventSourceVo"/>
+	<resultMap class="eventSource" id="eventSourceResult">
+		<result property="id" column="id"/>
+		<result property="title" column="title"/>
+		<result property="content" column="content"/>
+		<result property="sourceDate" column="sourceDate"/>
+		<result property="sourcePeople" column="sourcePeople"/>
+		<result property="telephone" column="telephone"/>
+		<result property="orgName" column="orgName"/>
+		<result property="sourceType.id" column="sourceType"/>
+		<result property="state.id" column="state"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>	
+</resultMap>
+
+<select id="getEventSourceById" parameterClass="java.lang.Long" resultMap="eventSourceResult">
+	<![CDATA[select * from eventSource where id=#value#]]>
+</select>
+
+<sql id="sql_where">
+		from eventSource
+		<dynamic prepend="where">
+			<isPropertyAvailable property="title">
+            	<isNotEmpty property="title" prepend="and">
+          			title like '%$title$%'
+            	</isNotEmpty>
+            </isPropertyAvailable>	
+            <isPropertyAvailable property="sourcePeople">
+            	<isNotEmpty property="sourcePeople" prepend="and">
+            		sourcePeople like '%$sourcePeople$%'
+            	</isNotEmpty>
+            </isPropertyAvailable>	
+            <isPropertyAvailable property="telephone">
+            	<isNotEmpty property="telephone" prepend="and">
+            		telephone like '%$telephone$%'
+            	</isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="orgName">
+            	<isNotEmpty property="orgName" prepend="and">
+            		orgName like '%$orgName$%'
+            	</isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="content">
+            	<isNotEmpty property="content" prepend="and">
+            		content like '%$content$%'
+            	</isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="startDate">
+            	<isNotEmpty property="startDate" prepend="and">
+            		<![CDATA[sourceDate >= #startDate#]]>
+            	</isNotEmpty>
+            </isPropertyAvailable>
+             <isPropertyAvailable property="endDate">
+            	<isNotEmpty property="endDate" prepend="and">
+            		<![CDATA[sourceDate <= trunc(#endDate#+1)]]>
+            	</isNotEmpty>
+            </isPropertyAvailable>
+           <isPropertyAvailable property="sourceType">
+                <isNotEmpty property="sourceType.internalId" prepend="and">
+            	<isEqual property="sourceType.internalId" compareValue="0">
+            		sourceType is not null
+            	</isEqual>
+            	<isNotEqual property="sourceType.internalId" compareValue="0">
+            		sourceType=#sourceType.id#
+            	</isNotEqual>
+                </isNotEmpty>   
+            </isPropertyAvailable>
+            <isPropertyAvailable property="dealState">
+            	<isNotEmpty property="dealState" prepend="and">
+            	  <isEqual property="dealState" compareValue="0"><!-- 未处理 -->
+            	  	state is null
+            	  </isEqual>
+            	<isEqual property="dealState" compareValue="1"><!-- 已处理 -->
+            		state is not null
+            	</isEqual>
+            	</isNotEmpty>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="state">
+            	<isNotEmpty property="state.id" prepend="and">
+            		state=#state.id#
+            	</isNotEmpty>
+            </isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="searchFindEventSource" parameterClass="SearchEVentSOurceVO" resultMap="eventSourceResult">
+	    select *
+		<include refid="sql_where"/>
+		<dynamic prepend="order by">
+     		<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+        </dynamic>
+	</select>
+
+	<select id="searchCountEventSource" parameterClass="SearchEVentSOurceVO" resultClass="int">
+		select count(distinct eventSource.id)
+		<include refid="sql_where"/>
+	</select>
+</sqlMap>	

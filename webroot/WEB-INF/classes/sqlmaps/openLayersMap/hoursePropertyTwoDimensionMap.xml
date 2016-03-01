@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="hoursePropertyTwoDimensionMap">
+	<typeAlias alias="housePropertyInfoVo" type="com.tianque.openLayersMap.domian.vo.HousePropertyInfoVo" />
+	
+	<resultMap id="hoursePropertyTwoDimensionMapResult" class="housePropertyInfoVo">
+		<result column="id" property="id" />
+		<result column="houseOwner" property="houseName" />
+		<result column="address" property="address" />
+		<result column="centerLon" property="lon" />
+		<result column="centerLat" property="lat" />
+		<result column="centerLon2" property="lon2" />
+		<result column="centerLat2" property="lat2" />
+		<result column="builddatasid" property="builddatasId" />
+	</resultMap>
+	
+	<resultMap id="hoursePropertyResult" extends="hoursePropertyTwoDimensionMapResult" class="housePropertyInfoVo">
+		<result column="hiddendangerLevel" property="hiddendangerLevel" />
+		<result column="name" property="name" />
+		<result column="buildingname" property="buildingname" />
+		<result column="isRentalHouse" property="isRentalHouse" />
+	</resultMap>
+	
+	<resultMap id="hoursePropertyExtention" extends="hoursePropertyTwoDimensionMapResult" class="housePropertyInfoVo">
+		<result property="rentalPerson" column="rentalPerson"/>
+		<result column="name" property="name" />
+		<result property="houseCode" column="houseCode"/>
+		<result column="hiddendangerLevel" property="hiddendangerLevel" />
+		<result column="isRentalHouse" property="isRentalHouse" />
+	</resultMap>
+	
+	<resultMap id="hoursePropertyExtentionHasOrgCode" extends="hoursePropertyExtention" class="housePropertyInfoVo">
+		<result property="orgInternalCode" column="orgInternalCode"/>
+	</resultMap>
+	
+	<sql id="sql_screenCoordinateVo">
+		<isNotNull property="searchInfoVo">
+			<isEqual property="searchInfoVo.gisType" compareValue="3D">
+				<isNotEmpty  property="screenCoordinateVo.minLon">
+					<![CDATA[ h.centerlon>#screenCoordinateVo.minLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+					<![CDATA[ h.centerlon<#screenCoordinateVo.maxLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+					<![CDATA[ h.centerlat>#screenCoordinateVo.minLat# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+					<![CDATA[ h.centerlat<#screenCoordinateVo.maxLat# ]]>
+				</isNotEmpty>
+			</isEqual>
+			<isNotEqual  property="searchInfoVo.gisType"  compareValue="3D">
+				<isNotEmpty  property="screenCoordinateVo.minLon">
+					<![CDATA[ h.centerlon2>#screenCoordinateVo.minLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+					<![CDATA[ h.centerlon2<#screenCoordinateVo.maxLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+					<![CDATA[ h.centerlat2>#screenCoordinateVo.minLat# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+					<![CDATA[ h.centerlat2<#screenCoordinateVo.maxLat# ]]>
+				</isNotEmpty>
+			</isNotEqual>
+		</isNotNull>
+	</sql>
+	
+	<sql id="sql_where">
+		<dynamic> 
+		(
+			<include refid="sql_screenCoordinateVo"/>
+			or (h.centerlon is null and h.centerlat is null)
+		)
+			<isNotEmpty prepend="and" property="orgInternalCode">
+			   h.orgInternalCode like  #orgInternalCode#||'%' 
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="isRentalHouse">
+			   h.ISRENTALHOUSE = #isRentalHouse#
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_where2">
+		<dynamic>
+			(
+				<include refid="sql_screenCoordinateVo"/>
+				or (h.centerlon is null and h.centerlat is null)
+			)
+			<isNotEmpty prepend="and" property="orgInternalCode">
+			   h.orgInternalCode like  #orgInternalCode#||'%' 
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	
+	<!--乡镇一下 图层	-->
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVo" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from houseInfo_$shardCode$  h where 
+			<include refid="sql_where"/>
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVo" parameterClass="java.util.Map" resultMap="hoursePropertyExtention">
+		<include refid="common.sql_page_start"/>
+			select h.centerlon,h.centerlat,h.centerlon2,h.centerlat2,h.houseOwner,h.id,h.address,h.builddatasId,h.isrentalhouse,rh.rentalPerson,h.housecode,h.name,
+			'' as hiddendangerlevel
+			  from houseInfo_$shardCode$ h LEFT OUTER JOIN RentalHouse rh on h.housecode=rh.housecode where
+			<include refid="sql_where"/>
+			<isNotEmpty property="sortField">
+				<isNotEmpty property="order"  prepend="order by">
+					$sortField$ $order$
+				</isNotEmpty>
+			</isNotEmpty>
+		<include refid="common.sql_page_end"/>	
+	</select>
+	
+	<!--乡镇一下 搜索	-->
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValue" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from houseInfo_$shardCode$ h LEFT OUTER JOIN RentalHouse r on h.housecode=r.housecode where 
+		<include refid="sql_where2"/>
+		<isNotEmpty property="searchValue" prepend=" and " open=" ( " close=" ) ">
+			h.houseOwner like #searchValue#||'%' or h.address like #searchValue#||'%' or r.RENTALPERSON like #searchValue#||'%'
+		</isNotEmpty>
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValue" parameterClass="java.util.Map" resultMap="hoursePropertyExtention">
+			<include refid="common.sql_page_start"/>
+				select h.centerlon,h.centerlat,h.centerlon2,h.centerlat2,h.houseOwner,h.id,h.address,h.builddatasId,h.isrentalhouse,rh.rentalPerson,h.housecode,h.name,
+				'' as hiddendangerlevel
+				  from houseInfo_$shardCode$ h LEFT OUTER JOIN RentalHouse rh on h.housecode=rh.housecode   where
+				1=1 and
+			<include refid="sql_where2"/>
+			<isNotEmpty property="searchValue" prepend=" and " open=" ( " close=" ) ">
+				h.houseOwner like #searchValue#||'%' or h.address like #searchValue#||'%' or rh.RENTALPERSON like #searchValue#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="sortField">
+				<isNotEmpty property="order"  prepend="order by">
+					$sortField$ $order$
+				</isNotEmpty>
+			</isNotEmpty>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countBoundedTwoDimensionMapInfoByOrgInternalCode" parameterClass="java.util.Map" resultClass="Integer">
+		select count(*) from houseInfo_$shardCode$ h
+			where h.orginternalcode like #orgInternalCode# || '%' and h.isrentalhouse = #isRentalHouse#
+			<isEqual property="isBound" compareValue="true">
+						and (h.centerLon is not null or  h.centerLon2 is not null)
+			</isEqual>
+	</select>
+	
+	
+	<!--  图层乡镇以上搜索统计绑定数	-->
+	<select id="countBoundedTwoDimensionMapInfoByOrgInternalCodeAndSearchValue" parameterClass="java.util.Map" resultClass="Integer">
+		select count(*) from houseInfo_$shardCode$ h  LEFT OUTER JOIN RentalHouse r on h.housecode=r.housecode 
+		<dynamic prepend="where">
+			<isNotEmpty property="searchValue" prepend=" and " open=" ( " close=" ) ">
+				h.houseOwner like #searchValue#||'%' or h.address like #searchValue#||'%'
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="orgInternalCode">
+				h.orginternalcode like '$orgInternalCode$%'
+			</isNotEmpty>
+			and (h.centerlon is not null or h.centerlat is not null)
+		</dynamic>
+	</select>
+	
+	<select id="countBoundedTwoDimensionMapPageInfoByOrgInternalCode" parameterClass="java.util.Map" resultClass="Integer">
+		select count(*) from houseInfo_$shardCode$ h where  h.centerlon is not null and h.centerlat is not null
+			and h.orginternalcode like '$orgInternalCode$%'
+	</select>
+	
+	<select id="countUnBoundedTwoDimensionMapPageInfoByOrgInternalCode" parameterClass="java.util.Map" resultClass="Integer">
+		select count(*) from houseInfo_$shardCode$ h  where h.centerlon is  null and h.centerlat is  null
+			and h.orginternalcode like '$orgInternalCode$%'
+	</select>
+	
+	<!--<select id="findBoundedTwoDimensionMapPageInfoByOrgInternalCode" parameterClass="java.util.Map" resultMap="hoursePropertyResult">
+		<include refid="common.sql_page_start"/>
+			select h.centerlon,h.centerlat,h.centerlon2,h.centerlat2,h.houseOwner,h.id,h.address,h.builddatasId,b.buildingname,h.name,h.isrentalhouse,
+			'' as hiddendangerlevel
+			  from houseInfo h ,builddatas b  where
+				h.builddatasId=b.id and
+				h.centerlon is not  null and h.centerlat is not  null
+			<isNotEmpty prepend="and" property="orgInternalCode">
+			   <![CDATA[ h.orgInternalCode like '$orgInternalCode$%' ]]>
+			</isNotEmpty>
+			<isNotEmpty property="sortField">
+				<isNotEmpty property="order"  prepend="order by">
+					$sortField$ $order$
+				</isNotEmpty>
+			</isNotEmpty>
+		<include refid="common.sql_page_end"/>
+	</select>-->
+	
+	<select id="getHousePropertyInfoById" parameterClass="java.util.Map" resultMap="hoursePropertyExtentionHasOrgCode">
+		select h.centerlon,h.centerlat,h.centerlon2,h.centerlat2,h.houseOwner,h.id,h.address,h.builddatasId,h.isrentalhouse,h.name,rh.rentalPerson,h.housecode,
+		'' as hiddendangerlevel,h.orgInternalCode as orgInternalCode
+		  from houseInfo_$shardCode$ h LEFT OUTER JOIN RentalHouse rh on h.housecode=rh.housecode where h.id=#id# 
+		
+	</select>
+	
+	<select id="findHousePropertyInfoVosByOrgCodeAndMaxAndMinLonLatArrys" parameterClass="java.util.Map" resultMap="hoursePropertyTwoDimensionMapResult">
+		select h.centerlon,h.centerlat,h.centerlon2,h.centerlat2,h.houseOwner,h.id,h.address,h.builddatasId,b.buildingname,h.name  from houseInfo_$shardCode$ h ,builddatas b  where
+			h.builddatasId=b.id and
+		<include refid="sql_where"/>
+	</select>
+	
+	<select id="countHousePropertyByOrgCode" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0) from houseInfo_$shardCode$ where orgInternalCode like '$orgInternalCode$%'
+	</select>
+	
+	<!--<select id="findUnBoundedTwoDimensionMapPageInfoByOrgInternalCode" parameterClass="java.util.Map" resultMap="hoursePropertyResult">
+		<include refid="common.sql_page_start"/>
+			select h.centerlon,h.centerlat,h.centerlon2,h.centerlat2,h.houseOwner,h.id,h.address,h.builddatasId,b.buildingname,h.name,h.isrentalhouse,
+			'' as hiddendangerlevel
+			  from houseInfo h ,builddatas b  where
+				h.builddatasId=b.id and
+				h.centerlon is  null and h.centerlat is null
+			<isNotEmpty prepend="and" property="orgInternalCode">
+			   <![CDATA[ h.orgInternalCode like '$orgInternalCode$%' ]]>
+			</isNotEmpty>
+			<isNotEmpty property="sortField">
+				<isNotEmpty property="order"  prepend="order by">
+					$sortField$ $order$
+				</isNotEmpty>
+			</isNotEmpty>
+		<include refid="common.sql_page_end"/>
+	</select>-->
+	
+	<select id="countFindHouseInfoTwoDimensionMapPageInfoByOrgInternalCode" parameterClass="java.util.Map" resultClass="Integer">
+		select count(*) from houseInfo_$shardCode$ h
+			where h.orginternalcode like #orgInternalCode# || '%' and h.isrentalhouse = #isRentalHouse#
+	</select>
+	
+	<select id="findHouseInfoTwoDimensionMapPageInfoByOrgInternalCode" parameterClass="java.util.Map" resultMap="hoursePropertyExtention">
+		<include refid="common.sql_page_start"/>
+			select h.centerlon,h.centerlat,h.centerlon2,h.centerlat2,h.houseOwner,h.id,h.address,h.builddatasId,h.isrentalhouse,rh.rentalPerson,h.housecode,h.name,
+			'' as hiddendangerlevel
+			  from houseInfo_$shardCode$ h LEFT OUTER JOIN RentalHouse rh on h.id=rh.houseId where h.orginternalcode like #orgInternalCode# || '%' and h.isrentalhouse = #isRentalHouse#
+				<isNotEmpty property="sortField">
+					<isNotEmpty property="order"  prepend="order by">
+						$sortField$ $order$
+					</isNotEmpty>
+				</isNotEmpty>
+		 <include refid="common.sql_page_end"/>
+	</select>
+	
+	
+	<select id="countHousePropertyByBuildDataId" parameterClass="java.util.Map" resultClass="Integer">
+		select count(*) from houseInfo_$shardCode$ where builddatasid = #buildDataId#
+	</select>
+	
+	<!--<select id="findHousePropertysByCenterLonLat" parameterClass="java.util.Map" resultMap="hoursePropertyTwoDimensionMapResult">
+		select h.centerlon,h.centerlat,h.centerlon2,h.centerlat2,h.houseOwner,h.id,h.address,h.builddatasid from houseInfo h  where 
+		<isEqual property="gisType" compareValue="3D">
+			h.centerLon = #centerLon# and h.centerLat=#centerLat#
+		</isEqual>
+		<isNotEqual property="gisType" compareValue="3D">
+			h.centerLon2 = #centerLon# and h.centerLat2=#centerLat#
+		</isNotEqual>
+	</select>-->
+	
+	<select id="countBoundedTwoDimensionMapInfoByBuildingId" parameterClass="java.util.Map" resultClass="Integer">
+		select count(*) from houseInfo_$shardCode$ h where h.buildDatasId=#buildingId#
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByBuildingId" parameterClass="java.util.Map" resultMap="hoursePropertyResult">
+		<include refid="common.sql_page_start"/>
+			select h.centerlon,h.centerlat,h.centerlon2,h.centerlat2,h.houseOwner,h.id,h.address,h.builddatasId,b.buildingname,h.name,h.isrentalhouse,
+			'' as hiddendangerlevel
+			  from houseInfo_$shardCode$ h ,builddatas b  where
+				h.builddatasId=b.id and h.buildDatasId = $buildingId$
+			<isNotEmpty property="sortField">
+				<isNotEmpty property="order"  prepend="order by">
+					$sortField$ $order$
+				</isNotEmpty>
+			</isNotEmpty>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="findTwoDimensionMapByBuildingId" parameterClass="java.util.Map" resultMap="hoursePropertyTwoDimensionMapResult">
+		select h.centerlon,h.centerlat,h.centerlon2,h.centerlat2,h.houseOwner,h.id,h.address,h.builddatasid from houseInfo_$shardCode$ h  where h.builddatasid = #buildingId#
+	</select>
+	
+	<update id="updateHousePropertyInfoVoByBuilddatasId" parameterClass="java.util.Map">
+		update houseInfo_$shardCode$ set 
+			   centerLon=#centerLon#,
+			   centerLat=#centerLat#,
+			   centerLon2=#centerLon2#,
+			   centerLat2=#centerLat2#
+	   		where builddatasId=#builddatasId#
+	</update>
+</sqlMap>

@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="houseFamily">
+	<typeAlias alias="FamilyHouse" type="com.tianque.baseInfo.familyInfo.domain.HouseFamily"/>
+
+	<typeAlias alias="CensusRegisterFamily" type="com.tianque.domain.CensusRegisterFamily"/>
+
+	<resultMap id="familyHouseMap" class="FamilyHouse">
+		<result column="cen_id" property="censusRegisterFamily.id" />
+		<result column="orgId" property="organization.id" />
+		<result column="accountNumber" property="censusRegisterFamily.accountNumber" />
+		<result column="currentaddress" property="censusRegisterFamily.currentAddress" />
+		<result column="hou_id" property="id" />
+		<result column="relationShipWithHead" property="relationShipWithHead.id" />
+		<result column="name" property="name" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="gender" property="gender.id" />
+		<result column="workUnit" property="workUnit" />
+		<result column="mobileNumber" property="mobileNumber" />
+		<result column="telephone" property="telephone" />
+		<result column="orginternalcode" property="orgInternalCode" />
+		<result column="updateDate" property="updateDate" />
+		<result property="memberNums" column="memberNums"/>
+	</resultMap>
+	
+	<resultMap id="simpleFamilyHouseMap" class="FamilyHouse">
+		<result column="cen_id" property="censusRegisterFamily.id" />
+		<result column="orgId" property="organization.id" />
+		<result column="orginternalcode" property="orgInternalCode" />
+		<result column="accountNumber" property="censusRegisterFamily.accountNumber" />
+		<result column="currentaddress" property="censusRegisterFamily.currentAddress" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="updateDate" property="updateDate" />
+		<result property="memberNums" column="memberNums" />
+		<result property="effectiveMemberNums" column="effectiveMemberNums"/>
+	</resultMap>
+
+
+	<resultMap id="familyMemberInfor" class="FamilyHouse">
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="accountNumber" property="censusRegisterFamily.accountNumber" />
+		<result column="currentaddress" property="censusRegisterFamily.currentAddress" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="name" property="name" />
+		<result column="gender" property="gender.id"/>
+		<result column="workunit" property="workUnit"/>
+		<result column="mobileNumber" property="mobileNumber" />
+		<result column="telephone" property="telephone" />
+		<result column="nativelocation" property="nativeLocation" />
+	</resultMap>
+
+
+	<resultMap id="censusRegisterFamily" class="CensusRegisterFamily">
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="accountNumber" property="accountNumber" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="householdName" property="householdName" />
+		<result column="homePhone" property="homePhone" />
+		<result column="province" property="province" />
+		<result column="city" property="city" />
+		<result column="district" property="district" />
+		<result column="mobileNumber" property="mobileNumber" />
+		<result column="telePhone" property="telePhone" />
+		<result column="currentaddress" property="currentAddress"/>
+		<result column="orginternalcode" property="orgInternalCode"/>
+	</resultMap>
+	<sql id="sql_where_for_count">
+		<dynamic prepend="where">
+	      <isNotNull property="orginternalcode" prepend=" and ">
+	          cen.orginternalcode like #orginternalcode#||'%'
+	      </isNotNull>
+	    <isPropertyAvailable property="familyHouseAccountNumber">
+	       <isNotNull property="familyHouseAccountNumber" prepend=" and ">
+	          cen.accountNumber = #familyHouseAccountNumber#
+	       </isNotNull>
+	    </isPropertyAvailable>
+	     <isPropertyAvailable property="familyHouseIdCardNo" prepend=" and ">
+	       <isNotNull property="familyHouseIdCardNo">
+	       	 upper(b.idCardNo) like upper(#familyHouseIdCardNo#)||'%'
+	       </isNotNull>
+	    </isPropertyAvailable>
+	     <isPropertyAvailable property="familyHouseName" prepend=" and ">
+	       <isNotNull property="familyHouseName">
+	         b.name like #familyHouseName#||'%'
+	       </isNotNull>
+	    </isPropertyAvailable>
+	    <!-- and hou.isDeath = 0 and hou.logout = 0 -->
+	   </dynamic>
+	</sql>
+
+	<!--  没被引用-->
+	 <sql id="sql_where">
+	   <![CDATA[
+	       from censusregisterfamilys cen left join householdstaffs_$shardCode$ hou
+           on hou.familyid=cen.id  left join baseinfo b on hou.baseinfoid = b.id
+           ]]>
+	   <include refid="sql_where_for_count"/>
+	 </sql>
+
+	 <sql id="sql_where_2">
+	   <![CDATA[ from censusregisterfamilys cen ]]>
+	   <dynamic prepend="where">
+	   <!-- 添加根据身份证号或者姓名或者户口号模糊查询 -->
+	   	  <isNotNull property="fastSearchKeyWords" prepend="and" >
+	   			 cen.accountNumber like #fastSearchKeyWords#||'%'
+	   	  </isNotNull>
+	      <isNotNull property="orginternalcode" prepend=" and ">
+	          cen.orginternalcode like #orginternalcode#||'%'
+	      </isNotNull>
+	       <isNotNull property="familyHouseAccountNumber" prepend=" and ">
+	          cen.accountNumber=#familyHouseAccountNumber#
+	       </isNotNull>
+	       <isNotNull property="familyHouseIdCardNo" prepend=" and ">
+	       <![CDATA[ upper(cen.idCardNo) like upper(#familyHouseIdCardNo#)||'%' ]]>
+	       </isNotNull>
+	       <isNotNull property="headOfFamilyHouseName" prepend=" and ">
+	           cen.householdname  like #headOfFamilyHouseName#||'%'
+	       </isNotNull>
+	       <isNotNull property="familyHouseAddress" prepend=" and ">
+	           cen.currentaddress like #familyHouseAddress#||'%'
+	       </isNotNull>
+	       <isNotNull property="familyHouseName" prepend=" and ">
+	       <![CDATA[ exists (select * from householdstaffs_$shardCode$ hou left join baseinfo b on hou.baseinfoid = b.id where (b.name like #familyHouseName#||'%' or b.fullPinyin like #familyHouseName#||'%' or b.simplePinyin like #familyHouseName#||'%') and hou.familyid = cen.id) ]]>
+	       </isNotNull>
+	       <isNotNull property="familyHouseMemberName" prepend=" and ">
+	       	<![CDATA[ exists (select * from householdstaffs_$shardCode$ hou left join baseinfo b on hou.baseinfoid = b.id where hou.relationshipwithhead <> #headOfHouseHoldId# and (b.name like #familyHouseMemberName#||'%' or b.fullPinyin like #familyHouseMemberName#||'%' or b.simplePinyin like #familyHouseMemberName#||'%') and hou.familyid = cen.id) ]]>
+	       </isNotNull>
+	       <isNotNull property="familyHouseMemberIdCardNo" prepend=" and ">
+	       	<![CDATA[ exists (select * from householdstaffs_$shardCode$ hou left join baseinfo b on hou.baseinfoid = b.id where hou.relationshipwithhead <> #headOfHouseHoldId# and upper(b.idCardNo) like upper(#familyHouseMemberIdCardNo#)||'%' and hou.familyid = cen.id) ]]>
+	       </isNotNull>
+	       <isNotNull property="memberNum" prepend=" and ">
+	       	<![CDATA[ and (select count(*) from householdstaffs_$shardCode$ where familyid=cen.d) = 2]]>
+	       </isNotNull>
+	   </dynamic>
+	 </sql>
+
+
+	<select id="countfamilyHouses" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	    	select count(*)
+		          from censusregisterfamilys
+		         where orginternalcode like #orginternalcode#||'%'
+	    	 
+	</select>
+
+	<!--方法没有显式调用 -->
+  	<!--  
+  	<select id="searchHeadOfHouseHoldId" parameterClass="java.lang.String" resultClass="java.lang.Long">
+	   select id from propertyDicts s where s.displayname=#value#
+	</select> 
+	-->
+
+	<select id="findFamilyHouseByOrgId" parameterClass="java.util.Map" resultMap="simpleFamilyHouseMap">
+	      <![CDATA[
+	      
+		select cf.id cen_id,
+		       cf.accountNumber,
+		       cf.currentaddress,
+		       cf.orgId,
+		       cf.updateDate,
+		       cf.idcardno,
+		       (select count(1) from householdstaffs_$shardCode$ h where h.familyid = cf.id) as memberNums,
+		       (select count(1) from householdstaffs_$shardCode$ h where h.familyid = cf.id and h.logout=0) as effectiveMemberNums,
+		       cf.orginternalcode
+		  from censusregisterfamilys cf 
+		where cf.orginternalcode like #orginternalcode#||'%'
+
+	      ]]>
+	   
+	</select>
+	
+	<select id="findFamilyHouseByOrgIdAndSearchCondition" parameterClass="java.util.Map" resultMap="familyHouseMap">
+	      <![CDATA[
+	      
+		select cf.id cen_id,
+		       cf.accountNumber,
+		       cf.currentaddress,
+		       b.gender,
+		       ho.id as hou_id,
+		       ho.relationshipwithhead,
+		       b.name,
+		       b.idcardno,
+		       b.gender,
+		       b.workunit,
+		       b.mobileNumber,
+		       b.telephone,
+		       cf.orgId,
+		       cf.orginternalcode,
+		       (select count(1) from householdstaffs_$shardCode$ h where h.familyid = cf.id) as memberNums
+		  from (select *
+		          from censusregisterfamilys
+			where orginternalcode like #orginternalcode#||'%') cf
+		  left join baseinfo b on b.idcardno = cf.idcardno
+		  left join householdstaffs_$shardCode$ ho on cf.orgid = ho.orgid
+		                              and b.id = ho.baseinfoid
+
+	      ]]>
+	   
+	</select>
+
+	<select id="countFamilyHouseByOrgIdAndMinuteSearchCondition" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	    	<include refid="common.sql_count" />
+	    	 <include refid="sql_where_2" />
+	</select>
+
+	<select id="findFamilyHouseByOrgIdAndMinuteSearchCondition" parameterClass="java.util.Map" resultMap="familyHouseMap">
+	    <![CDATA[
+	       select cen.id cen_id ,cen.updateDate,cen.orgid,cen.orgInternalCode,cen.accountnumber ,cen.currentaddress,hou.id hou_id,
+           hou.relationshipwithhead,b.name  , b.idcardno , b.gender ,b.workunit,
+           b.mobilenumber, b.telephone,(select count(1) from householdstaffs_$shardCode$ h where h.familyid = cen.id) as memberNums from (select *  ]]>
+	      <include refid="sql_where_2" />
+          <![CDATA[ 
+          ) cen 
+          	left join baseinfo b on cen.idcardno = b.idcardno 
+  			left join householdstaffs_$shardCode$ hou on cen.orgid = hou.orgid
+  									and hou.baseinfoid = b.id
+	      ]]>
+	      <dynamic prepend=" order by  ">
+	       <isPropertyAvailable property="sortField">
+	           <isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+	       </isPropertyAvailable>
+	    </dynamic>
+	</select>
+
+	<select id="findFamilyHouseByIdAndOrgId"  parameterClass="java.lang.Long"  resultMap="censusRegisterFamily">
+	  select * from censusregisterfamilys where id= #value#
+	</select>
+
+	<select id="findFamilyMemberInforById"  parameterClass="java.util.Map"  resultMap="familyMemberInfor">
+	<![CDATA[
+	         select cen.id id ,cen.orgid,cen.accountnumber,cen.province||cen.city||cen.district nativelocation,cen.currentaddress,
+             b.name  , b.idcardno , b.gender ,b.workunit,
+             b.mobilenumber  ,b.telephone
+             from   censusregisterfamilys  cen  left join householdstaffs_$shardCode$ hou  on hou.familyid=cen.id
+             left join baseinfo b on hou.baseinfoid = b.id 
+             where cen.id= #familyId#
+     ]]>
+	</select>
+
+	<select id="countFamilyMemberInforById"  parameterClass="java.util.Map"  resultClass="java.lang.Integer">
+	<![CDATA[
+	         select count(cen.id) from censusregisterfamilys cen left join householdstaffs_$shardCode$ hou on hou.familyid = cen.id where cen.id = #familyId#
+     ]]>
+	</select>
+	
+	<!-- 
+	<select id="countFamilyMembers"  resultClass="java.lang.Integer">
+		select count(*) from houseHoldStaffs_$shardCode$ where familyId=#value#
+	</select>
+	
+	<select id="countEffectiveFamilyMembers"  resultClass="java.lang.Integer">
+		select count(*) from houseHoldStaffs_$shardCode$ where logout=0 and familyId=#value#
+	</select>
+	 -->
+	<delete id="deleteHouseFamilyById" parameterClass="java.lang.Long">
+		delete from censusRegisterFamilys where id = #id#
+	</delete>
+	
+	<update id="changeAccountNumber" parameterClass="java.util.Map">
+		update censusRegisterFamilys set accountNumber = #accountNumber# where id = #id#
+	</update>
+	
+	<update id="changeHouseHold" parameterClass="java.util.Map">
+		update censusRegisterFamilys set idCardNo = #idCardNo#,houseHoldName=#houseHoldName# where id = #id# 
+	</update>
+	
+	<update id="cleanFamilyHead" parameterClass="java.util.Map">
+		update censusRegisterFamilys set houseHoldName = null,idCardNo = null where idCardNo = #idCardNo#
+	</update>
+	
+	<select id="existAccountNumber" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from censusRegisterFamilys where accountNumber = #accountNumber#  and orgId=#orgId#
+	</select>
+
+</sqlMap>

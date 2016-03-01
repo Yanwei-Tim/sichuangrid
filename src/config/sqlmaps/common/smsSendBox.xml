@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="smsSendBox">
+	<typeAlias alias="SmsSendBox" type="com.tianque.domain.SmsSendBox" />
+	
+	<resultMap id="smsSendBoxResult" class="SmsSendBox">
+		<result column="id" property="id" />
+		<result column="senderId" property="sendUser.id"/>
+		<result column="sender" property="sender" />
+		<result column="sendMobile" property="sendMobile" />
+		<result column="sendLevel" property="sendLevel" />
+		<result column="sendStatus" property="sendStatus" />
+		<result column="receiver" property="receiver" />
+		<result column="smsContent" property="smsContent" />
+		<result column="sentTime" property="sentTime" />
+		<result column="createDate" property="createDate" />
+	</resultMap>
+
+	<insert id="addSmsSendBox" parameterClass="SmsSendBox">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_smsSendBoxs.NEXTVAL AS id FROM dual ]]>
+		</selectKey>
+		INSERT INTO smsSendBoxs
+			(id,senderId,sender,sendStatus,sendLevel,sendMobile,receiver,smsContent,createDate)
+		VALUES
+			(#id#,#sendUser.id#,#sender#,#sendStatus#,#sendLevel#,#sendMobile#,#receiver#,#smsContent#,#createDate#)
+	</insert>
+	
+	<insert id="addSmsSendTargets" parameterClass="java.util.Map">
+		INSERT INTO smsSendTargets
+			(smsId,contactId,type)
+		VALUES
+			(#smsId#,#contactId#,#type#)
+	</insert>
+	
+	<update id="updateSmsSendBox" parameterClass="SmsSendBox">
+		UPDATE smsSendBoxs SET sendStatus=#sendStatus#, sentTime=#sentTime# WHERE id=#id#
+	</update>
+	
+	<delete id="deleteSmsSendBoxById" parameterClass="java.lang.Long">
+		DELETE FROM smsSendBoxs WHERE id=#value#
+	</delete>
+	
+	<delete id="deleteSmsSendTargets" parameterClass="java.lang.Long">
+		DELETE FROM smsSendTargets WHERE smsId=#value#
+	</delete>
+
+	<select id="getSmsSendBoxById" parameterClass="java.lang.Long" resultMap="smsSendBoxResult">
+		SELECT * FROM smsSendBoxs WHERE id=#value#
+	</select>
+	
+	<select id="findSmsSendTargetsBySmsId" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		SELECT * FROM smsSendTargets WHERE smsId=#value#
+	</select>
+	
+	<select id="countSmsSendBoxsForPage" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM smsSendBoxs WHERE senderId=#ownerId#
+	</select>
+	
+	<select id="findSmsSendBoxsForPage" parameterClass="map" resultMap="smsSendBoxResult">
+		SELECT * FROM smsSendBoxs WHERE senderId=#ownerId# 
+		<dynamic prepend="ORDER BY">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countSmsSendBoxsForPageByDate" parameterClass="map" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM smsSendBoxs_$date$ WHERE senderId=#ownerId#
+	</select>
+	
+	<select id="findSmsSendBoxsForPageByDate" parameterClass="map" resultMap="smsSendBoxResult">
+		SELECT * FROM smsSendBoxs_$date$ WHERE senderId=#ownerId# 
+		<dynamic prepend="ORDER BY">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>

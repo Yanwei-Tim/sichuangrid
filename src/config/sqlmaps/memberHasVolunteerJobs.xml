@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="memberHasVolunteerJobs">
+		<typeAlias alias="MemberHasVolunteerJobs" type="com.tianque.partyBuilding.doubleRegActivities.domain.MemberHasVolunteerJobs" ></typeAlias>
+		
+		<resultMap id="memberHasVolunteerJobsResult" class="MemberHasVolunteerJobs">
+			<result property="memberId" column="memberId"></result>
+			<result property="volunteerJobsId" column="volunteerJobsId"></result>
+		</resultMap>
+		
+		<insert id="addMemberHasVolunteerJobs" parameterClass="MemberHasVolunteerJobs">
+			insert into memberHasVolunteerJobs
+				(memberId,volunteerJobsId) 
+			values
+				(#memberId#,#volunteerJobsId#)
+		</insert>
+		
+		<delete id="deleteMemberHasVolunteerJobsById" parameterClass="java.lang.Long">
+			delete from memberHasVolunteerJobs where memberId=#value#
+		</delete>
+		
+		<select id="getMemberHasVolunteerJobsById"  parameterClass="java.lang.Long"
+			resultMap="memberHasVolunteerJobsResult">
+			select * from memberHasVolunteerJobs where memberId=#value#
+		</select>
+		
+		<delete id="deleteMemberHasVolunteerJobsByVolunteerJobsId" parameterClass="java.lang.Long">
+			delete from memberHasVolunteerJobs where volunteerJobsId=#value#
+		</delete>
+		<delete id="deleteMemberHasVolunteerJobsByVolunteerJobsIds" parameterClass="java.util.Map">
+			delete from memberHasVolunteerJobs where volunteerJobsId
+				<iterate close=")" open="(" prepend=" in " conjunction="," property="volunteerJobsIds">
+					#volunteerJobsIds[]#
+				</iterate>
+		</delete>
+</sqlMap>

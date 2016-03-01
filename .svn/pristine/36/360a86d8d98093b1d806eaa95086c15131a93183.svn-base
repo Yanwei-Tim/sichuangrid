@@ -1,0 +1,29 @@
+package com.tianque.plugin.weChat.dao.impl;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.plugin.weChat.dao.WeChatGroupDao;
+import com.tianque.plugin.weChat.domain.user.WeChatGroup;
+
+@Repository("weChatGroupDao")
+public class WeChatGroupDaoImpl extends AbstractBaseDao implements WeChatGroupDao {
+
+	@Override
+	public Long saveWeChatGroup(WeChatGroup weChatGroup) {
+		return (Long) getSqlMapClientTemplate().insert("weChatGroup.saveWeChatGroup", weChatGroup);
+	}
+
+	@Override
+	public WeChatGroup getGroupByGroupIdAndWeChatUserId(WeChatGroup weChatGroup) {
+		return (WeChatGroup) getSqlMapClientTemplate().queryForObject(
+				"weChatGroup.getGroupByGroupIdAndWeChatUserId", weChatGroup);
+	}
+
+	@Override
+	public void deleteWeChatGroupByWeChatUserId(String weChatUserId) {
+		getSqlMapClientTemplate().delete("weChatGroup.deleteWeChatGroupByWeChatUserId",
+				weChatUserId);
+	}
+
+}

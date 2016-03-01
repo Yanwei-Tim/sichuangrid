@@ -1,0 +1,803 @@
+package com.tianque.plugin.weChat.controller;
+
+import java.io.FileNotFoundException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.struts2.ServletActionContext;
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.baseInfo.primaryOrg.domain.RedCuffTeam;
+import com.tianque.baseInfo.primaryOrg.service.RedCuffTeamService;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.exception.ServiceException;
+import com.tianque.core.util.DialogMode;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.GridPage;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.issue.domain.IssueLogNew;
+import com.tianque.issue.domain.IssueNew;
+import com.tianque.issue.factory.IssueManageStrategyFactory;
+import com.tianque.issue.service.IssueService;
+import com.tianque.job.JobHelper;
+import com.tianque.plugin.weChat.domain.evaluationIssueHandle.EvaluationIssueHandle;
+import com.tianque.plugin.weChat.domain.inbox.InboxAttachment;
+import com.tianque.plugin.weChat.domain.inbox.ReplyMessage;
+import com.tianque.plugin.weChat.domain.sendMessage.Article;
+import com.tianque.plugin.weChat.domain.sendMessage.TextMessage;
+import com.tianque.plugin.weChat.domain.sendMessage.text.TextSendMessage;
+import com.tianque.plugin.weChat.domain.inbox.PreciseInbox;
+import com.tianque.plugin.weChat.domain.user.Fan;
+import com.tianque.plugin.weChat.domain.user.WeChatGroup;
+import com.tianque.plugin.weChat.service.EvaluationIssueHandleService;
+import com.tianque.plugin.weChat.service.FanService;
+import com.tianque.plugin.weChat.service.InboxAttachmentService;
+import com.tianque.plugin.weChat.service.PreciseInboxService;
+import com.tianque.plugin.weChat.service.ReplyMessageService;
+import com.tianque.plugin.weChat.service.WeChatGroupService;
+import com.tianque.plugin.weChat.util.Constants;
+import com.tianque.plugin.weChat.util.DateUtil;
+import com.tianque.service.IssueLogService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+/** 收件箱控制类（所有来自页面的请求） */
+@Namespace("/weChat/preciseInbox")
+@Scope("prototype")
+@Controller("preciseInboxController")
+public class PreciseInboxController extends BaseAction {
+	private static Logger logger = LoggerFactory
+			.getLogger(PreciseInboxController.class);
+	@Autowired
+	private PreciseInboxService preciseInboxService;
+	@Autowired
+	private InboxAttachmentService inboxAttachmentService;
+	@Autowired
+	private OrganizationDubboService organizationService;
+	@Autowired
+	private IssueManageStrategyFactory factory;
+	@Autowired
+	private ReplyMessageService replyMessageService;
+	@Autowired
+	private WeChatGroupService weChatGroupService;
+	@Autowired
+	private IssueLogService issueLogService;
+	@Autowired
+	private IssueService issueService;
+	@Autowired
+	private RedCuffTeamService redCuffTeamService;
+	@Autowired
+	private FanService fanService;
+	@Autowired
+	private EvaluationIssueHandleService evaluationIssueHandleService;
+
+	
+	
+	
+	private RedCuffTeam redCuffTeam;
+	private List<IssueLogNew> issueDealLogs;
+	/** 精确消息对象 */
+	private PreciseInbox preciseInbox;
+
+	private Long preciseInboxId;
+	/** 发送的返回情况code（0为成功，再删除时>0未成功） */
+	private int resultCode;
+	/**事件评价对象*/
+	private EvaluationIssueHandle evaluationIssueHandle;
+
+	/** 主动回复消息对象 */
+	private TextSendMessage textSendMessage;
+	private InboxAttachment inboxAttachment;
+	private String preciseInboxIds;
+	//private List<PreciseInbox> map = new ArrayList<PreciseInbox>();
+	private List<ReplyMessage> replyMessageList = new ArrayList<ReplyMessage>();
+	private Map<String,Object> map = new HashMap<String,Object>();
+
+	// 判断是发送还是回复
+	private String sendOrReply;
+	/** 文本 */
+	private TextMessage textMessage;
+	/** 附件名称 */
+	private Set<String> attachFiles;
+	// 图文
+	private Article article;
+	/** 粉丝id(用于群发) */
+	private String openId;
+	/** 分组 */
+	private List<WeChatGroup> weChatGroupList;
+
+	/** 组织ID */
+	private String orgId;
+	/** 微信公众号 */
+	private String weChatUserId;
+	/** 纬度 */
+	private String latitude;
+	/** 经度 */
+	private String longitude;
+		
+	/**
+	 * 业务跳转
+	 * 
+	 * @throws ParseException
+	 */
+	@Action(value = "dispatch", results = {
+			@Result(name = "preciseInbox", location = "/wechat/preciseInbox/preciseInbox.jsp"),
+			@Result(name = "addFloatingPopulationInbox", location = "/wechat/preciseInbox/addFloatingPopulationInbox.jsp"),
+			@Result(name = "addHiddenDangerInbox", location = "/wechat/preciseInbox/addHiddenDangerInbox.jsp"),
+			@Result(name = "addComprehensiveInbox", location = "/wechat/preciseInbox/addComprehensiveInbox.jsp"),
+			@Result(name = "replyMessage", location = "/template/inbox/replyMessageDlg.ftl"),
+			@Result(name = "replyTextMessage", location = "/wechat/preciseInbox/sendTextMessageDlgPreciseInbox.jsp"),
+			@Result(name = "replyImageMessage", location = "/wechat/preciseInbox/sendImageMessageDlgPreciseInbox.jsp"),
+			@Result(name = "replyNewsMessage", location = "/wechat/preciseInbox/sendNewsMessageDlgPreciseInbox.jsp"),
+			@Result(name = "viewReplyMessage", location = "/template/inbox/replyMessageList.ftl"),
+			@Result(name = "selectReceiver", location = "/wechat/selectPersonDlg.jsp"),
+			@Result(name = "findHistoryIssue", location = "/wechat/preciseInbox/findHistoryIssue.jsp"),
+			@Result(name = "search", location = "/wechat/preciseInbox/searchPreciseInbox.jsp"),
+			@Result(name = "mobileTerminalError", location = "/wechat/redCuffTeam/authenticationFailure.jsp")})
+	public String dispatch() throws Exception {
+		if ("preciseInbox".equals(mode)) {
+			HttpServletRequest request = ServletActionContext.getRequest();
+			if (!StringUtil.isStringAvaliable(ThreadVariable.getWeChatOpenId())) {
+				// 用户openId获取失败
+				errorMessage = "获取openId失败，请返回重新进入该页面!";
+				request.setAttribute("errorMessage", errorMessage);
+				return "mobileTerminalError";
+			}
+			
+			request.setAttribute("orgId", orgId);
+			request.setAttribute("weChatUserId", weChatUserId);
+			request.setAttribute("openId", ThreadVariable.getWeChatOpenId());
+			return "preciseInbox";
+		} else if ("addFloatingPopulationInbox".equals(mode)) {
+			HttpServletRequest request = ServletActionContext.getRequest();
+			if (!StringUtil.isStringAvaliable(openId)) {
+				// 用户openId获取失败
+				errorMessage = "获取openId失败，请返回重新进入该页面!";
+				request.setAttribute("errorMessage", errorMessage);
+				return "mobileTerminalError";
+			}
+			if (ThreadVariable.getSession() == null) {// 页面pop:OptionTag标签需要做session验证，微信上是未登录的伪造一个。
+				JobHelper.createMockAdminSession();
+			}
+			redCuffTeam = redCuffTeamService.getRedCuffTeamByWechatno(openId);
+			if (redCuffTeam == null) {
+				redCuffTeam = new RedCuffTeam();
+			}
+			request.setAttribute("latitude", latitude);
+			request.setAttribute("longitude", longitude);
+			request.setAttribute("orgId", orgId);
+			request.setAttribute("weChatUserId", weChatUserId);
+			request.setAttribute("openId", openId);
+			return "addFloatingPopulationInbox";
+		} else if ("addHiddenDangerInbox".equals(mode)) {
+			HttpServletRequest request = ServletActionContext.getRequest();
+			if (!StringUtil.isStringAvaliable(openId)) {
+				// 用户openId获取失败
+				errorMessage = "获取openId失败，请返回重新进入该页面!";
+				request.setAttribute("errorMessage", errorMessage);
+				return "mobileTerminalError";
+			}
+			if (ThreadVariable.getSession() == null) {// 页面pop:OptionTag标签需要做session验证，微信上是未登录的伪造一个。
+				JobHelper.createMockAdminSession();
+			}
+			redCuffTeam = redCuffTeamService.getRedCuffTeamByWechatno(openId);
+			if (redCuffTeam == null) {
+				redCuffTeam = new RedCuffTeam();
+			}
+			request.setAttribute("latitude", latitude);
+			request.setAttribute("longitude", longitude);
+			request.setAttribute("orgId", orgId);
+			request.setAttribute("weChatUserId", weChatUserId);
+			request.setAttribute("openId", openId);
+			return "addHiddenDangerInbox";
+		} else if ("addComprehensiveInbox".equals(mode)) {
+			HttpServletRequest request = ServletActionContext.getRequest();
+			if (!StringUtil.isStringAvaliable(openId)) {
+				// 用户openId获取失败
+				errorMessage = "获取openId失败，请返回重新进入该页面!";
+				request.setAttribute("errorMessage", errorMessage);
+				return "mobileTerminalError";
+			}
+			if (ThreadVariable.getSession() == null) {// 页面pop:OptionTag标签需要做session验证，微信上是未登录的伪造一个。
+				JobHelper.createMockAdminSession();
+			}
+			redCuffTeam = redCuffTeamService.getRedCuffTeamByWechatno(openId);
+			if (redCuffTeam == null) {
+				redCuffTeam = new RedCuffTeam();
+			}
+			request.setAttribute("latitude", latitude);
+			request.setAttribute("longitude", longitude);
+			request.setAttribute("orgId", orgId);
+			request.setAttribute("weChatUserId", weChatUserId);
+			request.setAttribute("openId", openId);
+			return "addComprehensiveInbox";
+		} else if ("replyMessage".equals(mode)) {
+			preciseInbox = preciseInboxService.getPreciseInboxById(preciseInbox
+					.getId());
+			return "replyMessage";
+		} else if ("replyTextMessage".equals(mode)) {// 文本
+			preciseInbox = preciseInboxService.getPreciseInboxById(preciseInbox
+					.getId());
+			sendOrReply = "reply";
+			return "replyTextMessage";
+		} else if ("replyImageMessage".equals(mode)) {// 图片
+			preciseInbox = preciseInboxService.getPreciseInboxById(preciseInbox
+					.getId());
+			sendOrReply = "reply";
+			return "replyImageMessage";
+		} else if ("replyNewsMessage".equals(mode)) {// 图文
+			preciseInbox = preciseInboxService.getPreciseInboxById(preciseInbox
+					.getId());
+			sendOrReply = "reply";
+			return "replyNewsMessage";
+		} else if ("retransmissionMsg".equals(mode)) {// 转发
+			preciseInbox = preciseInboxService.getPreciseInboxById(preciseInbox
+					.getId());
+			sendOrReply = "retransmission";
+			if ("text".equals(preciseInbox.getMsgType())
+					|| "location".equals(preciseInbox.getMsgType()))
+				return "replyTextMessage";// 转发文本
+			else if ("image".equals(preciseInbox.getMsgType())) {
+				inboxAttachment = inboxAttachmentService
+						.getInboxAttachmentByInboxId(preciseInbox.getId()).get(
+								0);
+				return "replyImageMessage";// 转发图片
+			}
+		} else if ("viewReplyMessage".equals(mode)) {
+			replyMessageList = replyMessageService
+					.findReplyMessagesByPreciseInboxId(preciseInboxId);
+			return "viewReplyMessage";
+		} else if (DialogMode.SEARCH_MODE.equals(mode)) {
+			if (preciseInbox.getOrg() == null
+					|| preciseInbox.getOrg().getId() == null) {
+				errorMessage = "组织机构为空!";
+				return ERROR;
+			}
+			weChatGroupList = weChatGroupService
+					.getGroupListByOrgId(preciseInbox.getOrg().getId());
+			return mode;
+
+		}else if ("findHistoryIssue".equals(mode)) {
+			
+			HttpServletRequest request = ServletActionContext.getRequest();
+			if (!StringUtil.isStringAvaliable(ThreadVariable.getWeChatOpenId())) {
+				// 用户openId获取失败
+				errorMessage = "获取openId失败，请返回重新进入该页面!";
+				request.setAttribute("errorMessage", errorMessage);
+				return "mobileTerminalError";
+			}
+			Fan fan = fanService.getFanByOpenIdAndWeChatUserId(ThreadVariable.getWeChatOpenId(), weChatUserId);
+			//Fan fan = fanService.getFanByOpenIdAndWeChatUserId("oJot0vyh_3JcYIFoAyS4F7HPoYwk", "gh_38776b25e1db");
+			if(fan==null||fan.getName()==null){
+				errorMessage = "获取粉丝昵称失败，请返回重新进入该页面!";
+				request.setAttribute("errorMessage", errorMessage);
+				return "mobileTerminalError";
+			}			
+			request.setAttribute("fanName", fan.getName());
+			request.setAttribute("orgId", orgId);
+			request.setAttribute("weChatUserId", weChatUserId);
+			request.setAttribute("openId", ThreadVariable.getWeChatOpenId());
+			return "findHistoryIssue";
+		}
+		
+		return ERROR;
+	}
+
+	/**
+	 * 新增
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws InterruptedException
+	 */
+	@Action(value = "addPreciseInbox", results = {
+			@Result(name = "success", type = "json", params = { "root", "true" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String addPreciseInbox() {
+
+		if (ThreadVariable.getSession() == null) {// 页面pop:OptionTag标签需要做session验证，微信上是未登录的伪造一个。
+			JobHelper.createMockAdminSession();
+		}
+		if (!StringUtil.isStringAvaliable(openId)) {
+			// 用户openId获取失败
+			errorMessage = "获取openId失败，请返回重新输入!";			
+			return ERROR;
+		}
+		if (preciseInbox != null) {
+			preciseInbox.setFromUserName(openId);
+			preciseInbox.setIsRead(Constants.NOT_READ);
+			String msg = preciseInboxService.savePreciseInbox(preciseInbox);
+			if(msg.equals("success")){
+				return SUCCESS;		
+			}else{
+				errorMessage=msg;
+				return ERROR;
+			}			
+		}
+		return SUCCESS;
+	}
+
+	/**
+	 * 收件箱列表
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws InterruptedException
+	 */
+	@Action(value = "findPreciseInboxs", results = {
+			@Result(type = "json", name = "success", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findPreciseInboxs() {
+		try {
+			PageInfo<PreciseInbox> preciseInboxList = preciseInboxService
+					.findPreciseInboxs(preciseInbox, page, rows, sidx, sord);
+			gridPage = new GridPage(preciseInboxList);
+			return SUCCESS;
+		} catch (Exception e) {
+			logger.error("findInboxsERROR", e);
+			this.errorMessage = e.getMessage();
+			return ERROR;
+		}
+	}
+
+	/** 回复文本（前提是48小时与用户有交互） */
+	/* @PermissionFilter(ename = "replyPreciseMessage") */
+	@Action(value = "replyTextMessage", results = {
+			@Result(type = "json", name = "success", params = { "root", "null" }),
+			@Result(type = "json", name = "error", params = { "root",
+					"errorMessage" }) })
+	public String replyTextMessage() {
+		try {
+			String sendResult = preciseInboxService.replyTextMessage(
+					preciseInbox, textMessage);
+			if (sendResult == null)
+				return SUCCESS;
+			else {
+				this.errorMessage = sendResult;
+				return ERROR;
+			}
+		} catch (ServiceException e) {
+			this.errorMessage = e.getMessage();
+			return ERROR;
+		} catch (Exception e) {
+			this.errorMessage = e.getMessage();
+			return ERROR;
+		}
+	}
+
+	/** 回复图片（前提是48小时与用户有交互） */
+	/* @PermissionFilter(ename = "replyPreciseMessage") */
+	@Action(value = "replyImageMessage", results = {
+			@Result(type = "json", name = "success", params = { "root", "null" }),
+			@Result(type = "json", name = "error", params = { "root",
+					"errorMessage" }) })
+	public String replyImageMessage() {
+		try {
+			String sendResult = preciseInboxService.replyImageMessage(
+					preciseInbox, textMessage, attachFiles);
+			if (sendResult == null)
+				return SUCCESS;
+			else {
+				this.errorMessage = sendResult;
+				return ERROR;
+			}
+		} catch (ServiceException e) {
+			this.errorMessage = e.getMessage();
+			return ERROR;
+		} catch (Exception e) {
+			this.errorMessage = e.getMessage();
+			return ERROR;
+		}
+	}
+
+	/** 回复图文（前提是48小时与用户有交互） */
+	/* @PermissionFilter(ename = "replyPreciseMessage") */
+	@Action(value = "replyNewsMessage", results = {
+			@Result(type = "json", name = "success", params = { "root", "null" }),
+			@Result(type = "json", name = "error", params = { "root",
+					"errorMessage" }) })
+	public String replyNewsMessage() {
+		try {
+			String sendResult = preciseInboxService.replyNewsMessage(
+					preciseInbox, textMessage, attachFiles, article);
+			if (sendResult == null)
+				return SUCCESS;
+			else {
+				this.errorMessage = sendResult;
+				return ERROR;
+			}
+		} catch (ServiceException e) {
+			this.errorMessage = e.getMessage();
+			return ERROR;
+		} catch (Exception e) {
+			this.errorMessage = e.getMessage();
+			return ERROR;
+		}
+	}
+
+	/** 删除 */
+	/* @PermissionFilter(ename = "deletePreciseMessage") */
+	@Action(value = "deletePreciseInboxById", results = { @Result(type = "json", name = "success", params = {
+			"root", "true", "ignoreHierarchy", "false" }) })
+	public String deletePreciseInboxById() {
+		preciseInboxService.deletePreciseInboxById(Arrays
+				.asList(analyzePopulationIds()));
+		return SUCCESS;
+	}
+
+	private Long[] analyzePopulationIds() {
+		String[] deleteId = preciseInboxIds.split(",");
+		List<Long> idList;
+		if (deleteId[0].equals("")) {
+			idList = initTargetId(deleteId, 1);
+		} else {
+			idList = initTargetId(deleteId, 0);
+		}
+		Long[] ids = new Long[idList.size()];
+		for (int i = 0; i < ids.length; i++) {
+			ids[i] = idList.get(i);
+			// resultCode = inboxService.deleteInboxById(ids);
+		}
+		return ids;
+	}
+
+	private List<Long> initTargetId(String[] targetIds, int size) {
+		List<Long> idLongs = new ArrayList<Long>();
+		for (int i = size; i < targetIds.length; i++) {
+			String tempId = targetIds[i];
+			if (size == 0) {
+				idLongs.add(Long.parseLong(targetIds[i]));
+			} else {
+				idLongs.add(Long.parseLong(tempId));
+			}
+		}
+		return idLongs;
+	}
+
+	/**
+	 * 回复消息时校验时间是否超过48小时
+	 * 
+	 * @return
+	 */
+	@Action(value = "checkDate", results = {
+			@Result(name = "success", type = "json", params = { "root", "true" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String checkDate() {
+		if (DateUtil.isActiveTime(preciseInbox.getCreateDate()) == true)
+			return SUCCESS;
+		else {
+			errorMessage = "该粉丝互动时间已经超过48小时，不能再回复信息！";
+			return ERROR;
+		}
+
+	}
+
+	/** 转发文本（支持群转发）（前提是48小时与用户有交互） */
+	/* @PermissionFilter(ename = "replyPreciseMessage") */
+	@Action(value = "retransmissionTextMessage", results = {
+			@Result(type = "json", name = "success", params = { "root", "null" }),
+			@Result(type = "json", name = "error", params = { "root",
+					"errorMessage" }) })
+	public String retransmissionTextMessage() {
+		try {
+			String sendResult = preciseInboxService.retransmissionTextMessage(
+					preciseInbox, textMessage, openId);
+			if (sendResult == null) {
+				// 设置已接发
+				preciseInbox = preciseInboxService
+						.getPreciseInboxById(preciseInbox.getId());
+				preciseInbox.setForwardingState(Constants.FORWARD);
+				Organization org = organizationService
+						.getSimpleOrgById(preciseInbox.getOrg().getId());
+				if (org == null) {
+					errorMessage = "组织机构为空";
+					return ERROR;
+				}
+				preciseInbox.setOrgInternalCode(org.getOrgInternalCode());
+				preciseInboxService.update(preciseInbox);
+				return SUCCESS;
+			} else {
+				this.errorMessage = sendResult;
+				return ERROR;
+			}
+		} catch (ServiceException e) {
+			this.errorMessage = e.getMessage();
+			return ERROR;
+		} catch (Exception e) {
+			this.errorMessage = e.getMessage();
+			return ERROR;
+		}
+	}
+
+	/**
+	 * 历史查询
+	 * 
+	 * @return
+	 */
+	@Action(value = "findHistoryIssue", results = {
+			@Result(type = "json", name = "success", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(type = "json", name = "error", params = { "root",
+					"errorMessage" }) })
+	public String findHistoryIssue() {
+
+		if (!StringUtil.isStringAvaliable(openId)) {
+			// 用户openId获取失败
+			errorMessage = "获取openId失败，请返回重新输入!";
+			return ERROR;
+		}
+		if (preciseInbox == null) {
+			preciseInbox = new PreciseInbox();
+			preciseInbox.setFromUserName(openId);
+		}else{preciseInbox.setFromUserName(openId);}
+
+		ArrayList<PreciseInbox> preciseInboxList = preciseInboxService
+				.findPreciseInboxPaging(preciseInbox, page, rows, sidx,sord);
+		
+		if(preciseInboxList==null||preciseInboxList.isEmpty()){
+			errorMessage="未查询到任何事件记录!";
+			return ERROR;
+		}
+		gridPage = new GridPage(preciseInboxList);
+		return SUCCESS;
+	}
+	
+	
+	/**
+	 * 根据微信号查询总事件数
+	 * 
+	 * @return
+	 */
+	@Action(value = "findIssueTotal", results = {
+			@Result(type = "json", name = "success", params = { "root",
+					"preciseInbox"}),
+			@Result(type = "json", name = "error", params = { "root",
+					"errorMessage" }) })
+	public String findIssueTotal() {
+
+		if (!StringUtil.isStringAvaliable(openId)) {
+			// 用户openId获取失败
+			errorMessage = "获取openId失败，请返回重新输入!";
+			return ERROR;
+		}
+		Long numberTotal=preciseInboxService.findPreciseInboxByFromUserNameTotal(openId);
+		preciseInbox = new PreciseInbox();
+		if(numberTotal==null||numberTotal==0){
+			errorMessage="未查询到任何事件记录!";
+			return ERROR;
+		}
+		preciseInbox.setId(numberTotal);
+		return SUCCESS;
+	}
+	
+	/**
+	 * 单个事件处理详情
+	 * 
+	 * @return
+	 */
+	@Action(value = "findIssueLoger", results = {
+			@Result(type = "json", name = "success", params = { "root",
+					"map"}),
+			@Result(type = "json", name = "error", params = { "root",
+					"errorMessage" }) })
+	public String findIssueLoger() {
+		if (preciseInbox == null) {
+			errorMessage="服务单号为空!";
+			return errorMessage;
+		}
+		if(preciseInbox.getServiceId()==null){
+			errorMessage="服务单号为空!";
+			return errorMessage;
+		}
+		IssueNew issueNew = issueService.getIssueBySerialNumber(preciseInbox.getServiceId());	
+		if(issueNew==null){
+			errorMessage="服务单号错误!";
+			return ERROR;
+		}
+		List<IssueLogNew> issueLogs = issueLogService
+				.findIssueLogsByIssueId(issueNew.getId());
+		
+		
+			evaluationIssueHandle = evaluationIssueHandleService
+					.getEvaluationIssueHandleBySerialNumber(preciseInbox.getServiceId());
+
+		if(evaluationIssueHandle!=null){
+			map.put("evaluationIssueHandle", evaluationIssueHandle);
+		}
+
+		if(issueLogs!=null){
+			gridPage = new GridPage(issueLogs);
+			map.put("issueLogs", issueLogs);
+			return SUCCESS;
+		}else{
+			errorMessage="服务单号错误!";
+			return ERROR;
+		}
+	}
+	public int getResultCode() {
+		return resultCode;
+	}
+
+	public void setResultCode(int resultCode) {
+		this.resultCode = resultCode;
+	}
+
+	public TextSendMessage getTextSendMessage() {
+		return textSendMessage;
+	}
+
+	public void setTextSendMessage(TextSendMessage textSendMessage) {
+		this.textSendMessage = textSendMessage;
+	}
+
+	public IssueManageStrategyFactory getFactory() {
+		return factory;
+	}
+
+	public void setFactory(IssueManageStrategyFactory factory) {
+		this.factory = factory;
+	}
+
+	public List<ReplyMessage> getReplyMessageList() {
+		return replyMessageList;
+	}
+
+	public void setReplyMessageList(List<ReplyMessage> replyMessageList) {
+		this.replyMessageList = replyMessageList;
+	}
+
+	public InboxAttachment getInboxAttachment() {
+		return inboxAttachment;
+	}
+
+	public void setInboxAttachment(InboxAttachment inboxAttachment) {
+		this.inboxAttachment = inboxAttachment;
+	}
+
+	public String getSendOrReply() {
+		return sendOrReply;
+	}
+
+	public void setSendOrReply(String sendOrReply) {
+		this.sendOrReply = sendOrReply;
+	}
+
+	public TextMessage getTextMessage() {
+		return textMessage;
+	}
+
+	public Set<String> getAttachFiles() {
+		return attachFiles;
+	}
+
+	public void setAttachFiles(Set<String> attachFiles) {
+		this.attachFiles = attachFiles;
+	}
+
+	public void setTextMessage(TextMessage textMessage) {
+		this.textMessage = textMessage;
+	}
+
+	public Article getArticle() {
+		return article;
+	}
+
+	public void setArticle(Article article) {
+		this.article = article;
+	}
+
+	public List<WeChatGroup> getWeChatGroupList() {
+		return weChatGroupList;
+	}
+
+	public void setWeChatGroupList(List<WeChatGroup> weChatGroupList) {
+		this.weChatGroupList = weChatGroupList;
+	}
+
+	public PreciseInbox getPreciseInbox() {
+		return preciseInbox;
+	}
+
+	public void setPreciseInbox(PreciseInbox preciseInbox) {
+		this.preciseInbox = preciseInbox;
+	}
+
+	public Long getPreciseInboxId() {
+		return preciseInboxId;
+	}
+
+	public void setPreciseInboxId(Long preciseInboxId) {
+		this.preciseInboxId = preciseInboxId;
+	}
+
+	public String getPreciseInboxIds() {
+		return preciseInboxIds;
+	}
+
+	public void setPreciseInboxIds(String preciseInboxIds) {
+		this.preciseInboxIds = preciseInboxIds;
+	}
+
+
+
+	public String getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(String orgId) {
+		this.orgId = orgId;
+	}
+
+	public String getWeChatUserId() {
+		return weChatUserId;
+	}
+
+	public void setWeChatUserId(String weChatUserId) {
+		this.weChatUserId = weChatUserId;
+	}
+
+	public String getOpenId() {
+		return openId;
+	}
+
+	public void setOpenId(String openId) {
+		this.openId = openId;
+	}
+
+	public List<IssueLogNew> getIssueDealLogs() {
+		return issueDealLogs;
+	}
+
+	public void setIssueDealLogs(List<IssueLogNew> issueDealLogs) {
+		this.issueDealLogs = issueDealLogs;
+	}
+
+	public RedCuffTeam getRedCuffTeam() {
+		return redCuffTeam;
+	}
+
+	public void setRedCuffTeam(RedCuffTeam redCuffTeam) {
+		this.redCuffTeam = redCuffTeam;
+	}
+
+	public Map<String, Object> getMap() {
+		return map;
+	}
+
+	public void setMap(Map<String, Object> map) {
+		this.map = map;
+	}
+
+	public String getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(String latitude) {
+		this.latitude = latitude;
+	}
+
+	public String getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(String longitude) {
+		this.longitude = longitude;
+	}
+
+}

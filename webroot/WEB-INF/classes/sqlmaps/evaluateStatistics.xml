@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="evaluateStatistics">
+	<typeAlias type="com.tianque.domain.vo.EvaluateStatisticVo" alias="EvaluateStatisticVo"/>
+	<typeAlias type="com.tianque.domain.vo.EvaluateVo" alias="EvaluateVo"/>
+
+	<resultMap id="evaluateVoResult" class="EvaluateVo">
+		<result property="score" column="score" />
+		<result property="amount" column="amount" />
+	</resultMap>
+
+	<resultMap id="evaluateStatisticVoResult" class="EvaluateStatisticVo">
+		<result property="organization.id" column="orgId"/>
+		<result property="fraction" column="fraction" />
+	</resultMap>
+
+	<select id="findEvaluateVo" parameterClass="java.util.Map" resultMap="evaluateVoResult">
+		<![CDATA[select eval.evaluateResult score,count(eval.id) amount  from (select  e.* from evaluates e where e.evaluatetypeid=#evaluatetypeid# and e.orgInternalCode like '$orgInternalCode$%' and  e.state=#state#  order by e.createdate desc ) eval where rownum <= #rownum#    group by eval.evaluateResult order by eval.evaluateResult desc]]>
+	</select>
+	<select id="findEvaluateStatistic" parameterClass="java.util.Map" resultMap="evaluateStatisticVoResult">
+		<![CDATA[ select el.orgId orgId,el.totalScore fraction from (select eval.*  from (select  e.* from evaluates e where e.evaluatetypeid=#evaluatetypeid# and e.orgInternalCode like '$orgInternalCode$%' and  e.state=#state#  order by e.createdate desc ) eval where rownum <= #rownum#   order by eval.evaluateResult desc) el where el.evaluatetypeid=#evaluatetypeid# and el.evaluateResult=#evaluateResult# and el.orgInternalCode  like '$orgInternalCode$%' and el.state=#state#]]>
+	</select>
+</sqlMap>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="constructionUnitManage" extends="default"
+		namespace="/baseinfo/constructionUnitManage">
+		<default-class-ref class="constructionUnitController"></default-class-ref>
+
+		<action name="constructionUnitList" method="findConstructionUnitsForPage">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/baseinfo/siteinfo/constructionUnit/maintainConstructionUnitDlg.jsp
+			</result>
+			<result name="search">
+				/baseinfo/siteinfo/constructionUnit/searchConstructionUnitCondition.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+			 <result name="print">
+				/baseinfo/siteinfo/constructionUnit/constructionUnitPrintDlg.jsp
+			</result>
+		</action>
+
+		<action name="addConstructionUnit" method="addConstructionUnit">
+			<result name="success" type="json">
+				<param name="root">constructionUnit</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="deleteConstructionUnitById" method="deleteConstructionUnitById">
+			<result name="success" type="json">
+				<param name="root">placeId</param>
+			</result>
+		</action>
+		
+		<action name="shiftDispatch"  method="shiftDispatch">
+			<result name="success">
+					/baseinfo/siteinfo/ConstructionUnit/shiftTree.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="shiftConstructionUnit" method="shiftConstructionUnit">
+			<result type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="addPositiveInfo" method="addPositiveInfo">
+			<result type="json">
+				<param name="root">positiveInfos</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateConstructionUnit" method="updateConstructionUnit">
+			<result name="success" type="json">
+				<param name="root">constructionUnit</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateConstructionUnitById" method="updateConstructionUnitById">
+			<result name="success" type="json">
+				<param name="root">constructionUnit</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="hasDuplicateProjectName" method="hasDuplicateProjectName">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		
+		<action name="hasRelatePlace" method="hasRelatePlace">
+			<result name="success" type="json">
+				<param name="root">bol</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		
+	</package>
+</struts>

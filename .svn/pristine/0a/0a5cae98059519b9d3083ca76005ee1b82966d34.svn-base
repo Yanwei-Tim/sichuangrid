@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="unsettledPopulationManage" extends="default"
+		namespace="/baseinfo/unsettledPopulationManage">
+		<default-class-ref class="unsettledPopulationController"></default-class-ref>
+		<action name="dispatchOperate"
+			method="dispatch">
+			<result name="success">
+				/baseinfo/unsettledPopulation/maintainUnsettledPopulationDlg.jsp
+			</result>
+			<result name="search">
+				/baseinfo/unsettledPopulation/maintainUnsettledPopulationConditionDlg.jsp
+			</result>
+			<result name="view">
+				/baseinfo/unsettledPopulation/viewUnsettledPopulationDlg.jsp
+			</result>
+			<!-- <result name="print">
+				/baseinfo/unsettledPopulation/maintainUnsettledPopulationPrintDlg.jsp
+			</result> -->
+			<result name="print">
+				/baseinfo/commonPopulation/printTabPreviewDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="dispatchOperateByEncrypt"
+			method="dispatchByEncrypt">
+			<result name="success">
+				/baseinfo/unsettledPopulation/maintainUnsettledPopulationDlg.jsp
+			</result>
+			<result name="view">
+				/baseinfo/unsettledPopulation/viewUnsettledPopulationDlg.jsp
+			</result>
+			<!-- <result name="print">
+				/baseinfo/unsettledPopulation/maintainUnsettledPopulationPrintDlg.jsp
+			</result> -->
+			<result name="print">
+				/baseinfo/commonPopulation/printTabPreviewDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="dispatchOperateForGis"
+			method="dispatch">
+			<result name="view">
+				/baseinfo/unsettledPopulation/viewUnsettledPopulationDlg_gis.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="maintainUnsettledPopulationBaseInfo" method="maintainUnsettledPopulationBaseInfo">
+			<result name="success" type="json">
+				<param name="root">unsettledPopulation</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="cacheSuccess" type="json">
+				<param name="root">cacheId</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="maintainUnsettledPopulation" method="maintainUnsettledPopulation">
+			<result name="success" type="json">
+				<param name="root">unsettledPopulation</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="addUnsettledPopulationForMobile" method="addUnsettledPopulationForMobile">
+			<result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="updateUnsettledPopulationForMobile" method="updateUnsettledPopulationForMobile">
+			<result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+       <action name="viewUnsettledPopulations" method="viewUnsettledPopulations">
+			<result name="success">
+				/baseinfo/unsettledPopulation/viewUnsettledPopulation.jsp
+			</result>
+		</action>
+		<action name="getUnsettledPopulationByIdForMobile" method="viewUnsettledPopulations">
+			<result name="success" type="json">
+				<param name="root">unsettledPopulation</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="findUnsettledPopulations"
+			method="findUnsettledPopulations">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="shiftDispatch"  method="shiftDispatch">
+			<result name="success">
+					/baseinfo/overseaPersonnel/shiftTree.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="shiftOverseaPersonnel" method="shiftOverseaPersonnel">
+			<result type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateOverseaPersonnelById"
+			method="updateOverseaPersonnelById">
+			<result name="success" type="json">
+				<param name="root">unsettledPopulation</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+
+		<action name="deleteUnsettledPopulation" method="deleteUnsettledPopulation">
+			<result name="success"  type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="hasDuplicateUnsettledPopulation" method="hasDuplicateUnsettledPopulation">
+			<result name="success" type="json">
+				<param name="root">hasDuplicateUnsettledPopulation</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="hasRelatePersons" method="hasRelatePersons">
+			<result name="success" type="json">
+				<param name="root">flag</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+	<action name="getUnsettledPopulationByIdCardNo" method="getUnsettledPopulationByIdCardNo">
+			<result name="success" type="json">
+				<param name="root">unsettledPopulation</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+      <action name="updateLogOutOfUnsettledPopulation" method="updateLogOutOfUnsettledPopulation">
+			<result type="json" name="success">
+				<param name="root">populationList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		 <action name="updateDeathOfUnsettledPopulation" method="updateDeathOfUnsettledPopulation">
+			<result type="json" name="success">
+				<param name="root">populationList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateDeathOfUnsettledPopulationByEncryptId" method="updateDeathOfUnsettledPopulationByEncryptId">
+			<result type="json" name="success">
+				<param name="root">populationList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateEmphasiseById" method="updateEmphasiseById">
+		    <result type="json" name="success">
+				<param name="root">populationIdList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateEmphasiseByEncryptId" method="updateEmphasiseByEncryptId">
+		    <result type="json" name="success">
+				<param name="root">populationIdList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateEmphasiseUnsettledPopulationByIdCardNo" method="updateEmphasiseUnsettledPopulationByIdCardNo">
+		    <result type="json" name="success">
+				<param name="root">populationIdList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findUnsettledPopulationByIdCardNoAndOrgId" method="findUnsettledPopulationByIdCardNoAndOrgId">
+		    <result type="json" name="success">
+				<param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

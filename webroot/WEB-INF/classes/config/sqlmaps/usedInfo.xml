@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="usedInfo">
+	<typeAlias alias="UsedInfo" type="com.tianque.domain.UsedInfo" />
+	<resultMap class="UsedInfo" id="userSignForUsedInfoResult">
+		<result property="org.id" column="ORGID"/>
+		<result property="org.orgName" column="ORGNAME"/>
+		<result property="monthActive" column="monthActive"/>
+		<result property="weekActive" column="weekActive"/>
+		<result property="dayActive" column="dayActive"/>
+		<result property="dayAccountSum" column="dayAccountSum"/>
+		<result property="weekAccountSum" column="weekAccountSum"/>
+		<result property="monthAccountSum" column="monthAccountSum"/>
+	</resultMap>
+	<resultMap class="UsedInfo" id="usedInfoResult">
+		<result property="org.id" column="ORGID"/>
+		<result property="org.orgName" column="ORGNAME"/>
+		<result property="dayActive" column="dayActive"/>
+		<result property="dayAccountSum" column="dayAccountSum"/>
+		<result property="daySpecialCrowdCount" column="daySpecialCrowdCount"/>
+	</resultMap>
+	
+	
+		<select id="getUsedLoginInfoForUsedInfo" parameterClass="java.util.Map" resultMap="userSignForUsedInfoResult">
+		select org.id as ORGID,org.orgname as ORGNAME, 
+			(select count(1) from usersign us where us.orginternalcode like org.orginternalcode || '%' and us.createdate between #beforDayStartDate# and #beforDayEndDate# ) as dayActive,
+			(select count(t.userid)
+          		from (select userid as userid, orginternalcode as orginternalcode
+                  		from usersign us
+                		where us.createdate between #beforWeekMonday# and #beforWeekSunday# 
+                 		group by userid, orginternalcode
+                		having count(userid) >= 5) t
+         		where t.orginternalcode like org.orginternalcode || '%') as weekActive,
+			(select count(t.userid)
+          		from (select userid as userid, orginternalcode as orginternalcode
+                  		from usersign us
+                		where us.createdate between #monthStartDate# and #monthEndDate# 
+                 		group by userid, orginternalcode
+                		having count(userid) >= 20) t
+         		where t.orginternalcode like org.orginternalcode || '%') as monthActive,
+			(select count(1) from users u where u.orginternalcode like org.orginternalcode || '%' and u.state=2 and u.activationtime  <![CDATA[<=]]> #beforWeekSunday#) as dayAccountSum,
+			(select count(1) from users u where u.orginternalcode like org.orginternalcode || '%' and u.state=2 and u.activationtime <![CDATA[<=]]>  #beforDayEndDate#) as weekAccountSum,
+			(select count(1) from users u where u.orginternalcode like org.orginternalcode || '%' and u.state=2 and u.activationtime <![CDATA[<=]]> #monthEndDate# ) as monthAccountSum
+		from organizations org  
+		where org.parentid=#orgId# 
+		and org.orgtype=#orgTypeId#
+		order by org.seq
+	</select>
+	
+	
+	<select id="getUsedInfoDayData" parameterClass="java.util.Map" resultMap="usedInfoResult">
+		select org.id as ORGID,org.orgname as ORGNAME, 
+			   (select count(1) from userSignEveryDay us where us.orginternalcode like org.orginternalcode || '%') as dayActive,
+	            (select count(1) from users u where u.orginternalcode like org.orginternalcode || '%' and u.state=2 ) as dayAccountSum,
+	            (select count(1) specialCrowdCount from serviceRecordRelyObject s left join servicerecords r
+       				on s.recordid= r.id 
+       				where s.objecttype in('positiveInfo','rectificativePerson','mentalPatient','druggy','idleYouth') 
+      					and r.createdate between #startDate# and #endDate# and r.orgcode like org.orginternalcode || '%'
+       			) as daySpecialCrowdCount
+		from organizations org  
+		where org.parentid=#orgId# 
+		and org.orgtype=#orgTypeId#
+		order by org.seq
+	</select>
+	
+	<statement id="dropUserSignEveryDay">
+		drop table userSignEveryDay purge
+	</statement>
+	
+	<statement id="createUserSignEveryDay" parameterClass="java.util.Map">
+		create table userSignEveryDay as select * from usersign us 
+			where us.createdate between to_date('$startDate$','yyyy-MM-dd HH24:mi:ss') and to_date('$endDate$','yyyy-MM-dd HH24:mi:ss')
+	</statement>
+	
+	<statement id="createUserSignEveryDayIndex">
+		create index IDX_UserSignEveryDay_code on userSignEveryDay(orginternalcode)
+	</statement>
+</sqlMap>

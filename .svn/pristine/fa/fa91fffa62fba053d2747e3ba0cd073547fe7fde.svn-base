@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="userHasMyProfilePermission">
+	<typeAlias alias="userHasMyProfilePermission"
+		type="com.tianque.resourcePool.domain.UserHasMyProfilePermission" />
+	<typeAlias alias="myProfile" type="com.tianque.resourcePool.domain.MyProfile" />
+	<typeAlias
+		type="org.springframework.orm.ibatis.support.ClobStringTypeHandler"
+		alias="ClobStringTypeHandler" />
+	<resultMap id="userHasMyProfilePermissionResult" class="userHasMyProfilePermission">
+		<result column="orgId" property="organization.id" />
+		<result column="myProfileId" property="myProfile.id" />
+	</resultMap>
+
+	<insert id="addUserHasMyProfilePermission" parameterClass="userHasMyProfilePermission">
+		insert into userHasMyProfilePermissions
+		(orgId,myProfileId)
+		values
+		(#organization.id#,#myProfile.id#)
+	</insert>
+	<select id="getUserHasMyProfilePermissionsByMyProfileId"
+		parameterClass="java.lang.Long" resultMap="userHasMyProfilePermissionResult">
+		select * from
+		userHasMyProfilePermissions where myProfileId = #value#
+	</select>
+	<delete id="deleteMyProfilePermissionByOrgIdAndMyProfileId"
+		parameterClass="userHasMyProfilePermission">
+		delete from userHasMyProfilePermissions
+		where
+		orgId=#organization.id# and myProfileId=#myProfile.id#
+	</delete>
+	<delete id="deleteMyProfilePermissionByMyProfileId"
+		parameterClass="java.lang.Long">
+		delete from userHasMyProfilePermissions
+		where
+		myProfileId=#value#
+	</delete>
+	
+	<delete id="deleteMyProfilePermissionByMyProfileIds">
+		delete from userHasMyProfilePermissions
+		where
+		<iterate  conjunction="," open="myProfileId in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	
+	<sql id="where_Condition">
+		<isNotNull property="resourcePoolTypeId" prepend=" and ">
+			con.shareDirectoryId = #resourcePoolTypeId#
+		</isNotNull>
+		
+		<isNotNull property="shareOrganizationId" prepend=" and ">
+			con.orgId =
+			#shareOrganizationId#
+		</isNotNull>
+		<isNotNull property="orgIdsList" prepend=" and ">
+			<iterate property="orgIdsList" conjunction="or" open="(" close=")">
+					con.orgId in ($orgIdsList[]$) 
+			</iterate>
+		</isNotNull>
+		<isPropertyAvailable property="createuser">
+			<isNotEmpty property="createuser" prepend=" and ">
+				con.createUser
+				like '%$createUser$%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="name">
+			<isNotEmpty property="name" prepend=" and ">
+				(con.name like
+				'$name$%'
+				or fullPinyin
+		like '$name$%' or
+		simplePinyin like '$name$%')
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="content">
+			<isNotEmpty property="content" prepend=" and ">
+				con.content like
+				#content,handler=ClobStringTypeHandler#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="releaseUnit">
+			<isNotEmpty property="releaseUnit" prepend=" and ">
+				con.releaseUnit
+				like '%$releaseUnit$%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+
+		<isPropertyAvailable property="fileNo">
+			<isNotEmpty property="fileNo" prepend=" and ">
+				con.fileNo like
+				'%$fileNo$%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="documentSubject">
+			<isNotEmpty property="documentSubject" prepend=" and ">
+				con.documentSubject like '%$documentSubject$%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="startReleaseTime">
+			<isNotNull property="startReleaseTime" prepend=" and ">
+				con.releaseTime <![CDATA[>=]]>
+				#startReleaseTime#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="releaseTime">
+			<isNotNull property="releaseTime" prepend=" and ">
+				con.releaseTime <![CDATA[<=]]>
+				#releaseTime#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="startCreateTime">
+			<isNotNull property="startCreateTime" prepend=" and ">
+				con.createDate <![CDATA[>=]]>
+				#startCreateTime#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="createDate">
+			<isNotNull property="createDate" prepend=" and ">
+				con.createDate <![CDATA[<=]]>
+				#createDate#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="startShareDate">
+			<isNotNull property="startShareDate" prepend=" and ">
+				con.shareDate <![CDATA[>=]]>
+				#startShareDate#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="shareDate">
+			<isNotNull property="shareDate" prepend=" and ">
+				con.shareDate <![CDATA[<=]]>
+				#shareDate#
+			</isNotNull>
+		</isPropertyAvailable>
+		
+	</sql>
+	<sql id="searchTypeEqual0">
+		(select m.*
+		          from myProfiles m
+		         where m.underjurisdiction = 1
+		        union all
+		        select m.*
+		          from myProfiles m
+		         where m.id in (select ur.myProfileId
+		                          from userHasMyProfilePermissions ur
+		                         where ur.orgId = #orgId#)) con
+		 where 1 = 1
+		<include refid="where_Condition" />
+
+	</sql>
+	<sql id="searchTypeEqual1">
+		(select m.*
+		          from myProfiles m
+		         where #orgInternalCode# like m.orginternalcode||'%'
+				   and m.orgid <![CDATA[<> ]]>#orgId#
+		           and m.underjurisdiction = 1
+		        union all
+		        select m.*
+		          from myProfiles m
+		         where #orgInternalCode# like m.orginternalcode||'%'
+				   and m.orgid <![CDATA[<> ]]>#orgId#
+		           and m.id in (select ur.myProfileId
+		                          from userHasMyProfilePermissions ur
+		                         where ur.orgId = #orgId#)) con
+		 where 1 = 1
+		<include refid="where_Condition" />
+	</sql>
+	<sql id="searchTypeEqual2">
+		(select m.*
+		          from myProfiles m
+		         where m.orgId = #orgId#
+		           and m.underjurisdiction = 1
+		        union all
+		        select m.*
+		          from myProfiles m
+		         where m.orgId = #orgId#
+		           and m.id in (select ur.myProfileId
+		                          from userHasMyProfilePermissions ur
+		                         where ur.orgId = #orgId#)) con
+		 where 1 = 1
+		<include refid="where_Condition" />
+	</sql>
+
+	<sql id="searchTypeEqual3">
+		(select m.*
+		          from myProfiles m
+		         where m.orginternalcode like '$orgInternalCode$%'
+		           and m.orgid <![CDATA[<> ]]>#orgId#
+		           and m.underjurisdiction = 1
+		        union all
+		        select m.*
+		          from myProfiles m
+		         where m.orginternalcode like '$orgInternalCode$%'
+		           and m.orgid <![CDATA[<> ]]>#orgId#
+		           and m.id in (select ur.myProfileId
+		                          from userHasMyProfilePermissions ur
+		                         where ur.orgId = #orgId#)) con
+		 where 1 = 1
+		<include refid="where_Condition" />
+	</sql>
+	
+	<sql id="searchTypeEqual4">
+		(select m.*
+		          from myProfiles m
+		         where m.orginternalcode like '$orgInternalCode$%'
+		           and m.underjurisdiction = 1
+		        union all
+		        select m.*
+		          from myProfiles m
+		         where m.orginternalcode like '$orgInternalCode$%'
+		           and m.id in (select ur.myProfileId
+		                          from userHasMyProfilePermissions ur
+		                         where ur.orgId = #orgId#)) con
+		 where 1 = 1
+		<include refid="where_Condition" />
+	</sql>
+	
+	<sql id="orderSql">
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<select id="countSharingFilesForList" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<isEqual property="searchType" compareValue="0">
+			select count(*) from
+			<include refid="searchTypeEqual0" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="1">
+			select count(*) from
+			<include refid="searchTypeEqual1" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="2">
+			select count(*) from
+			<include refid="searchTypeEqual2" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="3">
+			select count(*) from
+			<include refid="searchTypeEqual3" />
+		</isEqual>
+	</select>
+	
+	<select id="findSharingFilesForList" parameterClass="java.util.Map"
+		resultMap="myProfile.myProfileResult">
+		<isEqual property="searchType" compareValue="0">
+			select * from
+			<include refid="searchTypeEqual0" />
+			<include refid="orderSql" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="1">
+			select * from
+			<include refid="searchTypeEqual1" />
+			<include refid="orderSql" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="2">
+			select * from
+			<include refid="searchTypeEqual2" />
+			<include refid="orderSql" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="3">
+			select * from
+			<include refid="searchTypeEqual3" />
+			<include refid="orderSql" />
+		</isEqual>
+	</select>
+	
+	<select id="fastSearchSharingFiles" parameterClass="java.util.Map"
+		resultMap="myProfile.myProfileResult">
+		<isEqual property="searchType" compareValue="0">
+			select * from
+			<include refid="searchTypeEqual0" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="1">
+			select * from
+			<include refid="searchTypeEqual1" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="2">
+			select * from
+			<include refid="searchTypeEqual2" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="3">
+			select * from
+			<include refid="searchTypeEqual3" />
+		</isEqual>
+		and (name like '$searchText$%' or fullPinyin
+		like '$searchText$%' or
+		simplePinyin like '$searchText$%')
+		<include refid="orderSql" />
+	</select>
+	<select id="fastSearchSharingFilesforMobile" parameterClass="java.util.Map"
+		resultMap="myProfile.myProfileResult">
+		<isEqual property="searchType" compareValue="0">
+			select * from
+			<include refid="searchTypeEqual0" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="1">
+			select * from
+			<include refid="searchTypeEqual1" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="2">
+			select * from
+			<include refid="searchTypeEqual4" />
+		</isEqual>
+		and (name like '$searchText$%' or fullPinyin
+		like '$searchText$%' or
+		simplePinyin like '$searchText$%')
+		<include refid="orderSql" />
+	</select>
+	<select id="countFastSearchSharingFiles" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<isEqual property="searchType" compareValue="0">
+			select count(*) from
+			<include refid="searchTypeEqual0" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="1">
+			select count(*) from
+			<include refid="searchTypeEqual1" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="2">
+			select count(*) from
+			<include refid="searchTypeEqual2" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="3">
+			select count(*) from
+			<include refid="searchTypeEqual3" />
+		</isEqual>
+		and (name like '$searchText$%' or fullPinyin
+		like '$searchText$%' or
+		simplePinyin like '$searchText$%')
+	</select>
+	
+	<select id="countFastSearchSharingFilesforMobile" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<isEqual property="searchType" compareValue="0">
+			select count(*) from
+			<include refid="searchTypeEqual0" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="1">
+			select count(*) from
+			<include refid="searchTypeEqual1" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="2">
+			select count(*) from
+			<include refid="searchTypeEqual4" />
+		</isEqual>
+		and (name like '$searchText$%' or fullPinyin
+		like '$searchText$%' or
+		simplePinyin like '$searchText$%')
+	</select>
+	
+	<select id="searchSharingFiles" parameterClass="java.util.Map"
+		resultMap="myProfile.myProfileResult">
+		<isEqual property="searchType" compareValue="0">
+			select * from
+			<include refid="searchTypeEqual0" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="1">
+			select * from
+			<include refid="searchTypeEqual1" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="2">
+			select * from
+			<include refid="searchTypeEqual2" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="3">
+			select * from
+			<include refid="searchTypeEqual3" />
+		</isEqual>
+		<include refid="orderSql" />
+	</select>
+	<select id="countSearchSharingFiles" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<isEqual property="searchType" compareValue="0">
+			select count(*) from
+			<include refid="searchTypeEqual0" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="1">
+			select count(*) from
+			<include refid="searchTypeEqual1" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="2">
+			select count(*) from
+			<include refid="searchTypeEqual2" />
+		</isEqual>
+		<isEqual property="searchType" compareValue="3">
+			select count(*) from
+			<include refid="searchTypeEqual3" />
+		</isEqual>
+		<include refid="orderSql" />
+	</select>
+	
+	<select id="findSharingFilesForListByIds" resultMap="myProfile.myProfileResult">
+		select * from myprofiles where 1=1 
+		<iterate  conjunction="," open="and id in (" close=")">
+				#[]#
+		</iterate>
+	</select>
+	
+</sqlMap>

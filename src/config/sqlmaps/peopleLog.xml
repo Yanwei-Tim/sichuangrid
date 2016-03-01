@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="peopleLog">
+	<typeAlias alias="PeopleLog" type="com.tianque.peopleLog.domain.PeopleLog"/>
+	<typeAlias alias="PeopleLogAttachFiles" type="com.tianque.peopleLog.domain.PeopleLogAttachFiles"/>
+	<typeAlias type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" alias="ClobStringTypeHandler"/>
+	<resultMap class="PeopleLog" id="peopleLogResult">
+		<result property="id" column="id"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result column="userId" property="userId"/>
+		<result property="belonger" column="belonger"/>
+		<result property="publishDate" column="publishDate"/>
+		<result property="address" column="address"/>
+		<result property="title" column="title"/>
+		<result property="contents" column="contents"/>
+		<result property="summary" column="summary"/>
+		<result column="commentNums" property="commentNums"/>
+		<result property="isAttachment" column="isAttachment"/>
+		<result property="logType.id" column="logType"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+	
+	<resultMap class="PeopleLogAttachFiles" id="PeopleLogAttachFilesResult">
+	    <result property="id" column="id"/>
+	    <result property="peopleLogId" column="peopleLogId"/>
+	    <result property="fileName" column="fileName" />
+	    <result property="fileActualUrl" column="fileActualUrl"/>
+	    <result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+  	</resultMap>
+
+	<insert id="addPeopleLog" parameterClass="PeopleLog">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+		<![CDATA[SELECT s_peopleLog.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into peopleLog(id,orgId,orgInternalCode,userId,belonger,publishDate,address,title,contents,summary,logType,commentNums,isAttachment,createUser,createDate,updateUser,updateDate)
+		values(#id#,#organization.id#,#orgInternalCode#,#userId#,#belonger#,#publishDate#,#address#,#title#,#contents,handler=ClobStringTypeHandler#,#summary#,#logType.id#,#commentNums#,#isAttachment#,#createUser#,#createDate#,#updateUser#,#updateDate#)
+	</insert>
+
+	<select id="getPeopleLogById" parameterClass="java.lang.Long" resultMap="peopleLogResult">
+	<![CDATA[select * from peopleLog where id=#value#]]>
+	</select>
+
+	<select id="countPeopleLog" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[select count(*) from peopleLog where orgInternalCode=#orgInternalCode#]]>
+		<dynamic>
+ 			<isPropertyAvailable property="commentNums">
+				<isNotNull property="commentNums" prepend="and">
+						commentNums > $commentNums$
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findAllPeopleLog" parameterClass="map" resultMap="peopleLogResult">
+		select * from peopleLog where orgInternalCode=#orgInternalCode#
+ 		<dynamic>
+ 			<isPropertyAvailable property="commentNums">
+				<isNotNull property="commentNums" prepend="and">
+						commentNums > $commentNums$
+				</isNotNull>
+			</isPropertyAvailable>
+ 			<isPropertyAvailable property="sortField" prepend="order by">
+ 				<isNotNull property="sortField">$sortField$</isNotNull>
+ 				<isNotNull property="order">$order$</isNotNull>
+ 			</isPropertyAvailable>
+ 		</dynamic>
+ 	</select>
+ 	
+ 	<sql id="sql_where">
+ 		from peopleLog where userId=#userId#
+ 		<dynamic>
+ 			<isPropertyAvailable property="commentNums">
+				<isNotNull property="commentNums" prepend="and">
+						commentNums > $commentNums$
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+ 	</sql>
+ 	
+	<select id="countUserPeopleLog" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) <include refid="sql_where"/>
+		
+	</select>
+	
+	<!-- 当前登录用户的日志 -->
+	<select id="findUserAllPeopleLog" parameterClass="map" resultMap="peopleLogResult">
+		select * <include refid="sql_where"/>
+ 		<dynamic>
+ 			<isPropertyAvailable property="sortField" prepend="order by">
+ 				<isNotNull property="sortField">$sortField$</isNotNull>
+ 				<isNotNull property="order">$order$</isNotNull>
+ 			</isPropertyAvailable>
+ 		</dynamic>
+ 	</select>
+ 	
+	<delete id="deletePeopleLog" parameterClass="java.lang.Long">
+		delete from peopleLog where id=#value#
+	</delete>
+
+	<update id="updatePeopleLog" parameterClass="PeopleLog">
+		update peopleLog set
+			isAttachment = #isAttachment#,
+			belonger=#belonger#,
+			address=#address#,
+			title=#title#,
+			contents=#contents,handler=ClobStringTypeHandler#,
+			summary=#summary#,
+			commentNums=#commentNums#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#
+		where id=#id#
+	</update>
+
+	<update id="commentPeopleLog" parameterClass="map">
+		update peopleLog set
+
+			commentNums=#commentNum#
+
+		where id=#id#
+	</update>
+
+	<update id="editPeopleLog" parameterClass="PeopleLog">
+		update peopleLog set
+			isAttachment = #isAttachment#,
+			belonger=#belonger#,
+			address=#address#,
+			publishDate=#publishDate#,
+			title=#title#,
+			contents=#contents,handler=ClobStringTypeHandler#,
+			summary=#summary#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#
+		where id=#id#
+	</update>
+
+	<select id="findLog" parameterClass="java.util.Map" resultMap="peopleLogResult">
+		select * from peopleLog where id = #logId#
+	</select>
+
+	<select id="countAllSubLogList" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from peopleLog where orgInternalCode like  #orgInternalCode#||'%'
+		<isPropertyAvailable property="sortField" prepend="order by">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="sord">$sord$</isNotNull>
+			</isPropertyAvailable>
+	</select>
+
+	<select id="countSubLogList" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from peopleLog where orgInternalCode = #orgInternalCode#
+		<isPropertyAvailable property="sortField" prepend="order by">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="sord">$sord$</isNotNull>
+			</isPropertyAvailable>
+	</select>
+
+	<select id="findSubLogList" parameterClass="java.util.Map" resultMap="peopleLogResult">
+		select * from peopleLog where orgInternalCode  = #orgInternalCode#
+		<isPropertyAvailable property="sortField" prepend="order by">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="sord">$sord$</isNotNull>
+			</isPropertyAvailable>
+	</select>
+
+	<select id="findAllSubLogList" parameterClass="java.util.Map" resultMap="peopleLogResult">
+		select * from peopleLog where orgInternalCode like  #orgInternalCode#||'%'
+		<isPropertyAvailable property="sortField" prepend="order by">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="sord">$sord$</isNotNull>
+			</isPropertyAvailable>
+	</select>
+
+	<select id="findLogByLogId" parameterClass="java.util.Map" resultMap="peopleLogResult">
+		select * from peopleLog where id = #logId#
+	</select>
+	<select id="getTodayNum" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(*) from peopleLog where userId = #userId# and to_char(createDate,'yyyy-mm-dd')=#today#
+	</select>
+	<select id="getMouthNum" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(*) from peopleLog where userId = #userId# and to_char(createDate,'yyyy-mm')=#yearMonth#
+	</select>
+	<select id="getWeekNum" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		<![CDATA[select count(*) from peopleLog where userId = #userId# and 
+		createDate >=#weekMonday# and 
+		createDate < #nextWeekMonday#]]>
+	</select>
+	<select id="getMouthCommentNum" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(*) from commentLog c inner join Peoplelog p on c.logid=p.id
+			where p.userId=#userId# and to_char(c.commenttime,'yyyy-mm')=#yearMonth#
+	</select>
+	<select id="getCountNum" parameterClass="java.lang.Long" resultClass="java.lang.Long">
+		select count(*) from peopleLog where orgId = #value#
+	</select>
+	<select id="getCommentNum" parameterClass="java.lang.Long" resultClass="java.lang.Long">
+		select count(*) from Peoplelog p where p.orgid=#orgId# and p.commentNums>0
+	</select>
+	<select id="findPeopleLog" parameterClass="map" resultMap="peopleLogResult">
+		select * from peopleLog where orgInternalCode=#orgInternalCode#
+ 		<dynamic>
+ 			<isPropertyAvailable property="sortField" prepend="order by">
+ 				<isNotNull property="sortField">$sortField$</isNotNull>
+ 				<isNotNull property="order">$order$</isNotNull>
+ 			</isPropertyAvailable>
+ 		</dynamic>
+ 	</select>
+ 	<select id="countAllPeopleLog" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[select count(*) from peopleLog where orgInternalCode=#orgInternalCode#]]>
+	</select>
+	<select id="findSubLogList4Me" parameterClass="java.util.Map" resultMap="peopleLogResult">
+		select * from peopleLog where orgInternalCode like #orgInternalCode#||'_'||'.'
+		<isPropertyAvailable property="sortField" prepend="order by">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="sord">$sord$</isNotNull>
+			</isPropertyAvailable>
+	</select>
+
+	<select id="countSubLogList4Me" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from peopleLog where orgInternalCode like #orgInternalCode#||'_'||'.'
+	</select>
+
+	<select id="findSubLogList4All" parameterClass="java.util.Map" resultMap="peopleLogResult">
+		select * from peopleLog where orgInternalCode like #orgInternalCode#||'_'||'%'
+		<isPropertyAvailable property="sortField" prepend="order by">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="sord">$sord$</isNotNull>
+			</isPropertyAvailable>
+	</select>
+
+	<select id="countSubLogList4All" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from peopleLog where orgInternalCode like #orgInternalCode#||'_'||'%'
+	</select>
+
+	<select id="getCountSubMeNum" parameterClass="java.lang.String" resultClass="java.lang.Long">
+		select count(*) from peopleLog where orgInternalCode like #value#||'_'||'.'
+	</select>
+	
+	<select id="getCommentSubMeNum" parameterClass="java.lang.String" resultClass="java.lang.Long">
+		select count(*) from Peoplelog p where p.orgInternalCode like #value#||'_'||'.'  and p.commentNums>0
+	</select>
+	
+	<select id="getCountSubAllNum" parameterClass="java.lang.String" resultClass="java.lang.Long">
+		select count(*) from peopleLog where orgInternalCode like #value#||'_'||'%'
+	</select>
+	
+	<select id="getCommentSubAllNum" parameterClass="java.lang.String" resultClass="java.lang.Long">
+		select count(*) from Peoplelog p where p.orgInternalCode like #value#||'_'||'%' and p.commentNums>0
+	</select>
+	
+	<insert id="addPeopleLogAttachFiles" parameterClass="PeopleLogAttachFiles">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+		<![CDATA[SELECT s_peopleLogAttachFiles.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into peopleLogAttachFiles 
+		(id,peopleLogId,fileName,fileActualUrl,createUser,createDate,updateDate,updateUser) 
+     	VALUES(#id#,#peopleLogId#,#fileName#,#fileActualUrl#,#createUser#,#createDate#,#updateDate#,#updateUser#)
+	</insert>
+	
+	<select id="findPeopleLogAttachFilesByPeopleLogId" parameterClass="java.lang.Long" resultMap="PeopleLogAttachFilesResult">
+    	<![CDATA[ select * from peopleLogAttachFiles where peopleLogId = #value#]]>
+  	</select>
+
+	<select id="getPeopleLogAttachFileById" parameterClass="java.lang.Long" resultMap="PeopleLogAttachFilesResult">
+    	<![CDATA[ select * from peopleLogAttachFiles where id = #value#]]>
+  	</select>
+	
+	<delete id="deletePeopleLogAttachFileById" parameterClass="java.lang.Long">
+		<![CDATA[ delete from peopleLogAttachFiles where id = #value#]]>
+	</delete>
+	
+	<delete id="deletePeopleLogAttachFilesByPeopleLogId" parameterClass="java.lang.Long">
+		<![CDATA[ delete from peopleLogAttachFiles where peopleLogId = #value#]]>
+	</delete>
+</sqlMap>

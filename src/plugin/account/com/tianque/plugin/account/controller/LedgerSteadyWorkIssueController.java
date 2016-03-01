@@ -1,0 +1,647 @@
+package com.tianque.plugin.account.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.account.api.LedgerSteadyWorkDubboService;
+import com.tianque.account.api.ThreeRecordsIssueDubboService;
+import com.tianque.account.api.ThreeRecordsIssueProcessDubboService;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.util.CollectionUtil;
+import com.tianque.core.util.DialogMode;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.core.vo.AutoCompleteData;
+import com.tianque.core.vo.GridPage;
+import com.tianque.domain.Organization;
+import com.tianque.domain.User;
+import com.tianque.domain.property.OrganizationType;
+import com.tianque.plugin.account.constants.CommonalityParameter;
+import com.tianque.plugin.account.constants.LedgerConstants;
+import com.tianque.plugin.account.domain.LedgerSteadyWork;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueAttachFile;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueStep;
+import com.tianque.plugin.account.factory.ThreeRecordsIssueManageStrategyFactory;
+import com.tianque.plugin.account.state.ThreeRecordsIssueOperate;
+import com.tianque.plugin.account.state.ThreeRecordsIssueState;
+import com.tianque.plugin.account.strategy.ThreeRecordsIssueManageStrategy;
+import com.tianque.plugin.account.util.LedgerSerialnumberCheck;
+import com.tianque.plugin.account.util.ThreeRecordsIssueOperationUtil;
+import com.tianque.plugin.account.vo.ThreeRecordsIssueViewObject;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+@Controller("ledgerSteadyWorkIssueController")
+@Scope("request")
+@Namespace("/threeRecordsIssue/ledgerSteadyWorkIssueManage")
+public class LedgerSteadyWorkIssueController extends BaseAction {
+
+	private Long issuesKeyId;
+	private Long keyId;
+	private Long orgLevel;
+	private ThreeRecordsIssueManageStrategy strategy;
+	private String moduleName;
+	private LedgerSteadyWork ledgerSteadyWork;
+	/** 台账的处理记录 用于在页面上显示处理记录 */
+	private List<ThreeRecordsIssueLogNew> issueDealLogs;
+	/** 台账已经选择的所属类型的名称 */
+	private List<String> issueHasTypeDomainName;
+	/** 台账中包含的附件集合 用于在页面显示附件 */
+	private List<ThreeRecordsIssueAttachFile> issueAttachFiles = new ArrayList<ThreeRecordsIssueAttachFile>();
+	/** 可以对台账进行办理的操作列表 */
+	private List<ThreeRecordsIssueOperate> canDoList;
+	/** 台账处理记录实体类 */
+	private ThreeRecordsIssueLogNew operation;
+	private Boolean isSkip = false;// 是否越级
+	private List<ThreeRecordsIssueAttachFile> issueEvaluateAttachFiles = new ArrayList<ThreeRecordsIssueAttachFile>();
+	/** 台账处办理过程中添加的附件 用于页面显示 */
+	private Map<Long, List<ThreeRecordsIssueAttachFile>> issueLogAttachFiles = new HashMap<Long, List<ThreeRecordsIssueAttachFile>>();
+	/** 台账处理操作类型代码， 具体含义定义在IssueOperate中 */
+	private int dealCode;
+	/** 是否是行政单位(综治办) 台账办理时选择主办单位、协办单位时会用到 */
+	private boolean adminTarget;
+	private boolean twice;
+	private ThreeRecordsIssueStep issueStep;
+	/** 用户是否有台账办理的协办操作 */
+	private boolean isOperationOfTell;
+	/** 台账实体类 用于前 台显示台账的相关数据 */
+	private ThreeRecordsIssueViewObject threeRecordsIssueViewObject;
+	/** 手机端附件名称 */
+	private String attachFile;
+	/** 从页面上提交过来的附件文件id(修改台账的时候)和名称 eg: id,fileName */
+	private String[] attachFiles;
+	/** 台账办理时的协办单位的id */
+	private String tellOrgIds;
+
+	/** 台账办理时的抄告单位的id */
+	private String noticeOrgIds;
+	private AutoCompleteData autoCompleteData;
+	@Autowired
+	private ThreeRecordsIssueDubboService threeRecordsIssueDubboService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private ThreeRecordsIssueManageStrategyFactory factory;
+	@Autowired
+	private LedgerSteadyWorkDubboService ledgerSteadyWorkDubboService;
+	private ThreeRecordsIssueLogNew lastStep;
+	@Autowired
+	private ThreeRecordsIssueProcessDubboService threeRecordsIssueProcessDubboService;
+
+	/***************************************************************************
+	 * 台账办理(包括加急、督办、批示等操作)的页面跳转
+	 * 
+	 * @return
+	 */
+	@Action(value = "dispatchOperate", results = {
+			@Result(name = "default_dealing", location = "/account/steadyRecord/deals/dealIssueDlg.jsp"),
+			@Result(name = "tmp_dealing", location = "/account/steadyRecord/deals/tmpDealIssueDlg.jsp"),
+			@Result(name = "default_simple_dealing", location = "/account/steadyRecord/deals/simpleDealDlg.jsp"),
+			@Result(name = "default_single_content_dealing", location = "/issue/issueManage/deals/singleContentIssueDlg.jsp"),
+			@Result(name = "default_supervise_dealing", location = "/issue/issueManage/deals/superviseIssueDlg.jsp"),
+			@Result(name = "search", location = "/baseinfo/houseInfo/actualHouse/searchActualHouseDlg.jsp") })
+	public String dispatchDeal() throws Exception {
+		// 正常的台账办理
+		if (CommonalityParameter.DEAL.equalsIgnoreCase(mode)) {
+			return forwardToDeal();
+			// 批示、加急
+		} else if (dealCode > 0) {
+			return forwardToSimpleDeal();
+		} else {
+			errorMessage = "参数错误，不能定位处理类型";
+			return ERROR;
+		}
+	}
+
+	/***************************************************************************
+	 * 台账的各种处理操作
+	 * 
+	 * @return
+	 */
+	@Action(value = "dealIssue", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"threeRecordsIssueViewObject", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	@Transactional
+	public String deal() throws Exception {
+		ThreeRecordsIssueOperate operate = ThreeRecordsIssueOperate
+				.parse(dealCode);
+//		List<ThreeRecordsIssueAttachFile> files = threeRecordsIssueDubboService
+//				.combineIssueAttachFile(attachFiles);
+		List<ThreeRecordsIssueAttachFile> files = AttachFileUtil.getIssueAttachFiles(attachFiles, threeRecordsIssueDubboService);
+		if (!validateDealInput(operate, files)) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		if (ThreeRecordsIssueOperate.CONCEPT.equals(operate)) {
+			threeRecordsIssueViewObject = ledgerSteadyWorkDubboService.concept(
+					keyId, operation);
+		} else if (ThreeRecordsIssueOperate.PERIOD_COMPLETE.equals(operate)) {
+			threeRecordsIssueViewObject = ledgerSteadyWorkDubboService
+					.peroidComplete(keyId, operation, files);
+		} else if (ThreeRecordsIssueOperate.PROGRAM_COMPLETE.equals(operate)) {
+			threeRecordsIssueViewObject = ledgerSteadyWorkDubboService
+					.programComplete(keyId, operation, files);
+		} else if (ThreeRecordsIssueOperate.SUPPORT.equals(operate)) {
+			threeRecordsIssueViewObject = ledgerSteadyWorkDubboService.support(
+					keyId, operation, files);
+		} else if (ThreeRecordsIssueOperate.COMMENT.equals(operate)) {
+			threeRecordsIssueViewObject = ledgerSteadyWorkDubboService.comment(
+					keyId, operation, files);
+		} else if (ThreeRecordsIssueOperate.COMPLETE.equals(operate)) {
+			threeRecordsIssueViewObject = ledgerSteadyWorkDubboService
+					.complete(keyId, operation, files);
+		} else if (ThreeRecordsIssueOperate.DECLARE.equals(operate)) {
+			threeRecordsIssueViewObject = ledgerSteadyWorkDubboService.declare(
+					keyId, operation, operation.getTargeOrg().getId(),
+					ThreeRecordsIssueOperationUtil
+							.parseStringToLongArray(tellOrgIds), files);
+		} else if (ThreeRecordsIssueOperate.TURN.equals(operate)) {
+			threeRecordsIssueViewObject = ledgerSteadyWorkDubboService.turn(
+					keyId, operation, operation.getTargeOrg().getId(),
+					ThreeRecordsIssueOperationUtil
+							.parseStringToLongArray(tellOrgIds), files,
+					ThreeRecordsIssueOperationUtil
+							.parseStringToLongArray(noticeOrgIds));
+		} else if (ThreeRecordsIssueOperate.ASSIGN.equals(operate)
+				|| ThreeRecordsIssueOperate.LEVEL_ASSIGN.equals(operate)) {
+			threeRecordsIssueViewObject = ledgerSteadyWorkDubboService.assign(
+					keyId, operation, operation.getTargeOrg().getId(),
+					ThreeRecordsIssueOperationUtil
+							.parseStringToLongArray(tellOrgIds), files,
+					ThreeRecordsIssueOperationUtil
+							.parseStringToLongArray(noticeOrgIds));
+		} else if (ThreeRecordsIssueOperate.SUBMIT.equals(operate)) {
+			threeRecordsIssueViewObject = ledgerSteadyWorkDubboService.submit(
+					keyId, operation, operation.getTargeOrg().getId(),
+					ThreeRecordsIssueOperationUtil
+							.parseStringToLongArray(tellOrgIds), files);
+		} else if (ThreeRecordsIssueOperate.BACK.equals(operate)) {
+			threeRecordsIssueViewObject = ledgerSteadyWorkDubboService.back(
+					keyId, operation, files);
+		} else if (ThreeRecordsIssueOperate.TMPCOMMENT.equals(operate)) {
+			threeRecordsIssueViewObject = ledgerSteadyWorkDubboService
+					.tmpComment(keyId, operation, files);
+		} else {
+			errorMessage = "未知的处理类型";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	/***************************************************************************
+	 * 台账办理时 当选择上报或交办自动填充一个唯一(如果有)的主办单位
+	 * 
+	 * @return
+	 */
+	@Action(value = "getUniqueTrgetOrg", results = {
+			@Result(name = "unique", type = "json", params = { "root",
+					"gridPage.rows", "ignoreHierarchy", "false" }),
+			@Result(name = "no_unique", type = "json", params = { "root",
+					"false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String searchUniqueTrgetOrg() throws Exception {
+		if (null == keyId) {
+			errorMessage = "参数错误！";
+			return ERROR;
+		}
+		if (adminTarget
+				&& ThreeRecordsIssueOperate.parse(dealCode).getCode() != ThreeRecordsIssueOperate.TURN
+						.getCode()) {
+			gridPage = new GridPage(threeRecordsIssueDubboService
+					.findAdminTargetsByName(keyId, "", ThreeRecordsIssueOperate
+							.parse(dealCode), null, twice, page, rows));
+		} else {
+			gridPage = new GridPage(threeRecordsIssueDubboService
+					.findFunctionTargetsByName(keyId, "",
+							ThreeRecordsIssueOperate.parse(dealCode), null,
+							page, rows));
+		}
+		if (gridPage != null && gridPage.getRows() != null
+				&& gridPage.getRows().size() == 1) {
+			autoCompleteData = (AutoCompleteData) gridPage.getRows().get(0);
+			return CommonalityParameter.UNIQUE;
+		}
+		return CommonalityParameter.NO_UNIQUE;
+	}
+
+	/***************************************************************************
+	 * 加载台账的附件
+	 * 
+	 * @param selectIssue
+	 */
+	private void loadAttachFiles(LedgerSteadyWork ledgerSteadyWork) {
+		if (ledgerSteadyWork == null) {
+			return;
+		}
+		issueAttachFiles = threeRecordsIssueDubboService
+				.loadLedgerAndLogAttachFilesByLedgerIdAndType(ledgerSteadyWork
+						.getId(), LedgerConstants.STEADYWORK);
+		if (!CollectionUtil.isAvaliable(issueAttachFiles)) {
+			return;
+		}
+		ThreeRecordsIssueAttachFile file;
+		List<ThreeRecordsIssueAttachFile> logFiles;
+		for (int index = issueAttachFiles.size(); index > 0; index--) {
+			file = issueAttachFiles.get(index - 1);
+			if (ThreeRecordsIssueOperationUtil.isLogAttachFile(file)) {
+				logFiles = ThreeRecordsIssueOperationUtil
+						.lookupLogFilesFromAllLogFile(issueLogAttachFiles, file
+								.getIssueLog().getId());
+				logFiles.add(file);
+				issueAttachFiles.remove(index - 1);
+			}
+		}
+	}
+
+	private String forwardToView() {
+		if (null == keyId) {
+			errorMessage = "参数错误！";
+			return ERROR;
+		}
+		// 处理台账ID。大于0代表是处理里的查询。
+		Long num = 0L;
+		if (issuesKeyId != null) {
+			num = keyId;
+			keyId = issuesKeyId;
+		}
+		ThreeRecordsIssueManageStrategy strategy = getActualIssueManageStrategy();
+		ledgerSteadyWork = ledgerSteadyWorkDubboService
+				.getFullLedgerSteadyWorkById(keyId);
+		loadAttachFiles(ledgerSteadyWork);
+		loadIssueOperationLogs(ledgerSteadyWork);
+		keyId = num;
+		return strategy.forwardToView();
+	}
+
+	/***************************************************************************
+	 * 加载台账的处理记录
+	 * 
+	 * @param selectIssue
+	 */
+	private void loadIssueOperationLogs(LedgerSteadyWork ledgerSteadyWork) {
+		issueDealLogs = threeRecordsIssueDubboService
+				.loadIssueOperationLogsByIssueId(ledgerSteadyWork.getId(), Long
+						.valueOf(LedgerConstants.STEADYWORK));
+		if (issueDealLogs != null) {
+			for (ThreeRecordsIssueLogNew log : issueDealLogs) {
+				log.setIssueStep(threeRecordsIssueProcessDubboService
+						.getSimpleIssueStepById(log.getIssueStep().getId()));
+				if (log.getDealType() == null) {//处理类型为空时表示为新增，用台账登记时间替换处理时间
+					log.setOperateTime(ledgerSteadyWork.getRegistrationTime());
+				}
+			}
+		}
+	}
+
+	private String forwardToDeal() {
+		if (issuesKeyId != null) {
+			forwardToView();
+		}
+		getUserOrgLevel();
+		ThreeRecordsIssueStep step = threeRecordsIssueDubboService
+				.getIssueStepById(keyId);
+		// 如果是待验证台账，跳过部门验证
+		if (!getCurrentLoginedOrg().equals(step.getTarget())
+				&& !(ThreeRecordsIssueState.ISSUEVERIFICATION_CODE == step
+						.getStateCode())) {
+			errorMessage = "你不能处理不属于你部门的台账";
+			return ERROR;
+		}
+		if(!LedgerSerialnumberCheck.isCurrentYearLedger(ledgerSteadyWork)){
+			errorMessage = "只能办理本年度的台账！";
+			return ERROR;
+		}
+		
+		lastStep = threeRecordsIssueDubboService.getLastStepByIssueIdAndIssueType(step.getLedgerId(), step.getLedgerType());
+		
+		operation = new ThreeRecordsIssueLogNew();
+		fillOperationLog(operation);
+		loadCandoOperationsOfDeal(keyId);
+		loadAttachFiles(ledgerSteadyWork);
+		hiddenSomeOperate(step);
+		operation.setIssueStep(step);
+		// 根据用户类别（职能部门，行政部门）判断协办操作
+		isOperationOfTell = (operation.getDealOrg().getOrgType()
+				.getInternalId() == OrganizationType.FUNCTIONAL_ORG) ? true
+				: false;
+		return getActualIssueManageStrategy().forwardToDealing();
+	}
+
+	private void createEmptyOperationLogByStepId(Long stepId) {
+		createEmptyOperationLogByStep();
+	}
+
+	private void createEmptyOperationLogByStep() {
+		operation = new ThreeRecordsIssueLogNew();
+		fillOperationLog(operation);
+	}
+
+	private void fillOperationLog(ThreeRecordsIssueLogNew log) {
+		if (log == null) {
+			return;
+		}
+		log.setDealUserName(getCurrentLoginedUser().getName());
+		log.setMobile(getCurrentLoginedUser().getMobile());
+		log.setDealOrg(getCurrentLoginedOrg());
+	}
+
+	private User getCurrentLoginedUser() {
+		return ThreadVariable.getUser();
+	}
+
+	private Organization getCurrentLoginedOrg() {
+		return organizationDubboService.getFullOrgById(ThreadVariable
+				.getSession().getOrganization().getId());
+	}
+
+	private String forwardToSimpleDeal() {
+		createEmptyOperationLogByStepId(keyId);
+		return CommonalityParameter.DEFAULT_SIMPLE_DEALING;
+	}
+
+	private boolean validateDealInput(ThreeRecordsIssueOperate operate,
+			List<ThreeRecordsIssueAttachFile> files) {
+		if (operation == null) {
+			return true;
+		}
+		ValidateResult result = ThreeRecordsIssueOperationUtil
+				.getActualIssueManageStrategy(strategy, moduleName, factory)
+				.validateDealLog(operate, operation, files);
+		if (result.hasError()) {
+			errorMessage = result.getErrorMessages();
+		}
+		return !result.hasError();
+	}
+
+	private void loadCandoOperationsOfDeal(Long stepId) {
+		if (!DialogMode.VIEW_MODE.equalsIgnoreCase(mode)) {
+			canDoList = threeRecordsIssueDubboService.getIssueCandoForOrg(
+					stepId, getCurrentLoginedOrg());
+			if (!isSkip) {
+				if (canDoList.contains(ThreeRecordsIssueOperate.SUBMIT)) {
+					canDoList.remove(ThreeRecordsIssueOperate.SUBMIT);
+					canDoList.add(ThreeRecordsIssueOperate.SUBMIT);
+				}
+			}
+		} else {
+			canDoList = new ArrayList<ThreeRecordsIssueOperate>();
+		}
+	}
+
+	private void hiddenSomeOperate(ThreeRecordsIssueStep step) {
+		if (step.getBackTo() == null) {
+			canDoList.remove(ThreeRecordsIssueOperate.BACK);
+		}
+		canDoList.remove(ThreeRecordsIssueOperate.CANCEL_SUPERVISE);
+		canDoList.remove(ThreeRecordsIssueOperate.CONCEPT);
+		canDoList.remove(ThreeRecordsIssueOperate.INSTRUCT);
+		canDoList.remove(ThreeRecordsIssueOperate.NORMAL_SUPERVISE);
+		canDoList.remove(ThreeRecordsIssueOperate.READ);
+		canDoList.remove(ThreeRecordsIssueOperate.REPORT_TO);
+		canDoList.remove(ThreeRecordsIssueOperate.YELLOW_SUPERVISE);
+		canDoList.remove(ThreeRecordsIssueOperate.RED_SUPERVISE);
+	}
+
+	/******************** 标记 ****************************************/
+
+	private ThreeRecordsIssueManageStrategy getActualIssueManageStrategy() {
+		if (strategy == null) {
+			strategy = factory.getIssueManageStrategyByModule(moduleName);
+		}
+		return strategy;
+	}
+
+	private void getUserOrgLevel() {
+		Organization org = organizationDubboService
+				.getFullOrgById(ThreadVariable.getSession().getOrganization()
+						.getId());
+		orgLevel = (long) org.getOrgLevel().getInternalId();
+	}
+
+	public Long getIssuesKeyId() {
+		return issuesKeyId;
+	}
+
+	public void setIssuesKeyId(Long issuesKeyId) {
+		this.issuesKeyId = issuesKeyId;
+	}
+
+	public Long getKeyId() {
+		return keyId;
+	}
+
+	public void setKeyId(Long keyId) {
+		this.keyId = keyId;
+	}
+
+	public Long getOrgLevel() {
+		return orgLevel;
+	}
+
+	public void setOrgLevel(Long orgLevel) {
+		this.orgLevel = orgLevel;
+	}
+
+	public ThreeRecordsIssueManageStrategy getStrategy() {
+		return strategy;
+	}
+
+	public void setStrategy(ThreeRecordsIssueManageStrategy strategy) {
+		this.strategy = strategy;
+	}
+
+	public String getModuleName() {
+		return moduleName;
+	}
+
+	public void setModuleName(String moduleName) {
+		this.moduleName = moduleName;
+	}
+
+	public LedgerSteadyWork getLedgerSteadyWork() {
+		return ledgerSteadyWork;
+	}
+
+	public void setLedgerSteadyWork(LedgerSteadyWork ledgerSteadyWork) {
+		this.ledgerSteadyWork = ledgerSteadyWork;
+	}
+
+	public List<ThreeRecordsIssueLogNew> getIssueDealLogs() {
+		return issueDealLogs;
+	}
+
+	public void setIssueDealLogs(List<ThreeRecordsIssueLogNew> issueDealLogs) {
+		this.issueDealLogs = issueDealLogs;
+	}
+
+	public List<String> getIssueHasTypeDomainName() {
+		return issueHasTypeDomainName;
+	}
+
+	public void setIssueHasTypeDomainName(List<String> issueHasTypeDomainName) {
+		this.issueHasTypeDomainName = issueHasTypeDomainName;
+	}
+
+	public List<ThreeRecordsIssueAttachFile> getIssueAttachFiles() {
+		return issueAttachFiles;
+	}
+
+	public void setIssueAttachFiles(
+			List<ThreeRecordsIssueAttachFile> issueAttachFiles) {
+		this.issueAttachFiles = issueAttachFiles;
+	}
+
+	public List<ThreeRecordsIssueOperate> getCanDoList() {
+		return canDoList;
+	}
+
+	public void setCanDoList(List<ThreeRecordsIssueOperate> canDoList) {
+		this.canDoList = canDoList;
+	}
+
+	public ThreeRecordsIssueLogNew getOperation() {
+		return operation;
+	}
+
+	public void setOperation(ThreeRecordsIssueLogNew operation) {
+		this.operation = operation;
+	}
+
+	public Boolean getIsSkip() {
+		return isSkip;
+	}
+
+	public void setIsSkip(Boolean isSkip) {
+		this.isSkip = isSkip;
+	}
+
+	public List<ThreeRecordsIssueAttachFile> getIssueEvaluateAttachFiles() {
+		return issueEvaluateAttachFiles;
+	}
+
+	public void setIssueEvaluateAttachFiles(
+			List<ThreeRecordsIssueAttachFile> issueEvaluateAttachFiles) {
+		this.issueEvaluateAttachFiles = issueEvaluateAttachFiles;
+	}
+
+	public Map<Long, List<ThreeRecordsIssueAttachFile>> getIssueLogAttachFiles() {
+		return issueLogAttachFiles;
+	}
+
+	public void setIssueLogAttachFiles(
+			Map<Long, List<ThreeRecordsIssueAttachFile>> issueLogAttachFiles) {
+		this.issueLogAttachFiles = issueLogAttachFiles;
+	}
+
+	public int getDealCode() {
+		return dealCode;
+	}
+
+	public void setDealCode(int dealCode) {
+		this.dealCode = dealCode;
+	}
+
+	public boolean isAdminTarget() {
+		return adminTarget;
+	}
+
+	public void setAdminTarget(boolean adminTarget) {
+		this.adminTarget = adminTarget;
+	}
+
+	public String getNoticeOrgIds() {
+		return noticeOrgIds;
+	}
+
+	public void setNoticeOrgIds(String noticeOrgIds) {
+		this.noticeOrgIds = noticeOrgIds;
+	}
+
+	public boolean isTwice() {
+		return twice;
+	}
+
+	public void setTwice(boolean twice) {
+		this.twice = twice;
+	}
+
+	public ThreeRecordsIssueStep getIssueStep() {
+		return issueStep;
+	}
+
+	public void setIssueStep(ThreeRecordsIssueStep issueStep) {
+		this.issueStep = issueStep;
+	}
+
+	public boolean isOperationOfTell() {
+		return isOperationOfTell;
+	}
+
+	public void setOperationOfTell(boolean isOperationOfTell) {
+		this.isOperationOfTell = isOperationOfTell;
+	}
+
+	public ThreeRecordsIssueViewObject getThreeRecordsIssueViewObject() {
+		return threeRecordsIssueViewObject;
+	}
+
+	public void setThreeRecordsIssueViewObject(
+			ThreeRecordsIssueViewObject threeRecordsIssueViewObject) {
+		this.threeRecordsIssueViewObject = threeRecordsIssueViewObject;
+	}
+
+	public String getAttachFile() {
+		return attachFile;
+	}
+
+	public void setAttachFile(String attachFile) {
+		this.attachFile = attachFile;
+	}
+
+	public String[] getAttachFiles() {
+		return attachFiles;
+	}
+
+	public void setAttachFiles(String[] attachFiles) {
+		this.attachFiles = attachFiles;
+	}
+
+	public String getTellOrgIds() {
+		return tellOrgIds;
+	}
+
+	public void setTellOrgIds(String tellOrgIds) {
+		this.tellOrgIds = tellOrgIds;
+	}
+
+	public AutoCompleteData getAutoCompleteData() {
+		return autoCompleteData;
+	}
+
+	public void setAutoCompleteData(AutoCompleteData autoCompleteData) {
+		this.autoCompleteData = autoCompleteData;
+	}
+
+	public ThreeRecordsIssueLogNew getLastStep() {
+		return lastStep;
+	}
+
+	public void setLastStep(ThreeRecordsIssueLogNew lastStep) {
+		this.lastStep = lastStep;
+	}
+
+	
+}

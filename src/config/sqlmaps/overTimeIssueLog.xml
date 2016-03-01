@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="overTimeIssueLog">
+	<typeAlias type="com.tianque.domain.OverTimeIssueLog" alias="OverTimeIssueLog"/>
+	<resultMap class="OverTimeIssueLog" id="overTimeIssueLogResult">
+	    <result property="id" column="id"/>
+	    <result property="year" column="year"/>
+	    <result property="month" column="month"/>
+	    <result property="orgName" column="orgName"/>
+	    <result property="orgId" column="orgId"/>
+	    <result property="orgInternalCode" column="orgInternalCode"/>
+	    <result property="issueId" column="issueId"/>
+	    <result property="issueLogId" column="issueLogId"/>
+	    <result property="overType" column="overType"/>
+	    <result property="createUser" column="createUser"/>
+	    <result property="createDate" column="createDate"/>
+	    <result property="updateDate" column="updateDate"/>
+	    <result property="updateUser" column="updateUser"/>
+	</resultMap>
+	<insert id="addOverTimeIssueLog" parameterClass="OverTimeIssueLog">
+	    <selectKey keyProperty="id" resultClass="java.lang.Long">
+	        <![CDATA[select S_overTimeIssueLog.NEXTVAL AS ID FROM DUAL ]]>
+	    </selectKey>
+	    insert into overTimeIssueLog (id,year,month,orgName,orgId,orgInternalCode,issueId,issueLogId,overType,createDate,createUser,updateDate,updateUser)
+	    values (#id#,#year#,#month#,#orgName#,#orgId#,#orgInternalCode#,#issueId#,#issueLogId#,#overType#,#createDate#,#createUser#,#updateDate#,#updateUser#)
+	</insert>
+	<select id="getOverTimeIssueLogById" parameterClass="java.lang.Long" resultMap="overTimeIssueLogResult">
+	    select * from overTimeIssueLog where id = #value# 
+	</select>
+	<select id="getOverTimeIssueLogByYearAndMonthAndIssueLogIdAndSuperviseType" parameterClass="java.util.Map" resultMap="overTimeIssueLogResult">
+	    select * from overTimeIssueLog where year = $year$ and month=$month$ and issueLogId = $issueLogId$
+	</select>
+	<update id="updateOverTimeIssueLog" parameterClass="java.util.Map">
+	    update overTimeIssueLog set overType=#overType# where id=#id#
+	</update>
+	<select id="findOverTimeIssueLogsByPreMonth" parameterClass="java.util.Map" resultMap="overTimeIssueLogResult">
+	    <![CDATA[
+	       select ol.orgid,ol.orgid,ol.issueid,ol.issuelogid,ol.overtype,$nowYear$ as year,$nowMonth$ as month
+			,ol.orgname,ol.orginternalcode,ol.createuser from overtimeissuelog ol where  year=#preYear# and month=#preMonth# and issuelogid in 
+			(select id from issuelogs il where il.dealstate<1001)
+	    ]]> 
+	</select>
+	<delete id="deleteOverTimeIssueLogsByIssueId" parameterClass="java.lang.Long">
+		delete from
+		overTimeIssueLog where issueId=#issueId#
+	</delete>
+</sqlMap>

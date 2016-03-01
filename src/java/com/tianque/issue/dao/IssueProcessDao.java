@@ -1,0 +1,120 @@
+package com.tianque.issue.dao;
+
+import java.util.Date;
+import java.util.List;
+
+import com.tianque.core.vo.AutoCompleteData;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.PropertyDict;
+import com.tianque.issue.domain.IssueMap;
+import com.tianque.issue.domain.IssueStep;
+import com.tianque.issue.state.IssueStepGroup;
+
+public interface IssueProcessDao {
+
+	/***
+	 * 保存事件的处理步骤
+	 * 
+	 * @param issueStep
+	 *            事件步骤
+	 * @return
+	 */
+	IssueStep addIssueStep(IssueStep issueStep);
+
+	boolean deleteIssueStepsByIssueId(Long issueId);
+
+	/**
+	 * 根据id获取事件步骤
+	 * 
+	 * @param id
+	 *            事件步骤id
+	 * @return
+	 */
+	IssueStep getSimpleIssueStepById(Long id);
+
+	IssueStep updateIssueStepExceptOrg(IssueStep step);
+
+	boolean updateGroupId(IssueStep step);
+
+	IssueStepGroup addIssueStepGroup(IssueStepGroup issueStepGroup);
+
+	IssueStepGroup getSimpleIssueStepGroupById(Long id);
+
+	/***
+	 * 根据事件id 获取该事件所有的处理步骤组
+	 * 
+	 * @param issueId
+	 * @return
+	 */
+	List<IssueStepGroup> getIssueStepGroupByIssueId(Long issueId);
+
+	boolean updateOutLog(IssueStepGroup issueStepGroup);
+
+	PageInfo<AutoCompleteData> findChildOrgsByOrgcodeAndNameAndType(
+			PropertyDict dict, String orgInternalCode, String tag,
+			Long[] exceptIds, int pageSize, int pageIndex);
+
+	PageInfo<AutoCompleteData> findChildOrgsByParentIdAndName(
+			PropertyDict dict, Long parentId, String tag, Long[] exceptId,
+			int page, int rows);
+
+	PageInfo<AutoCompleteData> findChildFunOrgsByParentFunIdAndName(
+			Long parentId, String tag, Long[] exceptIds);
+
+	PageInfo<AutoCompleteData> findParentFunOrgsByIdAndName(Long id,
+			String tag, Long[] exceptIds);
+
+	/***
+	 * 根据事件IssueStepGroup issuemap
+	 * 
+	 * @param issueStepGroup
+	 *            处理步骤组
+	 * @return
+	 */
+	IssueMap getIssueMapByStepGroup(IssueStepGroup issueStepGroup);
+
+	/**
+	 * 根据事件步骤的状态获取对应的 事件列表
+	 * 
+	 * @param sourceKindId
+	 * 
+	 * @return List<IssueViewObject>
+	 */
+	List<IssueStep> findIssueStepListByIssueState(int[] issueStates,
+			Long sourceKindId);
+
+	/**
+	 * 根据步骤ID修改延期时间和延期状态
+	 * 
+	 * @param id
+	 * @param delayState
+	 * @param lastEndDate
+	 */
+	@Deprecated
+	void updateDelayStateOrLastEndDateById(Long id, Integer delayState,
+			Date lastEndDate);
+
+	/**
+	 * 根据步骤ID修改延期时间和延期状态
+	 * 
+	 * @param id
+	 * @param delayState
+	 * @param delayDay
+	 */
+	void updateDelayStateOrDelayDateByIssueStepId(Long issueStepId,
+			Integer delayState, Integer delayWorkday);
+
+	Integer getIssueStepCountByIssueId(Long issueId);
+
+	public void updateEmergencylevelByIssueStepId(IssueStep issueStep);
+
+	public List<IssueStep> findIssueStepsByIssueId(Long issueId);
+	
+	public List<IssueStep> findIssueStepsHistoryByIssueId(Long issueId);
+	
+	
+	public List<IssueStep> findIsNotStayStepByIssueStep(IssueStep issueStep);
+	
+	public void updateIsNotStayStepByIssueStepId(Long issueStepId);
+
+}

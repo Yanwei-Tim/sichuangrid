@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gridManagementNormal">
+	<typeAlias alias="GridManagementNormal" type="com.tianque.working.domain.GridManagementNormal" />
+	<resultMap id="gridManagementNormalResult" class="GridManagementNormal">
+		<result property="id" column="id" />
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="dailyDirectoryId" column="dailydirectoryid" />
+		<result property="work" column="work"
+			typeHandler="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+		<result property="activityDate" column="activityDate" />
+		<result property="content" column="content"
+			typeHandler="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+		<result property="expiredEntering" column="expiredEntering" />	
+	</resultMap>
+
+	<insert id="addGridManagementNormal" parameterClass="GridManagementNormal">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_GridManagementNormal.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into GridManagementNormal
+		(id, createDate, createUser,
+		updateDate,
+		updateUser, orgId, orgInternalCode,
+		content,dailyDirectoryId, work, activityDate ,expiredEntering)
+		values
+		(#id#,
+		#createDate#,
+		#createUser#,
+		#updateDate#, #updateUser#,
+		#organization.id#,
+		#orgInternalCode#,
+		#content:CLOB#,#dailyDirectoryId#,#work:CLOB#,#activityDate#,#expiredEntering#)
+	</insert>
+
+	<sql id="sql_where">
+		from GridManagementNormal
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId=#orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId in ($dailyDirectoryId$)
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="countForPageByOrgId" parameterClass="map"
+		resultClass="integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="findForPageByOrgId" parameterClass="map"
+		resultMap="gridManagementNormalResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="getGridManagementNormal" parameterClass="long"
+		resultMap="gridManagementNormalResult">
+		select *
+		from GridManagementNormal where id=#value#
+	</select>
+
+	<delete id="deleteGridManagementNormal" parameterClass="long">
+		delete from
+		GridManagementNormal where id=#value#
+	</delete>
+
+	<update id="updateGridManagementNormal" parameterClass="GridManagementNormal">
+		update GridManagementNormal set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="content">
+				content=#content:CLOB#
+			</isNotNull>
+			<isNotNull prepend="," property="work">
+				work=#work:CLOB#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="activityDate">
+				activityDate=#activityDate#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="expiredEntering">
+				expiredEntering=#expiredEntering#
+			</isNotNull>
+		</dynamic>
+		where id=#id#
+	</update>
+</sqlMap>

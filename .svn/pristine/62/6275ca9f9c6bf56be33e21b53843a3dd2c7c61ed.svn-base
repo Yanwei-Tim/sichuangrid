@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="druggyTemp">
+    <typeAlias alias="DruggyTemp" type="com.tianque.plugin.dataManage.population.druggyTemp.domain.DruggyTemp" />
+    <typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+   
+    <resultMap id="druggyTempResultForBase" class="DruggyTemp" extends="attentionPopulationTempBaseInfo.attentionPopulationBaseInfoResult">
+    	<result column="detoxicateCase" property="detoxicateCase.id" />
+		<result column="detoxicateCondition" property="detoxicateCondition.id" />
+		<result column="drugSource" property="drugSource.id" />
+		<result column="drugReason" property="drugReason.id" />
+		<result column="drugType" property="drugType" />
+		<result column="isAdanon" property="isAdanon" />
+		<result column="drugFristDate" property="drugFristDate" />
+		<result column="ferretOutDate" property="ferretOutDate" />
+		<result column="controlActuality" property="controlActuality" />
+		<result property="isUndergoTreatment" column="isUndergo_Treatment"/>
+	</resultMap>
+    <resultMap id="druggyTempResultForList" class="DruggyTemp" extends="druggyTemp.druggyTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+		<result property="isUndergoTreatment" column="isUndergo_Treatment"/>
+	</resultMap>
+	
+	<sql id="claim_sql_where">
+		from DM_druggys_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	<sql id="updateBusinessSql">
+		drugFristDate = #drugFristDate#
+		,ferretOutDate = #ferretOutDate#
+		,detoxicateCondition = #detoxicateCondition.id#
+		,drugSource = #drugSource.id#
+		,drugReason = #drugReason.id#
+		,detoxicateCase = #detoxicateCase.id#
+		,controlActuality = #controlActuality#
+		,drugType = #drugType#
+		,isAdanon=#isAdanon#
+		,attentionExtent=#attentionExtent.id#
+		, isUndergo_Treatment = #isUndergoTreatment#
+	</sql>
+	<select id="findTempPageList" resultMap="druggyTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countTempList" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	
+	<insert id="addDruggyTemp" parameterClass="DruggyTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_druggys_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_druggys_Temp
+		(
+			<include refid="populationTempBaseInfo.addBaseInfoFields"/>
+			,<include refid="dataManage.addDataManage"/>
+			,drugFristDate,ferretOutDate,detoxicateCondition,drugSource
+			,drugReason,detoxicateCase,controlActuality,drugType
+			,isAdanon,attentionExtent,actualPopulationType,isUndergo_Treatment
+		)
+		values
+		(
+			<include refid="populationTempBaseInfo.addBaseInfoData"/>
+			,<include refid="dataManage.addValueDataManage"/>
+			,#drugFristDate#,#ferretOutDate#,#detoxicateCondition.id#,#drugSource.id#
+			,#drugReason.id#,#detoxicateCase.id#,#controlActuality#,#drugType#
+			,#isAdanon#,#attentionExtent.id#,#actualPopulationType#,#isUndergoTreatment#
+		)
+    </insert>
+    <select id="getDruggyTempById" parameterClass="Long"
+		resultMap="druggyTempResultForList">
+	  <![CDATA[
+	  	select * from DM_druggys_Temp where id = #value#
+	  ]]>
+	</select>
+	<delete id="deleteDruggyTempById" parameterClass="Long">
+	   delete DM_druggys_Temp where id = #value#
+	</delete>
+	<select id="findDruggyTempsByIdcardAndOrgInternalCode" resultMap="druggyTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_druggys_Temp where  1=1 and 
+			(orgInternalCode like #orgInternalCode#||'%' or 
+						#orgInternalCode# like orgInternalCode||'%')
+				and(
+				<iterate property="idCardNo" conjunction="or">
+						upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+	</select>
+	<update id="updateDruggyTempInIdByIdCardAndIdList"  parameterClass="java.util.Map">
+		update DM_druggys_Temp set inid = #id# where idcardno = #idCardNo# and
+			(orgInternalCode like #orgInternalCode#||'%' or 
+						#orgInternalCode# like orgInternalCode||'%') and
+		 (claimstate = 1 or claimstate is null or 
+			<iterate property="idList" conjunction="or">
+						id = #idList[]#
+			</iterate>
+		 )
+	</update>
+	<update id="updateDruggyTempInIdById"  parameterClass="java.util.Map">
+		update DM_druggys_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<select id="getDruggyTempByInId" parameterClass="Long"
+		resultMap="druggyTempResultForList">
+	  <![CDATA[
+	  	select * from DM_druggys_Temp where inid = #value#
+	  ]]>
+	</select>
+	<update id="updateRepeatState" parameterClass="DruggyTemp">
+		update DM_druggys_Temp d set repeatState = 0
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_druggys_Temp t group by t.idCardNo having count(*)>1) 
+	</update>
+	<update id="updateRepeatStateForDelete" parameterClass="DruggyTemp">
+		update DM_druggys_Temp d set repeatState = 1
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_druggys_Temp t group by t.idCardNo having count(*)=1) 
+	</update>
+	<update id="updateDruggyTemp" parameterClass="DruggyTemp">
+		update DM_druggys_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="druggyTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+
+	<update id="updateDruggyTempByOrgId" parameterClass="java.util.Map">
+		update DM_druggys_Temp set repeatState=#claimDetail.repeatState#  where id=#id#
+	</update>
+	<select id="findDruggyTempsByIdcardAndImportOrgId" resultMap="druggyTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_druggys_Temp where  1=1
+		<dynamic>
+			<isPropertyAvailable property="claimDetail.importDepartmentId">
+				<isNotNull property="claimDetail.importDepartmentId" prepend=" and ">
+					importDepartmentId=#claimDetail.importDepartmentId#
+				</isNotNull>
+			</isPropertyAvailable>
+				and(
+				<iterate property="idCardNo" conjunction="or">
+						upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+		</dynamic>
+	</select>
+	
+	<select id="findErrorDruggyTemps" resultMap="druggyTempResultForList" parameterClass="java.lang.String">
+		select * from DM_druggys_Temp where id in(select sourceId from errorLogger group by sourceId where dataType=#value#) 
+	</select>
+	
+	<!-- 新写内容 -->
+	<select id="countFindTemps" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	<select id="findTemps" resultMap="druggyTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<update id="updateDruggyTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_druggys_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	<update id="updateDruggyTempBase" parameterClass="DruggyTemp">
+		update DM_druggys_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updateDruggyTempBusiness" parameterClass="DruggyTemp">
+		update DM_druggys_Temp set
+		<include refid="druggyTemp.updateBusinessSql" />
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	
+</sqlMap>

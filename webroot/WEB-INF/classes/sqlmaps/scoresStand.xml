@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="scoresStand">
+	<typeAlias type="com.tianque.domain.ScoresStand" alias="ScoresStand"/>
+	<resultMap class="ScoresStand" id="SimpleScoresStandMap">
+	    <result property="id" column="id"/>
+	    <result property="createUser" column="createUser"/>
+	    <result property="updateUser" column="updateUser"/>
+	    <result property="updateDate" column="updateDate"/>
+	    <result property="createDate" column="createDate"/>
+	    <result property="evaluate.id" column="evaluateId"/>
+	    <result property="startScore" column="startScore"/>
+	    <result property="endScore" column="endScore"/>
+	    <result property="propertyDict.id" column="propertydictid"/>
+	    
+	</resultMap>
+	<insert id="addScoresStand" parameterClass="ScoresStand">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_scoreStandard.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		SCORESTANDARD(id,createUser,updateUser,updateDate,createDate,evaluateId,startScore,endScore,propertyDictId)
+		VALUES(#id#,#createUser#,#updateUser#,#updateDate#,#createDate#,#evaluate.id#,#startScore#,#endScore#,#propertyDict.id#)
+	</insert>
+	<select id="findScoresStandByEvaluateId" parameterClass="java.lang.Long" resultMap="SimpleScoresStandMap">
+		select id,createUser,updateUser,updateDate,createDate,evaluateId,startScore,endScore,propertydictid from SCORESTANDARD where evaluateid=#evaluate.id#		
+	</select>
+	<select id="getScoresStandByEvaluateIdAndPropertyDictId" parameterClass="java.util.Map" resultMap="SimpleScoresStandMap">
+		select id,createUser,updateUser,updateDate,createDate,evaluateid,startScore,endScore,propertydictid from scorestandard where evaluateid=#evaluateId# and propertydictid=#propertyDictId#
+	</select>
+	<update id="updateScoresStandByEvaluateIdAndPropertyDictId" parameterClass="ScoresStand">
+		update scorestandard set
+		<dynamic>
+			evaluateid=#evaluate.id#,propertydictid=#propertyDict.id#
+			<isNotNull prepend="," property="startScore">
+				startScore=#startScore#
+			</isNotNull>
+			<isNotNull prepend="," property="endScore">
+				endScore=#endScore#
+			</isNotNull>
+			where evaluateid=#evaluate.id# and propertydictid=#propertyDict.id#
+		</dynamic>
+		
+	</update>
+	<delete id="deleteScoresStandByEvaluateId" parameterClass="java.lang.Long">
+		delete from scorestandard where EVALUATEID=#evaluateId#
+	</delete>
+</sqlMap>

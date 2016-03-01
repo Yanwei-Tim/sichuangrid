@@ -1,0 +1,469 @@
+package com.tianque.plugin.judgmentAnalysis.vo;
+
+import java.io.Serializable;
+
+/**
+ * 人口实时统计数据
+ * 
+ * @author n-233
+ * 
+ */
+public class PopulationSummaryVo implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+	private Long orgId;
+	private String orgCode;
+	private String orgName;
+	private Integer amount = 0;
+
+	private Integer household_amount = 0; // 户籍人口
+	private Double household_rate = 0d; // 户籍占比
+
+	private Integer floating_amount = 0; // 流动人口
+	private Double floating_rate = 0d; // 流动占比
+
+	private Integer unsettled_amount = 0; // 未落户人口
+	private Double unsettled_rate = 0d; // 未落户占比
+
+	private Integer oversea_amount = 0; // 境外人口
+	private Double oversea_rate = 0d; // 境外占比
+
+	private Integer emphasis_amount = 0; // 重点人口(刑满释放,社区矫正,精神病,吸毒,重点青少年,重点上访,危险品从业,其他)
+	private Double emphasis_rate = 0d; // 重点占比
+
+	private Integer positiveinfo_amount = 0; // 刑满释放人口
+	private Double positiveinfo_rate = 0d; // 刑满释放占比
+
+	private Integer rectificative_amount = 0; // 社区矫正人口
+	private Double rectificative_rate = 0d; // 社区矫正占比
+
+	private Integer mentalPatient_amount = 0; // 严重精神障碍患者人口
+	private Double mentalPatient_rate = 0d; // 精神病占比
+
+	private Integer druggy_amount = 0; // 吸毒人口
+	private Double druggy_rate = 0d; // 吸毒占比
+
+	private Integer idleyouth_amount = 0; // 重点青少年人口
+	private Double idleyouth_rate = 0d; // 重点青少年占比
+
+	private Integer superiorVisit_amount = 0; // 重点上访人口
+	private Double superiorVisit_rate = 0d; // 重点上访占比
+
+	private Integer dangerous_amount = 0; // 危险品从业人口
+	private Double dangerous_rate = 0d; // 危险品从业占比
+
+	private Integer otherAttention_amount = 0; // 其他人口
+	private Double otherAttention_rate = 0d; // 其他占比
+
+	private Integer concern_amount = 0; // 关怀人口(老年人,残疾人,优抚,需要救助人,见义勇为)
+	private Double concern_rate = 0d; // 关怀占比
+
+	private Integer elderly_amount = 0; // 老年人人口
+	private Double elderly_rate = 0d; // 老年人占比
+
+	private Integer handicapped_amount = 0; // 残疾人口
+	private Double handicapped_rate = 0d; // 残疾占比
+
+	private Integer optimal_amount = 0; // 优抚人口
+	private Double optimal_rate = 0d; // 优抚占比
+
+	private Integer aidneed_amount = 0; // 需要救助人口
+	private Double aidneed_rate = 0d; // 需要救助占比
+
+	private Integer samaritan_amount = 0; // 见义勇为人口
+	private Double samaritan_rate = 0d; // 见义勇为占比
+
+	private Integer youths_amount = 0; // 青少年
+	private Double youths_rate = 0d;
+
+	private Integer unemployed_amount = 0; // 失业人口
+	private Double unemployed_rate = 0d; // 失业占比
+
+	private Integer women_amount = 0; // 育龄妇女人口
+	private Double women_rate = 0d; // 育龄妇女占比
+
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+	public String getOrgCode() {
+		return orgCode;
+	}
+
+	public void setOrgCode(String orgCode) {
+		this.orgCode = orgCode;
+	}
+
+	public String getOrgName() {
+		return orgName;
+	}
+
+	public void setOrgName(String orgName) {
+		this.orgName = orgName;
+	}
+
+	public Integer getAmount() {
+		return amount;
+	}
+
+	public void setAmount(Integer amount) {
+		this.amount = amount;
+	}
+
+	public Integer getHousehold_amount() {
+		return household_amount;
+	}
+
+	public void setHousehold_amount(Integer householdAmount) {
+		household_amount = householdAmount;
+	}
+
+	public Integer getFloating_amount() {
+		return floating_amount;
+	}
+
+	public void setFloating_amount(Integer floatingAmount) {
+		floating_amount = floatingAmount;
+	}
+
+	public Integer getUnsettled_amount() {
+		return unsettled_amount;
+	}
+
+	public void setUnsettled_amount(Integer unsettledAmount) {
+		unsettled_amount = unsettledAmount;
+	}
+
+	public Integer getOversea_amount() {
+		return oversea_amount;
+	}
+
+	public void setOversea_amount(Integer overseaAmount) {
+		oversea_amount = overseaAmount;
+	}
+
+	public Integer getPositiveinfo_amount() {
+		return positiveinfo_amount;
+	}
+
+	public void setPositiveinfo_amount(Integer positiveinfoAmount) {
+		positiveinfo_amount = positiveinfoAmount;
+	}
+
+	public Integer getRectificative_amount() {
+		return rectificative_amount;
+	}
+
+	public void setRectificative_amount(Integer rectificativeAmount) {
+		rectificative_amount = rectificativeAmount;
+	}
+
+	public Integer getMentalPatient_amount() {
+		return mentalPatient_amount;
+	}
+
+	public void setMentalPatient_amount(Integer mentalPatientAmount) {
+		mentalPatient_amount = mentalPatientAmount;
+	}
+
+	public Integer getDruggy_amount() {
+		return druggy_amount;
+	}
+
+	public void setDruggy_amount(Integer druggyAmount) {
+		druggy_amount = druggyAmount;
+	}
+
+	public Integer getIdleyouth_amount() {
+		return idleyouth_amount;
+	}
+
+	public void setIdleyouth_amount(Integer idleyouthAmount) {
+		idleyouth_amount = idleyouthAmount;
+	}
+
+	public Integer getSuperiorVisit_amount() {
+		return superiorVisit_amount;
+	}
+
+	public void setSuperiorVisit_amount(Integer superiorVisitAmount) {
+		superiorVisit_amount = superiorVisitAmount;
+	}
+
+	public Integer getDangerous_amount() {
+		return dangerous_amount;
+	}
+
+	public void setDangerous_amount(Integer dangerousAmount) {
+		dangerous_amount = dangerousAmount;
+	}
+
+	public Integer getOtherAttention_amount() {
+		return otherAttention_amount;
+	}
+
+	public void setOtherAttention_amount(Integer otherAttentionAmount) {
+		otherAttention_amount = otherAttentionAmount;
+	}
+
+	public Integer getElderly_amount() {
+		return elderly_amount;
+	}
+
+	public void setElderly_amount(Integer elderlyAmount) {
+		elderly_amount = elderlyAmount;
+	}
+
+	public Integer getHandicapped_amount() {
+		return handicapped_amount;
+	}
+
+	public void setHandicapped_amount(Integer handicappedAmount) {
+		handicapped_amount = handicappedAmount;
+	}
+
+	public Integer getOptimal_amount() {
+		return optimal_amount;
+	}
+
+	public void setOptimal_amount(Integer optimalAmount) {
+		optimal_amount = optimalAmount;
+	}
+
+	public Integer getAidneed_amount() {
+		return aidneed_amount;
+	}
+
+	public void setAidneed_amount(Integer aidneedAmount) {
+		aidneed_amount = aidneedAmount;
+	}
+
+	public Integer getSamaritan_amount() {
+		return samaritan_amount;
+	}
+
+	public void setSamaritan_amount(Integer samaritanAmount) {
+		samaritan_amount = samaritanAmount;
+	}
+
+	public Integer getUnemployed_amount() {
+		return unemployed_amount;
+	}
+
+	public void setUnemployed_amount(Integer unemployedAmount) {
+		unemployed_amount = unemployedAmount;
+	}
+
+	public Integer getWomen_amount() {
+		return women_amount;
+	}
+
+	public void setWomen_amount(Integer womenAmount) {
+		women_amount = womenAmount;
+	}
+
+	public Integer getEmphasis_amount() {
+		return emphasis_amount;
+	}
+
+	public void setEmphasis_amount(Integer emphasisAmount) {
+		emphasis_amount = emphasisAmount;
+	}
+
+	public Integer getConcern_amount() {
+		return concern_amount;
+	}
+
+	public void setConcern_amount(Integer concernAmount) {
+		concern_amount = concernAmount;
+	}
+
+	public Integer getYouths_amount() {
+		return youths_amount;
+	}
+
+	public void setYouths_amount(Integer youthsAmount) {
+		youths_amount = youthsAmount;
+	}
+
+	public Double getHousehold_rate() {
+		return household_rate;
+	}
+
+	public void setHousehold_rate(Double householdRate) {
+		household_rate = householdRate;
+	}
+
+	public Double getFloating_rate() {
+		return floating_rate;
+	}
+
+	public void setFloating_rate(Double floatingRate) {
+		floating_rate = floatingRate;
+	}
+
+	public Double getUnsettled_rate() {
+		return unsettled_rate;
+	}
+
+	public void setUnsettled_rate(Double unsettledRate) {
+		unsettled_rate = unsettledRate;
+	}
+
+	public Double getOversea_rate() {
+		return oversea_rate;
+	}
+
+	public void setOversea_rate(Double overseaRate) {
+		oversea_rate = overseaRate;
+	}
+
+	public Double getEmphasis_rate() {
+		return emphasis_rate;
+	}
+
+	public void setEmphasis_rate(Double emphasisRate) {
+		emphasis_rate = emphasisRate;
+	}
+
+	public Double getPositiveinfo_rate() {
+		return positiveinfo_rate;
+	}
+
+	public void setPositiveinfo_rate(Double positiveinfoRate) {
+		positiveinfo_rate = positiveinfoRate;
+	}
+
+	public Double getRectificative_rate() {
+		return rectificative_rate;
+	}
+
+	public void setRectificative_rate(Double rectificativeRate) {
+		rectificative_rate = rectificativeRate;
+	}
+
+	public Double getMentalPatient_rate() {
+		return mentalPatient_rate;
+	}
+
+	public void setMentalPatient_rate(Double mentalPatientRate) {
+		mentalPatient_rate = mentalPatientRate;
+	}
+
+	public Double getDruggy_rate() {
+		return druggy_rate;
+	}
+
+	public void setDruggy_rate(Double druggyRate) {
+		druggy_rate = druggyRate;
+	}
+
+	public Double getIdleyouth_rate() {
+		return idleyouth_rate;
+	}
+
+	public void setIdleyouth_rate(Double idleyouthRate) {
+		idleyouth_rate = idleyouthRate;
+	}
+
+	public Double getSuperiorVisit_rate() {
+		return superiorVisit_rate;
+	}
+
+	public void setSuperiorVisit_rate(Double superiorVisitRate) {
+		superiorVisit_rate = superiorVisitRate;
+	}
+
+	public Double getDangerous_rate() {
+		return dangerous_rate;
+	}
+
+	public void setDangerous_rate(Double dangerousRate) {
+		dangerous_rate = dangerousRate;
+	}
+
+	public Double getOtherAttention_rate() {
+		return otherAttention_rate;
+	}
+
+	public void setOtherAttention_rate(Double otherAttentionRate) {
+		otherAttention_rate = otherAttentionRate;
+	}
+
+	public Double getConcern_rate() {
+		return concern_rate;
+	}
+
+	public void setConcern_rate(Double concernRate) {
+		concern_rate = concernRate;
+	}
+
+	public Double getElderly_rate() {
+		return elderly_rate;
+	}
+
+	public void setElderly_rate(Double elderlyRate) {
+		elderly_rate = elderlyRate;
+	}
+
+	public Double getHandicapped_rate() {
+		return handicapped_rate;
+	}
+
+	public void setHandicapped_rate(Double handicappedRate) {
+		handicapped_rate = handicappedRate;
+	}
+
+	public Double getOptimal_rate() {
+		return optimal_rate;
+	}
+
+	public void setOptimal_rate(Double optimalRate) {
+		optimal_rate = optimalRate;
+	}
+
+	public Double getAidneed_rate() {
+		return aidneed_rate;
+	}
+
+	public void setAidneed_rate(Double aidneedRate) {
+		aidneed_rate = aidneedRate;
+	}
+
+	public Double getSamaritan_rate() {
+		return samaritan_rate;
+	}
+
+	public void setSamaritan_rate(Double samaritanRate) {
+		samaritan_rate = samaritanRate;
+	}
+
+	public Double getYouths_rate() {
+		return youths_rate;
+	}
+
+	public void setYouths_rate(Double youthsRate) {
+		youths_rate = youthsRate;
+	}
+
+	public Double getUnemployed_rate() {
+		return unemployed_rate;
+	}
+
+	public void setUnemployed_rate(Double unemployedRate) {
+		unemployed_rate = unemployedRate;
+	}
+
+	public Double getWomen_rate() {
+		return women_rate;
+	}
+
+	public void setWomen_rate(Double womenRate) {
+		women_rate = womenRate;
+	}
+
+}

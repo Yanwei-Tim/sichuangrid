@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="scenicSpot">
+    <typeAlias alias="scenicSpot" type="com.tianque.baseInfo.scenicManage.scenicSpot.domain.ScenicSpot"/>
+	
+	<resultMap class="scenicSpot" id="scenicSpotResultMap" extends="locationBaseInfo.locationBaseInfoResult">
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="name" column="name"/>
+		<result property="address" column="address"/>
+		<result property="grade" column="grade"/>
+		<result property="telephone" column="telephone"/>
+		<result property="personLiable" column="personLiable"/>
+		<result property="personLiableTelephone" column="personLiableTelephone"/>
+		<result property="introduction" column="introduction"/>
+		<result property="remark" column="remark"/>
+		<result property="imgUrl" column="imgUrl" />
+		<result property="fullPinyin" column="fullPinyin"/>
+		<result property="simplePinyin" column="simplePinyin"/>
+		<result property="logOutReason" column="isEmphasisReason" />
+		<result property="logOutTime" column="isEmphasisDate" />
+		<result property="attentionExtent.id" column="attentionExtent" />
+	</resultMap>
+	<!-- 为列表显示准备的返回值 -->
+	<resultMap class="scenicSpot" id="scenicSpotResultMapForList" extends="locationBaseInfo.locationBaseInfoResultForList">
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="name" column="name"/>
+		<result property="address" column="address"/>
+		<result property="grade" column="grade"/>
+		<result property="telephone" column="telephone"/>
+		<result property="personLiable" column="personLiable"/>
+		<result property="personLiableTelephone" column="personLiableTelephone"/>
+		<result property="introduction" column="introduction"/>
+		<result property="remark" column="remark"/>
+		<result property="imgUrl" column="imgUrl" />
+		<result property="fullPinyin" column="fullPinyin"/>
+		<result property="simplePinyin" column="simplePinyin"/>
+		<result property="logOutReason" column="isEmphasisReason" />
+		<result property="logOutTime" column="isEmphasisDate" />
+		<result property="attentionExtent.id" column="attentionExtent" />
+		<result property="sourcesState" column="sourcesState" />
+	</resultMap>
+	
+    <sql id="sql_where">
+		from  SCENICSPOTS where 1=1
+		<dynamic>
+			<isNotEmpty prepend="and" property="orgInternalCode">
+			     <![CDATA[orgInternalCode like #orgInternalCode#||'%']]>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="name">
+			    <![CDATA[name like #name#||'%']]>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="address">
+			    <![CDATA[address like #address#||'%']]>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="grade">
+				<![CDATA[grade like #grade#||'%']]>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="telephone">
+			    <![CDATA[telephone like #telephone#||'%']]>
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="personLiable">
+				<![CDATA[personLiable like #personLiable#||'%']]>
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="personLiableTelephone">
+				<![CDATA[personLiableTelephone like #personLiableTelephone#||'%']]>
+			</isNotEmpty>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="true">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="false">
+						(isEmphasis = #isEmphasis# or isEmphasis is null)
+					</isEqual>
+				</isNotNull>
+				<isNull property="isEmphasis" prepend="and">
+					1=1
+				</isNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findScenicSpotList" parameterClass="scenicSpot" resultMap="scenicSpotResultMapForList">
+		select SCENICSPOTS.*,'$locationType$' as locationType 
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+	   </dynamic>
+	</select>
+
+	<select id="countScenicSpot" parameterClass="scenicSpot"  resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<insert id="addScenicSpot" parameterClass="scenicSpot">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[select S_SCENICSPOTS.NEXTVAL as id from dual ]]>
+	    </selectKey>
+		<![CDATA[
+	    	insert into SCENICSPOTS(
+	    		id,orgId,orgInternalCode,name,address,grade,telephone,personLiable,personLiableTelephone,introduction,remark,imgUrl,
+	    		fullPinyin,simplePinyin,createUser,createDate,isEmphasis,attentionExtent,sourcesState,updateDate,updateUser)
+	    	values(
+	    		#id#,#organization.id#,#orgInternalCode#,#name#,#address#,#grade#,#telephone#,#personLiable#,#personLiableTelephone#,#introduction#,#remark#,#imgUrl#,
+	    		#fullPinyin#,#simplePinyin#,#createUser#,#createDate#,#isEmphasis#,#attentionExtent.id#,#sourcesState#,#updateDate#,#updateUser#)
+		]]>
+	</insert>
+
+	<delete id="deleteScenicSpotById" parameterClass="java.lang.Long">
+	    delete SCENICSPOTS where id=#value#
+	</delete>
+
+	<update id="updateScenicSpot" parameterClass="scenicSpot">
+		update SCENICSPOTS set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+		    <isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="address">
+				address=#address#
+			</isNotNull>
+			<isNotNull prepend="," property="grade">
+				grade=#grade#
+			</isNotNull>
+			<isNotNull prepend="," property="telephone">
+				telephone=#telephone#
+			</isNotNull>
+			<isNotNull prepend="," property="personLiable">
+				personLiable=#personLiable#
+			</isNotNull>
+			<isNotNull prepend="," property="personLiableTelephone">
+				personLiableTelephone=#personLiableTelephone#
+			</isNotNull>
+			<isNotNull prepend="," property="introduction">
+				introduction=#introduction#
+			</isNotNull>
+			<isNotNull prepend="," property="remark">
+				remark=#remark#
+			</isNotNull>	      
+			<isNotNull prepend="," property="imgUrl">
+				imgUrl=#imgUrl#
+			</isNotNull>
+			<isNotNull prepend="," property="fullPinyin">
+				fullPinyin=#fullPinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="simplePinyin">
+				simplePinyin=#simplePinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="createUser">
+				createUser=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="createDate">
+				createDate=#createDate#
+			</isNotNull>
+			<isPropertyAvailable prepend="," property="updateUser">
+	            updateUser=#updateUser#
+			</isPropertyAvailable>
+			<isPropertyAvailable prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isPropertyAvailable>
+			<isNotNull prepend="," property="isEmphasis">
+				isEmphasis=#isEmphasis#
+			</isNotNull>
+			<isNotNull prepend="," property="attentionExtent">
+				attentionExtent = #attentionExtent.id#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+	
+	<select id="getScenicSpotByName" parameterClass="java.util.Map" resultMap="scenicSpotResultMap">
+		select * from SCENICSPOTS where  name=#name# and orgId=#orgId#
+	</select>
+	
+	<select id="getSimpleScenicSpotById" parameterClass="java.lang.Long" resultMap="scenicSpotResultMap">
+	     select * from SCENICSPOTS where id=#value#
+	</select>
+
+	<select id="findScenicSpotByNameAndOrgId" parameterClass="map" resultMap="scenicSpotResultMap">
+		select * from SCENICSPOTS where name = #name# and orgId = #orgId#
+	</select>
+	
+	<select id="findScenicSpotByNameAndPinyinAndOrgInternalCode" parameterClass="java.util.Map" resultMap="scenicSpotResultMap">
+		select * from SCENICSPOTS where (name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%' ) and orgInternalCode like '$orgInternalCode$%' order by id
+	</select>
+	
+	<select id="countExsistedScenicSpot" parameterClass="map" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM SCENICSPOTS WHERE name=#name# AND
+		orgId=#orgId#
+		<isNotNull property="id" prepend=" AND ">
+			<![CDATA[id!=#id#]]>
+		</isNotNull>
+	</select>
+	
+	<update id="updateEmphasiseById" parameterClass="map">
+		update SCENICSPOTS set isEmphasis=#isEmphasis#,isEmphasisReason=#logOutReason# ,isEmphasisDate = #logOutTime#,updateUser=#updateUser#,updateDate=#updateDate#
+		where id=#id#
+	</update>
+</sqlMap>

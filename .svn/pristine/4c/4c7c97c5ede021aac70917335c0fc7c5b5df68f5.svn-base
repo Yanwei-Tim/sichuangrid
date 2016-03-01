@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	select 	
+				ID as id ,
+		BUILDINGID as buildingid ,
+		ORGANIZATION as organization ,
+		ORGINTERNALCODE as orginternalcode ,
+		BUILDINGNAME as buildingname ,
+		BUILDINGADDRESS as buildingaddress ,
+		OWNER as owner ,
+		RESPONSIBLEPERSON as responsibleperson ,
+		PHONE as phone ,
+		BUILDINGSTRUCTURES as buildingstructures ,
+		CENTERX as centerx ,
+		CENTERY as centery ,
+		CREATEUSER as createUser ,
+		UPDATEUSER as updateUser ,
+		CREATEDATE as createDate ,
+		UPDATEDATE as updateDate 
+	from Builddatas	
+ -->	
+<sqlMap namespace="builddatas">	
+	
+	<typeAlias alias="Builddatas" type="com.tianque.baseInfo.buildDatas.domain.Builddatas"/>
+	<typeAlias alias="builddatasSearchVo" type="com.tianque.baseInfo.buildDatas.domain.vo.BuilddatasSearchVo"/>
+	
+	<resultMap id="builddatasResultMap" class="Builddatas">
+		<result property="id" column="ID"/>
+		<result property="buildingid" column="BUILDINGID"/>
+		<result property="buildingname" column="BUILDINGNAME"/>
+		<result property="buildingaddress" column="BUILDINGADDRESS"/>
+		<result property="owner" column="OWNER"/>
+		<result property="responsibleperson" column="RESPONSIBLEPERSON"/>
+		<result property="phone" column="PHONE"/>
+		<result property="buildingstructures.id" column="BUILDINGSTRUCTURES"/>
+		<result property="centerx" column="CENTERX"/>
+		<result property="centery" column="CENTERY"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="orginternalcode" column="ORGINTERNALCODE"/>
+		<result property="organization.id" column="orgid"/>
+		<result property="organization.orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="isLayout" column="isLayout"/>
+		<result property="isPropertyManagement" column="isPropertyManagement"/>
+	</resultMap>
+	
+	<resultMap class="Builddatas" id="builddatasResultByType" extends="builddatasResultMap">
+		<result property="type.id" column="TYPE"/>
+		<result property="isBind" column="isbind"/>
+	</resultMap>
+	
+	<resultMap class="Builddatas" id="builddatasResult2D" extends="builddatasResultByType">
+		<result property="openLayersMapInfo.centerLon" column="centerLon" />
+		<result property="openLayersMapInfo.centerLat" column="centerLat" />
+		<result property="openLayersMapInfo.centerLon2" column="centerLon2" />
+		<result property="openLayersMapInfo.centerLat2" column="centerLat2" />
+	</resultMap>
+	
+	
+	<select id="countBuilddatasByOrgInternalCode" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<!--fateson update   select count(0) from Builddatas where orgInternalCode like #value# || '%'  -->
+		<![CDATA[
+		select count(0)  from (
+			select 
+			ID,BUILDINGID,orgid,ORGINTERNALCODE,BUILDINGNAME,BUILDINGADDRESS,OWNER,RESPONSIBLEPERSON,PHONE,BUILDINGSTRUCTURES,CENTERX,CENTERY,CREATEUSER,UPDATEUSER,CREATEDATE,UPDATEDATE, isLayout,type,nvl2(buildingid,1,2) isbind,centerlat,centerlon,centerlat2,centerlon2,
+			rowNum rn from (
+				select 
+				* from Builddatas
+					where orgInternalCode like #orgInternalCode# || '%'
+		]]>
+		<isPropertyAvailable property="isBind">
+				<isNotNull property="isBind">
+					<isEqual property="isBind" compareValue="2" prepend=" and ">
+						buildingid is null
+					</isEqual>
+					<isEqual property="isBind" compareValue="1" prepend=" and ">
+						buildingid is not null
+					</isEqual>
+				</isNotNull>
+		</isPropertyAvailable>
+		
+		<![CDATA[
+			) a 
+		) b 
+		]]>
+		
+	</select>
+	
+	<select id="findBuilddatasByOrgInternalCode" parameterClass="java.util.Map" resultMap="builddatasResult2D">
+		<![CDATA[
+		select * from (
+			select 
+			ID,BUILDINGID,orgid,ORGINTERNALCODE,BUILDINGNAME,BUILDINGADDRESS,OWNER,RESPONSIBLEPERSON,PHONE,BUILDINGSTRUCTURES,CENTERX,CENTERY,CREATEUSER,UPDATEUSER,CREATEDATE,UPDATEDATE, isLayout,type,nvl2(buildingid,1,2) isbind,centerlat,centerlon,centerlat2,centerlon2,isPropertyManagement,
+			rowNum rn from (
+				select 
+				* from Builddatas
+					where orgInternalCode like #orgInternalCode# || '%'
+		]]>
+		<isPropertyAvailable property="isBind">
+				<isNotNull property="isBind">
+					<isEqual property="isBind" compareValue="2" prepend=" and ">
+						buildingid is null
+					</isEqual>
+					<isEqual property="isBind" compareValue="1" prepend=" and ">
+						buildingid is not null
+					</isEqual>
+				</isNotNull>
+		</isPropertyAvailable>
+		<dynamic prepend="order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<![CDATA[
+			) a where rownum <= #endRow#
+		) b where rn > #startRow#
+		]]>
+	</select>
+	
+	<insert id="addBuilddatas" parameterClass="Builddatas">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			select s_builddatas.NEXTVAL as id from dual
+		</selectKey>
+		insert into Builddatas (ID ,BUILDINGID ,orgid ,ORGINTERNALCODE ,BUILDINGNAME ,BUILDINGADDRESS ,OWNER ,RESPONSIBLEPERSON ,PHONE ,BUILDINGSTRUCTURES ,CENTERX ,CENTERY ,CREATEUSER ,UPDATEUSER ,CREATEDATE ,UPDATEDATE,type,centerlon,centerlat,
+		 centerlon2,centerlat2,isPropertyManagement) 
+		values(#id#,#buildingid#,#organization.id#,#orginternalcode#,#buildingname#,#buildingaddress#,#owner#,#responsibleperson#,#phone#,#buildingstructures.id#,#centerx#,#centery#,#createUser#,#updateUser#,#createDate#,#updateDate#,#type.id#,#openLayersMapInfo.centerLon#,#openLayersMapInfo.centerLat#,
+		#openLayersMapInfo.centerLon2#,#openLayersMapInfo.centerLat2#,#isPropertyManagement#)	
+	</insert>
+	
+	<update id="updateBuilddatas" parameterClass="Builddatas">
+		update builddatas set id = #id# 
+				<isNotNull prepend="," property="organization">
+					orgid = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="orginternalcode">
+					ORGINTERNALCODE = #orginternalcode#
+				</isNotNull>
+				<isNotNull prepend="," property="buildingname">
+					BUILDINGNAME = #buildingname#
+				</isNotNull>
+				<isNotNull prepend="," property="buildingaddress">
+					BUILDINGADDRESS = #buildingaddress#
+				</isNotNull>
+				<isNotNull prepend="," property="owner">
+					OWNER = #owner#
+				</isNotNull>
+				<isNotNull prepend="," property="responsibleperson">
+					RESPONSIBLEPERSON = #responsibleperson#
+				</isNotNull>
+				<isNotNull prepend="," property="phone">
+					PHONE = #phone#
+				</isNotNull>
+				<isNotNull prepend="," property="buildingstructures">
+					BUILDINGSTRUCTURES = #buildingstructures.id#
+				</isNotNull>
+				<isNotNull prepend="," property="isLayout">
+					isLayout  = #isLayout# 
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="type">
+					TYPE=#type.id#
+				</isNotNull>
+				<isNotNull prepend="," property="openLayersMapInfo">
+					centerLon=#openLayersMapInfo.centerLon#
+				</isNotNull>
+				<isNotNull prepend="," property="openLayersMapInfo">
+					centerLat=#openLayersMapInfo.centerLat#
+				</isNotNull>
+				<isNotNull prepend="," property="openLayersMapInfo">
+					centerLon2=#openLayersMapInfo.centerLon2#
+				</isNotNull>
+				<isNotNull prepend="," property="openLayersMapInfo">
+					centerLat2=#openLayersMapInfo.centerLat2#
+				</isNotNull>
+				,BUILDINGID = #buildingid#
+				,CENTERX = #centerx#
+				,CENTERY = #centery#
+				<isNotNull prepend="," property="isPropertyManagement">
+					isPropertyManagement = #isPropertyManagement#
+				</isNotNull>
+			where id = #id#
+	</update>
+	
+	<update id="updateBuilddatasByBuildingId" parameterClass="Builddatas">
+		update builddatas set id = #id# 
+				<isNotNull prepend="," property="organization">
+					orgid = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="orginternalcode">
+					ORGINTERNALCODE = #orginternalcode#
+				</isNotNull>
+				<isNotNull prepend="," property="buildingname">
+					BUILDINGNAME = #buildingname#
+				</isNotNull>
+				<isNotNull prepend="," property="buildingaddress">
+					BUILDINGADDRESS = #buildingaddress#
+				</isNotNull>
+				<isNotNull prepend="," property="owner">
+					OWNER = #owner#
+				</isNotNull>
+				<isNotNull prepend="," property="responsibleperson">
+					RESPONSIBLEPERSON = #responsibleperson#
+				</isNotNull>
+				<isNotNull prepend="," property="phone">
+					PHONE = #phone#
+				</isNotNull>
+				<isNotNull prepend="," property="buildingstructures">
+					BUILDINGSTRUCTURES = #buildingstructures.id#
+				</isNotNull>
+				<isNotNull prepend="," property="isLayout">
+					isLayout  = #isLayout# 
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="type">
+					TYPE=#type.id#
+				</isNotNull>
+				<isNotNull prepend="," property="openLayersMapInfo">
+					centerLon=#openLayersMapInfo.centerLon#
+				</isNotNull>
+				<isNotNull prepend="," property="openLayersMapInfo">
+					centerLat=#openLayersMapInfo.centerLat#
+				</isNotNull>
+				<isNotNull prepend="," property="openLayersMapInfo">
+					buildingid=#openLayersMapInfo.featureId#
+				</isNotNull>
+				<isNotNull prepend="," property="isPropertyManagement">
+					isPropertyManagement = #isPropertyManagement#
+				</isNotNull>
+			where id = #id#
+	</update>
+	
+	<update id="updateBuilddatasByFeatureId" parameterClass="java.lang.String">
+		update builddatas set centerLon=null,centerlat=null,buildingid=null
+			where buildingid = #openLayersMapInfo.featureId#
+	</update>
+	
+	<select id="getBuilddatasById" parameterClass="java.lang.Long" resultMap="builddatasResult2D">
+		select t.*,nvl2(buildingid,1,2) isbind from Builddatas t where id = #value#
+	</select>
+	
+
+	<delete id="deleteBuilddatasById" parameterClass="java.lang.Long">	
+		delete  from Builddatas where id = #value# 	
+	</delete>
+	
+	<sql id="sql_where">
+		<dynamic prepend="where">
+				<isPropertyAvailable property="organization">
+					<isNotNull prepend="and" property="orginternalcode">
+					orgInternalCode like #orginternalcode# || '%'
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="buildingid">
+					<isNotEmpty prepend="and" property="buildingid">
+						BUILDINGID  = #buildingid#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="buildingname">
+					<isNotEmpty prepend="and" property="buildingname">
+						BUILDINGNAME  like #buildingname# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="buildingaddress">
+					<isNotEmpty prepend="and" property="buildingaddress">
+						BUILDINGADDRESS  like #buildingaddress# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="owner">
+					<isNotEmpty prepend="and" property="owner">
+						OWNER  like #owner# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="responsibleperson">
+					<isNotEmpty prepend="and" property="responsibleperson">
+						RESPONSIBLEPERSON  like #responsibleperson# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="phone">
+					<isNotEmpty prepend="and" property="phone">
+						PHONE  like #phone# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="buildingstructuresId">
+					<isNotNull prepend="and" property="buildingstructuresId">
+						BUILDINGSTRUCTURES  = #buildingstructuresId#
+					</isNotNull>
+				</isPropertyAvailable>
+				
+		</dynamic>
+	</sql>
+	
+	<select id="countBuilddatasBySearch" parameterClass="builddatasSearchVo" resultClass="java.lang.Integer">
+		select count(0) from builddatas 
+		<include refid="sql_where"/>
+	</select>
+	<select id="searchBuilddatas" parameterClass="builddatasSearchVo" resultMap="builddatasResult2D">
+		<![CDATA[
+		select * from (
+			select 
+			ID,BUILDINGID,orgid,ORGINTERNALCODE,BUILDINGNAME,BUILDINGADDRESS,OWNER,RESPONSIBLEPERSON,PHONE,BUILDINGSTRUCTURES,CENTERX,CENTERY,CREATEUSER,UPDATEUSER,CREATEDATE,UPDATEDATE, isLayout,nvl2(buildingid,1,2) isbind,type,centerlat,centerlon,centerlat2,centerlon2,isPropertyManagement,
+			rowNum rn from (
+				select 
+				* from Builddatas
+		]]>
+		<include refid="sql_where"/>
+		<dynamic prepend="order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<![CDATA[
+			) a where rownum <= #endRow#
+		) b where rn > #startRow#
+		]]>
+	</select>
+
+	<select id="getBuilddatasByBuildId" parameterClass="java.lang.String" resultMap="builddatasResultMap">
+		select * from Builddatas where buildingid = #value#
+	</select>
+	
+	<select id="findUnBoundBuilddatasByStr" parameterClass="java.util.Map" resultMap="builddatasResultByType">
+		<![CDATA[
+		select * from (
+			select 
+			ID,BUILDINGID,orgid,ORGINTERNALCODE,BUILDINGNAME,BUILDINGADDRESS,OWNER,RESPONSIBLEPERSON,PHONE,BUILDINGSTRUCTURES,CENTERX,CENTERY,CREATEUSER,UPDATEUSER,CREATEDATE,UPDATEDATE, isLayout,type,nvl2(buildingid,1,2) isbind,isPropertyManagement,
+			rowNum rn from (
+				select 
+				* from Builddatas
+		]]>
+		where centerlat is null and centerlon is null  and orgInternalCode like '$orgInternalCode$%'
+		<dynamic>
+			<isNotNull prepend="and ">
+				( buildingname like '$str$%'
+			</isNotNull>
+			<isNotNull prepend="or ">
+				buildingaddress like '$str$%' )
+			</isNotNull>
+		</dynamic>
+		<dynamic prepend="order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<![CDATA[
+			) a where rownum <= #endRow#
+		) b where rn > #startRow#
+		]]>
+	</select>
+	
+	<select id="countUnBoundBuilddatas" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from builddatas where centerlat is null and centerlon is null and orgInternalCode like '$orgInternalCode$%'
+		
+		<dynamic>
+			<isNotNull prepend="and ">
+				( buildingname like '$str$%'
+			</isNotNull>
+			<isNotNull prepend="or ">
+				buildingaddress like '$str$%' )
+			</isNotNull>
+		</dynamic>
+		
+	</select>
+	
+	<select id="findBoundBuilddatasByOrgCode" parameterClass="java.util.Map" resultMap="builddatasResult2D">
+		<![CDATA[
+		select * from (
+			select 
+			centerlon,centerlat,centerlat2,centerlon2,ID,BUILDINGID,orgid,ORGINTERNALCODE,BUILDINGNAME,BUILDINGADDRESS,OWNER,RESPONSIBLEPERSON,PHONE,BUILDINGSTRUCTURES,CENTERX,CENTERY,CREATEUSER,UPDATEUSER,CREATEDATE,UPDATEDATE, isLayout,type,nvl2(buildingid,1,2) isbind,isPropertyManagement,
+			rowNum rn from (
+				select 
+				* from Builddatas
+		]]>
+		where centerlat is not null and centerlon is not null 
+		and orginternalcode like '$orginternalcode$%'
+		<dynamic prepend="order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<![CDATA[
+			) a where rownum <= #endRow#
+		) b where rn > #startRow#
+		]]>
+	</select>
+	
+	<select id="findUnBoundBuilddatasByOrgCode" parameterClass="java.util.Map" resultMap="builddatasResult2D">
+		<![CDATA[
+		select * from (
+			select 
+			centerlon,centerlat,centerlat2,centerlon2,ID,BUILDINGID,orgid,ORGINTERNALCODE,BUILDINGNAME,BUILDINGADDRESS,OWNER,RESPONSIBLEPERSON,PHONE,BUILDINGSTRUCTURES,CENTERX,CENTERY,CREATEUSER,UPDATEUSER,CREATEDATE,UPDATEDATE, isLayout,type,nvl2(buildingid,1,2) isbind,isPropertyManagement,
+			rowNum rn from (
+				select 
+				* from Builddatas
+		]]>
+		where centerlat is  null and centerlon is null 
+		and orginternalcode like '$orginternalcode$%'
+		<dynamic prepend="order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<![CDATA[
+			) a where rownum <= #endRow#
+		) b where rn > #startRow#
+		]]>
+	</select>
+	
+	
+	
+	<select id="countBoundBuilddatasByOrgCode" parameterClass="String"  resultClass="java.lang.Integer">
+		select count(*) from builddatas where centerlat is not null and centerlon is not null 
+		and orginternalcode like '$orginternalcode$%'
+	</select>
+	
+	<select id="countUnBoundBuilddatasByOrgCode" parameterClass="String"  resultClass="java.lang.Integer">
+		select count(*) from builddatas where centerlat is null and centerlon is null 
+		and orginternalcode like '$orginternalcode$%'
+	</select>
+	
+	<select id="countBoundBuildDatasByLonAndLatArrays" resultClass="Integer" parameterClass="java.util.Map">
+		 select count(*) from builddatas
+		 <dynamic prepend="where"> 
+			<isNotEmpty prepend="and"  property="minX">
+				<![CDATA[
+					centerlon>#minX#
+				]]>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="maxX">
+				<![CDATA[
+					centerlon<#maxX#
+				]]>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="minY">
+				<![CDATA[
+					centerlat>#minY#
+				]]>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="maxY">
+				<![CDATA[
+					centerlat<#maxY#
+				]]>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="countBuildDatasByLonAndLatArrays" resultClass="Integer" parameterClass="java.util.Map">
+		 select count(*) from builddatas
+		 <dynamic prepend="where"> 
+			<isNotEmpty prepend="and"  property="minX">
+				<![CDATA[
+					(centerlon>#minX#
+				]]>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="maxX">
+				<![CDATA[
+					centerlon<#maxX#
+				]]>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="minY">
+				<![CDATA[
+					centerlat>#minY#
+				]]>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="maxY">
+				<![CDATA[
+					centerlat<#maxY#)
+				]]>
+			</isNotEmpty>
+			or (centerlon is null and centerlat is null)
+		</dynamic>
+	</select>
+	
+	<select id="countBoundBuildDatasByOrgCode" resultClass="Integer" parameterClass="java.lang.String">
+		 select count(*) from builddatas where buildingid is not null and orgInternalCode like #orginternalcode# || '%'
+	</select>
+	
+	<update id="boundBuilddatas" parameterClass="Builddatas"> 
+			update builddatas set CENTERLON=#openLayersMapInfo.centerLon#,CENTERLAT=#openLayersMapInfo.centerLat#,BUILDINGID=#buildingid# where id=#id#
+	</update>
+	<update id="unboundBuilddatas" parameterClass="Builddatas">
+			update builddatas set CENTERLON='',CENTERLAT='',BUILDINGID='' where id=#id#
+	</update>
+	
+	<sql id="sql_where_search">
+		<dynamic prepend="where">
+					orgInternalCode like #orginternalcode# || '%'
+					and
+					(BUILDINGNAME  like #nameAndAddress# || '%'
+						or 
+					BUILDINGADDRESS  like #nameAndAddress# || '%')
+		</dynamic>
+	</sql>
+	
+	<select id="countBuilddatasByNameAndAddress" parameterClass="builddatasSearchVo" resultClass="java.lang.Integer">
+		select count(0) from builddatas 
+		<include refid="sql_where_search"/>
+	</select>
+	<select id="searchBuilddatasByNameAndAddress" parameterClass="builddatasSearchVo" resultMap="builddatasResult2D">
+		<![CDATA[
+		select * from (
+			select 
+			ID,BUILDINGID,orgid,ORGINTERNALCODE,BUILDINGNAME,BUILDINGADDRESS,OWNER,RESPONSIBLEPERSON,PHONE,BUILDINGSTRUCTURES,CENTERX,CENTERY,CREATEUSER,UPDATEUSER,CREATEDATE,UPDATEDATE, isLayout,nvl2(buildingid,1,2) isbind,type,centerlat,centerlon,centerlat2,centerlon2,isPropertyManagement,
+			rowNum rn from (
+				select 
+				* from Builddatas
+		]]>
+		<include refid="sql_where_search"/>
+		<dynamic prepend="order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<![CDATA[
+			) a where rownum <= #endRow#
+		) b where rn > #startRow#
+		]]>
+	</select>
+	
+	<select id="findBuildDatasByBuildId" parameterClass="java.lang.String" resultMap="builddatasResultMap">
+		select * from builddatas where buildingid = #value#
+	</select>
+	
+</sqlMap>

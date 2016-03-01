@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<!-- 网格相关action -->
+	<package name="organizationMobileManage" namespace="/mobile/organizationMobileManage" extends="default">
+		<default-class-ref class="organizationMobileAdapter"></default-class-ref>
+		<action name="findOrganizationsByParent" method="findOrganizationsByParent">
+			<result name="success" type="json">
+				<param name="root">organizationMap</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		<action name="findOrganizationsByParentId" method="findOrganizationsByParentId">
+			<result name="success" type="json">
+				<param name="root">organizationMap</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		<action name="findTownOrgInfo" method="findTownOrgInfo">
+			<result name="success" type="json">
+				<param name="root">organization</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+	</package>
+</struts>

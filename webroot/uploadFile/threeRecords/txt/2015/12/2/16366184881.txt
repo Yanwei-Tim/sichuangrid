@@ -1,0 +1,274 @@
+新增：null
+上报：41        SUBMIT_CODE
+交办：21        ASSIGN_CODE
+受理：61        CONCEPT_CODE
+办理中：1       COMMENT_CODE
+阶段性办结：92  PERIOD_CODE
+程序性办结：93  PROGRAM_CODE
+实质性办结：31  COMPLETE_CODE
+回退：200       BACK_CODE
+转办：50        TURN_CODE
+申报：45        DECLARE_CODE
+
+5087	新建
+5088	上年接转
+5089	其他台账转入
+5090	上级主管部门和县级领导班子有关领导交办(县级部门选填)
+5091	县委县政府及县级领导班子有关领导交办(乡镇选填)
+5092	县人大议案、建议、意见交办
+5093	县政协提案、建议、意见交办
+
+
+
+
+
+select substr(t.ca,instr(t.ca, ',', 1, c.lv) + 1, instr(t.ca, ',', 1, c.lv + 1) - (instr(t.ca, ',', 1, c.lv) + 1)) AS cv
+   from
+ (select ','|| poortype AS ca, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from ledgerpoorpeople) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+
+
+ 
+--民生处理分类
+select lg.dealOrgId as orgId,lg.ledgerType as ledgerType,lg.dealType as countType,count(*) as num,null as poorType,null as steadyWorkType,3 as dataType from
+    (select  id,dealOrgId,ledgerType,dealType,ledgerId from(select dealTime,id,dealOrgId,ledgerType,dealType,ledgerId,row_number() over(partition by dealOrgId,ledgerType,ledgerId order by id desc) rn from 
+    platformaccountlogs where dealType is not null and dealtype != 1) t1
+                where rn=1 and dealTime >=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime< to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss'))lg, ledgerpeopleaspirations lpp where lg.ledgerid=lpp.id and lg.ledgertype not in(2,3)
+group by lg.dealOrgId,lg.ledgerType,lg.dealType
+            
+union all
+--困难处理分类
+select lg.dealOrgId as orgId,lg.ledgerType as ledgerType,lg.dealType as countType,count(*) as num,lpp.poortype as poorType,null as steadyWorkType,3 as dataType from 
+(select  id,dealOrgId,ledgerType,dealType,ledgerId from(select dealTime,id,dealOrgId,ledgerType,dealType,ledgerId,row_number() over(partition by dealOrgId,ledgerType,ledgerId order by id desc) rn from 
+platformaccountlogs where dealType is not null and dealtype != 1) t1
+                where rn=1 and dealTime >=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime< to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss')) lg, ledgerpoorpeople lpp where lg.ledgerid=lpp.id and lg.ledgertype = 2
+            group by lg.dealOrgId,lg.ledgerType,lg.dealType,lpp.poortype
+            
+union all
+--稳定处理分类
+select lg.dealOrgId as orgId,lg.ledgerType as ledgerType,lg.dealType as countType,count(*) as num,null as poorType,lpp.steadyWorkType as steadyWorkType,3 as dataType from 
+(select id,dealOrgId,ledgerType,dealType,ledgerId from (select dealTime,id,dealOrgId,ledgerType,dealType,ledgerId,row_number() over(partition by dealOrgId,ledgerType,ledgerId order by id desc) rn from 
+platformaccountlogs where dealType is not null and dealtype != 1) t1
+                where rn=1 and dealTime >=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime< to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss')) lg, ledgersteadywork lpp where lg.ledgerid=lpp.id and lg.ledgertype = 3
+            group by lg.dealOrgId,lg.ledgerType,lg.dealType,lpp.steadyWorkType
+
+union all
+--民生建表分类
+select orgId,ledgerType,createTableType as countType,count(*) as num,null as poorType,null as steadyWorkType, 2 as dataType from ledgerPeopleAspirations where 
+createDate>=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and createDate <  to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss') group by orgId,ledgerType,createTableType
+                
+union all
+--困难建表分类
+select orgId,ledgerType,createTableType as countType,count(*) as num,poorType as poorType,null as steadyWorkType, 2 as dataType from ledgerpoorpeople where 
+createDate>=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and createDate <  to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss') group by orgId,ledgerType,createTableType,poorType
+
+union all
+--稳定建表分类
+select orgId,ledgerType,createTableType as countType,count(*) as num,null as poorType,steadyWorkType as poorType,2 as dataType from ledgersteadywork where 
+createDate>=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and createDate <  to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss') group by orgId,ledgerType,createTableType,steadyWorkType
+
+ union all
+--困难类型上月办理分类               
+select lg.dealOrgId as orgId,lg.ledgertype as ledgerType,decode(lg.dealType,1,-1,null,-1) as countType,count(lg.id) as num,lpp.poorType as poorType,null as steadyWorkType, 1 as dataType from(
+select id,dealOrgId,ledgerType,dealType,ledgerId from
+(select log.dealTime,log.id as id,log.dealOrgId as dealOrgId,log.ledgerType as ledgerType,log.dealType as dealType,log.ledgerId as ledgerId,
+row_number() over(partition by log.dealOrgId,log.ledgerType,log.ledgerId order by log.id desc) rn from platformaccountlogs log
+ where log.dealType = 1 or log.dealType is null)
+ where rn=1 and dealTime >=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime < to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss')
+ )lg, ledgerpoorpeople lpp where lg.ledgerid=lpp.id and lg.ledgertype = 2
+ group by lg.dealOrgId,lg.ledgertype,lg.dealType,lpp.poorType
+ 
+union all
+ --稳定类型上月办理分类
+ select lg.dealOrgId as orgId,lg.ledgerType as ledgerType,decode(lg.dealType,1,-1,null,-1) as countType,count(lg.id) as num,null as poorType,lpp.steadyWorktype as steadyWorkType, 1 as dataType from(
+select id,dealOrgId,ledgerType,dealType,ledgerId from
+(select log.dealTime,log.id as id,log.dealOrgId as dealOrgId,log.ledgerType as ledgerType,log.dealType as dealType,log.ledgerId as ledgerId,
+row_number() over(partition by log.dealOrgId,log.ledgerType,log.ledgerId order by log.id desc) rn from platformaccountlogs log
+ where log.dealType = 1 or log.dealType is null) where rn=1 and dealTime >=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime  < to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss')
+ )lg, ledgersteadywork lpp where lg.ledgerid=lpp.id and lg.ledgertype = 3 and lpp.steadyworktype is not null
+ group by lg.dealOrgId,lg.ledgerType,lg.dealType,lpp.steadyWorktype
+ 
+union all
+--民生台账分类
+ select lg.dealOrgId as orgId,lg.ledgertype as ledgerType,decode(lg.dealType,1,-1,null,-1) as countType,count(lg.id) as num,null as poorType,null as steadyWorkType, 1 as dataType from(
+select id,dealOrgId,ledgerType,dealType,ledgerId from
+(select log.dealTime, log.id as id,log.dealOrgId as dealOrgId,log.ledgerType as ledgerType,log.dealType as dealType,log.ledgerId as ledgerId,
+row_number() over(partition by log.dealOrgId,log.ledgerType,log.ledgerId order by log.id desc) rn from platformaccountlogs log
+ where log.dealType = 1 or log.dealType is null)where rn=1 and dealTime >=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime  < to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss')
+ )lg where lg.ledgertype not in(2,3)
+ group by lg.dealOrgId,lg.ledgertype,lg.dealType
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+三本台账报表数据抓取SQL：
+ 
+<!--民生处理分类-->
+select lg.dealOrgId as orgId,to_char(lg.ledgerType) as ledgerType,lg.dealType as countType,count(*) as num,3 as dataType from
+    (select  id,dealOrgId,ledgerType,dealType,ledgerId from(select dealTime,id,dealOrgId,ledgerType,dealType,ledgerId,row_number() over(partition by dealOrgId,ledgerType,ledgerId order by id desc) rn from 
+    platformaccountlogs where dealType is not null and dealtype != 1) t1
+                where rn=1 and dealTime >=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime< to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss'))lg, ledgerpeopleaspirations lpp where lg.ledgerid=lpp.id and lg.ledgertype not in(2,3)
+group by lg.dealOrgId,lg.ledgerType,lg.dealType
+
+union all
+<!--困难处理分类-->
+select orgid,poorType as ledgertype,countType,sum(num) as num, dataType from (
+
+select orgid,counttype,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype,datatype from 
+(select orgid,counttype,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt,datatype from  
+
+(select lg.dealOrgId as orgId,lg.dealType as countType,count(*) as num,lpp.poortype as poorType,3 as dataType from 
+(select  id,dealOrgId,ledgerType,dealType,ledgerId from(select dealTime,id,dealOrgId,ledgerType,dealType,ledgerId,row_number() over(partition by dealOrgId,ledgerType,ledgerId order by id desc) rn from 
+platformaccountlogs where dealType is not null and dealtype != 1) t1
+                where rn=1 and dealTime >=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime< to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss')) lg, 
+                ledgerpoorpeople lpp where lg.ledgerid=lpp.id and lg.ledgertype = 2
+            group by lg.dealOrgId,lg.ledgerType,lg.dealType,lpp.poortype)
+
+) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+) group by orgid,counttype,poortype,datatype
+
+union all
+<!--稳定处理分类-->
+select lg.dealOrgId as orgId,to_char(lpp.steadyWorkType) as ledgerType,lg.dealType as countType,count(*) as num,3 as dataType from 
+(select id,dealOrgId,ledgerType,dealType,ledgerId from (select dealTime,id,dealOrgId,ledgerType,dealType,ledgerId,row_number() over(partition by dealOrgId,ledgerType,ledgerId order by id desc) rn from 
+platformaccountlogs where dealType is not null and dealtype != 1) t1
+                where rn=1 and dealTime >=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime< to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss')) lg, ledgersteadywork lpp
+                 where lg.ledgerid=lpp.id and lg.ledgertype = 3
+            group by lg.dealOrgId,lg.ledgerType,lg.dealType,lpp.steadyWorkType
+
+union all
+<!--民生建表-->
+ select orgId,to_char(ledgerType),createTableType as countType,count(*) as num, 2 as dataType from ledgerPeopleAspirations where 
+createDate>=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and createDate <  to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss') group by orgId,ledgerType,createTableType
+
+union all
+<!--困难建表-->
+select orgid,poorType as ledgertype,countType,sum(num) as num, dataType from (
+
+select orgid,ledgertype,counttype,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype,datatype from 
+(select orgid,ledgertype,counttype,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt,datatype from  
+
+(select orgId,ledgerType,createTableType as countType,count(*) as num,poorType as poorType,null as steadyWorkType, 2 as dataType from ledgerpoorpeople where 
+createDate>=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and createDate <  to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss') group by orgId,ledgerType,createTableType,poorType)
+
+) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  
+  ) group by orgid,ledgertype,counttype,poortype,datatype
+  
+union all
+<!--稳定建表-->
+ select orgId,to_char(steadyWorkType) as ledgerType,createTableType as countType,count(*) as num,2 as dataType from ledgersteadywork where 
+createDate>=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and createDate <  to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss') group by orgId,ledgerType,createTableType,steadyWorkType
+ 
+union all
+<!--困难上月办理中-->
+select orgid,poorType as ledgertype,countType,sum(num) as num, dataType from (
+
+select orgid,counttype,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype,datatype from 
+(select orgid,counttype,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt,datatype from  
+
+(select lg.dealOrgId as orgId,decode(lg.dealType,1,-1,null,-1) as countType,count(lg.id) as num,lpp.poorType as poorType,null as steadyWorkType, 1 as dataType from(
+select id,dealOrgId,ledgerType,dealType,ledgerId from
+(select log.dealTime,log.id as id,log.dealOrgId as dealOrgId,log.ledgerType as ledgerType,log.dealType as dealType,log.ledgerId as ledgerId,
+row_number() over(partition by log.dealOrgId,log.ledgerType,log.ledgerId order by log.id desc) rn from platformaccountlogs log
+ where log.dealType = 1 or log.dealType is null)
+ where rn=1 and dealTime >=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime < to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss')
+ )lg, ledgerpoorpeople lpp where lg.ledgerid=lpp.id and lg.ledgertype = 2
+ group by lg.dealOrgId,lg.ledgertype,lg.dealType,lpp.poorType)
+
+) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  
+) group by orgid,counttype,poortype,datatype
+ 
+union all
+<!--稳定上月办理中-->
+select lg.dealOrgId as orgId,to_char(lpp.steadyWorkType) as ledgerType,decode(lg.dealType,1,-1,null,-1) as countType,count(lg.id) as num,1 as dataType from(
+select id,dealOrgId,ledgerType,dealType,ledgerId from
+(select log.dealTime,log.id as id,log.dealOrgId as dealOrgId,log.ledgerType as ledgerType,log.dealType as dealType,log.ledgerId as ledgerId,
+row_number() over(partition by log.dealOrgId,log.ledgerType,log.ledgerId order by log.id desc) rn from platformaccountlogs log
+ where log.dealType = 1 or log.dealType is null) where rn=1 and dealTime >=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime  < to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss')
+ )lg, ledgersteadywork lpp where lg.ledgerid=lpp.id and lg.ledgertype = 3 and lpp.steadyworktype is not null
+ group by lg.dealOrgId,lg.ledgerType,lg.dealType,lpp.steadyWorktype
+ 
+union all
+<!--民生上月办理中-->
+ select lg.dealOrgId as orgId,to_char(lg.ledgertype) as ledgerType,decode(lg.dealType,1,-1,null,-1) as countType,count(lg.id) as num, 1 as dataType from(
+select id,dealOrgId,ledgerType,dealType,ledgerId from
+(select log.dealTime, log.id as id,log.dealOrgId as dealOrgId,log.ledgerType as ledgerType,log.dealType as dealType,log.ledgerId as ledgerId,
+row_number() over(partition by log.dealOrgId,log.ledgerType,log.ledgerId order by log.id desc) rn from platformaccountlogs log
+ where log.dealType = 1 or log.dealType is null)where rn=1 and dealTime >=to_date('2015/11/01 00:00:00','yyyy/mm/dd,hh24:mi:ss') and dealTime  < to_date('2015/11/30 23:59:59','yyyy/mm/dd,hh24:mi:ss')
+ )lg where lg.ledgertype not in(2,3)
+ group by lg.dealOrgId,lg.ledgertype,lg.dealType
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ createTableType建表
+dealType 办结
+submit 呈报
+monthDoing 月办理
+orgId
+lastYearTransfer上年转接
+completeCode 实质办结
+periodCode 阶段办结
+month 月
+
+
+
+{orgId=9, monthDoing =1, submit =4, month=11, dealType =3, lastYearTransfer=5088, completeCode=31, periodCode=92, createTableType=2}
+
+<a id="ttt" href="/account/report/month/threeRecordsTownReportMonth.jsp"><span>链接</span></a>
+
+
+<td>1</td>
+		<td>2</td>
+		<td>3</td>
+		<td>4</td>
+		<td>5</td>
+		<td>6</td>
+		<td>7</td>
+		<td>8</td>
+		<td>9</td>
+		<td>10</td>
+		<td>11</td>
+		<td>12</td>
+		<td>13</td>
+		<td>14</td>
+		<td>15</td>
+		<td>16</td>
+		<td>17</td>
+		<td>18</td>
+		<td>19</td>
+		<td>20</td>
+		<td>21</td>
+		<td>22</td>
+		<td>23</td>
+		<td>24</td>
+		<td>25</td>
+		<td>26</td>
+		<td>27</td>
+		<td>28</td>
+		<td>29</td>
+		<td>30</td>
+		<td>31</td>
+		<td>32</td>
+		<td>33</td>
+		<td>34</td>
+		<td>35</td>
+		<td>36</td>
+		<td>37</td>
+ 
+ 

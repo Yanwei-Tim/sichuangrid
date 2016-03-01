@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchKeyAreasOfInvestigationInfoWorkingRecord">
+	<sql id="sql_where">
+		from keyAreasOfInvestigationInfos where orgid = #orgId#
+		<dynamic>
+			<isPropertyAvailable property="areaName">
+				<isNotEmpty property="areaName" prepend=" and ">
+					areaName like '$areaName$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgIdsList">
+				<isNotEmpty property="orgIdsList">
+					<iterate property="orgIdsList" prepend="and" conjunction="or" open="(" close=")">
+						investigationorgid in ($orgIdsList[]$)
+					</iterate>
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					directoryid in($dailyDirectoryId$)
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="investigationMinDate">
+				<isNotNull property="investigationMinDate" prepend=" and ">
+					investigationDate <![CDATA[>=]]>
+					#investigationMinDate#
+				</isNotNull>
+
+			</isPropertyAvailable>
+				<isPropertyAvailable property="investigationMaxDate">
+				<isNotNull property="investigationMaxDate" prepend=" and ">
+					investigationDate <![CDATA[<=]]>
+					#investigationMaxDate#
+				</isNotNull>
+
+			</isPropertyAvailable>
+			<isPropertyAvailable property="policiesAndMeasures">
+				<isNotEmpty property="policiesAndMeasures" prepend=" and ">
+					policiesAndMeasures like '$policiesAndMeasures$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="remark">
+				<isNotEmpty property="remark" prepend=" and ">
+					remark like '$remark$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="mainProblem">
+				<isNotEmpty property="mainProblem" prepend=" and ">
+					mainProblem like
+					'$mainProblem$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="searchKeyAreasOfInvestigationInfoWorkingRecordByDate" parameterClass="java.util.Map"
+		resultMap="keyAreasOfInvestigationInfo.keyAreasOfInvestigationInfoResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countSearchKeyAreasOfInvestigationInfoWorkingRecord" parameterClass="map" resultClass="int">
+		<include refid="common.sql_count" />
+		<include refid="sql_where"/>
+	</select>
+</sqlMap>

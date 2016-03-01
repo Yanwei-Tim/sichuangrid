@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="systemOperateLog">
+	<typeAlias alias="SystemOperateLog" type="com.tianque.systemOperateLog.domain.SystemOperateLog" />
+	
+	<resultMap class="SystemOperateLog" id="systemOperateLogResult">
+		<result property="id" column="id"/>
+		<result property="dataOrgId.id" column="dataOrgId"/>
+		<result property="dataOrgCode" column="dataOrgCode"/>
+		<result property="dataBeforeOrgId.id" column="dataBeforeOrgId"/>
+		<result property="operatePerson" column="operatePerson"/>
+		<result property="operateType" column="operateType"/>
+		<result property="moduleType" column="moduleType"/>
+		<result property="businessType" column="businessType"/>
+		<result property="operateDate" column="operateDate"/>
+		<result property="dataKeyword" column="dataKeyword"/>
+		<result property="contrastState" column="contrastState"/>
+		<result property="operateSource" column="operateSource"/>
+	</resultMap>
+	<resultMap class="SystemOperateLog" id="systemOperateLogAllResult" extends="systemOperateLogResult">
+		<result property="dataBeforeOperate" column="dataBeforeOperate" typeHandler="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+		<result property="dataAfterOperate" column="dataAfterOperate" typeHandler="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+		<result property="operateDescribe" column="operateDescribe" typeHandler="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+	</resultMap>
+	
+	
+	
+	
+	<select id="countSystemOperateLogsImportToHbase" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	   <![CDATA[ select count(0) from systemoperatelogs where id >= #startId# and id<#endId#]]>
+	</select>
+	<select id="findSystemOperateLogsImporToHbase" parameterClass="java.util.Map" resultMap="systemOperateLogResult">
+		<![CDATA[
+			select b.id,b.dataOrgId,b.dataOrgCode,b.dataBeforeOrgId,b.operatePerson,b.operateType,b.moduleType,b.businessType,b.dataKeyword,b.operateDate,
+					b.dataBeforeOperate,b.dataAfterOperate,b.operateDescribe,b.contrastState,b.operateSource,b.dataId  from(
+				select a.id,a.dataOrgId,a.dataOrgCode,a.dataBeforeOrgId,a.operatePerson,a.operateType,a.moduleType,a.businessType,a.dataKeyword,a.operateDate,
+					a.dataBeforeOperate,a.dataAfterOperate,a.operateDescribe,a.contrastState,a.operateSource,a.dataId ,rowNum as rn from( 
+					select id,dataOrgId,dataOrgCode,dataBeforeOrgId,operatePerson,operateType,moduleType,businessType,dataKeyword,operateDate,
+					dataBeforeOperate,dataAfterOperate,operateDescribe,contrastState,operateSource,dataId from systemoperatelogs
+					where id >= #startId# and id<#endId#
+		]]>
+		order by id asc
+		<![CDATA[
+				) a where rowNum <= #endRow#
+			) b where rn > #startRow#
+		]]>
+	</select>
+	
+	<insert id="addSystemOperateLog" parameterClass="SystemOperateLog">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_systemOperateLogs.NEXTVAL as id from dual ]]>
+		</selectKey>
+			INSERT INTO systemOperateLogs(
+					id,dataOrgId,dataOrgCode,dataBeforeOrgId,operatePerson,operateType,moduleType,businessType,dataKeyword,operateDate,
+					dataBeforeOperate,dataAfterOperate,operateDescribe,contrastState,operateSource,dataId
+			)VALUES(
+					#id#,#dataOrgId.id#,#dataOrgCode#,#dataBeforeOrgId.id#,#operatePerson#,#operateType#,#moduleType#,#businessType#,#dataKeyword#,#operateDate#,
+					#dataBeforeOperate,handler=org.springframework.orm.ibatis.support.ClobStringTypeHandler#,
+					#dataAfterOperate,handler=org.springframework.orm.ibatis.support.ClobStringTypeHandler#,
+					#operateDescribe,handler=org.springframework.orm.ibatis.support.ClobStringTypeHandler#,
+					#contrastState#,#operateSource#,#dataId#
+			)
+	</insert>
+	
+	<update id="updateSystemOperateLog" parameterClass="SystemOperateLog">
+		update systemOperateLogs set
+		<dynamic>
+			id=#id#,dataBeforeOperate = '',dataAfterOperate = ''
+			<isNotNull prepend="," property="contrastState">
+				contrastState=#contrastState#
+			</isNotNull>
+			<isNotNull prepend="," property="operateDescribe">
+				operateDescribe=#operateDescribe,handler=org.springframework.orm.ibatis.support.ClobStringTypeHandler#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+	
+	<select id="getSystemOperateLogById" parameterClass="java.lang.Long" resultMap="systemOperateLogAllResult">
+		select * from systemOperateLogs where id=#value#
+	</select>
+	
+	<sql id="sql_where">
+		FROM systemOperateLogs where 1=1
+		<dynamic>
+			<isPropertyAvailable property="dataKeyword">
+				<isNotEmpty prepend="AND" property="dataKeyword">
+					dataKeyword = #dataKeyword#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="searchDataKeyword">
+				<isNotEmpty prepend="AND" property="searchDataKeyword">
+					dataKeyword like '$searchDataKeyword$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dataId">
+				<isNotEmpty prepend="AND" property="dataId">
+					dataId = #dataId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="businessType">
+				<isNotEmpty prepend="AND" property="businessType">
+					businessType = #businessType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="searchBusinessType">
+				<isNotEmpty prepend="AND" property="searchBusinessType">
+					businessType = #searchBusinessType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="operateType">
+				<isNotEmpty prepend="AND" property="operateType">
+					operateType = #operateType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startDate">
+				<isNotNull prepend="AND" property="startDate">
+					<![CDATA[
+						operateDate > #startDate#
+					]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endDate">
+				<isNotNull prepend="AND" property="endDate">
+					<![CDATA[
+						operateDate < #endDate#
+					]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="searchType">
+				<isNotEmpty prepend="AND" property="searchType">
+					( businessType = #searchType#
+					<isPropertyAvailable property="distinguishType">
+						<isEqual prepend="OR" property="distinguishType" compareValue="1">
+							businessType in ('baseInfo','householdStaff','floatingPopulation')
+						</isEqual>
+						<isEqual prepend="OR" property="distinguishType" compareValue="2">
+							businessType in ('actualHouse','rentalHouse')
+						</isEqual>
+						<isEqual prepend="OR" property="distinguishType" compareValue="3">
+							businessType in ('CompanyPlace','CompanyPlaceBusiness')
+						</isEqual>
+					</isPropertyAvailable>
+					)
+					
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="countSystemOperateLogsByQueryBuilder" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	    <include refid="common.sql_count"/>
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="findSystemOperateLogsByQueryBuilder" resultMap="systemOperateLogResult" parameterClass="java.util.Map">
+		SELECT id,dataOrgId,dataOrgCode,dataBeforeOrgId,operatePerson,operateType,moduleType,businessType,dataKeyword,operateDate,contrastState,operateSource
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getSystemOperateLogKey" resultClass="long">
+			<![CDATA[SELECT s_systemOperateLogs.NEXTVAL from dual ]]>
+	</select>
+	
+	<update id="updateSystemOperateDataKeyWord" parameterClass="java.util.Map">
+		update systemOperateLogs set dataKeyWord=#afterDataKeyWord#
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgId">
+				<isNotEmpty property="orgId" prepend=" and ">
+					dataOrgId=#orgId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dataId">
+				<isNotEmpty property="dataId" prepend=" and ">
+					dataId=#dataId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="moduleType">
+				<isNotEmpty property="moduleType" prepend=" and ">
+					moduleType=#moduleType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="businessType">
+				<isNotEmpty property="businessType" prepend=" and ">
+					businessType=#businessType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="beforeDataKeyWord">
+				<isNotEmpty property="beforeDataKeyWord" prepend=" and">
+					dataKeyWord=#beforeDataKeyWord#
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</update>
+</sqlMap>

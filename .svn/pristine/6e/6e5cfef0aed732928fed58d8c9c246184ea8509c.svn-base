@@ -1,0 +1,56 @@
+package com.tianque.baseInfo.primaryOrg.service;
+
+import java.util.Date;
+
+import com.tianque.baseInfo.primaryOrg.domain.RedCuffTeam;
+import com.tianque.core.vo.PageInfo;
+
+public interface RedCuffTeamService {
+
+	/***
+	 * 红袖套队伍成员列表查询
+	 */
+	public PageInfo<RedCuffTeam> findRedCuffTeamForList(RedCuffTeam redCuffTeam,Integer page,
+			Integer rows, String sidx, String sord);
+	
+	/***
+	 * 新增
+	 */
+	public RedCuffTeam addRedCuffTeam(RedCuffTeam redCuffTeam);
+	
+	/***
+	 * 修改
+	 */
+	public RedCuffTeam updateRedCuffTeam(RedCuffTeam redCuffTeam);
+	
+	/***
+	 * 删除
+	 */
+	public void deleteRedCuffTeamByIds(String[] ids);
+	
+	/**
+	 * 通过ID查询数据
+	 */
+	public RedCuffTeam getRedCuffTeamById(Long id);
+	
+	/**
+	 * 根据唯一的电话号码查询
+	 */
+	public RedCuffTeam getRedCuffTeamByPhoneNumber(String phoneNumber);
+	/***
+	 * 根据电话号码和姓名查询成员信息
+	 */
+	public RedCuffTeam getRedCuffTeamByPhoneAndName(String phoneNumber,String name);
+	/***
+	 * 根据微信号查询成员信息
+	 */
+	public RedCuffTeam getRedCuffTeamByWechatno(String wechatNo);
+	/***
+	 * 红袖套成员微信绑定
+	 */
+	public void weChatBindingRedCuffTeam(String wechatNo,Long id);
+	/***
+	 * 根据微信号绑定成员坐标
+	 */
+	public void bindingRedCuffTeamCoordinate(String latitudeX,String longitudeY,String precision,String wechatNo);
+}

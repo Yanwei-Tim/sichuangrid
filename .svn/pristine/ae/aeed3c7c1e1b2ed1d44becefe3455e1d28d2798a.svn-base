@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="BaseSituationStatementNew">
+	<typeAlias alias="baseSituationStatementNew" type="com.tianque.plugin.analysisNew.domain.BaseSituationStatement" />
+	
+	<resultMap class="baseSituationStatementNew" id="baseSituationStatementAllResult">
+		<result property="statisticsData" column="statisticsData"/>
+		<result property="year" column="year"/>
+		<result property="month" column="month"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="statisticsType" column="statisticsType"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+	</resultMap>
+	
+	<resultMap class="baseSituationStatementNew" id="baseSituationStatementResult">
+		<result property="preventionCount" column="preventionCount"/> 
+		<result property="floatingPersionCount" column="floatingPersionCount"/> 
+		<result property="positivePersionCount" column="positivePersionCount"/>
+		<result property="rectificativePersonCount" column="rectificativePersonCount"/>
+		<result property="mentalPatientPersionCount" column="mentalPatientPersionCount"/>
+		<result property="druggyPersionCount" column="druggyPersionCount"/>
+		<result property="idleYouthCount" column="idleYouthCount"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="organization.orgName" column="orgName"/>
+		<result property="countyCount" column="countyCount"/>
+		<result property="functionDepartmentCount" column="functionDepartmentCount"/>
+		<result property="specialCrowdCount" column="specialCrowdCount"/>
+	</resultMap>
+	
+	<insert id="addBaseSituationStatementStatistics" parameterClass="baseSituationStatementNew">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_baseSituationStatement.NEXTVAL as id from dual]]>
+		</selectKey>
+		insert into baseSituationStatement_$year$_$month$(
+		id,orgId,statisticsData,year,month,statisticsType,createUser,createDate
+		)values(
+		#id#,#organization.id#,#statisticsData#,#year#,#month#,#statisticsType#,#createUser#,#createDate#
+		)
+	</insert>
+	
+	<select id="getBaseSituationStatementByOrgIdAndType" parameterClass="java.util.Map" resultMap="baseSituationStatementAllResult">
+		select * from baseSituationStatement_$year$_$month$ where year=#year# and month=#month# and orgId=#orgId# and statisticsType=#statisticsType#
+	</select>
+	
+	<select id="queryBaseSituationStatementForList" parameterClass="java.util.Map" resultMap="baseSituationStatementResult">
+			select  org.id orgId,org.orgName orgName,
+			(select nvl(sum(membernum),0) preventionCount from primaryorganizations_$year$_$month$  where orgId = org.id
+			and primaryorgtype = #masseduty#
+			) preventionCount ,
+			(select nvl(sum(total),0) floatingPersionCount from populationstattype_$year$_$month$  where populationtype=#floatingPopulation# 
+			and orgId = org.id
+			) floatingPersionCount ,
+			(select nvl(sum(sum),0) positivePersionCount from statistichistory_$year$_$month$ d right join propertydicts p on
+			     d.typename=p.displayName where d.baseinfotype=#positiveInfo# and d.year=#year# and d.month=#month# and
+			     p.propertydomainid=#positivePersionBaseDomainId# and d.orgId = org.id
+			 ) positivePersionCount,
+			(select nvl(sum(sum),0) rectificativePersonCount from statistichistory_$year$_$month$  d right join propertydicts p on
+			    d.typename=p.displayName where d.baseinfotype=#rectificativePerson# and d.year=#year# and d.month=#month# and
+			    p.propertydomainid=#rectificativePersonBaseDomainId# and d.orgId = org.id
+			) rectificativePersonCount,
+			(select nvl(sum(sum),0) mentalPatientPersionCount from statistichistory_$year$_$month$  d right join propertydicts p on
+			    d.typename=p.displayName where d.baseinfotype=#mentalPatient# and d.year=#year# and d.month=#month# and 
+			    p.propertydomainid=#mentalPatientBaseDomainId# and d.orgId = org.id 
+			) mentalPatientPersionCount, 
+			(select nvl(sum(sum),0) druggyPersionCount from statistichistory_$year$_$month$  d right join propertydicts p on 
+			    d.typename=p.displayName where d.baseinfotype=#druggy# and d.year=#year# and d.month=#month# and 
+			    p.propertydomainid=#druggyBaseDomainId# and d.orgId = org.id
+			) druggyPersionCount, 
+			(select nvl(sum(sum),0) idleYouthCount from statistichistory_$year$_$month$  d right join propertydicts p on 
+			    d.typename=p.displayName where d.baseinfotype=#idleYouth# and d.year=#year# and d.month=#month# and 
+			    p.propertydomainid=#idleYouthBaseDomainId# and d.orgId = org.id
+			) idleYouthCount, 
+			<!--新增加统计列2015.3.19-->
+			(select count(1) functionDepartmentCount from organizations o where id in(select u.organizationid from users u,organizations o 
+				where u.organizationid=o.id and o.orgtype=#functionType# and u.orginternalcode like org.orginternalcode || '%')
+			 ) functionDepartmentCount,
+			(select count(1) countyCount from organizations o where o.orgtype=#orgType# and o.orginternalcode like org.orginternalcode || '%'
+			 and o.orglevel = #orgLevel#) countyCount,
+			(select count(1) specialCrowdCount from serviceRecordRelyObject s left join servicerecords r
+			 on s.recordid= r.id left join organizations o on r.orgid=o.id
+			 where s.objecttype in(#positiveInfo#,#rectificativePerson#,#mentalPatient#,#druggy#,#idleYouth#) 
+			 and r.createdate> #startDate# and r.createdate<![CDATA[<]]> #endDate# and o.orginternalcode like org.orginternalcode || '%'
+			 ) specialCrowdCount
+			from organizations org where org.parentid=#orgId# and org.orgType=#orgType# order by org.seq
+	</select>
+	
+	<delete id="deleteBaseSituationStatement" parameterClass="java.lang.String">
+		delete from $tableName$
+	</delete>
+</sqlMap>

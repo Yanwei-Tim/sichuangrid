@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="inboxAttachment">
+	<typeAlias alias="InboxAttachment" type="com.tianque.plugin.weChat.domain.inbox.InboxAttachment"/>
+	
+	<resultMap id="inboxAttachmentResult" class="InboxAttachment">
+		<result property="inboxAttachmentId" column="inbox_Attachment_Id"/>
+		<result property="inboxId" column="inbox_id"/>
+		<result property="fileSize" column="file_Size"/>
+		<result property="fileName" column="file_Name"/>
+		<result property="extFileName" column="ext_File_Name"/>
+		<result property="fileActualUrl" column="file_Actual_Url"/>
+	</resultMap>
+	
+	<insert id="saveInboxAttachment" parameterClass="InboxAttachment">
+		<selectKey resultClass="java.lang.Long" keyProperty="inboxAttachmentId">
+			<![CDATA[
+				SELECT S_INBOXATTACHMENT.NEXTVAL AS inboxAttachmentId FROM DUAL
+			]]>
+		</selectKey>
+		insert into INBOXATTACHMENT
+		(INBOX_ATTACHMENT_ID,INBOX_ID,FILE_SIZE,FILE_NAME,EXT_FILE_NAME,FILE_ACTUAL_URL)
+		values
+		(#inboxAttachmentId#,#inboxId#,#fileSize#,#fileName#,#extFileName#,#fileActualUrl#)
+	</insert>
+	
+	<select id="getInboxAttachmentByInboxId" parameterClass="java.lang.Long" resultMap="inboxAttachmentResult">
+		select * from INBOXATTACHMENT where inbox_id=#value#
+	</select>
+	
+	<select id="getInboxAttachmentById" parameterClass="java.lang.Long" resultMap="inboxAttachmentResult">
+		select * from INBOXATTACHMENT where inbox_Attachment_Id=#value#
+	</select>
+	<delete id="deleteInboxAttachmentByInboxId" parameterClass="java.lang.Long">
+		delete from INBOXATTACHMENT where inbox_id=#value#
+	</delete>
+</sqlMap>

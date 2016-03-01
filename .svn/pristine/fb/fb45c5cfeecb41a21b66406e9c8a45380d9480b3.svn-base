@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="statisticAnalysis">
+	<typeAlias alias="StatisticAnalysisDetailVo" type="com.tianque.plugin.weChat.vo.StatisticAnalysisDetailVo"/>
+	<typeAlias alias="StatisticAnalysisVo" type="com.tianque.plugin.weChat.vo.StatisticAnalysisVo"/>
+	<resultMap id="statisticAnalysisDetailResult" class="StatisticAnalysisDetailVo">
+		<result property="groupName" column="groupName"/>
+		<result property="reportNum" column="reportNum"/>
+		<result property="acceptNum" column="acceptNum"/>
+		<result property="forwardingNum" column="forwardingNum"/>
+		<result property="availabilityNum" column="availabilityNum"/>
+	</resultMap>
+	
+	<resultMap class="StatisticAnalysisDetailVo" id="fullStatisticAnalysisDetailResult" extends="statisticAnalysisDetailResult">
+		<result property="fanName" column="fanName"/>
+		<result property="id" column="id"/>
+		<result property="nickName" column="nickName"/>
+	</resultMap>
+	
+	<resultMap class="StatisticAnalysisDetailVo" id="issueTypeDomainStatisticAnalysisDetailResult">
+		<result property="issueTypeDomainName" column="issueTypeDomainName"/>
+		<result property="issueTypeDomainId" column="issueTypeDomainId"/>
+		<result property="acceptNum" column="acceptNum"/>
+		<result property="completedNum" column="completedNum"/>
+		<result property="unCompletedNum" column="unCompletedNum"/>
+	</resultMap>
+	
+	<resultMap class="StatisticAnalysisDetailVo" id="issueTypeStatisticAnalysisDetailResult">
+		<result property="issueTypeName" column="issueTypeName"/>
+		<result property="acceptNum" column="acceptNum"/>
+		<result property="completedNum" column="completedNum"/>
+		<result property="unCompletedNum" column="unCompletedNum"/>
+	</resultMap>
+	
+	<sql id="sql_createTime_where">
+		<isNotEmpty  property="statisticAnalysisVo.startDate" prepend="and">
+			CREATE_TIME &gt;= #statisticAnalysisVo.startDate#
+		</isNotEmpty>
+		<isNotEmpty  property="statisticAnalysisVo.endDate" prepend="and">
+			CREATE_TIME &lt;= #statisticAnalysisVo.endDate#
+		</isNotEmpty>
+	</sql>
+	
+	<select id="findStatisticAnalysisDetails" parameterClass="java.util.Map" resultMap="statisticAnalysisDetailResult">
+		select 
+			a.name groupName,
+			(select count(*) from inbox i where i.group_id=a.group_id and i.to_user_name=a.wechat_user_id 
+			<include refid="sql_createTime_where"/>
+			) reportNum,
+			(select count(*) from inbox i where i.group_id=a.group_id and i.to_user_name=a.wechat_user_id and i.availability=1
+			<include refid="sql_createTime_where"/>
+			) availabilityNum,
+			(select count(*) from inbox i where i.group_id=a.group_id and i.to_user_name=a.wechat_user_id and i.deal_state=1 
+			<include refid="sql_createTime_where"/>
+			) acceptNum,
+			(select count(*) from inbox i where i.group_id=a.group_id and i.to_user_name=a.wechat_user_id and i.forwardingstate = 2
+			<include refid="sql_createTime_where"/>
+			) forwardingNum
+		from (select * from wechat_group g where g.wechat_user_id=#statisticAnalysisVo.weChatUserId#) a
+	</select> 
+	
+	<sql id="index_sql_where">
+	
+		<include refid="common.sql_select_page_start"/> select g.*,f.name fanName,f.nick_name nickName,f.open_id openId from wechat_group g,fan f where g.wechat_user_id in (select u.wechat_user_id from tencent_user u where u.org_id = #statisticAnalysisVo.org.id#) and g.group_id = f.group_id and g.wechat_user_id=f.WECHAT_USER_ID order by g.group_id asc <include refid="common.sql_select_page_end"/> 
+	</sql>
+	
+	<select id="countFansStatisticAnalysisDetails" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		 <include refid="common.sql_count"/> from (
+		 <include refid="index_sql_where"/>
+		 )
+	</select> 
+	
+	<select id="findFansStatisticAnalysisDetails" parameterClass="java.util.Map" resultMap="fullStatisticAnalysisDetailResult">
+		select 
+			a.wechat_group_id id,a.name groupName,a.fanname fanName,a.nickName nickName,
+			(select count(*) from inbox i where i.group_id=a.group_id and i.to_user_name=a.wechat_user_id  and i.from_user_name = a.openId
+			<include refid="sql_createTime_where"/>
+			) reportNum,
+			(select count(*) from inbox i where i.group_id=a.group_id and i.to_user_name=a.wechat_user_id and i.availability=1  and i.from_user_name = a.openId
+			<include refid="sql_createTime_where"/>
+			) availabilityNum,
+			(select count(*) from inbox i where i.group_id=a.group_id and i.to_user_name=a.wechat_user_id and i.deal_state=1  and   i.from_user_name = a.openId
+			<include refid="sql_createTime_where"/>
+			) acceptNum,
+			(select count(*) from inbox i where i.group_id=a.group_id and i.to_user_name=a.wechat_user_id and i.forwardingstate = 2  and i.from_user_name = a.openId
+			<include refid="sql_createTime_where"/>
+			) forwardingNum
+		from (
+		 <include refid="index_sql_where"/>
+		) a
+		 <dynamic prepend="order by">
+	     <isPropertyAvailable property="sortField">
+			<isNotNull property="sortField">$sortField$</isNotNull>
+			<isNotNull property="order">$order$</isNotNull>
+		</isPropertyAvailable>
+	    </dynamic>
+	    
+	</select> 
+
+	<select id="findIssueTypeStatisticAnalysisDetails" parameterClass="java.util.Map" resultMap="issueTypeDomainStatisticAnalysisDetailResult">
+		  select  a.id as issueTypeDomainId,a.domainname as issueTypeDomainName,
+
+               (select count(0)
+                  from inbox i
+                 where i.issue_id in
+                       (select s.id
+                          from issues s, issuehastypes h
+                         where h.issueid = s.id
+                           and s.sourcekind = #statisticAnalysisVo.sourceKind.id#
+                           and h.issuetypedomainid = a.id
+                           )
+                   and i.deal_state = 1 and i.to_user_name= #statisticAnalysisVo.weChatUserId#
+                  <include refid="sql_createTime_where"/>
+                   ) acceptNum,
+               (select count(0)
+                  from inbox i
+                 where i.issue_id in (select s.id
+                                        from issues s, issuehastypes h
+                                       where h.issueid = s.id
+                                         and s.sourcekind = #statisticAnalysisVo.sourceKind.id#
+                                         and h.issuetypedomainid = a.id
+                                         
+                                         and s.status = 300)
+                   and i.deal_state = 1 and i.to_user_name=#statisticAnalysisVo.weChatUserId#
+                  <include refid="sql_createTime_where"/>
+                   ) completedNum,
+               (select count(0)
+                  from inbox i
+                 where i.issue_id in (select s.id
+                                        from issues s, issuehastypes h
+                                       where h.issueid = s.id
+                                         and s.sourcekind = #statisticAnalysisVo.sourceKind.id#
+                                         and h.issuetypedomainid = a.id
+                                        
+                                         and s.status != 300)
+                   and i.deal_state = 1 and i.to_user_name=#statisticAnalysisVo.weChatUserId#
+                   <include refid="sql_createTime_where"/>
+                   ) unCompletedNum
+          from (select * from issuetypedomains t where t.id in 
+         	 <iterate property="statisticAnalysisVo.issueTypeDomainIds" conjunction="," open="(" close=")">
+				#statisticAnalysisVo.issueTypeDomainIds[].id#
+			</iterate>
+          ) a
+	</select>
+	
+	<select id="findStatisticAnalysisToIssueType" parameterClass="java.util.Map" resultMap="issueTypeStatisticAnalysisDetailResult">
+	select 
+       c.issuetypename as issueTypeName,
+       (select count(0)
+          from inbox i
+         where i.issue_id in (select s.id
+                                from issues s, issuehastypes h
+                               where h.issueid = s.id
+                                 and s.sourcekind = #statisticAnalysisVo.sourceKind.id#
+                              
+                                 and h.issuetypeid = c.id)
+           and i.deal_state = 1 and i.to_user_name=#statisticAnalysisVo.weChatUserId#
+           <include refid="sql_createTime_where"/>
+           ) acceptNum,
+       (select count(0)
+          from inbox i
+         where i.issue_id in (select s.id
+                                from issues s, issuehastypes h
+                               where h.issueid = s.id
+                                 and s.sourcekind = #statisticAnalysisVo.sourceKind.id#
+                     
+                                 and h.issuetypeid = c.id
+                                 and s.status = 300)
+           and i.deal_state = 1 and i.to_user_name=#statisticAnalysisVo.weChatUserId#
+           <include refid="sql_createTime_where"/>
+           ) completedNum,
+       (select count(0)
+          from inbox i
+         where i.issue_id in (select s.id
+                                from issues s, issuehastypes h
+                               where h.issueid = s.id
+                                 and s.sourcekind = #statisticAnalysisVo.sourceKind.id#
+                          
+                                 and h.issuetypeid = c.id
+                                 and s.status != 300)
+           and i.deal_state = 1 and i.to_user_name=#statisticAnalysisVo.weChatUserId#
+          <include refid="sql_createTime_where"/>
+           ) unCompletedNum
+  from 
+       (select *
+          from issuetypes u
+         where exists (select 1 from issuetypedomains t where t.id = u.domainid and t.id=#statisticAnalysisVo.issueTypeDomainId#)) c 
+	</select>
+		
+</sqlMap>

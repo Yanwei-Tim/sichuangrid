@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="recoverdatas">
+	<typeAlias alias="recoverdata" type="com.tianque.recoverDatas.domain.RecoverDatas" />
+	<typeAlias alias="recoverDatasVo" type="com.tianque.recoverDatas.vo.RecoverDatasVo" />
+	<typeAlias alias="searchDocumentVo" type="com.tianque.working.domain.SearchDocumentVo" />
+	
+	<resultMap class="recoverdata" id="dataResult">
+		<result property="id" column="id"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="organization.orgInternalCode" column="orgCode"/>
+		<result property="moduleType" column="moduleType"/>
+		<result property="businessId" column="businessId"/>
+		<result property="businessType"	column="businessType"/>
+		<result property="baseInfoId" column="baseInfoId"/>
+		<result property="name" column="name"/>
+		<result property="idCardNo" column="idCardNo"/>
+		<result property="fullPinyin" column="fullPinyin"/>
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="createUser" column="createUser"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="createDate" column="createDate"/>
+		<result property="contents" column="contents"/>
+	</resultMap>
+	
+	<resultMap class="recoverdata" id="simpleRecoverdata">
+		<result property="businessId" column="businessId"/>
+		<result property="businessType"	column="businessType"/>
+	</resultMap>
+
+	<insert id="addDatasInfo" parameterClass="recoverdata">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_RECOVERDATAINFOS.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		recoverdatainfos (id,orgId,orgCode,moduleType,businessId,businessType,baseInfoId,name,idCardNo,fullPinyin,simplePinyin,createUser,createDate,updateUser,updateDate,contents)
+		VALUES(#id#,#organization.id#,#organization.orgInternalCode#,#moduleType#,#businessId#,#businessType#,#baseInfoId#,#name#,#idCardNo#,#fullPinyin#,#simplePinyin#,#createUser#,#createDate#,#updateUser#,#updateDate#,#contents,handler=ClobStringTypeHandler#)
+	</insert>
+
+	<select id="getDatasInfoById" parameterClass="long" resultMap="dataResult">
+		select * from recoverdatainfos  where id=#id#
+	</select>
+	
+	<delete id="deleteDatasInfoById" parameterClass="long" >
+		delete from recoverdatainfos where id=#id# 
+	</delete>
+
+<sql id="sql_where">
+ <dynamic>
+ 	<isPropertyAvailable property="organization">
+	 	<isNotEmpty property="organization.orgInternalCode" prepend="and">
+ 			orgCode like #organization.orgInternalCode# || '%' 
+	 	</isNotEmpty>
+	 	<isEmpty property="organization.orgInternalCode" prepend="and">
+	 		orgId = #organization.id#
+	 	</isEmpty>
+ 	</isPropertyAvailable>
+   <isPropertyAvailable property="name" >
+	<isNotEmpty property="name" prepend=" and ">
+		( name like  '%'||#name#||'%'  or  fullPinyin  like  '%'||#name#||'%'  or  simplePinyin like  '%'||#name#||'%')
+	</isNotEmpty>
+   </isPropertyAvailable>
+   <isPropertyAvailable property="moduleType">
+     <isNotEmpty prepend=" and " property="moduleType">
+      moduleType  = #moduleType# 
+     </isNotEmpty>
+    </isPropertyAvailable>
+    <isPropertyAvailable property="businessType">
+     <isNotEmpty prepend=" and " property="businessType">
+      businessType  = #businessType# 
+     </isNotEmpty>
+    </isPropertyAvailable>
+    <isPropertyAvailable property="idCardNo">
+       <isNotEmpty prepend=" and " property="idCardNo">
+        idCardNo like #idCardNo#||'%'
+       </isNotEmpty>
+    </isPropertyAvailable>
+    <isPropertyAvailable property="createUser">
+       <isNotEmpty prepend=" and " property="createUser">
+        createUser = #createUser#
+       </isNotEmpty>
+    </isPropertyAvailable>
+    <isPropertyAvailable property="createDateStart">
+       <isNotEmpty prepend=" and " property="createDateStart">
+       <![CDATA[ createDate >= #createDateStart# ]]>
+     </isNotEmpty>
+    </isPropertyAvailable>
+      <isPropertyAvailable property="createDateEnd">
+     <isNotEmpty prepend=" and " property="createDateEnd">
+     	<![CDATA[ createDate <= #createDateEnd# ]]>
+     </isNotEmpty> 
+    </isPropertyAvailable>
+  </dynamic>
+</sql>
+
+<select id="countDatasInfo" parameterClass="recoverdata" resultClass="java.lang.Integer">
+		select count(*) from recoverdatainfos  where 1=1 
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="findDatasInfo" parameterClass="recoverdata"	resultMap="dataResult">
+		select * from recoverdatainfos where 1=1 
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+		<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+<select id="countSearchDispatchDocuments" parameterClass="searchDocumentVo" resultClass="java.lang.Integer">
+		select count(*) from documents doc where doc.orgId=#organizationId#
+         <dynamic prepend="and">
+			<isNotEmpty property="dispatchState">doc.dispatchState=#dispatchState#</isNotEmpty>
+		</dynamic>
+		<include refid="sql_where" />
+</select>	
+<select id="searchDispatchDocuments" parameterClass="searchDocumentVo" resultMap="dataResult">
+		select * from documents doc where doc.orgId=#organizationId#
+        <dynamic prepend="and">
+			<isNotEmpty property="dispatchState">doc.dispatchState=#dispatchState#</isNotEmpty>
+		</dynamic>
+		<include refid="sql_where" />
+		<dynamic prepend="order by">  createDate desc
+		</dynamic>
+</select>
+
+	<select id="findRecoverdatainfosOneDay" resultMap="simpleRecoverdata">
+		<include refid="common.sql_page_start"/>
+		SELECT businessId,businessType  
+	    	from recoverdatainfos where 
+	     <![CDATA[ createDate >= (sysdate-1) and createDate < sysdate ]]>
+	     <include refid="common.sql_page_end"/>
+	</select>
+	<select id="countRecoverdatainfosOneDay" resultClass="java.lang.Integer">
+		SELECT count(id)  
+	    	from recoverdatainfos where 
+	    <![CDATA[ createDate >= (sysdate-1) and createDate < sysdate ]]>
+	 </select>
+	
+
+</sqlMap>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="sso" extends="default" namespace="/">
+	
+		<default-class-ref class="sSOLoginController"></default-class-ref>
+
+		<action name="ssoLogin" method="login">
+			<result name="loginSuccess" type="redirect">
+				/index.jsp
+			</result>
+			<result name="firstLogin" type="redirect">
+				/sessionManage/toFirstPasswordUpdate.action
+			</result>
+			<result name="loginFailure">
+				/common/loginError.jsp
+			</result>
+		</action>
+
+	</package>
+</struts>

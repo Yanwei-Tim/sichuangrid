@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+    http://www.springframework.org/schema/aop 
+    http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+    http://www.springframework.org/schema/tx 
+    http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+    http://www.springframework.org/schema/context 
+    http://www.springframework.org/schema/context/spring-context-2.5.xsd
+    ">	
+	<!-- 发送消息的目的地（一个队列） --> 
+    <bean id="queueDestination" class="org.apache.activemq.command.ActiveMQQueue"> 
+            <!-- 设置消息队列的名字 -->            
+            <constructor-arg index="0" value="populationQueue"/> 
+    </bean> 
+    
+    <bean id="messageConvert" class="com.tianque.jms.conventer.MsgConventer" />
+    
+    
+    
+    <!-- 配置JMS模版 --> 
+    <!-- 配置JMS连接工厂 --> 
+    <bean id="connectionFactory" class="org.apache.activemq.spring.ActiveMQConnectionFactory"> 
+            <property name="brokerURL" value="tcp://localhost:61616"/>
+    </bean> 
+    
+    <bean id="queueTemplate" class="org.springframework.jms.core.JmsTemplate"> 
+            <property name="connectionFactory" ref="connectionFactory"/> 
+            <property name="defaultDestination" ref="queueDestination"/>
+            <property name="messageConverter" ref="messageConvert" />
+    </bean> 
+    
+    <bean id="messageListener" class="org.springframework.jms.listener.adapter.MessageListenerAdapter">
+            <constructor-arg>
+            <bean class="com.tianque.jms.listener.PopulationListener"/>
+            </constructor-arg>
+            <property name="defaultListenerMethod" value="onMessage"/>
+            <property name="messageConverter" ref="messageConvert"/>
+    </bean>
+      
+    <bean id="queueListenerContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+            <property name="connectionFactory" ref="connectionFactory"/>
+            <property name="destination" ref="queueDestination"/>
+            <property name="messageListener" ref="messageListener"/>
+    </bean>
+
+</beans>

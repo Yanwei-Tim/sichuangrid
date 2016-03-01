@@ -1,0 +1,972 @@
+package com.tianque.baseInfo.idleYouth.service;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.actualHouse.domain.HouseInfo;
+import com.tianque.baseInfo.actualHouse.service.ActualHouseService;
+import com.tianque.baseInfo.base.domain.ActualPopulation;
+import com.tianque.baseInfo.base.domain.AttentionPopulation;
+import com.tianque.baseInfo.base.domain.Countrymen;
+import com.tianque.baseInfo.base.domain.LogoutDetail;
+import com.tianque.baseInfo.base.helper.CardNoHelper;
+import com.tianque.baseInfo.base.service.BaseInfoPopulationTemplateImpl;
+import com.tianque.baseInfo.base.service.BaseInfoService;
+import com.tianque.baseInfo.base.service.PopulationRelationService;
+import com.tianque.baseInfo.idleYouth.dao.IdleYouthDao;
+import com.tianque.baseInfo.idleYouth.domain.IdleYouth;
+import com.tianque.baseInfo.utils.Utils;
+import com.tianque.cache.PageInfoCacheThreadLocal;
+import com.tianque.cache.UpdateType;
+import com.tianque.core.cache.constant.MemCacheConstant;
+import com.tianque.core.datatransfer.ExcelImportHelper;
+import com.tianque.core.globalSetting.service.GlobalSettingService;
+import com.tianque.core.globalSetting.util.GlobalSetting;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.Chinese2pinyin;
+import com.tianque.core.util.NewBaseInfoTables;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.excel.definition.SpecialGroupsContext;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.OperationFailedException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.service.HousePopulationMaintanceService;
+import com.tianque.service.IssueTypeService;
+import com.tianque.service.PopulationProccessorService;
+import com.tianque.service.helper.ManagePopulationByHouseHelper;
+import com.tianque.service.util.PopulationCatalog;
+import com.tianque.service.util.PopulationType;
+import com.tianque.service.vo.IsEmphasis;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.util.Arrays;
+import com.tianque.util.IdCardUtil;
+import com.tianque.util.PluginServiceHelpUtil;
+import com.tianque.validate.AbstractCountrymenValidator;
+
+@Service("idleYouthService")
+@Transactional
+public class IdleYouthServiceImpl extends BaseInfoPopulationTemplateImpl
+		implements IdleYouthService, PopulationProccessorService {
+
+	private static final String CACHE_ADDIDLEYOUTH_VALUE = "CACHE_ADDIDLEYOUTH";
+	private static final String CACHE_ADDIDLEYOUTHBASEINFO_VALUE = "CACHE_ADDIDLEYOUTHBASEINFO";
+
+	@Autowired
+	private IdleYouthDao idleYouthDao;
+
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+
+	@Qualifier("idleYouthValidator")
+	@Autowired
+	private AbstractCountrymenValidator<IdleYouth> validator;
+	@Autowired
+	private PropertyDictService propertyDictService;
+
+	@Autowired
+	private GlobalSettingService globalSettingService;
+	@Autowired
+	private IssueTypeService issueTypeService;
+	@Autowired
+	private ActualHouseService actualHouseService;
+	@Autowired
+	private ManagePopulationByHouseHelper managePopulationByHouseHelper;
+	@Autowired
+	private HousePopulationMaintanceService housePopulationMaintanceService;
+	@Autowired
+	private PopulationRelationService populationRelationService;
+	@Autowired
+	private BaseInfoService baseInfoService;
+
+	// @Autowired
+	// private CacheService cacheService;
+
+	@Resource(name = "idleYouthDao")
+	public void setBaseInfoPopulationBaseDao(IdleYouthDao idleYouthDao) {
+		super.setBaseInfoPopulationBaseDao(idleYouthDao);
+	}
+
+	public IdleYouthServiceImpl() {
+		setIdleYouthService(this);
+	}
+
+	@Override
+	public IdleYouth addIdleYouth(IdleYouth idleYouth) {
+		try {
+			if (!ExcelImportHelper.isImport.get()) {
+				ValidateResult idleValidator = validator.validate(idleYouth);
+				if (idleValidator.hasError()) {
+					throw new BusinessValidationException(
+							idleValidator.getErrorMessages());
+				} else if (hasDuplicateIdleYouth(idleYouth.getOrganization()
+						.getId(), idleYouth.getIdCardNo(), idleYouth.getId())) {
+					throw new BusinessValidationException("该网格下已存在相同身份证号码");
+				}
+			}
+			if (checkDataExitInCache(idleYouth,
+					MemCacheConstant.CACHE_ADDIDLEYOUTH,
+					CACHE_ADDIDLEYOUTH_VALUE)) {
+				return idleYouth;
+			}
+			return add(idleYouth);
+		} catch (Exception e) {
+			logger.error("IdleYouthServiceImpl addIdleYouth", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(idleYouth, MemCacheConstant.CACHE_ADDIDLEYOUTH);
+		}
+	}
+
+	private IdleYouth add(IdleYouth idleYouth) {
+		try {
+			autoFilled(idleYouth);
+			List<PropertyDict> list = idleYouth.getStaffType();
+			contructCurrentAddress(idleYouth);
+			Countrymen temp = populationRelationService.businessOption(
+					idleYouth, idleYouth.getActualPopulationType());
+			idleYouth.setBaseInfoId(temp.getBaseInfoId());
+			idleYouth.setAddressInfoId(temp.getAddressInfoId());
+			idleYouth.setSourcesState(null);
+			idleYouth = idleYouthDao.add(idleYouth);
+			populationRelationService.addPopulationRelation(temp.getId(),
+					idleYouth.getActualPopulationType(), idleYouth.getId(),
+					BaseInfoTables.IDLEYOUTH_KEY);
+			idleYouth.setStaffType(list);
+			addIdleYouthStaffType(idleYouth);
+			idleYouth.setHouseId(temp.getHouseId());
+			rebuildHouseAddress(idleYouth);
+
+			if (IsEmphasis.Emphasis.equals(idleYouth.getIsEmphasis())) {
+				// 缓存计数器
+				PageInfoCacheThreadLocal.increment(MemCacheConstant
+						.getCachePageKey(IdleYouth.class.getSimpleName()),
+						idleYouth, 1);
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类IdleYouthServiceImpl的addIdleYouth方法出现异常，原因：", "新增信息出现错误",
+					e);
+		}
+		return idleYouth;
+	}
+
+	/**
+	 * 如果人口的房屋信息（CurrentAddress）不为空，并且房屋id不存在，新增一个房屋，并且建立关联关系, 如果房屋id不为空直接建立关联关系
+	 * 如果房屋信息为空,并且有房屋id不为空，则删除人房关系
+	 * 
+	 * @param householdStaff
+	 */
+	private void rebuildHouseAddress(IdleYouth householdStaff) {
+
+		if (householdStaff.getIsHaveHouse() != null
+				&& householdStaff.getIsHaveHouse()
+				&& householdStaff.getCurrentAddress() != null) {
+
+			if (null == householdStaff.getHouseId()
+					|| householdStaff.getHouseId().equals(01L)) {
+				// 新增一个实有房屋,并且建立人房关系
+				HouseInfo houseInfo = new HouseInfo();
+				houseInfo.setAddress(householdStaff.getCurrentAddress());
+				houseInfo.setAddressType(propertyDictService
+						.findPropertyDictByDomainNameAndDictDisplayName(
+								PropertyTypes.CURRENT_ADDRESS_TYPE, "其他"));
+				houseInfo.setOrganization(householdStaff.getOrganization());
+				houseInfo
+						.setHouseOperateSource(NewBaseInfoTables.IDLEYOUTH_KEY);
+				houseInfo = actualHouseService.addHouseInfo(houseInfo);
+
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.IDLE_YOUTH, householdStaff,
+						houseInfo.getId());
+			} else if (householdStaff.getHouseId() != null) {
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.IDLE_YOUTH, householdStaff,
+						householdStaff.getHouseId());
+			}
+		} else {
+			housePopulationMaintanceService.releaseHouse(
+					PopulationCatalog.IDLE_YOUTH, householdStaff.getId(),
+					householdStaff.getHouseId());
+		}
+	}
+
+	private void addIdleYouthStaffType(IdleYouth idleYouth) {
+		if (null != idleYouth.getStaffType()
+				&& idleYouth.getStaffType().size() > 0) {
+			for (PropertyDict dict : idleYouth.getStaffType()) {
+				if (dict != null) {
+					this.addStaffType(idleYouth.getId(), dict.getId());
+				}
+			}
+		}
+	}
+
+	private void autoFilled(IdleYouth idleYouth) {
+		idleYouth.setIdCardNo(idleYouth.getIdCardNo().toUpperCase());
+		autoFillOrganizationInternalCode(idleYouth);
+		autoFillChinesePinyin(idleYouth);
+		autoFillBirthday(idleYouth);
+		autoIsDeath(idleYouth);
+	}
+
+	@Override
+	public PageInfo<IdleYouth> findIdleYouthsForPageByOrganizationId(
+			Long organizationId, Integer pageNum, Integer pageSize,
+			String sortField, String order, Long isEmphasis) {
+		// return idleYouthDao.findIdleYouthsForPageByOrgInternalCode(
+		// organizationDubboService.getSimpleOrgById(organizationId)
+		// .getOrgInternalCode(), pageNum, pageSize, sortField,
+		// order, isEmphasis);
+		try {
+			if (null == organizationId) {
+				return constructEmptyPageInfo();
+			} else {
+				Organization org = organizationDubboService
+						.getSimpleOrgById(organizationId);
+				if (org == null) {
+					return constructEmptyPageInfo();
+				} else {
+					/*
+					 * SearchIdleYouthVo idleYouthVo = new SearchIdleYouthVo();
+					 * idleYouthVo.setOrgInternalCode(org.getOrgInternalCode());
+					 * idleYouthVo.setIsEmphasis(isEmphasis); return
+					 * idleYouthDao.findPagerUsingCacheBySearchVo(
+					 * organizationId, idleYouthVo, pageNum, pageSize,
+					 * sortField, order, MemCacheConstant
+					 * .getCachePageKey(IdleYouth.class .getSimpleName()));
+					 */
+
+					Map<String, Object> query = new HashMap<String, Object>();
+					query.put("orgInternalCode", org.getOrgInternalCode());
+					query.put("isEmphasis", isEmphasis);
+					PageInfo<IdleYouth> pageInfos = idleYouthDao
+							.findPagerUsingCacheBySearchVo(organizationId,
+									query, pageNum, pageSize,
+									"IdleYouthDefaultList", MemCacheConstant
+											.getCachePageKey(IdleYouth.class));
+					fitCountrymen(pageInfos);
+					fitServiceMemberHasObject(BaseInfoTables.IDLEYOUTH_KEY,
+							pageInfos);
+					return pageInfos;
+
+				}
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类IdleYouthServiceImpl的findIdleYouthsForPageByOrganizationId方法出现异常，原因：",
+					"查询重点青少年人员信息出现错误", e);
+		}
+	}
+
+	/**
+	 * 构造空pageInfo
+	 * 
+	 * @return
+	 */
+	private PageInfo<IdleYouth> constructEmptyPageInfo() {
+		PageInfo<IdleYouth> result = new PageInfo<IdleYouth>();
+		result.setResult(new ArrayList<IdleYouth>());
+		return result;
+	}
+
+	@Override
+	public IdleYouth getIdleYouthById(Long id) {
+		if (id == null) {
+			throw new BusinessValidationException("重点青少年id不能为空");
+		}
+		IdleYouth idleYouth = idleYouthDao.get(id);
+		if (idleYouth != null) {
+			idleYouth.setStaffType(getStaffTypeListByIds(idleYouthDao
+					.getStaffTypeIdsByIdleYouthId(id)));
+		}
+		return setStaffTypeForObj(idleYouth);
+	}
+
+	@Override
+	public Long addStaffType(Long idleYouthId, Long staffTypeId) {
+		return idleYouthDao.addStaffType(idleYouthId, staffTypeId);
+
+	}
+
+	@Override
+	public IdleYouth getIdleYouthByIdCardNo(String idCardNo, Long orgId) {
+		return this.getIdleYouthByIdCardNoAndOrganizationId(idCardNo, orgId);
+	}
+
+	@Override
+	public void regrantStaffTypeIds(Long idleYouthId, List<Long> staffTypeIdS) {
+		try {
+			idleYouthDao.deleteStaffTypeByIdleYouthId(idleYouthId);
+			if (null != staffTypeIdS && staffTypeIdS.size() != 0) {
+				for (Long staffTypeId : staffTypeIdS) {
+					idleYouthDao.addStaffType(idleYouthId, staffTypeId);
+				}
+			}
+		} catch (Exception e) {
+			if (ExcelImportHelper.isImport.get()) {
+				return;
+			}
+		}
+	}
+
+	@Override
+	public IdleYouth updateIdleYouth(IdleYouth idleYouth) {
+		try {
+			autoFilled(idleYouth);
+			if (idleYouth.isDeath()) {
+				idleYouth.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+			}
+			contructCurrentAddress(idleYouth);
+			updateIdleYouthStaffType(idleYouth);
+			Countrymen temp = populationRelationService.businessOption(
+					idleYouth, idleYouth.getActualPopulationType());
+			updateIdleYouthBusinessInfo(idleYouth,
+					splitIdleYouthStaffTypeId(idleYouth));
+			updateIdleYouthStaffType(idleYouth);
+			idleYouth.setHouseId(temp.getHouseId());
+			rebuildHouseAddress(idleYouth);
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类idleYouthServiceImpl的updateIdleYouth方法出现异常，原因：",
+					"更改重点青少年信息出现错误", e);
+		}
+		return idleYouth;
+	}
+
+	private List<Long> splitIdleYouthStaffTypeId(IdleYouth idleYouth) {
+		List<Long> staffTypeIds = new ArrayList<Long>();
+		if (null != idleYouth.getStaffType()
+				&& idleYouth.getStaffType().size() > 0) {
+			for (PropertyDict dict : idleYouth.getStaffType()) {
+				staffTypeIds.add(dict.getId());
+			}
+		}
+		return staffTypeIds;
+	}
+
+	private void updateIdleYouthStaffType(IdleYouth idleYouth) {
+
+		if (null != idleYouth.getStaffType()
+				&& idleYouth.getStaffType().size() > 0) {
+			List<Long> staffTypeIds = new ArrayList<Long>();
+			for (PropertyDict dict : idleYouth.getStaffType()) {
+				staffTypeIds.add(dict.getId());
+			}
+			this.regrantStaffTypeIds(idleYouth.getId(), staffTypeIds);
+		}
+	}
+
+	private void autoFillOrganizationInternalCode(IdleYouth idleYouth) {
+		if (idleYouth.getOrganization() == null) {
+			throw new BusinessValidationException("找不到指定的网格");
+		} else {
+			Organization organization = organizationDubboService
+					.getSimpleOrgById(idleYouth.getOrganization().getId());
+			if (organization == null) {
+				throw new BusinessValidationException("找不到指定的网格");
+			}
+			idleYouth.setOrgInternalCode(organization.getOrgInternalCode());
+		}
+
+	}
+
+	private void autoFillChinesePinyin(IdleYouth idleYouth) {
+		Map<String, String> pinyin = Chinese2pinyin
+				.changeChinese2Pinyin(idleYouth.getName());
+		idleYouth.setFullPinyin((String) pinyin.get("fullPinyin"));
+		idleYouth.setSimplePinyin((String) pinyin.get("simplePinyin"));
+	}
+
+	@Override
+	public IdleYouth getIdleYouthByIdCardNoAndOrganizationId(String idCardNo,
+			Long organizationId) {
+		if (idCardNo == null || organizationId == null) {
+			throw new BusinessValidationException("参数错误");
+		}
+		String idCardNo15 = "";
+		String idCardNo18 = "";
+		if (idCardNo.length() == 15) {
+			idCardNo15 = idCardNo;
+			idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		} else if (idCardNo.length() == 18) {
+			idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+			idCardNo18 = idCardNo;
+		}
+		return setStaffTypeForObj(idleYouthDao
+				.getIdleYouthByIdCardNoAndOrganizationId(idCardNo15,
+						idCardNo18, organizationId));
+	}
+
+	private void autoFillBirthday(IdleYouth idleYouth) {
+		if (StringUtil.isStringAvaliable(idleYouth.getIdCardNo())) {
+			idleYouth.setBirthday(IdCardUtil.parseBirthday(idleYouth
+					.getIdCardNo()));
+		}
+	}
+
+	private void autoIsDeath(IdleYouth idleYouth) {
+		if (idleYouth.isDeath()) {
+			idleYouth.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+		} else {
+			idleYouth.setIsEmphasis(IsEmphasis.Emphasis);
+		}
+	}
+
+	@Override
+	public IdleYouth updateIdleYouthByIdCardNoAndOrgId(String name, Long orgId,
+			IdleYouth domain) {
+		try {
+			IdleYouth older = this.getIdleYouthByIdCardNoAndOrganizationId(
+					name, orgId);
+			domain.setId(older.getId());
+			domain.setCreateDate(older.getCreateDate());
+			domain.setCreateUser(older.getCreateUser());
+			return updateIdleYouth(domain);
+		} catch (Exception e) {
+			logger.error("IdleYouthServiceImpl updateIdlergId", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("修改信息出现错误");
+			} else {
+				return null;
+			}
+		}
+	}
+
+	@Override
+	public boolean hasDuplicateIdleYouth(Long orgId, String idCardNo,
+			Long exceptedId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return false;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		// String idCardNo15 = "";
+		// String idCardNo18 = "";
+		// if (idCardNo.length() == 15) {
+		// idCardNo15 = idCardNo;
+		// idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		// } else if (idCardNo.length() == 18) {
+		// idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+		// idCardNo18 = idCardNo;
+		// }
+		Countrymen countrymen = baseInfoService.getBaseInfoByIdCardNo(idCardNo);
+		if (countrymen == null) {
+			return false;
+		}
+		Long exsited = idleYouthDao.getIdByBaseinfoIdAndOrgId(
+				countrymen.getId(), orgId);
+		return exceptedId == null ? exsited != null
+				: (exsited != null && !exceptedId.equals(exsited));
+	}
+
+	@Override
+	public IdleYouth hasDuplicateIdleYouth(Long orgId, String idCardNo) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return null;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		String idCardNo15 = "";
+		String idCardNo18 = "";
+		if (idCardNo.length() == 15) {
+			idCardNo15 = idCardNo;
+			idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		} else if (idCardNo.length() == 18) {
+			idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+			idCardNo18 = idCardNo;
+		}
+		return setStaffTypeForObj(idleYouthDao
+				.getIdleYouthByIdCardNoAndOrganizationId(idCardNo15,
+						idCardNo18, orgId));
+	}
+
+	@Override
+	public List<IdleYouth> updateEmphasiseByIds(List<Long> ids, Long isEmphasis) {
+		try {
+			List<IdleYouth> list = new ArrayList<IdleYouth>();
+			for (int i = 0; i < ids.size(); i++) {
+				updateEmphasiseById(ids.get(i), isEmphasis);
+				list.add(getFullIdleYouthById(ids.get(i)));
+			}
+			return list;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类IdleYouthServiceImpl的updateEmphasiseByIds方法出现异常，原因：",
+					"修改重点青少年关注状态出现错误", e);
+		}
+	}
+
+	private void updateEmphasiseById(Long id, Long isEmphasis) {
+		LogoutDetail logoutDetail = new LogoutDetail();
+		logoutDetail.setLogout(isEmphasis);
+		updateLogOutByPopulationTypeAndId(logoutDetail,
+				BaseInfoTables.IDLEYOUTH_KEY, id);
+	}
+
+	@Override
+	public List<IdleYouth> updateDeathByIds(List<Long> populationIds,
+			Boolean death) {
+		List<IdleYouth> list = new ArrayList<IdleYouth>();
+		for (Long id : populationIds) {
+			IdleYouth population = this.getIdleYouthById(id);
+			updateLogOutByPopulationTypeAndId(
+					LogoutDetail.buildLogoutDetail(death),
+					BaseInfoTables.IDLEYOUTH_KEY, population.getId());
+			baseInfoService.updateDeathStateById(population.getBaseInfoId(),
+					death, population.getIdCardNo(), population
+							.getOrganization().getId(), population
+							.getOrgInternalCode(),
+					NewBaseInfoTables.IDLEYOUTH_KEY);
+			list.add(population);
+			// 缓存计数器
+			PageInfoCacheThreadLocal.increment(MemCacheConstant
+					.getCachePageKey(IdleYouth.class.getSimpleName()),
+					population, 1);
+		}
+		return list;
+	}
+
+	@Override
+	public void deleteIdleYouthByIds(Long[] personIds) {
+		if (personIds == null) {
+			throw new BusinessValidationException("id没有获得");
+		}
+		for (Long id : personIds) {
+			deleteIdleYouthById(id);
+		}
+	}
+
+	private void deleteIdleYouthById(Long id) {
+		IdleYouth domain = getIdleYouthById(id);
+		if (null != domain) {
+
+			domain.setPopulationTypeBean(getPopulationRelationService()
+					.getBusinessPopulationTypeBean(id,
+							PopulationType.IDLE_YOUTH));
+			getRecoverDatasService().deleteActualPopulation(domain);
+			populationRelationService.businessDeletePopulationRelation(id,
+					PopulationType.IDLE_YOUTH);
+
+			idleYouthDao.deleteStaffTypeByIdleYouthId(id);
+			idleYouthDao.delete(id);
+			try {
+				PluginServiceHelpUtil.doService("routerService",
+						"deleteServiceTeamHasObjectsAndServiceMemberHasObject",
+						new Class[] { String.class, Long.class },
+						PopulationType.IDLE_YOUTH, id);
+				/** 删除时对关联的事件和服务记录进行orgId和idCardNo赋值 */
+				PluginServiceHelpUtil.doService("routerService",
+						"setOrgIdAndCardNoOrName", new Class[] { Long.class,
+								String.class, String.class, Long.class },
+						domain.getOrganization().getId(), domain.getIdCardNo(),
+						PopulationType.IDLE_YOUTH, id);
+				issueTypeService.setOrgIdAndCardNoOrNameForPerson(domain
+						.getOrganization().getId(), domain.getIdCardNo(),
+						PopulationType.IDLE_YOUTH, id);
+
+				if (IsEmphasis.Emphasis.equals(domain.getIsEmphasis())) {
+					// 缓存计数器
+					PageInfoCacheThreadLocal.decrease(MemCacheConstant
+							.getCachePageKey(IdleYouth.class.getSimpleName()),
+							domain, 1);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	@Override
+	public IdleYouth getFullIdleYouthById(Long id) {
+		if (id == null) {
+			throw new BusinessValidationException("重点青少年id不能为空");
+		}
+		IdleYouth idleYouth = idleYouthDao.get(id);
+		idleYouth.setOrganization(organizationDubboService
+				.getSimpleOrgById(idleYouth.getOrganization().getId()));
+		idleYouth.setStaffType(getStaffTypeListByIds(idleYouthDao
+				.getStaffTypeIdsByIdleYouthId(id)));
+		return idleYouth;
+	}
+
+	@Override
+	public Map<String, Map<String, Object>> getPopulationSpecializedInfoByOrgIdAndIdCardNo(
+			Long orgId, String idCardNo) {
+
+		IdleYouth idleYouth = idleYouthDao.getByOrgIdAndIdCardNo(orgId,
+				idCardNo);
+		if (null == idleYouth) {
+			return null;
+		}
+		Map<String, Object> idleYouthMap = new HashMap<String, Object>();
+		idleYouthMap.put("id", idleYouth.getId());
+		idleYouthMap.put("isEmphasis", idleYouth.getIsEmphasis());
+		idleYouthMap.put("staffType", getFullIdleYouthById(idleYouth.getId())
+				.getStaffType());
+		idleYouthMap.put("attentionExtent", idleYouth.getAttentionExtent());
+		Map<String, Map<String, Object>> map = new HashMap<String, Map<String, Object>>();
+		map.put(PopulationType.IDLE_YOUTH, idleYouthMap);
+		return map;
+	}
+
+	@Override
+	public Long proccessPopulationSpecializedInfo(
+			ActualPopulation actualPopulation, String[] populationType,
+			Map<String, Object> population) {
+		actualPopulation
+				.setAttentionPopulationType(NewBaseInfoTables.IDLEYOUTH_KEY);
+		Long orgId = Long
+				.valueOf(((String[]) population.get("organization.id"))[0]);
+		String idCardNo = ((String[]) population.get("idCardNo"))[0];
+		IdleYouth idleYouth = idleYouthDao.getByOrgIdAndIdCardNo(orgId,
+				idCardNo);
+		if (!com.tianque.util.Arrays.hasObjectInArray(populationType,
+				PopulationType.IDLE_YOUTH)) {
+			if (null != idleYouth) {
+				idleYouth.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+				updateEmphasiseById(idleYouth.getId(), IsEmphasis.IsNotEmphasis);
+			}
+		} else {
+			ExcelImportHelper.isImport.set(false);
+			if (null == idleYouth) {
+				idleYouth = new IdleYouth();
+				copyProperty(actualPopulation, population, idleYouth);
+				idleYouth.setIsEmphasis(IsEmphasis.Emphasis);
+				idleYouth = addIdleYouth(idleYouth);
+			} else {
+				Long id = idleYouth.getId();
+				copyProperty(actualPopulation, population, idleYouth);
+				idleYouth.setId(id);
+				idleYouth.setIsEmphasis(IsEmphasis.Emphasis);
+				updateIdleYouthBusinessInfo(idleYouth,
+						splitIdleYouthStaffTypeId(idleYouth));
+				updateIdleYouthStaffType(idleYouth);
+				updateEmphasiseById(idleYouth.getId(), IsEmphasis.Emphasis);
+			}
+		}
+		return idleYouth == null
+				|| idleYouth.getIsEmphasis() == null
+				|| idleYouth.getIsEmphasis() == IsEmphasis.IsNotEmphasis
+						.longValue() ? null : idleYouth.getId();
+	}
+
+	private void copyProperty(ActualPopulation actualPopulation,
+			Map<String, Object> population, IdleYouth idleYouth) {
+		try {
+			PropertyUtils.copyProperties(idleYouth, actualPopulation);
+		} catch (Exception e) {
+			throw new OperationFailedException("复制属性失败", e);
+		}
+
+		Boolean stayInSchool = Arrays.getBooleanValueFromArray(population,
+				"stayInSchool");
+		if (null == stayInSchool) {
+			idleYouth.setStayInSchool(false);
+		} else {
+			idleYouth.setStayInSchool(stayInSchool);
+			idleYouth.setSchoolName(Arrays.getStringValueFromArray(population,
+					"schoolName"));
+		}
+		String guardianName = Arrays.getStringValueFromArray(population,
+				"guardianName");
+		if (StringUtil.isStringAvaliable(guardianName)) {
+			idleYouth.setGuardianName(guardianName);
+		}
+		String guardianTelephone = Arrays.getStringValueFromArray(population,
+				"guardianTelephone");
+		if (StringUtil.isStringAvaliable(guardianTelephone)) {
+			idleYouth.setGuardianTelephone(guardianTelephone);
+		}
+		PropertyDict helpingSituation = Arrays.getPropertyDictFromArray(
+				population, "helpingSituation.id");
+		if (null != helpingSituation) {
+			idleYouth.setHelpingSituation(helpingSituation);
+		}
+		idleYouth.setAttentionPopulationType(BaseInfoTables.IDLEYOUTH_KEY);
+		idleYouth.setAttentionExtent(Arrays.getPropertyDictFromArray(
+				population, "attentionExtent.id"));
+		idleYouth.setStaffType(getStaffTypeListByIds((String[]) population
+				.get("staffTypeIds")));
+		// fateson add
+		idleYouth.setWorkCondition(Arrays.getStringValueFromArray(population,
+				"workCondition"));
+	}
+
+	@Override
+	public void updatePopulationBaseInfo(ActualPopulation actualPopulation) {
+		IdleYouth idleYouth = idleYouthDao.getByOrgIdAndIdCardNo(
+				actualPopulation.getOrganization().getId(),
+				actualPopulation.getIdCardNo());
+		if (null == idleYouth) {
+			return;
+		}
+		Long id = idleYouth.getId();
+		try {
+			PropertyUtils.copyProperties(idleYouth, actualPopulation);
+		} catch (Exception e) {
+			throw new OperationFailedException("复制属性失败", e);
+		}
+		idleYouth.setId(id);
+		updateIdleYouth(idleYouth);
+	}
+
+	@Override
+	public void deletePopulationByPopulationId(Long populationId) {
+		if (null != populationId) {
+			this.deleteIdleYouthById(populationId);
+		}
+	}
+
+	@Override
+	public String[][] getExportPopertyArray() {
+		if (GlobalSetting.NOT_DEPENDENT
+				.equals(globalSettingService
+						.getGlobalValue(GlobalSetting.BUSINESS_DEPENDENT_ACTUAL_POPULATION))) {
+			return SpecialGroupsContext.getIdleYouthPropertyArraySlf();
+		} else {
+			return SpecialGroupsContext.getIdleYouthPropertyArrayRla();
+		}
+
+	}
+
+	@Override
+	public List<IdleYouth> findIdleYouthsByBIRTHDAY() {
+		return idleYouthDao.findIdleYouthsByBIRTHDAY();
+	}
+
+	@Override
+	public List<IdleYouth> findIdleYouthsByBirthdayForMark(int pageNum,
+			int pageSize) {
+		return setStaffTypeForList(idleYouthDao
+				.findIdleYouthsByBirthdayForMark(pageNum, pageSize));
+	}
+
+	@Override
+	public IdleYouth updateIdleYouthBaseInfo(IdleYouth idleYouth) {
+		try {
+			autoFilled(idleYouth);
+			if (idleYouth.isDeath()) {
+				idleYouth
+						.setLogoutDetail(buildLogoutDetail(idleYouth.isDeath()));
+				// 缓存计数器
+				PageInfoCacheThreadLocal.decrease(MemCacheConstant
+						.getCachePageKey(IdleYouth.class.getSimpleName()),
+						idleYouth, 1);
+			}
+			updateIdleYouthStaffType(idleYouth);
+			Countrymen temp = populationRelationService.businessOption(
+					idleYouth, idleYouth.getActualPopulationType());
+			idleYouth.setHouseId(temp.getHouseId());
+			rebuildHouseAddress(idleYouth);
+			idleYouthDao.updateTableUpdateDateById(idleYouth.getId());
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类idleYouthServiceImpl的updateIdleYouth方法出现异常，原因：",
+					"更改重点青少年信息出现错误", e);
+		}
+		return idleYouth;
+	}
+
+	@Override
+	public IdleYouth addIdleYouthBaseInfo(IdleYouth idleYouth) {
+		ValidateResult idleValidator = validator.validateBaseInfo(idleYouth);
+		if (idleValidator.hasError()) {
+			throw new BusinessValidationException(
+					idleValidator.getErrorMessages());
+		} else if (hasDuplicateIdleYouth(idleYouth.getOrganization().getId(),
+				idleYouth.getIdCardNo(), idleYouth.getId())) {
+			throw new BusinessValidationException("该网格下已存在相同身份证号码");
+		}
+		try {
+			if (checkDataExitInCache(idleYouth,
+					MemCacheConstant.CACHE_ADDIDLEYOUTHBASEINFO,
+					CACHE_ADDIDLEYOUTHBASEINFO_VALUE)) {
+				return idleYouth;
+			}
+			return add(idleYouth);
+		} catch (Exception e) {
+			logger.error("IdleYouthServiceImpl addIdleYouthBaseInfo", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(idleYouth,
+					MemCacheConstant.CACHE_ADDIDLEYOUTHBASEINFO);
+		}
+	}
+
+	@Override
+	public IdleYouth updateIdleYouthBusinessInfo(IdleYouth idleYouth,
+			List<Long> staffTypeIds) {
+		idleYouth.setStaffType(getStaffTypeListByIds(staffTypeIds));
+		ValidateResult idleValidator = validator
+				.validateSpecializedInfo(idleYouth);
+		if (idleValidator.hasError()) {
+			throw new BusinessValidationException(
+					idleValidator.getErrorMessages());
+		}
+		regrantStaffTypeIds(idleYouth.getId(), staffTypeIds);
+		idleYouth = idleYouthDao.updateBusiness(idleYouth);
+		PageInfoCacheThreadLocal.update(
+				MemCacheConstant.getCachePageKey(IdleYouth.class), idleYouth,
+				UpdateType.BUSINESS);
+		return idleYouth;
+	}
+
+	private List<PropertyDict> getStaffTypeListByIds(List<Long> staffTypeIds) {
+		List<PropertyDict> staffTypeList = null;
+		if (null != staffTypeIds && staffTypeIds.size() > 0) {
+			staffTypeList = new ArrayList<PropertyDict>();
+			for (int j = 0; j < staffTypeIds.size(); j++) {
+				PropertyDict staffType = propertyDictService
+						.getPropertyDictById(staffTypeIds.get(j));
+				staffTypeList.add(staffType);
+			}
+		}
+		return staffTypeList;
+	}
+
+	private List<PropertyDict> getStaffTypeListByIds(String[] staffTypeIds) {
+		List<PropertyDict> staffTypeList = null;
+		if (null != staffTypeIds && staffTypeIds.length > 0) {
+			staffTypeList = new ArrayList<PropertyDict>();
+			for (String staffTypeId : staffTypeIds) {
+				PropertyDict staffType = new PropertyDict();
+				staffType.setId(Long.valueOf(staffTypeId));
+				staffTypeList.add(staffType);
+			}
+		}
+		return staffTypeList;
+	}
+
+	public AttentionPopulation getAttentionPopulationById(Long id) {
+		return getIdleYouthById(id);
+	}
+
+	// fateson add move function start
+	@Override
+	public void moveTempByIds(String[] peoperIds, Long targetOrgId) {
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(targetOrgId);
+		for (String id : peoperIds) {
+			Long peoperId = Long.parseLong(id);
+			if (!StringUtils.isEmpty(id)) {
+				// get peoper
+				IdleYouth people = getIdleYouthById(peoperId);
+				if (people == null) {
+					continue;
+				}
+				Long currentOrgid = people.getOrganization().getId();
+				people.setOrganization(organization);
+				// String orgCode = people.getOrgInternalCode();
+				String orgCode = people.getOrganization().getOrgInternalCode();
+				String idCardNo = people.getIdCardNo();
+				// 验证目标组织机构是否存在这个人
+				boolean result = hasDuplicateIdleYouth(targetOrgId, idCardNo,
+						peoperId);
+				if (result) {
+					// 把存在的旧数据成为修改现在现在要移动的新数据
+					if (currentOrgid.longValue() != targetOrgId.longValue()) {
+						updateMovePersonByIdCardNo(idCardNo, targetOrgId,
+								people);
+						// 删掉要移动的数据 删除掉不在同一个网格
+						deleteIdleYouthById(peoperId);
+					}
+
+				} else {
+					// 转移网格数据
+					idleYouthDao.updateData(id, targetOrgId, orgCode, people);
+				}
+				people.setCreateDate(null);
+			}
+
+		}
+	}
+
+	public void updateMovePersonByIdCardNo(String idcard, Long targetorgId,
+			IdleYouth people) {
+		List<String> cardnos = CardNoHelper.createIdCardNo(idcard);
+		// 获取
+		IdleYouth older = idleYouthDao.getByIdCard(cardnos, targetorgId);
+		people.setId(older.getId());
+		people.setCreateDate(older.getCreateDate());
+		people.setCreateUser(older.getCreateUser());
+		idleYouthDao.update(people);
+	}
+
+	// fateson add move end
+	private LogoutDetail buildLogoutDetail(Boolean death) {
+		LogoutDetail result = new LogoutDetail();
+		if (death) {
+			result.setLogoutDate(new Date());
+			result.setLogoutReason(LogoutDetail.LOGOUT_REASON_FOR_DEATH);
+			result.setLogout(IsEmphasis.IsNotEmphasis);
+		} else if (!death) {
+			result.setLogout(IsEmphasis.Emphasis);
+		}
+
+		return result;
+	}
+
+	@Override
+	public void deleteBusinessPopulationDuplicate(Long id) {
+		deleteIdleYouthById(id);
+	}
+
+	@Override
+	public Integer countIdleYouthsByBirthdayForMark() {
+		try {
+			return idleYouthDao.countIdleYouthsByBirthdayForMark();
+		} catch (Exception e) {
+			throw new ServiceValidationException("重点青少年统计到期人数量时出错", e);
+		}
+	}
+
+	// 设置实体的字典项表
+	private IdleYouth setStaffTypeForObj(IdleYouth idleYouth) {
+		if (idleYouth != null && idleYouth.getId() != null) {
+			List<Long> idleYouthdictIds = idleYouthDao
+					.getStaffTypeIdsByIdleYouthId(idleYouth.getId());
+			List<PropertyDict> dictList = propertyDictService
+					.findPropertyDictByIds(Utils
+							.analyticalIds(idleYouthdictIds));
+			if (dictList != null && dictList.size() > 0) {
+				idleYouth.setStaffType(dictList);
+			}
+		}
+		return idleYouth;
+	}
+
+	// 设置list的数据的字典项列表
+	private List<IdleYouth> setStaffTypeForList(List<IdleYouth> idleYouths) {
+		if (idleYouths != null && idleYouths.size() > 0) {
+			for (IdleYouth idleYouth : idleYouths) {
+				idleYouth = setStaffTypeForObj(idleYouth);
+			}
+		}
+		return idleYouths;
+	}
+
+}

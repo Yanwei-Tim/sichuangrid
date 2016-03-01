@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="dailyYear">
+	<typeAlias alias="DailyYear" type="com.tianque.working.domain.DailyYear" />
+	<parameterMap id="dailyYearParams" class="DailyYear">
+		<parameter property="id" />
+		<parameter property="name" />
+		<parameter property="makedOrganization" />
+		<parameter property="makedOrgInternalCode" />
+		<parameter property="remark" />
+		<parameter property="yearDate" />
+		<parameter property="status" />
+		<parameter property="simplePinyin" />
+		<parameter property="fullPinyin" />
+		<parameter property="reminderDate" />
+		<parameter property="whetherAutoStart" />
+	</parameterMap>
+	<resultMap id="dailyYearResult" class="DailyYear">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="makedOrganization.id" column="makedOrgId" />
+		<result property="makedOrgInternalCode" column="makedOrgInternalCode" />
+		<result property="remark" column="remark" />
+		<result property="yearDate" column="yearDate" />
+		<result property="status" column="status" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="reminderDate" column="reminderDate" />
+		<result property="createUser" column="createUser" />
+		<result property="whetherAutoStart" column="whetherAutoStart" />
+	</resultMap>
+
+	<insert id="addDailyYear" parameterClass="DailyYear">
+	<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_DailyYears.NEXTVAL AS ID FROM DUAL ]]>
+	</selectKey>
+	INSERT INTO DailyYears(id,name,remark,makedOrgId,makedOrgInternalCode,yearDate,
+		createDate,createUser,simplePinyin,fullPinyin)
+	VALUES(#id#,#name#,#remark#,#makedOrganization.id#,#makedOrgInternalCode#,#yearDate#,
+		#createDate#,#createUser#,#simplePinyin#,#fullPinyin#)
+	</insert>
+	<update id="updateDailyYear" parameterClass="DailyYear">
+		update DailyYears set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="remark">
+				remark=#remark#
+			</isNotNull>
+			<isNotEmpty prepend="," property="updateDate">
+				UPDATEDATE=#updateDate#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="updateUser">
+				UPDATEUSER=#updateUser#
+			</isNotEmpty>
+		 where id=#id#
+		</dynamic>
+	</update>
+	<delete id="deleteDailyYearById" parameterClass="java.lang.Long">
+ 	 delete from DailyYears  where id=#value#
+	</delete>
+	<select id="getSimpleDailyYearById" parameterClass="java.lang.Long" resultMap="dailyYearResult">
+	<![CDATA[select * from DailyYears where id=#value#]]>
+	</select>
+
+	<select id="findDailyYearByParentOrgIdAndYear" parameterClass="java.util.Map" resultMap="dailyYearResult">
+	<![CDATA[select * from DailyYears where name=#name# and MAKEDORGID=#orgId#]]>
+	</select>
+	
+	<select id="countDailyYearByOrgIdAndYear" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from DailyYears where MAKEDORGID=#orgId# and yearDate = #yearDate#
+	</select>
+
+	<select id="getInitYear" resultMap="dailyYearResult">
+		select * from DailyYears where MAKEDORGID is null
+	</select>
+
+	<sql id="sql_where">
+		from DailyYears
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					id=#id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend=" and ">
+					name=#name#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					makedOrgId=#orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findDailyYears" parameterClass="java.util.Map" resultMap="dailyYearResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countDailyYears" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="findDailyYearsByOrgId" parameterClass="java.util.Map" resultMap="dailyYearResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countDailyYearsByOrgId" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	<update id="startAndStopDailyYearById">
+		update DailyYears set
+			id=#id# , whetherAutoStart = '2'
+			<isNotNull prepend="," property="status">
+				status=#status#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				UPDATEDATE=#updateDate#
+			</isNotNull>
+			<isNotEmpty prepend="," property="updateUser">
+				UPDATEUSER=#updateUser#
+			</isNotEmpty>
+		 where id=#id#
+	</update>
+	
+	<update id="setWhetherAutoStartDailyYear">
+		update DailyYears set
+			id=#id#
+			<isNotNull prepend="," property="reminderDate">
+				reminderDate=#reminderDate#
+			</isNotNull>
+			<isNotNull prepend="," property="whetherAutoStart">
+				whetherAutoStart=#whetherAutoStart#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				UPDATEDATE=#updateDate#
+			</isNotNull>
+			<isNotEmpty prepend="," property="updateUser">
+				UPDATEUSER=#updateUser#
+			</isNotEmpty>
+		 where id=#id#
+	</update>
+	
+	<select id="findDailyYearsByOrgIdAndStatus" parameterClass="java.util.Map" resultMap="dailyYearResult">
+		select * from DailyYears where makedOrgId=#orgId# and status=#status# order by yearDate desc
+	</select>
+	
+	<select id="getDailyYearByOrgIdAndYear" parameterClass="java.util.Map" resultMap="dailyYearResult">
+		select * from DailyYears d where d.makedorgid = #orgId# and d.yeardate = #year#
+	</select>
+	
+	
+	<select id="findAutoStartDailyYear" parameterClass="java.util.Date" resultMap="dailyYearResult">
+		select * from DailyYears  where reminderDate is not null and #sysDate# >= reminderDate and whetherAutoStart = '1' and status='0'
+	</select>
+	
+	<select id="findManuallyStartDailyYear" parameterClass="java.util.Date" resultMap="dailyYearResult">
+		select * from DailyYears  where reminderDate is not null and #sysDate# >= reminderDate and whetherAutoStart = '0' and status='0'
+	</select>
+</sqlMap>

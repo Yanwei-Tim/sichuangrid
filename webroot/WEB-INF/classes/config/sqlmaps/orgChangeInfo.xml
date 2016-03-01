@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="OrgChangeInfo">
+	<typeAlias alias="orgChangeInfo" type="com.tianque.plugin.orgchange.domain.OrgChangeInfo" />
+	<resultMap id="orgChangeInfoResult" class="orgChangeInfo">
+		<result property="id" column="id"/>
+		<result property="sourceOrgId" column="sourceOrgId"/>
+		<result property="sourceOrgName" column="sourceOrgName"/>
+		<result property="departmentNo" column="departmentNo"/>
+		<result property="targetorgId" column="targetorgId"/>
+		<result property="targetorgCode" column="targetorgCode"/>
+		<result property="targetOrgName" column="targetOrgName"/>
+		<result property="operateType" column="operateType"/>
+		<result property="isDeal" column="isDeal"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+	
+	<insert id="addInfo" parameterClass="orgChangeInfo">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_CHANGEINFO.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into orgchangeinfo(
+		id,sourceOrgId,sourceOrgName,departmentNo,targetorgId,targetorgCode,targetOrgName,operateType,isDeal,createUser,createDate,updateUser,updateDate
+		) values(
+		#id#,#sourceOrgId#,#sourceOrgName#,#departmentNo#,#targetorgId#,#targetorgCode#,#targetOrgName#,#operateType#,#isDeal#,#createUser#,#createDate#,#updateUser#,#updateDate#
+		)
+	</insert>
+	
+	<update id="updateInfo" parameterClass="orgChangeInfo">
+		update orgchangeinfo set isDeal = #isDeal# where id = #id#
+	</update>
+	
+	<sql id="queryWhere_sql">
+		<isNotEmpty property="isDeal">
+			where isdeal = #isDeal#
+		</isNotEmpty>
+	</sql>
+	
+	<select id="queryAllForList" parameterClass="orgChangeInfo" resultMap="orgChangeInfoResult">
+		select * from orgchangeinfo
+		<include refid="queryWhere_sql"/>
+	</select>
+	
+	<select id="getInfoById" parameterClass="java.lang.Long" resultMap="orgChangeInfoResult">
+	   select * from orgchangeinfo where id = #id#
+	</select>
+	
+	<select id="getCount" parameterClass="orgChangeInfo" resultClass="java.lang.Integer">
+	   select count(*) from orgchangeinfo 
+	   <include refid="queryWhere_sql"/>
+	</select>
+	
+	<select id="queryNoDealInfoForPageResultCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from orgchangeinfo where 1=1 	
+		<isNotNull property="isDeal" prepend="and">
+			isDeal=#isDeal#
+		</isNotNull>
+	</select>
+	
+	<select id="queryNoDealInfoForPageResult" parameterClass="java.util.Map" resultMap="orgChangeInfoResult">
+		select * from orgchangeinfo where 1=1
+		<isNotNull property="isDeal" prepend="and">
+			isDeal=#isDeal#
+		</isNotNull>
+		<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<delete id="deleteOrgChangeInfo" parameterClass="java.lang.Long">
+		delete from  orgchangeinfo where id=#changeId#
+	</delete>
+</sqlMap>

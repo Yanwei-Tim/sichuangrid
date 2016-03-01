@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="farmerPerIncomeInfo">
+	<typeAlias alias="FarmerPerIncomeInfo" type="com.tianque.newVillage.domain.FarmerPerIncomeInfo" />
+
+	<resultMap id="farmerPerIncomeInfoResult" class="FarmerPerIncomeInfo" >
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgInternalCode" />
+		<result property="newVillageBasic.id" column="basicInfoID" />		
+		<result property="farmerPerIncome" column="farmerPerIncome" />
+		
+		<result property="agriculturalIncome" column="agriculturalIncome" />
+		<result property="householdIncome" column="householdIncome" />
+		<result property="villageCollectiveIncome" column="villageCollectiveIncome" />
+		
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+
+	<insert id="addFarmerPerIncomeInfo" parameterClass="FarmerPerIncomeInfo">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_FARMERPERINCOMEINFO.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		INSERT INTO FARMERPERINCOMEINFO (ID, ORGID, ORGINTERNALCODE, BASICINFOID, FARMERPERINCOME, agriculturalIncome,householdIncome,villageCollectiveIncome,
+		CREATEUSER,CREATEDATE, UPDATEDATE, UPDATEUSER)VALUES(
+		#id#,#organization.id#,#organization.orgInternalCode#,#newVillageBasic.id#, #farmerPerIncome#,#agriculturalIncome#,#householdIncome#,#villageCollectiveIncome#, 
+		#createUser#, #createDate#, #updateDate#, #updateUser#)	
+	</insert>
+	<update id="updateFarmerPerIncomeInfo" parameterClass="FarmerPerIncomeInfo">
+		UPDATE FARMERPERINCOMEINFO SET UPDATEDATE = #updateDate#
+		<isNotNull prepend="," property="updateUser">
+			updateUser = #updateUser#,
+		</isNotNull>
+			farmerPerIncome=#farmerPerIncome#,
+			agriculturalIncome=#agriculturalIncome#,
+			householdIncome=#householdIncome#,
+			villageCollectiveIncome=#villageCollectiveIncome#
+		WHERE ID=#id#
+	</update>
+	
+	<delete id="deleteFarmerPerIncomeInfo">
+		delete from FARMERPERINCOMEINFO where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	
+	<select id="getFarmerPerIncomeInfo" parameterClass="java.lang.Long" resultMap="farmerPerIncomeInfoResult">
+		<![CDATA[SELECT * FROM FARMERPERINCOMEINFO WHERE ID = #value#]]>
+	</select>
+	
+	<select id="getFarmerPerIncomeInfoByBasicId" parameterClass="java.util.Map" resultMap="farmerPerIncomeInfoResult">
+		select * from FARMERPERINCOMEINFO where BASICINFOID=#basicId#
+	</select>
+		
+</sqlMap>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="sysGisModule">
+	<typeAlias alias="gisModuleVo"
+		type="com.tianque.openLayersMap.domian.GisModuleVo" />
+
+	<resultMap id="gisModuleManageResult" class="gisModuleVo">
+		<result property="id" column="id" />
+		<result property="moduleName" column="moduleName" />
+		<result property="permissionName" column="permissionName" />
+		<result property="tableName" column="tableName" />
+		<result property="isHasSonClass" column="isHasSonClass" />
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="isSystemAttribute"  column="isSystemAttribute"/>
+		<result property="isBusinessLayer"  column="isBusinessLayer"/>
+		<result property="isPopulation"  column="isPopulation"/>
+		<result property="modeType" column="modeType"/>
+		<result property="orgFiled" column="orgFiled"/>
+	</resultMap>
+
+	<insert id="addModule" parameterClass="gisModuleVo">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			select
+			s_gisModuleManages.NEXTVAL as id from dual
+		</selectKey>
+		insert into gismodulemanages value
+		(
+		id,moduleName,isHasSonClass,
+		tableName,createDate,createUser,
+		isSystemAttribute,isBusinessLayer,isPopulation,orgFiled,modeType,permissionName
+		) values
+		(
+		#id#,#moduleName#,#isHasSonClass#,
+		#tableName#,#createDate#,#createUser#,
+		#isSystemAttribute#,#isBusinessLayer#,#isPopulation#,#orgFiled#,#modeType#,#permissionName#
+		)
+	</insert>
+
+	<delete id="deleteModuleById" parameterClass="Long">
+		delete from
+		gismodulemanages where id=#id#
+	</delete>
+
+	<update id="updateModule" parameterClass="gisModuleVo">
+		update gismodulemanages
+		set moduleName=#moduleName#,
+		isHasSonClass=#isHasSonClass#,tableName=#tableName#,
+		updateDate=#updateDate#,updateUser=#updateUser#,orgFiled=#orgFiled#,permissionName=#permissionName#
+		where id=#id#
+	</update>
+
+	<select id="getModuleById" parameterClass="Long"
+		resultMap="gisModuleManageResult">
+		select * from gismodulemanages where id=#id#
+	</select>
+
+	<select id="findModuleForPage" parameterClass="java.util.Map" resultMap="gisModuleManageResult" >
+		select * from gismodulemanages order by createDate
+	</select>
+
+	<select id="findAllModule" resultMap="gisModuleManageResult">
+		select * from gismodulemanages
+	</select>
+	
+	<select id="getModuleByTableName" parameterClass="java.lang.String" resultMap="gisModuleManageResult">
+		select * from gismodulemanages where tableName=#tableName#
+	</select>
+	
+	<select id="getGisModuleByIsBusinessLayerAndPopulation" parameterClass="java.util.Map" resultClass="com.tianque.openLayersMap.domian.CommonEntityInfoVo">
+		select gm.permissionName,gm.tablename,gm.modulename,gm.modetype,gf.searchfieldaname,gf.searchfielda,gf.searchfieldbname,gf.searchfieldb,gf.searchfieldcname,gf.searchfieldc  
+			from gisModuleManages gm,gisFunction gf where (gm.isBusinessLayer=1 or gm.isPopulation=1) and gm.id=gf.moduleid and gf.functiontype='refineSearch' order by gm.id 
+	</select>
+	
+	<select id="getGisModuleByModeType" resultMap="gisModuleManageResult">
+		select * from gisModuleManages where modeType=#modeType#
+	</select>
+	
+</sqlMap>

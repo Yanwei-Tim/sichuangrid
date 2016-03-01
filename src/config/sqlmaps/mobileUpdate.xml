@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" 
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="mobileUpdate">
+
+    <typeAlias alias="MobileUpdate" type="com.tianque.domain.MobileUpdate" />
+    <resultMap id="mobileUpdateResult" class="MobileUpdate">
+		<result column="id" property="id" />
+		<result column="VERSION" property="version" />
+		<result column="levels" property="level" />
+		<result column="BUILD" property="build" />
+		<result column="CATEGORY" property="category.id" />
+		<result column="updateDate" property="updateDate" />
+		<result column="url" property="url" />
+		<result column="information" property="information" />
+		<result column="userName" property="userName" />
+		<result column="ORGID" property="organization.id" />
+		<result column="DEPARTMENTNO" property="departmentNo" />
+	</resultMap>
+	<sql id="sql_mobuleUpdate">
+	  from MobileUpdate where 1=1
+	</sql>
+	
+	<insert id="addMobileUpdate" parameterClass="MobileUpdate">
+	  <selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_mobileupdates.NEXTVAL as id from dual ]]>
+	  </selectKey>
+	  insert into MobileUpdate(
+	     ID,VERSION,LEVELS,BUILD,URL,INFORMATION,USERNAME,CATEGORY,CREATEUSER,CREATEDATE,
+	      UPDATEUSER,UPDATEDATE,ORGID,DEPARTMENTNO)values(
+	  #id#,#version#,#level#,#build#,#url#,#information#,#userName#,#category.id#,#createUser#,#createDate#,
+	  #updateUser#,#updateDate#,#organization.id#,#departmentNo#
+	   )
+	</insert>
+	
+	<update id="updateMobileUpdate" parameterClass="MobileUpdate">
+	  update MobileUpdate set id=#id#
+	  <dynamic>
+	  <isPropertyAvailable property="version">
+	    <isNotEmpty property="version" prepend=",">
+	      VERSION=#version#
+	    </isNotEmpty>
+	  </isPropertyAvailable>
+	  <isPropertyAvailable property="level">
+	    <isNotEmpty property="level" prepend=",">
+	      LEVELS=#level#
+	    </isNotEmpty>
+	  </isPropertyAvailable>
+	  <isPropertyAvailable property="build">
+	    <isNotEmpty property="build" prepend=",">
+	      BUILD=#build#
+	    </isNotEmpty>
+	  </isPropertyAvailable>
+	  <isPropertyAvailable property="url">
+	    <isNotEmpty property="url" prepend=",">
+	      URL=#url#
+	    </isNotEmpty>
+	  </isPropertyAvailable>
+	  <isPropertyAvailable property="information">
+	    <isNotEmpty property="information" prepend=",">
+	      INFORMATION=#information#
+	    </isNotEmpty>
+	  </isPropertyAvailable>
+	  <isPropertyAvailable property="userName">
+	    <isNotEmpty property="userName" prepend=",">
+	      USERNAME=#userName#
+	    </isNotEmpty>
+	  </isPropertyAvailable>
+	  <isPropertyAvailable property="category">
+	    <isNotEmpty property="category.id" prepend=",">
+	      CATEGORY=#category.id#
+	    </isNotEmpty>
+	  </isPropertyAvailable>
+	  <isPropertyAvailable property="organization">
+	    <isNotEmpty property="organization.id" prepend=",">
+	      ORGID=#organization.id#
+	    </isNotEmpty>
+	  </isPropertyAvailable>
+	  <isPropertyAvailable property="departmentNo">
+	    <isNotEmpty property="departmentNo" prepend=",">
+	      DEPARTMENTNO=#departmentNo#
+	    </isNotEmpty>
+	  </isPropertyAvailable>
+	  </dynamic>
+	  where id=#id#
+	</update>
+	
+	<delete id="deleteMobileUpdateById" parameterClass="java.lang.Long">
+	  delete from MobileUpdate where id = #id#
+	</delete>
+	
+	<select id="countMobileUpdatesBySearchVo" parameterClass="com.tianque.domain.vo.MobileUpdateSearchVo" resultClass="java.lang.Integer">
+	   <include refid="common.sql_count" />
+	   <include refid="sql_mobuleUpdate"/>
+	</select>
+	<select id="findMobileUpdatesBySearchVo" parameterClass="com.tianque.domain.vo.MobileUpdateSearchVo" resultMap="mobileUpdateResult">
+	  <include refid="common.sql_select" />
+	  <include refid="sql_mobuleUpdate"/>
+	  <dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getMobileUpdateById" parameterClass="java.lang.Long" resultMap="mobileUpdateResult">
+	   select * from MobileUpdate where id=#id#
+	</select>
+	<select id="getMobileUpdateCountByCategoryId" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+	  select count(*) from MobileUpdate where category=#value#
+	</select>
+	<select id="getMobileUpdateCountByDepartmentNo" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+	  select count(*) from MobileUpdate where departmentno=#value#
+	</select>
+	<select id="getMobileUpdateByCategoryId" parameterClass="java.lang.Long"  resultMap="mobileUpdateResult">
+	  select * from MobileUpdate where category=#value#
+	</select>
+
+</sqlMap>
+

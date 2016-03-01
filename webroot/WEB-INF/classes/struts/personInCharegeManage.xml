@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+ <struts>
+ 	<package name="personInCharegeManage" extends="default"
+		namespace="/baseinfo/personInCharegeManage">
+		<default-class-ref class="personInCharegeController"></default-class-ref>
+		<action name="personInCharegeList"
+			method="findPersonInCharegeForListPage">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="getPersonInCharegeByIdAndPlace"
+			method="getPersonInCharegeByIdAndPlace">
+			<result name="success" type="json">
+				<param name="root">perList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="findPersonInCharegeForList"
+			method="findPersonInCharegeForList">
+			<result name="success" type="json">
+				<param name="root">autoCompleteDatas</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="addPersonInCharege"
+			method="addPersonInCharege">
+			<result name="success" type="json">
+				<param name="root">personInCharges</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updatePersonInCharege"
+			method="updatePersonInCharege">
+			<result name="success" type="json">
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="deletePersonInCharege"
+			method="deletePersonInCharege">
+			<result name="success" type="json">
+				<param name="root">personInCharges</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="dispatch"  method="dispatch">
+			<result name="success">
+				/baseinfo/siteinfo/fireSafety/personInCharge/maintainFirePersonInCharge.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+			<result name="security">
+				/baseinfo/siteinfo/enterprise/personInCharge/maintainSecurityPersonInCharge.jsp
+			</result>
+			<result name="lettingHouseKeyType">
+				/baseinfo/helpPersonnel/lettinghouse/maintainFirePersonInCharge.jsp
+			</result>
+		</action>
+
+
+	</package>
+ </struts>

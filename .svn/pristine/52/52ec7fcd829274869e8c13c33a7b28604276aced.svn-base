@@ -1,0 +1,795 @@
+package com.tianque.baseInfo.floatingPopulation.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.actualHouse.domain.HouseInfo;
+import com.tianque.baseInfo.base.domain.Countrymen;
+import com.tianque.baseInfo.floatingPopulation.domain.FloatingPopulation;
+import com.tianque.baseInfo.floatingPopulation.service.FloatingPopulationService;
+import com.tianque.baseInfo.rentalHouse.domain.RentalHouse;
+import com.tianque.controller.ControllerHelper;
+import com.tianque.controller.annotation.EncryptAnnotation;
+import com.tianque.controller.annotation.PermissionFilter;
+import com.tianque.core.base.SearchBaseAction;
+import com.tianque.core.systemLog.service.SystemLogService;
+import com.tianque.core.systemLog.util.ModuleConstants;
+import com.tianque.core.systemLog.util.OperatorType;
+import com.tianque.core.util.DialogMode;
+import com.tianque.core.util.ObjectToJSON;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.GridPage;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.datatransfer.ExcelExportHelper;
+import com.tianque.domain.Organization;
+import com.tianque.domain.vo.SearchFloatingPopulationVo;
+import com.tianque.excel.definition.SpecialGroupsContext;
+import com.tianque.service.ActualPopulationMutexService;
+import com.tianque.service.impl.OrganizationServiceHelper;
+import com.tianque.service.util.PopulationType;
+import com.tianque.service.vo.IsEmphasis;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+@Controller("floatingPopulationController")
+@Scope("prototype")
+@Transactional
+public class FloatingPopulationController extends SearchBaseAction {
+
+	private static Logger logger = LoggerFactory
+			.getLogger(FloatingPopulationController.class);
+
+	@Autowired
+	protected OrganizationDubboService organizationDubboService;
+	@Autowired
+	protected FloatingPopulationService floatingPopulationService;
+	@Autowired
+	private SystemLogService systemLogService;
+	@Autowired
+	private ActualPopulationMutexService actualPopulationMutexService;
+
+	private FloatingPopulation population;
+	private SearchFloatingPopulationVo searchFloatingPopulationVo;
+	private String floatingPopulationIds;
+	private Long organizationId;
+	private Countrymen commonPopulation;
+	private List<FloatingPopulation> populationList;
+	private String dailogName;
+	private boolean pageOnly;
+	private HouseInfo houseInfo;
+	private RentalHouse rentalHouse;
+	private String isUseFrom;
+	private String populationType = PopulationType.FLOATING_POPULATION;
+	protected String populationIds;
+	protected List<Long> populationIdList;// 注销，保存注销的idList
+	private boolean hasBusinessTypes;
+
+	public String dispath() throws Exception {
+		actionName = "maintainFloatingPopulationBaseInfo";
+		ajaxUrl = "hasDuplicateFloatingPopulation";
+		population = dispathBaseInfo(population);
+		return getRetunString();
+	}
+
+	@EncryptAnnotation
+	public String dispathByEncrypt() throws Exception {
+		actionName = "maintainFloatingPopulationBaseInfo";
+		ajaxUrl = "hasDuplicateFloatingPopulation";
+		population = dispathBaseInfo(population);
+		return getRetunString();
+	}
+
+	private FloatingPopulation dispathBaseInfo(FloatingPopulation population)
+			throws Exception {
+		if (null != id) {
+			population = getPopulationFetchOrgById(id);
+		} else if (null != population && null != population.getId()) {
+			population = getPopulationFetchOrgById(population.getId());
+		} else {
+			String idCardNo = population == null ? "" : population
+					.getIdCardNo();
+			population = new FloatingPopulation();
+			population.setOrganization(new Organization());
+			population.getOrganization().setId(organizationId);
+			population.setIdCardNo(idCardNo);
+			population.getOrganization().setOrgName(
+					ControllerHelper.getOrganizationRelativeName(
+							organizationId, organizationDubboService));
+		}
+		return population;
+
+	}
+
+	private FloatingPopulation getPopulationFetchOrgById(Long id) {
+		FloatingPopulation population = floatingPopulationService
+				.getFloatingPopulationById(id);
+		population.getOrganization().setOrgName(
+				ControllerHelper.getOrganizationRelativeName(population
+						.getOrganization().getId(), organizationDubboService));
+		return population;
+	}
+
+	public String toHouseholdStaff() throws Exception {
+		floatingPopulationService.toHouseholdStaff(population.getId());
+		return SUCCESS;
+	}
+
+	/**
+	 * ID加密 流动人口转户籍人口
+	 * 
+	 * @return
+	 */
+	@EncryptAnnotation
+	public String toHouseholdStaffByEncryptId() throws Exception {
+		floatingPopulationService.toHouseholdStaff(population.getId());
+		return SUCCESS;
+	}
+
+	/**
+	 * 流动人口转户籍人口
+	 * 
+	 * @return
+	 */
+	@EncryptAnnotation
+	public String toHouseholdStaffByIds() throws Exception {
+		if (!StringUtil.isStringAvaliable(populationIds)) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		floatingPopulationService.toHouseholdStaffByIds(StringUtil
+				.parseLong(populationIds));
+		return SUCCESS;
+	}
+
+	public String maintainFloatingPopulationBaseInfo() throws Exception {
+		if (null != population && null != population.getId()) {
+			population = floatingPopulationService
+					.updateFloatingPopulationBaseInfo(population);
+		} else {
+			population = floatingPopulationService
+					.addFloatingPopulationBaseInfo(population);
+		}
+		return SUCCESS;
+	}
+
+	public String dispathInflowingInfomation() throws Exception {
+		if (null != id) {
+			population = getPopulationFetchOrgById(id);
+		}
+		return SUCCESS;
+	}
+
+	public String dispathInflowingInfomationForBusinessPopulation()
+			throws Exception {
+		population = floatingPopulationService
+				.getFloatingPopulationByIdAndBusinessType(id, type);
+		if (population != null) {
+			population.getOrganization().setOrgName(
+					ControllerHelper.getOrganizationRelativeName(population
+							.getOrganization().getId(),
+							organizationDubboService));
+		}
+		return SUCCESS;
+	}
+
+	public String maintainInflowingInfomationForBusinessPopulation()
+			throws Exception {
+		population = floatingPopulationService
+				.updateFloatingPopulationBusinessInfo(population);
+		return SUCCESS;
+	}
+
+	public String maintainFloatingPopulationBusinessInfo() throws Exception {
+		population = floatingPopulationService
+				.updateFloatingPopulationBusinessInfo(population);
+		return SUCCESS;
+	}
+
+	@EncryptAnnotation
+	public String viewPopulation() throws Exception {
+		if (null != population && null != population.getId()) {
+			population = floatingPopulationService
+					.getFloatingPopulationById(population.getId());
+			population.getOrganization().setOrgName(
+					ControllerHelper.getOrganizationRelativeName(population
+							.getOrganization().getId(),
+							organizationDubboService));
+		}
+		return SUCCESS;
+	}
+
+	@PermissionFilter(ename = "searchFloatingPopulation")
+	public String searchFloatingPopulation() throws Exception {
+		if (null == organizationId) {
+			gridPage = new GridPage(new PageInfo<FloatingPopulation>());
+			return SUCCESS;
+		}
+		if (null == searchFloatingPopulationVo) {
+			searchFloatingPopulationVo = new SearchFloatingPopulationVo();
+		}
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(organizationId);
+		searchFloatingPopulationVo.setOrgInternalCode(organization
+				.getOrgInternalCode());
+		PageInfo<FloatingPopulation> pageInfo = ControllerHelper
+				.processAllOrgRelativeName(floatingPopulationService
+						.searchFloatingPopulations(page, rows, sidx, sord,
+								searchFloatingPopulationVo),
+						organizationDubboService,
+						new String[] { "organization" }, organizationId);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	@PermissionFilter(ename = "searchFloatingPopulation")
+	public String fastSearchFloatingPopulation() throws Exception {
+		if (null == organizationId) {
+			gridPage = new GridPage(new PageInfo<FloatingPopulation>());
+			return SUCCESS;
+		}
+		if (null == searchFloatingPopulationVo) {
+			searchFloatingPopulationVo = new SearchFloatingPopulationVo();
+		}
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(organizationId);
+		searchFloatingPopulationVo.setOrgInternalCode(organization
+				.getOrgInternalCode());
+		PageInfo<FloatingPopulation> pageInfo = ControllerHelper
+				.processAllOrgRelativeName(floatingPopulationService
+						.fastSearchFloatingPopulations(page, rows, sidx, sord,
+								searchFloatingPopulationVo),
+						organizationDubboService,
+						new String[] { "organization" }, organizationId);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	@PermissionFilter(ename = "floatingPopulationManagement")
+	public String findFloatingPopulations() throws Exception {
+		if (null == organizationId) {
+			gridPage = new GridPage(new PageInfo<FloatingPopulation>());
+			return SUCCESS;
+		}
+		PageInfo<FloatingPopulation> pageInfo;
+		if (null != searchFloatingPopulationVo) {
+			pageInfo = ControllerHelper.processAllOrgRelativeName(
+					floatingPopulationService
+							.findFloatingPopulationsForPageByOrgId(
+									organizationId, page, rows, sidx, sord,
+									searchFloatingPopulationVo.getLogOut(),
+									searchFloatingPopulationVo.getIsDeath()),
+					organizationDubboService, new String[] { "organization" },
+					organizationId);
+		} else {
+
+			pageInfo = ControllerHelper.processAllOrgRelativeName(
+					floatingPopulationService
+							.findFloatingPopulationsForPageByOrgId(
+									organizationId, page, rows, sidx, sord,
+									null, null), organizationDubboService,
+					new String[] { "organization" }, organizationId);
+		}
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	@PermissionFilter(ename = "floatingPopulationManagement")
+	public String findFloatingPopulationsDefaultList() throws Exception {
+		if (null == organizationId) {
+			gridPage = new GridPage(new PageInfo<FloatingPopulation>());
+			return SUCCESS;
+		}
+		PageInfo<FloatingPopulation> pageInfo = ControllerHelper
+				.processAllOrgRelativeName(
+						floatingPopulationService
+								.findFloatingPopulationsForPageByOrgIdDefaultList(
+										organizationId,
+										page,
+										rows,
+										sidx,
+										sord,
+										null != searchFloatingPopulationVo ? searchFloatingPopulationVo
+												.getLogOut() : null,
+										null != searchFloatingPopulationVo ? searchFloatingPopulationVo
+												.getIsDeath() : null),
+						organizationDubboService,
+						new String[] { "organization" }, organizationId);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	private Long[] analyzePopulationIds() {
+		String[] deleteId = populationIds.split(",");
+		List<Long> idList;
+		if (deleteId[0].equals("")) {
+			idList = initTargetId(deleteId, 1);
+		} else {
+			idList = initTargetId(deleteId, 0);
+		}
+		return idList.toArray(new Long[0]);
+	}
+
+	public String updateLogOutOfFloatingPopulation() {
+		populationIdList = floatingPopulationService
+				.updateLogOutOfFloatingPopulationByIds(
+						population.getLogoutDetail(), populationType,
+						analyzePopulationIds());
+		return SUCCESS;
+	}
+
+	/**
+	 * ID加密取消注销
+	 * 
+	 * @return
+	 */
+	@EncryptAnnotation
+	public String updateLogOutOfFloatingPopulationByEncryptId()
+			throws Exception {
+		populationIdList = floatingPopulationService
+				.updateLogOutOfFloatingPopulationByIds(
+						population.getLogoutDetail(), populationType,
+						analyzePopulationIds());
+		return SUCCESS;
+	}
+
+	public String updateDeathOfFloatingPopulation() throws Exception {
+		String[] updateId = floatingPopulationIds.split(",");
+		List<Long> idList;
+		if (updateId[0].equals("")) {
+			idList = initTargetId(updateId, 1);
+		} else {
+			idList = initTargetId(updateId, 0);
+		}
+		populationList = floatingPopulationService
+				.updateDeathOfFloatingPopulationByIdList(idList,
+						population.isDeath());
+		return SUCCESS;
+	}
+
+	/**
+	 * ID加密取消死亡
+	 * 
+	 * @return
+	 */
+	@EncryptAnnotation
+	public String updateDeathOfFloatingPopulationByEncryptId() throws Exception {
+		String[] updateId = floatingPopulationIds.split(",");
+		List<Long> idList;
+		if (updateId[0].equals("")) {
+			idList = initTargetId(updateId, 1);
+		} else {
+			idList = initTargetId(updateId, 0);
+		}
+		populationList = floatingPopulationService
+				.updateDeathOfFloatingPopulationByIdList(idList,
+						population.isDeath());
+		return SUCCESS;
+	}
+
+	@EncryptAnnotation
+	@PermissionFilter(ename = "deleteFloatingPopulation")
+	public String deleteFloatingPopulation() throws Exception {
+		String[] deleteId = floatingPopulationIds.split(",");
+		List<Long> idList;
+		if (deleteId[0].equals("")) {
+			idList = initTargetId(deleteId, 1);
+		} else {
+			idList = initTargetId(deleteId, 0);
+		}
+		floatingPopulationService.deleteFloatingPopulationsByIdList(idList);
+		return SUCCESS;
+	}
+
+	private List<Long> initTargetId(String[] targetIds, int size) {
+		List<Long> idLongs = new ArrayList<Long>();
+		for (int i = size; i < targetIds.length; i++) {
+			String tempId = targetIds[i];
+			if (size == 0) {
+				idLongs.add(Long.parseLong(targetIds[i]));
+			} else {
+				idLongs.add(Long.parseLong(tempId));
+			}
+		}
+		return idLongs;
+	}
+
+	private Boolean hasDuplicateFloatingPopulation;
+
+	public Boolean getHasDuplicateFloatingPopulation() {
+		return hasDuplicateFloatingPopulation;
+	}
+
+	public void setHasDuplicateFloatingPopulation(
+			Boolean hasDuplicateFloatingPopulation) {
+		this.hasDuplicateFloatingPopulation = hasDuplicateFloatingPopulation;
+	}
+
+	public String checkCardNoIsRepeat() throws Exception {
+		if (population != null && organizationId != null) {
+			if (actualPopulationMutexService
+					.isExistByOrgIdAndIdCardNoAndExcludeActualPopulationType(
+							organizationId, population.getIdCardNo(),
+							PopulationType.FLOATING_POPULATION)) {
+				return SUCCESS;
+			}
+		}
+		return ERROR;
+	}
+
+	/**
+	 * ID加密取消注销前查询 * @return
+	 */
+	@EncryptAnnotation
+	public String checkCardNoIsRepeatByEncryptId() throws Exception {
+		if (population != null && organizationId != null) {
+			if (actualPopulationMutexService
+					.isExistByOrgIdAndIdCardNoAndExcludeActualPopulationType(
+							organizationId, population.getIdCardNo(),
+							PopulationType.FLOATING_POPULATION)) {
+				return SUCCESS;
+			}
+		}
+		return ERROR;
+	}
+
+	public String hasDuplicateFloatingPopulation() throws Exception {
+		if (organizationId == null || population == null) {
+			errorMessage = "参数错误";
+			return ERROR;
+		} else {
+			hasDuplicateFloatingPopulation = actualPopulationMutexService
+					.isActualPopuationByOrgIdAndIdCardNoAndExcludeActualPopulationType(
+							population.getId(), organizationId,
+							population.getIdCardNo(),
+							PopulationType.FLOATING_POPULATION);
+			if (hasDuplicateFloatingPopulation != true) {
+				// 如果是新增，去数据库中查是否存在该身份证的已注销人员，如果有，不允许新增
+				if (DialogMode.ADD_MODE.equals(mode)) {
+					if (hasDuplicateFloatingPopulation != true) {
+						population = floatingPopulationService
+								.getFloatingPopulationByIdCardNoAndOrgId(
+										organizationId,
+										population.getIdCardNo());
+						if (population != null
+								&& IsEmphasis.IsNotEmphasis.equals(population
+										.getLogOut())) {
+							hasDuplicateFloatingPopulation = true;
+						}
+					}
+				}
+			}
+		}
+		return SUCCESS;
+	}
+
+	public String downloadFloatingPopulation() throws Exception {
+		if (organizationId == null || searchFloatingPopulationVo == null) {
+			errorMessage = "无法定位需要导出的数据";
+			return ERROR;
+		}
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(organizationId);
+		searchFloatingPopulationVo.setOrgInternalCode(organization
+				.getOrgInternalCode());
+		List<FloatingPopulation> floatingPopulationList = getNeedExportDatas(page);
+		inputStream = ExcelExportHelper.exportDateToExcel(
+				SpecialGroupsContext.getFloatingPopulationPropertyArray(),
+				floatingPopulationList);
+		downloadFileName = new String("流动人口清单".getBytes("gbk"), "ISO8859-1")
+				+ ".xls";
+		systemLogService
+				.log(com.vladium.logging.Logger.INFO,
+						ModuleConstants.FLOATINGPOPULATION,
+						OperatorType.EXPORT,
+						ThreadVariable.getSession().getUserName()
+								+ "在"
+								+ organizationDubboService
+										.getOrganizationRelativeNameByRootOrgIdAndOrgId(
+												organizationId,
+												OrganizationServiceHelper
+														.getRootOrg(
+																organizationDubboService)
+														.getId()) + "导出流动人口",
+						ObjectToJSON.convertJSON(searchFloatingPopulationVo));
+		return SUCCESS;
+	}
+
+	public void downloadExcelExportAll() throws Exception {
+		if (organizationId == null) {
+			errorMessage = "无法定位需要导出的数据";
+			return;
+		}
+		if (searchFloatingPopulationVo == null) {
+			searchFloatingPopulationVo = new SearchFloatingPopulationVo();
+		}
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(organizationId);
+		searchFloatingPopulationVo.setOrgInternalCode(organization
+				.getOrgInternalCode());
+		if (!pageOnly) {
+			pageOnly = true;
+			Integer count = floatingPopulationService
+					.getCount(searchFloatingPopulationVo);
+			String[][] excelDefines = SpecialGroupsContext
+					.getFloatingPopulationPropertyArray();
+			exportDataAll(count, excelDefines, "流动人口清单");
+		}
+		systemLogService
+				.log(com.vladium.logging.Logger.INFO,
+						ModuleConstants.FLOATINGPOPULATION,
+						OperatorType.EXPORT,
+						ThreadVariable.getSession().getUserName()
+								+ "在"
+								+ organizationDubboService
+										.getOrganizationRelativeNameByRootOrgIdAndOrgId(
+												organizationId,
+												OrganizationServiceHelper
+														.getRootOrg(
+																organizationDubboService)
+														.getId()) + "导出流动人口",
+						ObjectToJSON.convertJSON(searchFloatingPopulationVo));
+	}
+
+	public String addFloatingPopulationForMobile() throws Exception {
+		population = floatingPopulationService
+				.addFloatingPopulationForMobile(population);
+		return SUCCESS;
+	}
+
+	public String updateFloatingPopulationForMobile() throws Exception {
+		population = floatingPopulationService
+				.updateFloatingPopulation(population);
+		return SUCCESS;
+	}
+
+	public String findFloatingPopulationByIdCardNoAndOrgId() throws Exception {
+		population = floatingPopulationService
+				.getFloatingPopulationByIdCardNoAndOrgId(organizationId,
+						population.getIdCardNo());
+		return SUCCESS;
+	}
+
+	public String getActualPopulationHasTypes() throws Exception {
+		hasBusinessTypes = floatingPopulationService
+				.getActualPopulationHasTypes(population.getId());
+		return SUCCESS;
+	}
+
+	public String getFloatingPopulationIds() {
+		return floatingPopulationIds;
+	}
+
+	public void setFloatingPopulationIds(String floatingPopulationIds) {
+		this.floatingPopulationIds = floatingPopulationIds;
+	}
+
+	public Long getOrganizationId() {
+		return organizationId;
+	}
+
+	public String getIsUseFrom() {
+		return isUseFrom;
+	}
+
+	public void setIsUseFrom(String isUseFrom) {
+		this.isUseFrom = isUseFrom;
+	}
+
+	public void setOrganizationId(Long organizationId) {
+		this.organizationId = organizationId;
+	}
+
+	public Countrymen getCommonPopulation() {
+		return commonPopulation;
+	}
+
+	public void setCommonPopulation(Countrymen commonPopulation) {
+		this.commonPopulation = commonPopulation;
+	}
+
+	public FloatingPopulation getPopulation() {
+		return population;
+	}
+
+	public void setPopulation(FloatingPopulation population) {
+		this.population = population;
+	}
+
+	public SearchFloatingPopulationVo getSearchFloatingPopulationVo() {
+		return searchFloatingPopulationVo;
+	}
+
+	public void setSearchFloatingPopulationVo(
+			SearchFloatingPopulationVo searchFloatingPopulationVo) {
+		this.searchFloatingPopulationVo = searchFloatingPopulationVo;
+	}
+
+	public List<FloatingPopulation> getPopulationList() {
+		return populationList;
+	}
+
+	public void setPopulationList(List<FloatingPopulation> populationList) {
+		this.populationList = populationList;
+	}
+
+	public String getDailogName() {
+		return dailogName;
+	}
+
+	public void setDailogName(String dailogName) {
+		this.dailogName = dailogName;
+	}
+
+	public boolean isPageOnly() {
+		return pageOnly;
+	}
+
+	public void setPageOnly(boolean pageOnly) {
+		this.pageOnly = pageOnly;
+	}
+
+	public HouseInfo getHouseInfo() {
+		return houseInfo;
+	}
+
+	public void setHouseInfo(HouseInfo houseInfo) {
+		this.houseInfo = houseInfo;
+	}
+
+	public String getPopulationType() {
+		return populationType;
+	}
+
+	public void setPopulationType(String populationType) {
+		this.populationType = populationType;
+	}
+
+	public RentalHouse getRentalHouse() {
+		return rentalHouse;
+	}
+
+	public void setRentalHouse(RentalHouse rentalHouse) {
+		this.rentalHouse = rentalHouse;
+	}
+
+	public String getPopulationIds() {
+		return populationIds;
+	}
+
+	public void setPopulationIds(String populationIds) {
+		this.populationIds = populationIds;
+	}
+
+	public List<Long> getPopulationIdList() {
+		return populationIdList;
+	}
+
+	public void setPopulationIdList(List<Long> populationIdList) {
+		this.populationIdList = populationIdList;
+	}
+
+	// fateson add 数据转移操作
+	// current org id
+	private Long orgId;
+	Long targetOrgId;
+	private String currentClassName = "";
+	private Organization organization = null;
+	// need move peoples id
+	String ids = "";
+
+	public String getIds() {
+		return ids;
+	}
+
+	public void setIds(String ids) {
+		this.ids = ids;
+	}
+
+	public Organization getOrganization() {
+		return organization;
+	}
+
+	public void setOrganization(Organization organization) {
+		this.organization = organization;
+	}
+
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+	public String getCurrentClassName() {
+		return currentClassName;
+	}
+
+	public void setCurrentClassName(String currentClassName) {
+		this.currentClassName = currentClassName;
+	}
+
+	public Long getTargetOrgId() {
+		return targetOrgId;
+	}
+
+	public void setTargetOrgId(Long targetOrgId) {
+		this.targetOrgId = targetOrgId;
+	}
+
+	public boolean isHasBusinessTypes() {
+		return hasBusinessTypes;
+	}
+
+	public void setHasBusinessTypes(boolean hasBusinessTypes) {
+		this.hasBusinessTypes = hasBusinessTypes;
+	}
+
+	public String shiftDispatch() throws Exception {
+
+		if (orgId == null) {
+			errorMessage = "组织机构不能为空";
+			return ERROR;
+		}
+		organization = organizationDubboService.getSimpleOrgById(orgId);
+		if (StringUtils.isBlank(currentClassName)) {
+			errorMessage = "系统忙";
+			logger.error("deal shiftDispatch occur Error，currentClassName is empty");
+			return ERROR;
+		}
+
+		return SUCCESS;
+	}
+
+	String SEPARATOR = ".";
+
+	/**
+	 * 数据转移操作
+	 * 
+	 * @return
+	 */
+	public String shiftPerson() throws Exception {
+		if (ids.equals("")) {
+			errorMessage = "请选择要转移的数据";
+			return ERROR;
+		}
+
+		if (orgId == 0 || targetOrgId == 0) {
+			errorMessage = "请选择组织机构";
+			return ERROR;
+		}
+
+		if (targetOrgId.equals(orgId)) {
+			errorMessage = "请选择其他组织机构";
+			return ERROR;
+		}
+
+		String[] moveids = ids.split(",");
+		floatingPopulationService.moveTempByIds(moveids, targetOrgId);
+		return SUCCESS;
+	}
+
+	@Override
+	public List getNeedExportDatas(int page) {
+		List<FloatingPopulation> floatingPopulationList = new ArrayList<FloatingPopulation>();
+		if (pageOnly) {
+			floatingPopulationList = floatingPopulationService
+					.searchFloatingPopulations(page, rows, sidx, sord,
+							searchFloatingPopulationVo).getResult();
+		} else {
+			floatingPopulationList = floatingPopulationService
+					.searchAllFloatingPopulations(sidx, sord,
+							searchFloatingPopulationVo);
+		}
+		return floatingPopulationList;
+	}
+
+}

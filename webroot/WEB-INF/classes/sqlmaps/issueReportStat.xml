@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="issueReportStat">
+	<typeAlias alias="IssueAreaStat" type="com.tianque.statAnalyse.issueManage.listManage.domain.IssueAreaStat"/>
+	
+	<insert id="addIssueHandleStat" parameterClass="IssueAreaStat">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_issuehandleStat.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into issuehandleStat
+		(   
+			id,year,month,orgid,parentorgid,orginternalcode,orglevel,funorgtype,addissuesum,submitIssueSum,assignIssueSum,doingissuesum,
+			verificationsum,verificationedsum,doneissuesum,issuesum,completionrate,extendeddoingsum,extendeddonesum,extendedrate,createdate,createuser
+		)
+		values
+		(
+			#id#,#year#,#month#,#organization.id#,#parentOrgId#,#organization.orgInternalCode#,#organization.orgLevel.id#,#organization.functionalOrgType.id#,#addIssueSum#,#submitIssueSum#,#assignIssueSum#,#doingIssueSum#,
+			#verificationSum#,#verificationedSum#,#doneIssueSum#,#issueSum#,#completionRate#,#extendedDoingSum#,#extendedDoneSum#,#extendedRate#,sysdate,'admin'
+		)
+	</insert>
+	
+	<insert id="addIssueClassificationStat" parameterClass="IssueAreaStat">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_issueClassificationStat.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into issueClassificationStat
+		(   
+			id,year,month,orgid,parentorgid,orginternalcode,orglevel,funorgtype,contradictionSum,resolveTheContradictionSum,securityPrecautionSum,specialPopulationSum,
+			socialConditionSum,policiesAndLawSum,emergencieSum,otherManageSum,createdate,createuser
+		)
+		values
+		(
+			#id#,#year#,#month#,#organization.id#,#parentOrgId#,#organization.orgInternalCode#,#organization.orgLevel.id#,#organization.functionalOrgType.id#,#contradictionSum#,#resolveTheContradictionSum#,#securityPrecautionSum#,#specialPopulationSum#,
+			#socialConditionSum#,#policiesAndLawSum#,#emergencieSum#,#otherManageSum#,sysdate,'admin'
+		)
+	</insert>
+	
+	<insert id="addIssueStepStat" parameterClass="IssueAreaStat">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_issueStepStat.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into issueStepStat
+		(   
+			id,year,month,orgid,parentorgid,orginternalcode,resolveGeneralSum,resolveSkipSum,securityGeneralSum,securitySkipSum,
+			emergencieGeneralSum,emergencieSkipSum,otherManageGeneralSum,otherManageSkipSum,createdate,createuser
+		)
+		values
+		(
+			#id#,#year#,#month#,#organization.id#,#parentOrgId#,#organization.orgInternalCode#,#resolveGeneralSum#,#resolveSkipSum#,#securityGeneralSum#,#securitySkipSum#,
+			#emergencieGeneralSum#,#emergencieSkipSum#,#otherManageGeneralSum#,#otherManageSkipSum#,sysdate,'admin'
+		)	
+	</insert>
+</sqlMap>

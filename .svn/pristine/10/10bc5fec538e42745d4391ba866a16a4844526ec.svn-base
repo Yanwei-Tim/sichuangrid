@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<!-- 
+当前所有属性(方便查看)：时限考核成绩
+
+select 
+ id as id,
+ orgid 	as 	orgid
+ orginternalcode  asorginternalcode,
+ parentorgid as parentorgid,
+ orgtype as orgtype,
+ year as year,
+ month as month,
+ doing as doing,
+ done as done,
+ transfer as transfer,
+ createuser as createuser,
+ createdate as createdate,
+
+from statisticsAccountTimeouts 
+ -->
+ <sqlMap namespace="statisticsAccountTimeout">
+ 	<typeAlias alias="StatisticsAccountTimeout" type="com.tianque.xichang.working.statisticsAccountTimeout.domain.StatisticsAccountTimeout"/>
+ 	<resultMap class="StatisticsAccountTimeout" id="statisticsAccountTimeoutResultMap">
+ 		<result property="id" column="id"/>
+ 		<result property="organization.id" column="orgid"/>
+ 		<result property="organization.orgInternalCode" column="orgInternalCode"/>
+ 		<result property="parentOrgId" column="parentOrgId"/>
+ 		<result property="organization.orgType.id" column="orgType"/>
+ 		<result property="year" column="year"/>
+ 		<result property="month" column="month"/>
+ 		<result property="doing" column="doing"/>
+ 		<result property="done" column="done"/>
+ 		<result property="transfer" column="transfer"/>
+ 		<result property="createUser" column="createUser"/>
+ 		<result property="createDate" column="createDate"/>
+ 	</resultMap>
+ 	<insert id="addStatisticsAccountTimeout" parameterClass="StatisticsAccountTimeout" >
+ 	<selectKey keyProperty="id" resultClass="java.lang.Long">
+ 		<![CDATA[SELECT S_statisticsAccountTimeouts.NEXTVAL AS ID FROM DUAL]]>
+ 	</selectKey>
+ 		INSERT INTO statisticsAccounts_$year$_$month$(
+			id,orgId,orgInternalCode,parentOrgId,orgType,year,month,doing,done,transfer,createUser,createDate) VALUES(
+			 #id#,#organization.id#,#organization.orgInternalCode#,#parentOrgId#,#organization.orgType.id#,#year#,#month#,#doing#,#done#,#transfer#,#createUser#,#createDate#
+			) 			
+ 	</insert>
+ 	<select id="getstatisticsAccountTimeoutByParentorgidAndOrgType" parameterClass="map" resultMap="statisticsAccountTimeoutResultMap">
+ 		select * from statisticsAccounts_$year$_$month$ where 1=1 
+ 		<isNotNull property="year" prepend="and">
+ 			year=#year#
+ 		</isNotNull>
+ 		<isNotNull property="month" prepend="and">
+ 			month=#month#
+ 		</isNotNull>
+ 		<isNotNull property="parentOrgId" prepend="and">
+ 			parentOrgId=#parentOrgId#
+ 		</isNotNull>
+ 		<isNotNull property="orgType" prepend="and">
+ 			orgType=#orgType#
+ 		</isNotNull>
+ 		<dynamic prepend="order by">
+            <isPropertyAvailable property="sortField">
+                <isNotNull property="sortField">$sortField$</isNotNull>
+                <isNotNull property="sord">$sord$</isNotNull>
+            </isPropertyAvailable>
+        </dynamic>
+ 	</select>
+ 	<select id="getStatisticsAccountTimeoutByOrgIdAndMonthAndYear" parameterClass="map" resultMap="statisticsAccountTimeoutResultMap">
+	 	select * from statisticsAccounts_$year$_$month$ where 1=1 
+ 		<isNotNull property="year" prepend="and">
+ 			year=#year#
+ 		</isNotNull>
+ 		<isNotNull property="month" prepend="and">
+ 			month=#month#
+ 		</isNotNull>
+ 		<isNotNull property="orgId" prepend="and">
+ 			orgId=#orgId#
+ 		</isNotNull>
+ 	</select>
+ 	<update id="updateStatisticsAccountTimeoutByStatisticsAccountTimeout" parameterClass="StatisticsAccountTimeout">
+ 		update statisticsAccounts_$year$_$month$ set year=#year#,month=#month#
+ 		<isNotNull property="doing" prepend=",">
+ 			doing=#doing#
+ 		</isNotNull>  
+ 		<isNotNull property="done" prepend=",">
+ 			done=#done#
+ 		</isNotNull>  
+ 		<isNotNull property="transfer" prepend=",">
+ 			transfer=#transfer#
+ 		</isNotNull>  
+ 		where orgid=#organization.id# and 
+ 			  year=#year# and 
+ 			  month=#month#
+ 	</update>
+ 	<select id="countDirtyDataByModel" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+ 		select count(1) from statisticsAccounts_$year$_$month$ sa where 
+ 		<iterate property="orgIdsList" conjunction="or" open="(" close=")">
+			sa.orgId in ($orgIdsList[]$)
+		</iterate>
+ 	</select>
+ 	<delete id="deleteDirtyDataByModel" parameterClass="java.util.Map">
+ 		delete from statisticsAccounts_$year$_$month$ sa where 
+ 		<iterate property="orgIdsList" conjunction="or" open="(" close=")">
+			sa.orgId in ($orgIdsList[]$)
+		</iterate>
+ 	</delete>
+ 	
+ 	
+ </sqlMap>

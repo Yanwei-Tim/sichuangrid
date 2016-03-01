@@ -1,0 +1,322 @@
+package com.tianque.baseInfo.mentalPatient.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.mentalPatient.domain.MentalPatient;
+import com.tianque.controller.ControllerHelper;
+import com.tianque.controller.annotation.PermissionFilter;
+import com.tianque.core.base.SearchBaseAction;
+import com.tianque.core.systemLog.service.SystemLogService;
+import com.tianque.core.systemLog.util.ModuleConstants;
+import com.tianque.core.systemLog.util.OperatorType;
+import com.tianque.core.util.ObjectToJSON;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.AutoCompleteData;
+import com.tianque.core.vo.GridPage;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.datatransfer.ExcelExportHelper;
+import com.tianque.domain.Organization;
+import com.tianque.domain.vo.SearchMentalPatientVo;
+import com.tianque.service.SearchMentalPatientService;
+import com.tianque.service.impl.OrganizationServiceHelper;
+import com.tianque.service.vo.IsEmphasis;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.vladium.logging.Logger;
+
+@Scope("prototype")
+@Transactional(readOnly = true)
+@Controller("searchMentalPatientController")
+@Namespace("/baseinfo/searchMentalPatient")
+public class SearchMentalPatientController extends SearchBaseAction {
+	@Autowired
+	private SearchMentalPatientService searchMentalPatientService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private SystemLogService systemLogService;
+	private SearchMentalPatientVo searchMentalPatientVo;
+	private Long organizationId;
+	private boolean pageOnly;
+	private List<AutoCompleteData> autoCompleteDatas = new ArrayList<AutoCompleteData>();
+	private String tag;
+	private String issueSerch = "";
+	private MentalPatient mentalPatient;
+	private MentalPatient population;
+
+	@PermissionFilter(ename = "searchMentalPatient")
+	@Action(value = "findMentalPatientsByQueryCondition", results = { @Result(name = "success", type = "json", params = {
+			"root", "gridPage", "ignoreHierarchy", "false",
+			"excludeNullProperties", "true" }) })
+	public String searchMentalPatient() throws Exception {
+		if (searchMentalPatientVo == null) {
+			searchMentalPatientVo = new SearchMentalPatientVo();
+		}
+		searchCommonality();
+		return SUCCESS;
+	}
+
+	@Action(value = "fastSearch", results = { @Result(name = "success", type = "json", params = {
+			"root", "gridPage", "ignoreHierarchy", "false" }) })
+	public String fastSearchMentalPatient() throws Exception {
+		if (searchMentalPatientVo == null) {
+			this.errorMessage = "参数错误";
+		}
+		fastSearchCommonality();
+		return SUCCESS;
+	}
+
+	private void fastSearchCommonality() {
+		if (organizationId == null) {
+			this.errorMessage = "组织机构网格id不能为空";
+		}
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(organizationId);
+		searchMentalPatientVo.setOrgInternalCode(organization
+				.getOrgInternalCode());
+		PageInfo<MentalPatient> pageInfo = ControllerHelper
+				.processAllOrgRelativeName(searchMentalPatientService
+						.searchMentalPatient(searchMentalPatientVo, page, rows,
+								sidx, sord), organizationDubboService,
+						new String[] { "organization" }, organizationId);
+		gridPage = new GridPage(pageInfo);
+	}
+
+	private void searchCommonality() {
+		if (issueSerch.equalsIgnoreCase("issueSerch")) {
+			organizationId = organizationDubboService
+					.getTownOrganizationId(organizationId);
+		}
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(organizationId);
+		searchMentalPatientVo.setOrgInternalCode(organization
+				.getOrgInternalCode());
+		if (null != searchMentalPatientVo.getIdCardNo()) {
+
+			searchMentalPatientVo.setIdCardNo(searchMentalPatientVo
+					.getIdCardNo().toUpperCase());
+		}
+		PageInfo<MentalPatient> pageInfo = ControllerHelper
+				.processAllOrgRelativeName(searchMentalPatientService
+						.searchMentalPatient(searchMentalPatientVo, page, rows,
+								sidx, sord), organizationDubboService,
+						new String[] { "organization" }, organizationId);
+		gridPage = new GridPage(pageInfo);
+	}
+
+	@PermissionFilter(ename = "downMentalPatient")
+	@Action(value = "downloadMentalPatient")
+	public String downloadMentalPatient() throws Exception {
+		if (searchMentalPatientVo == null && organizationId == null) {
+			errorMessage = "无法定位需要导出的数据";
+			return ERROR;
+		} else {
+			populateOrgCondition();
+			List<MentalPatient> records = getNeedExportDatas(page);
+			Organization org = organizationDubboService
+					.getSimpleOrgById(organizationId);
+			if (organizationId != null) {
+
+				if (org != null) {
+					searchMentalPatientVo.setOrgInternalCode(org
+							.getOrgInternalCode());
+				} else {
+					searchMentalPatientVo.setOrgInternalCode(null);
+				}
+			} else {
+				searchMentalPatientVo.setOrgInternalCode(null);
+			}
+			inputStream = ExcelExportHelper
+					.exportDateToExcel(
+							searchMentalPatientService.getExportPopertyArray(),
+							records);
+			downloadFileName = new String("严重精神障碍患者".getBytes("gbk"), "ISO8859-1")
+					+ ".xls";
+			systemLogService
+					.log(Logger.INFO,
+							ModuleConstants.MENTALPATIENT,
+							OperatorType.EXPORT,
+							ThreadVariable.getSession().getUserName()
+									+ "在"
+									+ organizationDubboService
+											.getOrganizationRelativeNameByRootOrgIdAndOrgId(
+													org.getId(),
+													OrganizationServiceHelper
+															.getRootOrg(
+																	organizationDubboService)
+															.getId())
+									+ "导出严重精神障碍患者", ObjectToJSON
+									.convertJSON(searchMentalPatientVo));
+		}
+		return STREAM_SUCCESS;
+	}
+
+	@PermissionFilter(ename = "downMentalPatient")
+	@Action(value = "downloadMentalPatientAll", results = { @Result(name = "success", type = "json", params = {
+			"root", "gridPage", "ignoreHierarchy", "false" }) })
+	public void downloadExcelExportAll() throws Exception {
+		if (organizationId == null) {
+			errorMessage = "无法定位需要导出的数据";
+			return;
+		}
+		if (searchMentalPatientVo == null) {
+			searchMentalPatientVo = new SearchMentalPatientVo();
+		}
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(organizationId);
+		searchMentalPatientVo.setOrgInternalCode(organization
+				.getOrgInternalCode());
+		if (!pageOnly) {
+			pageOnly = true;
+			Integer count = searchMentalPatientService
+					.getCount(searchMentalPatientVo);
+			String[][] excelDefines = searchMentalPatientService
+					.getExportPopertyArray();
+			exportDataAll(count, excelDefines, "严重精神障碍患者");
+		}
+		systemLogService
+				.log(Logger.INFO,
+						ModuleConstants.MENTALPATIENT,
+						OperatorType.EXPORT,
+						ThreadVariable.getSession().getUserName()
+								+ "在"
+								+ organizationDubboService
+										.getOrganizationRelativeNameByRootOrgIdAndOrgId(
+												organization.getId(),
+												OrganizationServiceHelper
+														.getRootOrg(
+																organizationDubboService)
+														.getId()) + "导出严重精神障碍患者",
+						ObjectToJSON.convertJSON(searchMentalPatientVo));
+	}
+
+	public List<MentalPatient> getNeedExportDatas(int page) {
+		List<MentalPatient> list = new ArrayList<MentalPatient>();
+		if (population != null) {
+			searchMentalPatientVo.setIsEmphasis(population.getIsEmphasis());
+		}
+		if (pageOnly) {
+			list = searchMentalPatientService.searchMentalPatientForExport(
+					searchMentalPatientVo, page, rows, sidx, sord);
+		} else {
+			list = searchMentalPatientService.searchMentalPatientForExport(
+					searchMentalPatientVo, null, null, sidx, sord);
+		}
+		return list;
+	}
+
+	private void populateOrgCondition() {
+		if (searchMentalPatientVo == null) {
+			searchMentalPatientVo = new SearchMentalPatientVo();
+		}
+		if (organizationId != null) {
+			Organization org = organizationDubboService
+					.getSimpleOrgById(organizationId);
+			if (org != null) {
+				searchMentalPatientVo.setOrgInternalCode(org
+						.getOrgInternalCode());
+			} else {
+				searchMentalPatientVo.setOrgInternalCode(null);
+			}
+		} else {
+			searchMentalPatientVo.setOrgInternalCode(null);
+		}
+		if (searchMentalPatientVo.getIsEmphasis() == null) {
+			searchMentalPatientVo.setIsEmphasis(IsEmphasis.Emphasis);
+		}
+	}
+
+	public String searchMentalPatientForAutoComplete() {
+		if (organizationId == null) {
+			organizationId = ThreadVariable.getUser().getOrganization().getId();
+		}
+		organizationId = organizationDubboService
+				.getTownOrganizationId(organizationId);
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(organizationId);
+		List<MentalPatient> mentalPatientList = searchMentalPatientService
+				.findSuperiorVisitByNameAndPinyinAndOrgInternalCode(tag,
+						organization.getOrgInternalCode());
+		for (MentalPatient mentalPatient : mentalPatientList) {
+			AutoCompleteData autoCompleteData = new AutoCompleteData();
+			autoCompleteData.setLabel(mentalPatient.getName());
+			autoCompleteData.setDesc(mentalPatient.getCurrentAddress());
+			autoCompleteData.setValue(mentalPatient.getId().toString());
+			autoCompleteDatas.add(autoCompleteData);
+		}
+		return SUCCESS;
+	}
+
+	public String getIssueSerch() {
+		return issueSerch;
+	}
+
+	public void setIssueSerch(String issueSerch) {
+		this.issueSerch = issueSerch;
+	}
+
+	public List<AutoCompleteData> getAutoCompleteDatas() {
+		return autoCompleteDatas;
+	}
+
+	public void setAutoCompleteDatas(List<AutoCompleteData> autoCompleteDatas) {
+		this.autoCompleteDatas = autoCompleteDatas;
+	}
+
+	public String getTag() {
+		return tag;
+	}
+
+	public void setTag(String tag) {
+		this.tag = tag;
+	}
+
+	public boolean isPageOnly() {
+		return pageOnly;
+	}
+
+	public void setPageOnly(boolean pageOnly) {
+		this.pageOnly = pageOnly;
+	}
+
+	public MentalPatient getMentalPatient() {
+		return mentalPatient;
+	}
+
+	public void setMentalPatient(MentalPatient mentalPatient) {
+		this.mentalPatient = mentalPatient;
+	}
+
+	public Long getOrganizationId() {
+		return organizationId;
+	}
+
+	public void setOrganizationId(Long organizationId) {
+		this.organizationId = organizationId;
+	}
+
+	public SearchMentalPatientVo getSearchMentalPatientVo() {
+		return searchMentalPatientVo;
+	}
+
+	public void setSearchMentalPatientVo(
+			SearchMentalPatientVo searchMentalPatientVo) {
+		this.searchMentalPatientVo = searchMentalPatientVo;
+	}
+
+	public MentalPatient getPopulation() {
+		return population;
+	}
+
+	public void setPopulation(MentalPatient population) {
+		this.population = population;
+	}
+}

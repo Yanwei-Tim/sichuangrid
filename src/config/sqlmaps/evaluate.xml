@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="evaluate">
+	<typeAlias type="com.tianque.domain.ScoresStand" alias="ScoresStand"/>
+	<typeAlias type="com.tianque.domain.Evaluate" alias="Evaluate"/>
+
+	<resultMap id="evaluateResult" class="Evaluate">
+		<result property="year" column="year" />
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="selfAssessmentTotalScore" column="selfAssessmentTotalScore" />
+		<result property="id" column="id" />
+		<result property="title" column="title" />
+		<result property="totalScore" column="totalScore" />
+		<result property="evaluateType.id" column="evaluateTypeId" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="templateTotalScore" column="templateTotalScore" />
+		<result property="evaluateResult" column="evaluateResult" />
+		<result property="state" column="state" />
+		<result property="isEvaluateUsed" column="isEvaluateUsed" />
+		<result property="standardEvaluate.id" column="standardEvaluateId" />
+	</resultMap>
+	
+	<insert id="addEvaluate" parameterClass="Evaluate">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_Evaluates.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		Evaluates(id,isEvaluateUsed,standardEvaluateId,createDate,createUser,updateDate,updateUser,year,title,totalScore,evaluateTypeId,orgInternalCode,orgId,state,selfAssessmentTotalScore)
+		VALUES(#id#,#isEvaluateUsed#,#standardEvaluate.id#,#createDate#,#createUser#,#updateDate#,#updateUser#,#year#,#title#,#totalScore#,#evaluateType.id#,#orgInternalCode#,#organization.id#,#state#,#selfAssessmentTotalScore#)
+	</insert>
+	<delete id="deleteEvaluateById" parameterClass="java.lang.Long">
+		delete from Evaluates
+		where id=#value#
+	</delete>
+	
+	<update id="updateTotalStandardScoreByEvaluateId" parameterClass="long">
+		update evaluates e 
+		set e.templatetotalscore=(select sum(standardScore) from detailedrules where evaluateId=#value# and parentid is null) 
+		where e.id=#value#
+	</update>
+	
+	<select id="getSimpleEvaluateById" parameterClass="java.lang.Long"
+		resultMap="evaluateResult">
+	<![CDATA[select * from Evaluates where id=#value#]]>
+	</select>
+
+
+	<update id="updateEvaluate" parameterClass="Evaluate">
+		update Evaluates set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="year">
+				year=#year#
+			</isNotNull>
+			<isNotNull prepend="," property="title">
+				title=#title#
+			</isNotNull>
+			<isNotNull prepend="," property="totalScore">
+				totalScore=#totalScore#
+			</isNotNull>
+			<isNotNull prepend="," property="selfAssessmentTotalScore">
+				selfAssessmentTotalScore=#selfAssessmentTotalScore#
+			</isNotNull>
+			<isNotNull prepend="," property="evaluateType.id">
+				evaluateTypeId=#evaluateType.id#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="state">
+				state=#state#
+			</isNotNull>
+			<isNotNull prepend="," property="templateTotalScore">
+				templateTotalScore=#templateTotalScore#
+			</isNotNull>
+			<isNotNull prepend="," property="evaluateResult">
+				evaluateResult=#evaluateResult#
+			</isNotNull>
+			<isNotNull prepend="," property="isEvaluateUsed">
+				isEvaluateUsed=#isEvaluateUsed#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+
+	<update id="updateActiveByYear" parameterClass="java.util.Map">
+		update evaluates e set e.state=#state# where e.year=#year#
+	</update>
+	
+	<update id="updateUnActiveEvaluateByParentId" parameterClass="java.util.Map">
+		update evaluates e set e.state=#state# where e.standardEvaluateId=#evaluateId#
+	</update>
+	
+	<update id="updateUnActiveEvaluateByEvaluateId" parameterClass="java.util.Map">
+		update evaluates e set e.state=#state# where e.id=#evaluateId#
+	</update>
+
+	<sql id="sql_where">
+		from Evaluates
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+				<isNull property="orgId" prepend=" and ">
+					orgId is null
+				</isNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="year">
+				<isNotNull property="year" prepend=" and ">
+					year like '$year$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="title">
+				<isNotNull property="title" prepend=" and ">
+					title like '$title$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="state">
+				<isNotNull property="state" prepend=" and ">
+					state = #state#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="evaluateTypeId">
+				<isNotNull property="evaluateTypeId" prepend=" and ">
+					evaluateTypeId = #evaluateTypeId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findEvaluatesByOrgIdAndYearAndTitle" parameterClass="java.util.Map"
+		resultMap="evaluateResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findPigeOnHoleEvaluatesByOrgIdAndYearAndTitle" parameterClass="java.util.Map"
+		resultMap="evaluateResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		and state = 3
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findEvaluateResultByOrgIdAndYear" parameterClass="java.util.Map" resultMap="evaluateResult">
+		select * from evaluates
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend="and">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="year">
+				<isNotNull property="year" prepend="and">
+					year = #year#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>order by orgid
+	</select> 
+	<select id="countUsedEvaluate" parameterClass="java.lang.String" resultClass="java.lang.Long">
+		select count(*) from evaluates where year=#value# and isEvaluateUsed = 1
+	</select> 
+	<select id="findStandardEvaluateIdsByOrgIdAndYearExcludeActiveId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		<![CDATA[select id from evaluates where year=#year# and orgId=#orgId# and evaluateTypeId=#evaluateTypeId# and id<>#id#]]>
+	</select> 
+	<select id="countEvaluateResultByOrgIdAndYear" parameterClass="java.util.Map" resultClass="long">
+		select count(*) from evaluates 
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="year">
+				<isNotNull property="year" prepend="and">
+					year = #year#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findEvaluatesByParentId" parameterClass="java.lang.Long" resultMap="evaluateResult">
+		select * from evaluates where standardEvaluateId=#parentId#
+	</select>
+	
+	<select id="countEvaluatesByOrgIdAndYearAndTitle" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="countPigeOnHoleEvaluatesByOrgIdAndYearAndTitle" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+		and state = 3
+	</select>
+
+	<select id="getStandardEvaluateByOrgId" parameterClass="long" resultMap="evaluateResult">
+		<![CDATA[select * from evaluates eva,detailedRules deta where eva.orgId=#orgId# and eva.id=deta.evaluateid and state=4 and eva.id=(select max(id) from evaluates eva,detailedRules deta where eva.orgId=#orgId# and eva.id=deta.evaluateid and state=4)]]>
+	</select>
+	
+	<select id="countUsedEvaluateByEvaluateId" parameterClass="long" resultClass="long">
+		select count(*) from evaluates where standardEvaluateId=#value# and isEvaluateUsed = 1
+	</select>
+	
+	<select id="getLastEvaluateResultByOrgIdAndEvaluateType" parameterClass="java.util.Map" resultMap="evaluateResult">
+		<![CDATA[select * from evaluates where orgId = #orgId# and evaluatetypeid=#evaluateTypeId# and (state is null or state=#state#) order by createDate desc]]>
+	</select>
+	<update id="ispigeonholeEvaluateById" parameterClass="Evaluate" >
+		update evaluates set state=#state# where id=#id#
+	</update>
+	<select id="findAllEvaluateByOrgIdAndYear" parameterClass="java.util.Map"
+		resultMap="evaluateResult">
+		select * from evaluates where orgid=#orgId# and year=#year#
+	</select>
+	<select id="findUseEvaluatesByOrgIdAndYearAndState" parameterClass="java.util.Map"
+		resultMap="evaluateResult">
+		select * from evaluates where year=#year# and STANDARDEVALUATEID is not null and orgid=#orgId# and state=#state# order by createdate desc
+	</select>
+	
+	<select id="findEvaluatesByStandardEvaluateId" parameterClass="long" resultMap="evaluateResult">
+		select * from evaluates where standardEvaluateId=#value#		
+	</select>
+	
+	<select id="findAllLowerEvaluateResultList" parameterClass="java.util.Map" resultMap="evaluateResult">
+		<![CDATA[select * from evaluates e2
+				 where e2.standardevaluateid in
+				       (select id
+				          from evaluates e1
+				         where e1.year = #year#
+				           and e1.orgId = #orgId#
+				           and e1.standardevaluateid is null)
+				   and e2.state < 3 and e2.state > 0
+				   and e2.year = #year#
+				   ]]> 
+	</select>
+	
+	<select id="countAllLowerEvaluateResultList" parameterClass="java.util.Map" resultClass="long">
+		<![CDATA[select count(*) from evaluates e2
+				 where e2.standardevaluateid in
+				       (select id
+				          from evaluates e1
+				         where e1.year = #year#	
+				           and e1.orgId = #orgId#
+				           and e1.standardevaluateid is null)
+				   and e2.state < 3 and e2.state > 0
+				   and e2.year = #year#
+				   ]]> 
+	</select>
+	
+	<select id="findReportAllLowerEvaluateResultList" parameterClass="java.util.Map" resultMap="evaluateResult">
+		<![CDATA[select * from evaluates e2
+				 where e2.standardevaluateid in
+				       (select id
+				          from evaluates e1
+				         where e1.year = #year#
+				           and e1.orgId = #orgId#
+				           and e1.standardevaluateid is null)
+				   and e2.state = 2
+				   and e2.year = #year#
+				   ]]> 
+	</select>
+	
+	<select id="countReportAllLowerEvaluateResultList" parameterClass="java.util.Map" resultClass="long">
+		<![CDATA[select count(*) from evaluates e2
+				 where e2.standardevaluateid in
+				       (select id
+				          from evaluates e1
+				         where e1.year = #year#	
+				           and e1.orgId = #orgId#
+				           and e1.standardevaluateid is null)
+				   and e2.state =2
+				   and e2.year = #year#
+				   ]]> 
+	</select>
+	
+	
+	<select id="findNotReportAllLowerEvaluateResultList" parameterClass="java.util.Map" resultMap="evaluateResult">
+		<![CDATA[select * from evaluates e2
+				 where e2.standardevaluateid in
+				       (select id
+				          from evaluates e1
+				         where e1.year = #year#
+				           and e1.orgId = #orgId#
+				           and e1.standardevaluateid is null)
+				   and e2.state = 1
+				   and e2.year = #year#
+				   ]]> 
+	</select>
+	
+	<select id="countNotReportAllLowerEvaluateResultList" parameterClass="java.util.Map" resultClass="long">
+		<![CDATA[select count(*) from evaluates e2
+				 where e2.standardevaluateid in
+				       (select id
+				          from evaluates e1
+				         where e1.year = #year#	
+				           and e1.orgId = #orgId#
+				           and e1.standardevaluateid is null)
+				   and e2.state = 1
+				   and e2.year = #year#
+				   ]]> 
+	</select>
+</sqlMap>

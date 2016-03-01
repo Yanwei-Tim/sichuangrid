@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="householdStaffTemp">
+    <typeAlias alias="HouseholdStaffTemp" type="com.tianque.plugin.dataManage.population.householdStaffTemp.domain.HouseholdStaffTemp" />
+    <resultMap id="householdStaffTempResultForBase" class="HouseholdStaffTemp" extends="populationTempBaseInfo.populationBaseInfoResult">
+		<result column="homePhone" property="homePhone" />
+		<result column="relationShipWithHead" property="relationShipWithHead.id" />
+		<result column="relationShipWithHeadText" property="relationShipWithHeadText" />
+		<result column="accountNumber" property="accountNumber" />
+		<result column="outGone" property="outGone" />
+		<result column="outReasons" property="outReasons.id" />
+		<result column="reasonsDate" property="reasonsDate" />
+		<result column="outProvince" property="outProvince" />
+		<result column="outCity" property="outCity" />
+		<result column="outDistrict" property="outDistrict" />
+		<result column="goOutDetailedAddress" property="goOutDetailedAddress" />
+		<result column="residentStatus" property="residentStatus.id" />
+		<result column="settleTime" property="settleTime" />
+		<result column="residenceType" property="residenceType.id" />
+	</resultMap>
+    <resultMap id="householdStaffTempResultForList" class="HouseholdStaffTemp" extends="householdStaffTemp.householdStaffTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	<sql id="claim_sql_where">
+		from DM_HOUSEHOLDSTAFFS_TEMP where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	<sql id="updateBusinessSql">
+		homePhone = #homePhone#
+		,relationShipWithHead = #relationShipWithHead.id#
+		,relationShipWithHeadText = #relationShipWithHeadText#
+		,accountNumber = #accountNumber#
+		,outGone = #outGone#
+		,outReasons = #outReasons.id#
+		,reasonsDate = #reasonsDate#
+		,outProvince = #outProvince#
+		,outCity = #outCity#
+		,outDistrict=#outDistrict#
+		,goOutDetailedAddress=#goOutDetailedAddress#
+		,residentStatus=#residentStatus.id#
+		,settleTime=#settleTime#
+		,residenceType=#residenceType.id#
+	</sql>
+	<select id="findHouseholdStaffTempForPage" resultMap="householdStaffTempResultForList"
+		parameterClass="java.util.Map">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countHouseholdStaffTempForPage" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	
+	<insert id="addHouseholdStaffTemp" parameterClass="HouseholdStaffTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_HOUSEHOLDSTAFFS_TEMP.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_HOUSEHOLDSTAFFS_TEMP
+		(
+		<include refid="populationTempBaseInfo.addBaseInfoFields"/>
+		,<include refid="dataManage.addDataManage"/>
+		,homePhone,relationShipWithHead,relationShipWithHeadText,accountNumber,outGone,outReasons
+		,reasonsDate,outProvince,outCity,outDistrict
+		,goOutDetailedAddress,residentStatus,settleTime,residenceType
+		)
+		values
+		(
+		<include refid="populationTempBaseInfo.addBaseInfoData"/>
+		,<include refid="dataManage.addValueDataManage"/>
+		,#homePhone#,#relationShipWithHead.id#,#relationShipWithHeadText#,#accountNumber#,#outGone#,#outReasons.id#
+		,#reasonsDate#,#outProvince#,#outCity#,#outDistrict#
+		,#goOutDetailedAddress#,#residentStatus.id#,#settleTime#,#residenceType.id#	
+		)
+    </insert>
+    <select id="getHouseholdStaffTempById" parameterClass="Long"
+		resultMap="householdStaffTempResultForList">
+	  <![CDATA[
+	  	select * from DM_HOUSEHOLDSTAFFS_TEMP where id = #value#
+	  ]]>
+	</select>
+	<delete id="deleteHouseholdStaffTempById" parameterClass="Long">
+	   delete DM_HOUSEHOLDSTAFFS_TEMP where id = #value#
+	</delete>
+	<select id="findHouseholdStaffTempsByIdCardNoAndOrgInternalCode" resultMap="householdStaffTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_HOUSEHOLDSTAFFS_TEMP where  1=1 and 
+			(orgInternalCode like #orgInternalCode#||'%' or 
+						#orgInternalCode# like orgInternalCode||'%')
+				and(
+				<iterate property="idCardNo" conjunction="or">
+						upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+	</select>
+	<update id="updateHouseholdStaffTempInIdByIdCardNoAndIdList"  parameterClass="java.util.Map">
+		update DM_HOUSEHOLDSTAFFS_TEMP set inid = #id# where idcardno = #idCardNo# and
+			(orgInternalCode like #orgInternalCode#||'%' or 
+						#orgInternalCode# like orgInternalCode||'%') and
+		 (claimstate = 1 or claimstate is null or 
+			<iterate property="idList" conjunction="or">
+						id = #idList[]#
+			</iterate>
+		 )
+	</update>
+	<update id="updateHouseholdStaffTempForClaimById"  parameterClass="java.util.Map">
+		update DM_HOUSEHOLDSTAFFS_TEMP set CLAIMSTATE = #claimState#, CLAIMDATE = #claimDate#, CLAIMUSERNAME = #claimUserName#, CLAIMUSERID = #claimUserId#, CLAIMORGID = #claimOrgId#, ORGID = #orgId#, ORGINTERNALCODE = #orgInternalCode#  where id = #id#
+	</update>
+	<update id="updateHouseholdStaffTempForUnClaimById" parameterClass="java.util.Map">
+	    update DM_HOUSEHOLDSTAFFS_TEMP set CLAIMSTATE = #claimState#, CLAIMDATE = null, CLAIMUSERNAME = null, CLAIMUSERID = null, CLAIMORGID = null, ORGID = #orgId#, ORGINTERNALCODE = #orgInternalCode#,inid = null  where id = #id# 
+	</update>
+	<select id="getHouseholdStaffTempByInId" parameterClass="Long"
+		resultMap="householdStaffTempResultForList">
+	  <![CDATA[
+	  	select * from DM_HOUSEHOLDSTAFFS_TEMP where inid = #value#
+	  ]]>
+	</select>
+	<update id="updateHouseholdStaffTemp" parameterClass="HouseholdStaffTemp">
+		update DM_HOUSEHOLDSTAFFS_TEMP set
+			<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="householdStaffTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<update id="updateHouseholdStaffTempSateById" parameterClass="java.util.Map">
+		update DM_HOUSEHOLDSTAFFS_TEMP set repeatState=#repeatState#  where id=#id#
+	</update>
+	<select id="findHouseholdStaffTempsByIdCardNoAndImportOrgId" resultMap="householdStaffTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_HOUSEHOLDSTAFFS_TEMP where  1=1
+		<dynamic>
+			<isPropertyAvailable property="importOrganizationId">
+				<isNotNull property="importOrganizationId" prepend=" and ">
+					oldOrgId=#importOrganizationId#
+				</isNotNull>
+			</isPropertyAvailable>
+				and(
+				<iterate property="idCardNo" conjunction="or">
+						upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+		</dynamic>
+	</select>
+	
+	<!-- 新写内容 -->
+	<select id="countFindTemps" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	<select id="findTemps" resultMap="householdStaffTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<update id="updateHouseholdStaffTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_HOUSEHOLDSTAFFS_TEMP set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	<update id="updateHouseholdStaffTempBase" parameterClass="HouseholdStaffTemp">
+		update DM_HOUSEHOLDSTAFFS_TEMP set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updateHouseholdStaffTempBusiness" parameterClass="HouseholdStaffTemp">
+		update DM_HOUSEHOLDSTAFFS_TEMP set
+		<include refid="householdStaffTemp.updateBusinessSql" />
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+</sqlMap>

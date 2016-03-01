@@ -1,0 +1,128 @@
+package com.tianque.plugin.weChat.dao.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.jms.OperateMode;
+import com.tianque.jms.sender.ActiveMQMessageSender;
+import com.tianque.plugin.weChat.dao.PreciseInboxDao;
+import com.tianque.plugin.weChat.domain.ModuleTable;
+import com.tianque.plugin.weChat.domain.WeChatMsg;
+import com.tianque.plugin.weChat.domain.inbox.PreciseInbox;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+import com.tianque.plugin.weChat.util.Constants;
+
+@Repository("preciseInboxDao")
+public class PreciseInboxDaoImpl extends AbstractBaseDao implements
+		PreciseInboxDao {
+
+	@Autowired
+	private ActiveMQMessageSender activeMQMessageSender;
+
+	@Override
+	public PageInfo<PreciseInbox> findPreciseInboxs(
+			Map<String, Object> parameterMap, Integer pageNum, Integer pageSize) {
+		return getPageInfoByParamMap(new PageInfo<ModuleTable>(),
+				"preciseInbox.countFindPreciseInboxs",
+				"preciseInbox.findPreciseInboxs", pageNum, pageSize,
+				parameterMap);
+	}
+
+	@Override
+	public Long savePreciseInbox(PreciseInbox preciseInbox) {
+		return (Long) getSqlMapClientTemplate().insert(
+				"preciseInbox.savePreciseInbox", preciseInbox);
+	}
+
+	@Override
+	public void deletePreciseInboxById(List<Long> preciseInboxIds) {
+		for (Long id : preciseInboxIds) {
+			getSqlMapClientTemplate().delete(
+					"preciseInbox.deletePreciseInboxById", id);
+		}
+	}
+
+	/****
+	 * 设置有无效
+	 */
+	@Override
+	public void setAvailabilityOrInvalid(PreciseInbox preciseInbox) {
+		getSqlMapClientTemplate().update("inbox.updateAvailabilityById",
+				preciseInbox);
+	}
+
+	@Override
+	public PreciseInbox getPreciseInboxById(Long id) {
+		return (PreciseInbox) getSqlMapClientTemplate().queryForObject(
+				"preciseInbox.getPreciseInboxById", id);
+	}
+
+	@Override
+	public void update(PreciseInbox preciseInbox) {
+		getSqlMapClientTemplate().update("preciseInbox.updateById",
+				preciseInbox);
+	}
+
+	@Override
+	public Long getMaxPreciseInboxId() {
+		return (Long) getSqlMapClientTemplate().queryForObject(
+				"inbox.getMaxInboxId");
+	}
+
+	/**
+	 * 根据微信号和粉丝号，修改粉丝所在的群组Id
+	 * 
+	 * @param inbox
+	 */
+	@Override
+	public Integer setGroupIdByWeChatUserIdAndFanId(PreciseInbox preciseInbox) {
+		return (Integer) getSqlMapClientTemplate().update(
+				"preciseInbox.updateGroupIdByWeChatUserIdAndFanId",
+				preciseInbox);
+	}
+
+	/**
+	 * 在mq端保存信息（文本，语音，图片）
+	 * 
+	 * @param messageMap
+	 * @param tencentUser
+	 * @param msgType
+	 * @param access_Token
+	 */
+	@Override
+	public void saveMsgByMq(Map<String, String> messageMap,
+			TencentUser tencentUser, String msgType, String access_Token) {
+		if (msgType.equals(Constants.REQ_MESSAGE_TYPE_IMAGE)
+				|| msgType.equals(Constants.REQ_MESSAGE_TYPE_VOICE)) {
+			activeMQMessageSender.senderMsg(new WeChatMsg(messageMap,
+					tencentUser, messageMap.get("MediaId"), access_Token,
+					OperateMode.ADD));
+		} else {
+			activeMQMessageSender.senderMsg(new WeChatMsg(messageMap,
+					tencentUser, OperateMode.ADD));
+		}
+	}
+
+	@Override
+	public Long findPreciseInboxByFromUserNameTotal(String fromUserName) {
+		HashMap<String,String> map= new HashMap<String,String>();
+		map.put("fromUserName", fromUserName);
+		return (Long) getSqlMapClientTemplate().queryForObject(
+				"preciseInbox.countFindPreciseInboxAndInboxAndIssuesByFromUserName",map);
+	}
+
+	@Override
+	public ArrayList<PreciseInbox> findPreciseInboxPaging(Map<String, Object> map) {
+		
+		return  (ArrayList<PreciseInbox>) getSqlMapClientTemplate().queryForList("preciseInbox.findPreciseInboxPaging", map);
+	}
+
+	
+}

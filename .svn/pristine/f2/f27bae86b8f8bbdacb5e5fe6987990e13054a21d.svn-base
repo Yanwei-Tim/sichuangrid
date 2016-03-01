@@ -1,0 +1,2476 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="baseInfoStatisticNew">
+	<typeAlias alias="statisticSearchVoNew" type="com.tianque.plugin.analysisNew.domain.StatisticSearchVo" />
+	<typeAlias alias="TendencyChartRsVoNew" type="com.tianque.plugin.analysisNew.domain.TendencyChartRsVo" />
+	<typeAlias alias="TendencyChartRsNewVONew" type="com.tianque.plugin.analysisNew.domain.TendencyChartRsNewVO" />
+	<typeAlias alias="baseInfoStatisticHistoryNew"
+		type="com.tianque.plugin.analyzingNew.domain.BaseInfoStatisticHistory" />
+	<typeAlias alias="TendencyChartTotalVoNew" type="com.tianque.plugin.analysisNew.domain.TendencyChartTotalVo"/>
+	<resultMap class="statisticSearchVoNew" id="statisticSearchVoResult">
+		<result property="year" column="year" />
+		<result property="month" column="month" />
+		<result property="sumNum" column="sum" />
+		<result property="displayName" column="displayName" />
+		<result property="type" column="type" />
+		<result property="orgId" column="orgId" />
+		<result property="orginternalcode" column="orginternalcode" />
+		<result property="orgName" column="orgName" />
+		<result property="startDate" column="startDate" />
+		<result property="endDate" column="endDate" />
+		<result property="total" column="total" />
+		<result property="attentionNum" column="attentionNum" />
+		<result property="monthCreate" column="monthCreate" />
+		<result property="noHelp" column="noHelp" />
+		<result property="isHelp" column="isHelp" />
+	</resultMap>
+	<resultMap class="statisticSearchVoNew" id="statisticSearchVoFullResult" extends="statisticSearchVoResult">
+		<result property="resited" column="resited" />
+		<result property="recidivism" column="recidivism" />
+	</resultMap>
+	<resultMap class="TendencyChartRsVoNew" id="tendencyChartResult">
+		<result property="key" column="key" />
+		<result property="num" column="num" />
+	</resultMap>
+	<resultMap class="TendencyChartRsNewVONew" id="tendencyChartResultNEW">
+		<result property="orgCode" column="orgCode" />
+		<result property="typeName" column="typeName" />
+		<result property="content" column="content" />
+	</resultMap>
+	<resultMap class="TendencyChartTotalVoNew" id="TendencyChartTotalResult">
+	  <result property="month1" column="month1"/>
+	  <result property="month2" column="month2"/>
+	  <result property="month3" column="month3"/>
+	  <result property="month4" column="month4"/>
+	  <result property="month5" column="month5"/>
+	  <result property="month6" column="month6"/>
+	  <result property="month7" column="month7"/>
+	  <result property="month8" column="month8"/>
+	  <result property="month9" column="month9"/>
+	  <result property="month10" column="month10"/>
+	  <result property="month11" column="month11"/>
+	  <result property="month12" column="month12"/>
+	</resultMap>
+	<sql id="selectFieldMap">
+		<dynamic prepend=",">
+			<isNotEmpty property="countFieldMap" prepend=",">
+				nvl(sum(countValue),0) as countValue
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+
+	<sql id="selectWhere">
+		<dynamic>
+			<isNotEmpty property="orginternalcode" prepend="and">
+				d.orginternalcode like #orginternalcode#||'%'
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+
+	<sql id="decodeFieldMap">
+		<dynamic prepend=",">
+			<!-- <isNotEmpty property="countFieldMap"> sum(decode($countFieldMap.keyName$,#countFieldMap.expectValue#,1,0)) 
+				as $countFieldMap.keyName$ </isNotEmpty> -->
+			<isNotEmpty property="countFieldMap">
+				sum(case when
+				$countFieldMap.keyName$=#countFieldMap.expectValue# then 1 else 0
+				end) as countValue
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	<sql id="validSql">
+		<dynamic prepend="and">
+			<isNotNull property="isemphasis">
+		   		isemphasis=0
+		   	</isNotNull>
+	   </dynamic>
+	</sql>
+	
+	
+	<insert id="generateHistoryStatisticByType" parameterClass="map">
+	insert into statistichistory_$year$_$month$ (id,countvalue,resited,recidivism,createuser,sum,total,orgid,
+	typename,orgname,orginternalcode, monthcreate,attentionnum,
+	ishelp,nohelp,baseinfotype,startdate,enddate,year,month,createdate)
+	select s_statistichistory.nextval as id,null countvalue,
+	0 resited,0 recidivism,'admin' createuser,
+	datas.* from (
+      select 
+      a.*,nvl(b.monthCreate, 0) as monthCreate,nvl(c.attentionNum,0) as attentionNum,
+      nvl(d.ishelp,0) as ishelp,nvl(e.nohelp,0) as nohelp,
+      #type# as baseinfotype,
+      #startDate# as startdate,
+      #endDate# as enddate,
+      $year$ as year,
+      $month$ as month,
+      #nowDate# as createdate
+          from (select nvl(count(d.id), 0) sum,nvl(count(d.id), 0) total,
+               nvl(max(orgid), 0) orgId,
+               nvl(p.displayname, 0) typename,
+               max(o.orgname) orgName,
+               d.orginternalcode orginternalcode
+          from $tableName$ d
+          left join propertydicts p on d.$propertyField$ = p.id
+          left join organizations o on d.orgid = o.id
+           <![CDATA[where  d.createdate < #endDate#]]> 
+           and d.$propertyField$ is not null
+           group by d.orginternalcode,p.displayname) a
+           
+        left join
+           (select nvl(count(d.id), 0) monthCreate,
+           nvl(max(orgid), 0) orgId, 
+           nvl(p.displayname, 0) typename
+          from $tableName$ d
+          left join propertydicts p on d.$propertyField$ = p.id
+          left join organizations o on d.orgid = o.id
+           <![CDATA[where  d.createdate < #endDate# and d.createdate > #startDate#]]>
+           and d.$propertyField$ is not null
+           group by d.orginternalcode,p.displayname) b
+           on a.orgid=b.orgid and  a.typename=b.typename
+           
+        left join
+           (select nvl(count(d.id), 0) attentionNum,
+           nvl(max(orgid), 0) orgId, 
+           nvl(p.displayname, 0) typename
+          from $tableName$ d
+          left join propertydicts p on d.$propertyField$ = p.id
+          left join organizations o on d.orgid = o.id
+           <![CDATA[where  d.createdate < #endDate#]]>
+           and d.isemphasis=0 
+           and d.$propertyField$ is not null
+           group by d.orginternalcode,p.displayname) c
+           on a.orgid=c.orgid and  a.typename=c.typename
+           
+       left join
+       (select count(d.id) isHelp,
+               nvl(max(orgid), 0) orgid,
+               max(displayname) typename,
+               max(o.orgname)
+          from $tableName$ d
+          left join propertydicts p on d.$propertyField$ = p.id
+          left join organizations o on d.orgid = o.id
+         <![CDATA[where  d.createdate < #endDate#]]>
+           and d.$propertyField$ is not null
+           and exists (select id
+                  from serviceMemberHasObject
+                 where objectType = #type#
+                   and objectId = d.id
+                   and onDuty = 1)
+                   group by d.orginternalcode,p.displayname) d
+       on a.orgid=d.orgid and  a.typename=d.typename 
+       
+       left join
+       (select count(d.id) noHelp,
+               max(orgid) orgid,
+               max(displayname) typename,
+               max(o.orgname)
+          from $tableName$ d
+          left join propertydicts p on d.$propertyField$ = p.id
+          left join organizations o on d.orgid = o.id
+         <![CDATA[where  d.createdate < #endDate#]]>
+           and d.$propertyField$ is not null
+           and not exists (select id
+                  from serviceMemberHasObject
+                 where objectType = #type#
+                   and objectId = d.id
+                   and onDuty = 1)
+                   group by d.orginternalcode,p.displayname) e
+        on a.orgid=e.orgid and  a.typename=e.typename) datas
+	</insert>
+	
+	
+	<insert id="generateIdleYouthHistoryStatisticByType" parameterClass="map">
+		insert into statistichistory_$year$_$month$ 
+		(id,countvalue,resited,recidivism,createuser,sum,total,orgid,
+		typename,orgname,orginternalcode, monthcreate,attentionnum,
+		ishelp,nohelp,baseinfotype,startdate,enddate,year,month,createdate)
+		select s_statistichistory.nextval as id,null countvalue,
+		0 resited,0 recidivism,'admin' createuser,
+		datas.* from (
+			select 
+			a.*,nvl(b.monthCreate, 0) as monthCreate,nvl(c.attentionNum,0) as attentionNum,
+			nvl(d.ishelp,0) as ishelp,nvl(e.nohelp,0) as nohelp,
+			#type# as baseinfotype,
+			#startDate# as startdate,
+			#endDate# as enddate,
+			$year$ as year,
+			$month$ as month,
+			#nowDate# as createdate
+			from (select nvl(count(d.id), 0) sum,nvl(count(d.id), 0) total,
+			     nvl(max(orgid), 0) orgId,
+			     nvl(p.displayname, 0) typename,
+			     max(o.orgname) orgName,
+			     d.orginternalcode orginternalcode
+			from $tableName$ d
+			left join idleyouthshaspropertydicts ihp on ihp.idleyouthsid=d.id
+			left join propertydicts p on ihp.propertydictid = p.id
+			left join organizations o on d.orgid = o.id
+			<![CDATA[where  d.createdate < #endDate#]]>
+			group by d.orginternalcode,p.displayname) a
+           
+		left join
+			(select nvl(count(d.id), 0) monthCreate,
+			nvl(max(orgid), 0) orgId, 
+			nvl(p.displayname, 0) typename
+			from $tableName$ d
+			left join idleyouthshaspropertydicts ihp on ihp.idleyouthsid=d.id
+			left join propertydicts p on ihp.propertydictid = p.id
+			left join organizations o on d.orgid = o.id
+			<![CDATA[where  d.createdate < #endDate# and d.createdate > #startDate#]]>
+			group by d.orginternalcode,p.displayname) b
+			on a.orgid=b.orgid and  a.typename=b.typename
+           
+        left join
+			(select nvl(count(d.id), 0) attentionNum,
+			nvl(max(orgid), 0) orgId, 
+			nvl(p.displayname, 0) typename
+			from $tableName$ d
+			left join idleyouthshaspropertydicts ihp on ihp.idleyouthsid=d.id
+			left join propertydicts p on ihp.propertydictid = p.id
+			left join organizations o on d.orgid = o.id
+			<![CDATA[where  d.createdate < #endDate#]]>
+			and d.isemphasis=0 
+			group by d.orginternalcode,p.displayname) c
+			on a.orgid=c.orgid and  a.typename=c.typename
+           
+       left join
+			(select count(d.id) isHelp,
+			nvl(max(orgid), 0) orgid,
+			max(displayname) typename,
+			max(o.orgname)
+			from $tableName$ d
+			left join idleyouthshaspropertydicts ihp on ihp.idleyouthsid=d.id
+			left join propertydicts p on ihp.propertydictid = p.id
+			left join organizations o on d.orgid = o.id
+         	<![CDATA[where  d.createdate < #endDate#]]>
+           	and exists (select id
+                  from serviceMemberHasObject
+                 where objectType = #type#
+                   and objectId = d.id
+                   and onDuty = 1)
+                   group by d.orginternalcode,p.displayname) d
+       on a.orgid=d.orgid and  a.typename=d.typename 
+       
+       left join
+       		(select count(d.id) noHelp,
+               max(orgid) orgid,
+               max(displayname) typename,
+               max(o.orgname)
+          from idleyouths d
+	          left join idleyouthshaspropertydicts ihp on ihp.idleyouthsid=d.id
+	          left join propertydicts p on ihp.propertydictid = p.id
+	          left join organizations o on d.orgid = o.id
+			<![CDATA[where  d.createdate < #endDate#]]>
+           and not exists (select id
+                  from serviceMemberHasObject
+                 where objectType = #type#
+                   and objectId = d.id
+                   and onDuty = 1)
+                   group by d.orginternalcode,p.displayname) e
+        on a.orgid=e.orgid and  a.typename=e.typename) datas
+	</insert>
+	
+	<insert id="generateIdleYouthHistoryStatisticByAge" parameterClass="map">
+		insert into statistichistory_$year$_$month$ (id,countvalue,resited,recidivism,createuser,sum,total,orgid,
+			typename,orgname,orginternalcode, monthcreate,attentionnum,
+			ishelp,nohelp,baseinfotype,startdate,enddate,year,month,createdate)
+			select s_statistichistory.nextval as id,null countvalue,
+			0 resited,0 recidivism,'admin' createuser,
+			datas.* from (
+	      select 
+	      a.*,nvl(b.monthCreate, 0) as monthCreate,nvl(c.attentionNum,0) as attentionNum,
+	      nvl(d.ishelp,0) as ishelp,nvl(e.nohelp,0) as nohelp,
+	      #type# as baseinfotype,
+	      #startDate# as startdate,
+	      #endDate# as enddate,
+	      $year$ as year,
+	      $month$ as month,
+	      #nowDate#  as createdate
+          from (select nvl(count(d.id), 0) sum,nvl(count(d.id), 0) total,
+               nvl(max(orgid), 0) orgId,
+               nvl(d.displayname, 0) typename,
+               max(o.orgname) orgName,
+               d.orginternalcode orginternalcode
+          from (
+               select 
+              <![CDATA[
+              case when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<6 then '0~6岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<18 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=10 then '6~18岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<25 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=16 then '18~25岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=25 then '25~35岁' end as displayname,
+              iy.* from $tableName$ iy
+              ]]>
+          ) d
+          left join organizations o on d.orgid = o.id
+           <![CDATA[where  d.createdate < #endDate#]]>
+           group by d.orginternalcode,d.displayname) a
+           
+        left join
+           (select nvl(count(d.id), 0) monthCreate,
+           nvl(max(orgid), 0) orgId, 
+           nvl(d.displayname, 0) typename
+          from (
+               select 
+              <![CDATA[
+              case when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<6 then '0~6岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<18 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=10 then '6~18岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<25 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=16 then '18~25岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=25 then '25~35岁' end as displayname,
+              iy.* from $tableName$ iy
+              ]]>
+          ) d
+          left join organizations o on d.orgid = o.id
+          <![CDATA[ where  d.createdate < #endDate# and d.createdate > #startDate#]]>
+           group by d.orginternalcode,d.displayname) b
+           on a.orgid=b.orgid and  a.typename=b.typename
+           
+        left join
+           (select nvl(count(d.id), 0) attentionNum,
+           nvl(max(orgid), 0) orgId, 
+           nvl(d.displayname, 0) typename
+          from (
+              select
+              <![CDATA[ 
+              case when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<6 then '0~6岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<18 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=10 then '6~18岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<25 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=16 then '18~25岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=25 then '25~35岁' end as displayname,
+              iy.* from $tableName$ iy
+              ]]>
+          ) d
+          left join organizations o on d.orgid = o.id
+           <![CDATA[where  d.createdate < #endDate#]]>
+           and d.isemphasis=0 
+           group by d.orginternalcode,d.displayname) c
+           on a.orgid=c.orgid and  a.typename=c.typename
+           
+       left join
+       (select count(d.id) isHelp,
+               nvl(max(orgid), 0) orgid,
+               max(displayname) typename,
+               max(o.orgname)
+          from (
+               select 
+               <![CDATA[ 
+              case when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<6 then '0~6岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<18 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=10 then '6~18岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<25 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=16 then '18~25岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=25 then '25~35岁' end as displayname,
+              iy.* from $tableName$ iy
+              ]]>
+          ) d
+          left join organizations o on d.orgid = o.id
+         <![CDATA[where  d.createdate < #endDate#]]>
+           and exists (select id
+                  from serviceMemberHasObject
+                 where objectType = #type#
+                   and objectId = d.id
+                   and onDuty = 1)) d
+       on a.orgid=d.orgid and  a.typename=d.typename 
+       
+       left join
+       (select count(d.id) noHelp,
+               max(orgid) orgid,
+               max(displayname) typename,
+               max(o.orgname)
+          from (
+               select 
+               <![CDATA[ 
+              case when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<6 then '0~6岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<18 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=10 then '6~18岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<25 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=16 then '18~25岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=25 then '25~35岁' end as displayname,
+              iy.* from $tableName$ iy
+              ]]>
+          ) d
+          left join organizations o on d.orgid = o.id
+         <![CDATA[where  d.createdate < #endDate#]]>
+           and not exists (select id
+                  from serviceMemberHasObject
+                 where objectType = #type#
+                   and objectId = d.id
+                   and onDuty = 1)) e
+        on a.orgid=e.orgid and  a.typename=e.typename) datas
+	</insert>
+	
+	<insert id="generateIdleYouthByAgeAndLeaderCount" parameterClass="map">
+		insert into statistichistory_$year$_$month$ (id,countvalue,resited,recidivism,createuser,sum,total,orgid,
+			typename,orgname,orginternalcode, monthcreate,attentionnum,
+			ishelp,nohelp,baseinfotype,startdate,enddate,year,month,createdate)
+			select s_statistichistory.nextval as id,null countvalue,
+			0 resited,0 recidivism,'admin' createuser,
+			datas.* from (
+	      select 
+	      a.*,nvl(b.monthCreate, 0) as monthCreate,nvl(c.attentionNum,0) as attentionNum,
+	      nvl(d.ishelp,0) as ishelp,nvl(e.nohelp,0) as nohelp,
+	      #type# as baseinfotype,
+	      #startDate# as startdate,
+	      #endDate# as enddate,
+	      $year$ as year,
+	      $month$ as month,
+	      #nowDate#  as createdate
+          from (select nvl(count(d.id), 0) sum,nvl(count(d.id), 0) total,
+               nvl(max(orgid), 0) orgId,
+               nvl(d.displayname, 0) typename,
+               max(o.orgname) orgName,
+               d.orginternalcode orginternalcode
+          from (
+               select 
+              <![CDATA[
+              case when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<10 then '10岁以下'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<16 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=10 then '10~16岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<20 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=16 then '16~20岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=20 then '20岁以上' end as displayname,
+              iy.* from $tableName$ iy
+              ]]>
+          ) d
+          left join organizations o on d.orgid = o.id
+           <![CDATA[where  d.createdate < #endDate#]]>
+           group by d.orginternalcode,d.displayname) a
+           
+        left join
+           (select nvl(count(d.id), 0) monthCreate,
+           nvl(max(orgid), 0) orgId, 
+           nvl(d.displayname, 0) typename
+          from (
+               select 
+              <![CDATA[
+              case when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<10 then '10岁以下'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<16 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=10 then '10~16岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<20 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=16 then '16~20岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=20 then '20岁以上' end as displayname,
+              iy.* from $tableName$ iy
+              ]]>
+          ) d
+          left join organizations o on d.orgid = o.id
+          <![CDATA[ where  d.createdate < #endDate# and d.createdate > #startDate#]]>
+           group by d.orginternalcode,d.displayname) b
+           on a.orgid=b.orgid and  a.typename=b.typename
+           
+        left join
+           (select nvl(count(d.id), 0) attentionNum,
+           nvl(max(orgid), 0) orgId, 
+           nvl(d.displayname, 0) typename
+          from (
+              select
+              <![CDATA[ 
+              case when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<10 then '10岁以下'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<16 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=10 then '10~16岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<20 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=16 then '16~20岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=20 then '20岁以上' end as displayname,
+              iy.* from $tableName$ iy
+              ]]>
+          ) d
+          left join organizations o on d.orgid = o.id
+           <![CDATA[where  d.createdate < #endDate#]]>
+           and d.isemphasis=0 
+           group by d.orginternalcode,d.displayname) c
+           on a.orgid=c.orgid and  a.typename=c.typename
+           
+       left join
+       (select count(d.id) isHelp,
+               nvl(max(orgid), 0) orgid,
+               max(displayname) typename,
+               max(o.orgname)
+          from (
+               select 
+               <![CDATA[ 
+              case when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<10 then '10岁以下'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<16 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=10 then '10~16岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<20 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=16 then '16~20岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=20 then '20岁以上' end as displayname,
+              iy.* from $tableName$ iy
+              ]]>
+          ) d
+          left join organizations o on d.orgid = o.id
+         <![CDATA[where  d.createdate < #endDate#]]>
+           and exists (select id
+                  from serviceMemberHasObject
+                 where objectType = #type#
+                   and objectId = d.id
+                   and onDuty = 1)) d
+       on a.orgid=d.orgid and  a.typename=d.typename 
+       
+       left join
+       (select count(d.id) noHelp,
+               max(orgid) orgid,
+               max(displayname) typename,
+               max(o.orgname)
+          from (
+               select 
+               <![CDATA[ 
+              case when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<10 then '10岁以下'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<16 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=10 then '10~16岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)<20 and floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=16 then '16~20岁'
+              when floor(MONTHS_BETWEEN(#nowDate#,(select b.birthday from baseinfo b where b.id=baseinfoid ))/12)>=20 then '20岁以上' end as displayname,
+              iy.* from $tableName$ iy
+              ]]>
+          ) d
+          left join organizations o on d.orgid = o.id
+         <![CDATA[where  d.createdate < #endDate#]]>
+           and not exists (select id
+                  from serviceMemberHasObject
+                 where objectType = #type#
+                   and objectId = d.id
+                   and onDuty = 1)) e
+        on a.orgid=e.orgid and  a.typename=e.typename) datas
+	</insert>
+	
+	<insert id="generatePositiveInfoHistoryStatistic" parameterClass="map">
+	insert into statistichistory_$year$_$month$ (id,countvalue,createuser,sum,total,orgid,
+	typename,orgname,orginternalcode,recidivism,resited, monthcreate,attentionnum,
+	ishelp,nohelp,baseinfotype,startdate,enddate,year,month,createdate)
+	select s_statistichistory.nextval as id,null countvalue,'admin' createuser,
+	datas.* from (
+      select 
+      a.*,nvl(b.monthCreate, 0) as monthCreate,nvl(c.attentionNum,0) as attentionNum,
+      nvl(d.ishelp,0) as ishelp,nvl(e.nohelp,0) as nohelp,
+      #type# as baseinfotype,
+      #startDate# as startdate,
+      #endDate# as enddate,
+      $year$ as year,
+      $month$ as month,
+      #nowDate#  as createdate
+          from (select nvl(count(d.id), 0) sum,nvl(count(d.id), 0) total,
+               nvl(max(orgid), 0) orgId,
+               nvl(p.displayname, 0) typename,
+               max(o.orgname) orgName,
+               d.orginternalcode orginternalcode,
+               nvl(sum(case when iscrime=1 then 1
+		              else 0 end ),0) recidivism ,
+	           nvl(sum(case when resettlementDate is not null then 1
+	              else 0 end ),0) resited
+          from $tableName$ d
+          left join propertydicts p on d.$propertyField$ = p.id
+          left join organizations o on d.orgid = o.id
+           <![CDATA[where  d.createdate < #endDate#]]> 
+           and d.$propertyField$ is not null
+           group by d.orginternalcode,p.displayname) a
+           
+        left join
+           (select nvl(count(d.id), 0) monthCreate,
+           nvl(max(orgid), 0) orgId, 
+           nvl(p.displayname, 0) typename
+          from $tableName$ d
+          left join propertydicts p on d.$propertyField$ = p.id
+          left join organizations o on d.orgid = o.id
+           <![CDATA[where  d.createdate < #endDate# and d.createdate > #startDate#]]>
+           and d.$propertyField$ is not null
+           group by d.orginternalcode,p.displayname) b
+           on a.orgid=b.orgid and  a.typename=b.typename
+           
+        left join
+           (select nvl(count(d.id), 0) attentionNum,
+           nvl(max(orgid), 0) orgId, 
+           nvl(p.displayname, 0) typename
+          from $tableName$ d
+          left join propertydicts p on d.$propertyField$ = p.id
+          left join organizations o on d.orgid = o.id
+           <![CDATA[where  d.createdate < #endDate#]]>
+           and d.isemphasis=0  
+           and d.$propertyField$ is not null
+           group by d.orginternalcode,p.displayname) c
+           on a.orgid=c.orgid and  a.typename=c.typename
+           
+       left join
+       (select count(d.id) isHelp,
+               nvl(max(orgid), 0) orgid,
+               max(displayname) typename,
+               max(o.orgname)
+          from $tableName$ d
+          left join propertydicts p on d.$propertyField$ = p.id
+          left join organizations o on d.orgid = o.id
+         <![CDATA[where  d.createdate < #endDate#]]>
+           and d.$propertyField$ is not null
+           and exists (select id
+                  from serviceMemberHasObject
+                 where objectType = #type#
+                   and objectId = d.id
+                   and onDuty = 1)) d
+       on a.orgid=d.orgid and  a.typename=d.typename 
+       
+       left join
+       (select count(d.id) noHelp,
+               max(orgid) orgid,
+               max(displayname) typename,
+               max(o.orgname)
+          from $tableName$ d
+          left join propertydicts p on d.$propertyField$ = p.id
+          left join organizations o on d.orgid = o.id
+         <![CDATA[where  d.createdate < #endDate#]]>
+           and d.$propertyField$ is not null
+           and not exists (select id
+                  from serviceMemberHasObject
+                 where objectType = #type#
+                   and objectId = d.id
+                   and onDuty = 1)) e
+        on a.orgid=e.orgid and  a.typename=e.typename) datas
+	</insert>
+	
+	<insert id="generateActualHouseHistoryStatistic" parameterClass="map">
+	insert into statistichistory_$year$_$month$ (id,countvalue,resited,recidivism,createuser,sum,total,orgid,
+	typename,orgname,orginternalcode, monthcreate,attentionnum,
+	ishelp,nohelp,baseinfotype,startdate,enddate,year,month,createdate)
+	select s_statistichistory.nextval as id,null countvalue,
+	0 resited,0 recidivism,'admin' createuser,
+	datas.* from (
+      select 
+      a.*,nvl(b.monthCreate, 0) as monthCreate,nvl(c.attentionNum,0) as attentionNum,
+      nvl(d.ishelp,0) as ishelp,nvl(e.nohelp,0) as nohelp,
+      #type# as baseinfotype,
+      #startDate# as startdate,
+      #endDate# as enddate,
+      $year$ as year,
+      $month$ as month,
+      #nowDate#  as createdate
+          from (select nvl(count(d.id), 0) sum,nvl(count(d.id), 0) total,
+               nvl(max(orgid), 0) orgId,
+               nvl(d.displayname, 0) typename,
+               max(o.orgname) orgName,
+               d.orginternalcode orginternalcode
+          from (select 
+              case when hi.isrentalhouse=0 or hi.isrentalhouse is null then '非出租房'
+              when hi.isrentalhouse=1 then '出租房' end as displayname,
+              hi.* <isEqual property="tableName" compareValue="houseinfo">
+		          from $tableName$_$shardCode$ hi
+		          </isEqual >
+		          <isNotEqual property="tableName" compareValue="houseinfo">
+		           from $tableName$ hi
+		          </isNotEqual>) d
+          left join organizations o on d.orgid = o.id
+           <![CDATA[where  d.createdate < #endDate#]]> 
+           group by d.orginternalcode,d.displayname) a
+           
+        left join
+           (select nvl(count(d.id), 0) monthCreate,
+           nvl(max(orgid), 0) orgId, 
+           nvl(d.displayname, 0) typename
+          from (select 
+              case when hi.isrentalhouse=0 or hi.isrentalhouse is null then '非出租房'
+              when hi.isrentalhouse=1 then '出租房' end as displayname,
+              hi.* <isEqual property="tableName" compareValue="houseinfo">
+		          from $tableName$_$shardCode$ hi
+		          </isEqual >
+		          <isNotEqual property="tableName" compareValue="houseinfo">
+		           from $tableName$ hi
+		          </isNotEqual>) d
+          left join organizations o on d.orgid = o.id
+           <![CDATA[where  d.createdate < #endDate# and d.createdate > #startDate#]]>
+           group by d.orginternalcode,d.displayname) b
+           on a.orgid=b.orgid and  a.typename=b.typename
+           
+        left join
+           (select nvl(count(d.id), 0) attentionNum,
+           nvl(max(orgid), 0) orgId, 
+           nvl(d.displayname, 0) typename
+          from (select 
+              case when hi.isrentalhouse=0 or hi.isrentalhouse is null then '非出租房'
+              when hi.isrentalhouse=1 then '出租房' end as displayname,
+              hi.* <isEqual property="tableName" compareValue="houseinfo">
+		          from $tableName$_$shardCode$ hi
+		          </isEqual >
+		          <isNotEqual property="tableName" compareValue="houseinfo">
+		           from $tableName$ hi
+		          </isNotEqual>) d
+          left join organizations o on d.orgid = o.id
+           <![CDATA[where  d.createdate < #endDate#]]>
+           group by d.orginternalcode,d.displayname) c
+           on a.orgid=c.orgid and  a.typename=c.typename
+           
+       left join
+       (select count(d.id) isHelp,
+               nvl(max(orgid), 0) orgid,
+               max(displayname) typename,
+               max(o.orgname)
+          from (select 
+              case when hi.isrentalhouse=0 or hi.isrentalhouse is null then '非出租房'
+              when hi.isrentalhouse=1 then '出租房' end as displayname,
+              hi.* <isEqual property="tableName" compareValue="houseinfo">
+		          from $tableName$_$shardCode$ hi
+		          </isEqual >
+		          <isNotEqual property="tableName" compareValue="houseinfo">
+		           from $tableName$ hi
+		          </isNotEqual>) d
+          left join organizations o on d.orgid = o.id
+         <![CDATA[where  d.createdate < #endDate#]]>
+           and exists (select id
+                  from serviceMemberHasObject
+                 where objectType = #type#
+                   and objectId = d.id
+                   and onDuty = 1)) d
+       on a.orgid=d.orgid and  a.typename=d.typename 
+       
+       left join
+       (select count(d.id) noHelp,
+               max(orgid) orgid,
+               max(displayname) typename,
+               max(o.orgname)
+          from (select 
+              case when hi.isrentalhouse=0 or hi.isrentalhouse is null then '非出租房'
+              when hi.isrentalhouse=1 then '出租房' end as displayname,
+              hi.* <isEqual property="tableName" compareValue="houseinfo">
+		          from $tableName$_$shardCode$ hi
+		          </isEqual >
+		          <isNotEqual property="tableName" compareValue="houseinfo">
+		           from $tableName$ hi
+		          </isNotEqual>) d
+          left join organizations o on d.orgid = o.id
+         <![CDATA[where  d.createdate < #endDate#]]>
+           and not exists (select id
+                  from serviceMemberHasObject
+                 where objectType = #type#
+                   and objectId = d.id
+                   and onDuty = 1)) e
+        on a.orgid=e.orgid and  a.typename=e.typename) datas
+	</insert>
+	
+	<insert id="generateHistoryStatisticWithoutPropertyDict" parameterClass="map">
+	 insert into statistichistory_$year$_$month$ (id,countvalue,resited,recidivism,createuser,sum,total,orgid,
+	 orgname,orginternalcode, monthcreate,attentionnum,
+	 ishelp,nohelp,baseinfotype,startdate,enddate,year,month,createdate,typename)
+	 select s_statistichistory.nextval as id,null countvalue,
+	 0 resited,0 recidivism,'admin' createuser,
+	 datas.* from (
+      select 
+      a.*,nvl(b.monthCreate, 0) as monthCreate,nvl(c.attentionNum,0) as attentionNum,
+      nvl(d.ishelp,0) as ishelp,nvl(e.nohelp,0) as nohelp,
+      #type# as baseinfotype,
+      #startDate# as startdate,
+      #endDate# as enddate,
+      $year$ as year,
+      $month$ as month,
+      #nowDate#  as createdate,
+      #displayName# as typename
+          from (select nvl(count(d.id), 0) sum,nvl(count(d.id), 0) total,
+               nvl(max(orgid), 0) orgId,
+               max(o.orgname) orgName,
+               d.orginternalcode orginternalcode
+           	   from $tableName$ d
+          left join organizations o on d.orgid = o.id
+           <![CDATA[where  d.createdate < #endDate#]]>
+           group by d.orginternalcode) a
+           
+        left join
+           		(select nvl(count(d.id), 0) monthCreate,
+           		nvl(max(orgid), 0) orgId
+           		from $tableName$ d
+          left join organizations o on d.orgid = o.id
+          <![CDATA[where  d.createdate < #endDate# and d.createdate >#startDate# ]]>
+           group by d.orginternalcode) b
+           on a.orgid=b.orgid
+           
+        left join
+           		(select nvl(count(d.id), 0) attentionNum,
+           		nvl(max(orgid), 0) orgId
+           		from $tableName$ d
+          left join organizations o on d.orgid = o.id
+           <![CDATA[where  d.createdate < #endDate#]]>
+           <isNotEqual property="type" compareValue="builddata">
+           and d.isemphasis=0 
+           </isNotEqual>
+           group by d.orginternalcode) c
+           on a.orgid=c.orgid
+           
+       left join
+       (select count(d.id) isHelp,
+               nvl(max(orgid), 0) orgid
+           	   from $tableName$ d
+          left join organizations o on d.orgid = o.id
+         <![CDATA[where  d.createdate < #endDate#]]>
+           and exists (select id
+                  from serviceMemberHasObject
+                 where objectType = #type#
+                   and objectId = d.id
+                   and onDuty = 1) 
+                   group by d.orginternalcode
+                   ) d
+       on a.orgid=d.orgid
+       
+       left join
+       (select count(d.id) noHelp,
+               max(orgid) orgid
+	          from $tableName$ d
+          left join organizations o on d.orgid = o.id
+         <![CDATA[where  d.createdate < #endDate#]]>
+           and not exists (select id
+                  from serviceMemberHasObject
+                 where objectType = #type#
+                   and objectId = d.id
+                   and onDuty = 1) 
+                   group by d.orginternalcode
+                   ) e
+        on a.orgid=e.orgid) datas
+	</insert>
+	
+	<select id="getStatisticList" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap" remapResults="true">
+
+		select max(mo.orgname) orgName,max(mo.id) orgId,p.displayname typeName
+		,nvl(sum(co.dc),0) sumNum
+		<include refid="selectFieldMap" />
+		from organizations mo
+		left join propertydicts p on p.id=p.id
+		left join
+		(select d.orginternalcode, p.id, max(p.displayname)
+		rs,count(d.id) dc
+		<include refid="decodeFieldMap" />
+		from
+		$table$ d right join propertydicts p on d.$propertyField$=p.id
+		where 1=1 <include refid="validSql"/> and
+		p.propertydomainid=#propertyDomainId#
+		group by
+		d.orginternalcode, p.id
+		)co on
+		co.orginternalcode like
+		mo.orginternalcode||'%' and co.id=p.id
+
+		where
+		mo.parentid=#orgId# and
+		mo.orgtype=#orgType#
+		and
+		p.propertydomainid=#propertyDomainId#
+		group by mo.id,p.displayname
+		,mo.seq,p.displayseq
+		order by
+		mo.seq,p.displayseq
+
+	</select>
+	
+	<select id="getIsHelpStatisticList" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap" remapResults="true">
+			select o.orgname,
+       nvl(sum(sum.ishelp), 0) ishelp,
+       nvl(sum(sum.nohelp), 0) nohelp,
+       nvl(sum(sum.total), 0) sum
+	   from     
+	   (select * 
+	  from organizations  where parentid = #orgId# and orgtype=#orgType#) o
+	  left join (select ishelp.ishelp,
+                    total.orginternalcode,
+                    nohelp.nohelp,
+                    total.total
+               from (select count(d.id) total,
+                            max(d.orginternalcode) orginternalcode
+                       from $table$ d  where 1=1 <include refid="validSql"/>
+                      group by d.orginternalcode
+                     
+                     ) total
+               left join (select count(d.id) nohelp,
+                                max(d.orginternalcode) orginternalcode
+                           from $table$ d
+                          where not exists
+                          (select id
+                                   from servicememberhasobject
+                                  where objectType = #type#
+                                    and objectId = d.id) <include refid="validSql"/>
+                          group by d.orginternalcode) nohelp
+                 on total.orginternalcode = nohelp.orginternalcode
+               left join (select count(d.id) ishelp,
+                                max(d.orginternalcode) orginternalcode
+                           from $table$ d
+                          where exists (select id
+                                   from servicememberhasobject
+                                  where objectType = #type#
+                                    and objectId = d.id) <include refid="validSql"/>
+                          group by d.orginternalcode) ishelp
+                 on ishelp.orginternalcode = total.orginternalcode) sum
+    on sum.orginternalcode like o.orginternalcode || '%'
+    group by orgname,seq
+	order by seq
+	</select>
+	
+<!--  <select id="getIsHelpStatisticList" parameterClass="statisticSearchVo"
+		resultClass="java.util.HashMap" remapResults="true">
+			select rs1.orgname orgname, rs1.ishelp ishelp, rs2.nohelp nohelp, rs3.sum sum
+  from (select o.orgname, nvl(count(d.id), 0) ishelp,o.seq seq
+          from (select *
+                  from organizations
+                 where parentid = #orgId#
+                   and orgtype = (select id
+                                    from propertydicts
+                                   where propertydomainid =
+                                         (select id
+                                            from propertydomains
+                                           where domainname = #organizationType#)
+                                     and internalid = 0)) o
+          left join $table$ d
+            on d.orginternalcode like o.orginternalcode || '%'
+           and isemphasis = 0 
+           and exists (select id
+                  from servicememberhasobject
+                 where objectType = #type#
+                   and objectId = d.id)
+         group by o.orgname,o.seq) rs1
+  left join (select o.orgname, nvl(count(d.id), 0) nohelp
+               from (select *
+                       from organizations
+                      where parentid = #orgId#
+                        and orgtype = (select id
+                                         from propertydicts
+                                        where propertydomainid =
+                                              (select id
+                                                 from propertydomains
+                                                where domainname = #organizationType#)
+                                          and internalid = 0)) o
+               left join $table$ d
+                 on d.orginternalcode like o.orginternalcode || '%'
+                and isemphasis = 0 
+                and not exists (select id
+                       from servicememberhasobject
+                      where objectType = #type#
+                        and objectId = d.id)
+              group by o.orgname) rs2
+    on rs2.orgname = rs1.orgname
+  left join (select o.orgname, nvl(count(e.id), 0) sum
+               from (select *
+                       from organizations
+                      where parentid = #orgId#
+                        and orgtype = (select id
+                                         from propertydicts
+                                        where propertydomainid =
+                                              (select id
+                                                 from propertydomains
+                                                where domainname = #organizationType#)
+                                          and internalid = 0)) o
+             
+               left join $table$ e
+                 on e.orginternalcode like o.orginternalcode || '%'
+                and isemphasis = 0 
+              group by o.orgname) rs3
+    on rs3.orgname = rs1.orgname
+    order by rs1.seq
+	</select> -->
+	<select id="getPositiveInfoStatisticList" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap" remapResults="true">
+			select o.orgname,
+       nvl(sum(sum.ishelp), 0) ishelp,
+       nvl(sum(sum.nohelp), 0) nohelp,
+       nvl(sum(sum.total), 0) sum,
+       nvl(sum(sum.recidivism),0) recidivism
+	   from     
+	   (select * 
+	  from organizations  where parentid = #orgId# and orgtype=(select id from propertydicts
+		where
+		propertydomainid=(select id from propertydomains where
+		domainname=#organizationType#) and internalid=0)) o
+	  left join (select ishelp.ishelp,
+                    total.orginternalcode,
+                    nohelp.nohelp,
+                    total.total,
+                    total.recidivism
+               from (select count(d.id) total,
+               				sum(case when resettlementDate is not null then 1  else 0 end ) recidivism, 
+                            max(d.orginternalcode) orginternalcode
+                       from $table$ d
+                      group by d.orginternalcode
+                     
+                     ) total
+               left join (select count(d.id) nohelp,
+                                max(d.orginternalcode) orginternalcode
+                           from $table$ d
+                          where not exists
+                          (select id
+                                   from servicememberhasobject
+                                  where objectType = #type#
+                                    and objectId = d.id)
+                          group by d.orginternalcode) nohelp
+                 on total.orginternalcode = nohelp.orginternalcode
+               left join (select count(d.id) ishelp,
+                                max(d.orginternalcode) orginternalcode
+                           from $table$ d
+                          where exists (select id
+                                   from servicememberhasobject
+                                  where objectType = #type#
+                                    and objectId = d.id)
+                          group by d.orginternalcode) ishelp
+                 on ishelp.orginternalcode = total.orginternalcode) sum
+    on sum.orginternalcode like o.orginternalcode || '%'
+    group by orgname,seq
+	order by seq
+	</select>
+	<!--方法未调用-->
+	<select id="getIsResitedStatisticList" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap" remapResults="true">
+		select o.orgname, 
+	       nvl(sum(total.resited), 0) resited,
+	       nvl(sum(total.total), 0) sum
+		  from (select * from organizations where parentid = #orgId# and orgtype=(select id from propertydicts
+		where
+		propertydomainid=(select id from propertydomains where
+		domainname=#organizationType#) and internalid=0)) o
+		  left join (select count(d.id) total,
+		                            sum(case when iscrime=1 then 1 else 0 end ) resited,
+		                            max(d.orginternalcode) orginternalcode
+		                       from $table$ d
+		                      group by d.orginternalcode) total 
+		    on total.orginternalcode like o.orginternalcode || '%'
+		 group by orgname, seq
+		 order by seq 
+	</select>
+	<delete id="deleteStatisticByMap" parameterClass="java.util.Map">
+		delete
+		statistichistory_$year$_$month$ where year=#year# and month=#month# 
+		<dynamic>
+			<isNotEmpty property="orginternalcode" prepend="and">
+				orginternalcode like #orgInternalcode#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="type" prepend="and"> 
+				baseinfotype=#type#
+			</isNotEmpty>
+		</dynamic>
+	</delete>
+
+	<select id="getStatisticListFromHistory" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap" remapResults="true">
+		select re.*, case when re.changeDate is null then 0 when add_months(to_date(#year# || '-' ||#month#,'yyyy-MM'),1) > re.changeDate then 0 else 1 end as orgState
+		from ( select max(mo.orgname)
+				orgName,max(mo.id) orgId,
+				p.displayname typeName,
+				nvl(sum(co.sumN),0) sumNum,
+				nvl(sum(countValue),0) countValue,
+				nvl(sum(co.ishelp),0) ishelp,
+		     	nvl(sum(co.nohelp),0) nohelp,
+		     	nvl(sum(co.resited),0) resited,
+		     	nvl(sum(co.recidivism),0) recidivism,
+		     	max(mo.changeDate) changeDate,
+     			nvl(sum(co.monthCreate),0) monthCreate,
+		     	(select to_number(seq ||'00'|| mo.seq) from  organizations o where o.id=mo.parentId )  seqs
+				from 
+				(select * from allorganizations o where 
+					<isPropertyAvailable property="orgLevelDistance">
+							<isNull property="orgLevelDistance">
+								 o.parentid=#orgId# 
+							</isNull>
+							<isNotNull property="orgLevelDistance">
+								REGEXP_LIKE(o.orginternalcode,'^' || REPLACE(#orginternalcode# , '.', '\.') ||'([^\.]{1,4}\.){$orgLevelDistance$}$$')
+							</isNotNull>
+					 </isPropertyAvailable>
+					and o.orgtype=#orgType#
+				)mo
+				left join
+				(select * from propertydicts where 
+					propertydomainid=#propertyDomainId#
+				)p on p.id=p.id
+				left join (select d.sum sumN
+				,d.typename,d.orginternalcode ,d.countValue countValue,d.orgId,
+				d.ishelp ishelp, d.nohelp nohelp,d.resited resited, d.recidivism recidivism ,d.monthCreate monthCreate
+				from
+				statistichistory_$year$_$month$ d where
+				d.baseinfotype=#type# and d.year=#year#
+				and d.month=#month# 
+				)co on co.orgId = mo.id and co.typename=p.displayname
+				group by mo.id,p.displayname ,p.displayseq,mo.parentid,mo.seq
+				order by seqs,p.displayseq
+		) re
+	</select>
+	
+		<select id="getStatisticListFromHistoryNoType" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap" remapResults="true">
+		select re.*, case when re.changeDate is null then 0 when add_months(to_date(#year# || '-' ||#month#,'yyyy-MM'),1) > re.changeDate then 0 else 1 end as orgState
+		from (		select max(mo.orgname)
+					orgName,max(mo.id) orgId, 
+					max(co.typeName) typeName,
+					nvl(sum(co.sumN),0) sumNum,
+					nvl(sum(co.ishelp),0) ishelp,
+					nvl(sum(co.nohelp),0) nohelp,
+					nvl(sum(countValue),0) countValue,
+					nvl(sum(co.monthCreate),0) monthCreate,
+					max(mo.changeDate) changeDate
+					from allorganizations mo
+					left join (select d.sum sumN,d.ishelp ishelp,d.nohelp nohelp,d.typeName typeName
+					,d.orginternalcode ,d.countValue countValue,d.orgId,d.monthCreate monthCreate
+					from
+					statistichistory_$year$_$month$ d  where
+					d.baseinfotype=#type# and d.year=#year#
+					and d.month=#month# 
+					)co on co.orgId = mo.id
+					where 
+					
+					<isPropertyAvailable property="orgLevelDistance">
+							<isNull property="orgLevelDistance">
+								 mo.parentid=#orgId# 
+							</isNull>
+							<isNotNull property="orgLevelDistance">
+								REGEXP_LIKE(mo.orginternalcode,'^' || REPLACE(#orginternalcode# , '.', '\.') ||'([^\.]{1,4}\.){$orgLevelDistance$}$$')
+							</isNotNull>
+					 </isPropertyAvailable>
+					and mo.orgtype=#orgType#
+					
+					group by mo.id,mo.seq,mo.parentid
+					order by
+					(select to_number(seq ||'00'|| mo.seq) from  organizations o where o.id=mo.parentId )
+			) re
+	</select>
+	
+	<select id="getArealDistributionListFromHistoryNoType" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap" remapResults="true">
+		select re.*, case when re.changeDate is null then 0 when add_months(to_date(#year# || '-' ||#month#,'yyyy-MM'),1) > re.changeDate then 0 else 1 end as orgState
+		from (	select max(mo.orgname)
+				orgName,max(mo.id) orgId, max(co.typeName) typeName
+				,nvl(sum(co.sumN),0)
+				sumNum,nvl(sum(countValue),0) countValue,
+				max(mo.changeDate) changeDate
+				from allorganizations mo
+				left join (select d.sum sumN,d.typeName typeName
+				,d.orginternalcode ,d.countValue countValue,d.orgId
+				from
+				statistichistory_$year$_$month$ d  where
+				d.baseinfotype=#type# and d.year=#year#
+				and d.month=#month# 
+				)co on co.orgId = mo.id 
+				where mo.parentid = #orgId#  and
+				mo.orgtype=#orgType#
+				group by mo.id,mo.seq
+				order by
+				mo.seq
+		) re
+	</select>
+
+	<select id="getIsHelpFromHistory" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap" remapResults="true">
+		select max(mo.orgname) orgName,
+       max(mo.id) orgId,
+       nvl(sum(co.sum), 0) sumNum,
+       nvl(sum(co.ishelp), 0) ishelp,
+       nvl(sum(co.nohelp), 0) nohelp
+		  from organizations mo
+		  left join (select d.sum sum, d.ishelp ishelp,d.nohelp nohelp,
+		                    d.orginternalcode,d.orgId
+		               from statistichistory_$year$_$month$ d
+		              where d.baseinfotype = #type#
+		              <isEqual property="type" compareValue="idleYouth">
+		              		and d.typename in 
+		              		( select x.displayname from propertydicts x where x.propertydomainid=#propertyDomainId#)
+		              </isEqual>
+		                and d.year = #year#
+		                and d.month = #month#) co
+		    on co.orgId = mo.id
+		 where mo.parentid =#orgId#
+		 and mo.orgtype=#orgType#
+		 group by mo.id, mo.seq
+		 order by mo.seq
+	</select>
+	<select id="getCountByMonth" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select sum(sum) from statistichistory_$year$_$month$ where 1=1
+		<dynamic>
+			<isNotEmpty property="typeName" prepend="and">
+				typeName = #typeName#
+			</isNotEmpty>
+			<isNotEmpty property="type" prepend="and">
+				baseinfoType = #type#
+			</isNotEmpty>
+			<isNotEmpty property="orgId" prepend="and">
+				orgId = #orgId#
+			</isNotEmpty>
+			<isNotEmpty property="year" prepend="and">
+				year = #year#
+			</isNotEmpty>
+			<isNotEmpty property="month" prepend="and">
+				month = #month#
+			</isNotEmpty>
+			<isNotNull property="typeNames" prepend=" and ">
+				typeName in ($typeNames$)
+			</isNotNull>
+		</dynamic>
+	</select>
+<select id="countTotalByMap" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select sum(sum) from statistichistory_$year$_$month$ where 1=1
+		<dynamic>
+			<isNotEmpty property="typeName" prepend="and">
+				typeName = #typeName#
+			</isNotEmpty>
+			<isNotEmpty property="type" prepend="and">
+				baseinfoType = #type#
+			</isNotEmpty>
+			<isNotEmpty property="orgId" prepend="and">
+				orgId = #orgId#
+			</isNotEmpty>
+			<isNotEmpty property="year" prepend="and">
+				year = #year#
+			</isNotEmpty>
+			<isNotEmpty property="month" prepend="and">
+				month = #month#
+			</isNotEmpty>
+			<isNotNull property="typeNames" prepend=" and ">
+				typeName in ($typeNames$)
+			</isNotNull>
+		</dynamic>
+	</select>
+	<select id="getRealTimeCountByTypeName" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap">
+		select p.displayName displayName ,nvl(co.num,0)
+		countNum,p.displayseq seq from propertydicts p left join
+		(select count(id) num, $propertyField$ from $table$ where orginternalcode
+		like #orginternalcode#||'%'  <include refid="validSql"/> 
+		group by $propertyField$ ) co on p.id=co.$propertyField$ where
+		p.propertydomainid=#propertyDomainId#
+		order by seq
+	</select>
+	
+	<select id="getRealTimeCountByCountField" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap">
+		select count(id) num
+		<include refid="decodeFieldMap"/>
+		 from $table$ where orginternalcode
+		like #orginternalcode#||'%'  <include refid="validSql"/> 
+		
+	</select>
+	
+	<select id="getIdleYouthRealTimeCountGroupByAge" parameterClass="java.util.Map"
+		resultClass="java.util.HashMap">
+		 select '0~6岁' displayName,nvl(t.GROUPCOUNT,0) countNum,'1' typeSeq from
+            ( select 
+               sum (case when <![CDATA[(select b.birthday from baseinfo b where b.id=baseinfoid ) > #year1#]]> 
+                then 1
+              else 0 end ) as "GROUPCOUNT"
+               from idleyouths d where  1=1 <include refid="validSql"/>  
+		 				and d.orginternalcode like #orginternalcode#||'%')t
+		 union 
+		 
+		  select '6~18岁' displayName,nvl(t.GROUPCOUNT,0) countNum,'2' typeSeq from
+            ( select 
+               sum (case when (select b.birthday from baseinfo b where b.id=baseinfoid ) between #year2# and #year1#
+                then 1
+              else 0 end ) as "GROUPCOUNT"
+               from idleyouths d where  1=1 <include refid="validSql"/>  
+		 				and d.orginternalcode like #orginternalcode#||'%')t
+		 union 
+		   select '18~25岁' displayName,nvl(t.GROUPCOUNT,0) countNum,'3' typeSeq from
+            ( select 
+               sum (case when (select b.birthday from baseinfo b where b.id=baseinfoid ) between #year3# and #year2#
+                then 1
+              else 0 end ) as "GROUPCOUNT"
+               from idleyouths d where 1=1 <include refid="validSql"/> 
+		 				and d.orginternalcode like #orginternalcode#||'%')t
+		  union 
+		   select '25~35岁' displayName,nvl(t.GROUPCOUNT,0) countNum,'4' typeSeq from
+            ( select 
+               sum (case when <![CDATA[(select b.birthday from baseinfo b where b.id=baseinfoid ) < #year3#]]>
+                then 1
+              else 0 end ) as "GROUPCOUNT"
+               from idleyouths d where  1=1 <include refid="validSql"/> 
+		 				and d.orginternalcode like #orginternalcode#||'%')t
+		 
+	</select>
+	<select id="getIdleYouthRealTimeCountGroupByType" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap">
+		select count(id) countNum ,#propertyDict.displayName# displayName ,#propertyDict.displaySeq# typeSeq  from idleyouths  i where 
+		exists (select * from idleyouthshaspropertydicts where idleyouthsid=i.id and propertydictid=#propertyDict.id#)
+         and i.orginternalcode like #orginternalcode#||'%'
+	</select>
+
+	<select id="countAll" resultClass="java.lang.Integer"
+		parameterClass="java.util.Map">
+		select count(id) from $table$ d where 1=1 <include refid="validSql"/>  <include refid="selectWhere"/>
+	</select>
+
+	<select id="getRealTimeStatisticNoType" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap" remapResults="true">
+		select #tableDisplayName# typeName,nvl(sum(r.sumN),0) sumNum,o.orginternalcode,max(o.orgName) orgName, max(o.id) orgId 
+		<include refid="selectFieldMap" />			
+		 from
+		(select n.orginternalcode , count(id) sumN 
+			<include refid="decodeFieldMap" />		 
+		from $table$ n where  1=1 <include refid="validSql"/>  group by
+		orginternalcode) r right join (
+		select id,orginternalcode,orgName,seq from organizations mo where 
+		<isPropertyAvailable property="orgLevelDistance">
+				<isNull property="orgLevelDistance">
+					 mo.parentid=#orgId# 
+				</isNull>
+				<isNotNull property="orgLevelDistance">
+					REGEXP_LIKE(mo.orginternalcode,'^' || REPLACE(#orginternalcode# , '.', '\.') ||'([^\.]{1,4}\.){$orgLevelDistance$}$$')
+				</isNotNull>
+		 </isPropertyAvailable>
+		and mo.orgtype=#orgType# ) o on
+		r.orginternalcode like o.orginternalcode||'%' 
+		 group by o.orginternalcode ,o.seq
+     	 order by o.seq,o.orginternalcode
+		
+	</select>
+	
+	
+	<select id="getRealTimeIdleYouthStatisticList" parameterClass="java.util.Map"
+		resultClass="java.util.HashMap" remapResults="true">
+		select tt.orgName  orgName,
+       tt.orgId    orgId,
+       tt.typeName,
+       tt.sumNum   sumNum,
+       tt.typeSeq,
+       tt.seq
+        from
+		(select max(t.orgName) orgName,max(t.orgId) orgId,'0~6岁' typeName,sum(t.GROUPCOUNT) sumNum,'1' typeSeq,
+			max(t.seq) seq from (
+				select o.orginternalcode,o.orgName orgName, o.id orgId,o.seq seq,
+					nvl(GROUPCOUNT,0) GROUPCOUNT
+		 			from   (
+		 				select n.orginternalcode , 
+			   		 	sum(case when <![CDATA[(select b.birthday from baseinfo b where b.id=baseinfoid ) > #year1#]]>
+			   		 	then 1
+				    	else 0 end ) as "GROUPCOUNT"
+				  	 	from idleyouths n where  1=1 <include refid="validSql"/> 
+		 				group by   orginternalcode) r right join (   select id,orginternalcode,orgName,seq from organizations
+	  					where parentid=#orgId#
+	  					 and orgtype=#orgType#
+	  					) o on  
+					 	r.orginternalcode like o.orginternalcode||'%' )t group by t.orgId
+		union
+		
+		select max(t.orgName) orgName,max(t.orgId) orgId,'6~18岁' typeName,sum(t.GROUPCOUNT)  sumNum,'2' typeSeq,
+		max(t.seq) seq from (
+				select o.orginternalcode,o.orgName orgName, o.id orgId,o.seq seq,
+					nvl(groupCount,0) GROUPCOUNT
+		 			from   (
+		 				select n.orginternalcode , 
+			   		 	sum(case when (select b.birthday from baseinfo b where b.id=baseinfoid ) between #year2# and #year1#
+			   		 	then 1
+				    	else 0 end ) as GROUPCOUNT
+				  	 	from idleyouths n where  1=1 <include refid="validSql"/>  
+		 				group by   orginternalcode) r right join (   select id,orginternalcode,orgName,seq from organizations
+	  					where parentid=#orgId#
+	  					and orgtype=#orgType#
+	  					) o on  
+					 	r.orginternalcode like o.orginternalcode||'%' )t group by t.orgId
+	 union
+		
+		select max(t.orgName) orgName,max(t.orgId) orgId,'18~25岁' typeName,sum(t.GROUPCOUNT)  sumNum,'3' typeSeq,
+		max(t.seq) seq from (
+				select o.orginternalcode,o.orgName orgName, o.id orgId,o.seq seq,
+					nvl(groupCount,0) GROUPCOUNT
+		 			from   (
+		 				select n.orginternalcode , 
+			   		 	sum(case when (select b.birthday from baseinfo b where b.id=baseinfoid ) between #year3# and #year2#
+			   		 	then 1
+				    	else 0 end ) as GROUPCOUNT
+				  	 	from idleyouths n where  1=1 <include refid="validSql"/> 
+		 				group by   orginternalcode) r right join (   select id,orginternalcode,orgName,seq from organizations
+	  					where parentid=#orgId#
+	  					and orgtype=#orgType#
+	  					) o on  
+					 	r.orginternalcode like o.orginternalcode||'%' )t group by t.orgId
+	
+		union
+		select max(t.orgName) orgName,max(t.orgId) orgId,'25~35岁' typeName,sum(t.GROUPCOUNT)  sumNum,'4' typeSeq,
+			max(t.seq) seq from (
+				select o.orginternalcode,o.orgName orgName, o.id orgId,o.seq seq,
+					nvl(GROUPCOUNT,0) GROUPCOUNT
+		 			from   (
+		 				select n.orginternalcode , 
+			   		 	sum(case when <![CDATA[(select b.birthday from baseinfo b where b.id=baseinfoid ) < #year3#]]>
+			   		 	then 1
+				    	else 0 end ) as "GROUPCOUNT"
+				  	 	from idleyouths n where 1=1 <include refid="validSql"/>  
+		 				group by   orginternalcode) r right join (   select id,orginternalcode,orgName,seq from organizations
+	  					where parentid=#orgId#
+	  					and orgtype=#orgType#
+	  					) o on  
+					 	r.orginternalcode like o.orginternalcode||'%' )t  group by t.orgId
+					 	)
+					 	tt 
+					 	
+						order by tt.seq, tt.typeSeq
+		
+	
+	</select>
+
+	<select id="getTotalStatisticList" parameterClass="java.util.Map" resultClass="java.util.HashMap" remapResults="true">
+		select 
+		 max(tt.orgname) orgname ,tt.orgId,nvl(sum(tt.sumNum),0) sumNum ,tt.typeName typeName
+		from (
+		<iterate property="baseinfoStatisticSearchList" conjunction="union all">
+			 select mo.orgname,mo.id orgId,nvl(dc,0) sumNum  ,'$baseinfoStatisticSearchList[].tableDisplayName$' typeName ,mo.seq          
+ 			from organizations mo    left join   (
+ 				select d.orginternalcode, count(d.id) dc                      from   $baseinfoStatisticSearchList[].table$ d  
+				  	 where 1=1 <include refid="validSql"/> 
+				     group by   d.orginternalcode  )co on   co.orginternalcode like   mo.orginternalcode||'%'    where   
+				     <isPropertyAvailable property="orgLevelDistance">
+						<isNull property="orgLevelDistance">
+							 mo.parentid=$baseinfoStatisticSearchList[].orgId$ 
+						</isNull>
+						<isNotNull property="orgLevelDistance">
+							REGEXP_LIKE(mo.orginternalcode,'^' || REPLACE(#baseinfoStatisticSearchList[].orginternalcode# , '.', '\.') ||'([^\.]{1,4}\.){$orgLevelDistance$}$$')
+						</isNotNull>
+					</isPropertyAvailable> 
+				     and   mo.orgtype=#orgType#
+		
+		</iterate>
+		) tt 
+		 group by tt.orgId,tt.typeName ,tt.seq
+		order by tt.seq,tt.orgId,tt.typeName
+		
+	</select>
+	
+	
+<!-- 	<select id="getTotalStatisticListFromHistory" parameterClass="java.util.Map" resultClass="java.util.HashMap" remapResults="true">
+	select 
+		 tt.orgName orgName ,tt.orgId orgId ,nvl(tt.sumNum,0) sumNum ,tt.typeName typeName
+			from (
+			<iterate property="baseinfoStatisticSearchList" conjunction="union"> 
+			select mo.orgName orgName,mo.id orgId ,nvl(t.sumNmu,0) sumNum ,typeName from  organizations mo  left join 
+	
+			(select sum(sum) sumNmu ,  '$baseinfoStatisticSearchList[].tableDisplayName$' typeName ,  max(orginternalcode) orginternalcode  from baseinfostatistichistory 
+				where year =$baseinfoStatisticSearchList[].year$ and month=$baseinfoStatisticSearchList[].month$ and baseinfotype=#baseinfoStatisticSearchList[].type# and orginternalcode like #baseinfoStatisticSearchList[].orginternalcode#||'%') t
+				on t.  orginternalcode like mo.orginternalcode||'%' where mo.orgtype=(
+				select id from propertydicts where   propertydomainid=(select id from propertydomains where   
+						    domainname=#baseinfoStatisticSearchList[].organizationType#) and internalid=0) and mo.orginternalcode like #baseinfoStatisticSearchList[].orginternalcode#||'__'
+			 </iterate>
+		 )tt 
+		 order by tt.orgId,tt.typeName
+	</select> -->
+	
+	<sql id="selectWhereByOrgCode">
+		<dynamic>
+			<isNotEmpty property="orginternalcode" prepend="and">
+				d.orginternalcode = #orginternalcode#
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	<sql id="selectWhereByPropertyField">
+		<dynamic>
+			<isNotEmpty property="propertyField" prepend="and">
+				$propertyField$=#propertyDict.id#
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	<select id="getMonthTotal" parameterClass="statisticSearchVoNew" resultClass="java.util.HashMap" remapResults="true">
+		select count(*) total from $table$ d where
+		<![CDATA[createdate<#endDate#]]> <include refid="selectWhereByOrgCode"/>  <include refid="selectWhereByPropertyField"/>
+	</select>
+	
+	 
+	<update id="updateMonthCreateAttentionNumAndTotal" parameterClass="java.util.Map">
+		 update statistichistory_$year$_$month$ set monthCreate=#MONTHCREATE#,attentionNum=#ATTENTIONNUM#,total=#TOTAL#,
+		 	countvalue=#COUNTVALUE#
+			 where year=#year# and month=#month# and
+			orginternalcode like #orgInternalcode#||'%' and baseinfotype=#type#
+		 
+	</update>
+	
+	
+	<select id="getTotalStatisticListFromHistory" parameterClass="map" resultClass="java.util.HashMap" remapResults="true">
+	select re.*, case when re.changeDate is null then 0 when add_months(to_date(#year# || '-' ||#month#,'yyyy-MM'),1) > re.changeDate then 0 else 1 end as orgState
+	 from ( select mo.id orgId, max(mo.orgname) orgName ,tt.tableName typeName,nvl(sum(co.dc),0) sumNum,max(mo.changeDate) changeDate ,nvl(sum(co.monthCreate),0) monthCreate  from allorganizations mo 
+			<isNotNull property="baseinfoStatisticSearchList">
+			   	 left join 
+				<iterate  property="baseinfoStatisticSearchList" open="(" close=")"  conjunction="union">
+				<![CDATA[
+					 select   '$baseinfoStatisticSearchList[].type$'  typename,'$baseinfoStatisticSearchList[].tableDisplayName$'  tableName from dual
+				]]>
+				</iterate>
+	           tt on 1=1
+			</isNotNull>
+	         left join(
+	           select d.orginternalcode,tt.typename,nvl(d.sum,0) dc,orgId ,d.monthCreate monthCreate from statistichistory_$year$_$month$ d 
+			<isNotNull property="baseinfoStatisticSearchList">
+			   	 right join 
+				<iterate  property="baseinfoStatisticSearchList" open="(" close=")"  conjunction="union">
+				<![CDATA[
+					 select   '$baseinfoStatisticSearchList[].type$'  typename,'$baseinfoStatisticSearchList[].tableDisplayName$'  tableName  from dual
+				]]>
+				</iterate>
+	           tt on d.baseinfotype=tt.typename
+			</isNotNull>
+			<dynamic prepend="where ">
+				<isPropertyAvailable property="year">
+					<isNotNull property="year" prepend=" and ">
+						d.year=#year#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="month">
+					<isNotNull property="month" prepend=" and ">
+						d.month=#month#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="typeName">
+					<isNotNull property="typeName" prepend=" and ">
+						 (case when d.baseinfotype = 'idleYouth' and d.typename in ($typeName$) then 
+		                  1
+		                  when d.baseinfotype != 'idleYouth' then 1 
+		                  else  0
+		                   end) = 1
+                   </isNotNull>
+                </isPropertyAvailable>
+			</dynamic>
+			
+	           )co on co.orgId = mo.id and co.typename=tt.typename
+	          where 
+	          
+	          <isPropertyAvailable property="orgLevelDistance">
+					<isNull property="orgLevelDistance">
+						 mo.parentid=#orgId#
+					</isNull>
+					<isNotNull property="orgLevelDistance">
+						REGEXP_LIKE(mo.orginternalcode,'^' || REPLACE(#orginternalcode# , '.', '\.') ||'([^\.]{1,4}\.){$orgLevelDistance$}$$')
+					</isNotNull>
+			 </isPropertyAvailable> 
+	          
+	          and mo.orgtype=#orgType#
+			
+	          group by mo.id,tt.tableName,mo.seq,mo.parentId
+	          order by (select to_number(seq ||'00'|| mo.seq) from  organizations o where o.id=mo.parentId )
+	        ) re
+	</select>
+	
+	<select id="getTotalArealDistributionList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		select nvl(sum(tt.countNum),0) SUMNUM,max(mo.orgName) ORGNAME  from 
+		(
+		<iterate conjunction="union all" property="tables">
+		select count(*) countNum,  max(orginternalcode)  orginternalcode,'$tables[]$' from $tables[]$ where 1=1 <include refid="validSql"/> 
+		group by   orginternalcode
+		</iterate>
+		)tt right join 
+		
+		 organizations mo 
+			on tt.orginternalcode like mo.orginternalcode||'%' 
+		          where mo.parentid=#orgId#
+		          and mo.orgtype=#orgType#
+		          group by mo.id,mo.seq
+		          order by mo.seq
+ 
+	</select>
+	
+	<select id="getArealDistributionListFromHistory" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap">
+		select re.*, case when re.changeDate is null then 0 when add_months(to_date(#year# || '-' ||#month#,'yyyy-MM'),1) > re.changeDate then 0 else 1 end as orgState
+		from ( select max(mo.orgname)
+			orgName,max(mo.id) orgId,p.displayname typeName
+			,nvl(sum(co.sumN),0)
+			sumNum,nvl(sum(countValue),0) countValue,max(mo.changeDate) changeDate
+			from (select * from allorganizations where parentid =#orgId#
+			 		and orgtype=#orgType#) mo
+			left join
+			(select * from propertydicts where propertydomainid=#propertyDomainId#) p on p.id=p.id
+			left join (select d.sum sumN
+			,d.typename,d.orginternalcode ,d.countValue countValue,d.orgId
+			from
+			statistichistory_$year$_$month$ d  where
+			d.baseinfotype=#type# and d.year=#year#
+			and d.month=#month#
+			)co on co.orgId = mo.id and co.typename=p.displayname
+			group by mo.id,p.displayname ,mo.seq,p.displayseq
+			order by mo.seq,mo.id,p.displayseq
+		) re
+	</select>
+	
+	<select id="getTotalArealDistributionListFromHistory" parameterClass="java.util.HashMap"
+		resultClass="java.util.HashMap">
+		select re.*, case when re.changeDate is null then 0 when add_months(to_date(#year# || '-' ||#month#,'yyyy-MM'),1) > re.changeDate then 0 else 1 end as orgState	
+		from (select max(mo.orgname) orgname,max(mo.id) orgId,nvl(sum(sumNum),0) sumNum,max(mo.changeDate)  changeDate             
+			   from allorganizations mo   left join  
+			(
+				<iterate conjunction="union all" property="types">
+			    	select sum sumNum,orginternalcode,baseinfotype,orgId from statistichistory_$year$_$month$
+					where baseinfotype=#types[]# and year=#year# and month=#month#
+					<isNotNull property="typeName" prepend=" and ">
+					(case when baseinfotype = 'idleYouth' and typename in ($typeName$) then 
+		                  1
+		                  when baseinfotype != 'idleYouth' then 1 
+		                  else  0
+		                   end) = 1
+		             </isNotNull>
+			    </iterate>
+			    
+			)co
+			on   co.orgid = mo.id    
+			   where      mo.parentid=#orgId# and   mo.orgtype=#orgType#
+			   group by  mo.id ,mo.seq
+			   order by mo.seq
+		) re
+	</select>
+	<select id="getOneTypeBaseinofTotal" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select nvl(sum(sum),0) from statistichistory_$year$_$month$ where orgId = #orgId# 
+		and baseinfoType in 
+		<iterate property="tables" open="(" close=")" conjunction=",">
+		   '$tables[]$'
+		</iterate>
+		<isNotNull property="typeNames" prepend=" and ">
+			 (case when baseinfotype = 'idleYouth' and typename in ($typeNames$) then 
+                 1
+                 when baseinfotype != 'idleYouth' then 1 
+                 else  0
+                  end) = 1
+         </isNotNull>
+	</select>
+	
+	<select id="getAllTypeBaseinofTotal" parameterClass="java.util.Map" resultMap="TendencyChartTotalResult">
+	   select 
+	     (select nvl(sum(sum),0) from statistichistory_$time1$ where orginternalcode like '$orginternalcode$%' and baseinfoType in ($typeNames$)) as month1,
+	     (select nvl(sum(sum),0) from statistichistory_$time2$ where orginternalcode like '$orginternalcode$%' and baseinfoType in ($typeNames$)) as month2,
+	     (select nvl(sum(sum),0) from statistichistory_$time3$ where orginternalcode like '$orginternalcode$%' and baseinfoType in ($typeNames$)) as month3,
+	     (select nvl(sum(sum),0) from statistichistory_$time4$ where orginternalcode like '$orginternalcode$%' and baseinfoType in ($typeNames$)) as month4,
+	     (select nvl(sum(sum),0) from statistichistory_$time5$ where orginternalcode like '$orginternalcode$%' and baseinfoType in ($typeNames$)) as month5,
+	     (select nvl(sum(sum),0) from statistichistory_$time6$ where orginternalcode like '$orginternalcode$%' and baseinfoType in ($typeNames$)) as month6,
+	     (select nvl(sum(sum),0) from statistichistory_$time7$ where orginternalcode like '$orginternalcode$%' and baseinfoType in ($typeNames$)) as month7,
+	     (select nvl(sum(sum),0) from statistichistory_$time8$ where orginternalcode like '$orginternalcode$%' and baseinfoType in ($typeNames$)) as month8,
+	     (select nvl(sum(sum),0) from statistichistory_$time9$ where orginternalcode like '$orginternalcode$%' and baseinfoType in ($typeNames$)) as month9,
+	     (select nvl(sum(sum),0) from statistichistory_$time10$ where orginternalcode like '$orginternalcode$%' and baseinfoType in ($typeNames$)) as month10,
+	     (select nvl(sum(sum),0) from statistichistory_$time11$ where orginternalcode like '$orginternalcode$%' and baseinfoType in ($typeNames$)) as month11,
+	     (select nvl(sum(sum),0) from statistichistory_$time12$ where orginternalcode like '$orginternalcode$%' and baseinfoType in ($typeNames$)) as month12
+	   from dual
+	</select>
+	
+	<select id="getIdleYouthStatisticListFromHistorty" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap">
+		 select max(mo.orgname) orgname,max(mo.id) orgId,nvl(sum(sumNum),0) sumNum  ,nvl(sum(ishelp),0) ishelp  ,nvl(sum(nohelp),0) nohelp  ,typeName                 
+		   from organizations mo    left join  
+		(select sum(sum) sumNum, sum(ishelp) ishelp,sum(nohelp) nohelp,typename,max(orgname),orginternalcode from statistichistory_$year$_$month$
+		where baseinfotype=#type# and year=#year# and month=#month#
+		group by orginternalcode ,typename)co
+		
+		on   co.orginternalcode like   mo.orginternalcode||'%'    
+		   where     mo.parentid=#orgId# and   mo.orgtype=(select id from propertydicts where   
+		   propertydomainid=(select id from propertydomains where             domainname=#organizationType#) and internalid=0)
+		   group by  mo.orginternalcode ,typename,mo.seq
+		   order by mo.orginternalcode ,mo.seq
+	</select>
+	
+	<select id="getStatisticByMonthAndCountField" parameterClass="java.util.Map"
+		resultClass="java.util.HashMap">
+		select sum(sum) sum,sum(countvalue)  countvalue from statistichistory_$year$_$month$ where 1=1
+		<dynamic>
+			<isNotEmpty property="typeName" prepend="and">
+				typeName = #typeName#
+			</isNotEmpty>
+			<isNotEmpty property="timeStr" prepend="and">
+				to_char(startdate,'yyyy-MM') = #timeStr#
+			</isNotEmpty>
+			<isNotEmpty property="type" prepend="and">
+				baseinfoType = #type#
+			</isNotEmpty>
+			<isNotEmpty property="orgInternalCode" prepend="and">
+				orgInternalCode like #orgInternalCode#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="year" prepend="and">
+				year = #year#
+			</isNotEmpty>
+			<isNotEmpty property="month" prepend="and">
+				month = #month#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	
+	
+
+	<insert id="addBuilddataHistortyStatistic" parameterClass="statisticSearchVoNew">
+		<!-- <selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_baseinfostatistichistory.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey> -->
+		insert into statistichistory_$year$_$month$
+		  (id,
+		   year,
+		   month,
+		   typeName,
+		   baseinfotype,
+		   orgId,
+		   orginternalcode,
+		   orgName,
+		   createuser,
+		   createdate,
+		   startDate,
+		   endDate,
+		   sum,
+			monthCreate,
+		    attentionNum,
+		    total
+		   
+		   )
+		select s_statistichistory.nextval,
+		         #year#,
+		         #month#,
+		         #tableDisplayName#,
+		         #type#,
+		         id as orgId,
+		         orgInternalcode,
+		         orgName,
+		         #createUser#,
+		         #createDate#,
+		         #startDate#,
+		         #endDate#,
+		        (select count(1) from $table$ b where b.orgid=org.id  and b.createdate <![CDATA[<]]>#endDate#) as sum,
+		        (select count(1) from $table$ b where b.orgid=org.id and b.createdate <![CDATA[>]]>#startDate# and b.createdate <![CDATA[<]]>#endDate#) as monthCreate,
+		        (select count(1) from $table$ b where b.orgid=org.id  and b.createdate <![CDATA[<]]>#endDate#) as attentionNum,
+		        (select count(1) from $table$ b where b.orgid=org.id  and b.createdate <![CDATA[<]]>#endDate#) as total
+		from organizations org where org.orgtype=#orgType# and org.orglevel=#orgLevel#
+	</insert>
+	
+	<select id="countHelpedByField" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap" remapResults="true">
+		select nvl(sum(sum),0) SUMNUM,nvl(sum(isHelp),0) ishelp,nvl(sum(nohelp),0) nohelp,max(o.orgname) orgname, max(o.Id) orgid,#displayName# typeName from (select *　from organizations o where o.parentid=#orgId# and o.orgtype=#orgType#) o left join(
+		select d1.*,nvl(d2.isHelp,0) isHelp,nvl(d3.noHelp,0) noHelp
+       from (   select nvl(count(d.id),0) sum,
+       			
+       			 max(orgid) orgId,max(displayname) displayName,max(o.orgname) orgName,max(o.seq),max(p.displayseq),max(o.orginternalcode) orginternalcode
+           from $table$ d
+           left join propertydicts p on d.$propertyField$ = p.id
+            left join organizations o on d.orgid=o.id
+           where p.displayname = #displayName# <include refid="validSql"/>
+           and o.orgtype=#orgType#
+        group by orgid,o.seq,p.displayseq
+     order by o.seq,p.displayseq  ) d1 left join ( select count(d.id) isHelp, max(orgid) orgid,max(displayname) displayname,max(o.orgname),max(o.seq),max(p.displayseq)
+           from $table$ d
+           left join propertydicts p on d.$propertyField$ = p.id
+            left join organizations o on d.orgid=o.id
+           where p.displayname = #displayName#  <include refid="validSql"/>
+           and o.orgtype=#orgType#
+           and exists (select id  from serviceMemberHasObject where objectType = #type# and objectId=d.id and onDuty=1)
+        group by orgid,o.seq,p.displayseq
+     order by o.seq,p.displayseq )d2 on d1.orgid=d2.orgid and d1.displayname=d2.displayname
+     left join ( select count(d.id) noHelp, max(orgid) orgid,max(displayname) displayname,max(o.orgname),max(o.seq),max(p.displayseq)
+           from $table$ d
+           left join propertydicts p on d.$propertyField$ = p.id
+            left join organizations o on d.orgid=o.id
+           where p.displayname = #displayName#  <include refid="validSql"/>
+           and o.orgtype=#orgType#
+           and not exists (select id  from serviceMemberHasObject where objectType = #type# and objectId=d.id and onDuty=1)
+        group by orgid,o.seq,p.displayseq
+     order by o.seq,p.displayseq )d3 on d1.orgid=d3.orgid and d1.displayname=d3.displayname) ss on
+      ss.orginternalcode like o.orginternalcode || '%' group by o.id ,o.seq order by o.seq
+	</select>
+	
+	<select id="countHelpedByFieldNoType" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap" remapResults="true">
+		select nvl(sum(sum),0) SUMNUM,nvl(sum(isHelp),0) ishelp,nvl(sum(nohelp),0) nohelp,max(o.orgname) orgname, max(o.Id) orgid from (
+		select *　from organizations o where 
+		<isPropertyAvailable property="orgLevelDistance">
+				<isNull property="orgLevelDistance">
+					 o.parentid=#orgId# 
+				</isNull>
+				<isNotNull property="orgLevelDistance">
+					REGEXP_LIKE(o.orginternalcode,'^' || REPLACE(#orginternalcode# , '.', '\.') ||'([^\.]{1,4}\.){$orgLevelDistance$}$$')
+				</isNotNull>
+		 </isPropertyAvailable>
+		and o.orgtype=#orgType#) o 
+		left join (select d1.*, nvl(d2.isHelp, 0) isHelp, nvl(d3.noHelp, 0) noHelp
+               from (select nvl(count(d.id), 0) sum,
+                            max(orgid) orgId,
+                            max(o.orgname) orgName,
+                            max(o.seq),
+                            max(o.orginternalcode) orginternalcode
+                       from $table$ d
+                       left join organizations o
+                         on d.orgid = o.id
+                         where 1=1  <include refid="validSql"/>
+                      group by orgid, o.seq
+                      order by o.seq) d1
+               left join (select count(d.id) isHelp,
+                                max(orgid) orgid,
+                                max(o.orgname),
+                                max(o.seq)
+                           from $table$ d
+                           left join organizations o
+                             on d.orgid = o.id
+                          where  1=1
+                        and  exists (select id
+                                   from serviceMemberHasObject
+                                  where objectType = #type#
+                                    and objectId = d.id
+                                    and onDuty = 1) <include refid="validSql"/>
+                          group by orgid, o.seq
+                          order by o.seq) d2
+                 on d1.orgid = d2.orgid
+               left join (select count(d.id) noHelp,
+                                max(orgid) orgid,                               
+                                max(o.orgname),
+                                max(o.seq)                        
+                           from $table$ d
+                           left join organizations o
+                             on d.orgid = o.id
+                          where
+                          1=1 <include refid="validSql"/>
+                          and not exists
+                          (select id
+                                   from serviceMemberHasObject
+                                  where objectType = #type#
+                                    and objectId = d.id
+                                    and onDuty = 1)
+                          group by orgid, o.seq
+                          order by o.seq) d3
+                 on d1.orgid = d3.orgid) ss
+    on ss.orginternalcode like o.orginternalcode || '%'
+ group by o.id, o.seq
+ order by o.seq
+	</select>
+	
+	
+	<select id="countPositiveinfosByField" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap" remapResults="true">
+		select nvl(sum(sum),0) SUMNUM,nvl(sum(isHelp),0) ishelp,  nvl(sum(resited),0) resited,nvl(sum(recidivism),0) recidivism, nvl(sum(nohelp),0) nohelp,max(o.orgname) orgname, max(o.Id) orgid,#displayName# typeName 
+		from (select *　from organizations o where o.parentid=#orgId# 
+		 and  o.orgtype=#orgType#
+		) o left join(
+		select d1.*,nvl(d2.isHelp,0) isHelp,nvl(d3.noHelp,0) noHelp
+       from (   select nvl(count(d.id),0) sum, sum(case when iscrime=1 then 1 else 0 end ) recidivism , sum(case when resettlementDate is not null then 1
+                        else 0 end ) resited, 
+       			 max(orgid) orgId,max(displayname) displayName,max(o.orgname) orgName,max(o.seq),max(p.displayseq),max(o.orginternalcode) orginternalcode
+           from $table$ d
+           left join propertydicts p on d.$propertyField$ = p.id
+            left join organizations o on d.orgid=o.id
+           where p.displayname = #displayName#   <include refid="validSql"/>
+          
+        group by orgid,o.seq,p.displayseq
+     order by o.seq,p.displayseq  ) d1 left join ( select count(d.id) isHelp, max(orgid) orgid,max(displayname) displayname,max(o.orgname),max(o.seq),max(p.displayseq)
+           from $table$ d
+           left join propertydicts p on d.$propertyField$ = p.id
+            left join organizations o on d.orgid=o.id
+           where p.displayname = #displayName#   <include refid="validSql"/>
+		   and exists (select id  from serviceMemberHasObject where objectType = #type# and objectId=d.id and onDuty=1)
+        group by orgid,o.seq,p.displayseq
+     order by o.seq,p.displayseq )d2 on d1.orgid=d2.orgid and d1.displayname=d2.displayname
+     left join ( select count(d.id) noHelp, max(orgid) orgid,max(displayname) displayname,max(o.orgname),max(o.seq),max(p.displayseq)
+           from $table$ d
+           left join propertydicts p on d.$propertyField$ = p.id
+            left join organizations o on d.orgid=o.id
+           where p.displayname = #displayName#   <include refid="validSql"/>
+           and not exists (select id  from serviceMemberHasObject where objectType = #type# and objectId=d.id and onDuty=1)
+        group by orgid,o.seq,p.displayseq
+     order by o.seq,p.displayseq )d3 on d1.orgid=d3.orgid and d1.displayname=d3.displayname) ss on
+      ss.orginternalcode like o.orginternalcode || '%' group by o.id ,o.seq order by o.seq
+	</select>
+	
+	<select id="countIdleYouthHelpedByAge" parameterClass="java.util.Map"
+		resultClass="java.util.HashMap" remapResults="true">
+		select nvl(sum(sum), 0) SUMNUM,
+       nvl(sum(isHelp), 0) ishelp,
+       nvl(sum(nohelp), 0) nohelp,
+       max(o.orgname) orgname,
+       max(o.Id) orgid,
+       #statisticSearchVo.displayName# typeName
+  from (select * 　from organizations o where o.parentid = #statisticSearchVo.orgId# and o.orgtype=#orgType#) o
+  left join (select d1.*, nvl(d2.isHelp, 0) isHelp, nvl(d3.noHelp, 0) noHelp
+               from (select nvl(count(d.id), 0) sum,
+                            max(orgid) orgId,
+                            max(o.orgname) orgName,
+                            max(o.seq),
+                           max(o.orginternalcode) orginternalcode
+                       from $statisticSearchVo.table$ d
+                       left join baseinfo b
+                       	 on b.id = d.baseinfoid
+                       left join organizations o
+                         on d.orgid = o.id
+                         where 1=1
+                         <isPropertyAvailable property="year2">
+                          	 <isPropertyAvailable property="year1">
+                          	 	<isNotNull property="year2">
+                          	 		<isNotNull property="year1">
+                          	 			and b.birthday between #year2# and #year1# 
+                          	 		</isNotNull>
+                          	 	</isNotNull>
+                          	 </isPropertyAvailable>
+                         </isPropertyAvailable>
+						 <include refid="validSql"/>
+                         and o.orgtype=#orgType#
+                      group by orgid, o.seq
+                      order by o.seq) d1
+               left join (select count(d.id) isHelp,
+                                max(orgid) orgid,
+                                max(o.orgname),
+                                max(o.seq)
+                           from $statisticSearchVo.table$ d
+                           left join baseinfo b
+                       	 	 on b.id = d.baseinfoid
+                           left join organizations o
+                             on d.orgid = o.id
+                          where 1=1
+                          <isPropertyAvailable property="year2">
+                          	 <isPropertyAvailable property="year1">
+                          	 	<isNotNull property="year2">
+                          	 		<isNotNull property="year1">
+                          	 			and b.birthday between #year2# and #year1# 
+                          	 		</isNotNull>
+                          	 	</isNotNull>
+                          	 </isPropertyAvailable>
+                          </isPropertyAvailable>
+                          <include refid="validSql"/>
+                           and o.orgtype=#orgType#
+                            and exists (select id
+                                   from serviceMemberHasObject
+                                  where objectType = #statisticSearchVo.type# 
+                                    and objectId = d.id
+                                    and onDuty = 1)
+                          group by orgid, o.seq
+                          order by o.seq) d2
+                 on d1.orgid = d2.orgid
+               left join (select count(d.id) noHelp,
+                                max(orgid) orgid,
+                                max(o.orgname),
+                                max(o.seq)
+                           from $statisticSearchVo.table$ d
+                           left join baseinfo b
+                       	 	 on b.id = d.baseinfoid
+                            left join organizations o
+                             on d.orgid = o.id
+                          where 1=1
+                          <isPropertyAvailable property="year2">
+                          	 <isPropertyAvailable property="year1">
+                          	 	<isNotNull property="year2">
+                          	 		<isNotNull property="year1">
+                          	 			and b.birthday between #year2# and #year1# 
+                          	 		</isNotNull>
+                          	 	</isNotNull>
+                          	 </isPropertyAvailable>
+                          </isPropertyAvailable>
+						  <include refid="validSql"/>
+                          and o.orgtype=#orgType#
+                            and not exists (select id
+                                   from serviceMemberHasObject
+                                  where objectType =#statisticSearchVo.type# 
+                                    and objectId = d.id
+                                    and onDuty = 1)
+                          group by orgid, o.seq
+                          order by o.seq) d3
+                 on d1.orgid = d3.orgid
+               ) ss
+		    on ss.orginternalcode like o.orginternalcode || '%'
+		 group by o.id, o.seq
+		 order by o.seq 
+	</select>
+	
+	<select id="countIdleYouthHelpedByType" parameterClass="statisticSearchVoNew"
+		resultClass="java.util.HashMap" remapResults="true">
+		select nvl(sum(sum), 0) SUMNUM,
+       nvl(sum(isHelp), 0) ishelp,
+       nvl(sum(nohelp), 0) nohelp,
+       max(o.orgname) orgname,
+       max(o.Id) orgid,
+       #displayName# typeName
+  from (select * 　from organizations o where o.parentid =#orgId# and o.orgtype=#orgType#) o
+  left join (select d1.*, nvl(d2.isHelp, 0) isHelp, nvl(d3.noHelp, 0) noHelp
+               from (select nvl(count(d.id), 0) sum, max(orgid) orgId, max(o.orgname) orgName,  max(o.seq), max(o.orginternalcode) orginternalcode
+                       from $table$ d 
+                       left join organizations o on d.orgid = o.id
+                      where exists (select IDLEYOUTHSID from IDLEYOUTHSHASPROPERTYDICTS where PROPERTYDICTID=#propertyDict.id# and IDLEYOUTHSID=d.id)
+                      and o.orgtype=#orgType#
+						<include refid="validSql"/>
+                      group by orgid, o.seq
+                      order by o.seq) d1
+               left join (select count(d.id) isHelp, max(orgid) orgid, max(o.orgname),  max(o.seq)
+                           from $table$ d
+                           left join organizations o  on d.orgid = o.id
+                          where exists (select IDLEYOUTHSID from IDLEYOUTHSHASPROPERTYDICTS where PROPERTYDICTID=#propertyDict.id# and IDLEYOUTHSID=d.id)
+                            and exists (select id  from serviceMemberHasObject where objectType =#type# and objectId = d.id and onDuty = 1)
+                            and o.orgtype=#orgType#
+							<include refid="validSql"/>
+                          group by orgid, o.seq
+                          order by o.seq) d2
+                 on d1.orgid = d2.orgid
+               left join (select count(d.id) noHelp, max(orgid) orgid, max(o.orgname), max(o.seq)
+                           from $table$ d
+                           left join organizations o
+                             on d.orgid = o.id
+                          where exists (select IDLEYOUTHSID from IDLEYOUTHSHASPROPERTYDICTS where PROPERTYDICTID=#propertyDict.id# and IDLEYOUTHSID=d.id)
+                            and not exists (select id from serviceMemberHasObject where objectType =#type# and objectId = d.id  and onDuty = 1)
+                            and o.orgtype=#orgType#
+							<include refid="validSql"/>
+                          group by orgid, o.seq
+                          order by o.seq) d3
+                 on d1.orgid = d3.orgid) ss
+    on ss.orginternalcode like o.orginternalcode || '%'
+ group by o.id, o.seq
+ order by o.seq 
+	</select>
+ <select id="getTendencyChartSearchVo" parameterClass="java.util.Map" resultMap="tendencyChartResult">
+   <iterate property="time" conjunction="union all">
+     select '$time[]$_'||typename as key,sum(sum) as num from statistichistory_$time[]$ where   baseinfoType = '$type$' and  orgInternalCode  like  '$orgCode$%' group  by  typename
+   </iterate>	
+</select>
+<select id="getTendencyChartSearchVoNEW" parameterClass="java.util.Map" resultMap="tendencyChartResultNEW">
+  select * from $type$_y where orgCode=#orgCode#
+</select>
+<select id="getTendencyChartSearchVos" parameterClass="java.util.Map" resultMap="tendencyChartResultNEW">
+  <iterate conjunction=" union all" property="list">
+     select * from $list[].tableName$ where orgcode='$list[].orgCode$'
+  </iterate>
+</select>
+
+
+<!-- 青少年 -->
+<sql id="logoutSql">
+		<dynamic prepend="and" open="(" close=")">
+			<isNotNull property="isemphasis">
+		   		logout=0 or logout is null
+		   	</isNotNull>
+	   </dynamic>
+	</sql>
+	
+<sql id="countYouthIncl">
+		and Birthday > #year5#
+		<dynamic>
+			<isNotNull property="isemphasis" prepend="and" open="(" close=")">
+		   		logout=0 or logout is null
+		   	</isNotNull>
+			<isNotEmpty property="orginternalcode" prepend="and">
+				orginternalcode like #orginternalcode#||'%'
+			</isNotEmpty>
+		</dynamic>
+	</sql>	
+
+<select id="getRealTimeYouthStatisticList" parameterClass="java.util.Map"
+		resultClass="java.util.HashMap" remapResults="true">
+		select tt.orgName  orgName,
+       tt.orgId    orgId,
+       tt.typeName,
+       tt.sumNum   sumNum,
+       tt.typeSeq,
+       tt.seq
+        from
+		(select max(t.orgName) orgName,max(t.orgId) orgId,'0~6岁' typeName,sum(t.GROUPCOUNT) sumNum,'1' typeSeq,
+			max(t.seq) seq from (
+				select o.orginternalcode,o.orgName orgName, o.id orgId,o.seq seq,
+					nvl(GROUPCOUNT,0) GROUPCOUNT
+		 			from   (
+		 				select n.orginternalcode , 
+			   		 	sum(case when <![CDATA[birthday > #year1#]]>
+			   		 	then 1
+				    	else 0 end ) as "GROUPCOUNT"
+				  	 	from (select orginternalcode,birthday, logout from $table1$  
+							union all
+							select orginternalcode,birthday, logout from $table2$ f2 left join baseinfo  b on f2.baseinfoid=b.id 
+							union all
+							select orginternalcode,birthday, logout from $table3$ f3 left join baseinfo  b on f3.baseinfoid=b.id
+				  	 	) n where  1=1 <include refid="logoutSql"/> 
+		 				group by   orginternalcode) r right join (   select id,orginternalcode,orgName,seq from organizations
+	  					where parentid=#orgId#
+	  					 and orgtype=#orgType#
+	  					) o on  
+					 	r.orginternalcode like o.orginternalcode||'%' )t group by t.orgId
+	union
+		select max(t.orgName) orgName,max(t.orgId) orgId,'6~14岁' typeName,sum(t.GROUPCOUNT)  sumNum,'2' typeSeq,
+		max(t.seq) seq from (
+				select o.orginternalcode,o.orgName orgName, o.id orgId,o.seq seq,
+					nvl(groupCount,0) GROUPCOUNT
+		 			from   (
+		 				select n.orginternalcode , 
+			   		 	sum(case when birthday between #year2# and #year1#
+			   		 	then 1
+				    	else 0 end ) as GROUPCOUNT
+				  	 	from (select orginternalcode,birthday, logout from $table1$  
+							union all
+							select orginternalcode,birthday, logout from $table2$ f2 left join baseinfo  b on f2.baseinfoid=b.id 
+							union all
+							select orginternalcode,birthday, logout from $table3$ f3 left join baseinfo  b on f3.baseinfoid=b.id
+				  	 	) n where  1=1 <include refid="logoutSql"/>  
+		 				group by   orginternalcode) r right join (   select id,orginternalcode,orgName,seq from organizations
+	  					where parentid=#orgId#
+	  					and orgtype=#orgType#
+	  					) o on  
+					 	r.orginternalcode like o.orginternalcode||'%' )t group by t.orgId
+	union
+		select max(t.orgName) orgName,max(t.orgId) orgId,'14~18岁' typeName,sum(t.GROUPCOUNT)  sumNum,'3' typeSeq,
+		max(t.seq) seq from (
+				select o.orginternalcode,o.orgName orgName, o.id orgId,o.seq seq,
+					nvl(groupCount,0) GROUPCOUNT
+		 			from   (
+		 				select n.orginternalcode , 
+			   		 	sum(case when birthday between #year3# and #year2#
+			   		 	then 1
+				    	else 0 end ) as GROUPCOUNT
+				  	 	from (select orginternalcode,birthday, logout from $table1$  
+							union all
+							select orginternalcode,birthday, logout from $table2$ f2 left join baseinfo  b on f2.baseinfoid=b.id 
+							union all
+							select orginternalcode,birthday, logout from $table3$ f3 left join baseinfo  b on f3.baseinfoid=b.id
+				  	 	) n where  1=1 <include refid="logoutSql"/>  
+		 				group by   orginternalcode) r right join (   select id,orginternalcode,orgName,seq from organizations
+	  					where parentid=#orgId#
+	  					and orgtype=#orgType#
+	  					) o on  
+					 	r.orginternalcode like o.orginternalcode||'%' )t group by t.orgId
+	 union
+		select max(t.orgName) orgName,max(t.orgId) orgId,'18~28岁' typeName,sum(t.GROUPCOUNT)  sumNum,'4' typeSeq,
+		max(t.seq) seq from (
+				select o.orginternalcode,o.orgName orgName, o.id orgId,o.seq seq,
+					nvl(groupCount,0) GROUPCOUNT
+		 			from   (
+		 				select n.orginternalcode , 
+			   		 	sum(case when birthday between #year4# and #year3#
+			   		 	then 1
+				    	else 0 end ) as GROUPCOUNT
+				  	 	from (select orginternalcode,birthday, logout from $table1$  
+							union all
+							select orginternalcode,birthday, logout from $table2$ f2 left join baseinfo  b on f2.baseinfoid=b.id 
+							union all
+							select orginternalcode,birthday, logout from $table3$ f3 left join baseinfo  b on f3.baseinfoid=b.id
+				  	 	) n where  1=1 <include refid="logoutSql"/> 
+		 				group by   orginternalcode) r right join (   select id,orginternalcode,orgName,seq from organizations
+	  					where parentid=#orgId#
+	  					and orgtype=#orgType#
+	  					) o on  
+					 	r.orginternalcode like o.orginternalcode||'%' )t group by t.orgId
+	union
+		select max(t.orgName) orgName,max(t.orgId) orgId,'28~35岁' typeName,sum(t.GROUPCOUNT)  sumNum,'5' typeSeq,
+			max(t.seq) seq from (
+				select o.orginternalcode,o.orgName orgName, o.id orgId,o.seq seq,
+					nvl(GROUPCOUNT,0) GROUPCOUNT
+		 			from   (
+		 				select n.orginternalcode , 
+			   		 	sum(case when birthday between #year5# and #year4#
+			   		 	then 1
+				    	else 0 end ) as "GROUPCOUNT"
+				  	 	from (select orginternalcode,birthday, logout from $table1$  
+							union all
+							select orginternalcode,birthday, logout from $table2$ f2 left join baseinfo  b on f2.baseinfoid=b.id 
+							union all
+							select orginternalcode,birthday, logout from $table3$ f3 left join baseinfo  b on f3.baseinfoid=b.id
+				  	 	) n where 1=1 <include refid="logoutSql"/>  
+		 				group by   orginternalcode) r right join (   select id,orginternalcode,orgName,seq from organizations
+	  					where parentid=#orgId#
+	  					and orgtype=#orgType#
+	  					) o on  
+					 	r.orginternalcode like o.orginternalcode||'%' )t  group by t.orgId
+					 	)
+					 	tt 
+						order by tt.seq, tt.typeSeq
+	</select>
+	
+	<select id="getYouthRealTimeCountGroupByAge" parameterClass="java.util.Map"
+		resultClass="java.util.HashMap">
+		 select '0~6岁' displayName,nvl(t.GROUPCOUNT,0) countNum,'1' typeSeq from
+            ( select 
+               sum (case when <![CDATA[birthday > #year1#]]> 
+                then 1
+              else 0 end ) as "GROUPCOUNT"
+               from (select orginternalcode,birthday, logout from $table1$
+							union all
+							select orginternalcode,birthday, logout from $table2$ f2 left join baseinfo  b on f2.baseinfoid=b.id
+							union all
+							select orginternalcode,birthday, logout from $table3$ f3 left join baseinfo  b on f3.baseinfoid=b.id
+				  	 	) d where  1=1 <include refid="logoutSql"/>  
+		 				and d.orginternalcode like #orginternalcode#||'%')t
+		 union 
+		  select '6~14岁' displayName,nvl(t.GROUPCOUNT,0) countNum,'2' typeSeq from
+            ( select 
+               sum (case when birthday between #year2# and #year1#
+                then 1
+              else 0 end ) as "GROUPCOUNT"
+               from (select orginternalcode,birthday, logout from $table1$
+							union all
+							select orginternalcode,birthday, logout from $table2$ f2 left join baseinfo  b on f2.baseinfoid=b.id
+							union all
+							select orginternalcode,birthday, logout from $table3$ f3 left join baseinfo  b on f3.baseinfoid=b.id
+				  	 	) d where  1=1 <include refid="logoutSql"/>  
+		 				and d.orginternalcode like #orginternalcode#||'%')t
+		 union 
+		   select '14~18岁' displayName,nvl(t.GROUPCOUNT,0) countNum,'3' typeSeq from
+            ( select 
+               sum (case when birthday between #year3# and #year2#
+                then 1
+              else 0 end ) as "GROUPCOUNT"
+               from (select orginternalcode,birthday, logout from $table1$
+							union all
+							select orginternalcode,birthday, logout from $table2$ f2 left join baseinfo  b on f2.baseinfoid=b.id
+							union all
+							select orginternalcode,birthday, logout from $table3$ f3 left join baseinfo  b on f3.baseinfoid=b.id
+				  	 	) d where 1=1 <include refid="logoutSql"/> 
+		 				and d.orginternalcode like #orginternalcode#||'%')t
+		 union 
+		   select '18~28岁' displayName,nvl(t.GROUPCOUNT,0) countNum,'4' typeSeq from
+            ( select 
+               sum (case when birthday between #year4# and #year3#
+                then 1
+              else 0 end ) as "GROUPCOUNT"
+               from (select orginternalcode,birthday, logout from $table1$
+							union all
+							select orginternalcode,birthday, logout from $table2$ f2 left join baseinfo  b on f2.baseinfoid=b.id
+							union all
+							select orginternalcode,birthday, logout from $table3$ f3 left join baseinfo  b on f3.baseinfoid=b.id
+				  	 	) d where 1=1 <include refid="logoutSql"/> 
+		 				and d.orginternalcode like #orginternalcode#||'%')t
+		  union 
+		   select '28~35岁' displayName,nvl(t.GROUPCOUNT,0) countNum,'5' typeSeq from
+            ( select 
+               sum (case when birthday between #year5# and #year4#
+                then 1
+              else 0 end ) as "GROUPCOUNT"
+               from (select orginternalcode,birthday, logout from $table1$
+							union all
+							select orginternalcode,birthday, logout from $table2$ f2 left join baseinfo  b on f2.baseinfoid=b.id
+							union all
+							select orginternalcode,birthday, logout from $table3$ f3 left join baseinfo  b on f3.baseinfoid=b.id
+				  	 	) d where  1=1 <include refid="logoutSql"/> 
+		 				and d.orginternalcode like #orginternalcode#||'%')t
+	</select>
+	
+	<select id="countYouthByType" parameterClass="java.util.Map"
+		resultClass="java.util.HashMap" remapResults="true">
+		select nvl(sum(sum), 0) SUMNUM,
+	       max(o.orgname) orgname,
+	       max(o.Id) orgid,
+	       #displayName# typeName
+  		from (select * 　from organizations o where o.parentid =#orgId# and o.orgtype=#orgType#) o
+			  left join (select d1.*
+			               from (select nvl(count(d.id), 0) sum, max(orgid) orgId, max(o.orgname) orgName,  max(o.seq), max(o.orginternalcode) orginternalcode
+			                       from (select id, orgid, orginternalcode, birthday, logout, POLITICALBACKGROUND
+				                              from $table1$
+				                            union all
+				                            select f2.id, orgid, orginternalcode, birthday, logout, POLITICALBACKGROUND
+				                              from $table2$ f2 left join baseinfo  b on f2.baseinfoid=b.id
+				                            union all
+				                            select f3.id, orgid, orginternalcode, birthday, logout, POLITICALBACKGROUND
+				                              from $table3$ f3 left join baseinfo  b on f3.baseinfoid=b.id) d 
+			                       left join organizations o on d.orgid = o.id
+			                      where o.orgtype=#orgType#
+									and Birthday > #year5#
+									<dynamic>
+										<isNotNull property="isemphasis" prepend="and" open="(" close=")">
+									   		logout=0 or logout is null
+									   	</isNotNull>
+									   	<isPropertyAvailable property="propertyDictId">
+											<isNotEmpty property="propertyDictId" prepend="and">
+												POLITICALBACKGROUND = #propertyDictId#
+											</isNotEmpty>
+									   	</isPropertyAvailable>
+									</dynamic>
+			                      group by orgid, o.seq
+			                      order by o.seq) d1) ss
+			    on ss.orginternalcode like o.orginternalcode || '%'
+			 group by o.id, o.seq
+			 order by o.seq 
+	</select>
+	
+	<select id="countYouthByAge" parameterClass="java.util.Map"
+		resultClass="java.util.HashMap" remapResults="true">
+		select nvl(sum(sum), 0) SUMNUM,
+		       max(o.orgname) orgname,
+		       max(o.Id) orgid,
+		       #displayName# typeName
+		  from (select * from organizations o
+		         where o.parentid = #orgId#
+		           and o.orgtype = #orgType#) o
+		  left join (select d1.*
+		               from (select nvl(count(d.id), 0) sum,
+		                            max(orgid) orgId,
+		                            max(o.orgname) orgName,
+		                            max(o.seq),
+		                            max(o.orginternalcode) orginternalcode
+		                       from (select id, orgid, orginternalcode, birthday, logout
+		                                from $table1$
+		                              union all
+		                              select f2.id, orgid, orginternalcode, birthday, logout
+		                                from $table2$ f2 left join baseinfo  b on f2.baseinfoid=b.id
+		                              union all
+		                              select f3.id, orgid, orginternalcode, birthday, logout
+		                                from $table3$ f3 left join baseinfo  b on f3.baseinfoid=b.id) d
+		                       left join organizations o on d.orgid = o.id
+		                      where d.birthday between #beginDate# and #toDate#
+		                        and (logout = 0 or logout is null)
+		                        and o.orgtype = #orgType#
+		                      group by orgid, o.seq
+		                      order by o.seq) d1) ss on ss.orginternalcode like
+                                                                   o.orginternalcode || '%'
+		 group by o.id, o.seq
+		 order by o.seq
+	</select>
+
+	<select id="countAllYouth" resultClass="java.lang.Integer"
+		parameterClass="java.util.Map">
+		select sum(t.countid) from
+			(select count(id) countid
+			  from $table1$
+			 where 1 = 1
+			   <include refid="countYouthIncl"/>
+			union all
+			select count(f2.id) countid
+			  from $table2$ f2 left join baseinfo  b on f2.baseinfoid=b.id
+			 where 1 = 1
+			   <include refid="countYouthIncl"/>
+			union all
+			select count(f3.id) countid
+			  from $table3$ f3 left join baseinfo  b on f3.baseinfoid=b.id
+			 where 1 = 1
+			   <include refid="countYouthIncl"/>) t
+	</select>
+
+	<select id="getYouthRealTimeCountGroupByType" parameterClass="java.util.Map"
+		resultClass="java.util.HashMap">
+		select sum(countids) countNum ,#propertyDictDisplayName# displayName ,#propertyDictDisplaySeq# typeSeq  
+			from (select sum(t.countid) countids from
+				(select count(id) countid
+				  from $table1$
+					 where 1 = 1
+					 and Birthday > #year5#
+			 		 and politicalbackground=#propertyDictId#
+			 		 and orginternalcode like #orginternalcode#||'%'
+					 <include refid="logoutSql"/>
+				union all
+				select count(f2.id) countid
+				  from $table2$ f2 left join baseinfo  b on f2.baseinfoid=b.id
+				 	where 1 = 1
+					 and Birthday > #year5#
+			 		 and politicalbackground=#propertyDictId#
+			 		 and orginternalcode like #orginternalcode#||'%'
+					 <include refid="logoutSql"/>
+				union all
+				select count(f3.id) countid
+				  from $table3$ f3 left join baseinfo  b on f3.baseinfoid=b.id
+				 	where 1 = 1
+					 and Birthday > #year5#
+			 		 and politicalbackground=#propertyDictId#
+			 		 and orginternalcode like #orginternalcode#||'%'
+					 <include refid="logoutSql"/>
+				) t
+			) i
+	</select>
+
+	<sql id="countYouthHistoryDataByTypeSql">
+		<dynamic>
+			<isPropertyAvailable property="propertyDictId">
+				<isNotEmpty property="propertyDictId" prepend="and">
+					POLITICALBACKGROUND = #propertyDictId# 
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isNotNull property="isemphasis" prepend="and">
+		   		logout=0 
+		   	</isNotNull>
+		   	<isNotNull property="orginternalcode" prepend="and">
+		   		orginternalcode like #orginternalcode#||'%'
+		   	</isNotNull>
+		</dynamic>
+	</sql>
+	
+	<select id="countYouthHistoryDataByType" parameterClass="map" resultMap="statisticSearchVoResult">
+		select d1.*,0 isHelp,0 noHelp,
+		$monthCreate$ monthCreate,
+		$attentionNum$ attentionNum,
+		$total$ total,
+		$year$ year,
+		$month$ month,
+		#type# type,
+		#startDate# startDate,
+		#endDate# endDate,
+		#displayName# displayname
+			from  (
+				select nvl(count(i.id),0) sum, max(orgid) orgId,max(o.orgname) orgName,max(o.seq),max(o.orginternalcode) orginternalcode
+  				from (select id, orgid from $table1$ t1 
+  								where <![CDATA[t1.birthday > #year5#]]> 
+								and <![CDATA[t1.createdate < #endDate#]]>
+			  					<include refid="countYouthHistoryDataByTypeSql"/>
+						union all
+							select t2.id, orgid from $table2$ t2 left join baseinfo b2 on t2.baseinfoid = b2.id
+								where <![CDATA[b2.birthday > #year5#]]> 
+								and <![CDATA[t2.createdate < #endDate#]]>
+								<include refid="countYouthHistoryDataByTypeSql"/>
+						union all
+							select t3.id, orgid from $table3$ t3 left join baseinfo b3 on t3.baseinfoid = b3.id
+								where <![CDATA[b3.birthday > #year5#]]> 
+								and <![CDATA[t3.createdate < #endDate#]]>
+								<include refid="countYouthHistoryDataByTypeSql"/>
+				  	 	) i 
+  		left join organizations o on i.orgid=o.id where o.orginternalcode like #orginternalcode# || '%' 
+  				group by orgid,o.seq   order by o.seq ) d1
+	</select>
+	
+	<insert id="addhistory" parameterClass="statisticSearchVoNew">
+		<!-- <selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_baseinfostatistichistory.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey> -->
+		insert into statistichistory_$year$_$month$
+		  (id,
+		   year,
+		   month,
+		   sum,
+		   typeName,
+		   baseinfotype,
+		   orgId,
+		   orginternalcode,
+		   orgName,
+		   createuser,
+		   createdate,
+		   startDate,
+		   endDate,
+		   MONTHCREATE,
+		   ATTENTIONNUM,
+		   TOTAL,
+		   isHelp,
+		   noHelp,
+		   resited,
+		   recidivism
+		   ) values (
+		   s_statistichistory.nextval,
+		   #year#,
+		   #month#,
+		   #sumNum#,
+		   #displayName#,
+		   #type#,
+		   #orgId#,
+		   #orginternalcode#,
+		   #orgName#,
+		   #createUser#,
+		   #createDate#,
+		   #startDate#,
+		   #endDate#,
+		   #monthCreate#,
+		   #attentionNum#,
+		   #total#,
+		   #isHelp#,
+		   #noHelp#,
+		   #resited#,
+		   #recidivism#
+		   )
+	</insert>
+	
+	<select id="getYouthMonthCreateAttentionNumAndTotal" parameterClass="java.util.HashMap" resultClass="java.util.HashMap" remapResults="true">
+		select sum(total) total, sum(monthCreate) monthCreate, sum(attentionNum) attentionNum from (
+			select nvl(count(*),0) total , nvl(sum(case when (d.createdate >= #startDate# and <![CDATA[d.createdate<#endDate#]]>)
+			then 1 else 0 end),0)  monthCreate , nvl(sum(case when (logout is null or logout=0) then 1 else 0 end ),0) attentionNum from $table1$ d 
+			where <![CDATA[d.createdate<#endDate#]]> and d.orginternalcode like #orginternalcode#||'%' and <![CDATA[birthday>#year5#]]>
+			union all
+			select nvl(count(*),0) total , nvl(sum(case when (d2.createdate >= #startDate# and <![CDATA[d2.createdate<#endDate#]]>)
+			then 1 else 0 end),0)  monthCreate , nvl(sum(case when (logout is null or logout=0) then 1 else 0 end ),0) attentionNum from $table2$ d2 left join baseinfo b2 on d2.baseinfoid = b2.id
+			where <![CDATA[d2.createdate<#endDate#]]> and d2.orginternalcode like #orginternalcode#||'%' and <![CDATA[b2.birthday>#year5#]]>
+			union all
+			select nvl(count(*),0) total , nvl(sum(case when (d3.createdate >= #startDate# and <![CDATA[d3.createdate<#endDate#]]>)
+			then 1 else 0 end),0)  monthCreate , nvl(sum(case when (logout is null or logout=0) then 1 else 0 end ),0) attentionNum from $table3$ d3 left join baseinfo b3 on d3.baseinfoid = b3.id
+			where <![CDATA[d3.createdate<#endDate#]]> and d3.orginternalcode like #orginternalcode#||'%' and <![CDATA[b3.birthday>#year5#]]>) t
+	</select>
+	
+	<sql id="countYouthHistoryDataByAgeSql">
+		<dynamic>
+			<isNotNull property="isemphasis" prepend="and">
+		   		logout=0 
+		   	</isNotNull>
+		   		<isNotNull property="orginternalcode" prepend="and">
+		   		orginternalcode like #orginternalcode#||'%'
+		   	</isNotNull>
+		</dynamic>
+	</sql>
+	
+	<select id="countYouthHistoryDataByAge" parameterClass="map" resultMap="statisticSearchVoResult">
+		select d1.*,0 isHelp,0 noHelp,
+			$monthCreate$ monthCreate,
+			$attentionNum$ attentionNum,
+			$total$ total,
+			$year$ year,
+			$month$ month,
+			#type# type,
+			#startDate# startDate,
+			#endDate# endDate,
+			#displayName# displayname
+		from  (
+			select nvl(count(i.id),0) sum, max(orgid) orgId,max(o.orgname) orgName,max(o.seq),max(o.orginternalcode) orginternalcode
+ 				from (select id, orgid from $table1$ 
+ 								where birthday between #beginDate# and #toDate#
+ 								and <![CDATA[createdate < #endDate#]]>
+			  					<include refid="countYouthHistoryDataByAgeSql"/>
+						union all
+							select t2.id, orgid from $table2$ t2 left join baseinfo b2 on t2.baseinfoid = b2.id
+								where b2.birthday between #beginDate# and #toDate#
+ 								and <![CDATA[t2.createdate < #endDate#]]>
+								<include refid="countYouthHistoryDataByAgeSql"/>
+						union all
+							select t3.id, orgid from $table3$ t3 left join baseinfo b3 on t3.baseinfoid = b3.id
+								where b3.birthday between #beginDate# and #toDate#
+ 								and <![CDATA[t3.createdate < #endDate#]]>
+								<include refid="countYouthHistoryDataByAgeSql"/>
+				  	 	) i 
+  		left join organizations o on i.orgid=o.id where o.orginternalcode like #orginternalcode# || '%'
+  				group by orgid,o.seq   order by o.seq ) d1 
+	</select>
+</sqlMap>

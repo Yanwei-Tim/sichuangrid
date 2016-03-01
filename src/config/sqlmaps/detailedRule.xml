@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="detailedRule">
+	<typeAlias alias="DetailedRule" type="com.tianque.domain.DetailedRule" />
+	<typeAlias alias="TmpDetailedRule" type="com.tianque.domain.vo.TmpDetailedRule" />
+	<typeAlias alias="DetailedRuleTreeGridData" type="com.tianque.controller.vo.DetailedRuleTreeGridData" />
+	<parameterMap id="detailedRuleParams" class="DetailedRule">
+		<parameter property="createDate" />
+		<parameter property="createUser" />
+		<parameter property="content" />
+		<parameter property="detailedRules" />
+		<parameter property="evaluate" />
+		<parameter property="id" />
+		<parameter property="parentRule" />
+		<parameter property="score" />
+		<parameter property="seq" />
+		<parameter property="standardScore" />
+		<parameter property="summary" />
+		<parameter property="updateDate" />
+		<parameter property="updateUser" />
+		<parameter property="scoreReason" />
+	</parameterMap>
+	<resultMap class="TmpDetailedRule" id="tmpDetailedRuleResult">
+		<result property="id" column="id" />
+		<result property="parentId" column="parentId" />
+		<result property="tmpId" column="tmpId" />
+	</resultMap>
+	<resultMap id="detailedRuleResult" class="DetailedRule">
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="content" column="content" />
+		<result property="evaluate.id" column="evaluateId" />
+		<result property="id" column="id" />
+		<result property="parentRule.id" column="parentId" />
+		<result property="score" column="score" />
+		<result property="seq" column="seq" />
+		<result property="standardScore" column="standardScore" />
+		<result property="summary" column="summary" />
+		<result property="ruleType.id" column="ruleType" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="selfAssessmentScore" column="selfAssessmentScore" />
+		<result property="scoreReason" column="scoreReason" />
+	</resultMap>
+	<resultMap class="DetailedRuleTreeGridData" id="detailedRuleTreeGridData">
+		<result property="state" column="state" />
+		<result property="id" column="id" />
+		<result property="treelevel" column="treelevel" />
+		<result property="summary" column="summary" />
+		<result property="standardScore" column="standardScore" />
+		<result property="remark" column="remark" />
+		<result property="leaf" column="leaf" />
+		<result property="expanded" column="expanded" />
+		<result property="content" column="content" />
+		<result property="score" column="score" />
+		<result property="parentId" column="parentId" />
+		<result property="selfAssessmentScore" column="selfAssessmentScore" />
+		<result property="ruleType" column="ruleType" />
+		<result property="scoreReason" column="scoreReason" />
+	</resultMap>
+	
+	<insert id="addDetailedRule" parameterClass="DetailedRule">
+	<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_DetailedRules.NEXTVAL AS ID FROM DUAL ]]>
+	</selectKey>
+	INSERT INTO DetailedRules(createDate,createUser,content,evaluateId,id,parentId,score,seq,standardScore,summary,updateDate,updateUser,ruleType,scoreReason)
+	VALUES(#createDate#,#createUser#,#content#,#evaluate.id#,#id#,#parentRule.id#,#score#,#seq#,#standardScore#,#summary#,#updateDate#,#updateUser#,#ruleType.id#,#scoreReason#)
+	</insert>
+	
+	<insert id="addDetailedRules" parameterClass="DetailedRule">
+	<!-- 
+	INSERT INTO DetailedRules(createDate,createUser,content,evaluateId,id,parentId,score,seq,standardScore,summary,updateUser,ruleType)
+		<iterate conjunction=" UNION ">  
+			(SELECT
+			sysdate,#list[].createUser#,#list[].content#,#list[].evaluate.id#,#list[].id#,#list[].parentRule.id#,#list[].score#,
+			#list[].seq#,#list[].standardScore#,#list[].summary#,#list[].updateUser#,#list[].ruleType.id#
+			from dual)
+		</iterate>
+	 -->
+	 INSERT INTO DetailedRules(createDate,createUser,content,evaluateId,id,parentId,score,seq,standardScore,summary,updateDate,updateUser,ruleType,scoreReason,selfAssessmentScore)
+	VALUES(#createDate#,#createUser#,#content#,#evaluate.id#,#id#,#parentRule.id#,#score#,#seq#,#standardScore#,#summary#,#updateDate#,#updateUser#,#ruleType.id#,#scoreReason#,#selfAssessmentScore#)
+	</insert>
+	
+	<update id="updateFirstLevelStandardScore" parameterClass="long">
+	update detailedrules d set d.standardscore=
+(select sumStandardScore from (select sum(standardScore) as sumStandardScore,parentid from detailedrules a 
+  group by parentid) where sumStandardScore is not null and d.id=parentid) 
+where EXISTS(select sumStandardScore from (select sum(standardScore) as sumStandardScore,parentid from detailedrules a 
+  group by parentid) where sumStandardScore is not null and d.id=parentid) 
+  and d.evaluateid=#value#
+	</update>
+	
+	<select id="getTmpIdsAndParentIds" parameterClass="long" resultMap="tmpDetailedRuleResult">
+		<![CDATA[select  s_detailedRules.nextVal as tmpId,t.* from (select d.parentId,d.id from DetailedRules d where d.evaluateId=#value# order by d.id) t]]>
+	</select>
+	
+	<update id="updateDetailedRule" parameterClass="DetailedRule">
+		update DetailedRules set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="createDate">
+				createDate=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="createUser">
+				createUser=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="content">
+				content=#content#
+			</isNotNull>
+			<isNotNull prepend="," property="evaluate">
+				evaluateId=#evaluate.id#
+			</isNotNull>
+			<isNotNull prepend="," property="parentRule">
+				parentId=#parentRule.id#
+			</isNotNull>
+			<isNotNull prepend="," property="score">
+				score=#score#
+			</isNotNull>
+			<isNotNull prepend="," property="seq">
+				seq=#seq#
+			</isNotNull>
+			<isNotNull prepend="," property="standardScore">
+				standardScore=#standardScore#
+			</isNotNull>
+			<isNotNull prepend="," property="summary">
+				summary=#summary#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="ruleType">
+				ruleType=#ruleType.id#
+			</isNotNull>
+			<isNotNull prepend="," property="selfAssessmentScore">
+				selfAssessmentScore=#selfAssessmentScore#
+			</isNotNull>
+			<isNotNull prepend="," property="scoreReason">
+				scoreReason=#scoreReason#
+			</isNotNull>
+		 where id=#id#
+		</dynamic>
+	</update>
+	<delete id="deleteDetailedRuleById" parameterClass="java.lang.Long">
+ 	 delete from DetailedRules
+	 where id=#value#
+	</delete>
+
+	<delete id="deleteDetailedRuleByEvaluateId" parameterClass="java.lang.Long">
+ 	 delete from DetailedRules where evaluateId=#value#
+	</delete>
+
+	<select id="getSimpleDetailedRuleById" parameterClass="java.lang.Long" resultMap="detailedRuleResult">
+	<![CDATA[select * from DetailedRules	 where id=#value#]]>
+	</select>
+	<select id="findDetailedRulesByEvaluateId" parameterClass="java.lang.Long" resultMap="detailedRuleResult">
+		<![CDATA[select * from DetailedRules	 where evaluateId=#value# order by id]]>
+	</select>
+
+	<select id="getSimpleDetailedRuleByContent" parameterClass="java.util.Map" resultMap="detailedRuleResult">
+		<![CDATA[select * from DetailedRules	 where content=#content# and id = (select max(id) from DetailedRules where content=#content# and id<>#id#)]]>
+	</select>
+	<select id="getCountStandardScoreByParentRuleId" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		<![CDATA[select sum(standardScore) from detailedrules where parentId = #value#]]>
+	</select>
+	<select id="getCountStandardScoreByEvaluateId" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		<![CDATA[select sum(standardScore) from detailedrules where evaluateId = #value# and parentId is null]]>
+	</select>
+	<select id="getSumSelfAssessmentScoreByParentDetailedRuleId" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		<![CDATA[select sum(selfAssessmentScore) from detailedrules where parentId = #value# ]]>
+	</select>
+	<select id="getSumSelfAssessmentScoreByEvaluateId" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		<![CDATA[select sum(selfAssessmentScore) from detailedrules where evaluateid = #value# and parentId is null]]>
+	</select>
+	<select id="getSumDetailedRuleResultByParentDetailedRuleId" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		<![CDATA[select sum(score) from detailedrules where parentId = #value# ]]>
+	</select>
+	<select id="getSumTotalScoreByEvaluateId" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		<![CDATA[select sum(score) from detailedrules where evaluateId = #value# and parentId is null ]]>
+	</select>
+		<select id="getDetailedRulesByEvaluateId" parameterClass="java.lang.Long"
+		resultMap="detailedRuleTreeGridData">
+	<![CDATA[select level treelevel,
+       eva.state,
+       t.id,
+       case
+         when t.parentid is null then
+          ''
+         else
+          t.parentid || ''
+       end parentid,
+       t.summary,
+       t.score,
+       t.content,
+       t.standardscore,
+       t.selfAssessmentScore,
+       t.remark,
+       t.scoreReason,
+       t.ruleType,
+       case
+         when (select count(1) from detailedrules dt where dt.parentid = t.id) = 0 then
+          '1'
+         else
+          '0'
+       end leaf,
+       case
+         when level = 3 then
+          '0'
+         else
+          '1'
+       end expanded
+  from detailedrules t, evaluates eva
+ where t.evaluateid = eva.id
+   and t.evaluateid = #value#
+ start with t.id in (select id
+                       from detailedrules d
+                      where d.parentid is null
+                        and d.evaluateid = #value#)
+connect by t.parentid = prior t.id ORDER SIBLINGS BY t.seq]]>
+	</select>
+	
+	<select id="findDialyLogTypesByDetailedRuleId" parameterClass="java.lang.Long" resultClass="java.lang.Long">
+		<![CDATA[SELECT DailyDirectoryS.Type
+                  FROM (SELECT ABC.RULETYPE,
+                               ABC.DETAILEDRULEID,
+                               ABC.DAILYLOGID,
+                               DEF.DAILYDIRECTORYID
+                          FROM (SELECT DETAILEDRULES.ID,
+                                       DETAILEDRULES.RULETYPE,
+                                       DETAILEDRULEDAILYLOGRELAS.DETAILEDRULEID,
+                                       DETAILEDRULEDAILYLOGRELAS.DAILYLOGID
+                                  FROM DETAILEDRULES
+                                  JOIN DETAILEDRULEDAILYLOGRELAS ON DETAILEDRULES.ID =
+                                                                    DETAILEDRULEDAILYLOGRELAS.DETAILEDRULEID
+                                 WHERE DETAILEDRULES.ID = #value#) ABC
+                          JOIN DAILYLOGS DEF ON ABC.DAILYLOGID = DEF.ID) GOOG
+                  JOIN DailyDirectoryS DailyDirectoryS ON GOOG.DAILYDIRECTORYID =
+                                                          DailyDirectoryS.ID]]>
+	</select>
+	
+	<select id="getCountSelfAssessmentScore" parameterClass="java.lang.Long" resultClass="java.lang.Long">
+		select count(*) from detailedrules where evaluateid=#evaluateId# and selfAssessmentScore is null
+	</select>
+	
+	<select id="findDetailedRulesByParentId" parameterClass="long" resultMap="detailedRuleResult">
+		select * from detailedrules where parentid=#value# order by id
+	</select>
+</sqlMap>

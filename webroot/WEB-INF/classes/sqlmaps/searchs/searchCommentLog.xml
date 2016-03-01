@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="searchCommentLog">
+	<typeAlias alias="SearchPeopleLogVo" type="com.tianque.peopleLog.domain.SearchPeopleLogVo"/>
+	<!-- searchCommentLog -->
+	<sql id="sql_where_search">
+		from commentLog c inner join Peoplelog p on c.logid=p.id where c.userId = #userId#
+			<isPropertyAvailable property="title">
+				<isNotNull property="title">
+					<isNotEmpty property="title" prepend=" and ">
+						p.title like '%'||#title#||'%'
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="belonger">
+				<isNotNull property="belonger">
+					<isNotEmpty property="belonger" prepend=" and ">
+						p.belonger like '%'||#belonger#||'%'
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="address">
+				<isNotNull property="address">
+					<isNotEmpty property="address" prepend=" and ">
+						p.address like '%'||#address#||'%'
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sumCommentMin">
+				<isNotNull property="sumCommentMin">
+					<isNotEmpty property="sumCommentMin" prepend=" and ">
+						<![CDATA[ p.commentNums >= #sumCommentMin# ]]>
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sumCommentMax">
+				<isNotNull property="sumCommentMax">
+					<isNotEmpty property="sumCommentMax" prepend=" and ">
+						<![CDATA[ p.commentNums <= #sumCommentMax# ]]>
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startDate">
+				<isNotNull property="startDate">
+					<isNotEmpty property="startDate" prepend=" and ">
+						<![CDATA[ p.createDate >= #startDate# ]]>
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endDate">
+				<isNotNull property="endDate">
+					<isNotEmpty property="endDate" prepend=" and ">
+						<![CDATA[ p.createDate <= trunc(#endDate#+1) ]]>
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+		<isPropertyAvailable property="commentStartDate">
+				<isNotNull property="commentStartDate">
+					<isNotEmpty property="commentStartDate" prepend=" and ">
+						<![CDATA[ c.commenttime >= #commentStartDate# ]]>
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="commentEndDate">
+				<isNotNull property="commentEndDate">
+					<isNotEmpty property="commentEndDate" prepend=" and ">
+						<![CDATA[ c.commenttime <= trunc(#commentEndDate#+1) ]]>
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+		<isNotNull property="commentLog">
+		<isPropertyAvailable property="commentLog.commentUser">
+			<isNotNull property="commentLog.commentUser">
+				<isNotEmpty property="commentLog.commentUser" prepend=" and ">
+					c.commentUser like '%'||#commentLog.commentUser#||'%'
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="commentLog.comments">
+			<isNotNull property="commentLog.comments">
+				<isNotEmpty property="commentLog.comments" prepend=" and ">
+					c.comments like '%'||#commentLog.comments#||'%'
+				</isNotEmpty>
+			</isNotNull>
+		</isPropertyAvailable>
+		</isNotNull>
+	</sql>
+	<select id="countSearchComment" parameterClass="SearchPeopleLogVo" resultClass="java.lang.Integer">
+		select count(*)
+		<include refid="sql_where_search"/>
+	</select>
+	<select id="searchComment" parameterClass="SearchPeopleLogVo" resultClass="java.util.HashMap">
+		select  p.title peopleLogTitle,p.logtype peopleLogType,c.id id,c.commentTime commentTime,c.comments comments,c.userid userid,c.logid logid
+		<include refid="sql_where_search"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+<!-- 下辖日志查询 -->
+
+
+	<sql id="sql_condition">
+		from peopleLog where 1=1
+				<isNotNull property="commentLog" prepend=" and ">
+	 id in (select nvl(logId,0) from Commentlog
+	 where 1=1
+	 <isPropertyAvailable property="commentLog.comments">
+				<isNotNull property="commentLog.comments">
+					<isNotEmpty property="commentLog.comments" prepend=" and ">
+						comments like '%'||#commentLog.comments#||'%'
+					</isNotEmpty>
+				</isNotNull>
+		</isPropertyAvailable>
+		 <isPropertyAvailable property="commentLog.commentUser" >
+				<isNotNull property="commentLog.commentUser">
+					<isNotEmpty property="commentLog.commentUser" prepend=" and ">
+						commentUser like '%'||#commentLog.commentUser#||'%'
+					</isNotEmpty>
+				</isNotNull>
+		</isPropertyAvailable>
+	  )
+	  </isNotNull>
+
+		<isPropertyAvailable property="title">
+				<isNotNull property="title">
+					<isNotEmpty property="title" prepend=" and ">
+						title like '%'||#title#||'%'
+					</isNotEmpty>
+				</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="belonger">
+				<isNotNull property="belonger">
+					<isNotEmpty property="belonger" prepend=" and ">
+						belonger like '%'||#belonger#||'%'
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="address">
+				<isNotNull property="address">
+					<isNotEmpty property="address" prepend=" and ">
+						address like '%'||#address#||'%'
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sumCommentMin">
+				<isNotNull property="sumCommentMin">
+					<isNotEmpty property="sumCommentMin" prepend=" and ">
+						<![CDATA[commentNums >= #sumCommentMin# ]]>
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sumCommentMax">
+				<isNotNull property="sumCommentMax">
+					<isNotEmpty property="sumCommentMax" prepend=" and ">
+						<![CDATA[ commentNums <= #sumCommentMax# ]]>
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startDate">
+				<isNotNull property="startDate">
+					<isNotEmpty property="startDate" prepend=" and ">
+						<![CDATA[ createDate >= #startDate# ]]>
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endDate">
+				<isNotNull property="endDate">
+					<isNotEmpty property="endDate" prepend=" and ">
+						<![CDATA[ createDate <= trunc(#endDate#+1) ]]>
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+
+	</sql>
+
+	 <select id="searchSubLogIsPeer" parameterClass="SearchPeopleLogVo" resultMap="peopleLog.peopleLogResult">
+		select *
+		<include refid="sql_condition"/>and orgInternalCode = #orgInternalCode#
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countSearchSubLogIsPeer" parameterClass="SearchPeopleLogVo" resultClass="java.lang.Integer">
+		select count(*)
+		<include refid="sql_condition"/>and orgInternalCode = #orgInternalCode#
+	</select>
+
+	<select id="searchSubLogAll" parameterClass="SearchPeopleLogVo" resultMap="peopleLog.peopleLogResult">
+		select *
+		<include refid="sql_condition"/>and orgInternalCode like #orgInternalCode#||'%'
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countSearchSubLogAll" parameterClass="SearchPeopleLogVo" resultClass="java.lang.Integer">
+		select count(*)
+		<include refid="sql_condition"/>and orgInternalCode like #orgInternalCode#||'%'
+	</select>
+
+</sqlMap>

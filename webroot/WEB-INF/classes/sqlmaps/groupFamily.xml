@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="groupFamily">
+	<typeAlias alias="GroupFamily" type="com.tianque.baseInfo.familyInfo.domain.GroupFamily"/>
+	<typeAlias alias="GroupFamilyHasPopulation" type="com.tianque.baseInfo.familyInfo.domain.GroupFamilyHasPopulation"/>
+	<typeAlias alias="SavePeople" type="com.tianque.baseInfo.familyInfo.domain.SavePeople"/>
+	
+	<resultMap id="savePeopleResult" class="SavePeople">
+		<result column="populationid" property="populationId" />
+		<result column="populationType" property="populationType" />
+		<result column="name" property="name" />
+	</resultMap>
+	<resultMap id="groupFamilyResult" class="GroupFamily">
+		<result column="id" property="id" />
+		<result column="orginternalcode" property="orgInternalCode" />
+		<result column="familyaccount" property="familyAccount" />
+		<result column="familymaster" property="familyMaster" />
+		<result column="mastercardno" property="masterCardNo" />
+		<result column="mastermobilenumber" property="masterMobileNumber" />
+		<result column="mastertelephone" property="masterTelephone" />
+		<result column="membersCount" property="membersCount" />
+		<result column="fullPinyin" property="fullPinyin" />
+		<result column="simplePinyin" property="simplePinyin" />
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+	</resultMap>
+
+	<resultMap id="fullGroupFamilyResult" extends="groupFamilyResult" class="GroupFamily">
+		<result column="orgid" property="organization.id"/> 
+		<result column="currentaddress" property="currentAddress"/>
+		<result column="gender" property="gender.id"/>
+		<result column="populationtype" property="populationtype"/>
+		<result column="populationid" property="populationid"/>
+	</resultMap>
+
+	<resultMap id="groupFamilyHasPopulationResult" class="GroupFamilyHasPopulation">
+		<result column="familyid" property="familyId" />
+		<result column="familyrelation" property="familyRelation.id" />
+		<result column="populationid" property="populationId" />
+		<result column="populationtype" property="populationType" />
+	</resultMap>
+	
+	<resultMap id="fullGroupFamilyHasPopulationResult" extends="groupFamilyHasPopulationResult" class="GroupFamilyHasPopulation">
+		<result column="populationid" property="population.id" />
+		<result column="populationtype" property="population.actualPopulationType" />
+		<result column="orgid" property="population.organization.id" />
+		<result column="orginternalcode" property="population.orgInternalCode" />
+		<result column="name" property="population.name" />
+		<result column="gender" property="population.gender.id" />
+		<result column="certificatenumber" property="population.idCardNo" />
+		<result column="birthday" property="population.birthday" />
+		<result column="mobileNumber" property="population.mobileNumber" />
+		<result column="telephone" property="population.telephone"/>
+		<result column="schooling" property="population.schooling.id" />
+		<result column="currentaddress" property="population.currentAddress" />
+		<result column="nativeLocation" property="population.nativeLocation" />
+	</resultMap>
+
+	<insert id="addGroupFamily" parameterClass="GroupFamily">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[ SELECT S_groupfamily.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+	<![CDATA[ insert into groupfamily (id,orginternalcode,familyaccount,familymaster,mastercardno,mastermobilenumber,mastertelephone,createUser,
+		createDate,updateUser,updateDate,membersCount,fullPinyin,simplePinyin)
+		      values (#id#,#orgInternalCode#,#familyAccount#,#familyMaster#,#masterCardNo#, #masterMobileNumber#,#masterTelephone#,#createUser#,
+		      #createDate#,#updateUser#,#updateDate#,#membersCount#,#fullPinyin#,#simplePinyin#) ]]>
+	</insert>
+
+	<insert id="addGroupFamilyHasPopulation" parameterClass="GroupFamilyHasPopulation">
+	<![CDATA[ insert into groupfamilyhaspopulation (familyid, familyrelation, populationid, populationtype )
+		      values (#familyId#,#familyRelation.id#,#populationId#,#populationType# ) ]]>
+	</insert>
+	
+	<select id="countGroupFamilies" parameterClass="map" resultClass="int">
+	<![CDATA[ select count(*) from groupfamily where orginternalcode like #orgInternalCode#||'%' ]]>
+		
+	<dynamic>
+	<!-- 增加快速搜索条件 -->
+		<isNotEmpty property="fastSearchKeyWords" prepend=" and ">
+			<![CDATA[ (familyAccount like #fastSearchKeyWords#||'%' or familyMaster like #fastSearchKeyWords#||'%' or
+			fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' or upper(masterCardNo) like upper(#fastSearchKeyWords#)||'%'  )]]>	
+		</isNotEmpty>
+	</dynamic>
+	</select>
+	
+	<sql id="commom_select_people">
+		<isNotEqual compareValue="true" property="isOverseaPerson">
+		<iterate   property="catalogs" conjunction=" union ">
+			<isEqual property="catalogs[].type" compareValue="unsettledPopulation">
+				select id populationid, '$catalogs[].type$' populationtype,name
+				  from $catalogs[].tableName$ where orginternalcode = #orgInternalCode# and upper(idcardno)=upper(#idCardNo#) and LOGOUT=0 and isDeath=0
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="floatingPopulation">
+				select f.id populationid, '$catalogs[].type$' populationtype,name
+				  from $catalogs[].tableName$ f left join baseinfo b on f.baseInfoId = b.id where f.orginternalcode = #orgInternalCode# and upper(idcardno)=upper(#idCardNo#) and LOGOUT=0 and isDeath=0
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="householdStaff">
+				select f.id populationid, '$catalogs[].type$' populationtype,name
+				  from $catalogs[].tableName$_$shardCode$ f left join baseinfo b on f.baseInfoId = b.id where f.orginternalcode = #orgInternalCode# and upper(idcardno)=upper(#idCardNo#) and LOGOUT=0 and isDeath=0
+			</isEqual>
+		</iterate> 
+		</isNotEqual>
+	 	<isEqual compareValue="true" property="isOverseaPerson">
+				select id populationid, 'overseaStaff' populationtype,name
+				  from overseapersonnel  where orginternalcode = #orgInternalCode# and upper(certificateno)=upper(#idCardNo#) and logOut=0 and CERTIFICATETYPE=#certificateType#
+		</isEqual>
+	 				
+	</sql>
+	<sql id="commom_list2_groupFamily">
+	select  g.*,gt.populationtype,gt.populationid from
+		<![CDATA[ (select g.*, cm.orgid, cm.currentaddress, cm.gender from groupfamily g left join ]]>
+		<iterate open=" ( " close=" ) cm "  property="catalogs" conjunction=" union ">
+			<isEqual property="catalogs[].type" compareValue="householdStaff">
+					<![CDATA[	
+					select currentaddress,b.idcardno,f.orgid,b.gender
+					  from $catalogs[].tableName$_$shardCode$ f left join baseinfo b on f.baseInfoId = b.id left join addressInfo adds on f.addressInfoId = adds.id where f.orginternalcode like #orgInternalCode#||'%' and f.LOGOUT=0 and b.isDeath=0 ]]>
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="floatingPopulation">
+				<![CDATA[	
+				select currentaddress,b.idcardno,f.orgid,b.gender
+				  from $catalogs[].tableName$ f left join baseinfo b on f.baseInfoId = b.id left join addressInfo adds on f.addressInfoId = adds.id where f.orginternalcode like #orgInternalCode#||'%' and f.LOGOUT=0 and b.isDeath=0 ]]>
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="unsettledPopulation">
+				select currentaddress, idcardno, orgid, gender 
+				  from $catalogs[].tableName$ where orginternalcode like #orgInternalCode#||'%' and LOGOUT=0 and isDeath=0
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="overseaStaff">
+				select currentaddress, certificateno as idcardno, orgid, gender
+				  from $catalogs[].tableName$ where orginternalcode like #orgInternalCode#||'%' and logOut=0
+			</isEqual>
+		</iterate> 
+	 	<![CDATA[ on upper(g.mastercardno) = upper(cm.idcardno)  where g.orginternalcode like #orgInternalCode#||'%' ) g left join (select * from groupfamilyhaspopulation  gh where gh.familyrelation = #parentsId#) gt  on 
+ 	g.id =gt.familyId where 1=1
+	 	 ]]>
+	</sql>
+	
+	<select id="listGroupFamilies" parameterClass="map" resultMap="fullGroupFamilyResult">
+	<include refid="commom_list2_groupFamily"/>
+		<dynamic>
+		<!-- 增加快速搜索条件 -->
+			<isNotEmpty property="fastSearchKeyWords" prepend="and">
+				<![CDATA[g.familyAccount like #fastSearchKeyWords#||'%' or g.familyMaster like #fastSearchKeyWords#||'%' or
+				g.fullPinyin like #fastSearchKeyWords#||'%' or g.simplePinyin like #fastSearchKeyWords#||'%' or upper(g.masterCardNo) like upper(#fastSearchKeyWords#)||'%' ]]>	
+			</isNotEmpty> 
+			<isPropertyAvailable property="sortField"  prepend="order by">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getGroupFamilyById" parameterClass="long" resultMap="groupFamilyResult">
+	<![CDATA[ select * from groupfamily where id = #value# ]]>		
+	</select>
+	
+	<select id="findGroupFamilyByFamilyAccountAndOrgInternalCode" parameterClass="map" resultMap="groupFamilyResult">
+	<![CDATA[ select * from groupfamily where familyaccount = #familyAccount# and orginternalcode = #orgInternalCode# ]]>		
+	</select>
+	
+	
+	<select id="getGroupFamilyHasPopulationByFamilyIdAndPopulationIdAndPopulationType" parameterClass="map" resultMap="groupFamilyHasPopulationResult">
+	<![CDATA[ select * from groupfamilyhaspopulation where populationid = #populationId# and populationtype = #populationType# ]]>
+	<dynamic>
+		<isNotEmpty property="familyId" prepend=" and ">
+		<![CDATA[ familyid = #familyId#  ]]>	
+		</isNotEmpty>	
+	</dynamic>	
+	</select>
+	
+	<select id="getGroupFamilyHasPopulationByPopulationIdAndPopulationType" parameterClass="map" resultMap="groupFamilyHasPopulationResult">
+	     <![CDATA[ select * from groupfamilyhaspopulation where populationid = #populationId# and populationtype = #populationType# ]]>
+	</select>
+	
+	<select id="findGroupFamiliesByOrgInternalCodeAndFamilyAccount" parameterClass="map" resultMap="groupFamilyResult">
+	<![CDATA[ select * from groupfamily where orginternalcode like #orgInternalCode#||'%' and familyaccount = #familyaccount#  ]]>		
+	</select>
+	
+	
+	<sql id="common_search_groupFamilyHasPopulations">
+		<iterate open=" ( " close=" ) cm "  property="catalogs" conjunction=" union ">
+			<isEqual property="catalogs[].type" compareValue="householdStaff">
+				<![CDATA[	
+				select f.id populationid,'$catalogs[].type$' populationtype, 
+					f.orgid,f.orginternalcode,b.name,b.gender,b.idcardno certificateNumber,
+					b.birthday,b.mobilenumber,b.telephone,b.schooling,currentaddress,b.province || b.city || b.district nativeLocation
+				  from $catalogs[].tableName$_$shardCode$ f left join baseinfo b on f.baseInfoId = b.id left join addressInfo adds on f.addressInfoId = adds.id where f.orginternalcode like #orgInternalCode#||'%' and f.LOGOUT=0 and b.isDeath=0 ]]>
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="floatingPopulation">
+				<![CDATA[	
+				select f.id populationid,'$catalogs[].type$' populationtype, 
+					f.orgid,f.orginternalcode,b.name,b.gender,b.idcardno certificateNumber,
+					b.birthday,b.mobilenumber,b.telephone,b.schooling,currentaddress,b.province || b.city || b.district nativeLocation
+				  from $catalogs[].tableName$ f left join baseinfo b on f.baseInfoId = b.id left join addressInfo adds on f.addressInfoId = adds.id where f.orginternalcode like #orgInternalCode#||'%' and f.LOGOUT=0 and b.isDeath=0 ]]>
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="unsettledPopulation">
+			<![CDATA[select id populationid, '$catalogs[].type$' populationtype, 
+					   orgid, orginternalcode, name, gender, idcardno certificateNumber,
+					   birthday, mobilenumber,telephone, schooling, currentaddress,province || city || district nativeLocation
+				  from $catalogs[].tableName$ where orginternalcode like #orgInternalCode#||'%' and LOGOUT=0 and isDeath=0  ]]>
+			</isEqual>
+			<isEqual property="catalogs[].type" compareValue="overseaStaff">
+			<![CDATA[  select id as populationid, '$catalogs[].type$' as populationtype, 
+					   orgid, orginternalcode,  englishname as name, gender, certificateno as certificateNumber,
+					   birthday, mobilenumber,telephone, 0 as schooling, currentaddress,nationality nativeLocation
+				  from $catalogs[].tableName$ where orginternalcode like #orgInternalCode#||'%' and LOGOUT=0  ]]>
+			</isEqual>
+		</iterate>	
+	</sql>
+	
+	<select id="countNormalFamilyMembersByFamilyId" parameterClass="long" resultClass="int">
+	<![CDATA[ select count(*) from groupfamilyhaspopulation where familyid = #value#  ]]>		
+	</select> 
+	
+	<select id="countFamilyMembersByFamilyId" parameterClass="java.util.Map" resultClass="int">
+		<![CDATA[ select count(*) from groupfamilyhaspopulation g , ]]>
+		<include refid="common_search_groupFamilyHasPopulations" />
+		<![CDATA[ where g.populationid = cm.populationid and g.populationtype = cm.populationtype and g.familyid = #familyId# ]]>	
+	</select> 
+	
+	<select id="listFamilyMembersByFamilyId" parameterClass="map" resultMap="fullGroupFamilyHasPopulationResult">		
+		<![CDATA[ select * from groupfamilyhaspopulation g , ]]>
+		<include refid="common_search_groupFamilyHasPopulations" />
+		<![CDATA[ where g.populationid = cm.populationid and g.populationtype = cm.populationtype and g.familyid = #familyId# ]]>	
+		<dynamic>
+		<isPropertyAvailable property="sortField"  prepend="order by">
+			<isNotNull property="sortField">$sortField$</isNotNull>
+			<isNotNull property="order">$order$</isNotNull>
+		</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="pageFamilyMembersByFamilyIdNoMaster" parameterClass="map" resultMap="fullGroupFamilyHasPopulationResult">		
+		<![CDATA[ select * from groupfamilyhaspopulation g , ]]>
+		<include refid="common_search_groupFamilyHasPopulations" />
+		<![CDATA[ where g.populationid = cm.populationid and g.populationtype = cm.populationtype and g.familyid = #familyId# and g.familyrelation!=#familyrelation#]]>	
+		<dynamic>
+		<isPropertyAvailable property="sortField"  prepend="order by">
+			<isNotNull property="sortField">$sortField$</isNotNull>
+			<isNotNull property="order">$order$</isNotNull>
+		</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countFamilyMembersByFamilyIdNomaster" parameterClass="map" resultClass="java.lang.Integer" >
+	     select count(*) from groupfamilyhaspopulation where familyid = #familyId# and familyrelation!=#familyrelation#
+	</select>
+	
+	<select id="findFamilyMembersByFamilyIdAndOrgCode" parameterClass="map" resultMap="fullGroupFamilyHasPopulationResult">		
+		<![CDATA[ select * from groupfamilyhaspopulation g , ]]>
+		<include refid="common_search_groupFamilyHasPopulations" />
+		<![CDATA[ where g.populationid = cm.populationid and g.populationtype = cm.populationtype and g.familyid = #familyId# ]]>	
+		
+	</select>
+	
+	<select id="getFamilyMembersByFamilyIdAndOrgCodeAndFamilyrelation" parameterClass="map" resultMap="fullGroupFamilyHasPopulationResult">		
+		<![CDATA[ select * from groupfamilyhaspopulation g , ]]>
+		<include refid="common_search_groupFamilyHasPopulations" />
+		<![CDATA[ where g.populationid = cm.populationid and g.populationtype = cm.populationtype and g.familyid = #familyId# and g.familyrelation=#familyrelation# ]]>	
+		
+	</select>
+	
+	<select id="getPeopleByIdcardNoAndOrgCode" parameterClass="map" resultMap="savePeopleResult">
+		<include refid="commom_select_people" />
+		
+	</select>
+	
+	<select id="countGroupFamiliesByFullSearchGroupFamilyVo" parameterClass="map" resultClass="int">
+		select count(distinct g.familyid) from groupfamilyhaspopulation g,  groupfamily f,
+		<include refid="common_search_groupFamilyHasPopulations" />
+		where g.populationid = cm.populationid and g.populationtype = cm.populationtype and g.familyid = f.id 
+		<dynamic>
+			<isNotEmpty property="familyAccount" prepend=" and ">
+				<![CDATA[ f.familyAccount like #familyAccount#||'%' ]]>	
+			</isNotEmpty>  
+			<isNotEmpty property="familyMaster" prepend=" and ">
+				<![CDATA[ f.familyMaster like #familyMaster#||'%'  or
+				f.fullPinyin like #familyMaster#||'%' or f.simplePinyin like #familyMaster#||'%']]>	
+			</isNotEmpty>  
+			<isNotEmpty property="masterCardNo" prepend=" and ">
+				<![CDATA[ upper(f.masterCardNo) like upper(#masterCardNo#)||'%' ]]>	
+			</isNotEmpty> 
+			<isNotEmpty property="familyAddress" prepend=" and ">
+				<![CDATA[ cm.currentaddress like '%'||#familyAddress#||'%']]>	
+			</isNotEmpty> 
+			<isNotEmpty property="memberName" prepend=" and ">
+				<![CDATA[ cm.name like #memberName#||'%']]>	
+			</isNotEmpty> 
+			<isNotEmpty property="membersCount" prepend=" and ">
+				<![CDATA[ f.membersCount = #membersCount#]]>	
+			</isNotEmpty> 		
+			<isPropertyAvailable property="sortField"  prepend="order by">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<select id="listGroupFamiliesByFullSearchGroupFamilyVo" parameterClass="map" resultMap="fullGroupFamilyResult">
+		<dynamic>
+		<include refid="commom_list2_groupFamily"/>
+		<isNotEmpty property="familyAccount" prepend=" and ">
+			<![CDATA[ g.familyAccount like #familyAccount#||'%' ]]>	
+		</isNotEmpty>  
+		<isNotEmpty property="familyMaster" prepend=" and ">
+			<![CDATA[ g.familyMaster like #familyMaster#||'%' or
+				g.fullPinyin like #familyMaster#||'%' or g.simplePinyin like #familyMaster#||'%']]>	
+		</isNotEmpty>  
+		<isNotEmpty property="masterCardNo" prepend=" and ">
+			<![CDATA[ upper(g.masterCardNo) like upper(#masterCardNo#)||'%' ]]>	
+		</isNotEmpty>
+		<isNotEmpty property="membersCount" prepend=" and ">
+			<![CDATA[ g.membersCount = #membersCount#]]>	
+		</isNotEmpty>
+		</dynamic> 
+		<![CDATA[ and exists ( select * from groupfamilyhaspopulation gp , ]]>
+		<include refid="common_search_groupFamilyHasPopulations" />
+		<![CDATA[ where gp.populationid = cm.populationid and gp.populationtype = cm.populationtype and gp.familyid = g.id ]]>	
+		<dynamic>
+		<isNotEmpty property="familyAddress" prepend=" and ">
+			<![CDATA[ cm.currentaddress like '%'||#familyAddress#||'%']]>	
+		</isNotEmpty> 
+		<isNotEmpty property="memberName" prepend=" and ">
+			<![CDATA[ cm.name like #memberName#||'%']]>	
+		</isNotEmpty> 
+		</dynamic> 
+		<![CDATA[ ) ]]>	
+		<dynamic>
+		<isPropertyAvailable property="sortField"  prepend="order by">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getFamilyMembersByFamilyId" parameterClass="long" resultMap="groupFamilyHasPopulationResult">
+	<![CDATA[ select * from groupfamilyhaspopulation where familyid = #value# ]]>
+	</select>
+	
+	<update id="updateGroupFamily" parameterClass="GroupFamily">
+	<![CDATA[ update groupfamily set
+					 familyaccount = #familyAccount#,
+					 familymaster = #familyMaster#,
+					 mastercardno = #masterCardNo#,
+					 mastermobilenumber = #masterMobileNumber#,
+					 mastertelephone = #masterTelephone#,
+					 updateUser = #updateUser#,
+					 updateDate = #updateDate#,
+					 fullPinyin = #fullPinyin#,
+					 simplePinyin = #simplePinyin#
+			   where id = #id# ]]>		
+	</update>
+	<update id="updateGroupFamilyIdcardById" parameterClass="GroupFamily">
+	<![CDATA[ update groupfamily set
+					 mastercardno = #masterCardNo#
+			   where id = #id# ]]>		
+	</update>
+	<update id="updateGroupFamilyMasterToNull" parameterClass="java.util.Map">
+	<![CDATA[ update groupfamily set
+					 familymaster = null,
+					 mastercardno = null,
+					 mastermobilenumber = null,
+					 mastertelephone = null,
+					 updateDate = #updateDate#,
+					 fullPinyin = null,
+					 simplePinyin = null
+			   where id = #id# ]]>		
+	</update>
+	<update id="updateGroupFamilyAccount" parameterClass="map">
+	<![CDATA[ update groupfamily set
+					 familyaccount = #newFamilyAccount#,
+					 updateDate = #updateDate#
+			   where id = #id# ]]>		
+	</update>
+	<update id="updateGroupFamilyMemberCountByGroupFamilyId" parameterClass="map">
+		<![CDATA[ update groupfamily set
+					 membersCount = #membersCount#
+			   where id = #id# ]]>
+	</update>
+	
+	<update id="updateGroupFamilyHasPopulationRelation" parameterClass="map">
+	<![CDATA[ update groupfamilyhaspopulation set
+					 familyrelation = #familyrelation#
+			   where populationid = #populationId# and populationtype = #populationType# ]]>		
+	</update>
+	
+	<delete id="deleteGroupFamilyById" parameterClass="long">
+	<![CDATA[ delete from groupfamily where id = #value#  ]]>	
+	</delete>
+	
+	<delete id="deleteGroupFamilyHasPopulationByFamilyId" parameterClass="long">
+	<![CDATA[ delete from groupfamilyhaspopulation where familyid = #value#  ]]>	
+	</delete>
+	
+	<delete id="deleteGroupFamilyHasPopulationByFamilyIdAndPopulationIdAndPopulationType" parameterClass="map">
+	<![CDATA[ delete from groupfamilyhaspopulation where familyid = #familyId# and populationid = #populationId# and populationtype = #populationType# ]]>	
+	</delete>
+	
+	<update id="updateGroupFamilyHasPopulationByFamilyIdAndFamilyrelation" parameterClass="map">
+	<![CDATA[ update groupfamilyhaspopulation set
+					 familyrelation = #familyRelationId#
+			   where familyid = #familyId# and familyrelation = #previousFamilyrelation# ]]>		
+	</update>
+	
+	<select id="getGroupFamilyByOrgCodeAndFamilyAccount" parameterClass="map" resultMap="groupFamilyResult">
+		select * from groupfamily g where g.orginternalcode=#orgInternalCode# and g.familyaccount=#familyAccount#
+	</select>
+	
+	<update id="updateGroupFamilyForMove">
+		update groupfamilyhaspopulation set
+					 populationid = #newId#,populationtype = #newType#
+			   where populationid = #oldId# and populationtype = #type#
+	</update>
+</sqlMap>

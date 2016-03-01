@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchMentalPatient">
+	<typeAlias alias="MentalPatienTypeCount" type="com.tianque.baseInfo.mentalPatient.domain.MentalPatientTypeCount" />
+	<typeAlias alias="searchMentalPatientVo" type="com.tianque.domain.vo.SearchMentalPatientVo"/>
+	<resultMap id="mentalPatientCountResult" class="MentalPatienTypeCount">
+		<result property="type" column="type" />
+		<result property="count" column="count" />
+		<!-- <result property="displayName" column="displayname" /> -->
+	</resultMap>
+	<sql id="fields">
+		uni.id,uni.baseinfoid,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.dangerLevel,uni.psychosisName,uni.psychosisType,uni.treatmentState,uni.isUndergo_Treatment,
+	    uni.isTreat,uni.cureDepartment,uni.businessRemark,uni.guardian,uni.guardianMobileNumber,uni.guardianTelephone,uni.diseaseTime,uni.recoveryTime,
+	    uni.createUser,uni.createDate,uni.updateUser,uni.updateDate,uni.sourcesState,uni.isEmphasis,uni.isEmphasisReason,uni.isEmphasisDate
+	</sql>
+	<sql id="sql_where">
+				from mentalPatients uni left join baseinfo b on uni.baseinfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+				where uni.orgInternalCode like #orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+					(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="genderId" >
+				<isNotEmpty property="genderId" prepend=" and ">
+					gender = #genderId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo" >
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					<![CDATA[ upper(idCardNo) like upper(#idCardNo#)||'%' ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name" >
+				<isNotEmpty property="name" prepend=" and ">
+				(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endBirthday" >
+				<isNotEmpty property="endBirthday" prepend=" and ">
+				<![CDATA[ birthday <= #endBirthday# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startBirthday" >
+				<isNotEmpty property="startBirthday" prepend=" and ">
+					<![CDATA[ birthday >= #startBirthday# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dangerLevelId" >
+				<isNotEmpty property="dangerLevelId" prepend=" and ">
+					dangerLevel = #dangerLevelId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="psychosisTypeId">
+				<isNotEmpty property="psychosisTypeId" prepend="and">
+					psychosisType = #psychosisTypeId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isTreat">
+				<isNotEmpty property="isTreat" prepend=" and ">
+					isTreat=#isTreat#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="cureDepartment">
+				<isNotEmpty property="cureDepartment" prepend=" and ">
+					cureDepartment like #cureDepartment#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativeProvince" >
+				<isNotEmpty property="nativeProvince" prepend=" and ">
+					province  = #nativeProvince#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativeCity" >
+				<isNotEmpty property="nativeCity" prepend=" and ">
+					city  = #nativeCity#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativeDistrict" >
+				<isNotEmpty property="nativeDistrict" prepend=" and ">
+					district = #nativeDistrict#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativePlaceAddress" >
+				<isNotEmpty property="nativePlaceAddress" prepend=" and ">
+					nativePlaceAddress like #nativePlaceAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentAddress" >
+				<isNotEmpty property="currentAddress" prepend=" and ">
+					currentAddress  like #currentAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nation" >
+				<isNotEmpty property="nation.id" prepend=" and ">
+					nation = #nation.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="politicalBackground" >
+				<isNotEmpty property="politicalBackground.id" prepend=" and ">
+					politicalBackground = #politicalBackground.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maritalState" >
+				<isNotEmpty property="maritalState.id" prepend=" and ">
+					maritalState = #maritalState.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isNotNull property="schooling.id" prepend=" and ">
+					schooling = #schooling.id#
+				</isNotNull>
+			<isPropertyAvailable property="workUnit" >
+				<isNotEmpty property="workUnit" prepend=" and ">
+					workUnit  like #workUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startStature" >
+				<isNotEmpty property="startStature" prepend=" and ">
+				<![CDATA[ stature >= #startStature# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endStature" >
+				<isNotEmpty property="endStature" prepend=" and ">
+					<![CDATA[ stature <= #endStature# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="faith" >
+				<isNotEmpty property="faith.id" prepend=" and ">
+					faith = #faith.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="email" >
+				<isNotEmpty property="email" prepend=" and ">
+					email  like #email#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="telephone" >
+				<isNotEmpty property="telephone" prepend=" and ">
+					telephone  like #telephone#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber" >
+				<isNotEmpty property="mobileNumber" prepend=" and ">
+					mobileNumber like #mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="bloodType">
+				<isNotEmpty prepend=" and " property="bloodType.id">
+					bloodType = #bloodType.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotEmpty property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis# 
+					</isEqual>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isDeath" >
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="1">
+						isDeath = #isDeath#
+					</isEqual>
+					<isEqual property="isDeath" compareValue="0">
+						(isDeath = #isDeath# or isDeath is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<include refid="attentionPopulationBaseInfo.serviceTeamInfoForSearch"/>
+		</dynamic>
+	</sql>
+	<select id="countSearchMentalPatient" parameterClass="searchMentalPatientVo" resultClass="int">
+		select count(*)
+		<include refid="sql_where" />
+	</select>
+
+	<select id="searchMentalPatient" parameterClass="searchMentalPatientVo" resultMap="mentalPatient.mobileMentalPatientMapNew">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,uni.dangerLevel as attentionExtent,'$attentionPopulationType$' as populationType
+		,(select count(1) from mentalPatientTask m where m.mentalPatientid=uni.id ) as interviewCount 
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+
+	<select id="findMentalPatientsNameAndPinyinAndOrgInternalCode" parameterClass="java.util.Map" resultMap="mentalPatient.mentalPatientResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+			from mentalpatients uni left join baseinfo b on uni.baseinfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+			where (name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%' ) 
+				and uni.orgInternalCode like #orgInternalCode#||'%' order by uni.id
+	</select>
+
+	<select id="findMentalPatientCountList" parameterClass="java.util.Map" resultMap="mentalPatientCountResult">
+		select n.* from
+ 		 (select count(uni.dangerlevel) count,uni.dangerlevel type
+           	from mentalpatients uni where uni.orgInternalcode  like #orgInternalCode#||'%' and  uni.isEmphasis =0 group by uni.dangerlevel) n
+	</select>
+
+	<select id="findHelped" parameterClass="java.util.Map" resultMap="mentalPatientCountResult">
+		  select rrrr.* from (select count(rrr.dangerlevel) count,rrr.dangerlevel type from
+         (select distinct o.* from (select count(uni.dangerlevel) count , uni.dangerlevel ,
+           uni.id from mentalpatients uni where uni.orginternalcode like #orgInternalCode#||'%' and uni.isEmphasis =0 group by uni.dangerlevel,uni.id) o
+           inner join helppersonnels h on o.id = h.personid and h.persontype='mentalPatient') rrr group by rrr.dangerlevel) rrrr
+	</select>
+
+	<select id="getCount" parameterClass="java.lang.String" resultClass="java.lang.Long">
+		select count(id) from mentalPatients uni where uni.orgInternalCode like #orgInternalCode#||'%' and  uni.isEmphasis =0
+	</select>
+	
+	<select id="getNotHelpedCountNullType" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(id) from mentalPatients uni
+       		where uni.id not in(select distinct h.personid
+             	from helppersonnels h where h.persontype='mentalPatient') and orgInternalCode like #orgInternalCode#||'%' and uni.dangerlevel is null and uni.isEmphasis =0 
+	</select>
+	
+	<select id="getHelpedCountNullType" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(id) from mentalPatients uni
+       		where uni.id in(select distinct h.personid
+             	from helppersonnels h where h.persontype='mentalPatient') and uni.orgInternalCode like #orgInternalCode#||'%' and uni.dangerlevel is null and uni.isEmphasis =0 
+	</select>
+
+</sqlMap>

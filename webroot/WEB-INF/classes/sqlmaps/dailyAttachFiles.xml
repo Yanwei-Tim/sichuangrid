@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="dailyAttachFiles">
+	<typeAlias alias="DailyAttachFiles" type="com.tianque.working.domain.DailyAttachFiles" />
+	<resultMap id="dailyAttachFileResult" class="DailyAttachFiles">
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="dailyId" column="dailyId" />
+		<result property="dailyDirectoryType" column="dailyDirectoryType" />
+		<result property="fileactualUrl" column="fileactualUrl" />
+		<result property="fileName" column="fileName" />
+		<result property="fileSize" column="fileSize" />
+		<result property="id" column="id" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+	</resultMap>
+
+	<insert id="addDailyAttachFiles" parameterClass="DailyAttachFiles">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT s_daily_attachfiles.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		daily_attachfiles(dailyId,dailyDirectoryType,createDate,createUser,fileactualUrl,fileName,fileSize,id,updateDate,updateUser)
+		VALUES(#dailyId#,#dailyDirectoryType#,#createDate#,#createUser#,#fileactualUrl#,#fileName#,#fileSize#,#id#,#updateDate#,#updateUser#)
+	</insert>
+
+	<delete id="deleteDailyAttachFilesById" parameterClass="java.lang.Long">
+		delete
+		from daily_attachfiles where id=#value#
+	</delete>
+
+	<delete id="deleteDailyAttachFilesByByDailyIdAndDailyDirectoryType"
+		parameterClass="java.util.Map">
+		delete from daily_attachfiles where dailyId=#dailyId#
+		and dailydirectorytype=#dailyDirectoryType#
+	</delete>
+
+	<select id="getSimpleDailyAttachFilesById" parameterClass="java.lang.Long"
+		resultMap="dailyAttachFileResult">
+	<![CDATA[select * from daily_attachfiles where id=#value#]]>
+	</select>
+
+	<select id="getSimpleDailyAttachFilesByDailyIdAndDailyDirectoryType"
+		parameterClass="java.util.Map" resultMap="dailyAttachFileResult">
+	<![CDATA[select * from daily_attachfiles where dailyId=#dailyId# and dailydirectorytype=#dailyDirectoryType#]]>
+	</select>
+</sqlMap>

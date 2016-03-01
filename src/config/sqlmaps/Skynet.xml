@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		LOGOUTTIME as logoutTime ,
+		CREATEDATE as createdate ,
+		UPDATEDATE as updatedate ,
+		ORGID as orgId ,
+		ISEMPHASIS as isEmphasis ,
+		ORGINTERNALCODE as orgInternalCode ,
+		CENTERLON as centerLon ,
+		CENTERLAT as centerLat ,
+		CENTERLON2 as centerLon2 ,
+		CENTERLAT2 as centerLat2 ,
+		CODE 		as skynetNo ,
+		CREATEUSER as createuser ,
+		UPDATEUSER as updateuser ,
+		ADDRESS as address ,
+		LOGOUTREASON as logoutReason 
+	FROM SKYNET	
+ -->	
+<sqlMap namespace="skynet">	
+	
+	<typeAlias alias="Skynet" type="com.tianque.publicSecurity.domain.Skynet"/>
+	<typeAlias alias="SearchSkynetVo" type="com.tianque.publicSecurity.domain.vo.SearchSkynetVo" />
+	
+	<resultMap id="skynetResult" class="Skynet">
+		<result property="id" column="ID"/>
+		<result property="logoutTime" column="LOGOUTTIME"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="organization.id" column="ORGID"/>
+		<result property="isEmphasis" column="ISEMPHASIS"/>
+		<result property="orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="openLayersMapInfo.centerLon" column="CENTERLON"/>
+		<result property="openLayersMapInfo.centerLat" column="CENTERLAT"/>
+		<result property="openLayersMapInfo.centerLon2" column="CENTERLON2"/>
+		<result property="openLayersMapInfo.centerLat2" column="CENTERLAT2"/>
+		<result property="skynetNo" column="CODE"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="address" column="ADDRESS"/>
+		<result property="logoutReason" column="LOGOUTREASON"/>
+		<result property="type" column="type"/>
+	</resultMap>
+	
+
+
+	<select id="getSkynetById" parameterClass="java.lang.Long" resultMap="skynetResult">
+		select * from SKYNET where id=#value#
+	</select>
+	
+	<insert id="addSkynet" parameterClass="Skynet">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_SKYNET.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into SKYNET (ID , LOGOUTTIME , CREATEDATE , UPDATEDATE , ORGID ,  ORGINTERNALCODE , CENTERLON , CENTERLAT , CENTERLON2 , CENTERLAT2 , CODE , CREATEUSER , UPDATEUSER , ADDRESS , LOGOUTREASON,TYPE ) 
+		values(#id#, #logoutTime#, #createDate#, #updateDate#, #organization.id#,  #orgInternalCode#, #openLayersMapInfo.centerLon#, #openLayersMapInfo.centerLat#, #openLayersMapInfo.centerLon2#, #openLayersMapInfo.centerLat2#, #skynetNo#, #createUser#, #updateUser#, #address#, #logoutReason#,#type#)	
+	</insert>
+	
+	<update id="updateSkynet" parameterClass="Skynet">
+		update SKYNET set id = #id# 
+				<isNotNull prepend="," property="logoutTime">
+					LOGOUTTIME = #logoutTime#
+				</isNotNull>
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="organization.id">
+					ORGID = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="isEmphasis">
+					ISEMPHASIS = #isEmphasis#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="openLayersMapInfo.centerLon">
+					CENTERLON = #openLayersMapInfo.centerLon#
+				</isNotNull>
+				<isNotNull prepend="," property="openLayersMapInfo.centerLat">
+					CENTERLAT = #openLayersMapInfo.centerLat#
+				</isNotNull>
+				<isNotNull prepend="," property="openLayersMapInfo.centerLon2">
+					CENTERLON2 = #openLayersMapInfo.centerLon2#
+				</isNotNull>
+				<isNotNull prepend="," property="openLayersMapInfo.centerLat2">
+					CENTERLAT2 = #openLayersMapInfo.centerLat2#
+				</isNotNull>
+				<isNotNull prepend="," property="skynetNo">
+					CODE = #skynetNo#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="address">
+					ADDRESS = #address#
+				</isNotNull>
+				<isNotNull prepend="," property="logoutReason">
+					LOGOUTREASON = #logoutReason#
+				</isNotNull>
+				<isNotNull prepend="," property="type">
+					TYPE = #type#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteSkynetById" parameterClass="java.lang.Long">	
+		delete  from SKYNET where id = #value#	
+	</delete>
+	
+	<sql id="findSkynetsBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="maxLogoutTime">
+					<isNotEmpty prepend="and" property="maxLogoutTime">
+						LOGOUTTIME  <![CDATA[<=]]> #maxLogoutTime#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minLogoutTime">
+					<isNotEmpty prepend="and" property="minLogoutTime">
+						LOGOUTTIME  <![CDATA[>=]]> #minLogoutTime#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="isEmphasis" >
+					<isNotNull property="isEmphasis" prepend=" and ">
+						<isEqual property="isEmphasis" compareValue="1">
+							isEmphasis = #isEmphasis#
+						</isEqual>
+						<isEqual property="isEmphasis" compareValue="0">
+							(isEmphasis = #isEmphasis# or isEmphasis is null)
+						</isEqual>
+					</isNotNull>
+			  </isPropertyAvailable>	
+				<isPropertyAvailable property="skynetNo">
+					<isNotEmpty prepend="and" property="skynetNo">
+						CODE  like #skynetNo# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="address">
+					<isNotEmpty prepend="and" property="address">
+						ADDRESS  like #address# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="logoutReason">
+					<isNotEmpty prepend="and" property="logoutReason">
+						LOGOUTREASON  like #logoutReason# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>		
+				<isPropertyAvailable property="isBind">
+					<isNotNull property="isBind">
+						<isEqual property="isBind" compareValue="true" prepend="and">
+							id in (
+								select distinct s.id from  SKYNET s where 
+								s.orginternalcode like #orgInternalCode#||'%' and s.centerlon is not null 
+							)
+						</isEqual>
+						<isEqual property="isBind" compareValue="false" prepend="and">
+							id not in (
+								select distinct s.id from  SKYNET s where 
+								s.orginternalcode like #orgInternalCode#||'%' and s.centerlon is not null 
+							)
+						</isEqual>
+					</isNotNull>
+			</isPropertyAvailable>		
+		</dynamic>
+	</sql>
+	<select id="findSkynetsBySearchVo" parameterClass="SearchSkynetVo" resultMap="skynetResult">
+		select * from SKYNET
+		<include refid="findSkynetsBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countSkynetsBySearchVo" parameterClass="SearchSkynetVo" resultClass="java.lang.Integer">
+		select count(0) from SKYNET
+		<include refid="findSkynetsBySearchVo_sql_where" />
+	</select>
+	
+	<select id="getSkynetBySkynetNo"  parameterClass="map"
+		resultMap="skynetResult">
+		select * from SKYNET where CODE = #skynetNo#
+		<isNotNull prepend="and" property="orgId">
+			orgId = #orgId#
+		</isNotNull>
+	</select>
+	
+	<update id="updateEmphasiseById" parameterClass="map">
+		update SKYNET set ISEMPHASIS=#isEmphasis#,LOGOUTREASON=#logoutReason# ,LOGOUTTIME = #logoutTime#,UPDATEDATE = #updateDate#,UPDATEUSER = #updateUser#
+		where id=#id#
+	</update>
+	
+	<update id="updateByParam" parameterClass="map">
+		update SKYNET set orgId=#toOrgId#,orgInternalCode=#orgInternalCode#,UPDATEDATE = #updateDate#,UPDATEUSER = #updateUser#
+		where id=#id#
+	</update>
+	
+	
+	<select id="countByCode"  parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from SKYNET where CODE = #code# and  orgId = #toOrgId#
+	</select>
+
+</sqlMap>

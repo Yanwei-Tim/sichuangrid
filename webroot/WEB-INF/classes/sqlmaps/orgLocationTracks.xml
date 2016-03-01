@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="orgLocationTracks">
+   <typeAlias alias="OrgLocationTracks" type="com.tianque.baseInfo.orgLocationTrack.domain.OrgLocationTracks"/>
+		
+	<resultMap class="OrgLocationTracks" id="orgLocationTracksResult">
+		<result property="id" column="id" />
+		<result property="orgLocationId" column="orgLocationId"/>
+		<result property="orgLocationName" column="orgLocationName" />
+		<result property="orgLocationType" column="orgLocationType"/>
+		<result property="orgLocationinitType" column="orgLocationinitType"/>
+		<result property="orgLocationOrganization.id" column="orgLocationOrgId" />
+		<result property="orgLocationOrgInternalCode" column="orgLocationOrgInternalCode" />
+		<result property="oldOrgLocationOrganization.id" column="oldOrgLocationOrgId" />
+		<result property="operationType" column="operationType" />
+		<result property="operationContent" column="operationContent" />
+		<result property="operationUserId" column="operationUserId" />
+		<result property="operationOrganization.id" column="operationOrgId" />
+		<result property="operationDate" column="operationDate" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+	</resultMap>
+
+	<select id="countOrgLocationTracksByOrgIdAndName" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from orgLocationTracks where orgLocationOrgId=#orgLocationOrgId# and orgLocationName=#orgLocationName#
+	</select>
+	
+	<select id="findOrgLocationTracksByOrgIdAndName" parameterClass="java.util.Map" resultMap="orgLocationTracksResult">
+		<![CDATA[SELECT * FROM orgLocationTracks where orgLocationOrgId=#orgLocationOrgId# and orgLocationName=#orgLocationName# order by operationDate desc]]>
+	</select>
+
+	<insert id="addOrgLocationTracks" parameterClass="OrgLocationTracks">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_orgLocationTracks.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into orgLocationTracks (id,orgLocationId,orgLocationName,orgLocationType,orgLocationinitType,orgLocationOrgId,orgLocationOrgInternalCode,oldOrgLocationOrgId, 
+		 operationType,operationContent,operationUserId,operationOrgId,operationDate,createUser, createDate)
+		values (#id#,#orgLocationId#,#orgLocationName#,#orgLocationType#,#orgLocationinitType#,#orgLocationOrganization.id#, #orgLocationOrgInternalCode#, #oldOrgLocationOrganization.id#, 
+		#operationType#,#operationContent#,#operationUserId#, #operationOrganization.id#,#operationDate#,#createUser#,#createDate#)
+	</insert>
+
+	<select id="getOrgLocationTracksById" parameterClass="java.lang.Long" resultMap="orgLocationTracksResult">
+		<![CDATA[SELECT * FROM orgLocationTracks where id = #value#]]>
+	</select>
+</sqlMap>

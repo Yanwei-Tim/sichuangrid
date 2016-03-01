@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchScenicEquipment">
+<typeAlias alias="ScenicEquipmentVo" type="com.tianque.baseInfo.scenicManage.scenicEquipment.vo.SearchScenicEquipmentVo"/>
+	<sql id="sql_where">
+		from scenicEquipment where orgInternalCode like #orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="equipName">
+				<isNotEmpty property="equipName" prepend=" and ">
+					(equipName like #equipName#||'%' or fullPinyin like #equipName#||'%' or simplePinyin like #equipName#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="unitName">
+				<isNotEmpty property="unitName" prepend=" and ">
+					(equipName like #unitName#||'%' or fullPinyin like #unitName#||'%' or simplePinyin like #unitName#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="equipAddress">
+				<isNotEmpty property="equipAddress" prepend=" and ">
+					equipAddress like #equipAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="manager">
+				<isNotEmpty property="manager" prepend=" and ">
+					manager like #manager#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobile">
+				<isNotEmpty property="mobile" prepend=" and ">
+					mobile like #mobile#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="managerMobile">
+				<isNotEmpty property="managerMobile" prepend=" and ">
+					managerMobile like #managerMobile#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="equipType">
+				<isNotEmpty property="equipType" prepend=" and ">
+					equipType =#equipType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="aroundScenic">
+				<isNotEmpty property="aroundScenic" prepend=" and ">
+					(aroundScenic like #aroundScenic#||'%' or 
+						#aroundScenic# like aroundScenic||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="true">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="false">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logOutReason">
+				<isNotEmpty property="logOutReason" prepend=" and ">
+					logOutReason like #logOutReason#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="countScenicEquipment" parameterClass="ScenicEquipmentVo" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="searchScenicEquipment" parameterClass="ScenicEquipmentVo" resultMap="scenicEquipment.scenicEquipmentResult">
+			select *  
+			<include refid="sql_where" />
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+	</select>
+</sqlMap>

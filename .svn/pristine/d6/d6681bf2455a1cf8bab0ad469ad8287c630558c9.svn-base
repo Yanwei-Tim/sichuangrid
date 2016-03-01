@@ -1,0 +1,118 @@
+package com.tianque.plugin.dataManage.population.mentalPatientTemp.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.struts2.convention.annotation.Namespace;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.mentalPatient.domain.MentalPatient;
+import com.tianque.baseInfo.mentalPatient.service.MentalPatientService;
+import com.tianque.plugin.dataManage.base.AbstractDataManageController;
+import com.tianque.plugin.dataManage.base.service.AbstractDataManageService;
+import com.tianque.plugin.dataManage.population.mentalPatientTemp.domain.MentalPatientTemp;
+import com.tianque.plugin.dataManage.util.DataManageBaseInfoTypes;
+import com.tianque.plugin.dataManage.util.DataManageBaseInfoUtil;
+
+/**
+ * 数据管理 - 精神病人员控制类。
+ */
+@Namespace("/plugin/dataManage/mentalPatientTempManage")
+@Transactional
+@Scope("request")
+@Controller("mentalPatientTempController")
+public class MentalPatientTempController extends
+		AbstractDataManageController<MentalPatientTemp, MentalPatient> {
+	@Autowired
+	private MentalPatientService mentalPatientService;
+	@Autowired
+	@Qualifier("businessPopulationDataManageService")
+	private AbstractDataManageService businessPopulationDataManageService;
+
+	@Resource(name = "businessPopulationDataManageService")
+	public void setDataManageService(AbstractDataManageService abstractDataManageServiceImpl) {
+		replaceDataManageService(businessPopulationDataManageService);
+	}
+
+	public String getBigType() {
+		return DataManageBaseInfoTypes.POPULATION;
+	}
+
+	public MentalPatientTemp getPopulation() {
+		return population;
+	}
+
+	public void setPopulation(MentalPatientTemp population) {
+		this.population = population;
+	}
+
+	public MentalPatientTemp getTemp() {
+		return temp;
+	}
+
+	public void setTemp(MentalPatientTemp temp) {
+		this.temp = temp;
+	}
+
+	@Override
+	public MentalPatient getTargetById(Long id) {
+		return mentalPatientService.getMentalPatientById(id);
+	}
+
+	@Override
+	public List getCompareList(MentalPatientTemp mentalPatientTemp, MentalPatient mentalPatient) {
+		List compareList = new ArrayList();
+		compareList = DataManageBaseInfoUtil.getPopulationCommonList(mentalPatientTemp,
+				mentalPatient);
+		Map map = new HashMap();
+		map.put("notNull", "true");
+		map.put("label", "危险程度");
+		map.put("tempValue", mentalPatientTemp.getDangerLevel() == null ? "-1" : ""
+				+ mentalPatientTemp.getDangerLevel().getId());
+		map.put("realValue", mentalPatient.getDangerLevel() == null ? "-1" : ""
+				+ mentalPatient.getDangerLevel().getId());
+		map.put("PropertyDict",
+				"@com.tianque.domain.property.PropertyTypes@MENTALPATIENT_DANGEROUS_LEVEL");
+		map.put("argType", "PropertyDict");
+		map.put("submitName", "dangerLevel.id");
+		compareList.add(map);
+
+		map = new HashMap();
+		map.put("notNull", "false");
+		map.put("label", "患病名称");
+		map.put("tempValue", "" + mentalPatientTemp.getPsychosisName());
+		map.put("realValue", "" + mentalPatient.getPsychosisName());
+		map.put("argType", "str");
+		map.put("submitName", "psychosisName");
+		compareList.add(map);
+
+		map = new HashMap();
+		map.put("notNull", "false");
+		map.put("label", "是否接受过治疗");
+		map.put("tempValue", "" + mentalPatientTemp.isTreat());
+		map.put("realValue", "" + mentalPatient.isTreat());
+		map.put("argType", "boolean");
+		map.put("submitName", "isTreat");
+		compareList.add(map);
+
+		map = new HashMap();
+		map.put("notNull", "false");
+		map.put("label", "康复机构");
+		map.put("tempValue", "" + mentalPatientTemp.getCureDepartment());
+		map.put("realValue", "" + mentalPatient.getCureDepartment());
+		map.put("argType", "str");
+		map.put("submitName", "cureDepartment");
+		compareList.add(map);
+
+		return compareList;
+	}
+
+}

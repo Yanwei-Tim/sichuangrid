@@ -1,0 +1,442 @@
+package com.tianque.plugin.weChat.controller;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.controller.annotation.PermissionFilter;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.util.FileUtil;
+import com.tianque.core.vo.GridPage;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.IssueType;
+import com.tianque.issue.controller.strategy.IssueManageStrategy;
+import com.tianque.issue.domain.Issue;
+import com.tianque.issue.factory.IssueManageStrategyFactory;
+import com.tianque.issue.vo.IssueTypeViewDefine;
+import com.tianque.plugin.weChat.domain.inbox.Inbox;
+import com.tianque.plugin.weChat.domain.inbox.InboxAttachment;
+import com.tianque.plugin.weChat.domain.inbox.ReplyMessage;
+import com.tianque.plugin.weChat.domain.sendMessage.text.TextSendMessage;
+import com.tianque.plugin.weChat.service.InboxAttachmentService;
+import com.tianque.plugin.weChat.service.InboxService;
+import com.tianque.plugin.weChat.service.ReplyMessageService;
+import com.tianque.plugin.weChat.util.MediaUtil;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+/** 收件箱控制类（所有来自页面的请求） */
+@Namespace("/weChat/inbox")
+@Scope("prototype")
+@Controller("inboxController")
+public class InboxController extends BaseAction {
+	private static Logger logger = LoggerFactory
+			.getLogger(InboxController.class);
+	@Autowired
+	private InboxService inboxService;
+	@Autowired
+	private InboxAttachmentService inboxAttachmentService;
+
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private IssueManageStrategyFactory factory;
+	private List<InboxAttachment> inboxAttachmentList;
+	@Autowired
+	private ReplyMessageService replyMessageService;
+
+	/** 收件箱对象 */
+	private Inbox inbox;
+	/** 附件下载id */
+	private Long attachmentId;
+	private Long inboxId;
+	/** 发送的返回情况code（0为成功，再删除时>0未成功） */
+	private int resultCode;
+	/** 主动回复消息对象 */
+	private TextSendMessage textSendMessage;
+	private InboxAttachment inboxAttachment;
+	private String inboxIds;
+	private List<Inbox> map = new ArrayList<Inbox>();
+	private List<ReplyMessage> replyMessageList = new ArrayList<ReplyMessage>();
+	private List<InboxAttachment> mapAtt = new ArrayList<InboxAttachment>();
+	private Date date;
+	private String name;
+	/** 事件分类 key是大类名称(民生服务、治安、安全隐...) value是每个大类的下面的小类 用于在页面上显示每个大类下小类 **/
+	private Map<String, List<IssueType>> issueTypes;
+	/** 事件分类的大类名称 (民生服务、治安、安全隐...) 用于页面上显示分类名称 **/
+	private List<IssueTypeViewDefine> issueTypeNames;
+	private IssueManageStrategy strategy;
+	private Issue issue;
+
+	/** 主动回复后的记录信息 */
+	private ReplyMessage replyMessage;
+	/** 是否需要播放信息提示音 */
+	private String playMessageSound;
+
+	/**
+	 * 业务跳转
+	 * 
+	 * @throws ParseException
+	 */
+	@Action(value = "dispatch", results = {
+			@Result(name = "replyMessage", location = "/template/inbox/replyMessageDlg.ftl"),
+			@Result(name = "eventsToAccept", location = "/issue/otherModule/maintainInboxDlgs.jsp"),
+			@Result(name = "viewReplyMessage", location = "/template/inbox/replyMessageList.ftl"),
+			@Result(name = "playMedia", location = "/template/inbox/playMediaDlg.ftl") })
+	public String dispatch() throws Exception {
+		if ("replyMessage".equals(mode)) {
+			inbox = inboxService.getInboxById(inbox.getInboxId());
+			return "replyMessage";
+		} else if ("viewReplyMessage".equals(mode)) {
+			replyMessageList = replyMessageService
+					.findReplyMessagesByInboxId(inboxId);
+			return "viewReplyMessage";
+		} else if ("playMedia".equals(mode)) {
+			inboxAttachment = inboxAttachmentService
+					.getInboxAttachmentById(attachmentId);
+			return "playMedia";
+		} else if ("eventsToAccept".equals(mode)) {
+			date = null;
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			loadIssueKind();
+			for (int i = 0; i < Arrays.asList(analyzePopulationIds()).size(); i++) {
+				inbox = inboxService.getInboxById(Arrays.asList(
+						analyzePopulationIds()).get(i));
+				name = organizationDubboService.getSimpleOrgById(
+						inbox.getOrg().getId()).getOrgName();
+				if (date == null) {
+					date = inbox.getCreateTime();
+				} else {
+					Date d1 = df.parse(df.format(date));
+					Date d2 = df.parse(df.format(inbox.getCreateTime()));
+					long diff = d1.getTime() - d2.getTime();
+					if (diff > 0) {
+						date = d2;
+					}
+				}
+				issue = new Issue();
+				issue.setOccurOrg(inbox.getOrg());
+				map.add(inbox);
+				inboxAttachmentList = inboxAttachmentService
+						.getInboxAttachmentByInboxId(Arrays.asList(
+								analyzePopulationIds()).get(i));
+				if (inboxAttachmentList != null) {
+					for (int j = 0; j < inboxAttachmentList.size(); j++) {
+
+						mapAtt.add(inboxAttachmentList.get(j));
+					}
+				}
+			}
+			return "eventsToAccept";
+		}
+		return ERROR;
+	}
+
+	/**
+	 * 收件箱列表
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws InterruptedException
+	 */
+	@Action(value = "findInboxs", results = {
+			@Result(type = "json", name = "success", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findInboxs() throws Exception {
+		PageInfo<Inbox> inboxList = inboxService.findInboxs(inbox, page, rows,
+				sidx, sord);
+		gridPage = new GridPage(inboxList);
+		return SUCCESS;
+	}
+
+	/**
+	 * 收件箱列表
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws InterruptedException
+	 */
+	@Action(value = "playMessageSound", results = {
+			@Result(type = "json", name = "success", params = { "root",
+					"playMessageSound", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String playMessageSound() throws Exception {
+		playMessageSound = String.valueOf(MediaUtil
+				.opinionInboxList(inboxService.getMaxInboxId()));
+		return SUCCESS;
+	}
+
+	/** 页面点击主动发送微信信息（前提是24小时与用户有交互） */
+	@PermissionFilter(ename = "replyInbox")
+	@Action(value = "replyMessage", results = {
+			@Result(type = "json", name = "success", params = { "root",
+					"resultCode", "ignoreHierarchy", "false" }),
+			@Result(type = "json", name = "error", params = { "root",
+					"resultCode", "ignoreHierarchy", "false" }) })
+	public String replyMessage() throws Exception {
+		resultCode = inboxService.replyMessage(inbox, textSendMessage);
+		return SUCCESS;
+	}
+
+	/** 附件下载 */
+	@Action(value = "downloadInboxAttachment", results = { @Result(name = "error", type = "json", params = {
+			"root", "errorMessage" }) })
+	public String downloadInboxAttachment() throws Exception {
+		if (null == attachmentId) {
+			errorMessage = "参数不正确";
+			return ERROR;
+		}
+		InboxAttachment attachment = inboxAttachmentService
+				.getInboxAttachmentById(attachmentId);
+		if (null == attachment) {
+			errorMessage = "收件箱附件不存在";
+			return ERROR;
+		}
+		try {
+			inputStream = new java.io.FileInputStream(FileUtil.getWebRoot()
+					+ File.separator + attachment.getFileActualUrl());
+			downloadFileName = new String(attachment.getFileName().getBytes(
+					"gbk"), "ISO8859-1");
+		} catch (FileNotFoundException e) {
+			errorMessage = "附件文件不存在";
+			return ERROR;
+		} catch (UnsupportedEncodingException uee) {
+			errorMessage = "文件编码格式不正确";
+			return ERROR;
+		}
+		return STREAM_SUCCESS;
+	}
+
+	/** 删除 */
+	@PermissionFilter(ename = "deleteInbox")
+	@Action(value = "deleteInboxById", results = { @Result(type = "json", name = "success", params = {
+			"root", "true", "ignoreHierarchy", "false" }) })
+	public String deleteInboxById() throws Exception {
+		inboxService.deleteInboxById(Arrays.asList(analyzePopulationIds()));
+		return SUCCESS;
+	}
+
+	private Long[] analyzePopulationIds() {
+		String[] deleteId = inboxIds.split(",");
+		List<Long> idList;
+		if (deleteId[0].equals("")) {
+			idList = initTargetId(deleteId, 1);
+		} else {
+			idList = initTargetId(deleteId, 0);
+		}
+		Long[] ids = new Long[idList.size()];
+		for (int i = 0; i < ids.length; i++) {
+			ids[i] = idList.get(i);
+			// resultCode = inboxService.deleteInboxById(ids);
+		}
+		return ids;
+	}
+
+	private List<Long> initTargetId(String[] targetIds, int size) {
+		List<Long> idLongs = new ArrayList<Long>();
+		for (int i = size; i < targetIds.length; i++) {
+			String tempId = targetIds[i];
+			if (size == 0) {
+				idLongs.add(Long.parseLong(targetIds[i]));
+			} else {
+				idLongs.add(Long.parseLong(tempId));
+			}
+		}
+		return idLongs;
+	}
+
+	/**
+	 * 加载事件类型
+	 */
+	private void loadIssueKind() {
+		issueTypeNames = getActualIssueManageStrategy().getIssueTypeNames();
+		issueTypes = getActualIssueManageStrategy().loadEnabledIssueTypes(
+				issueTypeNames);
+	}
+
+	private IssueManageStrategy getActualIssueManageStrategy() {
+		if (strategy == null) {
+			strategy = factory.getIssueManageStrategyByModule(null);
+		}
+		// resultCode = inboxService.deleteInboxById(inboxId);
+		return strategy;
+	}
+
+	public Inbox getInbox() {
+		return inbox;
+	}
+
+	public void setInbox(Inbox inbox) {
+		this.inbox = inbox;
+	}
+
+	public Long getAttachmentId() {
+		return attachmentId;
+	}
+
+	public void setAttachmentId(Long attachmentId) {
+		this.attachmentId = attachmentId;
+	}
+
+	public Long getInboxId() {
+		return inboxId;
+	}
+
+	public void setInboxId(Long inboxId) {
+		this.inboxId = inboxId;
+	}
+
+	public int getResultCode() {
+		return resultCode;
+	}
+
+	public void setResultCode(int resultCode) {
+		this.resultCode = resultCode;
+	}
+
+	public TextSendMessage getTextSendMessage() {
+		return textSendMessage;
+	}
+
+	public void setTextSendMessage(TextSendMessage textSendMessage) {
+		this.textSendMessage = textSendMessage;
+	}
+
+	public String getInboxIds() {
+		return inboxIds;
+	}
+
+	public void setInboxIds(String inboxIds) {
+		this.inboxIds = inboxIds;
+	}
+
+	public List<InboxAttachment> getInboxAttachmentList() {
+		return inboxAttachmentList;
+	}
+
+	public void setInboxAttachmentList(List<InboxAttachment> inboxAttachmentList) {
+		this.inboxAttachmentList = inboxAttachmentList;
+	}
+
+	public List<Inbox> getMap() {
+		return map;
+	}
+
+	public void setMap(List<Inbox> map) {
+		this.map = map;
+	}
+
+	public List<InboxAttachment> getMapAtt() {
+		return mapAtt;
+	}
+
+	public void setMapAtt(List<InboxAttachment> mapAtt) {
+		this.mapAtt = mapAtt;
+	}
+
+	public Date getDate() {
+		return date;
+	}
+
+	public void setDate(Date date) {
+		this.date = date;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public IssueManageStrategyFactory getFactory() {
+		return factory;
+	}
+
+	public void setFactory(IssueManageStrategyFactory factory) {
+		this.factory = factory;
+	}
+
+	public Map<String, List<IssueType>> getIssueTypes() {
+		return issueTypes;
+	}
+
+	public void setIssueTypes(Map<String, List<IssueType>> issueTypes) {
+		this.issueTypes = issueTypes;
+	}
+
+	public List<IssueTypeViewDefine> getIssueTypeNames() {
+		return issueTypeNames;
+	}
+
+	public void setIssueTypeNames(List<IssueTypeViewDefine> issueTypeNames) {
+		this.issueTypeNames = issueTypeNames;
+	}
+
+	public IssueManageStrategy getStrategy() {
+		return strategy;
+	}
+
+	public void setStrategy(IssueManageStrategy strategy) {
+		this.strategy = strategy;
+	}
+
+	public Issue getIssue() {
+		return issue;
+	}
+
+	public void setIssue(Issue issue) {
+		this.issue = issue;
+	}
+
+	public ReplyMessage getReplyMessage() {
+		return replyMessage;
+	}
+
+	public void setReplyMessage(ReplyMessage replyMessage) {
+		this.replyMessage = replyMessage;
+	}
+
+	public List<ReplyMessage> getReplyMessageList() {
+		return replyMessageList;
+	}
+
+	public void setReplyMessageList(List<ReplyMessage> replyMessageList) {
+		this.replyMessageList = replyMessageList;
+	}
+
+	public InboxAttachment getInboxAttachment() {
+		return inboxAttachment;
+	}
+
+	public void setInboxAttachment(InboxAttachment inboxAttachment) {
+		this.inboxAttachment = inboxAttachment;
+	}
+
+	public String getPlayMessageSound() {
+		return playMessageSound;
+	}
+
+	public void setPlayMessageSound(String playMessageSound) {
+		this.playMessageSound = playMessageSound;
+	}
+
+}

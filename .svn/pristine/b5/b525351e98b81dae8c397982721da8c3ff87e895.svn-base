@@ -1,0 +1,7 @@
+when HTTP_REQUEST {
+   if {[matchclass [HTTP::uri] starts_with $::php_url]} {
+      pool php-pool
+   } else {
+      pool app-pool
+   }
+}

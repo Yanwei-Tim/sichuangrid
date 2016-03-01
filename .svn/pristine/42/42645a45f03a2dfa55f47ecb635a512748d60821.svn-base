@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="issueRelatedPeople">
+	<!-- 注释说明 -->
+	<typeAlias alias="IssueRelatedPeople" type="com.tianque.issue.domain.IssueRelatedPeople" />
+		
+	<resultMap class="IssueRelatedPeople" id="issueRelatedPeopleResult">
+		<result property="id" column="id"/>
+		<result property="issue.id" column="issueId"/>
+		<result property="name" column="name"/>
+		<result property="telephone" column="telephone"/>
+		<result property="fixPhone" column="fixPhone"/>
+	</resultMap>
+
+	<insert id="addIssueRelatedPeople" parameterClass="IssueRelatedPeople">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_issueRelatedPeople.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		IssueRelatedPeople(id,issueId,name,telephone,fixPhone)
+		VALUES(#id#,#issue.id#,#name#,#telephone#,#fixPhone#)
+	</insert>
+	
+	<delete id="deleteIssueRelatedPeopleByIssueId" parameterClass="java.lang.Long">
+		delete from IssueRelatedPeople where issueId=#value#
+	</delete>
+	
+	<select id="findIssueRelatedPeopleByIssueId" parameterClass="java.lang.Long" resultMap="issueRelatedPeopleResult">
+		select * from IssueRelatedPeople where issueId=#value#
+	</select>
+
+	
+</sqlMap>

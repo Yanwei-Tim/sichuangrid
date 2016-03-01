@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="accountReport">
+	<typeAlias alias="accountReport" type="com.tianque.xichang.working.report.domain.AccountReport" />
+	<typeAlias alias="accountReportVo" type="com.tianque.xichang.working.report.domain.AccountReportVo" />
+	<typeAlias alias="ClobStringTypeHandler" type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+	
+		<resultMap class="accountReport" id="accountReportMap">
+			<result property="id" column="ID"/>
+			<result property="organization.id" column="ORGID"/>
+			<result property="orgInternalCode" column="ORGINTERNALCODE"/>
+			<result property="reportYear" column="REPORTYEAR"/>
+			<result property="reportMonth" column="REPORTMONTH"/>
+			<result property="content" column="CONTENT" typeHandler="ClobStringTypeHandler"/>
+			<result property="accountType" column="ACCOUNTTYPE"/>
+			<result property="reportType" column="REPORTTYPE"/>
+			<result property="createUser" column="CREATEUSER"/>
+			<result property="updateUser" column="UPDATEUSER"/>
+			<result property="createDate" column="CREATEDATE"/>
+			<result property="updateDate" column="UPDATEDATE"/>
+		</resultMap>
+		
+		<insert id="addAccountReport" parameterClass="accountReport">
+			<selectKey keyProperty="id" resultClass="java.lang.Long">
+				<![CDATA[SELECT S_ACCOUNTREPORTS.NEXTVAL as id from dual ]]>
+			</selectKey>
+			insert into ACCOUNTREPORT_$reportYear$_$reportMonth$
+			(ID,ORGID,ORGINTERNALCODE,REPORTYEAR,REPORTMONTH,CONTENT,ACCOUNTTYPE,REPORTTYPE,CREATEUSER,UPDATEUSER,CREATEDATE,UPDATEDATE)
+			values(#id#,#organization.id#,#orgInternalCode#,#reportYear#,#reportMonth#,#content,handler=ClobStringTypeHandler#
+			,#accountType#,#reportType#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+		</insert>
+		<update id="updateAccountReport">
+			update ACCOUNTREPORT_$reportYear$_$reportMonth$ set
+			ORGID = #organization.id#,
+			ORGINTERNALCODE = #orgInternalCode#,
+			REPORTYEAR = #reportYear#,
+			REPORTMONTH = #reportMonth#,
+			CONTENT = #content,handler=ClobStringTypeHandler#,
+			ACCOUNTTYPE = #accountType#,
+			REPORTTYPE = #reportType#,
+			UPDATEUSER = #updateUser#,
+			UPDATEDATE = #updateDate#
+			where id = #id#
+		</update>
+		
+		<select id="getAccountReportById" parameterClass="java.util.Map" resultMap="accountReportMap">
+			select * from accountreport_$reportYear$_$reportMonth$ where id=#id#
+		</select>
+		
+		<select id="findAccountReportBySearchVo" parameterClass="accountReportVo" resultMap="accountReportMap">
+			select * from accountreport_$reportYear$_$reportMonth$  
+			<dynamic prepend="where">
+				<isNotNull property="orgId" prepend="and">
+					ORGID = #orgId#
+				</isNotNull>
+				<isNotNull property="orgInternalCode" prepend="and">
+					ORGINTERNALCODE like #orgInternalCode#||'%'
+				</isNotNull>
+				<isNotNull property="reportYear" prepend="and">
+					REPORTYEAR = #reportYear#
+				</isNotNull>
+				<isNotNull property="reportMonth" prepend="and">
+					REPORTMONTH = #reportMonth#
+				</isNotNull>
+				<isNotNull property="accountType" prepend="and">
+					ACCOUNTTYPE = #accountType#
+				</isNotNull>
+				<isNotNull property="reportType" prepend="and">
+					REPORTTYPE = #reportType#
+				</isNotNull>
+			</dynamic>
+		</select>
+		<!-- 删除所有的社区级别的报表 -->
+		<delete id="deleteAllVillageAccountReport" parameterClass="java.util.Map">
+		<![CDATA[
+			delete accountreport_$reportYear$_$reportMonth$ ap
+ 				where ap.reportyear = #reportYear# 
+   				and ap.reportmonth = #reportMonth# 
+   				and ap.reporttype = #reportType# 
+   				and REGEXP_LIKE(ap.orginternalcode,'^' || REPLACE('.', '.', '\.') || '([^\.]{1,4}\.){$orgCodeFindLevel$}$$')
+   		]]>		
+		</delete>
+		<!-- 删除的报表 -->
+		<delete id="deleteAccountReportByOrgIdAndTimeAndAcountType" parameterClass="java.util.Map">
+		<![CDATA[
+			delete accountreport_$reportYear$_$reportMonth$ ap
+ 				where ap.orgId=#orgId#   
+ 				and ap.accountType=#accountType# 
+ 				and ap.reportyear = #reportYear#  
+   				and ap.reportmonth = #reportMonth#  
+   				and ap.reporttype = #reportType#  
+   		]]>		
+		</delete>
+		
+		<select id="findAccountReport" parameterClass="java.util.Map" resultMap="accountReportMap">
+			select * from accountreport_$reportYear$_$reportMonth$  where 
+			ORGID = #orgId#  and REPORTYEAR = #reportYear# and REPORTMONTH = #reportMonth# and ACCOUNTTYPE = #accountType# and REPORTTYPE = #reportType#
+		</select>
+		
+		<select id="countDirtyDataByModel" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+			select count(1) from accountreport_$year$_$month$ t  
+			<iterate  prepend=" where " conjunction="or" property="orgIdsList" open="(" close=")">
+				t.orgId in ($orgIdsList[]$)
+			</iterate>
+		</select>
+		
+		<delete id="deleteDirtyDataByModel" parameterClass="java.util.Map">
+			delete from accountreport_$year$_$month$ t 
+			<iterate  prepend=" where " conjunction="or" property="orgIdsList" open="(" close=")">
+				t.orgId in ($orgIdsList[]$)
+			</iterate>
+		</delete>
+		<delete id="deleteAccountReportByOrgIdAndTimeAndType" parameterClass="java.util.Map">
+			delete accountreport_$reportYear$_$reportMonth$  where  
+			ORGID = #orgId#  and REPORTYEAR = #reportYear# and REPORTMONTH = #reportMonth# and ACCOUNTTYPE = #accountType# and REPORTTYPE = #reportType#
+			
+		</delete>
+</sqlMap>

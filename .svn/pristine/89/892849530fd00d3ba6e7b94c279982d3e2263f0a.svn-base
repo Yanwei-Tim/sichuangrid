@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mentalPatientTask">
+    <typeAlias alias="mentalPatientTask"	type="com.tianque.plugin.taskList.domain.MentalPatientTask" />
+	<resultMap id="mentalPatientTaskMap" class="mentalPatientTask" >
+	    <result column="id" property="id" />  
+	    <result column="orgId" property="organization.id" />
+	    <result column="orginternalcode" property="organization.orgInternalCode"/>
+    	<result column="place" property="place" />
+		<result column="time" property="time" />
+		<result column="name" property="name" />
+		<result column="guardianName" property="guardianName" />
+		<result column="guardianTel" property="guardianTel" />
+		<result column="isDriinked" property="isDriinked" />
+		<result column="exception" property="exception" />
+		<result column="statusJustice" property="statusJustice" />
+		<result column="statusPolice" property="statusPolice" />
+		<result column="attitudePolice" property="attitudePolice" />
+		<result column="attitudeJustice" property="attitudeJustice" />
+		<result column="signDatePolice" property="signDatePolice" />
+		<result column="signDateJustice" property="signDateJustice" />
+		<result column="signMemberNamePolice" property="signMemberNamePolice" />
+		<result column="signMemberNameJustice" property="signMemberNameJustice" />
+		<result column="isout" property="isout" />
+		<result column="reporter" property="reporter" />
+		<result column="reporterTel" property="reporterTel" />
+		<result column="remark" property="remark" />
+	</resultMap>
+	
+	<sql id="sql_where">      
+		where 1=1
+		<dynamic>
+			<isNotEqual property="mode" compareValue="gridConfigTask">
+				<isNotEmpty  property="orgCode" prepend="and">
+					ORGINTERNALCODE like #orgCode#||'%' 
+				</isNotEmpty>
+			</isNotEqual>
+			<isEqual property="mode" compareValue="gridConfigTask" prepend=" and ">
+				ORGINTERNALCODE in (select a.orgInternalCode from gridConfigTask a where 1=1
+				<isNotEmpty  property="orgCode" prepend="and">
+					ORGINTERNALCODE like #orgCode#||'%' 
+				</isNotEmpty>
+				<isNotNull property="funOrgId" prepend=" and ">
+					a.funorgid = #funOrgId#
+				</isNotNull>
+				)
+			</isEqual>
+		    <isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+				(place like #fastSearchKeyWords#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" or ">
+				name like #fastSearchKeyWords#||'%')
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="conditionStartDate">
+				<isNotNull property="conditionStartDate" prepend=" and ">
+				<![CDATA[ time >= #conditionStartDate# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="conditionEndDate">
+				<isNotNull property="conditionEndDate" prepend=" and ">
+				<![CDATA[ time <= #conditionEndDate# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+				name like #fastSearchKeyWords#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isNotEmpty  property="name" prepend="and">
+				name like #name# || '%'
+			</isNotEmpty>
+			<isNotEmpty  property="place" prepend="and">
+				place like #place# || '%'
+			</isNotEmpty>
+			<isNotEmpty  property="guardianTel" prepend="and">
+				guardianTel like #guardianTel# || '%'
+			</isNotEmpty>
+			<isNotEmpty  property="guardianName" prepend="and">
+				guardianName like #guardianName# || '%'
+			</isNotEmpty>
+			<isNotEmpty  property="isDriinked" prepend="and">
+				isDriinked = #isDriinked# 
+			</isNotEmpty>
+			<isNotEmpty  property="exception" prepend="and">
+				exception = #exception# 
+			</isNotEmpty>
+			<isNotEmpty  property="isout" prepend="and">
+				isout = #isout# 
+			</isNotEmpty>
+			<isNotEmpty  property="statusPolice" prepend="and">
+				statusPolice = #statusPolice# 
+			</isNotEmpty>
+			<isNotEmpty  property="statusJustice" prepend="and">
+				statusJustice = #statusJustice# 
+			</isNotEmpty>
+			
+		</dynamic>
+	</sql>
+	
+	<update id="updateMentalPatientTask" parameterClass="mentalPatientTask">
+		update mentalPatientTask d set 
+		d.time=#time#,
+		d.place=#place#,
+		d.name=#name#,
+		d.guardianTel=#guardianTel#,
+		d.isDriinked=#isDriinked#,
+		d.exception=#exception#,
+		d.isout=#isout#,
+		d.remark = #remark#
+		where  d.id=#id#
+	</update>
+	
+	<select id="findMentalPatientTask" parameterClass="map" resultMap="mentalPatientTaskMap">
+	  	select * from mentalPatientTask 
+	  	<include refid="sql_where"/> 
+		order by TIME desc
+	</select>
+	
+	<select id="countMentalPatientTask" parameterClass="map" resultClass="java.lang.Integer">
+	  	select count(0) from mentalPatientTask
+	  	 <include refid="sql_where"/>
+	</select>
+	
+	<select id="searchMentalPatientTask" parameterClass="map" resultMap="mentalPatientTaskMap">
+	  	select * from mentalPatientTask
+	  	    <include refid="sql_where"/>
+		order by TIME desc
+	</select>
+	
+	<select id="countSearchMentalPatientTask" parameterClass="map" resultClass="java.lang.Integer">
+	  	select count(0) from mentalPatientTask
+	  	<include refid="sql_where"/>
+	</select>
+	
+	<select id="getById" parameterClass="java.lang.Long" resultMap="mentalPatientTaskMap">
+	  	select * from mentalPatientTask where id=#value#
+	</select>
+	
+	<insert id="addMentalPatientTask" parameterClass="mentalPatientTask">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_mentalPatientTask.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into mentalPatientTask
+		(id,orgId,orginternalcode,time,place,name,guardianName,guardianTel,isDriinked,exception,isout,reporter,reporterTel,remark)
+		values
+		(#id#,#organization.id#,#organization.orgInternalCode#,#time#,#place#,#name#,#guardianName#,#guardianTel#,#isDriinked#,#exception#,#isout#,#reporter#,#reporterTel#,#remark#		
+		)
+	</insert>
+	
+	<delete id="deleteMentalPatientTaskById" parameterClass="java.util.List">
+		delete from mentalPatientTask where id in
+    	<iterate conjunction="," open="(" close=")" >
+            #ids[]#
+        </iterate>
+	</delete>
+	
+</sqlMap>

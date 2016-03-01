@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<sqlMap namespace="smsquerycondition">	
+	
+	<typeAlias alias="Smsquerycondition" type="com.tianque.sms.domain.Smsquerycondition"/>
+	
+	<resultMap id="smsqueryconditionResult" class="Smsquerycondition">
+		<result property="id" column="id"/>
+		<result property="smsSendObject.id" column="objectId"/>
+		<result property="key" column="key"/>
+		<result property="field" column="field"/>
+		<result property="description" column="description"/>
+		<result property="sqlTemplate" column="sqlTemplate"/>
+		<result property="isNull" column="isNull"/>
+		<result property="type" column="type"/>
+	</resultMap>
+	
+
+
+	<select id="getSmsqueryconditionById" parameterClass="java.lang.Long" resultMap="smsqueryconditionResult">
+		select * from SMSQUERYCONDITION where id=#value#
+	</select>
+	
+	<insert id="addSmsquerycondition" parameterClass="Smsquerycondition">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_SMSQUERYCONDITION.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into SMSQUERYCONDITION (id,objectId,description,sqlTemplate,key,field,isNull,createUser,createDate,type) 
+		values(#id#,#smsSendObject.id#,#description#,#sqlTemplate#,#key#,#field#,#isNull#,#createUser#,#createDate#,#type#)	
+	</insert>
+	
+	<update id="updateSmsquerycondition" parameterClass="Smsquerycondition">
+		update SMSQUERYCONDITION set id = #id# 
+				<isNotNull property="sqlTemplate" prepend=" , ">
+					sqlTemplate = #sqlTemplate#
+				</isNotNull>
+				<isNotNull property="type" prepend=" , ">
+					type = #type#
+				</isNotNull>
+				<isNotNull property="description" prepend=" , ">
+					description = #description#
+				</isNotNull>
+				<isNotNull property="key" prepend=" , ">
+					key = #key#
+				</isNotNull>
+				<isNotNull property="field" prepend=" , ">
+					field = #field#
+				</isNotNull>
+				<isNotNull property="isNull" prepend=" , ">
+					isNull = #isNull#
+				</isNotNull>
+				<isNotNull property="updateUser" prepend=" , ">
+					updateUser = #updateUser#
+				</isNotNull>
+				<isNotNull property="updateDate" prepend=" , ">
+					updateDate = #updateDate#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteSmsqueryconditionById" parameterClass="java.lang.Long">	
+		delete  from SMSQUERYCONDITION where id = #value#	
+	</delete>
+	
+	<sql id="findSmsqueryconditionsBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="smsSendObject">
+				<isNotNull property="smsSendObject.id" prepend=" and ">
+					objectId = #smsSendObject.id#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<select id="findSmsqueryconditionsBySearchVo" parameterClass="Smsquerycondition" resultMap="smsqueryconditionResult">
+		select * from SMSQUERYCONDITION
+		<include refid="findSmsqueryconditionsBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countSmsqueryconditionsBySearchVo" parameterClass="Smsquerycondition" resultClass="java.lang.Integer">
+		select count(0) from SMSQUERYCONDITION
+		<include refid="findSmsqueryconditionsBySearchVo_sql_where" />
+	</select>
+	
+	<select id="findSmsqueryconditionsBySmsSendObjectId" parameterClass="java.lang.Long" resultMap="smsqueryconditionResult">
+		select * from SMSQUERYCONDITION where objectId = #value#
+	</select>
+	
+	<select id="validateSql" parameterClass="java.lang.String">
+		$value$
+	</select>
+	
+	
+	<select id="getSqlBasicStatement" parameterClass="java.lang.Long" resultMap="smsqueryconditionResult">
+		select * from SMSQUERYCONDITION where objectId = #id# and key = 'table'
+	</select>
+	
+	<select id="validateDescription" parameterClass="java.util.Map" resultMap="smsqueryconditionResult">
+		select * from SMSQUERYCONDITION where objectId = #objectId#  and description = '$field$'
+	</select>
+	
+	<select id="validateKey" parameterClass="java.util.Map" resultMap="smsqueryconditionResult">
+		select * from SMSQUERYCONDITION where objectId = #objectId#  and key = '$field$'
+	</select>
+	
+	<delete id="deleteSmsqueryconditionByObjectId" parameterClass="java.lang.Long">
+		delete SMSQUERYCONDITION where objectId = #value# 
+	</delete>
+
+</sqlMap>

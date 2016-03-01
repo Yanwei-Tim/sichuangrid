@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="userAccountLoginDetail">
+	<typeAlias alias="userAccountLoginDetail" type="com.tianque.userAccountLoginDetail.domain.UserAccountLoginDetail"/>
+	<typeAlias alias="userSign" type="com.tianque.domain.UserSign"/>
+	<resultMap class="userAccountLoginDetail" id="userAccountLoginDetailResult">
+		 <result property="id" column="id"/>
+		 <result property="organization.id" column="orgId"/>
+		 <result property="organization.orgInternalCode" column="orgCode"/>
+		 <result property="userId" column="userId"/>
+		 <result property="userName" column="userName"/>
+		 <result property="name" column="name"/>
+		 <result property="weekCount" column="weekCount"/>
+		 <result property="activationTime" column="activationTime"/>
+		 <result property="monthCount" column="monthCount"/>
+	</resultMap>
+	
+	<resultMap class="userSign" id="userSignResult">
+		 <result property="userId" column="userId"/>
+		 <result property="createDate" column="createDate"/>
+	</resultMap>
+	
+	<insert id="createUserAccountLoginDetailForWeek"  parameterClass="java.util.Map">
+		insert into userAccountLoginDetailWeek(id,orgId,orgCode,userId,userName,name,weekCount,activationTime,createUser,createDate)
+		select S_userAccountLoginDetail.Nextval,t.orgid,t.orgCode,t.userid,t.userName userName,t.name,t.weekCount,t.activationTime,#createUser#,#createDate#
+    		from (
+    		select u.organizationid orgid,u.orginternalcode orgCode,u.id userid,u.userName userName,u.name name ,c.weekCount weekCount,u.activationTime activationTime
+    			from users u left join (
+      				select s.userid,count(s.id) weekCount from usersign s where s.createdate >#startDate#
+     					 and s.createdate<![CDATA[ <= ]]>#endDate# group by s.userid
+      									) c on u.id=c.userid where u.state=2
+    			) t
+	</insert>
+	
+	<insert id="createUserAccountLoginDetailForMonth"  parameterClass="java.util.Map">
+		insert into userAccountLoginDetailMonth(id,orgId,orgCode,userId,userName,name,monthCount,createUser,createDate)
+		select S_userAccountLoginDetail.Nextval,t.orgid,t.orgCode,t.userid,t.userName,t.name,t.monthCount,#createUser#,#createDate#
+    		from (
+    		select u.organizationid orgid,u.orginternalcode orgCode,u.id userid,u.userName userName,u.name name ,c.monthCount monthCount
+    			from users u left join (
+      				select s.userid,count(s.id) monthCount from usersign s where s.createdate >#startDate#
+     					 and s.createdate<![CDATA[ < ]]>#endDate# group by s.userid
+      									) c on u.id=c.userid where u.state=2
+    			) t
+	</insert>
+	
+	<select id="countFindUserAccountLoginDetailForPageResult" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(1) 
+		from useraccountLoginDetailWeek w left join useraccountLoginDetailMonth m 
+		on w.userid = m.userid where 1=1
+		 <dynamic prepend="and" >
+		 	<isEqual property="searchType" compareValue="1">
+		 		w.orgId = #orgId#
+		 	</isEqual>
+		 	<isEqual property="searchType" compareValue="2">
+		 		w.orgCode like #orgCode# || '%' and w.orgCode!=#orgCode#
+		 	</isEqual>
+		 </dynamic>
+		 
+	</select>
+	
+	<select id="findUserAccountLoginDetailForPageResult" parameterClass="java.util.Map" resultMap="userAccountLoginDetailResult">
+		select w.id id,w.orgid orgId,w.orgcode orgCode,w.userid userId,
+		w.username userName,w.name name,w.weekcount weekCount,m.monthcount monthCount,w.activationTime activationTime 
+		from useraccountLoginDetailWeek w left join useraccountLoginDetailMonth m 
+		on w.userid = m.userid where 1=1
+		 	<isEqual property="searchType" compareValue="1">
+		 		and w.orgId = #orgId#
+		 	</isEqual>
+		 	<isEqual property="searchType" compareValue="2">
+		 		and w.orgCode like #orgCode# || '%' and w.orgCode!=#orgCode#
+		 	</isEqual>
+		 	<dynamic prepend="order by" >
+		 	<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+			    </isPropertyAvailable>
+		    </dynamic>
+	</select>
+	
+	<delete id="deleteUserAccountLoginDeatilWeek">
+		delete from userAccountLoginDetailWeek
+	</delete>
+	<delete id="deleteUserAccountLoginDeatilMonth">
+		delete from userAccountLoginDetailMonth
+	</delete>
+	
+	<select id="getUserSignByUserIdAndDate" parameterClass="java.util.Map" resultMap="userSignResult">
+		select userid,createDate from usersign u where u.userid=#userId# and u.createdate>=#startDate# and u.createdate<![CDATA[ < ]]>#endDate# order by createDate desc
+	</select>
+</sqlMap>

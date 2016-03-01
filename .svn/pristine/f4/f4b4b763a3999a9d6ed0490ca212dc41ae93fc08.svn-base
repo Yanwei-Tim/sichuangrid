@@ -1,0 +1,26 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib uri="/struts-tags" prefix="s"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="/PopGrid-taglib" prefix="pop"%>
+<%@ include file="/includes/baseInclude.jsp" %>
+    <div id="unsettledPopulation" class="container container_24">
+		<div id=tabs>
+			<ul>
+				<li><a href="${path}/baseinfo/unsettledPopulationManage/viewUnsettledPopulations.action?unsettledPopulation.id=${unsettledPopulation.encryptId}&mode=${mode}">未落户信息</a> </li>
+				<c:if test='${false!=unsettledPopulation.isHaveHouse && null!=unsettledPopulation.isHaveHouse }'>
+					<li id="houseInfo"><a href="${path}/baseinfo/houseInfoForPopulation/viewHouseInfoForUnsettledPopulation.action?population.id=${unsettledPopulation.encryptId}&mode=${mode}">住房信息</a> </li>
+				</c:if>
+				<pop:JugePermissionTag ename="groupFamilyInfo">
+				<li id="groupFamily"><a href="${path}/baseinfo/familyInfo/detailGroupFamily.action?groupFamilyHasPopulation.populationId=${unsettledPopulation.encryptId}&groupFamilyHasPopulation.population.orgInternalCode=${unsettledPopulation.orgInternalCode}&groupFamilyHasPopulation.populationType=<s:property value='@com.tianque.service.util.PopulationType@UNSETTLED_POPULATION'/>">家庭信息</a></li>
+				</pop:JugePermissionTag>
+				<li><a id="personnelTrackInfos">轨迹信息</a></li>
+			</ul>
+   		</div>
+  </div>
+	<script>
+	$("#personnelTrackInfos").attr("href","${path }/baseinfo/tracks/personnelTrackInfos.jsp?populationId=${unsettledPopulation.encryptId}&&width=750&height=370&populationType=<s:property value='@com.tianque.service.util.PopulationType@UNSETTLED_POPULATION'/>&populationName="+encodeURI(encodeURI("${unsettledPopulation.name}")));
+	$(function() {
+		$( "#unsettledPopulation #tabs" ).tabs();
+	});
+	</script>

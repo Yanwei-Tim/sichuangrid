@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="evaluateStatistic" extends="default" namespace="/baseinfo/evaluateStatistic">
+		<default-class-ref class="evaluateStatisticController"></default-class-ref>
+		<action name="findEvaluateStatistic" method="findEvaluateStatistic">
+			<result type="json">
+				<param name="root">list</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+			<action name="getEvaluateColumnByOrgId" method="getEvaluateColumnByOrgId">
+			<result type="json">
+				<param name="root">evaluatePie</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+	</package>
+</struts>

@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="unemployedPeople">
+	<!-- 注释说明 -->
+	<typeAlias alias="unemployedPeople" type="com.tianque.baseInfo.unemployedPeople.domain.UnemployedPeople" />
+	<typeAlias alias="UEPcondition" type="com.tianque.domain.vo.SearchUnemployedPeopleVo" />
+
+	<resultMap class="unemployedPeople" id="unemployedPeopleResult" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResult">
+		<result property="unemployedPeopleType.id" column="unemployedPeopleType" />
+		<result property="registerNumber" column="registerNumber" />
+		<result property="upEnterWorkDate" column="enterWorkDate" />
+		<result property="originalWorkUnit" column="originalWorkUnit" />
+		<result property="originalWorkUnitType" column="originalWorkUnitType" />
+		<result property="title" column="title" />
+		<result property="specialtySkills" column="specialtySkills" />
+		<result property="unemploymentDate" column="unemploymentDate" />
+		<result property="unemploymentReason.id" column="unemploymentReason" />
+		<result property="technologyLevel.id" column="technologyLevel" />
+		<result property="participatedPrograms" column="participatedPrograms" />
+	</resultMap>
+	<!-- 这两个resultMap内容一致，继承关系不一样 -->
+	<resultMap class="unemployedPeople" id="unemployedPeopleResultForList" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+		<result property="unemployedPeopleType.id" column="unemployedPeopleType" />
+		<result property="registerNumber" column="registerNumber" />
+		<result property="upEnterWorkDate" column="enterWorkDate" />
+		<result property="originalWorkUnit" column="originalWorkUnit" />
+		<result property="originalWorkUnitType" column="originalWorkUnitType" />
+		<result property="title" column="title" />
+		<result property="specialtySkills" column="specialtySkills" />
+		<result property="unemploymentDate" column="unemploymentDate" />
+		<result property="unemploymentReason.id" column="unemploymentReason" />
+		<result property="technologyLevel.id" column="technologyLevel" />
+		<result property="participatedPrograms" column="participatedPrograms" />
+		<result property="sourcesState" column="sourcesState"/>
+	</resultMap>
+
+	
+	<resultMap id="propertyDictResult" class="com.tianque.domain.PropertyDict">
+		<result property="id" column="id"/>
+		<result property="displayName" column="displayName"/>
+	</resultMap>
+
+	<sql id="fields">
+	uni.id,uni.baseInfoId,uni.addressInfoId,uni.createDate,uni.createUser,uni.updateUser,uni.updateDate,uni.orgId,uni.orgInternalCode
+	,registerNumber,specialtySkills,unemployedPeopleType,enterWorkDate,title,originalWorkUnit
+	,originalWorkUnitType,unemploymentDate,technologyLevel,unemploymentReason,participatedPrograms
+	,isEmphasis,isEmphasisReason,isEmphasisDate,sourcesState,attentionExtent
+	</sql>
+
+	<!-- 方法没有显式调用.业务层做处理-->
+	<!-- 	
+	<select id="loadEmploymentIntention" parameterClass="java.lang.Long" resultMap="propertyDictResult">
+		<![CDATA[select p.* from uPeopleHasEIntention  hDicts
+		left join propertyDicts p on p.id=hDicts.propertyDictId where hDicts.unemployedPeopleId=#value#]]>
+	</select>
+
+	<select id="loadTrainingIntention"  parameterClass="java.lang.Long" resultMap="propertyDictResult">
+		<![CDATA[select p.* from uPeopleHasTIntention  hDicts
+		left join propertyDicts p on p.id=hDicts.propertyDictId where hDicts.unemployedPeopleId=#value#]]>
+	</select>
+	 -->
+	
+	<select id="getEmploymentIntentionIdsByEmploymentId" parameterClass="java.lang.Long" resultClass="long">
+		<![CDATA[select hDicts.propertyDictId from uPeopleHasEIntention hDicts where hDicts.unemployedPeopleId=#value#]]>
+	</select>
+
+	<select id="getTrainingIntentionIdsByEmploymentId"  parameterClass="java.lang.Long" resultClass="long">
+		<![CDATA[select hDicts.propertyDictId from uPeopleHasTIntention hDicts where hDicts.unemployedPeopleId=#value#]]>
+	</select>
+
+	 <insert id="addEmploymentIntention" parameterClass="java.util.Map">
+		INSERT INTO uPeopleHasEIntention (propertyDictId,unemployedPeopleId)
+		VALUES(#propertyDictId#,#unemployedPeopleId#)
+	</insert>
+
+
+	 <insert id="addTrainingIntention" parameterClass="java.util.Map">
+		INSERT INTO uPeopleHasTIntention (propertyDictId,unemployedPeopleId)
+		VALUES(#propertyDictId#,#unemployedPeopleId#)
+	</insert>
+
+
+	<delete id="deleteEmploymentIntentionByUnemployedPeopleId" parameterClass="java.lang.Long">
+		delete from uPeopleHasEIntention where unemployedPeopleId=#unemployedPeopleId#
+	</delete>
+
+
+	<delete id="deleteTrainingIntentionByUnemployedPeopleId" parameterClass="java.lang.Long">
+		delete from uPeopleHasTIntention where unemployedPeopleId=#unemployedPeopleId#
+	</delete>
+
+	<select id="getUnemployedPeopleById" parameterClass="java.lang.Long" resultMap="unemployedPeopleResult">
+	SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+	FROM unemployedPeople uni left join baseInfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+	where uni.id = #value#
+	</select>
+
+
+
+	<select id="countUnemployedpeople" parameterClass="unemployedPeople" resultClass="java.lang.Integer">
+		select count(uni.id)
+		from unemployedPeople uni left join baseInfo b on uni.baseinfoid=b.id
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode"  prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+				</isEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+
+	<select id="findUnemployedpeople" parameterClass="unemployedPeople"
+		resultMap="unemployedPeopleResultForList">
+	      select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+	      FROM unemployedPeople uni left join baseInfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode" prepend=" and ">
+				<isNotNull property="orgInternalCode">
+				uni.orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+				  		isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+				</isEqual>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="getUnemployedPeopleByIdCardNoAndOrganizationId" parameterClass="java.util.Map" resultMap="unemployedPeopleResult">
+	SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+	FROM unemployedPeople uni left join baseInfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+	where (upper(idCardNo) = upper(#idCardNo15#) or upper(idCardNo) = upper(#idCardNo18#))
+	and uni.orgId = #organizationId#
+	</select>
+
+
+	<select id="getByOrgIdAndIdCardNo" parameterClass="map" resultMap="unemployedPeopleResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from unemployedPeople uni left join baseInfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgId = #orgId# and upper(idCardNo)=upper(#idCardNo#)
+	</select>
+
+
+	<sql id="updateBusinessSql">
+			<include refid="populationBaseInfo.updateBaseInfoSql"/>,
+			registerNumber=#registerNumber#
+			,enterWorkDate=#upEnterWorkDate#
+			,originalWorkUnit=#originalWorkUnit#
+			,originalWorkUnitType=#originalWorkUnitType#
+			,title=#title#
+			,unemploymentDate=#unemploymentDate#
+			,technologyLevel=#technologyLevel.id#
+			,unemploymentReason=#unemploymentReason.id#
+			,participatedPrograms=#participatedPrograms#
+			,unemployedPeopleType=#unemployedPeopleType.id#
+			,specialtySkills=#specialtySkills#
+			,attentionExtent=#attentionExtent.id#
+	</sql>
+
+	<update id="updateBusiness" parameterClass="unemployedPeople">
+		update unemployedPeople set
+		<isNotEmpty property="isEmphasis">
+			isEmphasis = #isEmphasis#,
+		</isNotEmpty>
+		<include refid="updateBusinessSql"/>
+		where id=#id#
+	</update>
+
+
+	<update id="updateUnemployedPeople" parameterClass="unemployedPeople">
+		update unemployedPeople set
+		<isNotEmpty property="isEmphasis">
+			isEmphasis = #isEmphasis#,
+		</isNotEmpty>
+		<include refid="updateBusinessSql"/>
+		where id=#id#
+	</update>
+
+  <update id="updateBaseInfo" parameterClass="unemployedPeople">
+		update unemployedPeople set
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>
+		<isNotEmpty property="isEmphasis">
+			,isEmphasis=#isEmphasis#
+		</isNotEmpty>
+		where id = #id#
+	</update>
+
+
+	<update id="updateEmphasiseById" parameterClass="map">
+		update unemployedPeople set isEmphasis=#isEmphasis# where id=#id#
+	</update>
+	<update id="updateDeathAndLogoutStateById" parameterClass="map">
+		update unemployedPeople set isEmphasis=#isEmphasis# ,isDeath=#death# where id=#id#
+	</update>
+
+
+	<insert id="addUnemployedPeople" parameterClass="unemployedPeople">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT s_unemployedPeople.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into unemployedPeople (
+		<include refid="populationBaseInfo.addBaseInfoFields"/>,
+		isEmphasis,registerNumber,specialtySkills,unemployedPeopleType,enterWorkDate,title,originalWorkUnit,originalWorkUnitType,unemploymentDate,technologyLevel,unemploymentReason,participatedPrograms,attentionExtent,sourcesState)
+		values (
+		<include refid="populationBaseInfo.addBaseInfoData"/>,
+		#isEmphasis#,#registerNumber#,#specialtySkills#,#unemployedPeopleType.id#,#upEnterWorkDate#,#title#,#originalWorkUnit#,#originalWorkUnitType#,#unemploymentDate#,#technologyLevel.id#,#unemploymentReason.id#,#participatedPrograms#,#attentionExtent.id#,#sourcesState#)
+	</insert>
+
+	<delete id="deleteUnemployedPeopleById" parameterClass="java.lang.Long">
+		delete from unemployedPeople where id = #value#
+	</delete>
+
+
+
+	<sql id="search_sql_where">
+		from unemployedPeople uni left join baseInfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		left join uPeopleHasEIntention  eDicts
+		on uni.id = eDicts.unemployedPeopleId
+		left join uPeopleHasTIntention tDicts
+		on uni.id=tDicts.unemployedPeopleId
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+						(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty prepend=" and " property="idCardNo">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty prepend=" and " property="name">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="gender">
+				<isNotEmpty prepend=" and " property="gender">
+					gender = #gender#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthdayStart" >
+				<isNotEmpty prepend=" and " property="birthdayStart">
+				<![CDATA[ birthday >= #birthdayStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthdayEnd">
+				<isNotEmpty prepend=" and " property="birthdayEnd">
+				<![CDATA[ birthday <= #birthdayEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="telephone">
+				<isNotEmpty prepend=" and " property="telephone">
+					telephone like '%'||#telephone#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty prepend=" and " property="mobileNumber">
+					mobileNumber like '%'||#mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="nation">
+				<isNotEmpty prepend=" and " property="nation">
+					nation= #nation#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="politicalBackground">
+				<isNotEmpty prepend=" and " property="politicalBackground">
+					politicalBackground= #politicalBackground#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maritalState">
+				<isNotEmpty prepend=" and " property="maritalState">
+					maritalState= #maritalState#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="career">
+				<isNotEmpty prepend=" and " property="career">
+					career = #career#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workUnit">
+				<isNotEmpty prepend=" and " property="workUnit">
+					workUnit like '%'||#workUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="minStature" >
+				<isNotEmpty prepend=" and " property="minStature">
+				<![CDATA[ stature >= #minStature# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maxStature">
+				<isNotEmpty prepend=" and " property="maxStature">
+				<![CDATA[ stature <= #maxStature# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="faith">
+				<isNotEmpty prepend=" and " property="faith">
+					faith = #faith#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="email">
+				<isNotEmpty prepend=" and " property="email">
+					email like '%'||#email#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="schooling">
+				<isNotEmpty prepend=" and " property="schooling">
+					schooling = #schooling#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="bloodType">
+				<isNotEmpty prepend=" and " property="bloodType">
+					bloodType = #bloodType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="province">
+				<isNotEmpty prepend=" and " property="province">
+					province = #province#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="city">
+				<isNotEmpty prepend=" and " property="city">
+					city = #city#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="district">
+				<isNotEmpty prepend=" and " property="district">
+					district = #district#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativePlaceAddress">
+				<isNotEmpty prepend=" and " property="nativePlaceAddress">
+					nativePlaceAddress like '%'||#nativePlaceAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentAddress">
+				<isNotEmpty prepend=" and " property="currentAddress">
+					currentAddress like '%'||#currentAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isDeath">
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="1">
+						isDeath = #isDeath#
+					</isEqual>
+					<isEqual property="isDeath" compareValue="0">
+						(isDeath = #isDeath# or isDeath is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+				</isEqual>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="unemployedPeopleType">
+				<isNotEmpty prepend=" and " property="unemployedPeopleType">
+					unemployedPeopleType =#unemployedPeopleType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="registerNumber">
+				<isNotEmpty prepend=" and " property="registerNumber">
+					registerNumber like '%'||#registerNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="enterWorkDateStart" >
+				<isNotEmpty prepend=" and " property="enterWorkDateStart">
+				<![CDATA[ enterWorkDate >= #enterWorkDateStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="enterWorkDateEnd">
+				<isNotEmpty prepend=" and " property="enterWorkDateEnd">
+				<![CDATA[ enterWorkDate <= #enterWorkDateEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="originalWorkUnit">
+				<isNotEmpty prepend=" and " property="originalWorkUnit">
+					originalWorkUnit like '%'||#originalWorkUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="originalWorkUnitType">
+				<isNotEmpty prepend=" and " property="originalWorkUnitType">
+					originalWorkUnitType like '%'||#originalWorkUnitType#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="title">
+				<isNotEmpty prepend=" and " property="title">
+					title like '%'||#title#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="specialtySkills">
+				<isNotEmpty prepend=" and " property="specialtySkills">
+					specialtySkills like '%'||#specialtySkills#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="unemploymentDateStart" >
+				<isNotEmpty prepend=" and " property="unemploymentDateStart">
+				<![CDATA[ unemploymentDate >= #unemploymentDateStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="unemploymentDateEnd">
+				<isNotEmpty prepend=" and " property="unemploymentDateEnd">
+				<![CDATA[ unemploymentDate <= #unemploymentDateEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="technologyLevel">
+				<isNotEmpty prepend=" and " property="technologyLevel">
+					technologyLevel= #technologyLevel#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="unemploymentReason">
+				<isNotEmpty prepend=" and " property="unemploymentReason">
+					unemploymentReason= #unemploymentReason#
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isNotNull property="employmentIntention" prepend=" and ">
+				eDicts.PROPERTYDICTID in
+				<iterate property="employmentIntention" close=")" open="("
+					conjunction=",">
+					#employmentIntention[]#
+				</iterate>
+			</isNotNull>
+
+			<isNotNull property="trainingIntention" prepend=" and ">
+				tDicts.PROPERTYDICTID in
+				<iterate property="trainingIntention" close=")" open="("
+					conjunction=",">
+					#trainingIntention[]#
+				</iterate>
+			</isNotNull>
+			<include refid="attentionPopulationBaseInfo.serviceTeamInfoForSearch"/>
+		</dynamic>
+	</sql>
+	<select id="countSearchUnemployedPeople" parameterClass="UEPcondition" resultClass="int">
+		select count(distinct uni.id)
+		<include refid="search_sql_where" />
+	</select>
+	<select id="searchUnemployedPeople" parameterClass="UEPcondition" resultMap="unemployedPeopleResultForList">
+		select distinct <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="search_sql_where" />
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+				</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="getByIdCard" parameterClass="java.util.Map"
+		resultMap="unemployedPeopleResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from unemployedPeople uni left join baseInfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgId=#orgId# and
+		<iterate property="idCardNoList" open="("  close=")"  conjunction="or">
+		    upper(idCardNo) like upper(#idCardNoList[]#)
+		</iterate>
+	</select>
+	
+	<select id="getIdByBaseinfoIdAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		SELECT id from unemployedPeople  
+		where baseinfoid=#baseInfoId# and orgId=#orgId#
+	</select>
+	
+	<resultMap id="unemployedPeopleResultForDefaultList" class="unemployedPeople" 
+		extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForDefaultList">
+		<result property="unemployedPeopleType.id" column="unemployedPeopleType" />
+		<result property="registerNumber" column="registerNumber" />
+		<result property="upEnterWorkDate" column="enterWorkDate" />
+		<result property="originalWorkUnit" column="originalWorkUnit" />
+		<result property="originalWorkUnitType" column="originalWorkUnitType" />
+		<result property="title" column="title" />
+		<result property="specialtySkills" column="specialtySkills" />
+		<result property="unemploymentDate" column="unemploymentDate" />
+		<result property="unemploymentReason.id" column="unemploymentReason" />
+		<result property="technologyLevel.id" column="technologyLevel" />
+		<result property="participatedPrograms" column="participatedPrograms" />
+		<result property="sourcesState" column="sourcesState"/>
+	</resultMap>
+	<sql id="default_sql_where">
+	  from unemployedPeople uni 
+	  <dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findUnemployedPeopleDefaultList" resultMap="unemployedPeopleResultForDefaultList" parameterClass="map">
+	  select <include refid="fields"/>
+	  <include refid="default_sql_where" />
+	  ORDER BY ID DESC
+	</select>
+	
+	<select id="countUnemployedPeopleDefaultList" resultClass="java.lang.Integer" parameterClass="map">
+		<![CDATA[select count(uni.id)]]>
+		<include refid="default_sql_where" />
+	</select>
+	
+
+</sqlMap>

@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="serviceGuardersWithObject">
+	<typeAlias alias="ServiceGuardersWithObject"  type="com.tianque.plugin.serviceTeam.serviceGuardersWithObject.domain.ServiceGuardersWithObject" />
+	<typeAlias alias="ServiceGuardersWithObjectVo"  type="com.tianque.plugin.serviceTeam.serviceGuardersWithObject.vo.ServiceGuardersWithObjectVo" />
+	
+	<resultMap class="ServiceGuardersWithObjectVo" id="serviceGuardersWithObjectVoResult">
+		<result property="guardersId" column="guardersId" />
+		<result property="objectType" column="objectType" />
+		<result property="objectName" column="objectName" />
+		<result property="objectId" column="objectId" />
+		<result property="teamMember" column="teamMember" />
+	</resultMap>
+	
+	<select id="getServiceGuardersWithObjectById" parameterClass="long" resultMap="serviceGuardersWithObjectVoResult">
+		<![CDATA[ select * from serviceGuardersHasObject where id = #value# ]]>	
+	</select>
+	
+	<insert id="addObjectAndGuardersRelation" parameterClass="ServiceGuardersWithObject">
+	<selectKey resultClass="java.lang.Long" keyProperty="id">
+    	<![CDATA[ SELECT s_serviceGuardersHasObject.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+	<![CDATA[
+		insert into serviceGuardersHasObject (id,guardersId, objectType, objectName,objectId,teamMember)
+		VALUES (#id#,#guardersId#, #objectType#, #objectName#,#objectId#,#teamMember#) 
+	]]>
+	</insert>
+	
+	<delete id="deleteServiceGuardersWithObject" parameterClass="java.lang.Long">
+    	delete from serviceGuardersHasObject where id=#id#
+    </delete>
+    
+    <delete id="deleteServiceGuardersWithObjectByIds">
+    	delete from serviceGuardersHasObject where
+ 		<iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+    </delete>
+	
+	<update id="updateServiceGuardersHasObject" parameterClass="java.util.Map">
+		update serviceguardershasobject set objectId=#newObjectId# where objectType=#objectType# and objectId=#oldObjectId#
+	</update>
+	
+	<update id="updateServiceGuardersHasObjectForPosAndRec" parameterClass="java.util.Map">
+		update serviceguardershasobject set objectId=#newObjectId#,objectType=#newObjectType# where objectType=#objectType# and objectId=#oldObjectId#
+	</update>
+	
+	
+	<!-- <typeAlias alias="supervisorInfoVo"  type="com.tianque.supervisorManage.supervisorInfo.SupervisorInfoVo" />
+	
+	<resultMap class="supervisorInfoVo" id="SupervisorInfoVoResult">
+		<result property="memberId" column="memberId" />
+		<result property="idCardNo" column="idCardNo" />
+		<result property="name" column="name" />
+		<result property="gender.id" column="gender" />
+		<result property="mobile" column="mobile" />
+		<result property="position.id" column="position" />
+		<result property="teamClazz.id" column="teamClass" />
+		<result property="memberPosition" column="displayName" />
+		<result property="teamName" column="teamName" />
+		<result property="homePhone" column="homePhone" />
+		<result property="duties" column="duties" />
+		<result property="teamId" column="teamId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+	</resultMap>
+	
+	<select id="countSupervisorforList" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[ select count(distinct details.id) from serviceMemberHasObject hasObj,
+				serviceTeamMemberBase base,
+				serviceTeamMemberDetails details,
+				serviceManageTeam team
+		where hasObj.memberId = details.id 
+		  and details.baseID = base.id 
+		  and details.teamId = team.id ]]>
+		<dynamic>
+			<isNotEmpty prepend=" and " property="populationType">
+				<![CDATA[ populationType = #populationType# ]]>
+            </isNotEmpty>
+			<isNotEmpty prepend=" and " property="populationId">
+				<![CDATA[ populationId = #populationId# ]]>
+            </isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="findSupervisorforList" parameterClass="map" resultMap="SupervisorInfoVoResult">
+	<![CDATA[
+	select distinct(details.id) memberId,
+		   base.name, base.gender, base.idCardNo, details.position, base.mobile, team.name teamName,
+	       team.teamClass,  team.id  teamId, pd.displayName,
+		   base.homePhone,	base.orgInternalCode, details.duties 
+	  from serviceMemberHasObject hasObj, 
+	  	   serviceTeamMemberBase base,
+	  	   serviceTeamMemberDetails details,
+	  	   serviceManageTeam team,
+	       propertyDicts pd
+	 where hasObj.memberId=details.id 
+	   and details.baseID=base.id 
+	   and details.teamId=team.id
+	   and pd.id = details.position]]>
+		<dynamic>
+				<isNotEmpty prepend=" and " property="populationType">
+					<![CDATA[ hasObj.populationType = #populationType#]]>
+            </isNotEmpty>
+				<isNotEmpty prepend=" and " property="populationId">
+					<![CDATA[ hasObj.populationId = #populationId#]]>
+            </isNotEmpty>
+		</dynamic>
+		<dynamic prepend="ORDER BY">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<delete id="deleteServiceMemberHasObject" parameterClass="map">
+	<![CDATA[	delete from serviceMemberHasObject 
+	                  WHERE memberId=#memberId# 
+	                    and populationType=#populationType# 
+	                    and populationId=#populationId#
+						and teamId=#teamId# 
+	]]>
+	</delete>
+	
+	<select id="countSupervisor" parameterClass="map" resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from
+			   serviceTeamMemberBase base,
+			   serviceTeamMemberDetails details,
+			   serviceManageTeam team 
+		 where details.baseID = base.id
+		   and details.teamId = team.id 
+		   and details.id not in ( select details.id from serviceMemberHasObject hasObj, serviceTeamMemberBase base,serviceTeamMemberDetails details,serviceManageTeam team
+			   where hasObj.memberId=details.id 
+			     and details.baseID=base.id 
+			     and details.teamId=team.id 
+			     and hasObj.populationId = #populationId# 
+			     and hasObj.populationType = #populationType#
+		) ]]>
+		<dynamic>
+			<isNotEmpty prepend=" and " property="teamName">
+				<![CDATA[	team.name like #teamName#||'%']]>
+            </isNotEmpty>
+			<isNotEmpty prepend=" and " property="name">
+				<![CDATA[	base.name like #name#||'%']]>
+            </isNotEmpty>
+			<isNotNull prepend=" and" property="teamType">
+				<![CDATA[	team.teamType = #teamType.id#]]>
+            </isNotNull>
+			<isNotNull prepend=" and" property="teamClazz">
+				<![CDATA[	team.teamClass = #teamClazz.id#]]>
+            </isNotNull>
+				<isNotEmpty prepend=" and" property="orginternalcode">
+				<![CDATA[	base.orginternalcode like #orginternalcode#||'%']]>
+            </isNotEmpty>
+		</dynamic>
+	</select>
+
+	<select id="searchSupervisor" parameterClass="map" resultMap="SupervisorInfoVoResult">
+		<![CDATA[
+		select details.id memberId, base.name, base.gender, base.idCardNo, details.position, base.mobile,
+			   team.name teamName, team.id teamId, team.teamClass, pd.displayName,
+			   base.homePhone, base.orgInternalCode, details.duties
+		  from serviceTeamMemberBase base,
+			   serviceTeamMemberDetails details,
+		       serviceManageTeam team,
+			   propertyDicts pd 
+		 where details.baseID = base.id
+		   and details.teamId = team.id 
+		   and pd.id = details.position 
+		   and details.id not in (select details.id from serviceMemberHasObject hasObj, serviceTeamMemberBase base,serviceTeamMemberDetails details,serviceManageTeam team
+			   where hasObj.memberId = details.id 
+			    and details.baseID = base.id 
+			    and details.teamId = team.id 
+			    and hasObj.populationId = #populationId# 
+			    and hasObj.populationType = #populationType#
+			   )]]>
+		<dynamic>
+			<isNotEmpty prepend=" and " property="teamName">
+				<![CDATA[	team.name like #teamName#||'%']]>
+            </isNotEmpty>
+			<isNotEmpty prepend=" and " property="name">
+				<![CDATA[	base.name like #name#||'%']]>
+            </isNotEmpty>
+			<isNotNull prepend=" and" property="teamType">
+				<![CDATA[	team.teamType = #teamType.id#]]>
+            </isNotNull>
+			<isNotNull prepend=" and" property="teamClazz">
+				<![CDATA[	team.teamClass = #teamClazz.id#]]>
+            </isNotNull>
+				<isNotEmpty prepend=" and" property="orginternalcode">
+				<![CDATA[	base.orginternalcode like #orginternalcode#||'%']]>
+            </isNotEmpty>
+		</dynamic>
+
+	</select>
+	
+	<insert id="addServiceMemberHasObject" parameterClass="supervisorInfoVo">
+	<![CDATA[
+		insert into serviceMemberHasObject (teamId,memberId, populationType, populationId )
+		VALUES (#teamId#, #memberId#, #populationType#, #populationId# ) 
+	]]>
+	</insert>
+	
+	<select id="viewSupervisor" parameterClass="java.lang.Long" resultMap="SupervisorInfoVoResult">
+		<![CDATA[ 
+		select details.id  memberId, base.name, base.gender, base.idCardNo, base.mobile, base.homePhone,
+			   base.orgInternalCode, details.duties, details.position, team.name teamName, team.id teamId,
+		       team.teamClass, pd.displayName
+		  from serviceTeamMemberDetails details,
+			   serviceTeamMemberBase base ,
+		       serviceManageTeam team,
+			   propertyDicts pd
+		 where details.baseId = base.id 
+		   and details.teamId = team.id 
+		   and pd.id = details.position 
+		   and details.id=#memberId# ]]>
+	</select> -->
+</sqlMap>

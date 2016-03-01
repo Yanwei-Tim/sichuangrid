@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="societySafeCheck" extends="default"
+		namespace="/dailylog/societySafeCheck">
+		<default-class-ref class="societySafeCheckController"></default-class-ref>
+
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/dailylog/dailylog/societySafeCheck.jsp
+			</result>
+			<result name="add">
+				/dailylog/dailylog/maintainDailyLogCheckDlg.jsp
+			</result>
+		</action>
+
+		<action name="addSocietySafeCheck" method="addSocietySafeCheck">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="updateSocietySafeCheck" method="updateSocietySafeCheck">
+			<result name="success" type="json">
+			</result>
+		</action>
+		<action name="checkExist" method="checkExist">
+		<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="reportUp" method="reportUp">
+			<result name="success" type="json">
+			</result>
+			<result name="fail" type="json">
+			</result>
+		</action>
+		<action name="reportBack" method="reportBack">
+			<result name="success" type="json">
+			</result>
+		</action>
+		<action name="deleteSocietySafeCheck" method="deleteSocietySafeCheck">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findReportInfo" method="findReportInfo">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="findSocietySafeCheck" method="findSocietySafeCheck">
+			<result name="success" type="json">
+			</result>
+		</action>
+		<action name="findCollectionData" method="findCollectionData">
+			<result name="success" type="json">
+			</result>
+		</action>
+		<action name="reloadCollectionData" method="reloadCollectionData">
+			<result name="success" type="json">
+			</result>
+		</action>
+
+	</package>
+
+</struts>

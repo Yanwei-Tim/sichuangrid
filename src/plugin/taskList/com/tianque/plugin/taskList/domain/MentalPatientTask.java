@@ -1,0 +1,429 @@
+package com.tianque.plugin.taskList.domain;
+
+import java.util.Date;
+import java.util.List;
+
+import org.apache.struts2.json.annotations.JSON;
+
+import com.tianque.core.base.BaseDomain;
+import com.tianque.domain.Organization;
+
+public class MentalPatientTask extends BaseDomain {
+	/**
+	 * 用于手机接口返回被回复数量
+	 */
+	private long replyCount;
+
+	private Long id;
+	/** 地点 **/
+	private String place;
+	/** 时间 **/
+	private Date time;
+	/** 姓名 **/
+	private String name;
+	/** 监护人姓名 **/
+	private String guardianName;
+	/** 监护人电话 **/
+	private String guardianTel;
+	/** 服药情况 **/
+	private Long isDriinked;
+	/** 异常详情 **/
+	private String exception;
+	/** 是否外出 **/
+	private Long isout;
+	/**是否有回复*/
+	private Integer hasReplay;
+	/**任务清单回复列表*/
+	private List<TaskListReply> taskListReplyList;
+	/** 备注 **/
+	private String remark;
+	private String signType;
+	private Long statusPolice;//派出所是否签收（0未签收，1已签收）
+	private Long statusJustice;//卫生所是否签收（0未签收，1已签收）
+	private String attitudePolice;//派出所签收备注
+	private String attitudeJustice;//卫生所签收备注
+	private Date signDatePolice;//派出所签收日期
+	private Date signDateJustice;//卫生所签收日期
+	private Date currentDate;//当前时间
+	private String signMemberNamePolice;//派出所签收人
+	private String signMemberNameJustice;//卫生所签收人
+	private Long reporter;//上报人（默认就是网格员）
+	private String reporterTel;//上报人联系电话（默认网格员联系电话）
+	/** 所属网格 */
+	private Organization organization;
+	/** 搜索关键字 */
+	private String fastSearchKeyWords;
+	/** 记录起始时间*/
+	private Date conditionStartDate;
+	/** 记录结束时间*/
+	private Date conditionEndDate;
+	/** 附件名 **/
+	private String[] attachFileNames;
+	/* 附件 */
+	private List<TaskListAttachFile> annexFiles;
+	/**
+	 * 判断是否走网格配置清单查询
+	 */
+	private String mode;
+
+	/**
+	 * 登录的职能部门的网格id
+	 */
+	private Long funOrgId;
+	/**有无异常*/
+	private Integer hasException;
+	/**
+	 * 帮扶人员
+	 */
+	private String helpPeople;
+	/**
+	 * 身份证号码
+	 */
+	private String idCard;
+	/**
+	 * 电话号码
+	 */
+	private String phone;
+	/***
+	 * 人口信息精神病人员Id
+	 */
+	private Long mentalPatientId;
+
+	private String createUserName;
+
+	/**回复时间(派出所)*/
+	private Date replayDatePolice;
+	/**回复时间(卫生所)*/
+	private Date replayDateJustic;
+
+	public Date getReplayDatePolice() {
+		return replayDatePolice;
+	}
+
+	public void setReplayDatePolice(Date replayDatePolice) {
+		this.replayDatePolice = replayDatePolice;
+	}
+
+	public Date getReplayDateJustic() {
+		return replayDateJustic;
+	}
+
+	public void setReplayDateJustic(Date replayDateJustic) {
+		this.replayDateJustic = replayDateJustic;
+	}
+
+	public Integer getHasException() {
+		return hasException;
+	}
+
+	public void setHasException(Integer hasException) {
+		this.hasException = hasException;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getGuardianName() {
+		return guardianName;
+	}
+
+	public void setGuardianName(String guardianName) {
+		this.guardianName = guardianName;
+	}
+
+	public Date getConditionStartDate() {
+		return conditionStartDate;
+	}
+
+	public void setConditionStartDate(Date conditionStartDate) {
+		this.conditionStartDate = conditionStartDate;
+	}
+
+	public List<TaskListAttachFile> getAnnexFiles() {
+		return annexFiles;
+	}
+
+	public void setAnnexFiles(List<TaskListAttachFile> annexFiles) {
+		this.annexFiles = annexFiles;
+	}
+
+	public String[] getAttachFileNames() {
+		return attachFileNames;
+	}
+
+	public void setAttachFileNames(String[] attachFileNames) {
+		this.attachFileNames = attachFileNames;
+	}
+
+	public Date getConditionEndDate() {
+		return conditionEndDate;
+	}
+
+	public void setConditionEndDate(Date conditionEndDate) {
+		this.conditionEndDate = conditionEndDate;
+	}
+
+	public String getFastSearchKeyWords() {
+		return fastSearchKeyWords;
+	}
+
+	public void setFastSearchKeyWords(String fastSearchKeyWords) {
+		this.fastSearchKeyWords = fastSearchKeyWords;
+	}
+
+	public String getReporterTel() {
+		return reporterTel;
+	}
+
+	public String getSignType() {
+		return signType;
+	}
+
+	public void setSignType(String signType) {
+		this.signType = signType;
+	}
+
+	public void setReporterTel(String reporterTel) {
+		this.reporterTel = reporterTel;
+	}
+
+	public Long getStatusPolice() {
+		return statusPolice;
+	}
+
+	public void setStatusPolice(Long statusPolice) {
+		this.statusPolice = statusPolice;
+	}
+
+	public Long getStatusJustice() {
+		return statusJustice;
+	}
+
+	public void setStatusJustice(Long statusJustice) {
+		this.statusJustice = statusJustice;
+	}
+
+	public String getAttitudePolice() {
+		return attitudePolice;
+	}
+
+	public void setAttitudePolice(String attitudePolice) {
+		this.attitudePolice = attitudePolice;
+	}
+	@JSON(format = "yyyy-MM-dd HH:mm:ss")
+	public Date getSignDatePolice() {
+		return signDatePolice;
+	}
+
+	public void setSignDatePolice(Date signDatePolice) {
+		this.signDatePolice = signDatePolice;
+	}
+
+	public String getSignMemberNamePolice() {
+		return signMemberNamePolice;
+	}
+
+	public void setSignMemberNamePolice(String signMemberNamePolice) {
+		this.signMemberNamePolice = signMemberNamePolice;
+	}
+
+	public String getAttitudeJustice() {
+		return attitudeJustice;
+	}
+
+	public void setAttitudeJustice(String attitudeJustice) {
+		this.attitudeJustice = attitudeJustice;
+	}
+	@JSON(format = "yyyy-MM-dd HH:mm:ss")
+	public Date getSignDateJustice() {
+		return signDateJustice;
+	}
+
+	public void setSignDateJustice(Date signDateJustice) {
+		this.signDateJustice = signDateJustice;
+	}
+
+	public Date getCurrentDate() {
+		return currentDate;
+	}
+
+	public void setCurrentDate(Date currentDate) {
+		this.currentDate = currentDate;
+	}
+
+	public String getSignMemberNameJustice() {
+		return signMemberNameJustice;
+	}
+
+	public void setSignMemberNameJustice(String signMemberNameJustice) {
+		this.signMemberNameJustice = signMemberNameJustice;
+	}
+
+	public Long getReporter() {
+		return reporter;
+	}
+
+	public void setReporter(Long reporter) {
+		this.reporter = reporter;
+	}
+
+	public String getPlace() {
+		return place;
+	}
+
+	public void setPlace(String place) {
+		this.place = place;
+	}
+
+	@JSON(format = "yyyy-MM-dd HH:mm:ss")
+	public Date getTime() {
+		return time;
+	}
+
+	public void setTime(Date time) {
+		this.time = time;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getGuardianTel() {
+		return guardianTel;
+	}
+
+	public void setGuardianTel(String guardianTel) {
+		this.guardianTel = guardianTel;
+	}
+
+	public Long getIsDriinked() {
+		return isDriinked;
+	}
+
+	public void setIsDriinked(Long isDriinked) {
+		this.isDriinked = isDriinked;
+	}
+
+	public String getException() {
+		return exception;
+	}
+
+	public void setException(String exception) {
+		this.exception = exception;
+	}
+
+	public Long getIsout() {
+		return isout;
+	}
+
+	public void setIsout(Long isout) {
+		this.isout = isout;
+	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+
+	public Organization getOrganization() {
+		return organization;
+	}
+
+	public void setOrganization(Organization organization) {
+		this.organization = organization;
+	}
+
+	public String getMode() {
+		return mode;
+	}
+
+	public void setMode(String mode) {
+		this.mode = mode;
+	}
+
+	public Long getFunOrgId() {
+		return funOrgId;
+	}
+
+	public void setFunOrgId(Long funOrgId) {
+		this.funOrgId = funOrgId;
+	}
+
+	public Integer getHasReplay() {
+		return hasReplay;
+	}
+
+	public void setHasReplay(Integer hasReplay) {
+		this.hasReplay = hasReplay;
+	}
+
+	public List<TaskListReply> getTaskListReplyList() {
+		return taskListReplyList;
+	}
+
+	public void setTaskListReplyList(List<TaskListReply> taskListReplyList) {
+		this.taskListReplyList = taskListReplyList;
+	}
+
+	public long getReplyCount() {
+		return replyCount;
+	}
+
+	public void setReplyCount(long replyCount) {
+		this.replyCount = replyCount;
+	}
+
+	public String getHelpPeople() {
+		return helpPeople;
+	}
+
+	public void setHelpPeople(String helpPeople) {
+		this.helpPeople = helpPeople;
+	}
+
+	public String getIdCard() {
+		return idCard;
+	}
+
+	public void setIdCard(String idCard) {
+		this.idCard = idCard;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public Long getMentalPatientId() {
+		return mentalPatientId;
+	}
+
+	public void setMentalPatientId(Long mentalPatientId) {
+		this.mentalPatientId = mentalPatientId;
+	}
+
+	public String getCreateUserName() {
+		return createUserName;
+	}
+
+	public void setCreateUserName(String createUserName) {
+		this.createUserName = createUserName;
+	}
+
+
+}

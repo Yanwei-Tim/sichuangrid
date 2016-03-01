@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="scenicEquipment">
+	<typeAlias alias="ScenicEquipment" type="com.tianque.baseInfo.scenicManage.scenicEquipment.domain.ScenicEquipment" />
+
+	<resultMap id="scenicEquipmentResult" class="ScenicEquipment" >
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgInternalCode" />
+		<result property="equipName" column="equipName" />
+		<result property="equipAddress" column="equipAddress" />
+		<result property="manager" column="manager" />
+		<result property="mobile" column="mobile" />
+		<result property="managerMobile" column="managerMobile" />
+		<result property="equipType.id" column="equipType" />
+		<result column="imgUrl" property="imgUrl" />
+		<result property="remark" column="remark"/> 
+		<result property="aroundScenic" column="aroundScenic" />
+		<result property="logOutReason" column="logOutReason"/>
+		<result property="logOutTime" column="logOutTime"/>
+		<result property="isEmphasis" column="isEmphasis" />
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+
+	<insert id="addScenicEquipment" parameterClass="ScenicEquipment">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_scenicEquipment.NEXTVAL as id from dual]]>
+		</selectKey>
+		insert into scenicEquipment (
+		id,orgId,orgInternalCode,equipName,equipAddress,manager,mobile,imgUrl,
+		logOutReason,logOutTime,remark,fullPinyin,simplePinyin,
+		createUser,updateUser,createDate,updateDate,
+		equipType,managerMobile,aroundScenic
+		)values(
+		#id#,#organization.id#,#organization.orgInternalCode#,#equipName#,#equipAddress#,#manager#,#mobile#,#imgUrl#,
+		#logOutReason#,#logOutTime#,#remark#,#fullPinyin#,#simplePinyin#,
+		#createUser#,#updateUser#,#createDate#,#updateDate#,
+		#equipType.id#,#managerMobile#,#aroundScenic#
+		)
+	
+	</insert>
+	<update id="updateScenicEquipment" parameterClass="ScenicEquipment">
+		update scenicEquipment set
+		<dynamic>
+				id = #id#
+				<isNotNull prepend="," property="updateUser">
+					updateUser = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					updateDate = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="isEmphasis">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+				<isNotNull prepend="," property="organization">
+					orgId=#organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					orgInternalCode=#orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="equipName">
+					equipName=#equipName#
+				</isNotNull>
+				<isNotNull prepend="," property="equipAddress">
+					equipAddress=#equipAddress#
+				</isNotNull>
+				<isNotNull prepend="," property="manager">
+					manager=#manager#
+				</isNotNull>
+				<isNotNull prepend="," property="mobile">
+					mobile=#mobile#
+				</isNotNull>
+				<isNotNull prepend="," property="imgUrl">
+					imgUrl=#imgUrl#
+				</isNotNull>
+				<isNotNull prepend="," property="remark">
+					remark=#remark#
+				</isNotNull>
+				<isNotNull prepend="," property="fullPinyin">
+					fullPinyin=#fullPinyin#
+				</isNotNull>
+				<isNotNull prepend="," property="simplePinyin">
+					simplePinyin=#simplePinyin#
+				</isNotNull>
+				<isNotNull prepend="," property="equipType">
+					equipType=#equipType.id#
+				</isNotNull>
+				<isNotNull prepend="," property="aroundScenic">
+					aroundScenic=#aroundScenic#
+				</isNotNull>
+				<isNotNull prepend="," property="managerMobile">
+					managerMobile=#managerMobile#
+				</isNotNull>
+				<isNotNull prepend="," property="logOutReason">
+					logOutReason=#logOutReason#
+				</isNotNull>
+				<isNotNull prepend="," property="logOutTime">
+					logOutTime=#logOutTime#
+				</isNotNull>
+		</dynamic>
+		where id=#id#
+	</update>
+	<update id="updateEmphasiseById" parameterClass="map">
+		update scenicEquipment set
+			isEmphasis=#isEmphasis#,
+			logOutReason=#logOutReason#,
+			updateUser=#updateUser#,
+		    updateDate=#updateDate#,
+			logOutTime=#logOutTime#
+		where id=#id#	
+	</update>
+	<sql id="sql_where">
+		from scenicEquipment
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="equipName">
+				<isNotNull property="equipName" prepend=" and ">
+					equipName = #equipName#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						(isEmphasis = #isEmphasis# or isEmphasis is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<delete id="deleteScenicEquipmentById" parameterClass="java.lang.Long">
+		delete from scenicEquipment  where id=#id#
+	</delete>
+	<select id="getScenicEquipmentById" parameterClass="java.lang.Long" resultMap="scenicEquipmentResult">
+		<![CDATA[select * from scenicEquipment where id= #value#]]>
+	</select>
+	
+	<select id="countScenicEquipment" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*)
+		<include refid="sql_where" />
+	</select>
+	<select id="findScenicEquipment" parameterClass="java.util.Map" resultMap="scenicEquipmentResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+		<select id="getScenicEquipmentByMap" parameterClass="java.util.Map" resultMap="scenicEquipmentResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+</sqlMap>

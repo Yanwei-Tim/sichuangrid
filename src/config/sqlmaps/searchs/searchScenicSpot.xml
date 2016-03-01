@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchScenicSpot">
+    <typeAlias alias="scenicSpot" type="com.tianque.baseInfo.scenicManage.scenicSpot.domain.ScenicSpot"/>
+    <typeAlias alias="searchScenicSpotVo" type="com.tianque.baseInfo.scenicManage.scenicSpot.vo.SearchScenicSpotVo"/>
+
+    <sql id="sql_where">
+		from  SCENICSPOTS where 1=1
+		<dynamic>
+			<isNotEmpty prepend="and" property="orgInternalCode">
+			     <![CDATA[orgInternalCode like #orgInternalCode#||'%']]>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="name">
+			    <![CDATA[name like #name#||'%']]>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="address">
+			    <![CDATA[address like #address#||'%']]>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="grade">
+				<![CDATA[grade like #grade#||'%']]>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="telephone">
+			    <![CDATA[telephone like #telephone#||'%']]>
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="personLiable">
+				<![CDATA[personLiable like #personLiable#||'%']]>
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="personLiableTelephone">
+				<![CDATA[personLiableTelephone like #personLiableTelephone#||'%']]>
+			</isNotEmpty>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="true">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="false">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+				<isNull property="isEmphasis" prepend="and">
+					1=1
+				</isNull>
+			</isPropertyAvailable>
+			<isNotEmpty property="unitName" prepend="and">
+				(name like '$unitName$%' or fullPinyin like '$unitName$%' or simplePinyin like '$unitName$%' )
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+    
+	<select id="findScenicSpotList" parameterClass="searchScenicSpotVo" resultMap="scenicSpot.scenicSpotResultMapForList">
+		select SCENICSPOTS.*,'$locationType$' as locationType 
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+	   </dynamic>
+	</select>
+
+	<select id="countScenicSpot" parameterClass="searchScenicSpotVo"  resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="findScenicSpotByNameAndPinyinAndOrgInternalCode" parameterClass="java.util.Map" resultMap="scenicSpot.scenicSpotResultMap">
+		select * from SCENICSPOTS where (name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%' ) and orgInternalCode like '$orgInternalCode$%' order by id
+	</select>
+
+</sqlMap>

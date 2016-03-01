@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="weChatGroup">
+	<typeAlias alias="WeChatGroup" type="com.tianque.plugin.weChat.domain.user.WeChatGroup"/>
+	<resultMap id="weChatGroupResult" class="WeChatGroup">
+		<result property="weChatGroupId" column="WECHAT_GROUP_ID"/>
+		<result property="name" column="NAME"/>
+		<result property="weChatUserId" column="WECHAT_USER_ID"/>
+		<result property="groupId" column="GROUP_ID"/>
+	</resultMap>
+	
+	
+	<insert id="saveWeChatGroup" parameterClass="WeChatGroup">
+		<selectKey resultClass="java.lang.Long" keyProperty="weChatGroupId">
+			<![CDATA[
+				SELECT s_WeChat_Group.NEXTVAL AS weChatGroupId FROM DUAL
+			]]>
+		</selectKey>
+		insert into WECHAT_GROUP
+		(WECHAT_GROUP_ID,NAME,WECHAT_USER_ID,GROUP_ID)
+		values
+		(#weChatGroupId#,#name#,#weChatUserId#,#groupId#)
+	</insert>
+	
+	<select id="getGroupByGroupIdAndWeChatUserId" parameterClass="WeChatGroup" resultMap="weChatGroupResult">
+		select * from WECHAT_GROUP where WECHAT_USER_ID=#weChatUserId# and GROUP_ID=#groupId#
+	</select>
+	
+	
+	<delete id="deleteWeChatGroupByWeChatUserId" parameterClass="java.lang.String">
+		delete from WECHAT_GROUP where WECHAT_USER_ID=#weChatUserId# 
+	</delete>
+</sqlMap>

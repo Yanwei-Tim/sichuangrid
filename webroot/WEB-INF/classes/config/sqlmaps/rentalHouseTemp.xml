@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="rentalHouseTemp">		
+	<typeAlias alias="SearchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo"/>
+	<typeAlias alias="RentalHouseTemp" type="com.tianque.plugin.dataManage.location.rentalHouseTemp.domain.RentalHouseTemp" />
+	
+	<resultMap id="rentalHouseTempResultForBase" class="RentalHouseTemp" extends="locationTempBaseDomain.locationTempBaseDomainResultForBase">
+		<result column="houseCode" property="houseCode" />
+		<result property="addressType.id" column="addressType" />
+		<result property="block" column="block" />
+		<result property="unit" column="unit" />
+        <result property="room" column="room" />
+		<result property="community" column="community" />
+		<result property="rentalPerson" column="rentalPerson" />
+		<result property="hiddenDangerLevel.id" column="hiddenDangerLevel" />
+		<result property="buildingName" column="buildingName" />
+        <result property="buildingUses.id" column="buildingUses" />
+        <result property="propertyName" column="propertyName" />
+		<result property="houseOwnerIdCardNo" column="houseOwnerIdCardNo" />
+        <result property="telephone" column="telephone" />
+		<result property="houseDoorModel" column="houseDoorModel" />
+        <result property="builtYear" column="builtYear" />
+        <result property="houseArea" column="houseArea" />
+		<result property="houseStructure.id" column="houseStructure" />
+		<result property="houseUses.id" column="houseUses" />
+        <result property="houseSource.id" column="houseSource" />
+        <result property="ownProperty.id" column="ownProperty" />
+        <result property="rentalBuildings.id" column="rentalBuildings" />
+        <result property="housingVouchers.id" column="housingVouchers" />
+        <result property="houseRightNumber" column="houseRightNumber" />
+        <result property="houseRightNumberDate" column="houseRightNumberDate" />
+		<result property="landDocuments.id" column="landDocuments" />
+        <result property="landRightsNumbe" column="landRightsNumbe" />
+        <result property="landRightsNumbeDate" column="landRightsNumbeDate" />
+        <result property="propertyTypes.id" column="propertyTypes" />
+        <result property="certificateType.id" column="certificateType" />
+        <result property="certificateNumbe" column="certificateNumbe" />
+        <result property="propertyPersonTel" column="propertyPersonTel" />
+        <result property="propertyPersonMobile" column="propertyPersonMobile" />
+        <result property="usage.id" column="usage" />
+		<result property="houseFileNum" column="houseFileNum" />
+		<result property="lessorType.id" column="lessorType" />
+		<result property="rentalCertificateType.id" column="rentalCertificateType" />
+		<result property="rentalCertificateNumbe" column="rentalCertificateNumbe" />
+		<result property="rentalTelephone" column="rentalTelephone" />
+		<result property="rentalMobileNumber" column="rentalMobileNumber" />
+		<result property="lessorAddress" column="lessorAddress" />
+		<result property="rentalType.id" column="rentalType" />
+		<result property="rentalHouseProperty.id" column="rentalHouseProperty" />
+		<result property="mangerTypes.id" column="mangerTypes" />
+		<result column="registDate" property="registDate" />
+		<result property="lessorDate" column="lessorDate" />
+		<result property="roomNumber" column="roomNumber" />
+		<result property="limitPersons" column="limitPersons" />
+		<result property="rentMonth" column="rentMonth" />
+		<result property="hiddenRectification" column="hiddenRectification" />
+		<result property="isSignGuarantee" column="isSignGuarantee" />
+		<result property="isSafetyChannel" column="isSafetyChannel" />
+		<result property="isFireChannels" column="isFireChannels" />
+		<result property="houseAddress" column="houseAddress" />
+		<result property="imgUrl" column="imgUrl" />
+	</resultMap>
+	
+	 <resultMap id="rentalHouseTempResultForList" class="RentalHouseTemp" extends="rentalHouseTemp.rentalHouseTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<sql id="claim_sql_where">
+		from DM_rentalhouse_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	<sql id="updateBaseSql">
+		houseCode=#houseCode#,
+	    addressType=#addressType.id#,
+	    block=#block#,
+	    unit=#unit#,
+	    room=#room#,
+	    community=#community#,
+		buildingName=#buildingName#,
+	    buildingUses=#buildingUses.id#,
+	    propertyName=#propertyName#,
+		houseOwnerIdCardNo=#houseOwnerIdCardNo#,
+	    telephone=#telephone#,
+	    houseDoorModel=#houseDoorModel#,
+	    builtYear=#builtYear#,
+	    houseArea=#houseArea#,
+	    houseStructure=#houseStructure.id#,
+	    houseUses=#houseUses.id#,
+	    houseSource=#houseSource.id#,
+	    ownProperty=#ownProperty.id#,
+	    rentalBuildings=#rentalBuildings.id#,
+	    housingVouchers=#housingVouchers.id#,
+	    houseRightNumber=#houseRightNumber#,
+		houseRightNumberDate=#houseRightNumberDate#,
+	    landDocuments=#landDocuments.id#,
+	    landRightsNumbe=#landRightsNumbe#,
+	    landRightsNumbeDate=#landRightsNumbeDate#,
+	    propertyTypes=#propertyTypes.id#,
+		certificateType=#certificateType.id#,
+	    certificateNumbe=#certificateNumbe#,
+	    propertyPersonTel=#propertyPersonTel#,
+	    propertyPersonMobile=#propertyPersonMobile#
+	</sql>
+	<sql id="updateBusinessSql">
+		usage=#usage.id#,
+        houseFileNum=#houseFileNum#,
+        lessorType=#lessorType.id#,
+        rentalPerson=#rentalPerson#,
+		rentalCertificateType=#rentalCertificateType.id#,
+        rentalCertificateNumbe=#rentalCertificateNumbe#,
+        rentalTelephone=#rentalTelephone#,
+        rentalMobileNumber=#rentalMobileNumber#,
+        lessorAddress=#lessorAddress#,
+		rentalType=#rentalType.id#,
+		rentalHouseProperty=#rentalHouseProperty.id#,
+		hiddenDangerLevel=#hiddenDangerLevel.id#,
+		mangerTypes=#mangerTypes.id#,
+		registDate=#registDate#,
+		lessorDate=#lessorDate#,
+        roomNumber=#roomNumber#,
+		limitPersons=#limitPersons#,
+		rentMonth=#rentMonth#,
+		hiddenRectification=#hiddenRectification#,
+        isSignGuarantee=#isSignGuarantee#,
+        isSafetyChannel=#isSafetyChannel#,
+		isFireChannels=#isFireChannels#
+	</sql>
+	<insert id="addRentalHouseTemp" parameterClass="RentalHouseTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_rentalhouse_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_rentalhouse_Temp
+		(id,orgId,orgInternalCode,houseCode,addressType,address,block,unit,room,community,rentalPerson,
+		 hiddenDangerLevel,buildingName,buildingUses,propertyName,manager,houseOwnerIdCardNo,telephone,houseDoorModel,
+		 builtYear,houseArea,houseStructure,houseUses,houseSource,ownProperty,rentalBuildings,housingVouchers,houseRightNumber,
+		 houseRightNumberDate,landDocuments,landRightsNumbe,landRightsNumbeDate,propertyTypes,name,certificateType,
+		 certificateNumbe,propertyPersonTel,propertyPersonMobile,usage,houseFileNum,lessorType,rentalCertificateType,
+		 rentalCertificateNumbe,rentalTelephone,rentalMobileNumber,lessorAddress,rentalType,rentalHouseProperty,
+		 mangerTypes,registDate,lessorDate,roomNumber,limitPersons,rentMonth,hiddenRectification,
+		 isFireChannels,isSafetyChannel,isSignGuarantee,remark,createDate,createUser,houseAddress,
+		<include refid="dataManage.addDataManage"/>
+		)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#houseCode#,#addressType.id#,#address#,#block#,#unit#,#room#,#community#,
+		#rentalPerson#,#hiddenDangerLevel.id#,#buildingName#,#buildingUses.id#,#propertyName#,#manager#,#houseOwnerIdCardNo#,#telephone#,
+		#houseDoorModel#,#builtYear#,#houseArea#,#houseStructure.id#,#houseUses.id#,#houseSource.id#,#ownProperty.id#,#rentalBuildings.id#,
+		#housingVouchers.id#,#houseRightNumber#,#houseRightNumberDate#,#landDocuments.id#,#landRightsNumbe#,#landRightsNumbeDate#,#propertyTypes.id#,
+		#name#,#certificateType.id#,#certificateNumbe#,#propertyPersonTel#,#propertyPersonMobile#,#usage.id#,#houseFileNum#,#lessorType.id#,
+		#rentalCertificateType.id#,#rentalCertificateNumbe#,#rentalTelephone#,#rentalMobileNumber#,#lessorAddress#,#rentalType.id#,
+		#rentalHouseProperty.id#,#mangerTypes.id#,#registDate#,#lessorDate#,#roomNumber#,#limitPersons#,#rentMonth#,#hiddenRectification#,
+		#isFireChannels#,#isSafetyChannel#,#isSignGuarantee#,#remark#,#createDate#,#createUser#,#houseAddress#,
+		<include refid="dataManage.addValueDataManage"/>
+		)
+    </insert>
+	 <select id="findTempPageList" resultMap="rentalHouseTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="rentalHouseTemp.claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	 <update id="updateRentalHouseTempInIdById"  parameterClass="java.util.Map">
+		update DM_rentalhouse_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<update id="updateRentalHouseTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_rentalhouse_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	
+	<!-- 新增加-->
+	<select id="getRentalHouseTempById" parameterClass="java.lang.Long" resultMap="rentalHouseTempResultForList">
+	<![CDATA[SELECT * FROM DM_rentalhouse_Temp where id = #value#]]>
+	</select>
+	<select id="findTemps" resultMap="rentalHouseTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="rentalHouseTemp.claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countFindTemps" resultClass="java.lang.Integer"
+		parameterClass="searchVo">
+			select count(id)  <include refid="rentalHouseTemp.claim_sql_where" />
+		</select>
+	
+	<update id="updateRentalHouseTempById"  parameterClass="java.util.Map">
+		update DM_rentalhouse_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	
+	<update id="updateRentalHouseTemp" parameterClass="RentalHouseTemp">
+		update DM_rentalhouse_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="rentalHouseTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<!-- 修改场所信息 -->
+	<update id="updateRentalHouseTempInfo" parameterClass="RentalHouseTemp">
+		update DM_rentalhouse_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="rentalHouseTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	
+	<delete id="deleteRentalHouseTempById" parameterClass="Long">
+	   delete DM_rentalhouse_Temp where id = #value#
+	</delete>
+	<!-- 新添 -->
+	<update id="updateRentalHouseTempBase" parameterClass="RentalHouseTemp">
+		update DM_rentalhouse_Temp set houseAddress = #houseAddress#,
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		,
+		<include refid="rentalHouseTemp.updateBaseSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		,imgUrl = #imgUrl#
+		where id=#id#
+	</update>
+	<update id="updateRentalHouseTempBusiness" parameterClass="RentalHouseTemp">
+		update DM_rentalhouse_Temp set
+		<include refid="rentalHouseTemp.updateBusinessSql" />
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	
+</sqlMap>

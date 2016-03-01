@@ -1,0 +1,697 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		BIRTHDAY as birthday ,
+		CREATEDATE as createdate ,
+		UPDATEDATE as updatedate ,
+		MOBILENUMBER as mobilenumber ,
+		ORGID as orgid ,
+		GENDER as gender ,
+		RESPONSEGROUPNO as responsegroupno ,
+		ISPARTYMEMBER as ispartymember ,
+		POSITION as position ,
+		APPEALHUMANTYPE as appealhumantype ,
+		ITEMCATEGORY as itemcategory ,
+		ITEMCATEGORYSUB as itemcategorysub ,
+		SERIALNUMBER as serialnumber ,
+		SERVERTELEPHONE as servertelephone ,
+		ORGINTERNALCODE as orginternalcode ,
+		NAME as name ,
+		IDCARDNO as idcardno ,
+		SERVERCONTRACTOR as servercontractor ,
+		SERVERJOB as serverjob ,
+		CREATEUSER as createuser ,
+		UPDATEUSER as updateuser ,
+		PERMANENTADDRESS as permanentaddress ,
+		SERVERUNIT as serverunit ,
+		APPEALCONTENT as appealcontent 
+	FROM PEOPLEASPIRATIONS	
+ -->	
+<sqlMap namespace="peopleAspirations">	
+	
+	<typeAlias alias="PeopleAspirations" type="com.tianque.xichang.working.peopleAspiration.domain.PeopleAspirations"/>
+	<typeAlias alias="SearchPeopleAspirationsVo" type="com.tianque.xichang.working.peopleAspiration.domain.vo.SearchPeopleAspirationsVo" />
+	<typeAlias alias="ClobStringTypeHandler" type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+	<typeAlias alias="ReportGroupCount" type="com.tianque.xichang.working.domain.ReportGroupCount" />
+	
+	<resultMap id="peopleAspirationsResult" class="PeopleAspirations">
+		<result property="id" column="ID"/>
+		<result property="organization.id" column="ORGID"/>
+		<result property="orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="name" column="NAME"/>
+		<result property="idCardNo" column="IDCARDNO"/>
+		<result property="gender.id" column="GENDER"/>
+		<result property="birthDay" column="BIRTHDAY"/>
+		<result property="mobileNumber" column="MOBILENUMBER"/>
+		<result property="isPartyMember" column="ISPARTYMEMBER"/>
+		<result property="permanentAddress" column="PERMANENTADDRESS"/>
+		<result property="position.id" column="POSITION"/>
+		<result property="serverTelephone" column="SERVERTELEPHONE"/>
+		<result property="serverContractor" column="SERVERCONTRACTOR"/>
+		<result property="serverJob" column="SERVERJOB"/>
+		<result property="serverUnit" column="SERVERUNIT"/>
+		<result property="serialNumber" column="SERIALNUMBER"/>
+		<result property="createTableType.id" column="CREATETABLETYPE"/>
+		<result property="responseGroupNo" column="RESPONSEGROUPNO"/>
+		<result property="appealHumanType.id" column="APPEALHUMANTYPE"/>
+		<result property="itemCategory.id" column="ITEMCATEGORY"/>
+		<result property="itemCategorySub.id" column="ITEMCATEGORYSUB"/>
+		<result property="appealContent" column="APPEALCONTENT" typeHandler="ClobStringTypeHandler"/>
+		<result property="occurOrg.id" column="OCCURORGID"/>
+		<result property="occurOrgInternalCode" column="OCCURORGINTERNALCODE"/>
+		<result property="gridNo" column="GRIDNO"/>
+		<result property="bookingUnit" column="BOOKINGUNIT"/>
+		<result property="registrant" column="REGISTRANT"/>
+		<result property="registrationTime" column="REGISTRATIONTIME"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+	</resultMap>
+	
+	<resultMap id="reportGroupCount" class="ReportGroupCount">
+		<result property="rowType" column="createtabletype"/>
+		<result property="item.id" column="itemcategory"/>
+		<result property="count" column="counts"/>
+	</resultMap>
+
+
+	<select id="getPeopleAspirationsById" parameterClass="java.lang.Long" resultMap="peopleAspirationsResult">
+		select * from PEOPLEASPIRATIONS where id=#value#
+	</select>
+
+	<insert id="addPeopleAspirations" parameterClass="PeopleAspirations">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_PEOPLEASPIRATIONS.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into PEOPLEASPIRATIONS (ID , BIRTHDAY , CREATEDATE , UPDATEDATE , MOBILENUMBER , ORGID , GENDER , RESPONSEGROUPNO , ISPARTYMEMBER , POSITION , APPEALHUMANTYPE , ITEMCATEGORY , ITEMCATEGORYSUB , SERIALNUMBER , SERVERTELEPHONE , ORGINTERNALCODE , NAME , IDCARDNO , SERVERCONTRACTOR , SERVERJOB , CREATEUSER , UPDATEUSER , PERMANENTADDRESS , SERVERUNIT , APPEALCONTENT , OCCURORGID , OCCURORGINTERNALCODE , GRIDNO , BOOKINGUNIT, REGISTRANT, REGISTRATIONTIME,CREATETABLETYPE,ORGTYPE) 
+		values(#id#, #birthDay#, #createDate#, #updateDate#, #mobileNumber#, #organization.id#, #gender.id#, #responseGroupNo#, #isPartyMember#, #position.id#, #appealHumanType.id#, #itemCategory.id#, #itemCategorySub.id#, #serialNumber#, #serverTelephone#, #orgInternalCode#, #name#, #idCardNo#, #serverContractor#, #serverJob#, #createUser#, #updateUser#, #permanentAddress#, #serverUnit#, #appealContent,handler=ClobStringTypeHandler#, #occurOrg.id#, #occurOrgInternalCode#, #gridNo#, #bookingUnit#, #registrant#, #registrationTime#,#createTableType.id#,#organization.orgType.id#)	
+	</insert>
+	
+	<update id="updatePeopleAspirations" parameterClass="PeopleAspirations">
+		update PEOPLEASPIRATIONS set id = #id# 
+				<isNotNull prepend="," property="birthDay">
+					BIRTHDAY = #birthDay#
+				</isNotNull>
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="mobileNumber">
+					MOBILENUMBER = #mobileNumber#
+				</isNotNull>
+				<isNotNull prepend="," property="organization.id">
+					ORGID = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="gender.id">
+					GENDER = #gender.id#
+				</isNotNull>
+				<isNotNull prepend="," property="createTableType.id">
+					createTableType = #createTableType.id#
+				</isNotNull>
+				<isNotNull prepend="," property="responseGroupNo">
+					RESPONSEGROUPNO = #responseGroupNo#
+				</isNotNull>
+				<isNotNull prepend="," property="isPartyMember">
+					ISPARTYMEMBER = #isPartyMember#
+				</isNotNull>
+				<isNotNull prepend="," property="position.id">
+					POSITION = #position.id#
+				</isNotNull>
+				<isNotNull prepend="," property="appealHumanType.id">
+					APPEALHUMANTYPE = #appealHumanType.id#
+				</isNotNull>
+				<isNotNull prepend="," property="itemCategory.id">
+					ITEMCATEGORY = #itemCategory.id#
+				</isNotNull>
+				<isNotNull prepend="," property="itemCategorySub.id">
+					ITEMCATEGORYSUB = #itemCategorySub.id#
+				</isNotNull>
+				<isNotNull prepend="," property="serialNumber">
+					SERIALNUMBER = #serialNumber#
+				</isNotNull>
+				<isNotNull prepend="," property="serverTelephone">
+					SERVERTELEPHONE = #serverTelephone#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="name">
+					NAME = #name#
+				</isNotNull>
+				<isNotNull prepend="," property="idCardNo">
+					IDCARDNO = #idCardNo#
+				</isNotNull>
+				<isNotNull prepend="," property="serverContractor">
+					SERVERCONTRACTOR = #serverContractor#
+				</isNotNull>
+				<isNotNull prepend="," property="serverJob">
+					SERVERJOB = #serverJob#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="permanentAddress">
+					PERMANENTADDRESS = #permanentAddress#
+				</isNotNull>
+				<isNotNull prepend="," property="serverUnit">
+					SERVERUNIT = #serverUnit#
+				</isNotNull>
+				<isNotNull prepend="," property="appealContent">
+					APPEALCONTENT = #appealContent#
+				</isNotNull>
+				<isNotNull prepend="," property="occurOrg.id">
+					OCCURORGID = #occurOrg.id#
+				</isNotNull>
+				<isNotNull prepend="," property="occurOrgInternalCode">
+					OCCURORGINTERNALCODE = #occurOrgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="gridNo">
+					GRIDNO = #gridNo#
+				</isNotNull>
+				<isNotNull prepend="," property="bookingUnit">
+					BOOKINGUNIT = #bookingUnit#
+				</isNotNull>
+				<isNotNull prepend="," property="registrant">
+					REGISTRANT = #registrant#
+				</isNotNull>
+				<isNotNull prepend="," property="registrationTime">
+					REGISTRATIONTIME = #registrationTime#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deletePeopleAspirationsById" parameterClass="java.lang.Long">	
+		delete  from PEOPLEASPIRATIONS where id = #value#	
+	</delete>
+	
+	<sql id="findPeopleAspirationssBySearchVo_sql_where">
+	   where id in
+	     (select distinct a.accountid from accountsteps_xichang a
+               where  a.isfinish=#isFinish# and a.accounttype='PEOPLEASPIRATION' 
+			<isNotEmpty  property="displayLevel" prepend=" and">
+				<isEqual property="displayLevel" compareValue="sameGrade">
+					 a.targetorgcode = #orgInternalCode# 	
+				</isEqual>	
+				<isEqual property="displayLevel" compareValue="directJurisdiction">
+					 a.targetorgcode like #orgInternalCode#||'__' 	
+				</isEqual>	
+				<isEqual property="displayLevel" compareValue="allJurisdiction">
+					 a.targetorgcode like #orgInternalCode#||'%' 	
+				</isEqual>	
+			</isNotEmpty>
+			<isNotNull property="orgId" prepend=" and ">
+				a.targetorgid = #orgId#
+			</isNotNull>
+			)
+			<isPropertyAvailable property="occurOrg">
+				<isNotEmpty prepend="and" property="occurOrg.id">
+					OCCURORGID = #occurOrg.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maxBirthDay">
+				<isNotEmpty prepend="and" property="maxBirthDay">
+					BIRTHDAY  <![CDATA[<=]]> #maxBirthDay#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="minBirthDay">
+				<isNotEmpty prepend="and" property="minBirthDay">
+					BIRTHDAY  <![CDATA[>=]]> #minBirthDay#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty prepend="and" property="mobileNumber">
+					MOBILENUMBER  like #mobileNumber# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="genderId">
+				<isNotEmpty prepend="and" property="genderId">
+					GENDER = #genderId#
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="responseGroupNo">
+				<isNotEmpty prepend="and" property="responseGroupNo">
+					RESPONSEGROUPNO = #responseGroupNo#
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="isPartyMember">
+				<isNotEmpty prepend="and" property="isPartyMember">
+					ISPARTYMEMBER = #isPartyMember#
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="positionId">
+				<isNotEmpty prepend="and" property="positionId">
+					POSITION = #positionId#
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="appealHumanTypeId">
+				<isNotEmpty prepend="and" property="appealHumanTypeId">
+					APPEALHUMANTYPE = #appealHumanTypeId#
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="itemCategoryId">
+				<isNotEmpty prepend="and" property="itemCategoryId">
+					ITEMCATEGORY = #itemCategoryId#
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="itemCategorySubId">
+				<isNotEmpty prepend="and" property="itemCategorySubId">
+					ITEMCATEGORYSUB = #itemCategorySubId#
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="serialNumber">
+				<isNotEmpty prepend="and" property="serialNumber">
+					SERIALNUMBER  like #serialNumber# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="serverTelephone">
+				<isNotEmpty prepend="and" property="serverTelephone">
+					SERVERTELEPHONE  like #serverTelephone# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="name">
+				<isNotEmpty prepend="and" property="name">
+					NAME  like #name# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty prepend="and" property="idCardNo">
+					IDCARDNO  like #idCardNo# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="serverContractor">
+				<isNotEmpty prepend="and" property="serverContractor">
+					SERVERCONTRACTOR  like #serverContractor# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="serverJob">
+				<isNotEmpty prepend="and" property="serverJob">
+					SERVERJOB  like #serverJob# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="permanentAddress">
+				<isNotEmpty prepend="and" property="permanentAddress">
+					PERMANENTADDRESS  like #permanentAddress# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="serverUnit">
+				<isNotEmpty prepend="and" property="serverUnit">
+					SERVERUNIT  like #serverUnit# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="appealContent">
+				<isNotEmpty prepend="and" property="appealContent">
+					APPEALCONTENT  like #appealContent# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="createTableTypeId">
+				<isNotEmpty prepend="and" property="createTableTypeId">
+					CREATETABLETYPE  = #createTableTypeId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="hasAccountLog">
+				<isNotNull property="hasAccountLog">
+					<isEqual property="hasAccountLog" compareValue="true" prepend="and">
+						id in (
+							select distinct ax.accountid from accountlogs_xichang ax where 
+							ax.dealorgcode like #orgInternalCode#||'%' and ax.accounttype = #accountType#
+						)
+					</isEqual>
+					<isEqual property="hasAccountLog" compareValue="false" prepend="and">
+						id not in (
+							select distinct ax.accountid from accountlogs_xichang ax where 
+							ax.dealorgcode like #orgInternalCode#||'%' and ax.accounttype = #accountType#
+						)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+	</sql>
+
+	<select id="findPeopleAspirationssBySearchVo" parameterClass="SearchPeopleAspirationsVo" resultMap="peopleAspirationsResult">
+		select * from PEOPLEASPIRATIONS
+			<include refid="findPeopleAspirationssBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countPeopleAspirationssBySearchVo" parameterClass="SearchPeopleAspirationsVo" resultClass="java.lang.Integer">
+		select count(0) from PEOPLEASPIRATIONS
+			<include refid="findPeopleAspirationssBySearchVo_sql_where" />
+	</select>
+	
+	<select id="findDonePeopleAspirationssBySearchVo" parameterClass="SearchPeopleAspirationsVo" resultMap="peopleAspirationsResult">
+		select * from PEOPLEASPIRATIONS 
+			<include refid="findPeopleAspirationssBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countDonePeopleAspirationssBySearchVo" parameterClass="SearchPeopleAspirationsVo" resultClass="java.lang.Integer">
+		select count(0) from PEOPLEASPIRATIONS 
+			<include refid="findPeopleAspirationssBySearchVo_sql_where" />
+	</select>
+	
+	<select id="getPeopleAspirationsByIdCardNo"  parameterClass="java.lang.String"
+		resultMap="peopleAspirationsResult">
+		select * from PEOPLEASPIRATIONS where idCardNo = #value#
+	</select>
+	
+	<select id="getPeopleAspirationsBySerialNumber"  parameterClass="java.lang.String"
+		resultMap="peopleAspirationsResult">
+		select * from PEOPLEASPIRATIONS where serialNumber = #value#
+	</select>
+
+	<!-- 按照 建表类型 和 项目类型 统计数据 -->
+	<select id="getReportGroupCount"  parameterClass="java.util.Map" resultMap="reportGroupCount">
+		select createtabletype as createtabletype,
+			   itemcategory as itemcategory,
+			   count(id) as counts
+		  from peopleaspirations p
+		 where p.orgid = #orgId#
+		 <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ p.createdate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ p.createdate <= #endDate# ]]>
+		 </isPropertyAvailable>
+		 group by createtabletype,itemcategory
+	</select>
+	
+	<!-- 按照  项目类型 统计上月月份待办数据 -->
+	<select id="getUnfinishByMonth" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		select itemcategory as itemcategory,
+		       count(p.id) as counts
+		  from peopleaspirations p
+		  left join accountsteps_xichang a on a.accountid = p.id
+		 where a.isfinish = 0
+		   and a.targetorgid = #orgId# 
+		 <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ a.createdate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ a.createdate <= #endDate# ]]>
+		 </isPropertyAvailable>
+		 group by isfinish, itemcategory
+	</select>
+	
+	<!-- 按照 办结情况 和 项目类型 查询 -->
+	<select id="getReportByIsFinishAndItemcategory" parameterClass="java.util.Map" resultMap="reportGroupCount">
+		select isfinish as createtabletype,
+		       itemcategory as itemcategory,
+		       count(p.id) as counts
+		  from peopleaspirations p
+		  left join accountsteps_xichang a on a.accountid = p.id
+		   and a.targetorgid = p.orgid
+		 where a.isfinish = 1
+		   and a.accounttype = 'PEOPLEASPIRATION'
+		   and p.orgid = #orgId# 
+		 <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ a.createdate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ a.createdate <= #endDate# ]]>
+		 </isPropertyAvailable>
+		 group by isfinish, itemcategory
+	</select>
+	
+	<!-- 按照 实质性办结、程序性办结 和 项目类型 查询 -->
+	<select id="getReportByFinishtypeAndItemcategory" parameterClass="java.util.Map" resultMap="reportGroupCount">
+		select finishtype as createtabletype,
+		       itemcategory as itemcategory,
+		       count(p.id) as counts
+		  from peopleaspirations p
+		  left join accountsteps_xichang a on a.accountid = p.id
+		 <isNotPropertyAvailable property="orgCode" prepend="and">
+				a.targetorgid = p.orgid
+			and p.orgid = #orgId# 
+		 </isNotPropertyAvailable>
+		 where a.isfinish = 1
+		   and a.accounttype = 'PEOPLEASPIRATION'
+		   and a.finishtype is not null
+		 <!-- orgCode,orgCodeFindLevel 查询包含下辖层级时使用 -->
+		 <isPropertyAvailable property="orgCode" prepend="and">
+		 	<![CDATA[ REGEXP_LIKE(a.targetorgcode,'^' || REPLACE(#orgCode#,'.','\.')]]>
+		 	<isPropertyAvailable property="orgCodeFindLevel">
+			 	<isLessEqual property="orgCodeFindLevel" compareValue="1">
+				 	<![CDATA[ || '([^\.]{1,4}\.){1}' ]]>
+			 	</isLessEqual>
+			 	<isGreaterThan property="orgCodeFindLevel" compareValue="1">
+				 	<![CDATA[ || '([^\.]{1,4}\.){1,$orgCodeFindLevel$}' ]]>
+			 	</isGreaterThan>
+		 	</isPropertyAvailable> 
+		 	<![CDATA[ || '$$') ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ a.createdate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ a.createdate <= #endDate# ]]>
+		 </isPropertyAvailable>
+		 group by finishtype, itemcategory
+	</select>
+	
+	<!-- 按照 呈报类型（市） 和 项目类型 查询 -->
+	<select id="getReportByReportToCityEndAndItemcategory" parameterClass="java.util.Map" resultMap="reportGroupCount">
+		select reportToCityEnd as createtabletype,
+		       itemcategory as itemcategory,
+		       count(p.id) as counts
+		  from PEOPLEASPIRATIONS p
+		  left join accountsteps_xichang a on a.accountid = p.id
+		 where a.targetorgid = #orgId#
+		   and a.accounttype = 'PEOPLEASPIRATION'
+		   and a.reportToCityEnd is not null
+		 <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ a.createdate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ a.createdate <= #endDate# ]]>
+		 </isPropertyAvailable>
+		 group by reportToCityEnd, itemcategory
+	</select>
+	
+	<!-- 按照 呈报类型（乡镇） 和 项目类型 查询 -->
+	<select id="getReportByReportToTownEndAndItemcategory" parameterClass="java.util.Map" resultMap="reportGroupCount">
+		select reporttotownend as createtabletype,
+		       itemcategory as itemcategory,
+		       count(p.id) as counts
+		  from PEOPLEASPIRATIONS p
+		  left join accountsteps_xichang a on a.accountid = p.id
+		 where a.reporttotownend is not null
+		   and a.accounttype = 'PEOPLEASPIRATION'
+		   and a.targetorgid = #orgId# 
+		 <isPropertyAvailable property="isFinish" prepend="and">
+		 	<isEqual property="isFinish" compareValue="true">
+		 		<![CDATA[ a.isfinish = #isFinish# ]]>
+		 	</isEqual>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ a.createdate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ a.createdate <= #endDate# ]]>
+		 </isPropertyAvailable>
+		 group by reporttotownend, itemcategory
+	</select>
+	
+	<!-- 获得按（村、社区呈报乡镇 或 乡镇直接建账）呈报市台账办 和项目类型统计数据 -->
+	<select id="getReportByVillageOrTownReportToCityAndItemcategory" parameterClass="java.util.Map" resultMap="reportGroupCount">
+		select case when (reporttotownend is null) then 1 when (reporttotownend = #reportToTown#) then 2 else 3 end as createtabletype,
+			   itemcategory as itemcategory,
+			   count(p.id) as counts
+		  from PEOPLEASPIRATIONS p
+		  left join accountsteps_xichang a on a.accountid = p.id
+		   and a.accounttype = 'PEOPLEASPIRATION'
+		 where a.targetorgid = #orgId#
+		   and a.reporttocityend = #reportToCity#
+		 <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ a.createdate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ a.createdate <= #endDate# ]]>
+		 </isPropertyAvailable>
+		 group by reporttotownend, itemcategory
+	</select>
+	
+	<!-- 按照 建账层级（1 as 市县区, 2 as 乡镇街道, 3 as 村社区） 和 项目类型 查询 -->
+	<select id="getReportByCreateOrgLevelAndItemcategory" parameterClass="java.util.Map" resultMap="reportGroupCount">
+		select 1 as createtabletype,
+		       itemcategory as itemcategory,
+		       count(p.id) as counts
+		  from peopleaspirations p
+		 where 1=1
+		 <isPropertyAvailable property="orgCode" prepend="and" open="(" close=")">
+			<![CDATA[ REGEXP_LIKE(p.orginternalcode, '^' || REPLACE(#orgCode#,'.','\.') || '$$') ]]>
+			or (
+			<![CDATA[ REGEXP_LIKE(p.orginternalcode, '^' || REPLACE(#orgCode#,'.','\.') || '[^\.]{1,4}\.$$') ]]>
+			and p.orgtype = (#functionalOrg#)
+			)
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ p.createdate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ p.createdate <= #endDate# ]]>
+		 </isPropertyAvailable>
+		 group by itemcategory
+		union
+		select 2 as createtabletype,
+		       itemcategory as itemcategory,
+		       count(p.id) as counts
+		  from peopleaspirations p
+		 where 1=1
+		 <isPropertyAvailable property="orgCode" prepend="and" open="(" close=")">
+			(
+			<![CDATA[ REGEXP_LIKE(p.orginternalcode, '^' || REPLACE(#orgCode#,'.','\.') || '[^\.]{1,4}\.$$') ]]>
+			and p.orgtype = (#administrative#)
+			) or (
+			<![CDATA[ REGEXP_LIKE(p.orginternalcode, '^' || REPLACE(#orgCode#,'.','\.') || '([^\.]{1,4}\.){2}$$') ]]>
+			and p.orgtype = (#functionalOrg#)
+			)
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ p.createdate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ p.createdate <= #endDate# ]]>
+		 </isPropertyAvailable>
+		 group by itemcategory
+		union
+		select 3 as createtabletype,
+		       itemcategory as itemcategory,
+		       count(p.id) as counts
+		  from peopleaspirations p
+		 where 1=1
+		 <isPropertyAvailable property="orgCode" prepend="and">
+			<![CDATA[ REGEXP_LIKE(p.orginternalcode, '^' || REPLACE(#orgCode#,'.','\.') || '([^\.]{1,4}\.){2}$$') ]]>
+			and p.orgtype = (#administrative#)
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ p.createdate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ p.createdate <= #endDate# ]]>
+		 </isPropertyAvailable>
+		 group by itemcategory
+	</select>
+
+	<!-- 按照 办结层级（1 as 市县区, 2 as 乡镇街道, 3 as 村社区） 和 项目类型 查询 -->
+	<select id="getReportByFinishOrgLevelAndItemcategory" parameterClass="java.util.Map" resultMap="reportGroupCount">
+		select 1 as createtabletype,
+		       itemcategory as itemcategory,
+		       count(p.id) as counts
+		  from peopleaspirations p
+		  left join accountsteps_xichang a 
+		         on a.accountid = p.id
+		 where a.accounttype = 'PEOPLEASPIRATION'
+		   and a.isfinish = 1
+		 <isPropertyAvailable property="orgCode" prepend="and" open="(" close=")">
+			<![CDATA[ REGEXP_LIKE(a.targetorgcode, '^' || REPLACE(#orgCode#,'.','\.') || '$$') ]]>
+			or (
+			<![CDATA[ REGEXP_LIKE(a.targetorgcode, '^' || REPLACE(#orgCode#,'.','\.') || '[^\.]{1,4}\.$$') ]]>
+			and a.orgtype = (#functionalOrg#)
+			)
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ a.createdate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ a.createdate <= #endDate# ]]>
+		 </isPropertyAvailable>
+		 group by itemcategory
+		union
+		select 2 as createtabletype,
+		       itemcategory as itemcategory,
+		       count(p.id) as counts
+		  from peopleaspirations p
+		  left join accountsteps_xichang a 
+		         on a.accountid = p.id
+		 where a.accounttype = 'PEOPLEASPIRATION'
+		   and a.isfinish = 1
+		 <isPropertyAvailable property="orgCode" prepend="and" open="(" close=")">
+			(
+			<![CDATA[ REGEXP_LIKE(a.targetorgcode, '^' || REPLACE(#orgCode#,'.','\.') || '[^\.]{1,4}\.$$') ]]>
+			and a.orgtype = (#administrative#)
+			) or (
+			<![CDATA[ REGEXP_LIKE(a.targetorgcode, '^' || REPLACE(#orgCode#,'.','\.') || '([^\.]{1,4}\.){2}$$') ]]>
+			and a.orgtype = (#functionalOrg#)
+			)
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ a.createdate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ a.createdate <= #endDate# ]]>
+		 </isPropertyAvailable>
+		 group by itemcategory
+		union
+		select 3 as createtabletype,
+		       itemcategory as itemcategory,
+		       count(p.id) as counts
+		  from peopleaspirations p
+		  left join accountsteps_xichang a 
+		         on a.accountid = p.id
+		 where a.accounttype = 'PEOPLEASPIRATION'
+		   and a.isfinish = 1
+		 <isPropertyAvailable property="orgCode" prepend="and">
+			<![CDATA[ REGEXP_LIKE(a.targetorgcode, '^' || REPLACE(#orgCode#,'.','\.') || '([^\.]{1,4}\.){2}$$') ]]>
+			and a.orgtype = (#administrative#)
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ a.createdate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ a.createdate <= #endDate# ]]>
+		 </isPropertyAvailable>
+		 group by itemcategory
+	</select>
+		<!-- 获得按（行政部门或者职能部门）呈报市台账办 和项目类型统计数据 -->
+	
+	<select id="getReportToCityAndItemcategory" parameterClass="java.util.Map" resultMap="reportGroupCount">
+		select tc.orgtype as createtabletype,count(tc.id) as counts,tc.itemcategory as itemcategory
+  		from (
+  		select p.orgid as orgid,p.orgtype, p.id as id, p.itemcategory as itemcategory
+          	from PEOPLEASPIRATIONS p left join accountsteps_xichang a on a.accountid = p.id and a.accounttype ='PEOPLEASPIRATION'
+         where a.targetorgid = #orgId#
+           and a.reporttocityend = #reportToCity#
+         <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ p.createDate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ p.createDate <= #endDate# ]]>
+		 </isPropertyAvailable>
+           ) tc 
+ 		group by  tc.orgtype,tc.itemcategory
+	</select> 
+	<!-- 获得按市(创建包含上报到市，然后流转)流转职能部门和行政部门 和项目类型统计数据 （不考虑流转后是否已办结）-->
+	
+	<select id="getReportToTownAndItemcategory" parameterClass="java.util.Map" resultMap="reportGroupCount">
+		select tc.orgtype as createtabletype,count(tc.id) as counts,tc.itemcategory as itemcategory
+  		from (
+  		select a.targetorgid as orgid,a.orgtype, a.id as id, p.itemcategory as itemcategory
+          	from PEOPLEASPIRATIONS p left join accountsteps_xichang a on a.accountid = p.id and a.accounttype ='PEOPLEASPIRATION'
+         where <![CDATA[a.targetorgid <> #orgId# ]]>
+           and a.reporttotownend = #reportToTown#
+         <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ p.createDate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ p.createDate <= #endDate# ]]>
+		 </isPropertyAvailable>
+           ) tc 
+ 		group by  tc.orgtype,tc.itemcategory
+	</select> 
+</sqlMap>

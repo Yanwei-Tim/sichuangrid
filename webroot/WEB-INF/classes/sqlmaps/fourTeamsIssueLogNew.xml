@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="fourTeamsIssueLogNew">
+	<typeAlias alias="fourTeamsIssueLogNew" type="com.tianque.fourTeams.fourTeamsIssue.domain.FourTeamsIssueLogNew"/>
+	
+	<parameterMap class="fourTeamsIssueLogNew" id="issueLogNew">
+		<parameter property="id"/>
+		<parameter property="issue"/>
+		<parameter property="dealOrg"/>
+		<parameter property="dealOrgInternalCode"/>
+		<parameter property="dealUserName"/>
+		<parameter property="dealTime"/>
+		<parameter property="mobile"/>
+		<parameter property="dealType"/>
+		<parameter property="dealDescription"/>
+		<parameter property="content"/>
+		<parameter property="targeOrg"/>
+		<parameter property="targeOrgInternalCode"/>
+		<parameter property="supervisionState"/>
+		<parameter property="dealState"/>
+		<parameter property="forIssueLog"/>
+		<parameter property="backIssueLog"/>
+		<parameter property="dealStepIndex"/>
+		<parameter property="stateClass"/>
+		<parameter property="createUser"/>
+		<parameter property="createDate"/>
+		<parameter property="updateUser"/>
+		<parameter property="updateDate"/>
+	</parameterMap>
+	
+	<resultMap class="fourTeamsIssueLogNew" id="issueLogResult">
+		<result property="id" column="id"/>
+		<result property="issue.id" column="issueId"/>
+		<result property="dealOrg.id" column="dealOrgId"/>
+		<result property="dealOrg.orgInternalCode" column="dealOrgInternalCode"/>
+		<result property="dealOrgInternalCode" column="dealOrgInternalCode"/>
+		<result property="dealUserName" column="dealUserName"/>
+		<result property="dealTime" column="dealTime"/>
+		<result property="mobile" column="mobile"/>
+		<result property="dealType" column="dealType"/>
+		<result property="dealDescription" column="dealDescription"/>
+		<result property="content" column="content" typeHandler="org.springframework.orm.ibatis.support.ClobStringTypeHandler"/>
+		<result property="targeOrg.id" column="targeOrgId"/>
+		<result property="targeOrg.orgInternalCode" column="targeOrgInternalCode"/>
+		<result property="targeOrgInternalCode" column="targeOrgInternalCode"/>
+		<result property="supervisionState" column="supervisionState"/>
+		<result property="dealState" column="dealState"/>
+		<result property="forIssueLog.id" column="forIssueLogId"/>
+		<result property="backIssueLog.id" column="backIssueLogId"/>
+		<result property="dealStepIndex" column="dealStepIndex"/>
+		<result property="logCompleteTime" column="logCompleteTime"/>
+		<result property="forLogEntryTime" column="forLogEntryTime"/>
+		<result property="stateClass" column="stateClass"/>
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<insert id="addIssueLog" parameterClass="fourTeamsIssueLogNew">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_issuelogs.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into issuelogs (id, issueId, dealOrgId, dealOrgInternalCode, dealUserName, dealTime, mobile, dealType, dealDescription, 
+								content, targeOrgId, targeOrgInternalCode, supervisionState, dealState, forIssueLogId, backIssueLogId, dealStepIndex,
+								logCompleteTime,forLogEntryTime,stateClass, createUser, createDate, updateUser, updateDate)
+		values(#id#, #issue.id#, #dealOrg.id#, #dealOrgInternalCode#, #dealUserName#, #dealTime#, #mobile#, #dealType#, #dealDescription#, 
+								#content,handler=org.springframework.orm.ibatis.support.ClobStringTypeHandler#, #targeOrg.id#, #targeOrgInternalCode#, #supervisionState#, #dealState#, #forIssueLog.id#, #backIssueLog.id#, #dealStepIndex#,
+								#logCompleteTime#,#forLogEntryTime#,#stateClass#, #createUser#, #createDate#, #updateUser#, #updateDate#)
+	</insert>
+	
+	<select id="getIssueLogById" parameterClass="java.lang.Long" resultMap="issueLogResult">
+		<![CDATA[SELECT * from issuelogs where id = #value#]]>
+	</select>
+	<select id="findIssueLogsByForIssueLogId" parameterClass="java.lang.Long" resultMap="issueLogResult">
+		<![CDATA[SELECT * from issuelogs where forIssueLogId = #value#]]>
+	</select>
+	<select id="getUnDoIssueLogByIssueIdAndTargeOrg" parameterClass="java.util.Map" resultMap="issueLogResult">
+		<![CDATA[SELECT * from issuelogs where issueId = #issueId# and targeOrgId = #targeOrgId# and dealState < 1000]]>
+	</select>
+	<select id="getUnReadIssueLogByIssueIdAndDealOrgId" parameterClass="java.util.Map" resultMap="issueLogResult">
+		<![CDATA[SELECT * from issuelogs where issueId = #issueId# and targeOrgId = #dealOrgId# and dealState = 2]]>
+	</select>
+	
+	<select id="findIssueLogsByIssueId" parameterClass="java.lang.Long" resultMap="issueLogResult">
+		<![CDATA[SELECT * from issuelogs where issueId = #value# order by id asc]]>
+	</select>
+	
+	<select id="getDealMaxStepIndexByIssueId" parameterClass="java.lang.Long" resultClass="java.lang.Long">
+		<![CDATA[SELECT max(dealStepIndex) from issuelogs where issueId = #value# ]]>
+	</select>
+	
+	<update id="updateIssueLogWithDescription" parameterClass="java.util.Map">
+		update issuelogs set 
+		<dynamic>
+			id = #id#
+			<isNotNull property="dealDescription" prepend=",">
+				dealDescription = #dealDescription#
+			</isNotNull>
+		</dynamic>
+		 where id = #id#
+	</update>
+	
+	<update id="updateIssueLogDealState" parameterClass="java.util.Map">
+		update issuelogs set 
+		<dynamic>
+			id = #id#
+			<isNotNull property="dealState" prepend=",">
+				dealState = #dealState#
+			</isNotNull>
+		</dynamic>
+		 where id = #id#
+	</update>
+	
+	<update id="updateIssueLogLogCompleteTime" parameterClass="java.util.Map">
+		update issuelogs set 
+		<dynamic>
+			id = #id#
+			<isNotNull property="logCompleteTime" prepend=",">
+				logCompleteTime = #logCompleteTime#
+			</isNotNull>
+		</dynamic>
+		 where id = #id#
+	</update>
+	
+	<select id="findDoIssueLongNewByIssueId" parameterClass="java.lang.Long" resultMap="issueLogResult">
+		<![CDATA[select * from issuelogs where issueId = #value# and dealstate < 1000 and dealType != 8]]>
+	</select>
+	
+	<update id="updateSupervisionState" parameterClass="java.util.Map">
+	   update issuelogs set 
+	   <dynamic>
+	       id = #id#
+	       <isNotNull property="supervisionState" prepend=",">
+	           supervisionState = #supervisionState#
+	       </isNotNull>
+	   </dynamic>
+	   where id = #id#
+	</update>
+	
+	<select id="getCompleteIssueLogNewByIssueId" parameterClass="java.lang.Long" resultMap="issueLogResult">
+		<![CDATA[select * from (    select * from issuelogs t  where issueId = #value#  order by dealtime desc) where rownum = 1
+		]]>
+	</select>
+	
+	<select id="getIssueLogNewByIssueId" parameterClass="java.lang.Long" resultMap="issueLogResult">
+		<![CDATA[select * from issuelogs where issueId = #value# and dealstate = 1101 and dealtype=2]]>
+	</select>
+	
+	<select id="getLastOperationLog" parameterClass="java.util.Map" resultMap="issueLogResult">
+		<![CDATA[select * from issuelogs where id in (
+		select Max(id) from issuelogs where issueId = #issueId# and dealstate = #state#]]>
+		<isNotNull property="orgId" prepend=" and ">
+			dealOrgId = #orgId#
+		</isNotNull>
+		)
+	</select>
+	
+	<select id="getIssueLogByIdAndSuperviseState" parameterClass="java.util.Map" resultMap="issueLogResult">
+	   <![CDATA[
+	       select * from issuelogs where id = #id# and ((supervisionState between #superviseState# and 12) or (dealState=#doneState# or dealState=#completeState#))
+	   ]]>
+	</select>
+	
+	<delete id="deleteIssueLogByIssueId" parameterClass="java.lang.Long">
+		delete from issuelogs where issueId = #value#
+	</delete>
+	
+	<select id="getIssueLogByForIssueLogId" parameterClass="java.util.Map" resultMap="issueLogResult">
+	    <![CDATA[select * from issuelogs where forIssueLogId = #forIssueLogId# and (dealType < #dealType# or dealType = 13) and dealTime > #overDoneTime# ]]>
+	</select>
+    <select id="findNotDoneNeedSuperviseIssueLogs" parameterClass="java.util.Map" resultMap="issueLogResult">
+        <![CDATA[select * from issuelogs  where dealstate <= 1000 and dealTime >= #startDate# and dealTime < #endDate# and dealType=#dealType# order by id desc]]>
+    </select>
+    <select id="findDoneNeedSuperviseIssueLogs" parameterClass="java.util.Map" resultMap="issueLogResult">
+        <![CDATA[select * from issuelogs t where t.dealstate>1000 and dealTime >= #startDate# and dealTime < #endDate# and t.dealstate<=2000 and dealType=#dealType#  order by id desc]]>
+    </select>
+	<select id="findHistoryNotDoneNeedSuperviseIssueLogs" parameterClass="java.util.Map" resultMap="issueLogResult">
+	    <![CDATA[select * from issuelogs  where dealstate <= 1000 and dealTime >=#startDate# and dealTime < #endDate# and dealType=#dealType#  order by id desc]]>
+	</select>
+	<select id="findHistoryDoneNeedSuperviseIssueLogs" parameterClass="java.util.Map" resultMap="issueLogResult">
+	    <![CDATA[select * from issuelogs t where t.dealstate>1000 and dealTime >= #startDate# and dealTime < #endDate# and t.dealstate<=2000 and dealType=#dealType#  order by id desc]]>
+	</select>
+	<select id="findCanceledYellowAndRedSuperviseByForIssueLogId" parameterClass="java.lang.Long" resultMap="issueLogResult">
+	    <![CDATA[select * from issuelogs where forissuelogid=#value# and dealType in (11,12)  order by id desc]]>
+	</select>
+	<select id="findCancelSuperviseByForIssueLogIdAndRedSuperviseDealType" parameterClass="java.util.Map" resultMap="issueLogResult">
+	    <![CDATA[select * from issuelogs where forissuelogid=#id# and dealType =#superviseDealType#]]>
+	</select>
+	<select id="findIssueLogByOrgIdAndDate" parameterClass="java.util.Map"
+	resultMap="issueLogResult">
+	    <![CDATA[select * from issuelogs 
+	    where dealtime >= #startDate# and dealtime < #endDate# and dealstate < 2000
+	     ]]>
+	     <isNotNull property="targeOrgId" prepend=" and ">
+			TARGEORGID = #targeOrgId#
+		</isNotNull>
+	</select>
+	
+	<select id="countOverTimeNotDoneByOverTimeLogTable" resultClass="java.lang.Long" parameterClass="java.util.Map">
+	    <![CDATA[
+	    select count(*) from issuelogs il ,overtimeissuelog ol where il.dealstate < 1001 and il.dealtime < #endDate#
+            and ol.year = #year# and ol.month=#month# and orgId = #targeOrgId#
+        ]]>
+	</select>
+	<select id="findIssueLogByOrgInternalCodeAndDate" parameterClass="java.util.Map" resultMap="issueLogResult">
+	     <![CDATA[select * from issuelogs 
+        where dealtime >= #startDate# and dealtime < #endDate# and dealstate < 2000
+         ]]>
+         <isNotNull property="targeOrgInternalCode" prepend=" and ">
+            targeOrgInternalCode like  '$targeOrgInternalCode$%'
+        </isNotNull>
+	</select>
+	<select id="getIssueLogByWebsiteDemandsId" parameterClass="java.lang.Long" resultMap="issueLogResult">
+	    <![CDATA[
+	        select * from issuelogs 
+	        where issueid = (select issueid from websiterelatedsystem  where websitedemandsid=#value#) 
+	        and dealstate=1003
+	    ]]>
+	</select>
+	
+	<select id="findDealStatIssueLogByOrgInternalCodeAndDate" parameterClass="java.util.Map" resultMap="issueLogResult">
+	     <![CDATA[select * from issuelogs 
+        where ((dealtime >= #startDate# and dealtime < #endDate#) or (logCompleteTime >= #startDate# and logCompleteTime < #endDate#) )and dealstate < 2000
+         ]]>
+         <isNotNull property="targeOrgInternalCode" prepend=" and ">
+            targeOrgInternalCode like  '$targeOrgInternalCode$%'
+        </isNotNull>
+	</select>
+
+	<update id="changeAllIssueLogEntryDateByIssueId" parameterClass="map">
+		update issuelogs set
+		dealTime=#createDate#,
+		createDate=#createDate#
+		where issueid=#issueid#
+	</update>
+	
+	<update id="changeIssueLogEntryDate" parameterClass="map">
+		update issuelogs set
+		dealTime=#createDate#,
+		createDate=#createDate#
+		where id=#id#
+	</update>
+	
+	<update id="changeIssueLogCompleteDate" parameterClass="map">
+		update issuelogs set
+		logcompletetime=#date#
+		where id=#id#
+	</update>
+	
+	<select id="findIssueLogNewByIssueId" parameterClass="java.util.Map" resultMap="issueLogResult">
+		<![CDATA[select * from (select * from issuelogs where issueid=#issueId#  order by createdate desc) where rownum=1]]>
+	</select>
+	<select id="findIssueLogNewByIssueIdAndTargeorgIdNotDealorgId" parameterClass="java.util.Map" resultMap="issueLogResult">
+		<![CDATA[select * from (select * from issuelogs where issueid=#issueId# and targeorgid=#targeorgId# and dealorgid!=#dealorgId# 
+		order by createdate desc) where rownum=1]]>
+	</select>
+</sqlMap>

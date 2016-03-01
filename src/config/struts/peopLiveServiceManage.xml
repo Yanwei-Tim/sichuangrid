@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="peopLiveServiceManage" extends="default" namespace="/peopLiveService/peopLiveServiceManage">
+		<default-class-ref class="peopLiveServiceController"></default-class-ref>
+		<action name="dispatch" method="dispatch">
+		      <result name="success">
+		          /baseinfo/peopleliveService/searchPeopLiveServiceDlg.jsp
+		      </result>
+		</action>
+		<action name="prePeopLiveServiceList" method="prePeopLiveServiceList">
+            <result name="success">
+                /baseinfo/peopleliveService/peopLiveServiceList.jsp
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+	</package>
+</struts>

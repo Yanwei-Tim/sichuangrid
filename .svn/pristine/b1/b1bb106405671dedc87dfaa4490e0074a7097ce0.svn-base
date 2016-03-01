@@ -1,0 +1,764 @@
+TQ.floatingPopulationList = function(dfop){
+	function search(orgId){
+		var condition = $("#searchByCondition").val();
+		if(condition == '请输入姓名或身份证号码') return;
+		var initParam = {
+			"organizationId": orgId,
+			"searchFloatingPopulationVo.logOut":0,
+			"searchFloatingPopulationVo.isDeath":false,
+			"searchFloatingPopulationVo.fastSearchKeyWords":condition
+		}
+		$("#floatingPopulationList").setGridParam({
+			url:PATH+'/baseinfo/floatingPopulationManage/fastSearchFloatingPopulation.action',
+			datatype: "json",
+			page:1
+		});
+		$("#floatingPopulationList").setPostData(initParam);
+		$("#floatingPopulationList").trigger("reloadGrid");
+	}
+	
+	function removeLoad(){
+		$(".click_load .click_btn").hide();
+	}
+
+	function inflowingSourceFormatter(el, options, rowData){
+		var str = "";
+		if(rowData.inflowingProvince != null)
+			str += rowData.inflowingProvince;
+		if(rowData.inflowingCity != null)
+			str += rowData.inflowingCity;
+		if(rowData.inflowingDistrict != null)
+			str += rowData.inflowingDistrict;
+		return str;
+	}
+
+
+
+	$(document).ready(function(){
+
+		function clickDisabled(name){
+			var id="#"+name;
+			var isDisabled=$(id).attr("disabled");
+			if(isDisabled=="disabled"){
+				return true;
+			}
+		}
+		
+		$("#contentDiv").click( function () { 
+			removeLoad();
+		}); 
+
+		$("#add").click(function(event){
+			if(clickDisabled("add")){
+				return;
+			}
+			if(!isGrid()){
+				$.messageBox({level:'warn',message:"请先选择网格级别组织机构进行新增！"});
+				return;
+			}
+			$("#floatingPopulationDialog").createTabDialog({
+				width: dialogWidth,
+				height: dialogHeight,
+				postData:{
+					mode:'add',
+					imageType:"population",
+					type:"floatingPopulation"
+				},
+				title:"新增流动人口",
+				tabs:dfop.tabs,
+				close : function(){
+					$("#floatingPopulationList").trigger("reloadGrid");
+				}
+			});
+		});
+		
+		$("#updateIdCardNo").click(function(event){
+			if(!isGrid()){
+				$.messageBox({level:"warn",message:"请先选择网格级别组织机构进行修改！"});
+				return;
+			}
+			var selectedId =getSelectedIds();
+			if(selectedId==undefined||selectedId.length==0){
+				$.messageBox({level:"warn",message:"请先选择一条记录，再进行操作！"});
+				return;
+			}
+			if(selectedId.length>1){
+				$.messageBox({level:"warn",message:"只能选择一条记录进行操作！"});
+				return;
+			}
+			var rowData =  $("#floatingPopulationList").getRowData(selectedId);
+			var idCardNo = rowData.idCardNo;
+			var orgId = rowData["organization.id"];
+			updateIdCardNo(selectedId,idCardNo,orgId);
+		});
+		
+		$("#searchByConditionButton").click(function(){
+			search(getCurrentOrgId());
+
+		});
+		$("#delete").click(function(event){
+			var allValue = getSelectedIds();
+			if(allValue.length ==0){
+				$.messageBox({level:'warn',message:"请选择一条或多条记录，再进行删除！"});
+				return;
+			}
+			deleteOperator(event,allValue);
+		});
+
+		$("#refreshSearchKey").click(function(event){
+			$("#searchByCondition").attr("value","请输入姓名或身份证号码");
+		});
+
+		$("#reload").click(function(event){
+			$("#searchByCondition").attr("value","请输入姓名或身份证号码");
+			onOrgChanged(getCurrentOrgId(),isGrid());
+		});
+		
+		$(".click_load .click_btn").click(function(){
+			onOrgChanged(getCurrentOrgId(),isGrid());
+			$(this).hide(100);
+		});
+		
+		$("#floatingPopulationList").jqGridFunction({
+			datatype: "local",
+		   	colModel:[
+		        {name:"id", index:"id",sortable:false, hidden:true,frozen:true},
+		        {name:"encryptId", index:"id",sortable:false, hidden:true,frozen:true},
+		        {name:'organization.id',index:'organization.id',hidden:true,hidedlg:true,sortable:false,frozen:true},
+		        {name:"operator", index:'id', label:'操作',formatter:operateFormatter,width:90,frozen:true,sortable:false,align:'center' },
+		        {name:"name", index:'name', label:'姓名',formatter:nameFont,width:80,sortable:false,frozen:true },
+		        {name:'gender',formatter:genderFormatter, label:'性别', align:'center',sortable:false, width:50},
+		        {name:'idCardNo',index:'idCardNo', label:'身份证号码', align:'center', width:160,sortable:false,frozen:true},
+		        {name:'organization.orgName',sortable:false,index:'organization.orgName',label:'所属网格',width:200,hidden:true},
+		        {name:"usedName", index:'usedName', label:'曾用名/别名', width:95,sortable:false,hidden:true},
+		        {name:'mobileNumber',sortable:false, label:'联系手机', width:100,hidden:true},
+		        {name:'telephone', sortable:false, label:'固定电话', width:120,hidden:true},
+		        {name:"birthday", index:'birthday', sortable:false,label:'出生日期',align:'center', width:80 ,hidden:true},
+		        {name:"nation",sortable:false,label:"民族",formatter:nationFormatter,width:80, hidden:true },
+		        {name:"politicalBackground",sortable:false,label:"政治面貌",formatter:politicalBackgroundFormatter,width:150,hidden:true},
+		        {name:"schooling",sortable:false,label:"文化程度",formatter:schoolingFormatter,width:80, hidden:true },
+		        {name:'career', sortable:false,formatter:careerFormatter,label:'职业', width:80,hidden:true},
+		        {name:'workUnit', sortable:false, label:'工作单位或就读学校', width:200},
+		        {name:"maritalState",sortable:false,label:"婚姻状况",formatter:maritalStateFormatter,align:'center',width:80, hidden:true },
+		        {name:"stature",sortable:false,label:"身高(cm)",width:80,align:'center',hidden:true },
+		        {name:"bloodType",sortable:false,label:"血型",formatter:bloodTypeFormatter,width:80, hidden:true },
+		        {name:"faith",sortable:false,label:"宗教信仰",formatter:faithFormatter,width:80, hidden:true },
+		        {name:"email",sortable:false,label:"电子邮箱",width:120, hidden:true },
+		        {name:'province',index:'province',sortable:false,label:'户籍地',formatter:householdRegisterFormatter,width:150,hidden:true},
+		        {name:'nativePlaceAddress', sortable:false, label:'户籍地详址', width:150,hidden:true},
+		        {name:'currentAddress', sortable:false, label:'常住地址', width:200 },
+		        {name:'otherAddress', sortable:false, label:'临时居所', width:150,hidden:true},
+		        {name:'inflowingReason', sortable:false,formatter:inflowingReasonFormatter, label:'流入原因', width:80},
+		        {name:'inflowingDate',index:'inflowingDate', sortable:false, label:'流入时间',align:'center',width:80,hidden:true},
+		        {name:'inflowingProvince',index:'inflowingProvince', sortable:false,label:'流入来源',formatter:inflowingSourceFormatter,width:150,hidden:true},
+		        {name:'registrationType', sortable:false,formatter:registrationTypeFormatter, label:'登记证情况', width:90,hidden:true},
+		        {name:'registerDate', sortable:false, label:'登记日期', width:80,hidden:true},
+		        {name:'expectedDatedue', sortable:false, label:'预计到期日期', width:100,hidden:true},
+		        {name:'sourcesState',index:'sourcesState',label:"数据来源",sortable:false,hidden:true,formatter:sourceStateFormatter,width:80,align:'center'},
+		        {name:'updateDate', sortable:false, label:'数据更新时间', width:160},
+		        {name:'death',sortable:false,hidden:true,hidedlg:true,width:80},
+		        {name:'logOut',sortable:false,hidden:true,hidedlg:true,width:80},
+		        {name:'logoutDetail.logoutReason',sortable:false,hidden:true,hidedlg:true,width:80}
+			],
+			multiselect:true,
+		  	onSelectAll:function(aRowids,status){},
+		  	ondblClickRow: function (rowid){
+		  		if(dfop.hasViewFloatingPopulation == 'true'){
+		  			viewDialogs(rowid);
+		  		}
+		  	},
+			loadComplete: afterLoad,
+			onSelectRow: selectRow
+		});
+		jQuery("#floatingPopulationList").jqGrid('setFrozenColumns');
+		if (getCurrentOrgId()!=null && getCurrentOrgId()!=""){
+			//onOrgChanged(getCurrentOrgId(),isGrid());
+		}
+
+		$("#search").click(function(event){
+			$("#floatingPopulationDialog").createDialog({
+				width: 650,
+				height: 300,
+				title: title+'查询-请输入查询条件',
+				url: PATH+'/baseinfo/floatingPopulation/searchFloatingPopulationDlg.jsp',
+				buttons: {
+					"查询" : function(event){
+					searchFloatingPopulation();
+					$(this).dialog("close");
+					},
+					"关闭" : function(){
+						$(this).dialog("close");
+					}
+				}
+			});
+		});
+
+		$("#isLogOut").click(function(){
+			if(clickDisabled("isLogOut")){
+				return;
+			}
+			var allValue = getSelectedIds();
+			var logOut=new Array();
+			var temp=new Array();
+			if(allValue.length ==0){
+				$.messageBox({level:'warn',message:"请选择一条或多条数据进行注销!"});
+				 return;
+			}
+			for(var i=0;i<allValue.length;i++){
+				var rowData=$("#floatingPopulationList").getRowData(allValue[i]);
+				if(rowData.logOut==0 || rowData.logOut=='0'){
+					logOut.push(allValue[i]);
+				}else{
+					temp.push(allValue[i]);
+				}
+				}
+			allValue=logOut;
+			if(allValue==null||allValue.length==0){
+				$.messageBox({level:'error',message:"没有可注销的数据"});
+				return;
+			}
+			var encryptIds=deleteOperatorByEncrypt("floatingPopulation",allValue,"encryptId");
+			$("#floatingPopulationDialog").createDialog({
+				width:450,
+				height:210,
+				title:'注销提示',																										
+				modal:true,																													
+				url:PATH+'/baseinfo/commonPopulation/populationEmphasiseConditionDlg.jsp?populationIds='+encryptIds+'&isEmphasis=1&lowerCaseModuleName=floatingPopulation&type=actualPopulation&temp='+temp+"&orgId="+getCurrentOrgId(),
+				buttons: {
+				   "保存" : function(event){
+					   $("#populationEmphasisForm").submit();
+				   },
+				   "关闭" : function(){
+				        $(this).dialog("close");
+				   }
+				}
+			});
+
+		});
+		
+		$("#cancelLogOut").click(function(){
+			if(clickDisabled("cancelLogOut")){
+				return;
+			}
+			var allValue = getSelectedIds();
+			var cancelLogOut=new Array();
+			var temp=new Array();
+			var temp2=new Array();
+			if(allValue.length ==0){
+				$.messageBox({level:'warn',message:"请选择一条或多条数据进行取消注销!"});
+				 return;
+			}
+			for(var i = 0;i<allValue.length;i++){
+		   		var row=$("#floatingPopulationList").getRowData(allValue[i]);
+		   		if((row.logOut==1||row.logOut=='1')&&(row.death!=true&&row.death!='true')){
+			   		$.ajax({
+		   				async: false ,
+		   				url:PATH+"/baseinfo/floatingPopulationManage/checkCardNoIsRepeatByEncryptId.action",
+		   			   	data:{
+		   					"population.id":row.encryptId,
+			   				"population.idCardNo":row.idCardNo,
+			   				"organizationId":row["organization.id"]
+		   		        },
+		   				success:function(data){
+		   					if(data){
+		   						temp.push(row.id);
+		   					}else{
+		   						cancelLogOut.push(row.id);
+		   					}
+		   				}
+		   			});
+			   		if(temp.length!=0){
+		   				if(row["logoutDetail.logoutReason"]=="已转为户籍人口"){
+				   			$.messageBox({level : 'warn',message:"已转为户籍人口不可取消注销！"});
+							return;
+				   		}else{
+				   			$.messageBox({level:'warn',message:"该人员在同一网格下的户籍人口或者未落户人口中已存在，不能取消注销！"});
+			   				return;
+				   		}
+			   		}
+		   		}else{
+		   			temp2.push(allValue[i]);
+			   	}
+		   	}
+		   	allValue=cancelLogOut;
+		   	if(allValue==null||allValue.length==0){
+				$.messageBox({level : 'warn',message:"没有可取消注销的数据"});
+				return;
+			}
+		   	var encryptIds=deleteOperatorByEncrypt("floatingPopulation",allValue,"encryptId");
+			$.confirm({
+					title:"确认取消注销",
+					message:"确定要取消注销吗?",
+					okFunc: function(){
+						$.ajax({
+							url:PATH+"/baseinfo/floatingPopulationManage/updateLogOutOfFloatingPopulationByEncryptId.action?population.logoutDetail.logout=0&populationIds="+encryptIds,
+							success:function(datas){
+								if(null==temp2||temp2.length==0){
+									$.messageBox({message:"已经成功取消注销该"+title+"信息!"});
+								}else{
+									$.messageBox({level:'warn',message:"除选中的红色数据外,已经成功取消注销该"+title+"信息!"});
+								}
+								notExecute=temp2;
+								$("#floatingPopulationList").trigger("reloadGrid");
+								disableButtons();
+								checkExport();
+							}
+					});
+				}
+			});
+		});
+		
+		$("#cancelDeath").click(function(){
+			if(clickDisabled("cancelDeath")){
+				return;
+			}
+			var allValue = getSelectedIds();
+			var cancelDeath=new Array();
+			var temp=new Array();
+			var temp1=new Array();
+			if(allValue.length ==0){
+				$.messageBox({level:'warn',message:"请选择一条或多条数据进行取消死亡!"});
+				 return;
+			}
+	
+			for(var i = 0;i<allValue.length;i++){
+		   		var row=$("#floatingPopulationList").getRowData(allValue[i]);
+		   		if(row.death==true||row.death=='true'){
+		   			$.ajax({
+		   				async: false ,
+		   				url:PATH+"/baseinfo/floatingPopulationManage/checkCardNoIsRepeatByEncryptId.action",
+		   			   	data:{
+		   					"population.id":row.encryptId,
+			   				"population.idCardNo":row.idCardNo,
+			   				"organizationId":row["organization.id"]
+		   		        },
+		   				success:function(data){
+		   					if(data){
+		   						temp.push(row.id);
+		   					}else{
+		   						cancelDeath.push(allValue[i]);
+		   					}
+		   				}
+		   			});
+		   			if(temp.length!=0){
+			   			$.messageBox({level:'warn',message:"该人员在同一网格下的户籍人口或者未落户人口中已存在，不能取消死亡！"});
+		   				return;
+		   			}
+		   		}else{
+			   		temp1.push(allValue[i]);
+			   	}
+		   	}
+		   	allValue=cancelDeath;
+		   	if(allValue==null||allValue.length==0){
+				$.messageBox({level:'warn',message:"没有可取消死亡的数据"});
+				return;
+			}
+		   	var encryptIds=deleteOperatorByEncrypt("floatingPopulation",allValue,"encryptId");
+			$.confirm({
+					title:"确认取消死亡",
+					message:"确定要取消死亡吗?",
+					okFunc: function(){
+						$.ajax({
+							url:PATH+"/baseinfo/floatingPopulationManage/updateDeathOfFloatingPopulationByEncryptId.action?population.death=false&floatingPopulationIds="+encryptIds,
+							success:function(datas){
+								if(null==temp1||temp1.length==0){
+									$.messageBox({message:"已经成功取消死亡该"+title+"信息!"});
+								}else{
+									$.messageBox({leven:'warn',message:"除选中的红色数据外,已经成功取消死亡该"+title+"信息!"});
+								}
+								notExecute=temp1;
+								$("#floatingPopulationList").trigger("reloadGrid");
+								disableButtons();
+								checkExport();
+							}
+					});
+				}
+			});
+		});
+
+		$("#import").click(function(event){
+			$("#floatingPopulationDialog").createDialog({
+				width: 400,
+				height: 230,
+				title:'数据导入',
+				url:PATH+'/common/import.jsp?isNew=1&dataType=floatingPopulationData&dialog=floatingPopulationDialog&startRow=6&templates='+dfop.templates+'&listName=floatingPopulationList',		
+				buttons:{
+						"导入" : function(event){
+					      $("#mForm").submit();
+					   },
+				   "关闭" : function(){
+				        $(this).dialog("close");
+				   }
+				},
+				shouldEmptyHtml:false
+			});
+		});
+
+		$("#export").click(function(event){
+			if ($("#floatingPopulationList").getGridParam("records")>0){
+//				var postData = $("#floatingPopulationList").getPostData();
+//				$("#floatingPopulationList").setPostData($.extend(postData,{"searchFloatingPopulationVo.isDeath":false}));
+//				$("#floatingPopulationList").setPostData($.extend(postData,{"searchFloatingPopulationVo.logOut":0}));
+
+				$("#floatingPopulationDialog").createDialog({
+					width: 250,
+					height: 200,
+					title:'导出'+title+'信息',
+					url:PATH+'/common/exportExcel.jsp',
+					postData:{
+						gridName:'floatingPopulationList',
+						downloadUrl:PATH+'/baseinfo/floatingPopulationManage/downloadFloatingPopulation.action'
+					},
+					buttons: {
+			   			"导出" : function(event){
+			   				exceldownloadSubmitForm();
+			        		$(this).dialog("close");
+		   				},
+			   			"关闭" : function(){
+			        		$(this).dialog("close");
+			   			}
+					},
+					shouldEmptyHtml:false
+				});
+			}else{
+				$.messageBox({level:'warn',message:"列表中没有数据，不能导出！"});
+			}
+		});
+	    
+		$("#fastSearchButton").click(function(){
+			search(getCurrentOrgId());
+		});
+
+		$("#toHouseholdStaff").click(function(event){
+			var selectedId = getSelectedIds();
+			if(selectedId==undefined||selectedId.length==0){
+				$.messageBox({level:"warn",message:"请先选择一条记录，再进行操作！"});
+				return;
+			}
+			if(selectedId.length>10){
+				$.messageBox({level:"warn",message:"最多只能选择10条信息进行操作！"});
+				return;
+			}
+			if(selectedId.length>0){
+				$("#toHouseholdStaffDialog").createDialog({
+					width:740,
+					height:500,
+					title:'转为户籍人口',
+					url:PATH+'/baseinfo/floatingPopulation/toHouseholdStaffDialog.jsp',
+					buttons: {
+				   		"确认转移" : function(event){
+				   			toHouseholdStaffs();
+				   		},
+		   				"关闭" : function(){
+				        	$(this).dialog("close");
+				   		}
+					}
+				});
+				return;
+			}
+//			var rowData =  $("#floatingPopulationList").getRowData(selectedId);
+//			var idCardNo = rowData.idCardNo;
+//			if(rowData.death=="true"){
+//				$.messageBox({message:"该人员已死亡不能进行操作!",level:"warn"});
+//				return;
+//			}
+//			if(!isHouseHoldStaff(idCardNo ,rowData["organization.id"])){
+//				$.confirm({
+//					title:"转为户籍人口提示",
+//					message:"是否把“流动人口：<u>"+rowData.name+"，"+idCardNo+"</u> 转为户籍人口？",
+//					okFunc: function(){
+//						$.dialogLoading("open");
+//						$.ajax({
+//							url:PATH+'/baseinfo/floatingPopulationManage/toHouseholdStaffByEncryptId.action?&population.id='+rowData.encryptId,
+//							success:function(data){
+//								$.dialogLoading("close");
+//								if(data != null && data.id){
+//									$.messageBox({ message:"转为户籍人口成功!"});
+//									$("#floatingPopulationList").trigger("reloadGrid");
+//								}else{
+//									$.messageBox({level:"error", message:"转户籍人口失败,原因:"+data});
+//									return;
+//								}
+//						    },
+//						    error: function(XMLHttpRequest, textStatus, errorThrown){
+//						    	$.dialogLoading("close");
+//						 	    alert("提交数据时发生错误");
+//					 	   	}
+//						});
+//					}
+//				});
+//			}
+		});
+
+		function isHouseHoldStaff(idCardNo ,orgId){
+			var isHouseHoldStaff;
+			$.ajax({
+				async: false ,
+				url:PATH+"/baseinfo/householdStaff/findHouseholdStaffByIdCardNoAndOrgId.action",
+				data:{
+					"population.idCardNo":idCardNo,
+					"population.organization.id":orgId
+				},
+				success:function(population){
+					if(population!=null&&population.isDeath=='true'){
+						isFloatingPopulation=true;
+						$.messageBox({message:"该人员已死亡，不能转户籍人口！",level:"warn"});
+					}else{
+						isHouseHoldStaff=false;
+					}
+				}
+			});
+			return isHouseHoldStaff;
+		}
+		
+		$("#transfer").click(function(e){
+			//获取需要转移的id
+			var allValue = getSelectedIds();
+			if(allValue.length ==0){
+				$.messageBox({level:'warn',message:"请选择一条或多条记录，再进行转移！"});
+				 return;
+			}
+			for(var i=0;i<allValue.length;i++){
+				var rowData_Popu=$("#floatingPopulationList").getRowData(allValue[i]);
+				if(rowData_Popu.logOut==1||rowData_Popu.death=="true"){
+					$.messageBox({level:'warn',message:"所选记录中存在已注销（或死亡）记录，无法转移！"});
+					 return;
+				}
+			}
+			//get current orgid
+		    var orgid=	getCurrentOrgId();
+			if(orgid==""||orgid==null){
+				$.messageBox({level:'warn',message:"没有获取到当前的组织机构id"});
+				 return;
+			}
+			$.confirm({
+				title:"转移"+ dfop.moduleCName,
+				message:"转移"+ dfop.moduleCName+"时,目标网格存在相同数据,只会转移对应的业务人员。",
+				okFunc: function() {
+					moveOperator(e,allValue,orgid);
+				}
+			});
+		});
+		function moveOperator(event,allValue,orgid){
+			var encryptIds=deleteOperatorByEncrypt("floatingPopulation",allValue,"encryptId");
+			var allOrgId = getOrgIdsByIds("floatingPopulation",allValue,"organization.id");
+			$("#moveDataDialog").createDialog({
+				width: 400,
+				height: 230,
+				title:"数据转移",
+				url:PATH+"/transferManage/transferDispatchByEncryptId.action?orgId="+orgid+"&Ids="+encryptIds+"&type=floatingPopulation&orgIds="+allOrgId,
+				buttons: {
+					"保存" : function(event){
+				      $("#maintainShiftForm").submit();
+				   },
+				   "关闭" : function(){
+				        $(this).dialog("close");
+				   }
+				}
+			});
+			var evt = event || window.event;
+			if (window.event) { 
+			evt.cancelBubble=true; 
+			} else { 
+			evt.stopPropagation(); 
+			} 
+		}
+		
+		
+	});
+
+	function afterLoad(){
+		logOutFormatter();
+		disableButtons();
+		checkExport();
+		changeColor();
+	}
+
+	function changeColor(){
+		if(notExecute==null||notExecute.length==0){
+			return;
+		}
+		for(var i=0;i<notExecute.length;i++){
+			var rowData=$("#floatingPopulationList").getRowData(notExecute[i]);
+			$("#"+notExecute[i]).css('background','red');
+			$("#floatingPopulationList").setSelection(notExecute[i])
+		}
+		notExecute.splice(0,notExecute.length);
+	}
+
+	function logOutFormatter(){
+		var idCollection = new Array();
+		idCollection=$("#floatingPopulationList").getDataIDs();
+			for(var i=0;i<idCollection.length;i++){
+				var ent =  $("#floatingPopulationList").getRowData(idCollection[i]);
+				if(ent.logOut==1||ent.logOut=='1'){
+					$("#"+idCollection[i]+"").css('color','#778899');
+				}
+		}
+	}
+
+	function selectRow(){
+		var count = $("#floatingPopulationList").jqGrid("getGridParam","records");
+		var selectedCounts = getActualjqGridMultiSelectCount("floatingPopulationList");
+		if(selectedCounts == count){
+			jqGridMultiSelectState("floatingPopulationList", true);
+		}else{
+			jqGridMultiSelectState("floatingPopulationList", false);
+		}
+	}
+
+
+	function viewDialogs(rowid){
+		if(null == rowid){
+	 		return;
+		}
+		var floatingPopulation =  $("#floatingPopulationList").getRowData(rowid);
+		$("#floatingPopulationDialog").createDialog({
+			width: dialogWidth,
+			height: dialogHeight,
+			title:'查看'+title+'信息',
+			modal : true,
+			url:PATH+'/baseinfo/floatingPopulationManage/dispathByEncrypt.action?mode=view&id='+floatingPopulation.encryptId,
+			buttons: {
+			   "打印" : function(){
+					printChoose(floatingPopulation.id);
+		  	   	},
+			   "关闭" : function(){
+			        $(this).dialog("close");
+			   }
+			}
+		});
+		var evt = event || window.event;
+		if(typeof evt!="object"){return false;}
+		if (window.event) { 
+		evt.cancelBubble=true; 
+		} else { 
+		evt.stopPropagation(); 
+		} 
+	}
+
+
+
+	function deleteFloatingPopulation(allValue){
+		$.ajax({
+			url:PATH+"/baseinfo/floatingPopulationManage/deleteFloatingPopulation.action?floatingPopulationIds="+allValue,
+			success:function(data){
+				for(var ids=0;ids<data.length;ids++){
+					$("#floatingPopulationList").delRowData(data[ids]);
+				}
+				$("#floatingPopulationList").trigger("reloadGrid");
+			    $.messageBox({message:"已经成功删除该"+title+"信息!"});
+			    disableButtons();
+				checkExport();
+		    }
+	    });
+	}
+
+	function searchFloatingPopulation() {
+		var conditionName = $("#conditionName").val();
+		var conditionIdCardNo = $("#conditionIdCardNo").val();
+		var conditionInflowingReasonId = $("#conditionInflowingReason").val();
+		var conditionUsedName = $("#conditionUsedName").val();
+		var conditionInflowingStartDate =  $("#conditionInflowingStartDate").val();
+		var conditionInflowingEndDate =  $("#conditionInflowingEndDate").val();
+		var conditionExpectedStartDatedue =  $("#conditionExpectedStartDatedue").val();
+		var conditionExpectedEndDatedue =  $("#conditionExpectedEndDatedue").val();
+		var conditionInflowingProvince =  $("#conditionInflowingProvince").val();
+		var conditionInflowingCity =  $("#conditionInflowingCity").val();
+		var conditionInflowingDistrict =  $("#conditionInflowingDistrict").val();
+		var conditionRegistrationTypeId = $("#conditionRegistrationType").val();
+		var conditionGenderId = $("#conditionGender").val();
+		var conditionRegisterStartDate = $("#conditionRegisterStartDate").val();
+		var conditionRegisterEndDate = $("#conditionRegisterEndDate").val();
+		var conditionStartBirthday = $("#conditionStartBirthday").val();
+		var conditionEndBirthday = $("#conditionEndBirthday").val();
+		var conditionCareerId = $("#conditionCareer").val();
+		var conditionWorkUnit = $("#conditionWorkUnit").val();
+		var conditionProvince = $("#conditionProvince").val();
+		var conditionCity = $("#conditionCity").val();
+		var conditionDistrict = $("#conditionDistrict").val();
+		var conditionNativePlaceAddress = $("#conditionNativePlaceAddress").val();
+		var conditionCurrentAddress = $("#conditionCurrentAddress").val();
+		var conditionLogOutState = $("#conditionLogOutState").val();
+		var conditionIsDeathState = $("#conditionIsDeathState").val();
+		var initParam = {
+			"organizationId": getCurrentOrgId(),
+			"searchFloatingPopulationVo.name":conditionName,
+			"searchFloatingPopulationVo.idCardNo":conditionIdCardNo,
+			"searchFloatingPopulationVo.inflowingReason":conditionInflowingReasonId,
+			"searchFloatingPopulationVo.usedName":conditionUsedName,
+			"searchFloatingPopulationVo.inflowingStartDate":conditionInflowingStartDate,
+			"searchFloatingPopulationVo.inflowingEndDate":conditionInflowingEndDate,
+			"searchFloatingPopulationVo.expectedStartDatedue":conditionExpectedStartDatedue,
+			"searchFloatingPopulationVo.expectedEndDatedue":conditionExpectedEndDatedue,
+			"searchFloatingPopulationVo.inflowingProvince":conditionInflowingProvince,
+			"searchFloatingPopulationVo.inflowingCity":conditionInflowingCity,
+			"searchFloatingPopulationVo.inflowingDistrict":conditionInflowingDistrict,
+			"searchFloatingPopulationVo.registrationType":conditionRegistrationTypeId,
+			"searchFloatingPopulationVo.gender":conditionGenderId,
+			"searchFloatingPopulationVo.registerStartDate":conditionRegisterStartDate,
+			"searchFloatingPopulationVo.registerEndDate":conditionRegisterEndDate,
+			"searchFloatingPopulationVo.startBirthday":conditionStartBirthday,
+			"searchFloatingPopulationVo.endBirthday":conditionEndBirthday,
+			"searchFloatingPopulationVo.career":conditionCareerId,
+			"searchFloatingPopulationVo.workUnit":conditionWorkUnit,
+			"searchFloatingPopulationVo.province":conditionProvince,
+			"searchFloatingPopulationVo.city":conditionCity,
+			"searchFloatingPopulationVo.district":conditionDistrict,
+			"searchFloatingPopulationVo.nativePlaceAddress":conditionNativePlaceAddress,
+			"searchFloatingPopulationVo.currentAddress":conditionCurrentAddress
+		}
+		if(conditionLogOutState!=-1){
+			$.extend(initParam,{"searchFloatingPopulationVo.logOut":conditionLogOutState});
+		}
+		if(conditionIsDeathState!=-1){
+			$.extend(initParam,{"searchFloatingPopulationVo.isDeath":conditionIsDeathState});
+		}
+		$("#floatingPopulationList").setGridParam({
+			url:PATH+'/baseinfo/floatingPopulationManage/searchFloatingPopulation.action',
+			datatype: "json",
+			page:1
+		});
+		$("#floatingPopulationList").setPostData(initParam);
+		$("#floatingPopulationList").trigger("reloadGrid");
+	}
+
+	function checkFieldIsUndefined(field){
+		if (field.val() != undefined) {
+			return field.val();
+		} else {
+			return "";
+		}
+	}
+
+	function getSelectedIds(){
+		var selectedIds='';
+		var selectedIds = $("#floatingPopulationList").jqGrid("getGridParam", "selarrrow");
+		return selectedIds;
+	}
+
+	function getSelectedIdLast(){
+		var selectedId;
+		var selectedIds = $("#floatingPopulationList").jqGrid("getGridParam", "selarrrow");
+		for(var i=0;i<selectedIds.length;i++){
+			selectedId = selectedIds[i];
+		}
+		return selectedId;
+	}
+	function updateIdCardNo(rowId,idCardNo,orgId){
+		$("#floatingPopulationDialog").createDialog({
+			width:320,
+			height:150,
+			title:'修改身份证号码',
+			url:PATH+'/baseinfo/common/commonUpdateIdCardNoDlg.jsp?listTable=floatingPopulationList&dialog=floatingPopulationDialog&countrymenId='+rowId+'&idCardNo='+idCardNo+'&orgId='+orgId+'&actualPopulationType='+dfop.actualPopulationType,
+			buttons: {
+		   		"保存" : function(event){
+		   			$("#updateIdCardNoForm").submit();
+	   			},
+		   		"关闭" : function(){
+		        	$(this).dialog("close");
+		   		}
+			}
+		});
+	}
+}

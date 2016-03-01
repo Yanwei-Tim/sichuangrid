@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		TIME as time ,
+		MOBILE as mobile ,
+		PARENTID as parentId ,
+		FROMTYPE as fromType ,
+		CONTENT as content 
+	FROM SMSTRASH	
+ -->	
+<sqlMap namespace="smstrash">	
+	
+	<typeAlias alias="Smstrash" type="com.tianque.sms.domain.Smstrash"/>
+	<typeAlias alias="SearchSmstrashVo" type="com.tianque.sms.domain.vo.SearchSmstrashVo" />
+	
+	<resultMap id="smstrashResult" class="Smstrash">
+		<result property="id" column="ID"/>
+		<result property="time" column="TIME"/>
+		<result property="mobile" column="MOBILE"/>
+		<result property="fromType" column="FROMTYPE"/>
+		<result property="content" column="CONTENT"/>
+	</resultMap>
+	
+	<sql id="findSmstrashsBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+				<isPropertyAvailable property="maxTime">
+					<isNotEmpty prepend="and" property="maxTime">
+						TIME  <![CDATA[<=]]> #maxTime#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minTime">
+					<isNotEmpty prepend="and" property="minTime">
+						TIME  <![CDATA[>=]]> #minTime#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="mobile">
+					<isNotEmpty prepend="and" property="mobile">
+						MOBILE  like #mobile# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="fromType">
+					<isNotEmpty prepend="and" property="fromType">
+						FROMTYPE = #fromType#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="content">
+					<isNotEmpty prepend="and" property="content">
+						CONTENT  like #content# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+	<select id="findSmstrashsForPage" parameterClass="java.util.Map" resultMap="smstrashResult">
+		select * from 
+		(
+			select '1_'||up.id as id, up.content as content, up.sendtime as time, up.receivermobile as mobile, 1 as fromType from smsuplink up where up.parentid is not null and up.deletestatus = 1
+				union all 
+			select '2_'||do.id as id, do.content as content, do.sendtime as time, do.sender as mobile, 2 as fromType from smsdownlink do where do.deletestatus = 1 
+		) 
+	
+
+		<include refid="findSmstrashsBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countSmstrashsForPage" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from 
+		(
+			select '1_'||up.id as id, up.content as content, up.sendtime as time, up.receivermobile as mobile, 1 as fromType from smsuplink up where up.parentid is not null and up.deletestatus = 1
+				union all 
+			select '2_'||do.id as id, do.content as content, do.sendtime as time, do.sender as mobile, 2 as fromType from smsdownlink do where do.deletestatus = 1 
+		) 
+		<include refid="findSmstrashsBySearchVo_sql_where" />
+	</select>
+	
+</sqlMap>

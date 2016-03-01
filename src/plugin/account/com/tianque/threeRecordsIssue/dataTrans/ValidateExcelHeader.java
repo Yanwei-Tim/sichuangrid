@@ -1,0 +1,310 @@
+package com.tianque.threeRecordsIssue.dataTrans;
+
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.ApplicationContext;
+
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.datatransfer.SkipOrganizationCollection;
+import com.tianque.datatransfer.UpdateTicketInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.property.OrganizationLevel;
+import com.tianque.domain.property.OrganizationType;
+import com.tianque.state.TicketState;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.threeRecordsIssue.dataTrans.dataConvert.ThreeDataConvert;
+import com.tianque.threeRecordsIssue.dataTrans.dataImport.Util;
+import com.tianque.userAuth.api.OrganizationDubboRemoteService;
+
+public class ValidateExcelHeader {
+
+	private String ticketId;
+	private String templates;
+	private String dataType;// 数据类型
+	private ThreeDataConvert converter;
+	private OrganizationDubboRemoteService organizationDubboRemoteService;
+	private PropertyDictService propertyDictService;
+	private ApplicationContext appContext;
+	private Organization headerOrg;// 表头组织机构
+	private int firstDataRow;// 第一行数据的行数
+	private int importDataNum;// 导入数据的长度
+	private UpdateTicketInfo updateTicketInfo;// 修改缓存的信息
+	/** 是否是为乡镇级以上的领导视图提供的导入的 */
+	private int isTownLeaderImport = 0;
+	/** 进入新的验证表头方法 */
+	private static final int IS_TOWN_LEADER_IMPORT_TRUE = 1;
+
+	public ValidateExcelHeader(ApplicationContext appContext,
+			ThreeDataConvert converter, String ticketId, String templates,
+			String dataType, int firstDataRow, int importDataNum,
+			int isTownLeaderImport) {
+		this.appContext = appContext;
+		this.converter = converter;
+		this.ticketId = ticketId;
+		this.templates = templates;
+		this.dataType = dataType;
+		this.firstDataRow = firstDataRow;
+		this.importDataNum = importDataNum;
+		this.isTownLeaderImport = isTownLeaderImport;
+		init();
+	}
+
+	private void init() {
+		this.organizationDubboRemoteService = (OrganizationDubboRemoteService) appContext
+				.getBean("organizationDubboRemoteService");
+		this.propertyDictService = (PropertyDictService) appContext
+				.getBean("propertyDictService");
+		updateTicketInfo = new UpdateTicketInfo(appContext);
+	}
+
+	public boolean validateExcelHeader(String[][] data, String[] rowData,
+			int index) {
+//		Organization trueOrg = Util.getOrgByName(organizationDubboRemoteService, data,
+//				rowData[index], false);
+		// 说明及单位 设定
+		String orgName = StringUtils.isNotBlank(data[2][7]) ? data[2][7] : data[2][5];
+		Organization trueOrg = Util.getOrgByName(organizationDubboRemoteService, data, orgName);
+
+		setHeaderOrg(trueOrg);
+		if (isOrgNull(trueOrg, data)) {
+			return true;
+		}
+		converter.setUploadOrganization(trueOrg);
+		if (validateOrganization(data)) {
+			return true;
+		}
+		return false;
+	}
+
+
+
+	//	private boolean validateTemplateVersion(String templates,
+	//			String uploadTemplateVersion) {
+	//		if (!ImportTemplatesSetting.getImportTemplatesVo(templates)
+	//				.getVersion().equals(uploadTemplateVersion)) {
+	//			updateErrorTitleAndRowMsg("导入模板版本不正确，导入已终止", -1,
+	//					"您目前使用的数据导入模板不正确,请按上面提示下载最新数据模板");
+	//			return true;
+	//		}
+	//		return false;
+	//	}
+
+
+	private boolean isOrgNull(Organization uploadOrg, String[][] datas) {
+		int col = 0;
+		if (uploadOrg.getId() == null) {
+			for (int i = 0; i < datas[2].length; i++) {
+				if (uploadOrg.getOrgName().equals(datas[2][i])) {
+					col = i;
+					return false;
+				}
+			}
+			updateErrorTitleAndRowMsg("处理文件时出错，程序已终止，详情参见下方错误信息列表", 3, "["
+					+ uploadOrg.getOrgName() + "] (" + datas[2][col + 1]
+					+ ")填报单位填写错误");
+			return true;
+		}
+		return false;
+	}
+
+	private Organization getOrganizationsByOrgNameAndParentId(Long parentId,
+			String orgName) {
+		List<Organization> results = organizationDubboRemoteService
+				.findOrganizationsByOrgNameAndParentId(null, orgName, parentId);
+		return (results != null && results.size() == 1) ? results.get(0) : null;
+	}
+
+
+	private boolean isEmptyString(String value) {
+		return value == null || value.trim().equals("");
+	}
+
+	private void updateErrorTitleAndRowMsg(String title, int row, String msg) {
+
+		updateTicketInfo.updateErrorTitleAndRowMsg(ticketId, title, row, msg,
+				0, importDataNum, firstDataRow, firstDataRow, 0);
+	}
+
+	private void updateTicketErrorMsg(String ticketId, ValidateResult vresult,
+			Integer state) {
+		updateTicketInfo.updateTicketErrorMsg(ticketId, vresult, 0,
+				importDataNum, firstDataRow, firstDataRow, 0, state);
+
+	}
+
+	private boolean validateOrganization(String[][] datas) {
+		/** 用于跳过填报单位的验证 */
+		if (SkipOrganizationCollection.SKIP_ORGANIZATION_VALIDATE
+				.contains(dataType)) {
+			return false;
+		}
+		int index = 1;
+		while (index < datas[2].length && !isEmptyString(datas[2][index])) {
+			index = index + 2;
+		}
+
+		boolean isEmptyOrg = true;
+		while (index < datas[2].length - 3) {
+			index = index + 2;
+			if (!isEmptyString(datas[2][index])) {
+				isEmptyOrg = false;
+			}
+		}
+		ValidateResult vResult = new ValidateResult();
+		if (!isEmptyOrg) {
+			vResult.addErrorMessage(3, "填报单位填写不完整，请确保填报单位为连续的！");
+			updateTicketErrorMsg(ticketId, vResult, TicketState.EXCEPTIONSTOP);
+			return true;
+		}
+
+		PropertyDict orgLevelDict = propertyDictService
+				.getPropertyDictById(converter.getUploadOrganization()
+						.getOrgLevel().getId());
+		String userOrgInternalCode = organizationDubboRemoteService
+				.getSimpleOrgById(
+						ThreadVariable.getUser().getOrganization().getId())
+				.getOrgInternalCode();
+		String orgInternalCode = converter.getUploadOrganization()
+				.getOrgInternalCode();
+		PropertyDict orgTypeDict = propertyDictService
+				.getPropertyDictById(converter.getUploadOrganization()
+						.getOrgType().getId());
+		Long userOrgLeval = organizationDubboRemoteService.getSimpleOrgById(
+				ThreadVariable.getUser().getOrganization().getId())
+				.getOrgLevel().getId();
+		int userOrgLevalId = propertyDictService.getPropertyDictById(
+				userOrgLeval).getInternalId();
+		int orgOrgLevalId = orgLevelDict.getInternalId();
+		Organization userOrganization = organizationDubboRemoteService
+				.getSimpleOrgById(ThreadVariable.getUser().getOrganization()
+						.getId());
+		int orgTypeInternalId = propertyDictService.getPropertyDictById(
+				userOrganization.getOrgType().getId()).getInternalId();
+		/**
+		 * 如果当前用户的层级和“导入的数据表头的层级”是同一层级，但不相同是不允许导入的
+		 */
+		// if (userOrgLevalId == orgOrgLevalId
+		// && userOrgInternalCode.indexOf(orgInternalCode) == -1) {
+		// return addError(vResult);
+		// }
+		/**
+		 * 当当前用户是网格层级时，而导入的数据表头不是是到 村 层级 不允许导入的
+		 */
+		// if (userOrgLevalId < orgOrgLevalId
+		// && orgOrgLevalId != OrganizationLevel.VILLAGE) {
+		// return addError(vResult);
+		// }
+		//
+		// if (orgTypeDict != null
+		// && orgTypeDict.getInternalId() == OrganizationType.FUNCTIONAL_ORG) {
+		// return addErrorFunctionalOrg(vResult);
+		// }
+
+		/**
+		 * 当当前用户的层级高于导入数据的层级时，如果导入数据的层级不在当前用户的层级的管辖内是不允许导入的
+		 */
+		if (userOrgLevalId > orgOrgLevalId
+				&& orgTypeInternalId == OrganizationType.ADMINISTRATIVE_REGION) {
+			orgInternalCode = orgInternalCode.substring(0, userOrgInternalCode
+					.length());
+			if (!userOrgInternalCode.equals(orgInternalCode)) {
+				return addError(vResult);
+			}
+		}
+
+		/** 新的验证乡镇领导级别导入的验证表头的方法 */
+		if (isTownLeaderImport == IS_TOWN_LEADER_IMPORT_TRUE) {
+			/** 填报单位必须到乡镇街道级别 */
+			if (orgOrgLevalId > OrganizationLevel.TOWN) {
+				vResult.addErrorMessage(3, "填报单位必须填至乡镇街道级别");
+				updateTicketErrorMsg(ticketId, vResult,
+						TicketState.EXCEPTIONSTOP);
+				return true;
+			}
+			/** 用户必须是乡镇级别以上（目前是，后期有变动在改动） */
+			if (userOrgLevalId < OrganizationLevel.TOWN) {
+				vResult.addErrorMessage(3, "对不起，您没有改类数据的导入权限");
+				updateTicketErrorMsg(ticketId, vResult,
+						TicketState.EXCEPTIONSTOP);
+				return true;
+			}
+			return false;
+		}
+
+		if (dataType.equals("leaderGroupData") || dataType.equals("massesData")
+				|| dataType.equals("postulantData")) {
+			if (!(orgLevelDict.getInternalId() <= OrganizationLevel.DISTRICT)) {
+				vResult.addErrorMessage(3, "填报单位必须填至县/区一级或以下层级");
+				updateTicketErrorMsg(ticketId, vResult,
+						TicketState.EXCEPTIONSTOP);
+				return true;
+			}
+		} else if (dataType.equals("issueJoint")) {
+			if (!(orgLevelDict.getInternalId() <= OrganizationLevel.TOWN)) {
+				vResult.addErrorMessage(3, "发生单位必须填至乡镇街道一级或以下层级");
+				updateTicketErrorMsg(ticketId, vResult,
+						TicketState.EXCEPTIONSTOP);
+				return true;
+			}
+		} else if (dataType.equals("grassRootsPartyData")
+				|| dataType.equals("autonomyOrgData")) {
+			if (!(orgLevelDict.getInternalId() <= OrganizationLevel.VILLAGE)) {
+				vResult.addErrorMessage(3, "填报单位必须填至社区/村一级或以下层级");
+				updateTicketErrorMsg(ticketId, vResult,
+						TicketState.EXCEPTIONSTOP);
+				return true;
+			}
+		} else {
+			if ("newSocietyOrganizations".equals(dataType)
+					|| "Gis2DLayer".equals(dataType)
+					|| "UpdateLonlat".equals(dataType)) {
+				/** 社会组织验证必须是省级以下 */
+				/*
+				 * if (!(orgLevelDict.getInternalId() <=
+				 * OrganizationLevel.PROVINCE)) { vResult.addErrorMessage(3,
+				 * "填报单位，所属省必须填写"); updateTicketErrorMsg(ticketId, vResult,
+				 * TicketState.EXCEPTIONSTOP); return true; }
+				 */
+				return false;
+			} else if (dataType.endsWith("Temp")) {
+				if (!(orgLevelDict.getInternalId() <= OrganizationLevel.DISTRICT)) {
+					vResult.addErrorMessage(3, "填报单位必须填至县/区一级或以下层级");
+					updateTicketErrorMsg(ticketId, vResult,
+							TicketState.EXCEPTIONSTOP);
+					return true;
+				}
+			} /*
+			 * else if (!(orgLevelDict.getInternalId() <=
+			 * OrganizationLevel.VILLAGE)) { vResult.addErrorMessage(3,
+			 * "填报单位必须填至社区/村一级或以下层级"); updateTicketErrorMsg(ticketId, vResult,
+			 * TicketState.EXCEPTIONSTOP); return true; }
+			 */
+
+		}
+
+		return false;
+	}
+
+	private boolean addError(ValidateResult vResult) {
+		vResult.addErrorMessage(3, "权限越界，不能将数据导入到该网格下！");
+		updateTicketErrorMsg(ticketId, vResult, TicketState.EXCEPTIONSTOP);
+		return true;
+	}
+
+	private boolean addErrorFunctionalOrg(ValidateResult vResult) {
+		vResult.addErrorMessage(3, "填报单位不能为职能部门！");
+		updateTicketErrorMsg(ticketId, vResult, TicketState.EXCEPTIONSTOP);
+		return true;
+	}
+
+	public Organization getHeaderOrg() {
+		return headerOrg;
+	}
+
+	public void setHeaderOrg(Organization headerOrg) {
+		this.headerOrg = headerOrg;
+	}
+}

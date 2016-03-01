@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="UpdateIdcardNoLog">
+	<typeAlias alias="UpdateIdcardNoLog" type="com.tianque.baseInfo.base.domain.UpdateIdcardNoLog"/>
+	<resultMap class="UpdateIdcardNoLog" id="updateIdcardNoLogResult">
+		<result property="id" column="id" />
+		<result property="dataOrg.id" column="dataOrgId" />
+		<result property="dataOrg.orgInternalCode" column="dataInternalcode" />
+		<result property="dataId" column="dataId" />
+		<result property="dataType" column="dataType" />
+		<result property="dataBeforeOperate" column="dataBeforeOperate" />
+		<result property="dataAfterOperate" column="dataAfterOperate" />
+		<result property="operateUser" column="operateUser" />
+		<result property="operateDate" column="operateDate" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	<insert id="addUpdateIdcardNoLog" parameterClass="UpdateIdcardNoLog">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_updateIdcardNoLogs.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into updateIdcardNoLogs(
+			id,dataOrgId,dataInternalcode,dataId,dataType,dataBeforeOperate,dataAfterOperate,operateUser,operateDate,createUser,createDate,updateUser,updateDate
+		) values(
+			#id#,#dataOrg.id#,#dataOrg.orgInternalCode#,#dataId#,#dataType#,#dataBeforeOperate#,#dataAfterOperate#,#createUser#,#createDate#,#createUser#,#createDate#,#createUser#,#createDate#
+		)
+	</insert>
+	
+	<select id="getUpdateIdcardNoLogById" parameterClass="java.lang.Long" resultMap="updateIdcardNoLogResult">
+		select * from updateIdcardNoLogs where id=#value#
+	</select>
+</sqlMap>

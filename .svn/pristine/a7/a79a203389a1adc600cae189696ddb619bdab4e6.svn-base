@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="otherAttentionPersonnelManage" extends="default"
+		namespace="/baseinfo/attentionPersonnelManage">
+		<default-class-ref class="otherAttentionPersonnelController"></default-class-ref>
+		<action name="dispatchOperate"
+			method="dispatch">
+			<result name="success">
+				/baseinfo/otherAttentionPersonnel/maintainOtherAttentionPersonnelDlg.jsp
+			</result>
+			<result name="search">
+				/baseinfo/otherAttentionPersonnel/otherAttentionPersonnelConditionDlg.jsp
+			</result>
+			<result name="print">
+				/baseinfo/otherAttentionPersonnel/maintainOtherAttentionPersonnelPrintDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="attentionPersonnelList"
+			method="findOrtherAttentionsForListPage">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="shiftDispatch"  method="shiftDispatch">
+			<result name="success">
+					/baseinfo/otherAttentionPersonnel/shiftTree.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="shiftOtherAttentionPersonnel" method="shiftOtherAttentionPersonnel">
+			<result type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="addAttentionPersonnel"
+			method="addOtherAttentionPersonnel">
+			<result name="success" type="json">
+				<param name="root">attentionPersonnel</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateAttentionPersonnel"
+			method="updateOtherAttentionPersonnel">
+			<result name="success" type="json">
+				<param name="root">attentionPersonnel</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="getAttentionObjectByIdCardNo"
+			method="getAttentionObjectByIdCardNo">
+			<result name="success" type="json">
+				<param name="root">attentionPersonnel</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateattentionObjectsById"
+			method="updateattentionObjectsById">
+			<result name="success" type="json">
+				<param name="root">attentionPersonnel</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+
+		<action name="deleteAttentionPersonnel" method="deleteAttentionPersonnel">
+			<result name="success"  type="json">
+				<param name="root">noRelatePersonIds</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="hasDuplicateOrtherAttentions" method="hasDuplicateOrtherAttentions">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<action name="hasRelatePersons" method="hasRelatePersons">
+			<result name="success" type="json">
+				<param name="root">flag</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+
+
+	</package>
+</struts>

@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="unsettledPopulation">
+	<typeAlias alias="UnsettledPopulation" type="com.tianque.baseInfo.unsettledPopulation.domain.UnsettledPopulation" />
+	<resultMap class="UnsettledPopulation" id="unsettledPopulationResult">
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="gender.id" column="gender" />
+		<result property="idCardNo" column="idCardNo" />
+		<result property="name" column="name" />
+		<result property="usedName" column="usedName" />
+		<result property="birthday" column="birthday" />
+		<result property="province" column="province" />
+		<result property="city" column="city" />
+		<result property="district" column="district" />
+		<result property="nativePlaceAddress" column="nativePlaceAddress" />
+		<result property="politicalBackground.id" column="politicalBackground" />
+		<result property="currentAddress" column="currentAddress" />
+		<result property="telephone" column="telephone" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="maritalState.id" column="maritalState" />
+		<result property="stature" column="stature" />
+		<result property="nation.id" column="nation" />
+		<result property="faith.id" column="faith" />
+		<result property="schooling.id" column="schooling" />
+		<result property="bloodType.id" column="bloodType" />
+		<result property="email" column="email" />
+		<result property="workUnit" column="workUnit" />
+		<result property="remark" column="remark" />
+		<result property="isDeath" column="isDeath" />
+		<result property="logOut" column="logOut" />
+		<result property="otherAddress" column="otherAddress" />
+		<result property="certificateType.id" column="certificateType" />
+		<result property="certificateNo" column="certificateNo" />
+		<result property="career.id" column="career" />
+		<result property="unSettedTime" column="unSettedTime" />
+		<result property="unSettedReason.id" column="unSettedReason" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="imgUrl"  column="imgUrl" />
+		<result  property="currentAddressType.id" column="currentAddressType"/>
+		 <result property="community"  column="community"/>
+		 <result property="block" column="block"/>
+		 <result property="unit" column="unit" />
+		 <result property="room" column="room"/>
+		 <result property="simplePinyin" column="simplePinyin" />
+		 <result property="fullPinyin" column="fullPinyin"/>
+		 <result column="isHaveHouse" property="isHaveHouse" />
+		 <result column="noHouseReason" property="noHouseReason" />
+		 <result property="sourcesState" column="sourcesState"/>
+		
+		<result property="logoutDetail.logout" column="logOut" />
+		<result property="logoutDetail.logoutReason" column="logOutReason" />
+		<result property="logoutDetail.logoutDate" column="logOutDate" />
+	</resultMap>
+	<resultMap class="UnsettledPopulation" id="GisunsettledPopulationResult" extends="unsettledPopulationResult">
+		<result property="actualType" column="actualType"/>
+	</resultMap>
+	
+	<sql id="sql_where">
+		from unsettledPopulations
+		<dynamic prepend="where">
+		<isPropertyAvailable property="orgInternalCode">
+			<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>	
+            <isPropertyAvailable property="isDeath">
+				<isNotNull property="isDeath" prepend="and">
+					isDeath = #isDeath#
+				</isNotNull>
+			</isPropertyAvailable>   
+			 <isPropertyAvailable property="logOut">
+				<isNotNull property="logOut" prepend="and">
+					logOut = #logOut#
+				</isNotNull>
+			</isPropertyAvailable>         
+		</dynamic>
+	</sql>
+	<update id="updateActualPopulationToHasHouseState" parameterClass="java.util.Map">
+		update unsettledPopulations set 
+		<include refid="populationBaseInfo.isHasHouseInfo"/>
+		,currentAddress = #currentAddress#
+		where id=#id#
+	</update>
+	<select id="getUnsettledPopulationByIdCard" parameterClass="java.util.Map"
+		resultMap="unsettledPopulationResult">
+		select * from unsettledPopulations where 1=1   
+        <dynamic>
+             <isPropertyAvailable property="orgId">
+                <isNotNull property="orgId" prepend=" and ">
+                    orgId=#orgId#
+                </isNotNull>
+             </isPropertyAvailable
+             >
+		            and (
+		        <iterate property="idCardNoList" conjunction="or">
+		            upper(idCardNo) like upper(#idCardNoList[]#)
+		        </iterate>
+		        )
+        </dynamic>
+	</select>
+<select id="getUnsettledPopulationByIdCardAndOrganizationId" parameterClass="java.util.Map"
+		resultMap="unsettledPopulationResult">
+        <![CDATA[ SELECT * FROM unsettledPopulations where (upper(idCardno) = upper(#idCardNo15#) or upper(idCardno) like upper(#idCardNo18#))
+		and orgId =#organizationId# ]]>
+</select>
+<select id="getByOrgIdAndIdCardNo" parameterClass="java.util.Map"
+		resultMap="unsettledPopulationResult">
+        <![CDATA[ SELECT * FROM unsettledPopulations where upper(idCardno) =upper(#idCardNo#)
+		and orgId =#orgId# ]]>
+</select>
+	
+	<insert id="addUnsettledPopulation" parameterClass="UnsettledPopulation">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_unsettledPopulations.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into unsettledPopulations (id,orgId,orgInternalCode,gender,idCardNo,name,usedName,birthday,province,city,district,nativePlaceAddress,politicalBackground,currentAddress,telephone,mobileNumber,maritalState,stature,faith,schooling,bloodType,nation,email,workUnit,remark,isDeath,logOut,otherAddress,certificateType,certificateNo,career,unSettedTime,unSettedReason,createUser,createDate,updateUser,updateDate,imgUrl,currentAddressType,community,block,unit,room,simplePinyin,fullPinyin,isHaveHouse,noHouseReason,sourcesState)
+		values (#id#,#organization.id#,#orgInternalCode#,#gender.id#,#idCardNo#,#name#,#usedName#,#birthday#,#province#,#city#,#district#,#nativePlaceAddress#,#politicalBackground.id#,#currentAddress#,#telephone#,#mobileNumber#,#maritalState.id#,#stature#,#faith.id#,#schooling.id#,#bloodType.id#,#nation.id#,#email#,#workUnit#,#remark#,#isDeath#,#logOut#,#otherAddress#,#certificateType.id#,#certificateNo#,#career.id#,#unSettedTime#,#unSettedReason.id#,#createUser#,#createDate#,#updateUser#,#updateDate#,#imgUrl#,#currentAddressType.id#,#community#,#block#,#unit#,#room#,#simplePinyin#,#fullPinyin#,#isHaveHouse#,#noHouseReason#,#sourcesState#)
+	</insert>
+	
+	<select id="countUnsettledPopulations" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="findUnsettledPopulations" parameterClass="java.util.Map" resultMap="unsettledPopulationResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend=" order by ">
+			<isNotNull property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isNotNull>
+		</dynamic>
+	</select>
+	
+	<update id="updateDeathAndLogoutStateById" parameterClass="map">
+		update unsettledPopulations set isDeath = #death#
+		<isNotNull prepend="," property="logoutState">
+		logOut = #logoutState#
+		</isNotNull>
+		where id=#id#
+	</update>
+	
+	<update id="updateUnsettledPopulation" parameterClass="UnsettledPopulation">
+		update unsettledPopulations set
+		 <dynamic>
+            id=#id#
+            <isPropertyAvailable prepend="," property="organization">
+            	orgId=#organization.id#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="orgInternalCode">
+            	orgInternalCode=#orgInternalCode#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="gender">
+            	gender=#gender.id#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="idCardNo">
+            	idCardNo=#idCardNo#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="name">
+            	name=#name#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="usedName">
+            	usedName=#usedName#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="birthday">
+            	birthday=#birthday#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="province">
+            	province=#province#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="city">
+            	city=#city#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="district">
+            	district=#district#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="nativePlaceAddress">
+            	nativePlaceAddress=#nativePlaceAddress#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="nativePlaceAddress">
+            	politicalBackground=#politicalBackground.id#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="currentAddress">
+            	currentAddress=#currentAddress#
+             </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="otherAddress">
+            	otherAddress=#otherAddress#
+             </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="telephone">
+            	telephone=#telephone#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="mobileNumber">
+            	mobileNumber=#mobileNumber#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="maritalState">
+            	maritalState=#maritalState.id#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="stature">
+            	stature=#stature#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="nation">
+            	nation=#nation.id#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="faith">
+            	faith=#faith.id#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="career">
+            	 career=#career.id#
+            </isPropertyAvailable>
+           <isPropertyAvailable prepend="," property="schooling">
+            	schooling=#schooling.id#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="unSettedTime">
+            	unSettedTime=#unSettedTime#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="unSettedReason">
+            	unSettedReason=#unSettedReason.id#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="certificateNo">
+            	certificateNo=#certificateNo#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="certificateType">
+            	certificateType=#certificateType.id#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="bloodType">
+            	bloodType=#bloodType.id#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="email">
+            	email=#email#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="workUnit">
+            	workUnit=#workUnit#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="remark">
+            	remark=#remark#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="isDeath">
+            	isDeath=#isDeath#
+            </isPropertyAvailable>
+            <isNotEmpty property="logOut" prepend=",">
+			    logOut=#logOut#
+		    </isNotEmpty>
+            <isPropertyAvailable prepend="," property="updateUser">
+            	updateUser=#updateUser#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="updateDate">
+            	updateDate=#updateDate#
+            </isPropertyAvailable>
+			<isPropertyAvailable prepend="," property="imgUrl">
+				imgUrl=#imgUrl#
+			</isPropertyAvailable>
+			<isPropertyAvailable prepend="," property="currentAddressType">
+				currentAddressType=#currentAddressType.id#
+			</isPropertyAvailable>
+			<isPropertyAvailable prepend="," property="community">
+				community=#community#
+			</isPropertyAvailable>
+			<isPropertyAvailable prepend="," property="block">
+				block=#block#
+			</isPropertyAvailable>
+			<isPropertyAvailable prepend="," property="unit">
+				unit=#unit#
+			</isPropertyAvailable>
+			<isPropertyAvailable prepend="," property="room">
+				room=#room#
+			</isPropertyAvailable>
+			,isHaveHouse = #isHaveHouse#
+			,noHouseReason = #noHouseReason#
+            where id=#id#
+         </dynamic>
+	</update>
+	
+	<select id="getActualPopulationByOrgIdAndIdCardNoExcludePopulationId" parameterClass="java.util.Map" resultMap="unsettledPopulationResult">
+		SELECT * FROM unsettledPopulations 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					id != #id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo15">
+				<isNotEmpty property="idCardNo15" prepend=" and ">
+					(upper(idCardno) like upper(#idCardNo15#)||'%' or upper(idCardno) like upper(#idCardNo18#)||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<delete id="deleteUnsettledPopulationById" parameterClass="java.lang.Long">
+		delete from unsettledPopulations where id = #value#
+	</delete>
+	
+	<select id="getUnsettledPopulationById" parameterClass="java.lang.Long" resultMap="unsettledPopulationResult">
+		<![CDATA[SELECT * FROM unsettledPopulations where id = #value#]]>
+	</select>
+	
+	<select id="findGisUnsettledPopulationById" parameterClass="java.lang.Long" resultMap="GisunsettledPopulationResult">
+		select 'unsettledPopulation' as actualType, us.* from unsettledPopulations  us where us.id=#value#
+	</select>
+	
+	<select id="findAllBindingUnsettledPopulationByorgCodeForGis" parameterClass="map" resultMap="GisunsettledPopulationResult">
+		select 'unsettledPopulation' as actualType, us.* 
+		  from unsettledPopulations us, houseHasActualPopulation ph
+		 where us.id = ph.populationid
+		   and us.orginternalcode like #orgInternalCode#||'%'
+		   and ph.persontype = #personType#
+		   and ph.populationType = #populationType#
+		   and ph.defaultLivingHouse = #defaultLivingHouse#
+		   and exists (select *
+		          from houseinfo hi
+		         where hi.centerx is not null
+		           and hi.id = ph.houseid)
+	</select>
+	<update id="updateUnsettledPopulationIdCardNo" parameterClass="java.util.Map">
+		update unsettledPopulations set
+		<dynamic>
+			<isNotEmpty property="countrymen.idCardNo">
+				idCardNo=#countrymen.idCardNo#
+			</isNotEmpty>
+			<isNotEmpty property="countrymen.district" prepend=",">
+					province=#countrymen.province#,
+					city=#countrymen.city#,
+					district=#countrymen.district#
+			</isNotEmpty>
+			<isNotNull property="countrymen.birthday" prepend=",">
+				birthday=#countrymen.birthday#
+			</isNotNull>
+			<isNotNull property="countrymen.gender" >
+				<isNotNull property="countrymen.gender.id" prepend=",">
+					gender=#countrymen.gender.id#
+				</isNotNull>
+			</isNotNull>
+		</dynamic>
+		where id=#countrymen.id# and idCardNo=#idCardNo#
+	</update>
+</sqlMap>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="smsAccount">
+	<typeAlias alias="SmsAccount" type="com.tianque.plugin.weChat.domain.sms.SmsAccount"/>
+	<resultMap id="smsAccountResult" class="SmsAccount">
+		<result property="id" column="id"/>
+		<result property="org.id" column="orgId"/>
+		<result property="org.orgInternalCode" column="orgCode"/>
+		<result property="name" column="name"/>
+		<result property="pwd" column="pwd"/>
+		<result property="type" column="type"/>
+		<result property="callbackPwd" column="callbackPwd"/>
+		<result property="contentSuffix" column="contentSuffix"/>
+
+	    <result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<insert id="saveSmsAccount" parameterClass="SmsAccount">
+		insert into sms_Account
+		(id,orgId,orgCode,name,pwd,type,callbackPwd,contentSuffix,createUser,updateUser,createDate,updateDate)
+		values
+		(s_SMS_account.NEXTVAL,#org.id#,#org.orgInternalCode#,#name#,#pwd#,#type#,#callbackPwd#,#contentSuffix#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	<update id="updateSmsAccount" parameterClass="SmsAccount">
+		update sms_Account set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="pwd">
+				pwd=#pwd#
+			</isNotNull>
+			<isNotNull prepend="," property="type">
+				type=#type#
+			</isNotNull>
+			<isNotNull prepend="," property="callbackPwd">
+				callbackPwd=#callbackPwd#
+			</isNotNull>
+			<isNotNull prepend="," property="contentSuffix">
+				contentSuffix=#contentSuffix#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+		</dynamic>
+		WHERE 	id=#id#
+	</update>
+	
+	<select id="getById" parameterClass="long" resultMap="smsAccountResult">
+		select *
+	    from sms_Account 
+		 where id=#id#
+	</select>
+	<select id="getSmsAccountByNameAndOrgCode" parameterClass="java.util.Map" resultMap="smsAccountResult">
+		select *
+	    from sms_Account 
+		 where name=#name# 
+		 <isNotNull property="orgCode">
+		 	and orgcode=#orgCode#
+		</isNotNull>
+	</select>
+	
+	
+	<select id="findSmsAccount" parameterClass="java.util.Map" resultMap="smsAccountResult">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_start" />
+			</isNotNull>
+		</isPropertyAvailable>
+		select * from sms_Account where orgCode=#smsAccount.org.orgInternalCode#
+		<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+		</dynamic>
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_end" />
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	<select id="findSmsAccountByOrgCode" parameterClass="String" resultMap="smsAccountResult">
+		select * from sms_Account where orgCode=#orgCode#
+	</select>
+	
+	<select id="countFindSmsAccount" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(1) from sms_Account where orgCode=#smsAccount.org.orgInternalCode#
+	</select>
+</sqlMap>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="leadingEnterprise" >
+	<typeAlias alias="leadingEnterprise" type="com.tianque.newVillage.domain.LeadingEnterprise"/>
+	<resultMap id="leadingEnterpriseResult" class="leadingEnterprise" >
+    	<result column="id" property="id"/>
+    	<result property="organization.id" column="orgId"/>
+    	<result property="organization.orgInternalCode" column="orgCode"/>
+    	<result column="enterpriseName" property="enterpriseName"/>
+    	<result column="chargePerson" property="chargePerson"/>
+    	<result column="phoneNumber" property="phoneNumber"/>
+    	<result column="address" property="address"/>
+    	<result column="registeredCapital" property="registeredCapital"/>
+    	<result column="registeredDate" property="registeredDate"/>
+    	<result property="economicCharacter.id" column="economicCharacter"/>
+    	<result column="licenseNumber" property="licenseNumber"/>
+    	<result column="bodyCode" property="bodyCode"/>
+    	<result column="remark" property="remark"/>
+    	<result column="createUser" property="createUser"/>
+    	<result column="updateUser" property="updateUser"/>
+    	<result column="createDate" property="createDate"/>
+    	<result column="updateDate" property="updateDate"/>
+	</resultMap>
+	
+	<insert id="addLeadingEnterprise" parameterClass="leadingEnterprise">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			select s_leadingEnterprise.NEXTVAL as id from dual
+		</selectKey>
+		insert into leadingEnterprise(
+		id,orgId,orgCode,enterpriseName,chargePerson,phoneNumber,address,registeredCapital,registeredDate,economicCharacter,licenseNumber,bodyCode,remark,createUser,createDate,updateUser
+		)values(
+		#id#,#organization.id#,#organization.orgInternalCode#,#enterpriseName#,#chargePerson#,#phoneNumber#,#address#,#registeredCapital#,#registeredDate#,
+		#economicCharacter.id#,#licenseNumber#,#bodyCode#,#remark#,#createUser#,#createDate#,#updateUser#
+		)	
+	</insert>
+	
+	<update id="updateLeadingEnterprise" parameterClass="leadingEnterprise">
+		update leadingEnterprise set 
+		enterpriseName=#enterpriseName#,
+		chargePerson=#chargePerson#,
+		phoneNumber=#phoneNumber#,
+		address=#address#,
+		registeredCapital=#registeredCapital#,
+		registeredDate=#registeredDate#,
+		economicCharacter=#economicCharacter.id#,
+		licenseNumber=#licenseNumber#,
+		bodyCode=#bodyCode#,
+		remark=#remark#,
+		updateUser=#updateUser#,
+		updateDate=#updateDate#
+		where id=#id#
+	</update>
+	
+	<delete id="deleteLeadingEnterpriseByIds">
+		delete from leadingEnterprise where
+		<iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	
+	<select id="countFindLeadingEnterpriseForPageInfo" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(1) from leadingEnterprise where 1=1
+		<isNotNull property="searchType" prepend="and">
+			<isEqual property="searchType" compareValue="0">
+				orgId=#orgId#
+			</isEqual>
+			<isEqual property="searchType" compareValue="1">
+				orgCode like #orgCode# ||'%'
+			</isEqual>
+		</isNotNull>
+		<isNotNull property="enterpriseName">
+		and	enterpriseName like #enterpriseName# || '%'
+		</isNotNull>
+	</select>
+	
+	<select id="findLeadingEnterpriseForPageInfo" parameterClass="java.util.Map" resultMap="leadingEnterpriseResult">
+		select * from leadingEnterprise where 1=1
+		<isNotNull property="searchType" prepend="and">
+			<isEqual property="searchType" compareValue="0">
+				orgId=#orgId#
+			</isEqual>
+			<isEqual property="searchType" compareValue="1">
+				orgCode like #orgCode# ||'%'
+			</isEqual>
+		</isNotNull>
+		<isNotNull property="enterpriseName">
+		and	enterpriseName like #enterpriseName# || '%'
+		</isNotNull>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getLeadingEnterpriseById" parameterClass="java.lang.Long" resultMap="leadingEnterpriseResult">
+		select * from leadingEnterprise where id=#id#
+	</select>
+</sqlMap>

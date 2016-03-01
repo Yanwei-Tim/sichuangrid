@@ -1,0 +1,473 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8" import="com.tianque.domain.property.OrganizationType,com.tianque.domain.Organization,com.tianque.domain.property.OrganizationLevel,com.tianque.core.util.ThreadVariable" %>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<jsp:include page="/includes/baseInclude.jsp" />
+
+<%
+	Organization userOrg = ThreadVariable.getUser().getOrganization();
+
+	boolean isOpen = false;
+	if (userOrg.getOrgType().getDisplayName().equals(OrganizationType.getInternalProperties().get(OrganizationType.FUNCTIONAL_ORG).getDisplayName())) {
+		request.setAttribute("isFun", true);
+		if (userOrg.getDepartmentNo() != null && (userOrg.getDepartmentNo().endsWith("1jg") || userOrg.getDepartmentNo().endsWith("1lx") || userOrg.getDepartmentNo().endsWith("1xw"))) {
+			isOpen = true;
+		}else{
+			isOpen = false;
+		}
+	} else {
+		request.setAttribute("isFun", false);
+		isOpen = false;
+	}
+	request.setAttribute("isOpen", isOpen);
+	Long rootId = userOrg.getId();
+	if(userOrg.getParentOrg() != null){
+		rootId = userOrg.getParentOrg().getId();
+	}
+	request.setAttribute("userParentOrgId", rootId);
+%>
+
+<style>
+.select_ {width: 160px;}
+._select {width: 80px;}
+.input_ {width: 77px;}
+.must {color: red;}
+</style>
+
+<div class="content">
+<div id="nav" class="ui-corner-all">
+	<div id="searchDiv" style="display:inline-block;*display:inline;zoom:1;overflow:hidden;height:30px;"> 
+		<label class="must">*</label><strong>所属区域：</strong> 
+		<div class="btnbanner btnbannerData">
+			<div class="ui-widget autosearch">
+				<input class="" type="text" value="" id="fastSearchIssueOrg" maxlength="20" class="searchtxt" style="width:185px;height: 24px; margin-top: 5px; background: threedhighlight;" onblur="value=(this.value=='')?'':this.value;" onfocus="value=(this.value=='')?'':this.value;"/>
+			</div>
+			<select id="seachValue" class="form-txt" style="width: 100px;">
+	   	 		<option value="present" selected="selected">本级</option>
+	   	 		<option value="subordinate">直属下辖</option>
+	    		<option value="all">下辖全部</option>
+	    	</select>
+			<a id="search" href="javascript:void(0)" style="margin-top:5px;"><span style="height:26px">查询</span></a>
+			<a id="moreSelect" href="javascript:void(0)" style="margin-top:5px;"><span style="height:26px">多选</span></a>  
+		</div>
+	</div>
+	
+	<div style="margin-top: 5px;">
+    	<label class="must">*</label><strong>台账类型：</strong>
+    	<select class="select_" id="ledgerType">
+			<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@LEDGER_TYPE" />
+		</select>
+		
+		<label class="must">*</label><strong>办结方式：</strong>
+		<select class="select_" id="doneType">
+			<pop:OptionTag name="@com.tianque.domain.property.PropertyTypes@LEDGER_STATUS" />
+		</select>
+		<select id="detailDoneType"></select>
+	
+		<strong>建卡时间：</strong>
+		<input type="text" id="beginCreateDate" readonly="readonly" />
+		<strong>到</strong>
+		<input type="text" id="endCreateDate" readonly="readonly" />
+	</div>
+
+	<div style="margin-top: 5px">
+		<div id="isGtLt">  
+    		<label style="visibility: hidden;">*</label><strong>计划投资：</strong>
+			<select class="_select" id="isGtPlannedInvestment">
+				<option>大(等)于</option><option>小于</option>
+			</select>
+			<input type="text" placeholder="万元" class="input_" id="plannedInvestment" />
+    
+    		<label style="visibility: hidden;">*</label><strong>受益人口：</strong>
+			<select class="_select" id="isGtbeneficiaryNumber">
+				<option>大(等)于</option><option>小于</option>
+			</select>
+			<input type="text" class="input_" id="beneficiaryNumber" />
+    
+    		<strong>自筹资金：</strong>
+			<select class="_select" id="isGtSelfFund">
+				<option>大(等)于</option><option>小于</option>
+			</select>
+			<input type="text" placeholder="万元" class="input_" id="selfFund" />
+    
+    		<strong>缺口资金：</strong>
+			<select class="_select" id= "isGtGapFund">
+				<option>大(等)于</option><option>小于</option>
+			</select>
+			<input type="text" placeholder="万元" style="width: 71px" id="gapFund" />
+ 		</div>
+ 
+ 		<div style="margin-top:5px"> 
+ 			<label style="visibility: hidden;">*</label><strong>项目类别：</strong>
+			<select class="select_" id="projectCategory"></select>
+ 
+ 			<div style="display: inline;" id="isLabor">
+  				<label style="visibility: hidden;">*</label><strong>建设性质：</strong>
+				<select class="select_" id="buildType" name="view.buildType.id" ></select>
+	
+  				<strong >建设地点：</strong>
+				<input type="text" style="width: 174px" id="buildAddress" />
+  			</div>	
+  			
+  			<strong>愿望或诉求：</strong>
+			<input type="text" style="width: 128px" id="appealContent" />
+		</div>
+	</div>
+</div>
+	<div style="width: 100%;">
+		<table id="peopleIssueList"> </table>
+		<div id="peopleIssueListPager"></div>
+	</div>
+	<div id="issueDialog"></div>
+	<div id="moreSelectDialog"></div>
+</div>
+<input type="hidden" name="selectNodeId" id="selectNodeId"/>
+<input type="hidden" id="jurisdictionsOrgLevel" value="<s:property value='#parameters.orgLevel'/>"/>
+<input type="hidden" id="jurisdictionsFunctionalOrgType" value="<s:property value='#parameters.functionalOrgType'/>"/>
+<input type="hidden" id="jurisdictionsKeyId" value="<s:property value='#parameters.keyId'/>"/>
+<script type="text/javascript">
+<pop:formatterProperty name="createTableType" domainName="@com.tianque.plugin.account.property.PropertyTypes@LEDGER_PEOPLEASPIRATION_CREATE_TABLE_TYPE" />
+$("#detailDoneType").hide();
+
+var ledger = -1;
+var switchLedger;
+var doneType;
+var ids = "";
+var thisTime=new Date();
+var addMonth=thisTime.getMonth()+1;
+var formatdate= thisTime.getFullYear()+"-"+addMonth+"-"+thisTime.getDate();
+
+var firstDate=new Date();
+firstDate.setDate(1);
+var currentMonthFirstDay = firstDate.getFullYear()+"-"+(firstDate.getMonth()+1)+"-"+firstDate.getDate();
+$("#beginCreateDate").attr("value",currentMonthFirstDay);
+$("#endCreateDate").attr("value",formatdate);
+$('#beginCreateDate').datePicker({
+	yearRange:'2013:2060',
+	dateFormat:'yy-mm-dd',
+	maxDate:'%y-%M-#{%d}'
+});
+$('#endCreateDate').datePicker({
+	yearRange:'2013:2060',
+	dateFormat:'yy-mm-dd',
+	maxDate:'%y-%M-#{%d}'
+});
+
+$('#doneType').change(function(){ 
+	detailDoneType();
+	doneTypeChange();
+	selectPeopleChange("");
+});
+
+$("#search").click(function (event) {
+	selectPeopleChange("");
+});
+$('#detailDoneType,#beginCreateDate,#endCreateDate,#projectCategory,#buildType,#seachValue').change(function(event){
+	selectPeopleChange("");
+});
+
+function selectPeopleChange(orgIds){
+	if(typeof(ledger) == "undefined" || ledger == -1){
+		$.messageBox({level: 'warn', message: "请选择台账类型！"});
+		return;
+	}
+	if(doneType == "all"){
+		return;
+	}
+	var orgId =  $("#selectNodeId").val();
+	if (orgId == "") {
+        $.messageBox({level: 'warn', message: "请选择组织机构！"});
+        return;
+    }
+	$("#peopleIssueList").setGridParam({
+		url:"/threeRecords/peopleaspirationComprehensive/findIssueForView.action",
+		datatype: "json",
+		page:1
+	});
+	$("#peopleIssueList").setPostData({
+		"orgId": orgId,
+		"orgIds": orgIds,
+    	"searchVo.ledgerType":ledger,
+    	"searchVo.searchValue":$("#seachValue").val(),
+    	"searchVo.doneType":doneType,
+    	"searchVo.detailDoneType":$("#detailDoneType").val(),
+        "searchVo.beginCreateDate":$("#beginCreateDate").val(),
+        "searchVo.endCreateDate":$("#endCreateDate").val(),
+        "searchVo.isGtPlannedInvestment":$("#isGtPlannedInvestment").val() == '大(等)于' ? 1 : 0,
+        "searchVo.plannedInvestment":$("#plannedInvestment").val(),
+        "searchVo.isGtbeneficiaryNumber":$("#isGtbeneficiaryNumber").val() == '大(等)于' ? 1 : 0,
+        "searchVo.beneficiaryNumber":$("#beneficiaryNumber").val(),
+        "searchVo.isGtSelfFund":$("#isGtSelfFund").val() == '大(等)于' ? 1 : 0,
+        "searchVo.selfFund":$("#selfFund").val(),
+        "searchVo.isGtGapFund":$("#isGtGapFund").val() == '大(等)于' ? 1 : 0,
+        "searchVo.gapFund":$("#gapFund").val(),
+        "searchVo.projectCategory":$("#projectCategory").val(),
+        "searchVo.buildType":$("#buildType").val(),
+        "searchVo.buildAddress":$("#buildAddress").val(),
+        "searchVo.appealContent":$("#appealContent").val(),
+        "searchVo.poorType":$("#poorType").val()
+   	});
+	$("#peopleIssueList").trigger("reloadGrid");
+}
+
+$('#ledgerType').change(function(){
+	doneTypeChange();
+	detailDoneType();
+		$("#people").show();
+		$("#poorPeople").hide();
+		if($(this).children('option:selected').text()=='水利信息'){
+			$("#buildType").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@LEDGER_WATEER_BUILD_TYPE' />");
+			$("#projectCategory").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@LEDGER_WATEER_PROJECT' />");
+			ledger = "<s:property value='@com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_WATER'/>";
+			ledgerChange(true);
+			switchLedger = "water";
+		}else if($(this).children('option:selected').text()=='交通信息'){
+			$("#buildType").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@TRAFFIC_BUILD_TYPE' />");
+			$("#projectCategory").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@TRAFFIC_PROJECT' />");
+			ledger = "<s:property value='@com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_TRAFFIC'/>";
+			switchLedger = "traffic";
+			ledgerChange(true);
+		}else if($(this).children('option:selected').text()=='能源信息'){
+			$("#buildType").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@ENERGY_BUILD_TYPE' />");
+			$("#projectCategory").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@ENERGY_PROJECT' />");
+			ledger = "<s:property value='@com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_ENERGY'/>";
+			switchLedger = "energy";
+			ledgerChange(true);
+		}else if($(this).children('option:selected').text()=='教育信息'){
+			$("#buildType").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@EDUCATION_BUILD_TYPE' />");
+			$("#projectCategory").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@EDUCATION_PROJECT' />");
+			ledger = "<s:property value='@com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_EDUCATION'/>";
+			switchLedger = "education";
+			ledgerChange(true);
+		}else if($(this).children('option:selected').text()=='科技文本信息'){
+			$("#buildType").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@SCIENCE_BUILD_TYPE' />");
+			$("#projectCategory").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@SCIENCE_PROJECT' />");
+			ledger = "<s:property value='@com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_SCIENCE'/>";
+			switchLedger = "science";
+		}else if($(this).children('option:selected').text()=='医疗卫生信息'){
+			$("#buildType").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@MEDICAL_BUILD_TYPE' />");
+			$("#projectCategory").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@MEDICAL_PROJECT' />");
+			ledger = "<s:property value='@com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_MEDICAL'/>";
+			switchLedger = "medical";
+			ledgerChange(true);
+		}else if($(this).children('option:selected').text()=='劳动和社会保障信息'){
+			$("#buildType").empty();
+			$("#projectCategory").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@LABOR_PROJECT' />");
+			ledger = "<s:property value='@com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_LABOR'/>";
+			switchLedger = "labor";
+			ledgerChange(false);
+		}else if($(this).children('option:selected').text()=='环境保护信息'){
+			$("#buildType").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@ENVIRONMENT_BUILD_TYPE' />");
+			$("#projectCategory").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@ENVIRONMENT_PROJECT' />");
+			ledger = "<s:property value='@com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_ENVIRONMENT'/>";
+			switchLedger = "environment";
+			ledgerChange(true);
+		}else if($(this).children('option:selected').text()=='城乡规划建设管理信息'){
+			$("#buildType").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@TOWN_PROJECT_BUILD_TYPE' />");
+			$("#projectCategory").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@TOWN_PROJECT' />");
+			ledger = "<s:property value='@com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_TOWN'/>";
+			switchLedger = "town";
+			ledgerChange(true);
+		}else if($(this).children('option:selected').text()=='农业信息'){
+			$("#buildType").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@AGRICULTURE_PROJECT_BUILD_TYPE' />");
+			$("#projectCategory").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@AGRICULTURE_PROJECT' />");
+			ledger = "<s:property value='@com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_AGRICULTURE'/>";
+			switchLedger = "agriculture";
+			ledgerChange(true);
+		}else if($(this).children('option:selected').text()=='其它信息'){
+			$("#buildType").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@LEDGER_OTHER_BUILD_TYPE' />");
+			$("#projectCategory").html("<pop:OptionTag name='@com.tianque.plugin.account.property.PropertyTypes@OTHER_PROJECT' />");
+			ledger = "<s:property value='@com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_OTHER'/>";
+			switchLedger = "other";
+			ledgerChange(true);
+		}else{
+			ledger = -1;
+		}
+	selectPeopleChange("");
+});
+
+function ledgerChange(isShow){
+	if(isShow){
+		$("#isGtLt").show();
+		$("#isLabor").show();
+	}else{
+		$("#isGtLt").hide();
+		$("#isLabor").hide();
+	}
+}
+
+function doneTypeChange(){
+	if($('#doneType').children('option:selected').text().indexOf('待办')>-1){
+		doneType = "need";
+	}else if($('#doneType').children('option:selected').text().indexOf('程序性办结')>-1){
+		doneType = "done";
+	}else if($('#doneType').children('option:selected').text().indexOf('阶段性办结')>-1){
+		doneType = "period";
+	}else if($('#doneType').children('option:selected').text().indexOf('实质性办结')>-1){
+		doneType = "completed";
+	}else if($('#doneType').children('option:selected').text().indexOf('已办')>-1){
+		doneType = "createAndDone";
+	}else if($('#doneType').children('option:selected').text().indexOf('待反馈')>-1){
+		doneType = "feedback";
+	}else if($('#doneType').children('option:selected').text().indexOf('上级交办')>-1){
+		doneType = "assign";
+	}else if($('#doneType').children('option:selected').text().indexOf('上报')>-1){
+		doneType = "submit";
+	}else if($('#doneType').children('option:selected').text().indexOf('协办')>-1){
+		doneType = "support";
+	}else if($('#doneType').children('option:selected').text().indexOf('抄告')>-1){
+		doneType = "notice";
+	}else{
+		doneType = "all";
+	}
+}
+
+function detailDoneType(){
+	if($('#doneType').children('option:selected').text().indexOf('程序性办结')>-1){
+		$("#detailDoneType").show();
+			$("#detailDoneType").html("<option><s:property value='@com.tianque.plugin.account.constants.CompleteType@ALL_QUERY'/></option>"+
+			"<option><s:property value='@com.tianque.plugin.account.constants.CompleteType@POLICYSOLUTION_NAME'/></option>"+
+					"<option><s:property value='@com.tianque.plugin.account.constants.CompleteType@ITEM_NAME'/></option>"+
+					"<option><s:property value='@com.tianque.plugin.account.constants.CompleteType@OTHERS_NAME'/></option>");
+	}else if($('#doneType').children('option:selected').text().indexOf('阶段性办结')>-1){
+		$("#detailDoneType").show();
+			$("#detailDoneType").html("<option><s:property value='@com.tianque.plugin.account.constants.CompleteType@ALL_QUERY'/></option>"+
+			"<option><s:property value='@com.tianque.plugin.account.constants.CompleteType@IMPLEMENT_PROJECT_NAME'/></option>"+
+					"<option><s:property value='@com.tianque.plugin.account.constants.CompleteType@INTEGRATE_PROJECT_NAME'/></option>");
+	}else if($('#doneType').children('option:selected').text().indexOf('实质性办结')>-1){
+		$("#detailDoneType").show();
+			$("#detailDoneType").html("<option><s:property value='@com.tianque.plugin.account.constants.CompleteType@ALL_QUERY'/></option>"+
+			"<option><s:property value='@com.tianque.plugin.account.constants.CompleteType@QUESTIONEND_NAME'/></option>"+
+					"<option><s:property value='@com.tianque.plugin.account.constants.CompleteType@REALCOMPLETE_NAME'/></option>");
+	}else{
+		$("#detailDoneType").hide();
+		$("#detailDoneType").empty();
+	}
+}
+
+var orgTree;
+$(document).ready(function(){
+	initPeopleAspirationGrid();
+	function initOccurOrgSelector() {
+        var orgLevelId = $("#jurisdictionsOrgLevel").val();
+        var orgFuntionalTypeId = $("#jurisdictionsFunctionalOrgType").val();
+        var orgId;
+        if(${isOpen}){
+        	orgId = ${userParentOrgId};
+        }else{
+        	orgId = $("#jurisdictionsKeyId").val();
+        }
+        orgTree = $("#fastSearchIssueOrg").treeSelect({
+            nodeUrl: '/sysadmin/orgManage/ajaxOrgsForExtTreeByLevel.action?orgFuntionalTypeId=' + orgFuntionalTypeId + '&orgLevelInternalId=' + orgLevelId,
+            allOrg: false,
+            isRootSelected: false,
+            emptyText: '请选择组织机构',
+            isFuncDep:true,
+            rootId: orgId
+        });
+        orgTree.on("click", function (node, e) {
+            if (node != null) {
+                var nodeId = node.attributes.id;
+                $("#selectNodeId").val(nodeId);
+            }
+        });
+    }
+    initOccurOrgSelector();
+});
+
+function getSelectedData(){
+	var selectedId = $("#peopleIssueList").getGridParam("selrow"); 
+	return $("#peopleIssueList").getRowData(selectedId);
+}
+function hasRowSelected(){
+	if(null != $("#peopleIssueList").getGridParam("selrow")){
+		return true;
+	}
+	return false;
+}
+
+function viewIssue(){
+	if (hasRowSelected()){
+		var selectedIssue = getSelectedData();
+		$("#issueDialog").createDialog({
+			width: 880,
+			height: 500,
+			title: "查看民生信息详情",
+			url: "${path}/threeRecords/" + switchLedger + "/dispatch.action?mode=viewNew&keyId="+selectedIssue.encryptIdByIssueId,
+			buttons: {
+		   		"关闭" : function(){
+		        	$(this).dialog("close");
+		   		}
+			}
+		});
+	}else{
+		$.messageBox({level:'warn',message:"没有可查看的数据！"});
+		return;
+	}
+}
+
+$("#moreSelect").click(function (event) {
+	var orgId =  $("#selectNodeId").val();
+	if (orgId == "") {
+        $.messageBox({level: 'warn', message: "请选择组织机构！"});
+        return;
+    }
+    $("#moreSelectDialog").createDialog({
+        width: 600,
+        height: 300,
+        title: "下辖组织机构多选",
+        url: "/threeRecords/peopleaspirationComprehensive/moreSelect.action?mode=search&orgId=" + orgId,
+        buttons: {
+            "确定": function (event) {
+            	var orgIds = fillOrgInputer();
+            	selectPeopleChange(orgIds.join());
+            	$(this).dialog("close");
+            },
+            "关闭": function () {
+                $(this).dialog("close");
+            }
+        }
+    });
+});
+
+function initPeopleAspirationGrid(){
+	$("#peopleIssueList").jqGridFunction({
+		datatype: "local",
+		sortname: 'issueId',
+		sortorder: "desc",
+		colNames:['issueId','issueStepId','encryptIdByIssueId','encryptIdByIssueStepId','publicltycass','earingWarn',
+		          'supervisionState','urgent','编号','反映人姓名','主要诉求','联系电话','类型'
+		          ,'状态','反馈时间','createOrg.id','targetOrg.id','承办部门','反馈部门','最后处理时间'
+		         ],
+		colModel:[
+			{name:'issueId',frozen:true,hidden:true,hidedlg:true},
+			{name:'issueStepId',frozen:true,hidden:true,hidedlg:true,key:true},
+			{name:"encryptIdByIssueId",index:'id',frozen:true,frozen:true,hidden:true,hidedlg:true},
+			{name:"encryptIdByIssueStepId",index:'id',frozen:true,frozen:true,hidden:true,hidedlg:true},
+			{name:'publicltycass',frozen:true,hidden:true,hidedlg:true},
+			{name:'earingWarn',frozen:true,hidden:true,hidedlg:true},
+			{name:'supervisionState',index:'superviselevel',frozen:true,hidden:true,hidedlg:true},
+			{name:'urgent',index:'lpa.urgent',frozen:true,hidden:true,hidedlg:true},
+			{name:'serialNumber',index:'lpa.serialNumber',sortable:true},
+			{name:'name',index:'lpa.name',sortable:true},
+			{name:'appealContent',index:'lpa.appealContent',sortable:false},
+			{name:'mobileNumber',index:'lpa.mobileNumber',sortable:true},
+			{name:'createTableType',index:'lpa.createTableType',sortable:true,formatter:createTableTypeFormatter},
+			{name:'status',index:'lpa.status',frozen:true,hidden:true,hidedlg:true},
+			{name:'occurDate',index:'lpa.occurDate',sortable:true},
+			{name:'createOrg.id',index:'createOrg.id',frozen:true,hidden:true,hidedlg:true},
+			{name:'targetOrg.id',index:'targetOrg.id',frozen:true,hidden:true,hidedlg:true},
+			{name:'targetOrg.orgName',index:'targetOrg',sortable:true},
+			{name:'occurOrg.orgName',index:'occurOrg',sortable:true,width:200},
+			{name:'dealTime',index:'lastdealdate',sortable:true,width:100}
+		],
+		loadComplete: function(){
+			var count=$("#peopleIssueList").getGridParam("records");
+			$("#tabList li[aria-selected=true]").find(".countTip").html(count);
+		},
+		multiselect:false,
+		showColModelButton:true,
+		ondblClickRow:viewIssue
+	});
+}
+</script>

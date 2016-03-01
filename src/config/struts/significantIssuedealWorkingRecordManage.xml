@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="significantIssuedealWorkingRecordManage" extends="default"
+		namespace="/workingRecord/significantIssuedealWorkingRecordManage">
+		<default-class-ref class="significantIssuedealWorkingRecordController"></default-class-ref>
+		<action name="addSignificantIssuedealWorkingRecord" method="addSignificantIssuedealWorkingRecord">
+			<result type="json">
+				<param name="root">significantIssuedealWorkingRecord</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="findSignificantIssuedealsByInvestigationDate" method="findSignificantIssuedealsByInvestigationDate">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="updateSignificantIssuedealWorkingRecord" method="updateSignificantIssuedealWorkingRecord">
+			<result type="json">
+				<param name="root">significantIssuedealWorkingRecord</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="deleteSignificantIssuedealWorkingRecord" method="deleteSignificantIssuedealWorkingRecord">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<action name="significantIssuedealWorkingRecordList" method="significantIssuedealWorkingRecordList">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/workingRecord/singificantIssueseal/maintainSingificantIssuesealDlg.jsp
+			</result>
+			<result name="search">
+			/workingRecord/singificantIssueseal/filterSingificantIssuesealDlg.jsp
+			</result>
+			<result name="print">
+				/workingRecord/singificantIssueseal/singificantIssuesealDlgPrint.jsp
+			</result>
+			<result name="back">
+				/workingRecord/singificantIssueseal/backSingificantIssuesealBackDlg.jsp
+			</result>
+		</action>
+		<action name="reportedSignificantIssuedealById" method="reportedSignificantIssuedealById">
+			<result name="success" type="json">
+				<param name="root">significantIssuedeal</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="backSignificantIssuedeal" method="backSignificantIssuedeal">
+			<result name="success" type="json">
+				<param name="root">deleteSuccess</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="findSingificantIssuesealsForPrint" method="findSingificantIssuesealsForPrint">
+			<result name="success">
+				/workingRecord/singificantIssueseal/significantIssuedealListForPrint.jsp
+			</result>
+		</action>
+
+	</package>
+</struts>

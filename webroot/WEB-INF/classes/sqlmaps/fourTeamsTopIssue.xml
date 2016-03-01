@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="fourTeamsTopIssue">
+	<!-- 注释说明 -->
+	<typeAlias alias="fourTeamsTopIssue" type="com.tianque.fourTeams.fourTeamsIssue.domain.FourTeamsTopIssue" />
+		
+	<resultMap class="fourTeamsTopIssue" id="topIssueResult">
+		<result property="id" column="id"/>
+		<result property="issueId" column="issueId"/>
+		<result property="orgId" column="orgId"/>
+		<result property="issueTag" column="issueTag"/>
+		<result property="topState" column="topState"/>
+		<result property="topDate" column="topDate"/>
+	</resultMap>
+
+	<insert id="addTopIssue" parameterClass="fourTeamsTopIssue">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_topIssues.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		topIssues(id,issueId,orgId,issueTag,topState,topDate)
+		VALUES(#id#,#issueId#,#orgId#,#issueTag#,#topState#,#topDate#)
+	</insert>
+	
+	<update id="updateTopIssue" parameterClass="fourTeamsTopIssue"> 
+		update topIssues set 
+			topState =#topState#,
+			topDate =#topDate#
+		where issueId=#issueId# 
+		and issueTag = #issueTag# 
+		and orgId = #orgId#
+	</update>
+	
+	<select id="getTopIssue" parameterClass="fourTeamsTopIssue" resultMap="topIssueResult">
+		select * from topIssues where issueId=#issueId# 
+		and issueTag = #issueTag# 
+		and orgId = #orgId#
+	</select>
+	
+	<select id="getTopIssueById" parameterClass="long" resultMap="topIssueResult">
+		select * from topIssues where id=#value#
+	</select>
+	
+	<delete id="deleteTopIssueById">
+		delete from topIssues where id = #value#
+	</delete>
+	
+	
+</sqlMap>

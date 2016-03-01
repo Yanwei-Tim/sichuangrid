@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="locationTempBaseDomain">
+	<typeAlias alias="LocationTempBaseDomain" type="com.tianque.plugin.dataManage.location.base.domain.LocationTempBaseDomain" />
+	<typeAlias alias="AllPlaceCommonTemp" type="com.tianque.plugin.dataManage.location.allPlaceCommonTemp.domain.AllPlaceCommonTemp" />
+	<typeAlias alias="PlaceCommonTemp" type="com.tianque.plugin.dataManage.location.placeCommon.domain.PlaceCommonTemp" />
+	
+	<resultMap id="locationTempBaseDomainResultForBase" class="LocationTempBaseDomain" >
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="name" column="name"/>
+		<result property="address" column="address"/>
+		<result column="manager" property="manager" />
+		<result column="remark" property="remark" />
+		<!--<result property="isEmphasis" column="isEmphasis"/>
+		<result column="repeatstate" property="repeatstate" />  -->
+	
+		<!--以下属性为所有类所共有，原本是在baseDomainSql.xml中写的，这里直接写在这里  -->
+		<result property="id" column="id" nullValue="0"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+   
+	 
+	<sql id="updateLocationTempBaseInfo">
+		updateUser = #updateUser#
+		,updateDate = #updateDate#
+		,name = #name#
+		,address = #address#
+		,manager = #manager#
+		,remark = #remark#
+	</sql>
+	
+	
+	<resultMap id="allPlaceCommonTempResultForBase" class="AllPlaceCommonTemp" extends="locationTempBaseDomain.locationTempBaseDomainResultForBase">
+	</resultMap>
+	
+		
+	<resultMap id="placeCommonTempResultForBase" class="PlaceCommonTemp" extends="locationTempBaseDomain.locationTempBaseDomainResultForBase">
+		<result column="attentionExtent" property="attentionExtent.id"/>
+		
+	</resultMap>
+</sqlMap>

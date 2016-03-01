@@ -1,0 +1,501 @@
+package com.tianque.baseInfo.druggy.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Actions;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.base.controller.PopulationControllerAdapter;
+import com.tianque.baseInfo.druggy.domain.Druggy;
+import com.tianque.baseInfo.druggy.service.DruggyService;
+import com.tianque.controller.ControllerHelper;
+import com.tianque.controller.annotation.EncryptAnnotation;
+import com.tianque.controller.annotation.PermissionFilter;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.vo.GridPage;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+/**
+ * 吸毒人员控制类。
+ */
+@Namespace("/baseinfo/druggyManage")
+@Transactional
+@Scope("request")
+@Controller("druggyController")
+public class DruggyController extends PopulationControllerAdapter<Druggy> {
+
+	private static Logger logger = LoggerFactory
+			.getLogger(DruggyController.class);
+
+	private Druggy population;
+
+	@Autowired
+	private DruggyService druggyService;
+
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+
+	private String supervisorName;// 监管人员名称
+	private String populationType;// 人员类型名称
+
+	@Actions({
+			@Action(value = "dispatchOperate", results = {
+					@Result(name = "success", location = "/baseinfo/commonPopulation/commonPopulationDlg.jsp"),
+					@Result(name = "search", location = "/baseinfo/druggyManage/searchDruggyDlg.jsp"),
+					// @Result(name = "print", location =
+					// "/baseinfo/druggyManage/maintainDruggyPrintDlg.jsp"),
+					@Result(name = "print", location = "/baseinfo/commonPopulation/printTabPreviewDlg.jsp"),
+					@Result(name = "view", location = "/baseinfo/druggyManage/druggyViewDlg.jsp"),
+					@Result(name = "statistic", location = "/baseinfo/druggyManage/druggyManageListForStatistics.jsp"),
+					@Result(name = "error", type = "json", params = { "root",
+							"errorMessage" }) }),
+			@Action(value = "dispatchOperateForGis", results = {
+					@Result(name = "view", location = "/baseinfo/druggyManage/druggyViewDlg_gis.jsp"),
+					@Result(name = "error", type = "json", params = { "root",
+							"errorMessage" }) }) })
+	public String dispatchOperate() throws Exception {
+		actionName = "maintainDruggyBaseInfo";
+		ajaxUrl = "hasDuplicateDruggyPopulation";
+		population = dispathBaseInfo(population);
+		return getRetunString();
+	}
+
+	@EncryptAnnotation
+	@Actions({ @Action(value = "dispatchOperateByEncrypt", results = {
+			@Result(name = "success", location = "/baseinfo/commonPopulation/commonPopulationDlg.jsp"),
+			@Result(name = "search", location = "/baseinfo/druggyManage/searchDruggyDlg.jsp"),
+			@Result(name = "print", location = "/baseinfo/commonPopulation/printTabPreviewDlg.jsp"),
+			@Result(name = "view", location = "/baseinfo/druggyManage/druggyViewDlg.jsp"),
+			@Result(name = "statistic", location = "/baseinfo/druggyManage/druggyManageListForStatistics.jsp"),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) }) })
+	public String dispatchOperateByEncrypt() throws Exception {
+		actionName = "maintainDruggyBaseInfo";
+		ajaxUrl = "hasDuplicateDruggyPopulation";
+		population = dispathBaseInfo(population);
+		return getRetunString();
+	}
+
+	@Override
+	protected Druggy getPopulationFetchOrgById(Long id) {
+		Druggy population = druggyService.getDruggyById(id);
+		population.getOrganization().setOrgName(
+				ControllerHelper.getOrganizationRelativeName(population
+						.getOrganization().getId(), organizationDubboService));
+		return population;
+	}
+
+	@PermissionFilter(ename = "addDruggy")
+	@Action(value = "maintainDruggyBaseInfo", results = {
+			@Result(name = "addcache", type = "json", params = { "root",
+					"cacheId", "ignoreHierarchy", "false" }),
+			@Result(name = "success", type = "json", params = { "root",
+					"population", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String maintainBaseInfo() throws Exception {
+		if (null != population && null != population.getId()) {
+			population = druggyService.updateDruggyBaseInfo(population);
+		} else {
+			population = druggyService.addDruggyBaseInfo(population);
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "dispatchDruggyBusiness", results = {
+			@Result(name = "success", location = "/baseinfo/druggyManage/druggyBusiness.jsp"),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String dispatchBusiness() throws Exception {
+		if (null != id) {
+			population = getPopulationFetchOrgById(id);
+		}
+		return SUCCESS;
+	}
+
+	/**
+	 * 新增吸毒人员
+	 * 
+	 * @return SUCCESS
+	 */
+	@Action(value = "updateDruggyBusiness", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"population", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String maintainBusinessInfo() throws Exception {
+		population = druggyService.updateDruggyBusiness(population);
+		return SUCCESS;
+	}
+
+	@Action(value = "addDruggyForMobile", results = { @Result(name = "success", type = "json", params = {
+			"root", "population", "ignoreHierarchy", "false",
+			"excludeNullProperties", "true" }) })
+	public String addDruggyForMobile() throws Exception {
+		population = druggyService.addDruggyForMobile(population);
+		return SUCCESS;
+	}
+
+	@Action(value = "updateDruggy", results = { @Result(name = "success", type = "json", params = {
+			"root", "population", "ignoreHierarchy", "false",
+			"excludeNullProperties", "true" }) })
+	public String updateDruggy() throws Exception {
+		population = druggyService.updateDruggy(population);
+		return SUCCESS;
+	}
+
+	@Action(value = "hasDuplicateDruggyPopulation", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"hasDuplicatePopulation" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String hasDuplicatePopulation() throws Exception {
+		if (organizationId == null) {
+			errorMessage = "组织机构ID不能为空";
+			return ERROR;
+		}
+		hasDuplicatePopulation = druggyService.hasDuplicateDruggy(
+				organizationId, population.getIdCardNo(), population.getId());
+		return SUCCESS;
+	}
+
+	@Action(value = "hasDuplicateResultDruggyPopulation", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"hasDuplicatePopulation" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String hasDuplicateResultPopulation() throws Exception {
+		if (organizationId == null) {
+			errorMessage = "组织机构ID不能为空";
+			return ERROR;
+		}
+		population = druggyService.hasDuplicateDruggy(organizationId,
+				population.getIdCardNo());
+		if (population != null) {
+			if (population.getSourcesState() != 1) {
+				hasDuplicatePopulation = true;
+			}
+		}
+		return SUCCESS;
+	}
+
+	/**
+	 * 根据网格内置编码分页查询吸毒人员
+	 * 
+	 * @return SUCCESS
+	 */
+	@Action(value = "druggyList", results = {
+			@Result(type = "json", name = "success", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findGridPageByOrgIdAndIsEmphasis() throws Exception {
+		if (organizationId == null) {
+			gridPage = new GridPage(emptyPage(rows));
+		} else {
+			gridPage = new GridPage(ControllerHelper.processAllOrgRelativeName(
+					druggyService.findDruggyForPageByOrgInternalCode(
+							organizationId, page, rows, sidx, sord,
+							population.getIsEmphasis()), organizationDubboService,
+					new String[] { "organization" }, organizationId));
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "findDruggyByIdCardNoAndOrgId", results = {
+			@Result(type = "json", name = "success", params = { "root",
+					"population", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findDruggyByIdCardNoAndOrgId() throws Exception {
+		population = druggyService.getDruggyByIdCardNo(
+				population.getIdCardNo(), organizationId);
+		return SUCCESS;
+	}
+
+	private List<Long> initTargetId(String[] targetIds, int size) {
+		List<Long> idLongs = new ArrayList<Long>();
+		for (int i = size; i < targetIds.length; i++) {
+			String tempId = targetIds[i];
+			if (size == 0) {
+				idLongs.add(Long.parseLong(targetIds[i]));
+			} else {
+				idLongs.add(Long.parseLong(tempId));
+			}
+		}
+		return idLongs;
+	}
+
+	/**
+	 * 删除吸毒人员
+	 * 
+	 * @return SUCCESS
+	 */
+	@EncryptAnnotation
+	@PermissionFilter(ename = "deleteDruggy")
+	@Action(value = "deleteDruggyByIds", results = {
+			@Result(name = "success", type = "json", params = { "root", "true",
+					"excludeNullProperties", "true", "excludeNullProperties",
+					"true" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String deleteByIds() throws Exception {
+		druggyService.deleteDruggyByIds(analyzePopulationIds());
+		return SUCCESS;
+	}
+
+	private Long[] analyzePopulationIds() {
+		String[] deleteId = populationIds.split(",");
+		List<Long> idList;
+		if (deleteId[0].equals("")) {
+			idList = initTargetId(deleteId, 1);
+		} else {
+			idList = initTargetId(deleteId, 0);
+		}
+		Long[] ids = new Long[idList.size()];
+		for (int i = 0; i < ids.length; i++) {
+			ids[i] = idList.get(i);
+		}
+		return ids;
+	}
+
+	/**
+	 * 根据ID获取吸毒人员
+	 * 
+	 * @return SUCCESS
+	 */
+	@EncryptAnnotation
+	@Actions({
+			@Action(value = "viewCommonPopulation", results = { @Result(name = "success", location = "/baseinfo/commonPopulation/viewCommonPopulation.jsp") }),
+			@Action(value = "viewDruggy", results = {
+					@Result(name = "success", location = "/baseinfo/druggyManage/druggyView.jsp"),
+					@Result(name = "error", type = "json", params = { "root",
+							"errorMessage" }) }),
+			@Action(value = "getDruggyByIdForMobile", results = {
+					@Result(name = "success", type = "json", params = { "root",
+							"population", "ignoreHierarchy", "false",
+							"excludeNullProperties", "true" }),
+					@Result(name = "error", type = "json", params = { "root",
+							"errorMessage" }) }) })
+	public String viewInfo() throws Exception {
+		if (population != null && population.getId() != null) {
+			population = druggyService.getDruggyById(population.getId());
+			population.getOrganization().setOrgName(
+					ControllerHelper.getOrganizationRelativeName(population
+							.getOrganization().getId(), organizationDubboService));
+		}
+		// 拆分图片路径字符串
+		if (null != population && null != population.getImgUrl()) {
+			String[] value = population.getImgUrl().split(",");
+			population.setImgUrl(value[0]);
+		}
+		return SUCCESS;
+	}
+
+	private PageInfo<Druggy> emptyPage(int pageSize) {
+		PageInfo<Druggy> pageInfo = new PageInfo<Druggy>();
+		pageInfo.setTotalRowSize(0);
+		pageInfo.setCurrentPage(0);
+		pageInfo.setPerPageSize(pageSize);
+		pageInfo.setResult(new ArrayList<Druggy>());
+		return pageInfo;
+	}
+
+	@Action(value = "updateEmphasiseById", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"populationIdList", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String updateEmphasiseById() throws Exception {
+		populationIdList = druggyService
+				.updateLogOutDetailAndCountByPopulationTypeAndIds(orgId,
+						population.getLogoutDetail(),
+						BaseInfoTables.DRUGGY_KEY, analyzePopulationIds());
+		return SUCCESS;
+	}
+
+	/**
+	 * ID加密 关注
+	 * 
+	 * @return
+	 */
+	@EncryptAnnotation
+	@Action(value = "updateEmphasiseByEncryptId", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"populationIdList", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String updateEmphasiseByEncryptId() throws Exception {
+		populationIdList = druggyService
+				.updateLogOutDetailAndCountByPopulationTypeAndIds(orgId,
+						population.getLogoutDetail(),
+						BaseInfoTables.DRUGGY_KEY, analyzePopulationIds());
+		return SUCCESS;
+	}
+
+	@Action(value = "updateDeathByIds", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"populations", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String updateDeathByIds() throws Exception {
+		populations = druggyService.updateDeathByIds(analyzePopulationIds(),
+				population.isDeath());
+		return SUCCESS;
+	}
+
+	/**
+	 * ID加密 取消死亡
+	 * 
+	 * @return
+	 */
+	@EncryptAnnotation
+	@Action(value = "updateDeathByEncryptIds", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"populations", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String updateDeathByEncryptIds() throws Exception {
+		populations = druggyService.updateDeathByIds(analyzePopulationIds(),
+				population.isDeath());
+		return SUCCESS;
+	}
+
+	public Druggy getPopulation() {
+		return population;
+	}
+
+	public void setPopulation(Druggy population) {
+		this.population = population;
+	}
+
+	public String getSupervisorName() {
+		return supervisorName;
+	}
+
+	public void setSupervisorName(String supervisorName) {
+		this.supervisorName = supervisorName;
+	}
+
+	public String getPopulationType() {
+		return populationType;
+	}
+
+	public void setPopulationType(String populationType) {
+		this.populationType = populationType;
+	}
+
+	// fateson add 数据转移操作
+	// current org id
+	private Long orgId;
+	Long targetOrgId;
+	private String currentClassName = "";
+	private Organization organization = null;
+	// need move peoples id
+	String ids = "";
+
+	public String getIds() {
+		return ids;
+	}
+
+	public void setIds(String ids) {
+		this.ids = ids;
+	}
+
+	public Organization getOrganization() {
+		return organization;
+	}
+
+	public void setOrganization(Organization organization) {
+		this.organization = organization;
+	}
+
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+	public String getCurrentClassName() {
+		return currentClassName;
+	}
+
+	public void setCurrentClassName(String currentClassName) {
+		this.currentClassName = currentClassName;
+	}
+
+	public Long getTargetOrgId() {
+		return targetOrgId;
+	}
+
+	public void setTargetOrgId(Long targetOrgId) {
+		this.targetOrgId = targetOrgId;
+	}
+
+	@Action(value = "shiftDispatch", results = {
+			@Result(name = "success", location = "/common/shiftTree.jsp"),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String shiftDispatch() throws Exception {
+
+		if (orgId == null) {
+			errorMessage = "组织机构不能为空";
+			return ERROR;
+		}
+		organization = organizationDubboService.getSimpleOrgById(orgId);
+		if (StringUtils.isBlank(currentClassName)) {
+			errorMessage = "系统忙";
+			logger.error("deal shiftDispatch occur Error，currentClassName is empty");
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	String SEPARATOR = ".";
+
+	/**
+	 * 数据转移操作
+	 * 
+	 * @return
+	 */
+
+	@Action(value = "shiftPerson", results = {
+			@Result(name = "success", type = "json", params = {}),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String shiftPerson() throws Exception {
+		if (ids.equals("")) {
+			errorMessage = "请选择要转移的数据";
+			return ERROR;
+		}
+
+		if (orgId == 0 || targetOrgId == 0) {
+			errorMessage = "请选择组织机构";
+			return ERROR;
+		}
+
+		if (targetOrgId.equals(orgId)) {
+			errorMessage = "请选择其他组织机构";
+			return ERROR;
+		}
+
+		String[] moveids = ids.split(",");
+		druggyService.moveTempByIds(moveids, targetOrgId);
+		return SUCCESS;
+	}
+
+}

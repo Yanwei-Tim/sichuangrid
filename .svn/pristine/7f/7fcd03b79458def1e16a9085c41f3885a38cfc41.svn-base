@@ -1,0 +1,871 @@
+package com.tianque.baseInfo.druggy.service;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.actualHouse.domain.HouseInfo;
+import com.tianque.baseInfo.actualHouse.service.ActualHouseService;
+import com.tianque.baseInfo.base.domain.ActualPopulation;
+import com.tianque.baseInfo.base.domain.AttentionPopulation;
+import com.tianque.baseInfo.base.domain.Countrymen;
+import com.tianque.baseInfo.base.domain.LogoutDetail;
+import com.tianque.baseInfo.base.helper.CardNoHelper;
+import com.tianque.baseInfo.base.service.BaseInfoPopulationTemplateImpl;
+import com.tianque.baseInfo.base.service.BaseInfoService;
+import com.tianque.baseInfo.base.service.PopulationRelationService;
+import com.tianque.baseInfo.druggy.dao.DruggyDao;
+import com.tianque.baseInfo.druggy.domain.Druggy;
+import com.tianque.cache.PageInfoCacheHelper;
+import com.tianque.cache.PageInfoCacheThreadLocal;
+import com.tianque.cache.UpdateType;
+import com.tianque.core.cache.constant.MemCacheConstant;
+import com.tianque.core.datatransfer.ExcelImportHelper;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.Chinese2pinyin;
+import com.tianque.core.util.NewBaseInfoTables;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.service.HousePopulationMaintanceService;
+import com.tianque.service.IssueTypeService;
+import com.tianque.service.PopulationProccessorService;
+import com.tianque.service.helper.ManagePopulationByHouseHelper;
+import com.tianque.service.util.PopulationCatalog;
+import com.tianque.service.util.PopulationType;
+import com.tianque.service.vo.IsEmphasis;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.util.Arrays;
+import com.tianque.util.IdCardUtil;
+import com.tianque.util.PluginServiceHelpUtil;
+import com.tianque.validate.AbstractCountrymenValidator;
+
+@Service("druggyService")
+@Transactional
+public class DruggyServiceImpl extends BaseInfoPopulationTemplateImpl implements
+		DruggyService, PopulationProccessorService {
+
+	private static final String CACHE_ADDDRUGGY_VALUE = "CACHE_ADDDRUGGY";
+	private static final String CACHE_ADDDRUGGYBASEINFO_VALUE = "CACHE_ADDDRUGGYBASEINFO";
+	private static final String CACHE_ADDDRUGGYFORMOBILE_VALUE = "CACHE_ADDDRUGGYFORMOBILE";
+
+	@Qualifier("druggyValidator")
+	@Autowired
+	private AbstractCountrymenValidator<Druggy> validator;
+	@Autowired
+	private DruggyDao druggyDao;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private IssueTypeService issueTypeService;
+	@Autowired
+	private PropertyDictService propertyDictService;
+	@Autowired
+	private ActualHouseService actualHouseService;
+	@Autowired
+	private ManagePopulationByHouseHelper managePopulationByHouseHelper;
+	@Autowired
+	private HousePopulationMaintanceService housePopulationMaintanceService;
+	@Autowired
+	private PopulationRelationService populationRelationService;
+	@Autowired
+	private BaseInfoService baseInfoService;
+	// @Autowired
+	// private CacheService cacheService;
+
+	@Autowired
+	private PageInfoCacheHelper pageInfoCacheHelper;
+
+	@Resource(name = "druggyDao")
+	public void setBaseInfoPopulationBaseDao(DruggyDao druggyDao) {
+		super.setBaseInfoPopulationBaseDao(druggyDao);
+	}
+
+	@Override
+	public Druggy addDruggy(Druggy druggy) {
+		if (!ExcelImportHelper.isImport.get()) {
+			druggyValidator(druggy);
+		}
+		try {
+			if (checkDataExitInCache(druggy, MemCacheConstant.CACHE_ADDDRUGGY,
+					CACHE_ADDDRUGGY_VALUE)) {
+				return druggy;
+			}
+			return add(druggy);
+		} catch (Exception e) {
+			logger.error("DruggyServiceImpl addDruggy", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(druggy, MemCacheConstant.CACHE_ADDDRUGGY);
+		}
+	}
+
+	/**
+	 * 添加吸毒人员
+	 * 
+	 * @param druggy
+	 *            吸毒人员对象
+	 * @return druggy 吸毒人员对象
+	 */
+	public Druggy addDruggyForMobile(Druggy druggy) {
+		if (!ExcelImportHelper.isImport.get()) {
+			druggyValidatorForMobile(druggy);
+		}
+		try {
+			if (checkDataExitInCache(druggy,
+					MemCacheConstant.CACHE_ADDDRUGGYFORMOBILE,
+					CACHE_ADDDRUGGYFORMOBILE_VALUE)) {
+				return druggy;
+			}
+			return add(druggy);
+		} catch (Exception e) {
+			logger.error("DruggyServiceImpl addDruggyForMobile", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(druggy, MemCacheConstant.CACHE_ADDDRUGGYFORMOBILE);
+		}
+	}
+
+	private Druggy add(Druggy druggy) {
+		autoFilled(druggy);
+		autoIsDeath(druggy);
+		contructCurrentAddress(druggy);
+		try {
+			Countrymen temp = populationRelationService.businessOption(druggy,
+					druggy.getActualPopulationType());
+			druggy.setBaseInfoId(temp.getBaseInfoId());
+			druggy.setAddressInfoId(temp.getAddressInfoId());
+			druggy.setSourcesState(null);
+			druggy = druggyDao.add(druggy);
+			populationRelationService.addPopulationRelation(temp.getId(),
+					druggy.getActualPopulationType(), druggy.getId(),
+					BaseInfoTables.DRUGGY_KEY);
+			druggy.setHouseId(temp.getHouseId());
+			rebuildHouseAddress(druggy);
+			
+			if (IsEmphasis.Emphasis.equals(druggy.getIsEmphasis())) {
+				// 缓存计数器
+				PageInfoCacheThreadLocal.increment(MemCacheConstant
+						.getCachePageKey(Druggy.class.getSimpleName()), druggy, 1);
+			}
+			return druggy;
+		} catch (Exception e) {
+			logger.error("类DruggyServiceImpl的addDruggy方法出现异常，原因：", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增吸毒人员信息出现错误");
+			} else {
+				return null;
+			}
+		}
+	}
+
+	/**
+	 * 如果人口的房屋信息（CurrentAddress）不为空，并且房屋id不存在，新增一个房屋，并且建立关联关系, 如果房屋id不为空直接建立关联关系
+	 * 如果房屋信息为空,并且有房屋id不为空，则删除人房关系
+	 * 
+	 * @param householdStaff
+	 */
+	private void rebuildHouseAddress(Druggy householdStaff) {
+
+		if (householdStaff.getIsHaveHouse() != null
+				&& householdStaff.getIsHaveHouse()
+				&& householdStaff.getCurrentAddress() != null) {
+
+			if (null == householdStaff.getHouseId()
+					|| householdStaff.getHouseId().equals(01L)) {
+				// 新增一个实有房屋,并且建立人房关系
+				HouseInfo houseInfo = new HouseInfo();
+				houseInfo.setAddress(householdStaff.getCurrentAddress());
+				houseInfo.setAddressType(propertyDictService
+						.findPropertyDictByDomainNameAndDictDisplayName(
+								PropertyTypes.CURRENT_ADDRESS_TYPE, "其他"));
+				houseInfo.setOrganization(householdStaff.getOrganization());
+				houseInfo.setHouseOperateSource(NewBaseInfoTables.DRUGGY_KEY);
+				houseInfo = actualHouseService.addHouseInfo(houseInfo);
+
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.DRUGGY, householdStaff,
+						houseInfo.getId());
+			} else if (householdStaff.getHouseId() != null) {
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.DRUGGY, householdStaff,
+						householdStaff.getHouseId());
+			}
+		} else {
+			housePopulationMaintanceService.releaseHouse(
+					PopulationCatalog.DRUGGY, householdStaff.getId(),
+					householdStaff.getHouseId());
+		}
+	}
+
+	@Override
+	public Druggy addDruggyBaseInfo(Druggy druggy) {
+		if (!ExcelImportHelper.isImport.get()) {
+			validator.validateBaseInfo(druggy);
+		}
+		try {
+			if (checkDataExitInCache(druggy,
+					MemCacheConstant.CACHE_ADDDRUGGYBASEINFO,
+					CACHE_ADDDRUGGYBASEINFO_VALUE)) {
+				return druggy;
+			}
+			return add(druggy);
+		} catch (Exception e) {
+			logger.error("DruggyServiceImpl addDruggyBaseInfo", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(druggy, MemCacheConstant.CACHE_ADDDRUGGYBASEINFO);
+		}
+	}
+
+	private void deleteDruggyById(Long id) {
+		if (id == null || id < 0L) {
+			throw new BusinessValidationException("传入参数为空");
+		}
+		Druggy domain = getDruggyById(id);
+		if (domain == null) {
+			throw new BusinessValidationException("吸毒人员不能为空");
+		}
+		domain.setCreateDate(new Date());
+
+		domain.setPopulationTypeBean(getPopulationRelationService()
+				.getBusinessPopulationTypeBean(id, PopulationType.DRUGGY));
+		getRecoverDatasService().deleteActualPopulation(domain);
+		populationRelationService.businessDeletePopulationRelation(id,
+				PopulationType.DRUGGY);
+		druggyDao.delete(id);
+		druggyDao.deleteServiceSupervisionMeasuresByIdAndType(id,
+				BaseInfoTables.DRUGGY_KEY.toUpperCase());
+		try {
+			PluginServiceHelpUtil.doService("routerService",
+					"deleteServiceTeamHasObjectsAndServiceMemberHasObject",
+					new Class[] { String.class, Long.class },
+					PopulationType.DRUGGY, id);
+			/** 删除时对关联的事件和服务记录进行orgId和idCardNo赋值 */
+			PluginServiceHelpUtil.doService("routerService",
+					"setOrgIdAndCardNoOrName", new Class[] { Long.class,
+							String.class, String.class, Long.class }, domain
+							.getOrganization().getId(), domain.getIdCardNo(),
+					PopulationType.DRUGGY, id);
+			issueTypeService.setOrgIdAndCardNoOrNameForPerson(domain
+					.getOrganization().getId(), domain.getIdCardNo(),
+					PopulationType.DRUGGY, id);
+
+			if (IsEmphasis.Emphasis.equals(domain.getIsEmphasis())) {
+				// 缓存计数器
+				PageInfoCacheThreadLocal.decrease(MemCacheConstant
+						.getCachePageKey(Druggy.class.getSimpleName()), domain,
+						1);
+			}
+		} catch (Exception e) {
+			logger.error("DruggyServiceImpl deleteDruggyById", e);
+		}
+	}
+
+	@Override
+	public void deleteDruggyByIds(Long[] ids) {
+		if (ids == null || ids.length == 0) {
+			throw new BusinessValidationException("传入参数为空");
+		}
+		try {
+			for (int i = 0; i < ids.length; i++) {
+				deleteDruggyById(ids[i]);
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类DruggyServiceImpl的deleteDruggyByIds方法出现异常，原因：",
+					"删除吸毒人员信息出现错误", e);
+		}
+	}
+
+	@Override
+	public Druggy getDruggyById(Long id) {
+		if (null == id) {
+			throw new BusinessValidationException("传入参数为空");
+		}
+		try {
+			return druggyDao.get(id);
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类DruggyServiceImpl的getDruggyById方法出现异常，原因：",
+					"获取吸毒人员信息出现错误", e);
+		}
+	}
+
+	@Override
+	public Druggy updateDruggy(Druggy druggy) {
+		if (!ExcelImportHelper.isImport.get()) {
+			druggyValidator(druggy);
+		}
+		try {
+			autoFilled(druggy);
+			if (druggy.isDeath()) {
+				druggy.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+			}
+			contructCurrentAddress(druggy);
+			populationRelationService.businessOption(druggy,
+					druggy.getActualPopulationType());
+			druggy = druggyDao.update(druggy);
+			return druggy;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类DruggyServiceImpl的getDruggyById方法出现异常，原因：",
+					"获取吸毒人员信息出现错误", e);
+		}
+	}
+
+	@Override
+	public PageInfo<Druggy> findDruggyForPageByOrgInternalCode(Long orgId,
+			Integer pageNum, Integer pageSize, String sidx, String sord,
+			Long isEmphasis) {
+		try {
+			if (null == orgId) {
+				return constructEmptyPageInfo();
+			} else {
+				Organization org = organizationDubboService
+						.getSimpleOrgById(orgId);
+				if (org == null) {
+					return constructEmptyPageInfo();
+				} else {
+					Map<String, Object> query = new HashMap<String, Object>();
+					query.put("orgInternalCode", org.getOrgInternalCode());
+					query.put("isEmphasis", isEmphasis);
+					PageInfo<Druggy> pageInfos = druggyDao
+							.findPagerUsingCacheBySearchVo(orgId, query,
+									pageNum, pageSize, "DruggyDefaultList",
+									MemCacheConstant
+											.getCachePageKey(Druggy.class));
+					fitCountrymen(pageInfos);
+					fitServiceMemberHasObject(BaseInfoTables.DRUGGY_KEY,
+							pageInfos);
+					return pageInfos;
+				}
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类DruggyServiceImpl的findDruggyForPageByOrgInternalCode方法出现异常，原因：",
+					"查询吸毒人员信息出现错误", e);
+		}
+	}
+
+	@Override
+	public boolean hasDuplicateDruggy(Long orgId, String idCardNo,
+			Long exceptedId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return false;
+		}
+		try {
+			idCardNo = idCardNo.toUpperCase();
+			// String idCardNo15 = "";
+			// String idCardNo18 = "";
+			// if (idCardNo.length() == 15) {
+			// idCardNo15 = idCardNo;
+			// idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+			// } else if (idCardNo.length() == 18) {
+			// idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+			// idCardNo18 = idCardNo;
+			// }
+			Countrymen countrymen = baseInfoService
+					.getBaseInfoByIdCardNo(idCardNo);
+			if (countrymen == null) {
+				return false;
+			}
+			Long exsited = druggyDao.getIdByBaseinfoIdAndOrgId(
+					countrymen.getId(), orgId);
+			return exceptedId == null ? exsited != null
+					: (exsited != null && !exceptedId.equals(exsited));
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类DruggyServiceImpl的hasDuplicateDruggy方法出现异常，原因：",
+					"判断吸毒人员身份证号码是否存在出现错误", e);
+		}
+	}
+
+	@Override
+	public Druggy hasDuplicateDruggy(Long orgId, String idCardNo) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return null;
+		}
+		try {
+			idCardNo = idCardNo.toUpperCase();
+			List<String> list = new ArrayList<String>();
+			list.add(idCardNo);
+			if (idCardNo.length() == 18) {
+				list.add(IdCardUtil.idCardNo18to15(idCardNo));
+			} else if (idCardNo.length() == 15) {
+				list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+				list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+			}
+			return druggyDao.getByIdCard(list, orgId);
+
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类DruggyServiceImpl的hasDuplicateDruggy方法出现异常，原因：",
+					"判断吸毒人员身份证号码是否存在出现错误", e);
+		}
+	}
+
+	private PageInfo<Druggy> constructEmptyPageInfo() {
+		PageInfo<Druggy> result = new PageInfo<Druggy>();
+		result.setResult(new ArrayList<Druggy>());
+		return result;
+	}
+
+	private void autoFillChinesePinyin(Druggy druggy) {
+		Map<String, String> pinyin = Chinese2pinyin.changeChinese2Pinyin(druggy
+				.getName());
+		druggy.setSimplePinyin(pinyin.get("simplePinyin"));
+		druggy.setFullPinyin(pinyin.get("fullPinyin"));
+	}
+
+	private void autoFillBirthday(Druggy druggy) {
+		if (StringUtil.isStringAvaliable(druggy.getIdCardNo())) {
+			druggy.setBirthday(IdCardUtil.parseBirthday(druggy.getIdCardNo()));
+		}
+	}
+
+	@Override
+	public Druggy updateDruggyByIdCardNoAndOrgId(String idCardNo, Long orgId,
+			Druggy domain) {
+		try {
+			Druggy older = this.getDruggyByIdCardNo(idCardNo, orgId);
+			domain.setId(older.getId());
+			domain.setCreateDate(older.getCreateDate());
+			domain.setCreateUser(older.getCreateUser());
+			return updateDruggy(domain);
+		} catch (Exception e) {
+			logger.error(
+					"类DruggyServiceImpl的updateDruggyByIdCardNoAndOrgId方法出现异常，原因：",
+					e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("修改吸毒人员信息出现错误");
+			} else {
+				return null;
+			}
+		}
+
+	}
+
+	public Druggy getDruggyByIdCardNo(String idCardNo, Long orgId) {
+		try {
+			if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+				return null;
+			}
+			idCardNo = idCardNo.toUpperCase();
+			List<String> list = new ArrayList<String>();
+			list.add(idCardNo);
+			if (idCardNo.length() == 18) {
+				list.add(IdCardUtil.idCardNo18to15(idCardNo));
+			} else if (idCardNo.length() == 15) {
+				list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+				list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+			}
+			return druggyDao.getByIdCard(list, orgId);
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类DruggyServiceImpl的getDruggyByIdCardNo方法出现异常，原因：",
+					"通过身份证查询数据出错", e);
+		}
+	}
+
+	private void autoFilled(Druggy druggy) {
+		druggy.setIdCardNo(druggy.getIdCardNo().toUpperCase());
+		autoFillOrganizationInternalCode(druggy);
+		autoFillChinesePinyin(druggy);
+		autoFillBirthday(druggy);
+	}
+
+	private void autoIsDeath(Druggy druggy) {
+		if (druggy.isDeath()) {
+			druggy.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+		} else {
+			druggy.setIsEmphasis(IsEmphasis.Emphasis);
+		}
+	}
+
+	private void autoFillOrganizationInternalCode(Druggy druggy) {
+		Organization org = organizationDubboService.getSimpleOrgById(druggy
+				.getOrganization().getId());
+		if (org == null) {
+			throw new BusinessValidationException("找不到指定的网格");
+		}
+		druggy.setOrgInternalCode(org.getOrgInternalCode());
+	}
+
+	private void druggyValidator(Druggy druggy) {
+		ValidateResult baseDataValidator = validator.validate(druggy);
+		// if (baseDataValidator.hasError()) {
+		// throw new
+		// BusinessValidationException(baseDataValidator.getErrorMessages());
+		// }
+	}
+
+	private void druggyValidatorForMobile(Druggy druggy) {
+		ValidateResult baseDataValidator = validator.validate(druggy);
+		if (baseDataValidator.hasError()) {
+			throw new BusinessValidationException(
+					baseDataValidator.getErrorMessages());
+		} else if (hasDuplicateDruggy(druggy.getOrganization().getId(),
+				druggy.getIdCardNo(), druggy.getId())) {
+			throw new BusinessValidationException("该网格下已存在相同身份证号码");
+		}
+	}
+
+	@Override
+	public Long proccessPopulationSpecializedInfo(
+			ActualPopulation actualPopulation, String[] populationType,
+			Map<String, Object> population) {
+		actualPopulation
+				.setAttentionPopulationType(NewBaseInfoTables.DRUGGY_KEY);
+		try {
+			Long orgId = Long.valueOf(((String[]) population
+					.get("organization.id"))[0]);
+			String idCardNo = ((String[]) population.get("idCardNo"))[0];
+			Druggy druggy = druggyDao.getByOrgIdAndIdCardNo(orgId, idCardNo);
+			if (!com.tianque.util.Arrays.hasObjectInArray(populationType,
+					PopulationType.DRUGGY)) {
+				if (null != druggy) {
+					updateLogOutByPopulationTypeAndId(
+							buildLogoutDetailByIsEmphasisAndReason(
+									IsEmphasis.IsNotEmphasis,
+									actualPopulation.getActualPopulationType()),
+							BaseInfoTables.DRUGGY_KEY, druggy.getId());
+
+				}
+			} else {
+				if (null == druggy) {
+					druggy = new Druggy();
+					actualPopulation.setAttentionPopulationType(druggy
+							.getAttentionPopulationType());
+					copyProperty(actualPopulation, population, druggy);
+					addDruggy(druggy);
+				} else {
+					Long id = druggy.getId();
+					copyProperty(actualPopulation, population, druggy);
+					druggy.setId(id);
+					druggy.setIsEmphasis(IsEmphasis.Emphasis);
+					updateDruggyBusiness(druggy);
+					updateLogOutByPopulationTypeAndId(
+							buildLogoutDetailByIsEmphasisAndReason(
+									IsEmphasis.Emphasis,
+									actualPopulation.getActualPopulationType()),
+							BaseInfoTables.DRUGGY_KEY, druggy.getId());
+				}
+			}
+			return druggy == null
+					|| druggy.getIsEmphasis() == IsEmphasis.IsNotEmphasis
+							.longValue() ? null : druggy.getId();
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类DruggyServiceImpl的proccessPopulationSpecializedInfo方法出现异常，原因：",
+					"处理吸毒人员信息出现错误", e);
+		}
+	}
+
+	private void copyProperty(ActualPopulation actualPopulation,
+			Map<String, Object> population, Druggy druggy)
+			throws IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException {
+		PropertyUtils.copyProperties(druggy, actualPopulation);
+
+		druggy.setDetoxicateCondition(Arrays.getPropertyDictFromArray(
+				population, "detoxicateCondition.id"));
+
+		druggy.setDrugFristDate(Arrays.getDateValueFromArray(population,
+				"drugFristDate"));
+		druggy.setFerretOutDate(Arrays.getDateValueFromArray(population,
+				"ferretOutDate"));
+		druggy.setControlActuality(Arrays.getStringValueFromArray(population,
+				"controlActuality"));
+
+		druggy.setDrugReason(Arrays.getPropertyDictFromArray(population,
+				"drugReason.id"));
+
+		druggy.setDrugSource(Arrays.getPropertyDictFromArray(population,
+				"drugSource.id"));
+
+		druggy.setDetoxicateCase(Arrays.getPropertyDictFromArray(population,
+				"detoxicateCase.id"));
+
+		druggy.setDrugType(Arrays.getStringValueFromArray(population,
+				"drugType"));
+
+		Boolean isAdanon = Arrays
+				.getBooleanValueFromArray(population, "adanon");
+		Boolean undergoTreatment = Arrays.getBooleanValueFromArray(population,
+				"undergoTreatment");
+		druggy.setAttentionExtent(Arrays.getPropertyDictFromArray(population,
+				"attentionExtent.id"));
+		if (null == isAdanon) {
+			druggy.setAdanon(false);
+		} else {
+			druggy.setAdanon(isAdanon);
+		}
+		if (null == undergoTreatment) {
+			druggy.setUndergoTreatment(false);
+		} else {
+			druggy.setUndergoTreatment(undergoTreatment);
+		}
+
+		druggy.setAttentionPopulationType(BaseInfoTables.DRUGGY_KEY);
+	}
+
+	@Override
+	public Map<String, Map<String, Object>> getPopulationSpecializedInfoByOrgIdAndIdCardNo(
+			Long orgId, String idCardNo) {
+		Map<String, Map<String, Object>> map = new HashMap<String, Map<String, Object>>();
+		try {
+			Druggy druggy = druggyDao.getByOrgIdAndIdCardNo(orgId, idCardNo);
+			if (null != druggy) {
+				Map<String, Object> druggyMap = new HashMap<String, Object>();
+				druggyMap.put("id", druggy.getId());
+				druggyMap.put("isEmphasis", druggy.getIsEmphasis());
+				druggyMap.put("detoxicateCondition",
+						druggy.getDetoxicateCondition());
+				druggyMap.put("drugFristDate", druggy.getDrugFristDate());
+				druggyMap.put("ferretOutDate", druggy.getFerretOutDate());
+				druggyMap.put("controlActuality", druggy.getControlActuality());
+				druggyMap.put("drugReason", druggy.getDrugReason());
+				druggyMap.put("drugSource", druggy.getDrugSource());
+				druggyMap.put("detoxicateCase", druggy.getDetoxicateCase());
+				druggyMap.put("drugType", druggy.getDrugType());
+				druggyMap.put("adanon", druggy.isAdanon());
+				druggyMap.put("attentionExtent", druggy.getAttentionExtent());
+				map.put(PopulationType.DRUGGY, druggyMap);
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类DruggyServiceImpl的getPopulationSpecializedInfoByOrgIdAndIdCardNo方法出现异常，原因：",
+					"获取吸毒人员信息出现错误", e);
+		}
+		return map;
+	}
+
+	@Override
+	public void updatePopulationBaseInfo(ActualPopulation actualPopulation) {
+		try {
+			Druggy druggy = druggyDao.getByOrgIdAndIdCardNo(actualPopulation
+					.getOrganization().getId(), actualPopulation.getIdCardNo());
+			if (null != druggy) {
+				Long id = druggy.getId();
+				PropertyUtils.copyProperties(druggy, actualPopulation);
+				druggy.setId(id);
+				updateDruggy(druggy);
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类DruggyServiceImpl的updatePopulationBaseInfo方法出现异常，原因：",
+					"修改吸毒人员基本信息出现错误", e);
+		}
+	}
+
+	@Override
+	public void deletePopulationByPopulationId(Long populationId) {
+		if (null != populationId) {
+			this.deleteDruggyById(populationId);
+			this.deletePopulationTypeByPopulationIdAndType(populationId,
+					PopulationType.DRUGGY);
+		}
+	}
+
+	@Override
+	public List<Druggy> updateDeathByIds(Long[] populationIds, Boolean death) {
+		List<Druggy> list = new ArrayList<Druggy>();
+		for (int i = 0; i < populationIds.length; i++) {
+			Druggy population = this.getDruggyById(populationIds[i]);
+			updateLogOutByPopulationTypeAndId(
+					LogoutDetail.buildLogoutDetail(death),
+					BaseInfoTables.DRUGGY_KEY, population.getId());
+			baseInfoService
+					.updateDeathStateById(population.getBaseInfoId(), death,
+							population.getIdCardNo(), population
+									.getOrganization().getId(), population
+									.getOrgInternalCode(),
+							NewBaseInfoTables.DRUGGY_KEY);
+			list.add(population);
+			// 缓存计数器
+			PageInfoCacheThreadLocal.increment(MemCacheConstant
+					.getCachePageKey(Druggy.class.getSimpleName()), population,
+					1);
+		}
+		return list;
+	}
+
+	private LogoutDetail buildLogoutDetailByIsEmphasisAndReason(Long logout,
+			String actualType) {
+		String reason = "此人口在" + PopulationCatalog.parse(actualType).toString()
+				+ "模块";
+		LogoutDetail result = new LogoutDetail();
+		if (IsEmphasis.IsNotEmphasis.equals(logout)) {
+			result.setLogoutDate(new Date());
+			result.setLogoutReason(reason + "注销");
+			result.setLogout(logout);
+		} else if (IsEmphasis.Emphasis.equals(logout)) {
+			result.setLogout(logout);
+		}
+
+		return result;
+	}
+
+	private LogoutDetail buildLogoutDetail(Boolean death) {
+		LogoutDetail result = new LogoutDetail();
+		if (death) {
+			result.setLogoutDate(new Date());
+			result.setLogoutReason(LogoutDetail.LOGOUT_REASON_FOR_DEATH);
+			result.setLogout(IsEmphasis.IsNotEmphasis);
+		} else if (!death) {
+			result.setLogout(IsEmphasis.Emphasis);
+		}
+
+		return result;
+	}
+
+	@Override
+	public Druggy updateDruggyBaseInfo(Druggy druggy) {
+		try {
+			if (!ExcelImportHelper.isImport.get()) {
+				ValidateResult baseDataValidator = validator
+						.validateBaseInfo(druggy);
+				if (baseDataValidator.hasError()) {
+					throw new BusinessValidationException(
+							baseDataValidator.getErrorMessages());
+				}
+			}
+			druggy.setIdCardNo(druggy.getIdCardNo().toUpperCase());
+			autoFillBirthday(druggy);
+			autoFillChinesePinyin(druggy);
+			if (druggy.isDeath()) {
+				druggy.setLogoutDetail(buildLogoutDetail(druggy.isDeath()));
+				// 缓存计数器
+				PageInfoCacheThreadLocal.decrease(MemCacheConstant
+						.getCachePageKey(Druggy.class.getSimpleName()), druggy,
+						1);
+			}
+			Countrymen temp = populationRelationService.businessOption(druggy,
+					druggy.getActualPopulationType());
+			druggy.setHouseId(temp.getHouseId());
+			rebuildHouseAddress(druggy);
+			druggyDao.updateTableUpdateDateById(druggy.getId());
+			return druggy;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类DruggyServiceImpl的updateDruggyBaseInfo方法出现异常，原因：",
+					"修改吸毒人员基本信息出现错误", e);
+		}
+	}
+
+	@Override
+	public Druggy updateDruggyBusiness(Druggy druggy) {
+		try {
+			if (!ExcelImportHelper.isImport.get()) {
+				ValidateResult specializedValidator = validator
+						.validateSpecializedInfo(druggy);
+				if (specializedValidator.hasError()) {
+					throw new BusinessValidationException(
+							specializedValidator.getErrorMessages());
+				}
+			}
+			druggy = druggyDao.updateBusiness(druggy);
+			PageInfoCacheThreadLocal.update(
+					MemCacheConstant.getCachePageKey(Druggy.class), druggy,
+					UpdateType.BUSINESS);
+			return druggy;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类DruggyServiceImpl的updateDruggyBusiness方法出现异常，原因：",
+					"修改吸毒人员业务信息出现错误", e);
+		}
+	}
+
+	public AttentionPopulation getAttentionPopulationById(Long id) {
+		return getDruggyById(id);
+	}
+
+	// fateson add move function start
+	@Override
+	public void moveTempByIds(String[] peoperIds, Long targetOrgId) {
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(targetOrgId);
+		for (String id : peoperIds) {
+			Long peoperId = Long.parseLong(id);
+			if (!StringUtils.isEmpty(id)) {
+				// get peoper
+				Druggy people = getDruggyById(peoperId);
+				if (people == null) {
+					continue;
+				}
+				Long currentOrgid = people.getOrganization().getId();
+				people.setOrganization(organization);
+				// String orgCode = people.getOrgInternalCode();
+				String orgCode = people.getOrganization().getOrgInternalCode();
+				String idCardNo = people.getIdCardNo();
+				// 验证目标组织机构是否存在这个人
+				boolean result = hasDuplicateDruggy(targetOrgId, idCardNo,
+						peoperId);
+				if (result) {
+					// 把存在的旧数据成为修改现在现在要移动的新数据
+					if (currentOrgid.longValue() != targetOrgId.longValue()) {
+						updateMovePersonByIdCardNo(idCardNo, targetOrgId,
+								people);
+						// 删掉要移动的数据 删除掉不在同一个网格
+						deleteDruggyById(peoperId);
+					}
+
+				} else {
+					// 转移网格数据
+					druggyDao.updateData(id, targetOrgId, orgCode, people);
+				}
+				people.setCreateDate(null);
+			}
+
+		}
+
+	}
+
+	public void updateMovePersonByIdCardNo(String idcard, Long targetorgId,
+			Druggy people) {
+		List<String> cardnos = CardNoHelper.createIdCardNo(idcard);
+		// 获取
+		Druggy older = druggyDao.getByIdCard(cardnos, targetorgId);
+		people.setId(older.getId());
+		people.setCreateDate(older.getCreateDate());
+		people.setCreateUser(older.getCreateUser());
+		druggyDao.update(people);
+	}
+
+	@Override
+	public void deleteBusinessPopulationDuplicate(Long id) {
+		this.deleteDruggyById(id);
+
+	}
+
+}

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="serviceObject">
+	<typeAlias alias="serviceObjectVo" type="com.tianque.plugin.serviceTeam.serviceObject.vo.ServiceObjectVo"/>
+	<typeAlias alias="serviceObjectPopulationVo" type="com.tianque.plugin.serviceTeam.serviceObject.vo.ServiceObjectPopulationVo"/>
+	<typeAlias alias="serviceObjectLocationVo" type="com.tianque.plugin.serviceTeam.serviceObject.vo.ServiceObjectLocationVo"/>
+	<typeAlias alias="serviceObjectHouseVo" type="com.tianque.plugin.serviceTeam.serviceObject.vo.ServiceObjectHouseVo"/>
+	
+	<resultMap id="serviceObjectPopulationResult" class="serviceObjectPopulationVo">
+		<result property="objectId" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="gender.id" column="gender" />
+		<result property="name" column="name" />
+		<result property="idCardNo" column="idCardNo" />
+		<result property="mobileNumber" column="mobileNumber" />
+	</resultMap>
+	
+	<resultMap id="serviceObjectLocationResult" class="serviceObjectLocationVo">
+		<result property="objectId" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="locationName" column="locationName" />
+		<result property="address" column="address"/>
+	</resultMap>
+	
+	<resultMap id="serviceObjectHouseResult" class="serviceObjectHouseVo">
+		<result property="objectId" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="houseAddress" column="houseAddress" />
+		<result property="hiddenDangerLevel.id" column="hiddenDangerLevel" />
+		<result property="rentalPerson" column="rentalPerson" />
+	</resultMap>
+	
+	<sql id="selectColumnBaseInfo">
+		b.name,b.fullpinyin,
+        b.simplepinyin,b.usedname,b.idcardno,b.telephone,b.mobilenumber,b.birthday,b.gender,b.workunit,
+        b.imgurl,b.email,b.isdeath,b.nation,b.politicalbackground,b.schooling,b.career,b.maritalstate,
+        b.bloodtype,b.faith,b.stature,b.province,b.city,b.district,b.nativeplaceaddress,b.nativepolicestation
+	</sql>
+	
+	<sql id="findPopulationsByConditions">
+		select f.*,<include refid="selectColumnBaseInfo" /> from $tableName$ f left join baseinfo  b on f.baseinfoid=b.id 
+			where 1=1
+			<isNotEmpty property="name" prepend="and" >
+				b.name like #name#||'%'
+			</isNotEmpty>		
+			<isNotEmpty property="idCardNo" prepend="and">
+				b.idCardNo like  #idCardNo#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="organization.orgInternalCode" prepend="and">
+				 f.orgInternalCode like #organization.orgInternalCode#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="memberIds" prepend="and">
+				 f.id in (select objectId from serviceMemberHasObject where OBJECTTYPE=#objectType#  and onduty=1 and  memberId in <iterate conjunction="," property="memberIds" open="(" close=")">#memberIds[]#</iterate> )
+			</isNotEmpty>
+			and isEmphasis=0
+	</sql>
+	
+	<sql id="findLocationsByConditions">
+		select id,orgId,$addressColumn$ as address,$searchName$ as locationName from $tableName$
+			where 1=1
+			<isNotEmpty property="locationName" prepend="and" >
+				$searchName$ like '%'||#locationName#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="organization.orgInternalCode" prepend="and">
+				 orgInternalCode like #organization.orgInternalCode#||'%'
+			</isNotEmpty>
+			<isNotEmpty  property="keyType" prepend="and">
+				keyType=#keyType#
+			</isNotEmpty>
+			<isNotEmpty property="memberIds" prepend="and">
+				 id in (select objectId from serviceMemberHasObject where OBJECTTYPE=#objectType# and onduty=1  and  memberId in <iterate conjunction="," property="memberIds" open="(" close=")">#memberIds[]#</iterate>)
+			</isNotEmpty>
+			and isEmphasis=0
+			
+	</sql>
+	
+	<sql id="findHousesByConditions">
+		select id,orgId,address  as houseAddress,hiddenDangerLevel,rentalPerson from rentalhouse
+			where 1=1
+			<isNotEmpty property="houseAddress" prepend="and" >
+				address like '%'||#houseAddress#||'%'
+			</isNotEmpty>		
+			<isNotEmpty property="organization.orgInternalCode" prepend="and">
+				 orgInternalCode like #organization.orgInternalCode#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="memberIds" prepend="and">
+				 id in (select objectId from serviceMemberHasObject where OBJECTTYPE=#objectType# and onduty=1  and memberId in <iterate conjunction="," property="memberIds" open="(" close=")">#memberIds[]#</iterate>)
+			</isNotEmpty>
+			and isEmphasis=0
+	</sql>
+	
+	<select id="countFindPopulations" parameterClass="serviceObjectVo" resultClass="java.lang.Integer">
+		select count(*) from (
+		<include refid="findPopulationsByConditions" />
+		) 
+	</select>
+	<select id="findPopulations" parameterClass="serviceObjectVo" resultMap="serviceObjectPopulationResult">
+	 	select * from (
+	 		<include refid="findPopulationsByConditions" />
+	 	)
+	 	<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>	
+	</select>
+	
+
+	<select id="countFindLocations" parameterClass="serviceObjectVo" resultClass="java.lang.Integer">
+		select count(*) from (
+		<include refid="findLocationsByConditions" />
+		) 
+	</select>
+
+
+	<select id="findLocations" parameterClass="serviceObjectVo" resultMap="serviceObjectLocationResult">
+	 	select id,orgId,address,locationName from(
+	 		<include refid="findLocationsByConditions" />
+	 	)
+	 	<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>	
+	</select>
+
+
+	<select id="countFindHouses" parameterClass="serviceObjectVo" resultClass="java.lang.Integer">
+		select count(*) from (
+		<include refid="findHousesByConditions" />
+		) 
+	</select>
+	<select id="findHouses" parameterClass="serviceObjectVo" resultMap="serviceObjectHouseResult">
+	 	select id,orgId,houseAddress,hiddenDangerLevel,rentalPerson from (
+	 		<include refid="findHousesByConditions" />
+	 	)
+	 	<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>	
+	</select>
+
+</sqlMap>

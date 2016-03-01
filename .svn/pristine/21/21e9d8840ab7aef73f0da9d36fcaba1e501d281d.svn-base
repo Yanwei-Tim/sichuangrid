@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+ <struts>
+ 	<package name="guardianToHandicappedManage" extends="default"
+		namespace="/baseinfo/helpPersonnel/handicapped">
+		<default-class-ref class="guardianToHandicappedController"></default-class-ref>
+		<action name="findHelpPersonnelForListPage"
+			method="findHelpPersonnelForListPage">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="getHelpPersonnelByIdAndPlace"
+			method="getHelpPersonnelByIdAndPlace">
+			<result name="success" type="json">
+				<param name="root">helpPersonnelList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="searchPersonInCharegeForAutoComplete"
+			method="searchPersonInCharegeForAutoComplete">
+			<result name="success" type="json">
+				<param name="root">autoCompleteDatas</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="addHelpPersonnel"
+			method="addHelpPersonnel">
+			<result name="success" type="json">
+				<param name="root">helpPersonnel</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateHelpPersonnel"
+			method="updateHelpPersonnel">
+			<result name="success" type="json">
+				<param name="root">helpPersonnel</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="dispatch"  method="dispatch">
+		
+			<result name="management">
+				/baseinfo/helpPersonnel/handicapped/manitainGuardian.jsp
+			</result>
+			
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+	</package>
+ </struts>

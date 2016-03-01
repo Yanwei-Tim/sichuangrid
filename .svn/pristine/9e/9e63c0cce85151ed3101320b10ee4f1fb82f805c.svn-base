@@ -1,0 +1,472 @@
+package com.tianque.init.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.tianque.core.property.GridInternalProperty;
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.util.Chinese2pinyin;
+import com.tianque.domain.IssueType;
+import com.tianque.domain.IssueTypeDomain;
+import com.tianque.domain.property.Contradiction;
+import com.tianque.domain.property.ContradictionResolve;
+import com.tianque.domain.property.Emergencies;
+import com.tianque.domain.property.ItemIssue;
+import com.tianque.domain.property.OtherManage;
+import com.tianque.domain.property.PeopleLiveService;
+import com.tianque.domain.property.PoliciesAndLaws;
+import com.tianque.domain.property.SecurityPrecautions;
+import com.tianque.domain.property.SecurityTrouble;
+import com.tianque.domain.property.SocialConditions;
+import com.tianque.domain.property.SpecialPopulations;
+import com.tianque.init.Initialization;
+import com.tianque.issue.constants.IssueTypes;
+import com.tianque.service.IssueTypeDomainService;
+import com.tianque.service.IssueTypeService;
+
+@SuppressWarnings("deprecation")
+public class IssueTypeDomainsInitialization implements Initialization {
+
+	protected final Logger logger = LoggerFactory.getLogger(getClass());
+
+	private IssueTypeDomainService issueTypeDomainService;
+
+	private IssueTypeService issueTypeService;
+
+	/*** 事件类型(大类)域 */
+	private IssueTypeDomain issueTypeDomain = new IssueTypeDomain();
+
+	public IssueTypeDomainsInitialization(
+			IssueTypeDomainService issueTypeDomainService,
+			IssueTypeService issueTypeService) {
+		this.issueTypeDomainService = issueTypeDomainService;
+		this.issueTypeService = issueTypeService;
+	}
+
+	@Override
+	public void init() throws Exception {
+		initIssueTypeDomain();
+		initDigitalIssueTypes();
+		initCallCenterIssueTypes();
+		logger.info("事件处理类别大类初始化结束!");
+	}
+
+	/** 事件和服务审批模块的事件类型域初始化 */
+	private void initIssueTypeDomain() {
+		IssueTypeDomain contradictionDomain = addIssueTypeDomain(
+				IssueTypes.CONTRADICTION, IssueTypes.CORE_MODULE, true,
+				Contradiction.getInternalProperties(), false);
+
+		IssueTypeDomain securityTroubleDomain = addIssueTypeDomain(
+				IssueTypes.SECURITYTROUBLE, IssueTypes.CORE_MODULE, true,
+				SecurityTrouble.getInternalProperties(), false);
+
+		IssueTypeDomain peopleLiveServiceDomain = addIssueTypeDomain(
+				IssueTypes.PEOPLELIVE_SERVICE, IssueTypes.CORE_MODULE, true,
+				PeopleLiveService.getInternalProperties(), false);
+
+		addIssueTypeDomain(IssueTypes.OTHERTYPE, IssueTypes.CORE_MODULE, false,
+				null, true);
+
+		IssueTypeDomain itemDomain = addIssueTypeDomain(IssueTypes.ITEM,
+				IssueTypes.ITEM_MODULE, false, ItemIssue.getInternalItems(),
+				false);
+
+		IssueTypeDomain resolveTheContradictionsDomain = addIssueTypeDomain(
+				IssueTypes.RESOLVETHECONTRADICTIONS, IssueTypes.SI_CHUAN,
+				false, ContradictionResolve.getInternalItems(), false);
+
+		IssueTypeDomain securitypRecautionsDomain = addIssueTypeDomain(
+				IssueTypes.SECURITYPRECAUTIONS, IssueTypes.SI_CHUAN, false,
+				SecurityPrecautions.getInternalItems(), false);
+
+		IssueTypeDomain specialPopulationsDomain = addIssueTypeDomain(
+				IssueTypes.SPECIALPOPULATIONS, IssueTypes.SI_CHUAN, false,
+				SpecialPopulations.getInternalItems(), false);
+
+		IssueTypeDomain socialConditionsDomain = addIssueTypeDomain(
+				IssueTypes.SOCIALCONDITIONS, IssueTypes.SI_CHUAN, false,
+				SocialConditions.getInternalItems(), false);
+
+		IssueTypeDomain policiesAndLawsDomain = addIssueTypeDomain(
+				IssueTypes.POLICIESANDLAWS, IssueTypes.SI_CHUAN, false,
+				PoliciesAndLaws.getInternalItems(), false);
+
+		IssueTypeDomain emergenciesDomain = addIssueTypeDomain(
+				IssueTypes.EMERGENCIES, IssueTypes.SI_CHUAN, false,
+				Emergencies.getInternalItems(), false);
+
+		IssueTypeDomain otherManageDomain = addIssueTypeDomain(
+				IssueTypes.OTHERMANAGE, IssueTypes.SI_CHUAN, false,
+				OtherManage.getInternalItems(), false);
+
+		addContradictionTypes(contradictionDomain);
+
+		addSpecialisationTypes(securityTroubleDomain);
+
+		addPeopleLiveServiceTypes(peopleLiveServiceDomain);
+
+		addItemTypes(itemDomain);
+
+		addResolveTheContradictions(resolveTheContradictionsDomain);
+
+		addSecurityPrecautions(securitypRecautionsDomain);
+
+		addSpecialPopulations(specialPopulationsDomain);
+
+		addSocialConditions(socialConditionsDomain);
+		addPoliciesAndLaws(policiesAndLawsDomain);
+		addEmergencies(emergenciesDomain);
+		addOtherManage(otherManageDomain);
+	}
+
+	/**
+	 * 初始化事件模块的事件类型的大类
+	 * 
+	 * @param domainName
+	 *            大类名称(矛盾纠纷、治安、安全隐患、民生服务、其他)
+	 * @param module
+	 *            模块类别
+	 * @param isSystemSensitive
+	 *            是否是系统内置属性
+	 * @param properties
+	 *            事件大类下面的字类型
+	 * @param personalized
+	 *            是否个性化
+	 * @return
+	 */
+
+	private IssueTypeDomain addIssueTypeDomain(String domainName,
+			String module, boolean isSystemSensitive,
+			List<GridInternalProperty> properties, boolean personalized) {
+		try {
+			issueTypeDomain.setDomainName(domainName);
+			issueTypeDomain.setModule(module);
+			issueTypeDomain.setSystemSensitive(isSystemSensitive);
+			issueTypeDomain.setInternaleProperties(properties);
+			issueTypeDomain.setPersonalized(personalized);
+			return issueTypeDomainService.addIssueTypeDomain(issueTypeDomain);
+		} catch (Exception e) {
+			logger.info(e.getMessage());
+			return null;
+		}
+	}
+
+	// 初始化矛盾纠纷下面的子类型
+	private void addContradictionTypes(IssueTypeDomain contradictionDomain) {
+		addIssueType(contradictionDomain, Contradiction.NATIONAL_RELIGION,
+				"民族宗教", "民族宗教矛盾纠纷");
+		addIssueType(contradictionDomain, Contradiction.DEMOBILIZE_RELOCATE,
+				"军转干部、复员退伍军人安置", "军转干部、复员退伍军人安置引发的矛盾纠纷");
+		addIssueType(contradictionDomain, Contradiction.RELOCATE, "征地拆迁安置",
+				"征地拆迁安置引发的矛盾纠纷");
+		addIssueType(contradictionDomain, Contradiction.ESTATE_MANAGEMENT,
+				"建筑工程质量、物业管理", "建筑工程质量、物业管理等问题引发的矛盾纠纷");
+		addIssueType(contradictionDomain, Contradiction.BOUNDARY_LINE,
+				"土地矿产山林水利界线权属", "土地矿产山林水利界线权属纠纷");
+		addIssueType(contradictionDomain, Contradiction.ECONOMIES, "经济活动",
+				"经济活动引发的矛盾纠纷");
+		addIssueType(contradictionDomain, Contradiction.LABOUR_TROUBLE, "劳资纠纷",
+				"劳资纠纷");
+		addIssueType(contradictionDomain,
+				Contradiction.RESTRUCTURING_OF_ENTERPRISE, "企业改制",
+				"企业改制引发的矛盾纠纷");
+		addIssueType(contradictionDomain,
+				Contradiction.ENVIRONMENTAL_POLLUTION, "环境污染、生态破坏",
+				"环境污染、生态破坏引发的矛盾纠纷");
+		addIssueType(contradictionDomain, Contradiction.JUDICIAL_ACTIVITY,
+				"司法活动", "司法活动引发的矛盾纠纷");
+		addIssueType(contradictionDomain,
+				Contradiction.EXECUTIVE_LAW_ENFORCEMENT, "行政执法活动",
+				"行政执法活动引发的矛盾纠纷");
+		addIssueType(contradictionDomain, Contradiction.ACADEMIC_DISCIPLINES,
+				"大中专院校、中小学校", "大中专院校、中小学校引发的矛盾纠纷");
+		addIssueType(contradictionDomain, Contradiction.MARITIME_AFFAIRS,
+				"海事渔事", "海事渔事纠纷");
+		addIssueType(contradictionDomain, Contradiction.WORK_STYLE_OF_CADRE,
+				"干部作风", "干部作风等问题引发的矛盾纠纷");
+		addIssueType(contradictionDomain, Contradiction.VILLAGE_MANAGE,
+				"村（社区、居）务管理", "村（社区、居）务管理引发的矛盾纠纷");
+		addIssueType(contradictionDomain, Contradiction.THREE_CAPITAL,
+				"农村土地承包、农村集体“三资”及农民负担", "农村土地承包、农村集体“三资”及农民负担等问题引发的矛盾纠纷");
+		addIssueType(contradictionDomain, Contradiction.MATRIMONY, "婚姻家庭邻里",
+				"婚姻家庭邻里等各类民间纠纷");
+		addIssueType(contradictionDomain, Contradiction.MEDICAL_TREATMENT,
+				"医患纠纷", "医患纠纷");
+		addIssueType(contradictionDomain, Contradiction.ORTHER, "其他", "其他");
+	}
+
+	// 初始化治安、安全隐患下面的子类型
+	private void addSpecialisationTypes(IssueTypeDomain specialisationDomain) {
+		addIssueType(specialisationDomain, SecurityTrouble.ROB, "抢劫", "抢劫");
+		addIssueType(specialisationDomain, SecurityTrouble.LOOT, "抢夺", "抢夺");
+		addIssueType(specialisationDomain, SecurityTrouble.STEAL, "盗窃", "盗窃");
+		addIssueType(specialisationDomain, SecurityTrouble.BET, "赌博", "赌博");
+		addIssueType(specialisationDomain, SecurityTrouble.BAWDRY, "卖淫嫖娼",
+				"卖淫嫖娼");
+		addIssueType(specialisationDomain, SecurityTrouble.DRUG, "毒品", "毒品");
+		addIssueType(specialisationDomain, SecurityTrouble.GANGLAND, "黑恶势力",
+				"黑恶势力");
+		addIssueType(specialisationDomain, SecurityTrouble.FIRESECURITY,
+				"消防安全", "消防安全");
+		addIssueType(specialisationDomain, SecurityTrouble.SAFEINPRODUCTION,
+				"安全生产", "安全生产");
+		addIssueType(specialisationDomain, SecurityTrouble.FOODHEALTH, "食品卫生",
+				"食品卫生");
+		addIssueType(specialisationDomain,
+				SecurityTrouble.ENVIRONMENTAL_POLLUTION, "环境污染", "环境污染");
+		addIssueType(specialisationDomain, SecurityTrouble.PUBLIC_SEFETY,
+				"公共安全", "公共安全");
+		addIssueType(specialisationDomain, SecurityTrouble.OTHER, "其他", "其他");
+	}
+
+	// 初始化民生服务下面的子类型
+	private void addPeopleLiveServiceTypes(
+			IssueTypeDomain peopleLiveServiceDomain) {
+		addIssueType(peopleLiveServiceDomain,
+				PeopleLiveService.DIFFICULTY_SALVATION, "教育服务", "教育服务");
+		addIssueType(peopleLiveServiceDomain, PeopleLiveService.EDUCATION,
+				"社保服务", "社保服务");
+		addIssueType(peopleLiveServiceDomain,
+				PeopleLiveService.MEDICARE_SECURITY, "就业服务", "就业服务");
+		addIssueType(peopleLiveServiceDomain, PeopleLiveService.WORKING,
+				"医疗服务", "医疗服务");
+		addIssueType(peopleLiveServiceDomain, PeopleLiveService.HOURSE, "住房服务",
+				"住房服务");
+		addIssueType(peopleLiveServiceDomain, PeopleLiveService.TRAFFIC,
+				"交通服务", "交通服务");
+		addIssueType(peopleLiveServiceDomain, PeopleLiveService.CERTIFICATE,
+				"证件办理", "证件办理");
+		addIssueType(peopleLiveServiceDomain, PeopleLiveService.ENTERPRISE,
+				"企业服务", "企业服务");
+
+		addIssueType(peopleLiveServiceDomain, PeopleLiveService.QUALIFICATION,
+				"资质服务", "资质服务");
+		addIssueType(peopleLiveServiceDomain, PeopleLiveService.BUSINESS,
+				"经营纳税", "经营纳税");
+		addIssueType(peopleLiveServiceDomain, PeopleLiveService.BABY, "婚育收养",
+				"婚育收养");
+		addIssueType(peopleLiveServiceDomain,
+				PeopleLiveService.PUBLICUTILITIES, "公共事业", "公共事业");
+		addIssueType(peopleLiveServiceDomain, PeopleLiveService.OTHER, "其他",
+				"其他");
+	}
+
+	// 初始化矛盾纠纷下面的子类型
+	private void addItemTypes(IssueTypeDomain peopleLiveServiceDomain) {
+		addIssueType(peopleLiveServiceDomain, ItemIssue.ONE, "一站审批", "一站审批");
+	}
+
+	private void addResolveTheContradictions(IssueTypeDomain domain) {
+		addIssueType(domain, ContradictionResolve.ONE, "信访问题处理", "信访问题处理");
+		addIssueType(domain, ContradictionResolve.TWO, "不稳定因素报告", "不稳定因素报告");
+		addIssueType(domain, ContradictionResolve.THREE, "婚姻家庭", "婚姻家庭");
+		addIssueType(domain, ContradictionResolve.FOUR, "邻里纠纷", "邻里纠纷");
+		addIssueType(domain, ContradictionResolve.FIVE, "环境生态", "环境生态");
+		addIssueType(domain, ContradictionResolve.SIX, "建筑工程", "建筑工程");
+		addIssueType(domain, ContradictionResolve.SEVEN, "物业管理", "物业管理");
+		addIssueType(domain, ContradictionResolve.EIGHT, "企业改制", "企业改制");
+		addIssueType(domain, ContradictionResolve.NINE, "司法活动", "司法活动");
+		addIssueType(domain, ContradictionResolve.TEN, "干部作风", "干部作风");
+		addIssueType(domain, ContradictionResolve.ELEVEN, "劳资纠纷", "劳资纠纷");
+		addIssueType(domain, ContradictionResolve.TWELVE, "征地拆迁", "征地拆迁");
+		addIssueType(domain, ContradictionResolve.THIRTEEN, "军人安置", "军人安置");
+		addIssueType(domain, ContradictionResolve.FOURTEEN, "房屋和宅基地", "房屋和宅基地");
+		addIssueType(domain, ContradictionResolve.FIFTEEN, "农村“三资”", "农村“三资”");
+		addIssueType(domain, ContradictionResolve.SIXTEEN, "农民负担", "农民负担");
+		addIssueType(domain, ContradictionResolve.SEVENTEEN, "院校问题", "院校问题");
+		addIssueType(domain, ContradictionResolve.EIGHTEEN, "民族宗教", "民族宗教");
+		addIssueType(domain, ContradictionResolve.NINETEEN, "经济活动", "经济活动");
+		addIssueType(domain, ContradictionResolve.TWENTY, "山林土地", "山林土地");
+		addIssueType(domain, ContradictionResolve.TWENTY_ONE, "医患纠纷", "医患纠纷");
+		addIssueType(domain, ContradictionResolve.TWENTY_TWO, "村（社区）务管理",
+				"村（社区）务管理");
+		addIssueType(domain, ContradictionResolve.TWENTY_THREE, "行政执法活动",
+				"行政执法活动");
+		addIssueType(domain, ContradictionResolve.TWENTY_FOUR, "海事渔事", "海事渔事");
+		addIssueType(domain, ContradictionResolve.TWENTY_FIVE, "交通及生产安全",
+				"交通及生产安全");
+		addIssueType(domain, ContradictionResolve.TWENTY_SIX, "计划生育", "计划生育");
+		addIssueType(domain, ContradictionResolve.TWENTY_SEVEN, "合同履行", "合同履行");
+		addIssueType(domain, ContradictionResolve.TWENTY_EIGHT, "其他", "其他");
+	}
+
+	private void addSecurityPrecautions(IssueTypeDomain domain) {
+		addIssueType(domain, SecurityPrecautions.ONE, "物防设施", "物防设施");
+		addIssueType(domain, SecurityPrecautions.TWO, "技防设施", "技防设施");
+		addIssueType(domain, SecurityPrecautions.THREE, "刑事治安案件发生情况",
+				"刑事治安案件发生情况");
+		addIssueType(domain, SecurityPrecautions.FOUR, "治安隐患或线索", "治安隐患或线索");
+		addIssueType(domain, SecurityPrecautions.FIVE, "守楼护院", "守楼护院");
+		addIssueType(domain, SecurityPrecautions.SIX, "防毒控毒", "防毒控毒");
+		addIssueType(domain, SecurityPrecautions.OTHER, "其他", "其他");
+	}
+
+	private void addSpecialPopulations(IssueTypeDomain domain) {
+		addIssueType(domain, SpecialPopulations.ONE, "严重精神障碍患者是否落实", "严重精神障碍患者是否落实");
+		addIssueType(domain, SpecialPopulations.TWO, "社区帮教落实", "社区帮教落实");
+		addIssueType(domain, SpecialPopulations.THREE, "刑释", "刑释");
+		addIssueType(domain, SpecialPopulations.FOUR, "吸毒人员", "吸毒人员");
+		addIssueType(domain, SpecialPopulations.FIVE, "重点青少年", "重点青少年");
+	}
+
+	private void addSocialConditions(IssueTypeDomain domain) {
+		addIssueType(domain, SocialConditions.ONE, "社情民意收集", "社情民意收集");
+	}
+
+	private void addPoliciesAndLaws(IssueTypeDomain domain) {
+		addIssueType(domain, PoliciesAndLaws.ONE, "咨询、宣传", "咨询、宣传");
+	}
+
+	private void addEmergencies(IssueTypeDomain domain) {
+		addIssueType(domain, Emergencies.ONE, "突发事件", "突发事件");
+	}
+
+	private void addOtherManage(IssueTypeDomain domain) {
+		addIssueType(domain, OtherManage.ONE, "其它", "其它");
+	}
+
+	/**
+	 * 初始化事件每个大类下的字类型
+	 * 
+	 * @param issueTypeDomain
+	 *            子类所属大类
+	 * @param internalId
+	 *            内部id
+	 * @param issueTypeName
+	 *            类型名称
+	 * @param content
+	 *            类型描述
+	 */
+	private void addIssueType(IssueTypeDomain issueTypeDomain, int internalId,
+			String issueTypeName, String content) {
+		IssueType issueType = new IssueType();
+		issueType.setIssueTypeDomain(issueTypeDomain);
+		issueType.setInternalId(internalId);
+		issueType.setIssueTypeName(issueTypeName);
+		issueType.setContent(content);
+		issueType.setCreateUser("admin");
+		issueType.setCreateDate(CalendarUtil.now());
+		Map<String, String> pinyin = Chinese2pinyin
+				.changeChinese2Pinyin(issueType.getIssueTypeName());
+		issueType.setSimplePinYin((String) pinyin.get("simplePinyin"));
+		issueType.setFullPinYin((String) pinyin.get("fullPinyin"));
+		try {
+			issueTypeService.addIssueType(issueType);
+		} catch (Exception e) {
+			logger.error("异常信息", e);
+			logger.info(e.getMessage());
+		}
+	}
+
+	/** 城市管理模块的事件类型域初始化 */
+	private void initDigitalIssueTypes() {
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.ENVIRONMENT,
+						IssueTypes.DIGITALCITY_MODULE), new String[] { "私搭乱建",
+						"暴露垃圾", "积存垃圾渣土", "道路不洁", "水域不洁", "绿地脏乱", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.ADVERTISEMENT,
+						IssueTypes.DIGITALCITY_MODULE), new String[] { "非法小广告",
+						"违章张贴悬挂广告牌匾", "占道广告牌", "街头散发广告", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.ENGINEERING,
+						IssueTypes.DIGITALCITY_MODULE), new String[] { "施工扰民",
+						"工地扬尘", "道路遗撒", "施工废弃料", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.EMERGENCY,
+						IssueTypes.DIGITALCITY_MODULE), new String[] { "路面塌陷",
+						"自来水管破裂", "燃气管道破裂", "下水道堵塞或破损", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.STREET,
+						IssueTypes.DIGITALCITY_MODULE), new String[] {
+						"无照经营游商", "流浪乞讨", "占道废品收购", "店外经营", "机动车乱停放", "其他" });
+	}
+
+	/** 呼叫中心模块的事件类型域初始化 */
+	private void initCallCenterIssueTypes() {
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.POLITICAL_AFFAIRS,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.ECONOMIC_AFFAIRS,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.PROPAGANDA,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.INSPECTION,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.LAW,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.SOCIAL_SECURITY,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.EDUCATION,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.HYGIENISM,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.SCIENCE,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.PERSONNEL_AFFAIRS,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.TRAFFIC,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.CIVIADMINISTRATION,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.AGRICULTURE,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.IRRIGATION_WORKS,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.CITY_CONSTRUCT,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.INFORMATION_INDUSTRY,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+		addTypes(
+				addOtherModuleIssueTypeDomain(IssueTypes.TOUR,
+						IssueTypes.CALLCENTER_MODULE), new String[] { "举报",
+						"投诉", "建议", "咨询", "感谢", "其他" });
+	}
+
+	private IssueTypeDomain addOtherModuleIssueTypeDomain(String domainName,
+			String moduleName) {
+		return addIssueTypeDomain(domainName, moduleName, true, null, false);
+	}
+
+	private void addTypes(IssueTypeDomain domain, String[] names) {
+		for (int index = 0; index < names.length; index++) {
+			addIssueType(domain, -1, names[index], names[index]);
+		}
+	}
+
+}

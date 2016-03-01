@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="redEnvelope">
+	<typeAlias alias="RedEnvelope"
+		type="com.tianque.plugin.weChat.domain.redEnvelopeManagement.RedEnvelope" />
+	<typeAlias alias="RedEnvelopeVo"
+		type="com.tianque.plugin.weChat.vo.RedEnvelopeVo" />
+	<resultMap id="redEnvelopeResult" class="RedEnvelope">
+		<result property="id" column="id" />
+		<result property="redEnvelopeType" column="redEnvelopeType" />
+		<result property="min_value" column="min_value" />
+		<result property="max_value" column="max_value" />
+		<result property="singleEnvelope_value" column="singleEnvelope_value" />
+		<result property="act_name" column="act_name" />
+		<result property="send_name" column="send_name" />
+		<result property="remark" column="remark" />
+		<result property="wishing" column="wishing" />
+		<result property="share_content" column="share_content" />
+		<result property="share_url" column="share_url" />
+		<result property="org.id" column="orgId" />
+		<result property="org.orgInternalCode" column="orgInternalCode" />
+		<result property="mch_id" column="mch_id" />
+		<result property="wxappid" column="wxappid" />
+		<result property="weChatUserId" column="weChatUserId" />
+		<result property="nick_name" column="nick_name" />
+		<result property="apiKey" column="apiKey" />
+		
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	<!-- Vo考虑到后期可能需要加其他属性  -->
+	<resultMap id="redEnvelopeVoResult" class="RedEnvelopeVo">
+		<result property="id" column="id" />
+		<result property="redEnvelopeType" column="redEnvelopeType" />
+		<result property="min_value" column="min_value" />
+		<result property="max_value" column="max_value" />
+		<result property="singleEnvelope_value" column="singleEnvelope_value" />
+		<result property="act_name" column="act_name" />
+		<result property="send_name" column="send_name" />
+		<result property="remark" column="remark" />
+		<result property="wishing" column="wishing" />
+		<result property="share_content" column="share_content" />
+		<result property="share_url" column="share_url" />
+		<result property="org.id" column="orgId" />
+		<result property="org.orgInternalCode" column="orgInternalCode" />
+		<result property="mch_id" column="mch_id" />
+		<result property="wxappid" column="wxappid" />
+		<result property="weChatUserId" column="weChatUserId" />
+		<result property="nick_name" column="nick_name" />
+		
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<sql id="redEnvelopeVo_sql_where">
+		from RedEnvelope
+		<dynamic prepend="WHERE">
+			<isNotNull prepend=" and " property="redEnvelopeVo.org.id">
+				orgId=#redEnvelopeVo.org.id#
+			</isNotNull>
+			<isNotNull prepend=" and " property="redEnvelopeVo.act_name">
+				act_name like
+				'%'||#redEnvelopeVo.act_name#||'%'
+			</isNotNull>
+			<isNotNull prepend=" and " property="redEnvelopeVo.weChatUserId">
+				weChatUserId=#redEnvelopeVo.weChatUserId#
+			</isNotNull>
+		</dynamic>
+	</sql>
+	
+	<insert id="addRedEnvelope" parameterClass="RedEnvelope">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_RedEnvelope.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		insert into RedEnvelope
+		(id,redEnvelopeType,min_value,max_value,singleEnvelope_value,act_name,send_name,remark,wishing,share_content,
+		apiKey,nick_name,weChatUserId,wxappid,mch_id,orgId,orgInternalCode,createUser,updateUser,createDate,updateDate)
+		values
+		(#id#,#redEnvelopeType#,#min_value#,#max_value#,#singleEnvelope_value#,#act_name#,#send_name#,#remark#,#wishing#,#share_content#,
+		#apiKey#,#nick_name#,#weChatUserId#,#wxappid#,#mch_id#,#org.id#,#org.orgInternalCode#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	<update id="updateRedEnvelope" parameterClass="RedEnvelope">
+		update RedEnvelope set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="redEnvelopeType">
+				redEnvelopeType=#redEnvelopeType#
+			</isNotNull>
+			<isNotNull prepend="," property="min_value">
+				min_value=#min_value#
+			</isNotNull>
+			<isNotNull prepend="," property="max_value">
+				max_value=#max_value#
+			</isNotNull>
+			<isNotNull prepend="," property="singleEnvelope_value">
+				singleEnvelope_value=#singleEnvelope_value#
+			</isNotNull>
+			<isNotNull prepend="," property="act_name">
+				act_name=#act_name#
+			</isNotNull>
+			<isNotNull prepend="," property="send_name">
+				send_name=#send_name#
+			</isNotNull>
+			<isNotNull prepend="," property="remark">
+				remark=#remark#
+			</isNotNull>
+			<isNotNull prepend="," property="wishing">
+				wishing=#wishing#
+			</isNotNull>
+			<isNotNull prepend="," property="share_content">
+				share_content=#share_content#
+			</isNotNull>
+			<isNotNull prepend="," property="apiKey">
+				apiKey=#apiKey#
+			</isNotNull>
+			<isNotNull prepend="," property="nick_name">
+				nick_name=#nick_name#
+			</isNotNull>
+			<isNotNull prepend="," property="wxappid">
+				wxappid=#wxappid#
+			</isNotNull>
+			<isNotNull prepend="," property="mch_id">
+				mch_id=#mch_id#
+			</isNotNull>			
+			<isNotNull prepend="," property="weChatUserId">
+				weChatUserId=#weChatUserId#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+		</dynamic>
+		   WHERE id=#id#
+	</update>
+	
+	<delete id="deleteRedEnvelopeById" parameterClass="java.lang.Long" >
+		delete from RedEnvelope where id = #value# 
+	</delete>
+	
+	<select id="getRedEnvelopeById" parameterClass="java.lang.Long" resultMap="redEnvelopeResult">
+		select * from RedEnvelope where id = #value# 
+	</select>
+	
+	<select id="countRedEnvelopeVoList" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="redEnvelopeVo_sql_where" />
+	</select>
+	
+	<select id="findRedEnvelopeVoList" parameterClass="java.util.Map" resultMap="redEnvelopeVoResult">
+		<include refid="common.sql_select" />
+		<include refid="redEnvelopeVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>

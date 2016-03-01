@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		CREATEDATE as createDate ,
+		UPDATEDATE as updateDate ,
+		ORGID as orgId ,
+		ORGINTERNALCODE as orgInternalCode ,
+		CREATEUSER as createuser ,
+		UPDATEUSER as updateuser ,
+		IMGURL as imgUrl ,
+		PARTYORGSANDMEMBERSCASE as partyOrgsAndMembersCase ,
+		ADMINISTRATIVECASES as administrativeCases ,
+		STREETPARTYSITUATION as streetPartySituation ,
+		SYSTEMCONSTRUCTION as systemConstruction ,
+		REGIONALPARTYSITUATION as regionalPartySituation ,
+		VOLUNTEERSSITUATION as volunteersSituation ,
+		DOUBLEREGISTRATIONSITUATION as doubleRegistrationSituation 
+	FROM DISTRICT_BASICCASE	
+ -->	
+<sqlMap namespace="districtBasiccase">	
+	
+	<typeAlias alias="DistrictBasiccase" type="com.tianque.partyBuilding.baseInfos.domain.DistrictBasiccase"/>
+	<typeAlias alias="SearchDistrictBasiccaseVo" type="com.tianque.partyBuilding.baseInfos.domain.vo.SearchDistrictBasiccaseVo" />
+	<typeAlias alias="ClobStringTypeHandler" type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+	
+	<resultMap id="districtBasiccaseResult" class="DistrictBasiccase">
+		<result property="id" column="ID"/>
+		<result property="organization.id" column="ORGID"/>
+		<result property="orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="imgUrl" column="IMGURL"/>
+		<result property="partyOrgsAndMembersCase" column="PARTYORGSANDMEMBERSCASE"  typeHandler="ClobStringTypeHandler"/>
+		<result property="administrativeCases" column="ADMINISTRATIVECASES"  typeHandler="ClobStringTypeHandler"/>
+		<result property="streetPartySituation" column="STREETPARTYSITUATION"  typeHandler="ClobStringTypeHandler"/>
+		<result property="systemConstruction" column="SYSTEMCONSTRUCTION"  typeHandler="ClobStringTypeHandler"/>
+		<result property="regionalPartySituation" column="REGIONALPARTYSITUATION"  typeHandler="ClobStringTypeHandler"/>
+		<result property="volunteersSituation" column="VOLUNTEERSSITUATION"  typeHandler="ClobStringTypeHandler"/>
+		<result property="doubleRegistrationSituation" column="DOUBLEREGISTRATIONSITUATION"  typeHandler="ClobStringTypeHandler"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+	</resultMap>
+	
+
+
+	<select id="getDistrictBasiccaseById" parameterClass="java.lang.Long" resultMap="districtBasiccaseResult">
+		select * from DISTRICT_BASICCASE where id=#value#
+	</select>
+	
+	<insert id="addDistrictBasiccase" parameterClass="DistrictBasiccase">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_DISTRICT_BASICCASE.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DISTRICT_BASICCASE (ID , CREATEDATE , UPDATEDATE , ORGID , ORGINTERNALCODE , CREATEUSER , UPDATEUSER , IMGURL , PARTYORGSANDMEMBERSCASE , ADMINISTRATIVECASES , STREETPARTYSITUATION , SYSTEMCONSTRUCTION , REGIONALPARTYSITUATION , VOLUNTEERSSITUATION , DOUBLEREGISTRATIONSITUATION ) 
+		values(#id#, #createDate#, #updateDate#, #organization.id#, #orgInternalCode#, #createUser#, #updateUser#, #imgUrl#, #partyOrgsAndMembersCase,handler=ClobStringTypeHandler#, #administrativeCases,handler=ClobStringTypeHandler#, #streetPartySituation,handler=ClobStringTypeHandler#, #systemConstruction,handler=ClobStringTypeHandler#, #regionalPartySituation,handler=ClobStringTypeHandler#, 
+			#volunteersSituation,handler=ClobStringTypeHandler#, #doubleRegistrationSituation,handler=ClobStringTypeHandler#)	
+	</insert>
+	
+	<update id="updateDistrictBasiccase" parameterClass="DistrictBasiccase">
+		update DISTRICT_BASICCASE set id = #id# 
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="organization.id">
+					ORGID = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="imgUrl">
+					IMGURL = #imgUrl#
+				</isNotNull>
+				<isNotNull prepend="," property="partyOrgsAndMembersCase">
+					PARTYORGSANDMEMBERSCASE = #partyOrgsAndMembersCase#
+				</isNotNull>
+				<isNotNull prepend="," property="administrativeCases">
+					ADMINISTRATIVECASES = #administrativeCases#
+				</isNotNull>
+				<isNotNull prepend="," property="streetPartySituation">
+					STREETPARTYSITUATION = #streetPartySituation#
+				</isNotNull>
+				<isNotNull prepend="," property="systemConstruction">
+					SYSTEMCONSTRUCTION = #systemConstruction#
+				</isNotNull>
+				<isNotNull prepend="," property="regionalPartySituation">
+					REGIONALPARTYSITUATION = #regionalPartySituation#
+				</isNotNull>
+				<isNotNull prepend="," property="volunteersSituation">
+					VOLUNTEERSSITUATION = #volunteersSituation#
+				</isNotNull>
+				<isNotNull prepend="," property="doubleRegistrationSituation">
+					DOUBLEREGISTRATIONSITUATION = #doubleRegistrationSituation#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteDistrictBasiccaseById" parameterClass="java.lang.Long">	
+		delete  from DISTRICT_BASICCASE where id = #value#	
+	</delete>
+	
+	<sql id="findDistrictBasiccasesBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="maxCreateDate">
+					<isNotEmpty prepend="and" property="maxCreateDate">
+						CREATEDATE  <![CDATA[<=]]> #maxCreateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minCreateDate">
+					<isNotEmpty prepend="and" property="minCreateDate">
+						CREATEDATE  <![CDATA[>=]]> #minCreateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="maxUpdateDate">
+					<isNotEmpty prepend="and" property="maxUpdateDate">
+						UPDATEDATE  <![CDATA[<=]]> #maxUpdateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minUpdateDate">
+					<isNotEmpty prepend="and" property="minUpdateDate">
+						UPDATEDATE  <![CDATA[>=]]> #minUpdateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="createuser">
+					<isNotEmpty prepend="and" property="createuser">
+						CREATEUSER  like #createuser# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="updateuser">
+					<isNotEmpty prepend="and" property="updateuser">
+						UPDATEUSER  like #updateuser# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="imgUrl">
+					<isNotEmpty prepend="and" property="imgUrl">
+						IMGURL  like #imgUrl# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="partyOrgsAndMembersCase">
+					<isNotEmpty prepend="and" property="partyOrgsAndMembersCase">
+						PARTYORGSANDMEMBERSCASE  like #partyOrgsAndMembersCase# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="administrativeCases">
+					<isNotEmpty prepend="and" property="administrativeCases">
+						ADMINISTRATIVECASES  like #administrativeCases# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="streetPartySituation">
+					<isNotEmpty prepend="and" property="streetPartySituation">
+						STREETPARTYSITUATION  like #streetPartySituation# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="systemConstruction">
+					<isNotEmpty prepend="and" property="systemConstruction">
+						SYSTEMCONSTRUCTION  like #systemConstruction# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="regionalPartySituation">
+					<isNotEmpty prepend="and" property="regionalPartySituation">
+						REGIONALPARTYSITUATION  like #regionalPartySituation# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="volunteersSituation">
+					<isNotEmpty prepend="and" property="volunteersSituation">
+						VOLUNTEERSSITUATION  like #volunteersSituation# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="doubleRegistrationSituation">
+					<isNotEmpty prepend="and" property="doubleRegistrationSituation">
+						DOUBLEREGISTRATIONSITUATION  like #doubleRegistrationSituation# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+	<select id="findDistrictBasiccasesBySearchVo" parameterClass="SearchDistrictBasiccaseVo" resultMap="districtBasiccaseResult">
+		select * from DISTRICT_BASICCASE
+		<include refid="findDistrictBasiccasesBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countDistrictBasiccasesBySearchVo" parameterClass="SearchDistrictBasiccaseVo" resultClass="java.lang.Integer">
+		select count(0) from DISTRICT_BASICCASE
+		<include refid="findDistrictBasiccasesBySearchVo_sql_where" />
+	</select>
+	
+	
+	<select id="findDistrictBasiccaseByIdAndOrgId" resultMap="districtBasiccaseResult"
+		parameterClass="java.util.Map">
+		select * from (select * from DISTRICT_BASICCASE order by createDate desc) where rownum =1
+		<dynamic>
+			<isNotNull prepend="and" property="id">
+				id=#id#
+			</isNotNull>
+			<isNotNull prepend="and" property="orgId">
+				orgId=#orgId#
+			</isNotNull>
+			order by createDate desc
+		</dynamic>
+	</select>
+
+</sqlMap>

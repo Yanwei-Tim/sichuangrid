@@ -1,0 +1,190 @@
+package com.tianque.plugin.weChat.controller;
+
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.controller.ControllerHelper;
+import com.tianque.controller.annotation.PermissionFilter;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.GridPage;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.plugin.weChat.domain.RequestResult;
+import com.tianque.plugin.weChat.domain.sms.SmsAccount;
+import com.tianque.plugin.weChat.domain.sms.SmsSendGroup;
+import com.tianque.plugin.weChat.domain.sms.SmsSendResult;
+import com.tianque.plugin.weChat.service.SmsAccountService;
+import com.tianque.plugin.weChat.service.SmsSendGroupService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+/**
+ * 三级响应：短信响应
+ * @ClassName: SmsResponseController 
+ * @author: he.simin
+ * @date: 2015年11月6日 下午5:03:11
+ */
+@Namespace("/smsResponseManage")
+@Scope("prototype")
+@Controller
+public class SmsResponseController extends BaseAction {
+	private Logger logger = LoggerFactory.getLogger(SmsResponseController.class);
+	@Autowired
+	private SmsSendGroupService smsSendGroupService;
+	@Autowired
+	private SmsAccountService smsAccountService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+
+	private SmsSendGroup smsSendGroup;
+	private SmsSendResult smsSendResult;
+	private List<SmsAccount> smsAccountList;
+	private RequestResult requestResult;
+	private String sendToPhoneNumber;//消息接收手机号列表
+	private Boolean isSendByPhoneNumber;
+
+	@Action(value = "findSmsSendGroup", results = {
+			@Result(name = "success", type = "json", params = { "root", "gridPage" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String findSmsSendGroup() {
+		if (smsSendGroup == null || smsSendGroup.getOrg() == null
+				|| smsSendGroup.getOrg().getId() == null) {
+			this.errorMessage = "参数错误";
+			return ERROR;
+		}
+		smsSendGroup.setOrg(organizationDubboService
+				.getSimpleOrgById(smsSendGroup.getOrg().getId()));
+		PageInfo<SmsSendGroup> pageInfo = smsSendGroupService.findSmsSendGroup(smsSendGroup, page,
+				rows, sidx, sord);
+		ControllerHelper.processAllOrgName(pageInfo.getResult(), organizationDubboService,
+				new String[] { "org" });
+		gridPage = new GridPage(pageInfo);
+		return "success";
+	}
+
+	@Action(value = "dispatch", results = {
+			@Result(name = "success", location = "/wechat/smsAccount/smsSendDlg.jsp"),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String dispatch() {
+		smsAccountList = smsAccountService.findSmsAccountByOrgCode(ThreadVariable.getOrganization()
+				.getOrgInternalCode());
+		// 去掉密码
+		for (SmsAccount s : smsAccountList) {
+			s.setPwd(null);
+			s.setCallbackPwd(null);
+		}
+		if (isSendByPhoneNumber == null)
+			isSendByPhoneNumber = false;
+		return SUCCESS;
+	}
+
+	@Action(value = "addSmsResponse", results = {
+			@Result(name = "success", type = "json", params = { "root", "true" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	@PermissionFilter(ename = "addSmsResponse")
+	public String addSmsResponse() {
+		try {
+			smsSendGroup.setOrg(ThreadVariable.getOrganization());
+			smsSendGroupService.sendSaveSmsSendGroup(
+					smsSendGroup,
+					StringUtils.isNotBlank(sendToPhoneNumber) ? sendToPhoneNumber.replaceAll(" ",
+							"").split(",") : null);
+		} catch (BusinessValidationException e) {
+			errorMessage = e.getMessage();
+			return ERROR;
+		} catch (Exception e) {
+			logger.error("短信群发错误：", e);
+			errorMessage = e.getMessage();
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "showSmsSendResult", results = {
+			@Result(name = "success", type = "json", params = { "root", "gridPage" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	@PermissionFilter(ename = "addSmsResponse")
+	public String showSmsSendResult() {
+		PageInfo<SmsSendResult> pageInfo = smsSendGroupService.findSmsSendResult(smsSendResult,
+				page, rows, sidx, sord);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	@Action(value = "querySmsAccountBalance", results = { @Result(name = "success", type = "json", params = {
+			"root", "requestResult" }) })
+	@PermissionFilter(ename = "addSmsResponse")
+	public String querySmsAccountBalance() {
+		requestResult = smsAccountService.querySmsAccountBalance(id);
+		return SUCCESS;
+	}
+
+	@Action(value = "countRedCuffTeamListByTeamType", results = { @Result(name = "success", type = "json", params = {
+			"root", "requestResult" }) })
+	@PermissionFilter(ename = "addSmsResponse")
+	public String countRedCuffTeamListByTeamType() {
+		requestResult = new RequestResult();
+		int count = smsSendGroupService.countRedCuffTeamListByTeamType(ThreadVariable
+				.getOrganization().getOrgInternalCode(), smsSendGroup.getReceiverRedCuffTeamType());
+		requestResult.setData(count);
+		return SUCCESS;
+	}
+
+	public SmsSendGroup getSmsSendGroup() {
+		return smsSendGroup;
+	}
+
+	public void setSmsSendGroup(SmsSendGroup smsSendGroup) {
+		this.smsSendGroup = smsSendGroup;
+	}
+
+	public List<SmsAccount> getSmsAccountList() {
+		return smsAccountList;
+	}
+
+	public void setSmsAccountList(List<SmsAccount> smsAccountList) {
+		this.smsAccountList = smsAccountList;
+	}
+
+	public SmsSendResult getSmsSendResult() {
+		return smsSendResult;
+	}
+
+	public void setSmsSendResult(SmsSendResult smsSendResult) {
+		this.smsSendResult = smsSendResult;
+	}
+
+	public RequestResult getRequestResult() {
+		return requestResult;
+	}
+
+	public void setRequestResult(RequestResult requestResult) {
+		this.requestResult = requestResult;
+	}
+
+	public String getSendToPhoneNumber() {
+		return sendToPhoneNumber;
+	}
+
+	public void setSendToPhoneNumber(String sendToPhoneNumber) {
+		this.sendToPhoneNumber = sendToPhoneNumber;
+	}
+
+	public Boolean getIsSendByPhoneNumber() {
+		return isSendByPhoneNumber;
+	}
+
+	public void setIsSendByPhoneNumber(Boolean isSendByPhoneNumber) {
+		this.isSendByPhoneNumber = isSendByPhoneNumber;
+	}
+
+}

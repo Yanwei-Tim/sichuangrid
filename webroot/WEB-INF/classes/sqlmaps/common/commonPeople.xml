@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="commonPeople">
+    <typeAlias alias="People" type="com.tianque.baseInfo.base.domain.People"/>
+    <resultMap id="commonPeopleResultMap" class="People">
+       <result property="id" column="id"/>
+       <result property="name" column="name"/>
+       <result property="gender.id" column="gender"/>
+       <result property="idCardNo" column="idCardNo"/>
+       <result property="attentionPopulationType" column="type"/>
+    </resultMap>
+    
+    <sql id="sql_where">
+       (select p.id as id, b.name as name,b.gender as gender, b.idCardNo as idCardNo,'positiveInfo' as type from positiveinfos p left join baseinfo  b on p.baseinfoid=b.id 
+       where p.orginternalcode like #orgInternalCode# and p.isemphasis = 0
+       <dynamic>
+          <isNotEmpty prepend="and" property="name">
+            (b.name like #name# or b.fullpinyin like #name# or b.simplepinyin like #name# or b.idcardno like #name#)
+          </isNotEmpty>
+       </dynamic>
+       union
+       select r.id as id, b.name as name,b.gender as gender, b.idCardNo as idCardNo,'rectificativePerson' as type from rectificativePersons r left join baseinfo  b on r.baseinfoid=b.id 
+       where r.orginternalcode like #orgInternalCode# and r.isemphasis = 0 
+       <dynamic>
+          <isNotEmpty prepend="and" property="name">
+            (b.name like #name# or b.fullpinyin like #name# or b.simplepinyin like #name# or b.idcardno like #name#)
+          </isNotEmpty>
+       </dynamic>
+       union
+       select m.id as id, b.name as name,b.gender as gender, b.idCardNo as idCardNo,'mentalPatient' as type from mentalPatients m left join baseinfo  b on m.baseinfoid=b.id 
+       where m.orginternalcode like #orgInternalCode# and m.isemphasis = 0 
+       <dynamic>
+          <isNotEmpty prepend="and" property="name">
+            (b.name like #name# or b.fullpinyin like #name# or b.simplepinyin like #name# or b.idcardno like #name#)
+          </isNotEmpty>
+       </dynamic>
+       union
+       select g.id as id, b.name as name,b.gender as gender, b.idCardNo as idCardNo,'druggy' as type from druggys g left join baseinfo  b on g.baseinfoid=b.id 
+       where g.orginternalcode like #orgInternalCode# and g.isemphasis = 0 
+       <dynamic>
+          <isNotEmpty prepend="and" property="name">
+            (b.name like #name# or b.fullpinyin like #name# or b.simplepinyin like #name# or b.idcardno like #name#)
+          </isNotEmpty>
+       </dynamic>
+       union
+       select i.id as id, b.name as name,b.gender as gender, b.idCardNo as idCardNo,'idleYouth' as type from idleYouths i left join baseinfo  b on i.baseinfoid=b.id 
+       where i.orginternalcode like #orgInternalCode# and i.isemphasis = 0 
+       <dynamic>
+          <isNotEmpty prepend="and" property="name">
+            (b.name like #name# or b.fullpinyin like #name# or b.simplepinyin like #name# or b.idcardno like #name#) 
+          </isNotEmpty>
+       </dynamic>
+       union
+       select s.id as id, b.name as name,b.gender as gender, b.idCardNo as idCardNo,'superiorVisit' as type from superiorVisits s left join baseinfo  b on s.baseinfoid=b.id 
+       where s.orginternalcode like #orgInternalCode# and s.isemphasis = 0 
+       <dynamic>
+          <isNotEmpty prepend="and" property="name">
+            (b.name like #name# or b.fullpinyin like #name# or b.simplepinyin like #name# or b.idcardno like #name#)
+          </isNotEmpty>
+       </dynamic>
+       union
+       select d.id as id, b.name as name,b.gender as gender, b.idCardNo as idCardNo,'dangerousGoodsPractitioner' as type from dangerousGoodsPractitioners d left join baseinfo  b on d.baseinfoid=b.id 
+       where d.orginternalcode like #orgInternalCode# and d.isemphasis = 0 
+       <dynamic>
+          <isNotEmpty prepend="and" property="name">
+            (b.name like #name# or b.fullpinyin like #name# or b.simplepinyin like #name# or b.idcardno like #name#)
+          </isNotEmpty>
+       </dynamic>
+      <!-- union
+       select ai.id as id, b.name as name,b.gender as gender, b.idCardNo as idCardNo,'aidspopulation' as type from aidspopulations ai left join baseinfo  b on ai.baseinfoid=b.id 
+       where ai.orginternalcode like #orgInternalCode# and ai.isemphasis = 0 
+       <dynamic>
+          <isNotEmpty prepend="and" property="name">
+            (b.name like #name# or b.fullpinyin like #name# or b.simplepinyin like #name# or b.idcardno like #name#) 
+          </isNotEmpty>
+       </dynamic> -->
+       union
+       select a.id as id, b.name as name,b.gender as gender, b.idCardNo as idCardNo,'otherAttentionPersonnel' as type from otherAttentionPersonnels a left join baseinfo  b on a.baseinfoid=b.id 
+       where a.orginternalcode like #orgInternalCode# and a.isemphasis = 0 
+      <dynamic>
+          <isNotEmpty prepend="and" property="name">
+            (b.name like #name# or b.fullpinyin like #name# or b.simplepinyin like #name# or b.idcardno like #name#)
+          </isNotEmpty>
+       </dynamic>)
+    </sql>
+    
+    <select id="searchCommonPopulationByName" resultMap="commonPeopleResultMap" parameterClass="java.util.Map">
+       select * from <include refid="sql_where" />
+    </select>
+    
+    <select id="countCommonPopulation" parameterClass="java.util.Map" resultClass="integer">
+       select count(*) from <include refid="sql_where" />
+    </select>
+</sqlMap>

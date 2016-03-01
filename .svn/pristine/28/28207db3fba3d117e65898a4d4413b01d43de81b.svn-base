@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="merge">
+	<update id="updateMergeOrg" parameterClass="java.util.Map">
+		update $tableName$ set
+		<dynamic>
+			orgInternalCode = #orgInternalCode#
+			<isNotNull prepend="," property="orgId">
+				orgId=#orgId#
+			</isNotNull>
+			<isNotNull prepend="," property="organizationid">
+				organizationid=#organizationid#
+			</isNotNull>
+		</dynamic>
+		where
+		<dynamic>
+			<isNotNull prepend="" property="orgId">
+					orgId=#mergeId#
+				</isNotNull>
+				<isNotNull prepend="" property="organizationid">
+					organizationid=#mergeId#
+				</isNotNull>
+			</dynamic>
+	</update>
+	
+	<delete id="deleteUserRoleRelasByRoleId" parameterClass="java.lang.Long">
+		delete
+		from userHasRoles where userId=#value#
+	</delete>
+	
+	<delete id="deleteUserRoleRelasByRoleIds" parameterClass="java.util.List">
+		delete
+		from userHasRoles where 
+		 <iterate  conjunction="," open="userId in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+</sqlMap>

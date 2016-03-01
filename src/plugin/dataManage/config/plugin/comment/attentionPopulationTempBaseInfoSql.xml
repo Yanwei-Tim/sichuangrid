@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="attentionPopulationTempBaseInfo">
+	<typeAlias alias="AttentionPopulation" type="com.tianque.baseInfo.base.domain.AttentionPopulation"/>
+	<resultMap id="attentionPopulationBaseInfoResult" class="AttentionPopulation" extends="populationTempBaseInfo.populationBaseInfoResult">
+		<result column="isEmphasis" property="isEmphasis" />
+		<result property="logoutDetail.logout" column="isEmphasis" />
+		<result property="logoutDetail.logoutReason" column="isEmphasisReason" />
+		<result property="logoutDetail.logoutDate" column="isEmphasisDate"/>
+		<result property="attentionExtent.id" column="attentionExtent"/>
+		
+	</resultMap>
+	
+	
+	
+	
+	<!-- <resultMap  id="attentionPopulationBaseInfoResultForList" class="AttentionPopulation" extends="attentionPopulationTempBaseInfo.attentionPopulationBaseInfoResult" >
+		<result property="populationType" column="populationType"  nullValue="" />
+		<result property="hasServiceTeamMember" column="{id=id,populationType=populationType}" select="attentionPopulationTempBaseInfo.hasServiceTeamMemberQuery" />
+		<result property="lastRecordTime" column="{id=id,populationType=populationType}" select="attentionPopulationTempBaseInfo.hasServiceTeamRecordQuery"/>
+	</resultMap>
+	
+	<select id="hasServiceTeamMemberQuery"  resultClass="java.lang.Long" > 
+		select count(*)  from serviceMemberHasObject where objectType = #populationType# and objectId=#id# and onDuty=1
+	</select>
+	
+	<select id="hasServiceTeamRecordQuery" resultClass="java.util.Date">
+		select max(OCCURDATE) from servicerecords 
+		where id in (select recordId from serviceRecordRelyObject 
+								where objectType=#populationType# and objectId=#id#)
+	</select>
+	
+	<sql id="serviceTeamInfoForSearch">
+		<isNotNull property="hasServiceTeamMember" prepend=" and ">
+			<isEqual property="hasServiceTeamMember" compareValue="0">
+			   id in (select objectId from serviceMemberHasObject where objectType=#attentionPopulationType# )
+			</isEqual>
+			<isEqual property="hasServiceTeamMember" compareValue="1">
+				id not in (select objectId from serviceMemberHasObject where objectType=#attentionPopulationType# )
+			</isEqual>
+		</isNotNull>
+		
+		<isNotNull property="hasServiceTeamRecord" prepend=" and ">
+			<isEqual property="hasServiceTeamRecord" compareValue="0">
+				id in (select objectId from serviceRecordRelyObject where objectType=#attentionPopulationType# )
+			</isEqual>
+			<isEqual property="hasServiceTeamRecord" compareValue="1">
+				id not in (select objectId from serviceRecordRelyObject where objectType=#attentionPopulationType# )
+			</isEqual>
+		</isNotNull>
+	</sql> -->
+	
+	
+	
+</sqlMap>

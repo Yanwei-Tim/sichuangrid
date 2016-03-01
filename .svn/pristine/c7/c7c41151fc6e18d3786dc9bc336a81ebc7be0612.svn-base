@@ -1,0 +1,980 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8" import="com.tianque.domain.Organization"%>
+    <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib"%>
+<%@ include file="/includes/baseInclude.jsp"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+
+<style type="text/css">
+    #blPage{}
+    #blPage .left{float:left; width:370px; min-height:450px;  border-right:1px solid #ccc;  margin-right:-1px}
+
+    #blPage .right{float:left; width:305px; min-height:450px;  border-left:1px solid #ccc}
+
+    #blPage #dealCode{width:97%}
+    #blPage .left table{width:360px;}
+    #blPage .left td{ line-height: 1.6em; padding: 3px;}
+    #blPage .dealRecord{padding-top:5px}
+    #blPage .innerTxt{position:relative;padding-left:80px; word-break: break-all;}
+    #blPage .innerTxt strong{float: left;margin-left: -80px;width:100px;text-align:right; /* position:absolute;top:0; left:0; */}
+
+    #issueTable .record{ padding:5px 10px 5px 10px;  margin-bottom:10px;  line-height:1.6em;  color:#333;  border:1px solid #b2c4d0;  background-color:#ecf5fe;}
+    #issueTable .record .recordState{ float:right;}
+    #issueTable .dispose{ padding:5px 5px 5px 3px;}
+
+    #dialog-form .grid_4{width:90px}
+    #dialog-form .grid_8{width:160px}
+    #dialog-form .grid_10{width:190px}
+    #dialog-form .grid_5{width:136px}
+
+    #dialog-form .grid_x{ float:left; width:210px}
+    #dialog-form .ctt, 
+    #dialog-form .tBtn{ float:left; display:inline;  width:132px}
+    #dialog-form .tBtn{ margin-left:10px;  width:60px}
+    #dialog-form .tBtn input{ width:60px;  height:24px;  line-height:24px}
+    #dialog-form .ctt{border:1px solid transparent;padding-right:4px;}
+    #dialog-form .errorInput{border: 1px solid #DB0027;}
+	.small_Text {display:block;color:#777;word-break: break-all;word-wrap: break-word;padding-right:0px;!important}
+	.holder{width:128px !important;height:26px !important;}
+	#tellToSelectorDiv .holder{width:128px !important;height:60px !important;}
+	#noticeToSelectorDiv .holder{width:128px !important;height:60px !important;}
+</style>
+
+<%
+	request.setAttribute("currentOrgLevel", ThreadVariable.getUser().getOrganization().getOrgLevel().getId() != 202);//不是村层级
+%>
+
+<input type="hidden" id="currentDepartNo" value="<s:property value="@com.tianque.core.util.ThreadVariable@getOrganization().getDepartmentNo()"/>">
+
+<div id="blPage" class="cf">
+		
+		<div class="left">
+			<table >
+			<tbody>
+		        <tr>
+					<td ><div class='innerTxt cf'><strong>编号:</strong>${peopleAspirations.serialNumber}</div></td>
+				</tr>
+				 <tr>
+					<td ><div class='innerTxt cf'><strong>登记时间:</strong><s:date format="yyyy-MM-dd" name="peopleAspirations.occurDate" /></div></td>
+				</tr>
+				 <tr>
+					<td ><div class='innerTxt cf'><strong>主要当事人:</strong>${peopleAspirations.name}</div></td>
+				</tr>
+				 <tr>
+					<td ><div class='innerTxt cf'><strong>服务联系人:</strong>${peopleAspirations.serverContractor}${peopleAspirations.serverTelephone}</div></td>
+				</tr>
+				<tr>
+					<td ><div class='innerTxt cf'><strong>单位及职务:</strong>${peopleAspirations.serverJob}</div></td>
+				</tr>
+				<tr>
+					<td ><div class='innerTxt cf'><strong>主要愿望或诉求:</strong>${peopleAspirations.appealContent}</div></td>
+				</tr>
+				
+				<s:if test="peopleAspirations.ledgerType == @com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_WATER">
+					<s:action name="getWaterResource" namespace="/threeRecords/water" var="waterResource" executeResult="true">
+						<s:param name="keyId" value="peopleAspirations.id"></s:param>
+					</s:action>
+				</s:if>
+				<s:if test="peopleAspirations.ledgerType == @com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_TRAFFIC">
+					<s:action name="getTraffic" namespace="/threeRecords/traffic" var="traffic" executeResult="true">
+						<s:param name="keyId" value="peopleAspirations.id"></s:param>
+					</s:action>
+				</s:if>
+				<s:if test="peopleAspirations.ledgerType == @com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_TOWN">
+					<s:action name="getTown" namespace="/threeRecords/town" var="town" executeResult="true">
+						<s:param name="keyId" value="peopleAspirations.id"></s:param>
+					</s:action>
+				</s:if>
+				<s:if test="peopleAspirations.ledgerType == @com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_SCIENCE">
+					<s:action name="getScience" namespace="/threeRecords/science" var="science" executeResult="true">
+						<s:param name="keyId" value="peopleAspirations.id"></s:param>
+					</s:action>
+				</s:if>
+				<s:if test="peopleAspirations.ledgerType == @com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_OTHER">
+					<s:action name="getOther" namespace="/threeRecords/other" var="other" executeResult="true">
+						<s:param name="keyId" value="peopleAspirations.id"></s:param>
+					</s:action>
+				</s:if>
+				<s:if test="peopleAspirations.ledgerType == @com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_MEDICAL">
+					<s:action name="getMedical" namespace="/threeRecords/medical" var="medical" executeResult="true">
+						<s:param name="keyId" value="peopleAspirations.id"></s:param>
+					</s:action>
+				</s:if>
+				<s:if test="peopleAspirations.ledgerType == @com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_LABOR">
+					<s:action name="getLabor" namespace="/threeRecords/labor" var="labor" executeResult="true">
+						<s:param name="keyId" value="peopleAspirations.id"></s:param>
+					</s:action>
+				</s:if>
+				<s:if test="peopleAspirations.ledgerType == @com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_ENVIRONMENT">
+					<s:action name="getEnvironment" namespace="/threeRecords/environment" var="environment" executeResult="true">
+						<s:param name="keyId" value="peopleAspirations.id"></s:param>
+					</s:action>
+				</s:if>
+				<s:if test="peopleAspirations.ledgerType == @com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_ENERGY">
+					<s:action name="getEnergy" namespace="/threeRecords/energy" var="energy" executeResult="true">
+						<s:param name="keyId" value="peopleAspirations.id"></s:param>
+					</s:action>
+				</s:if>
+				<s:if test="peopleAspirations.ledgerType == @com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_EDUCATION">
+					<s:action name="getEducation" namespace="/threeRecords/education" var="education" executeResult="true">
+						<s:param name="keyId" value="peopleAspirations.id"></s:param>
+					</s:action>
+				</s:if>
+				<s:if test="peopleAspirations.ledgerType == @com.tianque.plugin.account.constants.LedgerConstants@PEOPLEASPIRATION_AGRICULTURE">
+					<s:action name="getAgriculture" namespace="/threeRecords/agriculture" var="agriculture" executeResult="true">
+						<s:param name="keyId" value="peopleAspirations.id"></s:param>
+					</s:action>
+				</s:if>
+				
+				<c:if test="${issueAttachFiles != null && fn:length(issueAttachFiles)>0}">
+                <tr>
+                    <td ><div class='innerTxt'><strong>附件:</strong>
+                    		<c:forEach items="${issueAttachFiles}" var="issueAttachFile">
+                                <a href="${path }/threeRecordsIssues/issueManage/downLoadAttachFile.action?keyId=${issueAttachFile.id}">
+                                <img  src="${resource_path }/resource/images/fujian.jpg"/>${issueAttachFile.fileName}
+                                </a>
+                                <div class='clearLine'></div>
+                            </c:forEach>&nbsp;
+                    
+                        </div>
+                    </td>
+                </tr>
+				</c:if>
+				<tr>
+					<td style="border-bottom:dashed 1px #555;width: 300px"></td>
+				</tr>
+				<tr>
+					<td ><strong>处理记录：</strong>
+						<div class="dealRecord recordList clearfix">
+						<div class="recordContent clearfix">
+							<ul style="display:block;" id="issueTable">
+								
+								<s:subset source="issueDealLogs" start="0">
+									<s:iterator status="index">
+									<li class="record" id="2012-12-11" <c:if test ="${submitToCommittee}">canSubmit='1'</c:if>>
+                                        <label > <c:if test="${dealType == 5}"><img src='${resource_path }/resource/system/images/issue/icon_yLampForList.png'></img></c:if><s:date name="operateTime" format="yyyy年MM月dd日" /></label>
+                                       
+                                        <label >
+                                        <c:if test="${dealOrg.orgName !='中国' }">
+                                           <s:property value="dealOrg.orgName"/>&nbsp;&nbsp;&nbsp;&nbsp;
+                                        </c:if>
+	                                        <c:choose>
+											    <c:when test="${dealUserName == 'admin' }">
+											     	系统消息
+											    </c:when>
+											    <c:otherwise>
+											    	<s:property value="dealUserName"/>
+											    </c:otherwise>
+											</c:choose>
+                                        </label>
+                                        <label class="">&nbsp;&nbsp;&nbsp;&nbsp;<s:property value="dealDescription"/></label>
+                                        
+										<c:if test="${(content != null && not empty  content) || (issueLogAttachFilesMap[id] != null && fn:length(issueLogAttachFilesMap[id])>0) }">
+                                       	<hr size=1 style="border-style:dashed ;width:100%">
+                                        <div class="dispose">
+                                            <div class="small_Text">
+                                              <strong>工作措施：</strong>${content } 
+                                            </div>
+                                            <c:if test="${issueLogAttachFiles[id] != null && fn:length(issueLogAttachFiles[id])>0}">
+                                                <div class="small_Text">
+                                                <strong>附件：</strong>
+                                                    <c:forEach items="${issueLogAttachFiles[id]}" var="issueLogAttachFile">
+                                                    <span>
+                                                    	<a href="${path }/threeRecordsIssues/issueManage/downLoadAttachFile.action?keyId=${issueLogAttachFile.id}" title="${issueLogAttachFile.fileName }">
+                                                    		<c:choose>
+                                                    			<c:when test="${fn:length(issueLogAttachFile.fileName) > 18 }">
+                                                    				${fn:substring(issueLogAttachFile.fileName, 0, 8)}...${fn:substring(issueLogAttachFile.fileName,fn:length(issueLogAttachFile.fileName)-12 , fn:length(issueLogAttachFile.fileName))}
+                                                    			</c:when>
+                                                    			<c:when test="${fn:length(issueLogAttachFile.fileName) <= 18 }">
+                                                    				${issueLogAttachFile.fileName }
+                                                    			</c:when>
+                                                    		</c:choose>
+                                                    	</a>
+                                                    </span><br>
+                                                    </c:forEach>
+                                                </div>
+                                            </c:if>
+                                        </div>
+                                        </c:if>
+									</li>
+									</s:iterator>
+								</s:subset>
+							</ul>
+							<!-- issueTable End -->
+						</div>
+						</div>
+					</td>
+				</tr>
+			</tbody>
+			</table>
+		</div>
+		
+		<div class="right">
+			<div id="dialog-form" title="办理台账处理">
+				<form id="issueDealForm" method="post" action="${path }/threeRecordsIssues/issueManage/dealIssue.action">
+					<pop:token />
+					<input type="hidden" name="issueStep.id" value="${issueStep.id }">
+					<input type="hidden" name="issueStep.emergencyLevel.id" value="${issueStep.emergencyLevel.id }">
+					<input type="hidden" name="operation.dealOrg.id" id="dealOrgId" value="${operation.dealOrg.id }" />
+					<input type="hidden" name="operation.dealOrg.orgInternalCode" id="dealOrgInternalCode" value="${operation.dealOrg.orgInternalCode }" />
+					<input type="hidden" name="operation.ledgerId" id="issueId" value="${peopleAspirations.id }" />
+					<input type="hidden" name="operation.ledgerType" id="ledgerType" value="${peopleAspirations.ledgerType}" />
+					<input type="hidden" name="keyId" id="keyId" value="${keyId }" />
+					<input type="hidden"  id="hasTeamOrgId_temp" value="<s:property value='operation.issueStep.target.id'/>"/>
+					<div class="grid_4 lable-right">
+						&nbsp;&nbsp;&nbsp;&nbsp;<em class="form-req">*</em><label class="form-lbl">承办人：</label>
+					</div>
+					<div class="grid_8">
+						<input type="text" id="dealUserName" name="operation.dealUserName" maxlength="20" value="${operation.dealUserName}" class="form-txt" readonly="readonly" />
+					</div>
+					<div class='clearLine'></div>
+					<div class="grid_4 lable-right">
+						<em class="form-req">*</em><label class="form-lbl">联系手机：</label>
+					</div>
+					<div class="grid_8">
+						<input type="text" id="mobile" name="operation.mobile" value="${operation.mobile}" maxlength="11" class="form-txt" />
+					</div>
+					<div class='clearLine'></div>
+					
+					<div class="grid_4 lable-right">
+						<em class="form-req">*</em><label class="form-lbl">操作类型：</label>
+					</div>
+					<div class="grid_8">
+						<s:select name="dealCode" list="canDoList" onchange="dealTypeChanged()" listKey="code" listValue="desc" emptyOption="true" id="dealCode" />
+					</div>
+					<div class='clearLine'></div>
+					<div class="grid_4 lable-right" id="overTime" style="display: none;">
+							<label>结案时间：</label>
+					</div>
+					<div class="grid_4 lable-right" id="verificationTime" style="display: none;">
+							<label>验证时间：</label>
+					</div>
+					<div class="grid_4 form-left"  id="endTime"  style="display: none;">
+			    			<input type="text" id="getTime" name="operation.completeDate" class="form-txt" value="" readonly />
+					</div>
+					<div class='clearLine'></div>
+					<div class="grid_4 lable-right poepleAspiration" id= "typeComplete" >
+							<em class="form-req">*</em><label>办结类型：</label>
+					</div>
+					<div class="grid_8 form-left poepleAspiration" id="poepleAspiration<s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@COMPLETE.code'/>" >
+			    		<input class="completeTypeText" name="operation.completeType" type="radio" value="<s:property value='@com.tianque.plugin.account.constants.CompleteType@REALCOMPLETE'/>">实质性办结
+			    		<input class="completeTypeText" name="operation.completeType" type="radio" value="<s:property value='@com.tianque.plugin.account.constants.CompleteType@QUESTIONEND'/>">问题中止
+					</div>
+					
+					<div class="grid_12 form-left poepleAspiration" id="poepleAspiration<s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@PROGRAM_COMPLETE.code'/>" >
+			    		<input class="completeTypeText" name="operation.completeType" type="radio" value="<s:property value='@com.tianque.plugin.account.constants.CompleteType@POLICYSOLUTION'/>">政策解答
+			    		<c:if test="${currentOrgLevel}">
+			    			<input class="completeTypeText" name="operation.completeType" type="radio" value="<s:property value='@com.tianque.plugin.account.constants.CompleteType@ITEM'/>">纳入项目库
+			    		</c:if>
+			    		<input class="completeTypeText" name="operation.completeType" type="radio" value="<s:property value='@com.tianque.plugin.account.constants.CompleteType@OTHERS'/>">其他方式
+					</div>
+					
+					<div class="grid_8 form-left poepleAspiration" id="poepleAspiration<s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@PERIOD_COMPLETE.code'/>"  >
+			    		<input class="completeTypeText" name="operation.completeType" type="radio" value="<s:property value='@com.tianque.plugin.account.constants.CompleteType@IMPLEMENT'/>">落实项目
+			    		<c:if test="${currentOrgLevel}">
+			    			<input class="completeTypeText" name="operation.completeType" type="radio" value="<s:property value='@com.tianque.plugin.account.constants.CompleteType@INTEGRATE_PROJECT'/>">整合项目
+			    		</c:if>
+					</div>
+					<div class='clearLine'></div>
+					<div id="toCommittee" style="display: none;">
+						<div class="grid_4" >&nbsp;&nbsp;</div>
+						<div class="grid_8 ">
+							<label class="form-check-text" for="submitToCommittee">是否同意呈报至县委县政府</label>
+							<input type="checkbox" id="submitToCommittee" name="operation.submitToCommittee" value="0" />
+						</div>
+						<div class='clearLine'></div>
+					</div>
+					<div id="transferToDiv_future" style="display: none;">
+				
+						<div class="grid_4 lable-right">
+							<label class="form-lbl">给：</label>
+						</div>
+						<div class="grid_10">
+							<label for="transferToAdmin">
+                                <input type="radio" name="transferToType" id="transferToAdmin" value="true" checked onclick="transferToTypeChange(this)"/>
+                                	行政部门
+                            </label>
+                            
+                            <label for="transferToFun" id="transferToFunLabel">
+                                <input type="radio" name="transferToType" id="transferToFun" value="false" onclick="transferToTypeChange(this)"/>职能部门
+							</label>
+						</div>
+					
+					</div>
+					<div class='clearLine'></div>
+					<div id="transferTargetDiv">
+				    <div class="grid_4 lable-right">
+						<em class="form-req">*</em><label class="form-lbl">主办单位：</label>
+					</div>
+					<div class="grid_x" >
+						<div class="ctt">
+							<input id="transferTo" type="text" name="operation.targeOrg.id" class="form-txt" />
+						</div>
+						<div class="tBtn" >
+							<input type="button" class="defaultBtn" value="选择" id="selectTransferTo" />
+						</div>
+					</div>
+					   
+					<div class="clearLine"></div>
+					<div id="dealDeadlineDiv">
+						<div class="grid_4 lable-right">
+							<label class="form-lbl">截止时间：</label>
+						</div>
+						<div class="grid_5 form-left">
+						    <input type="text" id="dealDeadline" name="operation.dealDeadline" readonly="readonly" class="form-txt" />
+						</div>
+					</div>
+					<div class="clearLine"></div>
+						<div id="tellToSelectorDiv" class="cf heightAuto" style="margin:10px 0;">
+								<div class="grid_4 lable-right">
+									<label class="form-lbl">协办单位：</label>
+								</div>
+								<div class="grid_x">
+									<div class="ctt">
+										<input id="tellToSelector" name="tellOrgIds" class="form-txt"/>
+									</div>
+									<div class="tBtn">
+										<input type="button" class="defaultBtn" value="选择" id="selecteTellTo" />
+									</div>
+								</div>
+						</div>
+					<div class='clearLine'></div>
+					<div id="noticeToSelectorDiv" class="cf heightAuto" style="margin:10px 0;">
+						<div class="grid_4 lable-right">
+							<label class="form-lbl">抄告单位：</label>
+						</div>
+						<div class="grid_x">
+							<div class="ctt">
+								<input id="noticeToSelector" name="noticeOrgIds" class="form-txt"/>
+							</div>
+							<div class="tBtn">
+								<input type="button" class="defaultBtn" value="选择" id="selecteNoticeTo" />
+							</div>
+						</div>
+					</div>
+					<div class='clearLine'></div>	
+					</div>
+					
+						
+					<div class="grid_4 lable-right">
+							<em class="form-req">*</em><label>办理时间：</label>
+					</div>
+					<div class="grid_4 form-left" >
+			    			<input type="text" id="operateTime" name="operation.operateTime" class="form-txt" value="" readonly />
+					</div>
+					<div class='clearLine'></div>
+					<div class="grid_4 lable-right">	<input type="hidden" id="twice" value='0'/>
+						<em class="form-req">*</em><label class="form-lbl" id="back">工作措施：</label>
+					</div>
+					<div class="grid_10 heightAuto">
+						<textarea name="operation.content" style="width:180px;" rows="8" cols="26"  id="content" ></textarea>
+					</div>
+					<div class='clearLine'></div>
+					<select id="attachFileNames" name="attachFiles" multiple="multiple" style="width:200px;display:none"></select>
+					<div class="grid_4 lable-right">
+						<label class="form-lbl">当事人或当事人代表意见：</label>
+					</div>
+					<div class="grid_10 heightAuto">
+						<textarea name="operation.opinion" style="width:180px; MARGIN-TOP: 10PX;" rows="3" cols="26"  id="opinion" ></textarea>
+					</div>
+					<div class='clearLine'></div>
+					
+				</form>
+				
+				<div >
+					<div class="grid_4 lable-right">
+						<label class="form-lbl">&nbsp;&nbsp;&nbsp;&nbsp;附件上传：</label>
+					</div>
+					<div class="grid_13 heightAuto">
+						<div id="custom-queue" style="width: 180px; height: 150px;overflow-y: auto;overflow-x: hidden;MARGIN-TOP: 10PX;" class="ui-widget-border"></div>
+						<input id="custom_file_upload" name="uploadFile" type="file" />
+					</div>
+				</div>
+				<div id="orgSelectDialog"></div>
+			</div>
+		
+		</div>
+</div>
+
+
+
+<script type="text/javascript">
+var thisTime=new Date();
+var addMonth=thisTime.getMonth()+1;
+var formatdate= thisTime.getFullYear()+"-"+addMonth+"-"+thisTime.getDate();
+$(function(){
+	OperationOfTellFun();
+ 	renderIssueType();
+	initAttachFileUploader();
+	initTargetAutocomplete();
+  	initTellsAutocomplete();
+  	initNoticesAutocomplete();
+    initTargetSelectorAction();
+    initTellSelectorAction();
+    initNoticeSelectorAction();
+    $(".poepleAspiration").each(function(){
+		$(this).hide();
+	})
+    dealTypeChanged();
+    $("#operateTime").attr("value",formatdate);
+
+    var end = new RegExp(/1lx$/);
+    if(end.exec($("#currentDepartNo").val()) && viewType.value=='need'){
+    	$("#toCommittee").show();
+    }
+
+    
+    $("#submitToCommittee").change(function(event){
+		if($("#submitToCommittee").attr("checked")=="checked"){
+			$("#submitToCommittee").val(true);
+		}else{
+			$("#submitToCommittee").val(false);
+		}
+	});
+	
+    $("#dealCode option[value=<s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@TMPCOMMENT.code'/>]").attr('selected','selected');
+    
+	$("#dealDeadline").datePicker({
+		yearRange:"1900:2030",
+		dateFormat:"yy-mm-dd",
+   		minDate:"+0d"
+		});
+	$("#issueDealForm").formValidate({
+		promptPosition: "bottomLeft",
+		submitHandler: function(form){
+			if($("#dealCode").val() != "<s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@COMMENT.code'/>"
+			&& $("#dealCode").val() != "<s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@BACK.code'/>"
+			&& $("#dealCode").val() != "<s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@VERIFICATION.code'/>"
+		    && $("#dealCode").val() != "<s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@COMPLETE.code'/>"
+		   	&& $("#dealCode").val() != <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@PERIOD_COMPLETE.code'/>
+		    && $("#dealCode").val() != <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@PROGRAM_COMPLETE.code'/>
+		   	&& $("#dealCode").val() != "<s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@SUPPORT.code'/>"
+		   	&& $("#dealCode").val() != "<s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@TMPCOMMENT.code'/>"  	
+			&& $("input[name='operation.targeOrg.id']").val()==""){
+				$.messageBox({message:"主办单位必须输入！",level:"error"});
+				return;
+			}
+	
+			if( $("#dealCode").val() == "<s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@COMPLETE.code'/>"
+			   	|| $("#dealCode").val() == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@PERIOD_COMPLETE.code'/>
+			    || $("#dealCode").val() == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@PROGRAM_COMPLETE.code'/>){
+			   	var checked=false;
+				$("#poepleAspiration"+$("#dealCode").val()).find("input:radio[name='operation.completeType']").each(function(){
+					if($(this).attr("checked")=="checked"){
+						checked=true;
+					};		
+				});
+				if(!checked){
+					$.messageBox({message:"办结类型必须选择！",level:"error"});
+					return;}
+				}
+
+			var operateCode = $("#dealCode").val();
+			if(operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@LEVEL_ASSIGN.code'/> ||
+				operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@SUBMIT.code'/> ||
+				operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@DECLARE.code'/> 
+				||operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@TURN.code'/> ){
+				printForm($("#keyId").val());
+			}
+			else{
+				$(form).ajaxSubmit({
+					success:function(data){
+						if(data==null||!data.issueStepId){
+		           	 		$.messageBox({message:data,level:"error"});
+		            		return;
+		            	}
+						$.messageBox({message:"已经成功办理该事件!"});
+						//printForm(data.issueStepId);
+		     			reloadIssue();
+	                    if(typeof(issueForBenchDialog) != 'undefined' ){
+	                    	$("#issueForBenchDialog").dialog("close");
+	                    	$("#maxIssueListForNeed").trigger("reloadGrid");
+	    				}else{
+	    					try {
+			                	$("div[id='issueDialog']:eq(1)").dialog("close");		                	
+			                	$("div[id='issueDialog']:eq(0)").dialog("close");
+			                } catch (e) {}
+	        			}
+	    				
+	                   // getMessageByUser();
+	                    //refreshIssueCounts();//即时刷新页签上的统计数，目前不做处理
+					},
+					error:function(XMLHttpRequest, textStatus, errorThrown){
+						alert("提交数据时发生错误");
+				  	}
+				});
+			}
+		},
+		rules:{
+			"operation.dealUserName":{
+				required:true,
+				exculdeParticalChar:true,
+				minlength:2
+			},
+			"operation.mobile":{
+				required:true,
+				mobile:true
+			},
+			"dealCode":{
+				required:true
+			},
+			"targeOrg":{
+				required:function(){
+					return $("#dealType").val() != <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@COMMENT.code'/>
+						&& $("#dealType").val() != <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@BACK.code'/>;
+				}
+			},
+			"operation.content":{
+				required:true,
+				maxlength:1000
+			},"operation.operateTime":{
+				required:true,
+			},
+			"operation.opinion":{
+				maxlength:200
+			}
+			
+		},
+		messages:{
+			"operation.dealUserName":{
+				required:"请输入承办人",
+				exculdeParticalChar:"不能输入非法字符",
+				minlength:$.format("至少需要输入{0}个字符")
+			},
+			"operation.mobile":{
+				required:"请输入联系人手机",
+				mobile:$.format("手机不合法，只能输入以1开头的11位数字")
+			},
+			"dealCode":{
+				required:"请选择操作类型"
+			},
+			"targeOrg":{
+				required:"请输入目标人"
+			},"operation.operateTime":{
+				required:"请输入办理时间",
+			},
+			"operation.content":{
+				required:"请输入工作措施",
+				maxlength:"工作措施不能超过1000字"
+			},
+			"operation.opinion":{
+				maxlength:"当事人或当事人代表意见不能超过200字"
+			}
+		}
+	});
+
+	function getSelectedOrgIds(){
+		return $("#tellToSelector").val()+","+$("input[name='operation.targeOrg.id']").val();
+	}
+
+	function getSelectedNoticeOrgIds(){
+		return $("#noticeToSelector").val();
+	}
+
+	
+	function createOrgSearchDialog(searchUrl,inputId,isMultiselect){
+		$("#orgSelectDialog").createDialog({
+			width:550,
+			height:430,
+			title:'选择部门',
+			url: searchUrl,
+			postData:{	adminTarget:function(){return targetIsAdmin();},
+						dealCode :$("#dealCode").val(),
+						exceptIds:function(){
+							if(inputId=="noticeToSelector"){
+								return getSelectedNoticeOrgIds();
+							}
+							else{
+								return getSelectedOrgIds();
+							}
+						},
+						 twice: $("#twice").val()==1
+					},
+			buttons: {
+				"确定" : function(event){
+						fillOrgInputer(inputId,isMultiselect);
+						$(this).dialog("close");
+				},
+				"关闭" : function(){
+						$(this).dialog("close");
+				}
+			}
+		});
+		
+	}
+	function initTargetSelectorAction(){
+		$("#selectTransferTo").click(function(event){
+			createOrgSearchDialog("${path}/threeRecordsIssues/issueManage/dispatch.action?mode=searchTarget&keyId="+
+			 $("#keyId").val(),"transferTo",false);
+		});
+	}
+
+	function initTellSelectorAction(){
+		var orgLevel = '${orgLevel}';
+			if(orgLevel==30)
+				$("#selecteTellTo").click(function(event){
+					createOrgSearchDialog("${path}/threeRecordsIssues/issueManage/dispatch.action?mode=searchTarget&seletedMore=1&keyId="+
+					$("#keyId").val(),"tellToSelector",true);
+				});
+		else
+			$("#selecteTellTo").click(function(event){
+				createOrgSearchDialog("${path}/threeRecordsIssues/issueManage/dispatch.action?mode=searchTells&keyId="+
+				$("#keyId").val(),"tellToSelector",true);
+			});
+		
+	}
+	function initNoticeSelectorAction(){
+		$("#selecteNoticeTo").click(function(event){
+			createOrgSearchDialog("${path}/threeRecordsIssues/issueManage/dispatch.action?mode=searchNotices&keyId="+
+			 $("#keyId").val(),"noticeToSelector",true);
+		});
+	}
+	
+	function initAttachFileUploader(){
+		$('#custom_file_upload').uploadFile({
+			queueID : 'custom-queue',
+			selectInputId : "attachFileNames"});
+		$("#attachFileNames").empty();
+	}
+	
+	function initTargetAutocomplete(){
+		$("#transferTo").personnelComplete({
+			url:"${path}/threeRecordsIssues/issueManage/searchTransferTarget.action?mode=auto&keyId="+$("#keyId").val(),
+			multiple: false,
+			postDataFunction: function(){
+			    return {adminTarget:function(){return targetIsAdmin();},
+					    dealCode :$("#dealCode").val(),
+					    exceptIds:function(){return getSelectedOrgIds();}
+			    		};
+			}
+		});
+	};
+	
+	function initTellsAutocomplete(){
+		$("#tellToSelector").personnelComplete({
+			url:"${path}/threeRecordsIssues/issueManage/searchTellTarget.action?mode=auto&keyId="+$("#keyId").val(),
+			postDataFunction: function(){
+			    return {adminTarget:targetIsAdmin(),
+    					dealCode :$("#dealCode").val(),
+				    	exceptOrgIds:getSelectedOrgIds()
+				};
+			}
+		});
+	}
+
+	function initNoticesAutocomplete(){
+		$("#noticeToSelector").personnelComplete({
+			url:"${path}/threeRecordsIssues/issueManage/searchNoticeTarget.action?mode=auto&keyId="+$("#keyId").val(),
+			postDataFunction: function(){
+			    return {adminTarget:targetIsAdmin(),
+    					dealCode :$("#dealCode").val(),
+				    	exceptOrgIds:getSelectedNoticeOrgIds()
+				};
+			}
+		});
+	}
+});
+
+
+
+function targetIsAdmin(){
+	return $("#transferToAdmin").attr("checked")=="checked";
+}
+
+
+function dealTypeChanged(){
+	OperationOfTellFun();
+
+	var operateCode = $("#dealCode").val();
+    if( operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@BACK.code'/>){
+		$("#back").text("回退原因：");
+    }else{
+    	$("#back").text("工作措施：");
+    }
+	if( operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@COMMENT.code'/>){
+	  $("#operateTime").datepicker( "option", "minDate", '-0d' );
+	}else{
+	  $("#operateTime").datepicker( "option", "minDate", '-'+(new Date().getDate()-1)+'d' );
+	}
+	$("#transferToFun,#transferToFunLabel").show();
+	if( operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@COMPLETE.code'/>
+	|| operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@PERIOD_COMPLETE.code'/>
+	|| operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@PROGRAM_COMPLETE.code'/>){
+		$(".poepleAspiration").each(function(){
+			$(this).hide();
+        })
+		$("#poepleAspiration"+operateCode).show();
+		$("#typeComplete").show();
+		$(".typeCompleteText").each(function(){
+		    $(this).removeAttr("disabled");})
+	}else{
+		 $(".poepleAspiration").each(function(){
+			$(this).hide();
+	    })
+	$(".typeCompleteText").each(function(){
+	    $(this).attr("disabled","disabled");})
+	}
+	if( operateCode == ""
+		|| operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@COMMENT.code'/>
+		|| operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@COMPLETE.code'/>
+		|| operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@PERIOD_COMPLETE.code'/>
+		|| operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@PROGRAM_COMPLETE.code'/>
+		|| operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@VERIFICATION.code'/>
+		|| operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@BACK.code'/>
+		|| operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@SUPPORT.code'/>
+		|| operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@TMPCOMMENT.code'/>){
+		clearTargetOrg();
+		$("#overTime").hide();
+		$("#verificationTime").hide();
+		$("#endTime").hide();
+		
+		
+		setTransferToVisiabled(false);
+		setTellsVisiabled(false);
+	}else{
+		
+		var functional = '${OperationOfTell}';
+		var orgLevel = '${orgLevel}';
+		setTransferToVisiabled(true);
+		transferToTypeChange();
+		if(operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@ASSIGN.code'/>
+		||operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@LEVEL_ASSIGN.code'/>
+		||operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@TURN.code'/> ){
+			
+			$("#overTime").hide();
+			$("#verificationTime").hide();
+			$("#endTime").hide();
+			$("#dealDeadlineDiv").show();
+			if(operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@LEVEL_ASSIGN.code'/>){
+				$("#dealDeadlineDiv").hide();
+			}
+			//$("#transferToDiv").show();
+			setTellsVisiabled(true);
+			OperationOfTellFun();
+			var orgLevelAssign = '${orgLevel}';
+			if(orgLevelAssign == 20){
+				$("#transferToDiv").show();
+			} 
+			
+		}else{
+			$("#overTime").hide();
+			$("#verificationTime").hide();
+			$("#endTime").hide();
+			$("#dealDeadlineDiv").hide();
+			$("#transferToDiv").hide();
+			var orgLevelAssign = '${orgLevel}';
+			if(orgLevelAssign == 10){
+				//$("#tellToSelectorDiv").show();
+			} 
+		}
+		if((functional == true || functional == 'true')&&orgLevel==30)
+			$("#transferToDiv").hide();
+	}
+	if(operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@COMPLETE.code'/>	
+	|| operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@PERIOD_COMPLETE.code'/>
+	|| operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@PROGRAM_COMPLETE.code'/>
+	|| operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@VERIFICATION.code'/>){
+		 //设置结案时间
+	
+		
+		if(addMonth<10){
+			addMonth="0"+addMonth;
+		}
+		
+		$("#getTime").attr("value",formatdate);
+		if(operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@COMPLETE.code'/>
+		|| operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@PERIOD_COMPLETE.code'/>
+		|| operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@PROGRAM_COMPLETE.code'/>
+		){
+			$("#verificationTime").hide();
+			$("#overTime").show();
+		}else{
+			$("#verificationTime").show();
+			$("#overTime").hide();
+		}
+		$("#endTime").show();
+		$("#itemDiv").hide();
+	}
+}
+
+function clearTargetOrg(){
+	$("#transferTo").clearPersonnelComplete();
+	$("#tellToSelector").clearPersonnelComplete();
+	$("#noticeToSelector").clearPersonnelComplete();
+}
+function printForm(stepId){
+	var operateCode = $("#dealCode").val();
+	if(operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@LEVEL_ASSIGN.code'/> ){
+	 // if(new RegExp(/(1lx|1xw)$/).exec($("#currentDepartNo").val())){
+		  printReportForm("保存并打印交办单",'assignForm',stepId);
+	  // }
+	}else if(operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@SUBMIT.code'/> ){
+		printReportForm("保存并打印呈报单",'reportForm',stepId);
+	}else if(operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@DECLARE.code'/> ){
+		printReportForm("保存并打印申报单",'declareForm',stepId);
+	}else if(operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@TURN.code'/> ){
+		printReportForm("保存并打印转办单",'turnForm',stepId);
+	}
+}
+
+function setTransferToVisiabled(visiabled){
+	if (visiabled){
+		$("#selectTransferTo").show();
+		$("#transferToDiv").show();
+		$("#transferTargetDiv").show();
+	}else{
+		$("#selectTransferTo").hide();
+		$("#transferToDiv").hide();
+		$("#transferTargetDiv").hide();
+	}
+	OperationOfTellFun();
+}
+
+function setTellsVisiabled(visiabled){
+	if (visiabled){
+		$("#selecteTellTo").show();
+		$("#tellToSelectorDiv").show();
+		$("#noticeToSelectorDiv").show();
+		
+	}else{
+		$("#selecteTellTo").hide();
+		$("#tellToSelectorDiv").hide();
+		$("#noticeToSelectorDiv").hide();
+	}
+}
+
+
+function autoFillUniqueTrget(){
+	var funOrgId;
+	$.ajax({
+		url:"${path}/threeRecordsIssues/issueManage/getUniqueTrgetOrg.action?keyId="+$("#keyId").val(),
+		data:{dealCode :$("#dealCode").val(),
+			  adminTarget :function(){return targetIsAdmin();},
+			  twice: $("#twice").val()==1
+			} ,
+		async:false,
+		type:'post',
+		success:function(data){
+			funOrgId=data.value;
+			if(data !=null && data.value){
+				$("#transferTo").setPersonnelCompleteVal({
+					value:data.value,label:data.label,desc:data.desc
+				});
+			}
+		}
+	});
+}
+
+
+function transferToTypeChange(radio){
+	clearTargetOrg();
+	autoFillUniqueTrget();
+	autoShowOrHideItemDiv();
+}
+$('#getTime').datePicker({
+	yearRange:'1930:2060',
+	dateFormat:'yy-mm-dd',
+	maxDate:'%y-%M-#{%d}'
+	
+});
+$('#operateTime').datePicker({
+	yearRange:'1930:2060',
+	dateFormat:'yy-mm-dd',
+	maxDate:'%y-%M-#{%d}'
+});
+
+function autoShowOrHideItemDiv() {
+	if($("#transferToFun").attr("checked")=='checked') {
+		$("#itemDiv").show();
+	} else {
+		$("#itemDiv").hide();
+		$("#itemTypeId option").remove();
+	}
+}
+
+function renderIssueType(){
+	var typeDescs=new Array();
+	var descIndexs=new Array();
+	var typeDesc;
+	var actualIndex;
+	
+	for (var index=0;index<typeDescs.length;index++){
+		if (index>0){
+			typeDesc=typeDesc+'<br>';
+		}else{
+			typeDesc="";
+		}
+		typeDesc=typeDesc+typeDescs[index];
+	
+	}
+ 	$("#issueTypeDescription").html(typeDesc);
+}
+
+function OperationOfTellFun(){
+	//职能部门不显示交办和抄告
+	var functional = '${OperationOfTell}';
+	var orgLevel = '${orgLevel}';
+	$('#transferToAdmin').click();
+	
+	if((functional == true || functional == 'true')&&orgLevel!=30){
+		$("#dealCode option[value='21']").remove();
+		$("#transferToDiv").hide();
+		$("#tellToSelectorDiv").hide();
+		$("#noticeToSelectorDiv").hide();
+	}else{
+		if(orgLevel <=20){
+			$("#transferToDiv").hide();
+			$("#tellToSelectorDiv").hide();
+			$("#noticeToSelectorDiv").hide();
+			if(orgLevel == 20){
+				$("#tellToSelectorDiv").hide();
+			}
+		}
+	}
+
+
+	var operateCode = $("#dealCode").val();
+	if(operateCode == <s:property value='@com.tianque.plugin.account.state.ThreeRecordsIssueOperate@DECLARE.code'/>){
+		$("#tellToSelectorDiv").hide();
+		$("#noticeToSelectorDiv").hide();
+	}
+	
+}
+$(function(){
+	$("#issueTable li").each(function(){
+		if($(this).attr("canSubmit")==1){
+			$("#twice").val(1);
+		}
+	})
+	
+})
+
+function  printReportForm(title,formName,stepId){
+	var data=$("#issueDealForm").serializeArray();
+    var formData = new Array();
+	 $.each(data,function(n,value) {  
+	    if(value.name!='struts.token'){
+		   formData.push(value)
+	    }
+     }); 
+	$("#printFormDialog").createDialog({
+	    width: 900,
+	    height: 400,
+	    title: title,
+	    url: '${path}/threeRecords/'+formName+'/dispatch.action?mode=add&id='+stepId,
+	    ajaxType:'post',
+	    postData:formData,
+	    buttons: {
+	        "保存并打印": function (event) {
+	            $("#report_form").submit();
+	        },
+	        "关闭": function () {
+	            $(this).dialog("close");
+	        }
+	    }
+	 });
+}
+</script>
+

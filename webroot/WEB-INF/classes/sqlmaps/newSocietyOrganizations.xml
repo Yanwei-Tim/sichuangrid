@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="newSocietyOrganizations">
+	<typeAlias alias="NewSocietyOrganizations" type="com.tianque.baseInfo.newSocietyOrganizations.domain.NewSocietyOrganizations" />
+
+	<resultMap id="newSocietyOrganizationsResult" class="NewSocietyOrganizations" extends="locationBaseInfo.locationBaseInfoResult">
+		<result column="orgId" property="organization.id" />
+		<result column="type" property="type.id" />
+		<result column="name" property="name" />
+		<result column="legalPerson" property="legalPerson" />
+		<result column="legalPersonTelephone" property="legalPersonTelephone" />
+		<result column="legalPersonMobileNumber" property="legalPersonMobileNumber" />
+		<result column="address" property="address" />
+		<result column="fullPinyin" property="fullPinyin" />
+		<result column="simplePinyin" property="simplePinyin" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="remark" property="remark" />
+		<result column="isEmphasis" property="isEmphasis" />		
+		<result column="subType" property="subType.id" />
+		<result column="chargeUnit" property="chargeUnit" />		
+		<result column="registrationNumber" property="registrationNumber" />
+		<result column="validityStartDate" property="validityStartDate" />
+		<result column="validityEndDate" property="validityEndDate" />
+		<result column="personNum" property="personNum" />
+		<result column="partyNum" property="partyNum" />
+		<result column="introduction" property="introduction" />
+		<result column="honor" property="honor" />	
+		<result column="imgUrl" property="imgUrl" />			
+		<result column="logOutReason" property="logOutReason" />
+		<result column="logOutTime" property="logOutTime" />        
+        <result property="gisInfo.buildingId" column="buildingId"/>
+        <result property="gisInfo.centerX" column="centerX"/>	
+        <result property="gisInfo.centerY" column="centerY"/>
+        <result property="mainResponsibilities" column="mainResponsibilities"/>
+	</resultMap>
+	
+	<resultMap id="newSocietyOrganizationsResultForList" class="NewSocietyOrganizations" extends="locationBaseInfo.locationBaseInfoResultForList">
+		<result column="orgId" property="organization.id" />
+		<result column="type" property="type.id" />
+		<result column="name" property="name" />
+		<result column="legalPerson" property="legalPerson" />
+		<result column="legalPersonTelephone" property="legalPersonTelephone" />
+		<result column="legalPersonMobileNumber" property="legalPersonMobileNumber" />
+		<result column="address" property="address" />
+		<result column="fullPinyin" property="fullPinyin" />
+		<result column="simplePinyin" property="simplePinyin" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="remark" property="remark" />
+		<result column="isEmphasis" property="isEmphasis" />		
+		<result column="subType" property="subType.id" />
+		<result column="chargeUnit" property="chargeUnit" />		
+		<result column="registrationNumber" property="registrationNumber" />
+		<result column="validityStartDate" property="validityStartDate" />
+		<result column="validityEndDate" property="validityEndDate" />
+		<result column="personNum" property="personNum" />
+		<result column="partyNum" property="partyNum" />
+		<result column="introduction" property="introduction" />
+		<result column="honor" property="honor" />	
+		<result column="imgUrl" property="imgUrl" />			
+		<result column="logOutReason" property="logOutReason" />
+		<result column="logOutTime" property="logOutTime" />        
+        <result property="gisInfo.buildingId" column="buildingId"/>
+        <result property="gisInfo.centerX" column="centerX"/>	
+        <result property="gisInfo.centerY" column="centerY"/>
+        <result column="mainResponsibilities" property="mainResponsibilities" />
+        <result property="sourcesState" column="sourcesState"/>
+	</resultMap>
+
+	<select id="countNewSocietyOrganizationsForListPage" parameterClass="map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		 from newSocietyOrganizations where  orgInternalCode like '$orgInternalCode$%'
+		 <dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend="and">
+					<isEqual property="isEmphasis" compareValue="true">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="false">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	 
+	<select id="findNewSocietyOrganizationsForListPage" parameterClass="map" resultMap="newSocietyOrganizationsResultForList">
+	<!--fateson add  orgInternalCode = #orgInternalCode#  新社会组织每个层级只能看到当前成绩的数据 -->
+		select newSocietyOrganizations.*,'$objectType$' as locationType
+		 from newSocietyOrganizations where orgInternalCode like '$orgInternalCode$%'
+		 <dynamic>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend="and">
+					<isEqual property="isEmphasis" compareValue="true">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="false">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		 <dynamic prepend="order by">
+		 	<isNotNull property="sortField">$sortField$</isNotNull>
+		 	<isNotNull property="order">$order$</isNotNull>
+		 </dynamic>
+	</select>
+	
+	<insert id="addNewSocietyOrganizations" parameterClass="NewSocietyOrganizations">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_newSocietyOrganizations.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into newSocietyOrganizations
+		(id,orgId,type,name,fullPinyin,simplePinyin,orgInternalCode,
+		legalPerson,legalPersonTelephone,legalPersonMobileNumber,
+		address,remark,createDate,createUser,imgUrl,
+		subType,chargeUnit,registrationNumber,validityStartDate,validityEndDate,
+		personNum,partyNum,introduction,honor,buildingId,centerX,centerY,sourcesState,mainResponsibilities,updateDate)
+		values
+		(#id#,#organization.id#,#type.id#,#name#,#fullPinyin#,#simplePinyin#,
+		#orgInternalCode#,#legalPerson#,#legalPersonTelephone#,#legalPersonMobileNumber#,
+		#address#,#remark#,#createDate#,#createUser#,#imgUrl#,
+		#subType.id#,#chargeUnit#,#registrationNumber#,#validityStartDate#,#validityEndDate#,
+		#personNum#,#partyNum#,#introduction#,#honor#,
+		#gisInfo.buildingId#,#gisInfo.centerX#,#gisInfo.centerY#,#sourcesState#,#mainResponsibilities#,#updateDate#)
+	</insert>
+	
+	<select id="getNewSocietyOrganizationsByName" parameterClass="java.util.Map"
+		resultMap="newSocietyOrganizationsResult">
+		select * from newSocietyOrganizations where name=#name# and orgId=#id#
+	</select>	
+	
+	<select id="getNewSocietyOrganizationsById" parameterClass="java.lang.Long"
+		resultMap="newSocietyOrganizationsResult">
+		select * from newSocietyOrganizations where id=#value#
+	</select>	
+	
+	<update id="updateNewSocietyOrganizations" parameterClass="NewSocietyOrganizations">
+		update newSocietyOrganizations set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="fullPinyin">
+				fullPinyin=#fullPinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="simplePinyin">
+				simplePinyin=#simplePinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="type">
+				type=#type.id#
+			</isNotNull>
+			<isNotNull prepend="," property="legalPerson">
+				legalPerson=#legalPerson#
+			</isNotNull>
+			<isNotNull prepend="," property="legalPersonTelephone">
+				legalPersonTelephone=#legalPersonTelephone#
+			</isNotNull>
+			<isNotNull prepend="," property="legalPersonMobileNumber">
+				legalPersonMobileNumber=#legalPersonMobileNumber#
+			</isNotNull>
+			<isNotNull prepend="," property="address">
+				address=#address#
+			</isNotNull>
+			<isNotNull prepend="," property="remark">
+				remark=#remark#
+			</isNotNull>
+			<isNotNull prepend="," property="imgUrl">
+				imgUrl=#imgUrl#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="subType">
+	          subType=#subType.id#
+	        </isNotNull>
+			<isNotNull prepend="," property="chargeUnit">
+	          chargeUnit=#chargeUnit#
+	        </isNotNull>
+			<isNotNull prepend="," property="registrationNumber">
+	          registrationNumber=#registrationNumber#
+	        </isNotNull>
+			<isNotNull prepend="," property="validityStartDate">
+	          validityStartDate=#validityStartDate#
+	        </isNotNull>
+			<isNotNull prepend="," property="validityEndDate">
+	          validityEndDate=#validityEndDate#
+	        </isNotNull>
+			<isNotNull prepend="," property="personNum">
+	          personNum=#personNum#
+	        </isNotNull>
+	        <isNull prepend="," property="personNum">
+	          personNum=null
+	        </isNull>
+			<isNotNull prepend="," property="partyNum">
+	          partyNum=#partyNum#
+	        </isNotNull>
+	        <isNull prepend="," property="partyNum">
+	          partyNum=null
+	        </isNull>
+			<isNotNull prepend="," property="introduction">
+	          introduction=#introduction#
+	        </isNotNull>
+			<isNotNull prepend="," property="honor">
+	          honor=#honor#
+	        </isNotNull>
+			<isNotNull prepend="," property="gisInfo">
+				buildingId=#gisInfo.buildingId#,
+				centerX=#gisInfo.centerX#,
+				centerY=#gisInfo.centerY#
+			</isNotNull>
+			<isNotNull prepend="," property="mainResponsibilities">
+			    mainResponsibilities=#mainResponsibilities#
+			</isNotNull>	        
+			where id=#id#
+		</dynamic>
+	</update>
+	
+	<delete id="deleteNewSocietyOrganizationsById" parameterClass="java.lang.Long">
+		delete from newSocietyOrganizations where id=#value#
+	</delete>
+	
+	<update id="updateEmphasiseById" parameterClass="map">
+		update newSocietyOrganizations set isEmphasis=#isEmphasis#,logOutReason=#logOutReason#,logOutTime=#logOutTime# where id=#id#
+	</update>
+	<select id="getNewSocietyOrganizationsCountByOrgId" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+	  select count(*) from newsocietyorganizations where orgId= #orgId#
+	</select>
+	<select id="getNewSocietyOrganizationsCountByOrgCode" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+	  select count(*) from newsocietyorganizations where ORGINTERNALCODE like '$orgCode$%'
+	</select>
+	<!--迁移合并方法-->
+	<select id="findNewSocietyOrganizationsListForOrgChange" parameterClass="java.util.Map" resultMap="newSocietyOrganizationsResult">
+	     select n1.*
+ 		 from newSocietyOrganizations n1
+ 		 where exists (select n2.name
+         from newSocietyOrganizations n2
+         where n2.orgid = #newOrgId#
+         and n1.name = n2.name )
+   		 and n1.orgid = #oldOrgId#
+	</select>
+	
+	<select id="findTargetNewSocietyOrganizationsListForOrgChange" parameterClass="java.util.Map" resultMap="newSocietyOrganizationsResult">
+		 select * from newSocietyOrganizations n where n.name=#name#  and n.orgid=#newOrgId#
+	</select>
+</sqlMap>

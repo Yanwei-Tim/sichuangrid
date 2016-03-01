@@ -1,0 +1,2508 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="issue">
+	<typeAlias alias="Issue" type="com.tianque.issue.domain.IssueNew" />
+	<typeAlias alias="IssueType" type="com.tianque.domain.IssueType" />
+	<typeAlias alias="IssueAttachFile" type="com.tianque.issue.domain.IssueAttachFile"/>
+	<typeAlias alias="IssueViewObject" type="com.tianque.issue.vo.IssueViewObject" />
+	<typeAlias alias="IssueStep" type="com.tianque.issue.domain.IssueStep" />
+	<typeAlias alias="IssueEvaluate" type="com.tianque.issue.domain.IssueEvaluate"/>
+	<typeAlias alias="ClobStringTypeHandler" type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+	<!-- 完整的事件信息 -->
+	<resultMap class="Issue" id="fullIssue">
+		<result property="id" column="id"/>
+		<result property="serialNumber" column="serialNumber"/>
+		<result property="subject" column="subject"/>
+		<result property="occurOrg.id" column="occurOrg"/>
+		<result property="occurOrg.orgInternalCode" column="occurOrgInternalCode"/>
+		<result property="createOrg.id" column="createOrg"/>
+		<result property="createOrg.orgInternalCode" column="createOrgInternalCode"/>
+		<result property="createOrg.orgLevel.id" column="createorglevel"/>
+		<result property="createOrg.functionalOrgType.id" column="createorgfunctionalorgType"/>
+		<result property="lastOrg.id" column="lastOrg"/>
+		<result property="lastOrg.orgInternalCode" column="lastOrgInternalCode"/>
+		<result property="lastUsername" column="lastUsername"/>
+		<result property="issueKind.id" column="issueKind"/>
+		<result property="historic" column="historic"/>
+		<result property="important" column="important"/>
+		<result property="sourcePerson" column="sourcePerson"/>
+		<result property="sourceKind.id" column="sourceKind"/>
+		<result property="sourceMobile" column="sourceMobile"/>
+		<result property="occurDate" column="occurDate"/>
+		<result property="relatePeopleCount" column="relatePeopleCount"/>
+		<result property="occurLocation" column="occurLocation"/>
+		<result property="mainCharacters" column="mainCharacters"/>
+		<result property="issueContent" column="issueContent" typeHandler="ClobStringTypeHandler"/>
+		<result property="remark" column="remark" typeHandler="ClobStringTypeHandler"/>
+		<result property="displayStyle" column="displayStyle"/>
+		<result property="status" column="status"/>
+		<result property="urgent" column="urgent"/>
+		<!--<result property="issueTypes" column="id" select="issue.loadIssueHasTypes"/>
+		--><result property="endDate" column="completeDate"/>
+		<result property="isEmergency" column="isEmergency"/>
+		<result property="currentStep.id" column="currentStep"/>
+		<result property="lon" column="lon"/>
+		<result property="lat" column="lat"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="importantPlace" column="importantPlace" />
+		<result property="emergencyLevel.id" column="emergencyLevel" />
+		<result property="centerLon" column="centerLon"/>
+		<result property="centerLat" column="centerLat"/>
+		<result property="zoom" column="zoom"/>
+		<result property="centerLon2" column="centerLon2"/>
+		<result property="centerLat2" column="centerLat2"/>
+		<result property="uniqueIdForMobile" column="uniqueidformobile"/>
+		<result property="fromSerialNumber" column="fromSerialNumber"/>
+		<result property="issueType.issueTypeDomain.id" column="ISSUETYPEDOMAINID"/>
+		<result property="issueType.id" column="ISSUETYPEID"/>
+		<result property="eventState" column="eventState"/>
+	</resultMap>
+	
+	<!-- 事件类型结果映射 -->
+	<resultMap id="issueTypeResult" class="IssueType">
+		<result property="id" column="id" />
+		<result property="internalId" column="internalId" />
+		<result property="issueTypeDomain.id" column="domainId" />
+		<result property="issueTypeName" column="issueTypeName" />
+	</resultMap>
+
+	<!-- 事件类附件果映射 -->
+	<resultMap id="attachFileResult" class="IssueAttachFile">
+		<result property="id" column="id" />
+		<result property="fileName" column="fileName" />
+		<result property="fileActualUrl" column="filePath" />
+		<result property="issue.id" column="issueId" />
+		<result property="issueLog.id" column="issueLogId" />
+	</resultMap>
+	
+	<!-- IssueViewObject映射结果-->
+	<resultMap id="issueViewResult" class="IssueViewObject">
+		<result property="superviseLevel" column="superviseLevel" nullValue="-1"/>
+		<result property="issueId" column="issueId" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="subject" column="subject" />
+		<result property="status" column="status" />
+		<result property="occurDate" column="occurDate" />
+		<result property="currentOrg.id" column="currentOrg" />
+		<result property="occurOrg.id" column="occurOrg" />
+		<result property="targeOrg.id" column="targetOrg" />
+		<result property="dealTime" column="dealTime" />
+		<result property="sourcePerson" column="sourcePerson" />
+		<result property="sourceKind.id" column="sourceKind" />
+		<result property="sourceMobile" column="sourceMobile" />
+		<result property="issueLogId" column="stepId" />
+		<result property="issueStepId" column="stepId" />
+		<result property="supervisionState" column="superviselevel" nullValue="-1"/>
+		<result property="urgent" column="urgent" />
+		<result property="dealState" column="statecode" />
+		<result property="delayState" column="delayState" nullValue="0"/>
+		<result property="lastOrg.id" column="lastOrg" />
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="fromSerialNumber" column="fromSerialNumber"/>
+		<result property="createDate" column="createDate"/>
+		<result property="deadLine" column="deadLine"/>
+		<result property="createName" column="CREATEUSER" select="issue.getFullUserByUerName" />
+		<result property="issueType.issueTypeDomain.id" column="ISSUETYPEDOMAINID"/>
+		<result property="issueType.id" column="ISSUETYPEID"/>	
+		<result property="eventState" column="eventState"/>	
+	</resultMap>
+		
+	<!-- 置顶事件 (待办、历史遗留)映射结果-->
+	<resultMap id="issueViewTopResult" class="IssueViewObject" extends="issueViewResult">
+		<!--<result property="topState" column="topState" />	
+		--><result property="createOrg.id" column="createOrg"/>	
+	</resultMap>
+	<!-- 置顶事件（宣传案例标识）映射结果-->
+	<resultMap id="issueViewTopPublicltycassResult" class="IssueViewObject" extends="issueViewResult">
+		<!--<result property="topState" column="topState" />	
+		--><result property="createOrg.id" column="createOrg"/>	
+		<result property="publicltycass" column="publicltycass" />
+	</resultMap>
+	<!-- 已办-->
+	<resultMap id="issueViewDonePublicltycassResult" class="IssueViewObject" extends="issueViewResult">
+		<result property="createOrg.id" column="createOrg"/>	
+		<result property="publicltycass" column="publicltycass" />
+		<result property="evaluateType" column="evaluateType" />
+	</resultMap>
+	
+	<!-- 超时事件映射结果-->
+	<resultMap id="issueViewTimeOutResult" class="IssueViewObject" extends="issueViewResult">
+		<result property="createOrg.id" column="createOrg"/>	
+	</resultMap>
+	<resultMap id="jurisdictionsNeedDoResult" class="IssueViewObject" extends="issueViewResult">
+		<!--<result property="topState" column="topState" />
+		--><result property="createOrg.id" column="createOrg"/>
+	</resultMap>
+	
+	<!--我的事项- 已办事项映射结果-->
+	<resultMap id="issueViewMyDoneResult" class="IssueViewObject">
+		<result property="superviseLevel" column="superviseLevel" nullValue="-1"/>
+		<result property="issueId" column="issueId" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="subject" column="subject" />
+		<result property="status" column="status" />
+		<result property="occurDate" column="occurDate" />
+		<result property="occurOrg.id" column="occurOrg" />
+		<result property="targeOrg.id" column="targetOrg" />
+		<result property="sourcePerson" column="sourcePerson" />
+		<result property="sourceKind.id" column="sourceKind" />
+		<result property="sourceMobile" column="sourceMobile" />
+		<result property="supervisionState" column="superviselevel" nullValue="-1"/>
+		<result property="urgent" column="urgent" />
+		<result property="dealState" column="statecode" />
+		<result property="lastOrg.id" column="lastOrg" />
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="publicltycass" column="publicltycass" />
+		<!--<result property="topState" column="topState" />	
+	--></resultMap>
+	<!-- 包含事件评价结果的IssueViewObject映射结果 -->
+	<resultMap id="issueViewAndEvaluateResult" class="IssueViewObject" extends="issueViewResult">
+		<result property="evaluateType" column="evaluateType" />
+		<result property="evaluateContent" column="evaluateContent" />
+		<result property="evaluateTime" column="evaluateTime" />
+	</resultMap>
+	
+	<!--我的事项- 已办结事项映射结果 -->
+	<resultMap id="issueViewMyCompleteResult" class="IssueViewObject" extends="issueViewAndEvaluateResult">
+		<!--<result property="topState" column="topState" />	
+	--></resultMap>
+	<!--下辖事项列表- 已办结事项映射结果 -->
+	<resultMap id="issueViewJurisdictionsCompleteResult" class="IssueViewObject" extends="issueViewAndEvaluateResult">
+		<result property="publicltycass" column="publicltycass" />
+		<!--<result property="topState" column="topState" />
+		--><result property="createOrg.id" column="createOrg"/>
+		<result property="issueContent" column="issueContent" typeHandler="ClobStringTypeHandler"/>		
+	</resultMap>
+	<!--下辖事项列表- 宣传案例事项映射结果 -->
+	<resultMap id="issueViewPublicltycassResult" class="IssueViewObject" extends="issueViewAndEvaluateResult">
+		<result property="publicltycass" column="publicltycass" />
+		<result property="createOrg.id" column="createOrg"/>
+		<result property="issueContent" column="issueContent" typeHandler="ClobStringTypeHandler"/>		
+	</resultMap>
+	<!-- 下辖 待审核事件映射结果 -->
+	<resultMap id="issueViewJurisdictionAuditDelayResult" class="IssueViewObject" extends="issueViewResult">
+		<result property="createOrg.id" column="createOrg"/>	
+	</resultMap>
+	
+	<!-- 事件处理步骤结果映射 -->
+	<resultMap id="issueStepResult" class="IssueStep">
+		<result property="id" column="id" />
+		<result property="source.id" column="source" />
+		<result property="target.id" column="target" />
+		<result property="target.orgInternalCode" column="targetinternalcode" />
+		<result property="state" column="state" />
+		<result property="stateCode" column="stateCode" />
+		<result property="entryDate" column="entryDate" />
+		<result property="endDate" column="endDate" />
+		<result property="lastDealDate" column="lastDealDate" />
+		<result property="issue.id" column="issue" />
+		<result property="superviseLevel" column="superviseLevel" />
+		<result property="backTo.id" column="backTo" />
+		<result property="groupId" column="groupId" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<resultMap class="IssueEvaluate" id="issueViewAndEvaluateOnlyResult">
+		<result property="id" column="id" />
+		<result property="evaluateType" column="evaluateType" />
+		<result property="evaluateContent" column="evaluateContent" />
+		<result property="evaluateTime" column="evaluateTime" />
+	</resultMap>
+		<typeAlias alias="CompletedIssue" type="com.tianque.issue.domain.CompletedIssue"/>
+
+	<resultMap class="CompletedIssue" id="completedIssueMap">
+		<result property="publicltycass" column="publicltycass" />
+		<result property="issueId" column="issueId" />
+		<!--<result property="topState" column="topState" />
+		--><result property="delayState" column="delayState" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="subject" column="subject" />
+		<result property="status" column="status" />
+		<result property="occurDate" column="occurDate" />
+		<result property="occurOrg.id" column="occurOrg" />
+		<result property="createOrg.id" column="createOrg" />
+		<result property="targeOrg.id" column="targetOrg" />
+		<result property="currentOrg.id" column="currentOrg" />
+		<result property="dealTime" column="dealTime" />
+		<result property="sourcePerson" column="sourcePerson" />
+		<result property="sourceKind.id" column="sourceKind" />
+		<result property="sourceMobile" column="sourceMobile" />
+		<result property="urgent" column="urgent" />
+		<result property="issueStepId" column="stepId" />
+		<result property="superviseLevel" column="superviseLevel" />
+		<result property="lastOrg.id" column="lastOrg" />
+		<result property="createUser" column="createUser" />
+		<result property="dealState" column="dealState" />
+		<result property="evaluateType" column="evaluateType" />
+		<result property="evaluateContent" column="evaluateContent" />
+		<result property="evaluateTime" column="evaluateTime" />
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="porgId" column="porgId" />
+		<result property="torgId" column="torgId" />
+		<result property="topDate" column="topDate" />
+		<result property="createOrginternalCode" column="createOrginternalCode" />
+		<result property="crateOrgFunctionalType" column="crateOrgFunctionalType" />
+		<result property="createOrgLevel" column="createOrgLevel" />
+		<result property="moveMark" column="moveMark"/>
+		<result property="issueKind.id" column="issueKind"/>
+		<result property="occurLocation" column="occurLocation"/>
+		<result property="relatePeopleCount" column="relatePeopleCount"/>
+		<result property="issueType.issueTypeDomain.id" column="ISSUETYPEDOMAINID"/>
+		<result property="issueType.id" column="ISSUETYPEID"/>
+		<result property="eventState" column="eventState"/>	
+	</resultMap>
+
+	<!-- 新增事件 -->
+	<insert id="addIssue" parameterClass="Issue">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_Issues.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		Issues(id,serialNumber,subject,occurOrg,occurOrgInternalCode,createOrg,createOrgInternalCode,lastOrg,lastOrgInternalCode,
+		issueKind,important,sourcePerson,sourceKind,sourceMobile,occurDate,relatePeopleCount,occurLocation,
+		mainCharacters,issueContent,remark,urgent,createUser,createDate,isEmergency,lon,lat,hours,minute,importantPlace,emergencyLevel,updateUser,updateDate,
+		centerLon,centerLat,zoom,centerLon2,centerLat2,uniqueidformobile,fromSerialNumber,deadLine,lastorglevel,lastorgfunctionalorgType,createorglevel,createorgfunctionalorgType
+		,ISSUETYPEDOMAINID,ISSUETYPEID)
+		VALUES(#id#,#serialNumber#,#subject#,#occurOrg.id#,#occurOrg.orgInternalCode#,#createOrg.id#,#createOrg.orgInternalCode#,#lastOrg.id#,#lastOrg.orgInternalCode#,
+		#issueKind.id#,#important#,#sourcePerson#,#sourceKind.id#,#sourceMobile#,#occurDate#,#relatePeopleCount#,#occurLocation#,
+		#mainCharacters#,#issueContent,handler=ClobStringTypeHandler#,#remark,handler=ClobStringTypeHandler#,#urgent#,
+		#createUser#,#createDate#,#isEmergency#,#lon#,#lat#,#hours#,#minute#,#importantPlace#,#emergencyLevel.id#,#updateUser#,#updateDate#,
+		#centerLon#,#centerLat#,#zoom#,#centerLon2#,#centerLat2#,#uniqueIdForMobile#,#fromSerialNumber#,#deadLine#,#lastOrg.orgLevel.id#,
+		<isNull property="lastOrg.functionalOrgType">0</isNull>
+		<isNotNull property="lastOrg.functionalOrgType">#lastOrg.functionalOrgType.id#</isNotNull>,
+		#createOrg.orgLevel.id#,
+		<isNull property="createOrg.functionalOrgType">0</isNull>
+		<isNotNull property="createOrg.functionalOrgType">#createOrg.functionalOrgType.id#</isNotNull>
+		,#issueType.issueTypeDomain.id#,#issueType.id#)
+	</insert>
+	
+	<select id="getFullUserByUerName" parameterClass="java.lang.String" resultClass="java.lang.String">
+	<![CDATA[select name from users where userName=#value#]]>
+	</select>
+	
+	<!-- 保存事件类型关 -->
+	<insert id="addIssueHasType" parameterClass="map">
+		INSERT INTO	issuehastypes (issueId,issueTypeId,issueTypeDomainId) VALUES (#issueId#,#type.id#,#type.issueTypeDomain.id#)
+	</insert>
+	
+	<!-- 删除事件类型关联关系 -->
+	<delete id="deleteIssueHasTypesByIssueId" parameterClass="long">
+		delete from issuehastypes where issueId =#issueId#
+	</delete>
+	
+	<!-- 删除事件的某一类型 -->
+	<delete id="deleteIssueHasTypesByIssueIdAndIssueTypeId" parameterClass="map">
+		delete from issuehastypes where issueId =#issueId# and IssueTypeId =#IssueTypeId#
+	</delete>
+	
+	<!-- 查询该事件的类型 -->           
+	<select id="loadIssueHasTypes" resultMap="issueTypeResult">
+		select type.* from issuehastypes itypes left join issueTypes type on type.id=itypes.issuetypeid 
+		where itypes.issueid=#value#
+	</select>
+	
+	<!-- 修改事件 -->
+	<update id="updateIssue" parameterClass="Issue"> 
+		update Issues set 
+			serialNumber =#serialNumber#,
+			subject =#subject#,
+			occurOrg =#occurOrg.id#,
+			occurOrgInternalCode =#occurOrg.orgInternalCode#,
+		<!-- createOrgInternalCode =#createOrg.orgInternalCode#, -->
+			lastOrg =#lastOrg.id#,
+			lastOrgInternalCode =#lastOrg.orgInternalCode#,
+			lastorglevel =#lastOrg.orgLevel.id#,
+		<isNull property="lastOrg.functionalOrgType">lastorgfunctionalorgType=0,</isNull>
+		<isNotNull property="lastOrg.functionalOrgType">lastorgfunctionalorgType = #lastOrg.functionalOrgType.id#,</isNotNull>
+			issueKind =#issueKind.id#,
+			important =#important#,
+			sourcePerson =#sourcePerson#,
+		<!-- 			sourceKind =#sourceKind.id#, -->
+			sourceMobile =#sourceMobile#,
+			occurDate =#occurDate#,
+			relatePeopleCount =#relatePeopleCount#,
+			occurLocation =#occurLocation#,
+			mainCharacters =#mainCharacters#,
+			issueContent =#issueContent# ,
+			remark =#remark# ,
+			updateUser =#updateUser#,
+			updateDate =#updateDate#,
+			isEmergency =#isEmergency#,
+			lon =#lon#,
+			lat =#lat#,
+			hours = #hours#,
+			minute = #minute#,
+			importantPlace = #importantPlace#,
+			emergencyLevel = #emergencyLevel.id#,
+			centerLon = #centerLon#,
+			centerLat = #centerLat#,
+			centerLon2 = #centerLon2#,
+			centerLat2 = #centerLat2#,
+			zoom = #zoom#
+		where id = #id#
+	</update>
+	
+	<!-- 事件的加急/取消加急 -->
+	<update id="updateIssueUrgentState" parameterClass="map">
+		update issues set urgent=#state# where id=#issueid#
+	</update>
+	
+	<update id="updateIssueCurrentStepAndOrg" parameterClass="Issue">
+		update issues set
+			lastorg=#lastOrg.id#,
+			lastorginternalcode=#lastOrg.orgInternalCode#,
+			lastorglevel =#lastOrg.orgLevel.id#,
+		<isNull property="lastOrg.functionalOrgType">lastorgfunctionalorgType=0,</isNull>
+		<isNotNull property="lastOrg.functionalOrgType">lastorgfunctionalorgType = #lastOrg.functionalOrgType.id#,</isNotNull>
+		<dynamic>
+			<isNotEmpty property="currentStep">currentStep=#currentStep.id#,</isNotEmpty>
+			<isEmpty  property="currentStep">currentStep= null,</isEmpty>
+		</dynamic>
+			lastusername=#lastUsername#,
+			status=#status#,
+			urgent=#urgent#
+		where id=#id#
+	</update>
+	
+	
+	<!-- 删除事件 -->
+	<delete id="removeIssue" parameterClass="long">
+		delete from Issues where id=#value#
+	</delete>
+	
+	<!-- 根据id查询完整的事件信息 -->
+	<select id="getFullIssueById" parameterClass="long" resultMap="fullIssue">
+		select * from Issues where id=#value#
+	</select>
+	<!-- 根据stepid查询完整的事件信息 -->
+	<select id="getFullIssueByStepId" parameterClass="long"	resultMap="fullIssue">
+		select iu.* from Issues iu,issuesteps steps where iu.id=steps.issue and steps.id=#value#
+	</select>
+	
+	
+	<!-- 根据事件单号查询事件 -->
+	<select id="getIssueBySerialNumber" parameterClass="string" resultMap="fullIssue">
+		select * from issues where serialnumber = #value#
+	</select>
+	
+	<select id="searchAllRoundIssues" parameterClass="java.util.Map" resultMap="fullIssue">
+	<![CDATA[
+		 select *  from issues t where t.centerx > #minOption.centerX#   and   t.centerx < #maxOption.centerX# 
+		 and  t.centery > #minOption.centerY#  and   t.centery < #maxOption.centerY#
+	]]>
+	</select>
+	
+	<!-- 保存事件附件关联关系 -->
+	<insert id="addIssueAttachFiles" parameterClass="map">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT s_issueHasAttachFile.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO	IssueHasAttachFiles	(id,issueId,issueLogId,fileType) VALUES (#id#,#issueId#,#issueLogId#,#fileType#)
+	</insert>
+	
+	<!-- 删除事件附件关联关系 -->
+	<delete id="deleteIssuehasattachfilesById" parameterClass="long">
+		 delete from issuehasattachfiles where id=#fileId#
+	</delete>
+	
+	<!-- 删除事件附件关联关系 -->
+	<delete id="removeAllIssueAttachFiles" parameterClass="long">
+		delete from issuehasattachfiles where issueid=#value#
+	</delete>
+	
+	<!-- 删除事件模块的附件 -->
+	<delete id="removeAllIssueAttachFilesFromBaseFile" parameterClass="long">
+		delete from attachfiles where modulekey='for_issue' and moduleobjectid in (select id from issuehasattachfiles where issueid=#value#)
+	</delete>
+	
+	<!-- 删除事件模块的附件 -->
+	<delete id="deleteAttachFileBymoduleobjectId" parameterClass="long">
+   		 delete from attachfiles af where af.moduleobjectid= #fileId#
+	</delete>
+	
+	<!-- 根据id查询事件附件 -->           
+	<select id="getIssueAttachFileById" parameterClass="long" resultMap="attachFileResult">
+		select issueFiles.id,issueFiles.issueId,issueFiles.issueLogId,files.fileName,files.physicsFullFileName filePath
+		from IssueHasAttachFiles issueFiles 
+		left join attachFiles files on files.moduleObjectId=issueFiles.id and files.moduleKey='for_issue'
+		where issueFiles.id=#value# 
+	</select>
+	
+	<!-- 根据时事件的id查询该事件的所有附件 -->
+	<select id="getIssueAttachFileByIssueId" parameterClass="long" resultMap="attachFileResult">
+		select issueFiles.id,issueFiles.issueId,issueFiles.issueLogId,files.fileName,files.physicsFullFileName filePath
+	    from IssueHasAttachFiles issueFiles 
+	    left join attachFiles files on files.moduleObjectId=issueFiles.id and files.moduleKey='for_issue'
+	    where issueFiles.Issueid=#issueId#
+	</select>
+	
+	
+	<!-- 根据时事件的id查询该事件的所有附件 不包括处理日志的附件 -->
+	<select id="getIssueAttachFileAndNotLogAttachFileByIssueId" parameterClass="long" resultMap="attachFileResult">
+		select issueFiles.id,issueFiles.issueId,issueFiles.issueLogId,files.fileName,files.physicsFullFileName filePath
+	    from IssueHasAttachFiles issueFiles 
+	    left join attachFiles files on files.moduleObjectId=issueFiles.id and files.moduleKey='for_issue' 
+	    where issueFiles.Issueid=#issueId# and issueFiles.issueLogId is null
+	</select>
+	
+	<!-- 根据时事件的id查询该事件所有评价的附件 -->
+	<select id="getIssueEvaluateAttachFileAttachFileByIssueId" parameterClass="long" resultMap="attachFileResult">
+		select issueFiles.id,issueFiles.issueId,issueFiles.issueLogId,files.fileName,files.physicsFullFileName filePath
+	    from IssueHasAttachFiles issueFiles 
+	    left join attachFiles files on files.moduleObjectId=issueFiles.id 
+	    where issueFiles.Issueid=#issueId# and issueFiles.Filetype = 'for_issueEvaluate' and issueFiles.issueLogId is null
+	</select>
+	
+	<!-- 查询事件的处理记录的附件 -->  
+	<select id="loadIssueAttachFilesByIssueAndLog" parameterClass="map" resultMap="attachFileResult">
+		select issueFiles.id,issueFiles.issueId,issueFiles.issueLogId,files.fileName,files.physicsFullFileName filePath
+		from IssueHasAttachFiles issueFiles 
+		left join attachFiles files on files.moduleObjectId=issueFiles.id and files.moduleKey='for_issue' 
+	where issueFiles.Filetype <![CDATA[<>]]> 'for_issueEvaluate' and issueFiles.issueId=#issueId# 
+		<dynamic prepend=" and ">
+			<isPropertyAvailable property="issueLogId">
+				<isNotEmpty property="issueLogId">issueLogId=#issueLogId#</isNotEmpty>
+				<isEmpty  property="issueLogId">issueLogId is null</isEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<!-- 待办事项数量 -->
+	<select id="countMyNeedDo" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from issuesteps isteps,issues iu 
+		<isEqual property="issueType" compareValue="1">
+			,approvalitems ap
+		</isEqual>
+	where iu.id=isteps.issue and isteps.target=#orgId# <![CDATA[ and isteps.stateCode<#completeCode# ]]>
+		and iu.historic = 0
+		<dynamic>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+				iu.ISSUETYPEDOMAINID=#issueType#
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 待办事件列表 cstep这个表是为了匹配职能部门用户也能显示待办事项列表 -->
+	<select id="findMyNeedDoIssues" parameterClass="map"	resultMap="issueViewTopResult">
+		
+		select case when ti.topState is null then 0  else ti.topState end  as topState ,
+				iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,
+				isteps.source currentOrg,iu.occurorg,iu.createOrg,isteps.target targetOrg,isteps.lastdealdate as dealTime, 
+				iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, isteps.id as stepId,
+         iu.fromSerialNumber,
+         iu.createDate,
+		 iu.deadLine,
+				isteps.superviselevel,iu.lastOrg,iu.CREATEUSER,isteps.statecode,iu.hours,iu.minute,iu.eventState
+		from issuesteps isteps,issues iu
+		
+		left join topIssues ti on  iu.id = ti.issueId and ti.orgId = #orgId# and ti.issueTag = 1
+	<![CDATA[
+		where iu.id=isteps.issue 
+		and   isteps.target=#orgId# 
+		and   isteps.stateCode<#completeCode# 
+		and   iu.historic = 0 
+
+	]]>
+		<dynamic>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+				iu.ISSUETYPEDOMAINID=#issueType# 
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			topState desc ,ti.topDate Desc 
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField"> , $sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 已办事项数量 -->
+	<select id="countMyDone" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from (
+			 select iu.id from issues iu,issuesteps cs 
+	where iu.id=cs.issue and cs.target=#orgId# and cs.stateCode<![CDATA[>=]]>#completeCode# and <![CDATA[	status != 300 ]]>
+		<dynamic>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+						iu.ISSUETYPEDOMAINID=#issueType# 
+			</isPropertyAvailable>
+		</dynamic>
+              group by iu.id
+			)			
+		
+	</select>
+	
+	<!-- 已办事项列表 -->
+	<select id="findMyDoneIssues" parameterClass="map"	resultMap="issueViewMyDoneResult">
+	<![CDATA[
+		select case
+				 when ti.topState is null then
+				  0
+				 else
+				  ti.topState
+			   end as topState,
+			   case
+				 when p.id is null then
+				  0
+				 else
+				  1
+			   end as publicltycass,
+			   t.issueId,
+			   serialnumber,
+			   subject,
+			   status,
+			   occurdate,
+			   occurorg,
+			   targetOrg,
+			   sourceperson,
+			   sourcekind,
+			   sourcemobile,
+			   urgent,
+			   superviselevel,
+			   lastOrg,
+			   statecode,
+			   hours,
+			   minute
+		  from (select distinct iu.id as issueId,
+					   iu.serialnumber,
+					   iu.subject,
+					   iu.status,
+					   iu.occurdate,
+					   iu.occurorg,
+					   cstep.target targetOrg,
+					   iu.sourceperson,
+					   iu.sourcekind,
+					   iu.sourcemobile,
+					   iu.urgent,
+					   cstep.superviselevel,
+					   iu.lastOrg,
+					   iu.status statecode,
+					   iu.hours,
+					   iu.minute
+				  from issuesteps cstep
+				  left join issues iu on cstep.issue = iu.id
+		where cstep.target=#orgId# and cstep.stateCode>=#completeCode#
+	]]>
+		<dynamic>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+					iu.ISSUETYPEDOMAINID=#issueType# 
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic>
+			<isPropertyAvailable property="status">
+				<isNotNull property="status" prepend=" and ">
+					<isEqual property="status" compareValue="300">
+						status =#status#
+					</isEqual>
+					<isEqual property="status" compareValue="1">
+					<![CDATA[	status != 300 ]]>
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	<![CDATA[ 
+		) t left join publicltycass p on t.issueId=p.issueid 
+			left join topIssues ti on t.issueId = ti.issueId and ti.orgId=#orgId# and ti.issueTag = 2
+	]]>
+		<dynamic prepend="order by">
+			topState desc, ti.topDate Desc
+			<isPropertyAvailable property="sortField">
+				
+				<isNotNull property="sortField"> , $sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 已办结事项数量 -->
+	<select id="countMyCompleted" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from (
+	select iu.id from issuesteps isteps left join issues iu on iu.id=isteps.issue where iu.CREATEORGINTERNALCODE = #orgCode# and isteps.stateCode<![CDATA[>=]]>#completeCode# 
+			and iu.historic = 0 
+		<dynamic>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+				iu.ISSUETYPEDOMAINID=#issueType# 
+			</isPropertyAvailable>
+		</dynamic>
+			)
+	</select>
+	
+	<!-- 已办结事项列表 -->
+	<select id="findMyCompleted" parameterClass="map" resultMap="issueViewMyCompleteResult">
+	<![CDATA[
+		select case when ti.topState is null then 0  else ti.topState end as topState,
+			   iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,cstep.source currentOrg,
+		 iu.fromSerialNumber,
+		 iu.createDate,
+		 iu.deadLine,
+			   iu.occurorg,cstep.target targetOrg,cstep.lastdealdate as dealTime, iu.sourceperson,iu.sourcekind,iu.sourcemobile,
+			   iu.urgent, cstep.id as stepId,cstep.superviselevel,iu.lastOrg,iu.CREATEUSER,cstep.statecode,ie.evaluatetype,
+			   ie.evaluatecontent,ie.evaluatetime ,iu.hours,iu.minute,iu.eventState
+		from  issuesteps cstep
+		left join issues iu  on cstep.issue= iu.id 
+		left join issueEvaluate ie on ie.issueid = iu.id 
+		left join topIssues ti on ti.issueId = iu.id and ti.orgId=#orgId# and ti.issueTag = 3
+		where  iu.CREATEORGINTERNALCODE = #orgCode# 
+			   and cstep.stateCode>=#completeCode# 
+			   and iu.historic = 0 
+
+	]]>
+		<dynamic>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+				iu.ISSUETYPEDOMAINID=#issueType# 
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			topState desc, ti.topDate desc
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField"> ,$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+		
+	<!-- 社情民意中心 待办诉求列表 -->
+	<select id="findcommandCenterMyNeedDoIssues" parameterClass="map"	resultMap="issueViewResult">
+		select isteps.delayState as delayState,iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,isteps.source currentOrg,iu.occurorg,isteps.target targetOrg
+			,isteps.lastdealdate as dealTime, iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, isteps.id as stepId,isteps.superviselevel
+			,iu.lastOrg,iu.CREATEUSER,isteps.statecode,iu.hours,iu.minute,iu.eventState from issuesteps isteps,issues iu 
+		
+	<![CDATA[
+		where iu.id=isteps.issue and isteps.target=#orgId# and isteps.stateCode<#completeCode# and iu.historic = 0 and isteps.id=iu.currentstep 
+	]]>
+		<isNotEmpty property="commandCenterNum">
+		    and iu.serialNumber in ($commandCenterNum$) 
+		</isNotEmpty>
+		<isEmpty property="commandCenterNum">
+		<![CDATA[
+			and 1 <> 1 
+		]]>
+		</isEmpty>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 社情民意中心 已办诉求数量 -->
+	<select id="countMyDoneforCommandCenter" parameterClass="map" resultClass="java.lang.Integer">
+	<![CDATA[select count(*) from (
+		select id from issues where id in(select issue from issuesteps where target=#orgId# and stateCode>=#completeCode#)
+		and id not in(select issue from issuesteps where target=#orgId# and stateCode<#completeCode#)
+		and sourcekind in (select id  from propertydicts where propertydomainid = (select id from propertydomains where domainname =#domainname# ) and displayname in (#smsInput#,#webInput#,#hotlinePhone#))
+		group by id
+		)  
+	]]>
+	</select>
+	
+	<!-- 社情民意中心 已办诉求列表 -->
+	<select id="findcommandCenterMyDoneIssues" parameterClass="map"	resultMap="issueViewMyDoneResult">
+	<![CDATA[
+		select 
+			case when ti.topState is null then 0  else ti.topState end as topState,
+			case when p.id is null then 0  else 1 end as publicltycass,t.issueId,serialnumber,
+			subject ,status, occurdate,currentOrg,occurorg,targetOrg,dealTime, sourceperson,
+			sourcekind,sourcemobile,urgent,stepId,superviselevel ,lastOrg,statecode ,hours,minute
+		 from (
+				select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,
+					cstep.source currentOrg,iu.occurorg,cstep.target targetOrg,cstep.lastdealdate as dealTime, 
+					iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, cstep.id as stepId,
+					cstep.superviselevel,iu.lastOrg,iu.status statecode,iu.hours,iu.minute 
+				from issues iu left join issuesteps cstep on cstep.id=iu.currentstep 
+				where 
+	]]>
+			iu.id in ( select id from issues 
+					  where id in(
+		<isNotNull property="stepcompleteCode">
+			<isNull property="issuecompleteCode">
+				          select issue from issuesteps where target=#orgId# 
+				          and stateCode>=#stepcompleteCode#
+			</isNull>
+		</isNotNull>	  
+		<isNotNull property="issuecompleteCode">
+			<isNull  property="stepcompleteCode">
+			<![CDATA[
+				  select i.id from issuesteps isteps,issues i 
+					where i.id=isteps.issue 
+					and i.CREATEORGINTERNALCODE = #orgCode# 
+					and isteps.stateCode>=#issuecompleteCode# 
+					and i.historic = 0 group by i.id
+			]]>
+			</isNull>
+		</isNotNull>	   
+		<isNotNull property="stepcompleteCode">
+			<isNotNull property="issuecompleteCode">
+			<![CDATA[
+				select issue from issuesteps where target=#orgId#  
+				and stateCode>=#stepcompleteCode# and stateCode < #issuecompleteCode#
+				and issue not in(
+					select i.id from issuesteps isteps,issues i 
+					where i.id=isteps.issue 
+					and i.CREATEORGINTERNALCODE = #orgCode# 
+					and isteps.stateCode>=#issuecompleteCode# 
+					and i.historic = 0 group by i.id
+				)
+			]]>
+			</isNotNull>
+		</isNotNull>	  
+					  )
+					  group by id
+			)
+		<isNotEmpty prepend="AND" property="commandCenterNum">
+		    iu.serialNumber in ($commandCenterNum$) 
+		</isNotEmpty>
+		<isEmpty prepend="AND" property="commandCenterNum">
+		<![CDATA[
+			1 <> 1 
+		]]>
+		</isEmpty>
+	<![CDATA[) t left join publicltycass p on t.issueId=p.issueid 
+		left join topIssues ti on t.issueId = ti.issueId and ti.orgId=#orgId# and ti.issueTag = 2 
+	]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<select id="findMyDoneIssuesForCommandCenter" parameterClass="map"	resultMap="issueViewResult">
+	<![CDATA[
+		select cstep.delayState as delayState,iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,cstep.source currentOrg,iu.occurorg,cstep.target targetOrg
+			,cstep.lastdealdate as dealTime, iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, cstep.id as stepId,cstep.superviselevel
+			,iu.lastOrg,iu.CREATEUSER,iu.status statecode,iu.hours,iu.minute,iu.eventState from issues iu left join issuesteps cstep on cstep.id=iu.currentstep 
+		where iu.id in (select id from issues where id in(select issue from issuesteps where target=#orgId# and stateCode>=#completeCode#)
+			and id not in(select issue from issuesteps where target=#orgId# and stateCode<#completeCode#) and   sourcekind in (select id  from propertydicts where propertydomainid = (select id from propertydomains where domainname =#domainname# ) and displayname in (#smsInput#,#webInput#,#hotlinePhone#))
+			group by id)  
+	]]>
+		<dynamic>
+			<isPropertyAvailable property="status">
+				<isNotNull property="status" prepend=" and ">
+					<isEqual property="status" compareValue="300">
+					status =
+					#status#
+					</isEqual>
+					<isEqual property="status" compareValue="1">
+					<![CDATA[	status != 300 ]]>
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 历史遗留/取消历史遗留 -->
+	<update id="updateIssueHistoricState" parameterClass="map">
+		update issues set historic = #state# where id = #issueid#
+	</update>
+	
+	<!-- 历史遗留 数量-->
+	<select id="countMyHistoric" parameterClass="string" resultClass="java.lang.Integer">
+	<![CDATA[
+		select count(*) from issuesteps isteps,issues iu where iu.id=isteps.issue and isteps.targetinternalcode=#value# and iu.historic <> 0
+	]]>
+	</select>
+	
+	<!-- 历史遗留 列表-->
+	<select id="findMyHistoricIssues" parameterClass="map"	resultMap="issueViewTopResult">
+	<![CDATA[
+		select case when ti.topState is null then 0  else ti.topState end  as topState ,
+			   iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,cstep.source currentOrg,
+		 iu.fromSerialNumber,
+		 iu.createDate,
+		 iu.deadLine,
+			   iu.occurorg,iu.createOrg,cstep.target targetOrg,cstep.lastdealdate as dealTime, iu.sourceperson,iu.sourcekind,iu.sourcemobile,
+			   iu.urgent, cstep.id as stepId,cstep.superviselevel,iu.lastOrg,iu.CREATEUSER,iu.status statecode,iu.hours,iu.minute,iu.eventState
+		from issues iu 
+		left join issuesteps cstep on cstep.id=iu.currentstep 
+		left join topIssues ti on  iu.id = ti.issueId and ti.orgId = #orgId# and ti.issueTag = 4
+		where cstep.targetinternalcode = #orgCode# and iu.historic <> 0
+	]]>
+		<dynamic prepend="order by">
+			topState desc ,ti.topDate Desc 
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">, $sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<!-- 新增宣传案例 -->
+	<insert id="addPublicltyCass" parameterClass="map">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT s_publicltyCass.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into publicltyCass(id,issueId,orgId) values(#id#,#issueId#,#orgId#)
+	</insert>
+	
+	<!-- 宣传案例 数量-->
+	<select id="countMyPubliclty" parameterClass="long" resultClass="java.lang.Integer">
+	<![CDATA[
+		select count(*) from publicltyCass where orgId=#value#
+	]]>
+	</select>
+	
+	<select id="countPubliclty"  parameterClass="map" resultClass="int">
+		select count(*) from publicltyCass where issueId=#issueId# and orgId=#orgId#
+	</select>
+	
+	<!-- 宣传案例 列表-->
+	<select id="findMyPublicltyIssues" parameterClass="long"	resultMap="issueViewTopResult">
+	<![CDATA[
+		select case when ti.topState is null then 0  else ti.topState end as topState,
+			  iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,cstep.source currentOrg,
+		 iu.fromSerialNumber,
+		 iu.createDate,
+		 iu.deadLine,
+			  iu.occurorg,iu.createOrg,cstep.target targetOrg,cstep.lastdealdate as dealTime, iu.sourceperson,iu.sourcekind,iu.sourcemobile,
+			  iu.urgent, cstep.id as stepId,cstep.superviselevel,iu.lastOrg,iu.CREATEUSER,iu.status statecode,iu.hours,iu.minute,iu.eventState
+		from issues iu 
+		left join issuesteps cstep on cstep.id=iu.currentstep 
+		left join topIssues ti on iu.id = ti.issueId and ti.orgId=#value# and ti.issueTag = 5
+		where exists (select 1 from publicltyCass pt where pt.orgId=#value# and iu.id=pt.issueid)
+	]]>
+		<dynamic prepend="order by">
+			topState desc, ti.topDate Desc
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">,$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 删除宣传案例 -->
+	<delete id="removeIssueFromPublicltyCass" parameterClass="map">
+		delete from publicltyCass where issueid=#issueId#
+		<dynamic >
+			<isPropertyAvailable property="orgId">
+				<isNotEmpty property="orgId" prepend=" and ">
+					orgId=#orgId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</delete>
+	<delete id="removePublicltyByIssueId" parameterClass="map">
+		delete from publicltyCass where issueid=#issueId#
+	</delete>
+	
+	<sql id="sql_findJurisdictions_leaderView">
+		<dynamic>
+			<isPropertyAvailable property="orgLevel" prepend=" and ">
+				<isNull property="searchOrgId">
+					cstep.targetorgLevel=$orgLevel$ and cstep.TARGETINTERNALCODE like '$orgCode$%' 
+				</isNull>
+				<isNotNull property="searchOrgId">
+					cstep.targetorgLevel=$orgLevel$ and cstep.TARGETINTERNALCODE like '$searchOrgCode$%' 
+				</isNotNull>
+				<isPropertyAvailable property="functionalOrgType">
+					<isNotNull property="functionalOrgType" prepend=" and ">
+						cstep.targetorgfunctionalorgType = $functionalOrgType$
+					</isNotNull>
+					<isNull property="functionalOrgType" prepend=" and ">
+						cstep.targetorgfunctionalorgType=0
+					</isNull>
+				</isPropertyAvailable>
+			</isPropertyAvailable>
+			<isNotPropertyAvailable property="orgLevel" prepend=" and ">
+					cstep.targetinternalcode = '$orgCode$'
+			</isNotPropertyAvailable>
+		</dynamic>
+	</sql>
+	<!-- 下辖待办事件数量 -->	<!--判断是否查询所有，本级，下辖-->
+	<select id="countJurisdictionsNeedDo" parameterClass="map" resultClass="java.lang.Integer">
+		select count(0) from issuesteps cstep where 1=1
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			exists (select 1 from issues iu where cstep.issue = iu.id and iu.ISSUETYPEDOMAINID=$issueType$)
+		</isPropertyAvailable>
+		<include refid="sql_findJurisdictions_leaderView" />		
+		<![CDATA[ 	and cstep.stateCode<$completeCode$ ]]>
+	</select>
+	<!-- 为手机端提供待办已督办事件数量 -->	
+	<select id="countJurisdictionsNeedDoForOverseerForMobile" parameterClass="map" resultClass="java.lang.Integer">
+		select count(0)
+		from issuesteps cstep
+		where cstep.superviselevel > -1
+	<include refid="sql_findJurisdictions_leaderView" />	
+	<![CDATA[ 	and cstep.stateCode<$completeCode$ 
+		)
+	]]>
+	</select>
+	
+	<!-- 下辖待办事件列表 -->
+	<select id="findJurisdictionsNeedDo" parameterClass="map"	resultMap="jurisdictionsNeedDoResult">
+	<![CDATA[
+		select  iu.id as issueId,
+		 cstep.delayState as delayState,
+		 iu.serialnumber,
+		 iu.subject,
+		 iu.status,
+		 iu.occurdate,
+		 cstep.source currentOrg,
+		 iu.occurorg,
+		 cstep.target targetOrg,
+		 iu.createOrg,
+		 iu.sourceperson,
+		 iu.sourcekind,
+		 iu.sourcemobile,
+		 iu.urgent,
+		 cstep.id as stepId,
+		 cstep.superviselevel,
+		 cstep.lastdealdate as dealTime,
+		 iu.lastOrg,
+		 iu.CREATEUSER,
+		 iu.fromSerialNumber,
+		 iu.createDate,
+		 iu.deadLine,
+		 cstep.statecode,
+		 iu.hours,
+		 iu.minute,
+		 iu.ISSUETYPEID,
+		 iu.ISSUETYPEDOMAINID,
+		 iu.eventState
+		 from issuesteps cstep,issues iu 
+			where iu.id=cstep.issue 
+	]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+		<![CDATA[ 
+			and cstep.stateCode<$completeCode$ 
+		]]>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="userOrgLevel">
+				<isLessEqual property="userOrgLevel" compareValue="10">
+					<isPropertyAvailable property="sortField">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+			</isLessEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<!-- 下辖待办事件列表 为手机端提供待办已督办事件 -->
+	<select id="findJurisdictionsNeedDoForOverseerForMobile" parameterClass="map"	resultMap="jurisdictionsNeedDoResult">
+	<![CDATA[
+		select  iu.id as issueId,
+		 cstep.delayState as delayState,
+		 iu.serialnumber,
+		 iu.subject,
+		 iu.status,
+		 iu.occurdate,
+		 cstep.source currentOrg,
+		 iu.occurorg,
+		 cstep.target targetOrg,
+		 iu.createOrg,
+		 iu.sourceperson,
+		 iu.sourcekind,
+		 iu.sourcemobile,
+		 iu.urgent,
+		 cstep.id as stepId,
+		 cstep.superviselevel,
+		 cstep.lastdealdate as dealTime,
+		 iu.lastOrg,
+		 iu.CREATEUSER,
+		 iu.fromSerialNumber,
+		 iu.createDate,
+		 iu.deadLine,
+		 cstep.statecode,
+		 iu.hours,
+		 iu.minute,
+		 iu.ISSUETYPEID,
+		 iu.ISSUETYPEDOMAINID,
+		 iu.eventState
+		 from issuesteps cstep,issues iu 
+			where iu.id=cstep.issue and cstep.superviselevel > -1 
+	]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	<![CDATA[ 
+		and cstep.stateCode<$completeCode$ 
+	]]>
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="userOrgLevel">
+				<isLessEqual property="userOrgLevel" compareValue="10">
+					<isPropertyAvailable property="sortField">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+			</isLessEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 下辖办理中事件数量 -->	<!--判断是否查询所有，本级，下辖-->
+	<select id="countJurisdictionsDoing" parameterClass="map" resultClass="java.lang.Integer">
+	<![CDATA[
+		select count(0)
+		from issuesteps cstep
+		where 1=1
+	]]>	
+		<include refid="sql_findJurisdictions_leaderView" />
+	<![CDATA[ 	
+		and cstep.stateCode<$completeCode$ 
+		and cstep.stateCode <> $unconceptedCode$ 
+		)
+	]]>
+	</select>
+	<!-- 下辖办理中事件列表 -->
+	<select id="findJurisdictionsDoing" parameterClass="map"	resultMap="issueViewTopResult">
+	<![CDATA[
+		select  iu.id as issueId,
+		 cstep.delayState as delayState,
+		 iu.serialnumber,
+		 iu.subject,
+		 iu.status,
+		 iu.occurdate,
+		 cstep.source currentOrg,
+		 iu.occurorg,
+		 iu.createOrg,
+		 cstep.target targetOrg,
+		 iu.sourceperson,
+		 iu.sourcekind,
+		 iu.sourcemobile,
+		 iu.urgent,
+		 cstep.id as stepId,
+		 cstep.superviselevel,
+		 cstep.lastdealdate as dealTime,
+		 iu.lastOrg,
+		 iu.fromSerialNumber,
+		 iu.createDate,
+		 iu.deadLine,
+		 iu.CREATEUSER,
+		 cstep.statecode,
+		 iu.hours,
+		 iu.minute,
+		 iu.ISSUETYPEID,
+		 iu.ISSUETYPEDOMAINID,
+		 iu.eventState
+		 from issuesteps cstep,issues iu
+			where iu.id=cstep.issue 
+	]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	<![CDATA[ 
+		and cstep.stateCode<$completeCode$ 
+		and cstep.stateCode <> $unconceptedCode$ 
+	]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="userOrgLevel">
+				<isLessEqual property="userOrgLevel" compareValue="10">
+					<isPropertyAvailable property="sortField">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+			</isLessEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 下辖上级交办事件数量 -->	<!--判断是否查询所有，本级，下辖-->
+	<select id="countJurisdictionsAssgin" parameterClass="map" resultClass="java.lang.Integer"> 
+	<![CDATA[ select count(0) from issues iu , issuesteps cstep where  cstep.assign = $assgin$ and cstep.issue=iu.id 
+			
+	]]>
+		<include refid="sql_findJurisdictions_leaderView" /> 
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+						iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+	</select>
+	
+	<!-- 下辖上级交办事件列表 -->
+	<select id="findJurisdictionsAssgin" parameterClass="map"	resultMap="issueViewTopPublicltycassResult">
+	<![CDATA[
+		select  iu.publicltycass,
+		 iu.id as issueId,
+		 iu.serialnumber,
+		 iu.subject,
+		 iu.status,
+		 iu.occurdate,
+		 cstep.source currentOrg,
+		 iu.occurorg,
+		 iu.createOrg,
+		 cstep.target targetOrg,
+		 iu.sourceperson,
+		 iu.sourcekind,
+		 iu.sourcemobile,
+		 iu.urgent,
+		 cstep.id as stepId,
+		 cstep.superviselevel,
+		 cstep.lastdealdate as dealTime,
+		 iu.lastOrg,
+		 iu.fromSerialNumber,
+		 iu.createDate,
+		 iu.deadLine,
+		 iu.CREATEUSER,
+		 cstep.statecode,
+		 iu.hours,
+		 iu.minute,
+		 cstep.delayState,
+		 iu.ISSUETYPEID,
+		 iu.ISSUETYPEDOMAINID,
+		 iu.eventState
+		 from  issuesteps cstep,issues iu 
+			where iu.id=cstep.issue  and
+			cstep.assign = $assgin$ 
+	]]>
+		<include refid="sql_findJurisdictions_leaderView" /> 
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="userOrgLevel">
+				<isLessEqual property="userOrgLevel" compareValue="10">
+					<isPropertyAvailable property="sortField">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+			</isLessEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	
+	<!-- 下辖待评分事件数量 -->
+	<select id="countJurisdictionsGradeDelay" parameterClass="map" resultClass="java.lang.Integer">
+	<![CDATA[select count(id) from (
+		select iu.id from issuesteps isteps,issues iu 
+		where iu.id=isteps.issue
+			AND isteps.ENDDATE >= #nowDate#
+	]]>	
+		<dynamic>
+			<isPropertyAvailable property="sourceType">
+				<isNotNull property="sourceType" prepend=" and ">
+						iu.sourceKind=$sourceType$
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+						iu.ISSUETYPEDOMAINID=$issueType$ 
+			</isPropertyAvailable>
+			<isPropertyAvailable property="statusType">
+				<isNotEmpty property="statusType" prepend=" and ">
+					<isEqual property="statusType" compareValue="0">
+							NOT
+					</isEqual>
+						EXISTS (SELECT 1 FROM ISSUEEVALUATE WHERE ISSUEEVALUATE.ISSUEID = IU.ID)
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgLevel" prepend=" and ">
+				iu.CREATEORGLEVEL=$orgLevel$ and iu.CREATEORGINTERNALCODE like '$orgCode$%'
+		       <isPropertyAvailable property="functionalOrgType">
+					<isNotNull property="functionalOrgType" prepend=" and ">
+							iu.CREATEORGFUNCTIONALORGTYPE = $functionalOrgType$
+					</isNotNull>
+					<isNull property="functionalOrgType" prepend=" and ">
+							iu.CREATEORGFUNCTIONALORGTYPE=0
+					</isNull>
+			   </isPropertyAvailable>
+	       </isPropertyAvailable>
+			<isNotPropertyAvailable property="orgLevel" prepend=" and ">
+					 iu.createorginternalcode = '$orgCode$'
+			</isNotPropertyAvailable>
+		</dynamic>
+	<![CDATA[	
+		and isteps.stateCode=$completeCode$ 
+		and iu.historic = 0
+		group by iu.id	 
+		)
+	]]>
+	</select>
+	
+	
+	<!-- 下辖 宣传案例事件列表(从已办结中抽取) -->
+	<select id="findJurisdictionsPublicltyCassDone" parameterClass="map"	resultMap="completedIssueMap">
+			select
+		PUBLICLTYCASS ,
+		ISSUEID , 
+		DELAYSTATE ,
+		SERIALNUMBER ,  
+		SUBJECT ,     
+		STATUS , 
+		OCCURDATE ,   
+		CURRENTORG ,    
+		OCCURORG ,   
+		CREATEORG , 
+		TARGETORG ,   
+		DEALTIME as dealTime,    
+		SOURCEPERSON ,   
+		SOURCEKIND ,      
+		SOURCEMOBILE ,   
+		URGENT ,   
+		STEPID ,    
+		SUPERVISELEVEL ,     
+		LASTORG ,     
+		CREATEUSER ,     
+		DEALSTATE ,     
+		EVALUATETIME ,  
+		EVALUATETYPE ,     
+		EVALUATECONTENT ,   
+		HOURS ,      
+		MINUTE ,    
+		TOPDATE ,     
+		PORGID ,    
+		TORGID ,
+		CREATEORGINTERNALCODE ,      
+		CRATEORGFUNCTIONALTYPE ,			
+		CREATEORGLEVEL,
+		MOVEMARK,
+		issueKind,
+		occurLocation,
+		relatePeopleCount,
+		ISSUETYPEID,
+		ISSUETYPEDOMAINID,
+		eventState
+		from completedIssue ci where ci.PUBLICLTYCASS=1 
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				ci.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<dynamic>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+				ci.ISSUETYPEDOMAINID=$issueType$
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgLevel" prepend=" and ">
+				<isNull property="searchOrgId">
+					ci.createOrgLevel=$orgLevel$ and ci.createOrginternalCode like '$orgCode$%'
+				</isNull>
+				<isNotNull property="searchOrgId">
+					ci.createOrgLevel=$orgLevel$ and ci.createOrginternalCode like '$searchOrgCode$%'
+				</isNotNull>
+				<isPropertyAvailable property="functionalOrgType">
+					<isNotNull property="functionalOrgType" prepend=" and ">
+						ci.crateOrgFunctionalType = $functionalOrgType$
+					</isNotNull>
+					<isNull property="functionalOrgType" prepend=" and ">
+						ci.crateOrgFunctionalType=0
+					</isNull>
+				</isPropertyAvailable>
+			</isPropertyAvailable>
+			<isNotPropertyAvailable property="orgLevel" prepend=" and ">
+				ci.createOrginternalCode = '$orgCode$'
+			</isNotPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="userOrgLevel">
+				<isLessEqual property="userOrgLevel" compareValue="10">
+					<isPropertyAvailable property="sortField">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+			</isLessEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 下辖宣传事例数量 -->
+	<select id="countJurisdictionsPublicltyCassDone" parameterClass="map" resultClass="java.lang.Integer">
+	select count(*) from completedIssue ci where ci.PUBLICLTYCASS=1 
+		<dynamic>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+			    ci.ISSUETYPEDOMAINID=$issueType$
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgLevel" prepend=" and ">
+				<isNull property="searchOrgId">
+					ci.createOrgLevel=$orgLevel$ and ci.createOrginternalCode like '$orgCode$%'
+				</isNull>
+				<isNotNull property="searchOrgId">
+					ci.createOrgLevel=$orgLevel$ and ci.createOrginternalCode like '$searchOrgCode$%'
+				</isNotNull>
+				<isPropertyAvailable property="functionalOrgType">
+					<isNotNull property="functionalOrgType" prepend=" and ">
+						ci.crateOrgFunctionalType = $functionalOrgType$
+					</isNotNull>
+					<isNull property="functionalOrgType" prepend=" and ">
+						ci.crateOrgFunctionalType=0
+					</isNull>
+				</isPropertyAvailable>
+			</isPropertyAvailable>
+			<isNotPropertyAvailable property="orgLevel" prepend=" and ">
+				ci.createOrginternalCode = '$orgCode$'
+			</isNotPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<!-- 下辖待评分事件列表 -->
+	<select id="findJurisdictionsGradeDelay" parameterClass="map"	resultMap="issueViewJurisdictionsCompleteResult">
+	<![CDATA[
+			select  iu.publicltycass,
+				 iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,cstep.source currentOrg,iu.occurorg,iu.createOrg,
+				 cstep.target targetOrg,cstep.lastdealdate as dealTime, iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, 
+			 iu.fromSerialNumber,
+			 iu.createDate,
+			 iu.deadLine,
+				 cstep.id as stepId,cstep.superviselevel,iu.lastOrg,iu.CREATEUSER,cstep.statecode,ie.evaluatetype,ie.evaluatecontent,
+				 ie.evaluatetime ,iu.hours,iu.minute,cstep.delayState,iu.issuecontent,
+				 iu.ISSUETYPEID,
+		         iu.ISSUETYPEDOMAINID,
+		         iu.eventState
+			from issuesteps cstep,issues iu 
+			left join issueEvaluate ie on ie.issueid = iu.id
+			where 
+			cstep.issue= iu.id  
+			   AND cstep.ENDDATE >= #nowDate#
+		   and cstep.stateCode = $completeCode$ 
+	]]>
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<dynamic>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+				iu.ISSUETYPEDOMAINID=$issueType$ 
+			</isPropertyAvailable>
+			<isPropertyAvailable property="statusType">
+				<isNotEmpty property="statusType" prepend=" and ">
+					<isEqual property="statusType" compareValue="0">
+						NOT
+					</isEqual>
+					EXISTS (SELECT 1 FROM ISSUEEVALUATE WHERE ISSUEEVALUATE.ISSUEID = IU.ID)
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgLevel" prepend=" and ">
+					iu.CREATEORGLEVEL=$orgLevel$ and iu.CREATEORGINTERNALCODE like '$orgCode$%'
+				<isPropertyAvailable property="functionalOrgType">
+					<isNotNull property="functionalOrgType" prepend=" and ">
+							iu.CREATEORGFUNCTIONALORGTYPE = $functionalOrgType$
+					</isNotNull>
+					<isNull property="functionalOrgType" prepend=" and ">
+							iu.CREATEORGFUNCTIONALORGTYPE=0
+					</isNull>
+				</isPropertyAvailable>
+			</isPropertyAvailable>
+			<isNotPropertyAvailable property="orgLevel" prepend=" and ">
+					iu.createorginternalcode = '$orgCode$'
+			</isNotPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="userOrgLevel">
+				<isLessEqual property="userOrgLevel" compareValue="10">
+					<isPropertyAvailable property="sortField">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+			</isLessEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 下辖待验证事件数量 -->
+	<select id="countJurisdictionsVerification" parameterClass="map" resultClass="java.lang.Integer">
+	<![CDATA[select count(*) from (
+		select iu.id from issuesteps isteps,issues iu 
+		where iu.id=isteps.issue
+		and isteps.stateCode = $completeCode$ 
+	]]>	
+		<dynamic>
+			<isPropertyAvailable property="sourceType">
+				<isNotNull property="sourceType" prepend=" and ">
+						iu.sourceKind=$sourceType$
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+				iu.ISSUETYPEDOMAINID=$issueType$
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgLevel" prepend=" and ">
+				iu.CREATEORGLEVEL=$orgLevel$ and iu.CREATEORGINTERNALCODE like '$orgCode$%'
+				<isPropertyAvailable property="functionalOrgType">
+					<isNotNull property="functionalOrgType" prepend=" and ">
+							iu.CREATEORGFUNCTIONALORGTYPE = $functionalOrgType$
+					</isNotNull>
+					<isNull property="functionalOrgType" prepend=" and ">
+							iu.CREATEORGFUNCTIONALORGTYPE=0
+					</isNull>
+				</isPropertyAvailable>
+			</isPropertyAvailable>
+			<isNotPropertyAvailable property="orgLevel" prepend=" and ">
+				 iu.createorginternalcode = '$orgCode$'
+			</isNotPropertyAvailable>
+		</dynamic>
+	<![CDATA[	
+		)
+	]]>
+	</select>
+	
+	<!-- 下辖待验证事件列表 -->
+	<select id="findJurisdictionsVerification" parameterClass="map"	resultMap="issueViewTopResult">
+	<![CDATA[
+		select iu.publicltycass,
+			 iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,cstep.source currentOrg,iu.occurorg,iu.createOrg,
+			 cstep.target targetOrg,cstep.lastdealdate as dealTime, iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, 
+		 iu.fromSerialNumber,
+		 iu.createDate,
+		 iu.deadLine,
+			 cstep.id as stepId,cstep.superviselevel,iu.lastOrg,iu.CREATEUSER,cstep.statecode
+			 ,iu.hours,iu.minute,cstep.delayState,iu.issuecontent,
+			  iu.ISSUETYPEID,
+		      iu.ISSUETYPEDOMAINID,
+		      iu.eventState
+		from issuesteps cstep,issues iu 
+		where 
+		cstep.issue= iu.id 
+		 and cstep.stateCode = $completeCode$ 
+		 and cstep.target > 0
+	]]>
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<dynamic>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+					iu.ISSUETYPEDOMAINID=$issueType$
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgLevel" prepend=" and ">
+				<isNull property="searchOrgId">
+					iu.CREATEORGLEVEL=$orgLevel$ and iu.CREATEORGINTERNALCODE like '$orgCode$%'
+				</isNull>
+				<isNotNull property="searchOrgId">
+					iu.CREATEORGLEVEL=$orgLevel$ and iu.CREATEORGINTERNALCODE like '$searchOrgCode$%'
+				</isNotNull>
+			   <isPropertyAvailable property="functionalOrgType">
+					<isNotNull property="functionalOrgType" prepend=" and ">
+							iu.CREATEORGFUNCTIONALORGTYPE = $functionalOrgType$
+					</isNotNull>
+					<isNull property="functionalOrgType" prepend=" and ">
+							iu.CREATEORGFUNCTIONALORGTYPE=0
+					</isNull>
+				</isPropertyAvailable>
+			</isPropertyAvailable>
+			<isNotPropertyAvailable property="orgLevel" prepend=" and ">
+				iu.createorginternalcode = '$orgCode$'
+			</isNotPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="userOrgLevel">
+				<isLessEqual property="userOrgLevel" compareValue="10">
+					<isPropertyAvailable property="sortField">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+			</isLessEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 越级 -->
+	<select id="countJurisdictionsSkipIssue" parameterClass="map" resultClass="java.lang.Integer">
+	<![CDATA[select count(0) from issues iu,issuesteps cstep where cstep.issue = iu.id and cstep.EMERGENCYLEVEL is not null
+		
+	]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+	</select>
+	
+	<!-- 越级 -->
+	<select id="findJurisdictionsSkeipIssue" parameterClass="map"	resultMap="issueViewTopPublicltycassResult">
+	<![CDATA[	
+		   select  iu.publicltycass,
+		   iu.id as issueId,
+		   iu.serialnumber,
+		   iu.subject,
+		   iu.status,
+		   iu.occurdate,
+		   cstep.source currentOrg,
+		   iu.occurorg,
+		   iu.createOrg,
+		   cstep.target targetOrg,
+		   cstep.lastdealdate as dealTime,
+		   iu.sourceperson,
+		   iu.sourcekind,
+		   iu.sourcemobile,
+		   iu.urgent,
+		   cstep.id as stepId,
+		   cstep.superviselevel,
+		   iu.lastOrg,
+		   iu.CREATEUSER,
+		   cstep.statecode,
+			 iu.fromSerialNumber,
+			 iu.createDate,
+			 iu.deadLine,
+		   iu.hours,
+		   iu.minute,
+		   cstep.delayState,
+		    iu.ISSUETYPEID,
+		    iu.ISSUETYPEDOMAINID,
+		    iu.eventState
+		   from issuesteps cstep,issues iu 
+		 where cstep.issue = iu.id and cstep.EMERGENCYLEVEL is not null
+	]]>
+	<include refid="sql_findJurisdictions_leaderView" />
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="userOrgLevel">
+				<isLessEqual property="userOrgLevel" compareValue="10">
+					<isPropertyAvailable property="sortField">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+			</isLessEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 下辖待跟进事件数量 -->
+	<select id="countJurisdictionsFollow" parameterClass="map" resultClass="java.lang.Integer">
+	<![CDATA[select count(0) from issuesteps cstep,issues iu where cstep.issue=iu.id and 
+	   cstep.stateCode >= $completeCode$ and
+		cstep.stateCode < $issueCompleteCode$  and iu.status < $verification$ 
+	]]>
+	<include refid="sql_findJurisdictions_leaderView" />
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			exists (select 1 from issues iu where cstep.issue = iu.id and iu.ISSUETYPEDOMAINID=$issueType$)
+		</isPropertyAvailable>
+	</select>
+	
+	
+	<!-- 下辖待跟进事件列表 -->
+	<select id="findJurisdictionsFollow" parameterClass="map"	resultMap="issueViewTopResult">
+	<![CDATA[	
+		   select iu.id as issueId,
+		   iu.serialnumber,
+		   iu.subject,
+		   iu.status,
+		   iu.occurdate,
+		   cstep.source currentOrg,
+		   iu.occurorg,
+		   iu.createOrg,
+		   cstep.target targetOrg,
+		   cstep.lastdealdate as dealTime,
+		   iu.sourceperson,
+		   iu.sourcekind,
+		   iu.sourcemobile,
+		   iu.urgent,
+		   cstep.id as stepId,
+		   cstep.superviselevel,
+		   iu.lastOrg,
+		   iu.CREATEUSER,
+			 iu.fromSerialNumber,
+			 iu.createDate,
+			 iu.deadLine,
+		   cstep.statecode,
+		   iu.hours,
+		   iu.minute,
+		   cstep.delayState,
+		    iu.ISSUETYPEID,
+		     iu.ISSUETYPEDOMAINID,
+		     iu.eventState
+		   from  issues iu,issuesteps cstep where cstep.issue = iu.id  and cstep.stateCode >= $completeCode$ 
+		   and cstep.stateCode < $issueCompleteCode$ and  iu.status < $verification$ 
+	    ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <isPropertyAvailable property="issueType" prepend=" and ">
+			exists (select 1 from issues iu where cstep.issue = iu.id and iu.ISSUETYPEDOMAINID=$issueType$)
+		</isPropertyAvailable>
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="userOrgLevel">
+				<isLessEqual property="userOrgLevel" compareValue="10">
+					<isPropertyAvailable property="sortField">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+			</isLessEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<!-- 下辖已办事件数量 -->
+	<select id="countJurisdictionsDone" parameterClass="map" resultClass="java.lang.Integer">
+	<![CDATA[select count(0) from issues iu,issuesteps cstep
+					   where cstep.issue=iu.id and cstep.stateCode >= $completeCode$ and cstep.isStayStep=1
+	]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+	</select>
+	
+	<!-- 下辖已办事件列表 -->
+	<select id="findJurisdictionsDone" parameterClass="map"	resultMap="issueViewDonePublicltycassResult">
+	<![CDATA[	
+		   select iu.publicltycass,
+		   iu.id as issueId,
+		   iu.serialnumber,
+		   iu.subject,
+		   iu.status,
+		   iu.occurdate,
+		   cstep.source currentOrg,
+		   iu.occurorg,
+		   iu.createOrg,
+		   cstep.target targetOrg,
+		   cstep.lastdealdate as dealTime,
+		   iu.sourceperson,
+		   iu.sourcekind,
+		   iu.sourcemobile,
+		   iu.urgent,
+		   cstep.id as stepId,
+		   cstep.superviselevel,
+		   iu.lastOrg,
+		   iu.CREATEUSER,
+			 iu.fromSerialNumber,
+			 iu.createDate,
+			 iu.deadLine,
+		   cstep.statecode,
+		   iu.hours,
+		   iu.minute,
+		   cstep.delayState,
+		    iu.ISSUETYPEID,
+		    iu.ISSUETYPEDOMAINID,
+		    iu.eventState,
+		    ie.evaluateType
+		   from issuesteps cstep, issues iu left join IssueEvaluate ie on ie.issueId = iu.id
+		where cstep.issue = iu.id and cstep.stateCode >= $completeCode$ and cstep.isStayStep=1
+	]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="userOrgLevel">
+				<isLessEqual property="userOrgLevel" compareValue="10">
+					<isPropertyAvailable property="sortField">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+			</isLessEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 下辖上报事件数量 -->
+	<select id="countJurisdictionsSubmit" parameterClass="map" resultClass="java.lang.Integer">
+		select count(0) from issues iu ,issuesteps cstep  where cstep.issue = iu.id and cstep.submit = $submit$ 
+		<include refid="sql_findJurisdictions_leaderView" />
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+	</select>
+	
+	<!-- 下辖上报事件列表 -->
+	<select id="findJurisdictionsSubmit" parameterClass="map"	resultMap="issueViewTopPublicltycassResult">
+	<![CDATA[
+		select  iu.publicltycass,
+		 iu.id as issueId,
+		 cstep.delayState as delayState,
+		 iu.serialnumber,
+		 iu.subject,
+		 iu.status,
+		 iu.occurdate,
+		 cstep.source currentOrg,
+		 iu.occurorg,
+		 iu.createOrg,
+		 cstep.target targetOrg,
+		 iu.sourceperson,
+		 iu.sourcekind,
+		 iu.sourcemobile,
+		 iu.urgent,
+		 cstep.id as stepId,
+		 cstep.superviselevel,
+		 cstep.lastdealdate as dealTime,
+		 iu.lastOrg,
+		 iu.CREATEUSER,
+		 iu.fromSerialNumber,
+		 iu.createDate,
+		 iu.deadLine,
+		 cstep.statecode,
+		 iu.hours,
+		 iu.minute,
+		  iu.ISSUETYPEID,
+		  iu.ISSUETYPEDOMAINID,
+		  iu.eventState
+		 from  issuesteps cstep,issues iu 
+		where cstep.issue= iu.id and cstep.submit = $submit$ 
+	]]>	
+	<include refid="sql_findJurisdictions_leaderView" />
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="userOrgLevel">
+				<isLessEqual property="userOrgLevel" compareValue="10">
+					<isPropertyAvailable property="sortField">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+			</isLessEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 待审核下辖上报事件数量 -->
+	<select id="countJurisdictionsAuditDelayByLevel" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from (
+			select iu.id from issuesteps isteps,issues iu 
+			where 
+			 isteps.issue= iu.id
+			 <isPropertyAvailable property="issueType" prepend=" and ">
+				 iu.ISSUETYPEDOMAINID=$issueType$
+			 </isPropertyAvailable>
+			 <isPropertyAvailable property="orgLevel" prepend=" and ">
+							isteps.id in (select stepid from issueapplydelay where auditorg in (select id from organizations where orginternalcode like '$orgCode$%'  and orgLevel=$orgLevel$
+							<isPropertyAvailable property="functionalOrgType">
+								<isNotNull property="functionalOrgType" prepend=" and ">
+									functionalorgType = $functionalOrgType$
+								</isNotNull>
+								<isNull property="functionalOrgType" prepend=" and ">
+									functionalorgType is null
+								</isNull>
+							</isPropertyAvailable>
+							))
+							</isPropertyAvailable>
+						<isNotPropertyAvailable property="orgLevel" prepend=" and ">
+							isteps.id in (select stepid from issueapplydelay where auditorg=$orgId$)
+						</isNotPropertyAvailable>
+			 <!--2014.9.15重新确认了需求，只查询状态为待办的待审核记录 -->
+			 <![CDATA[ and isteps.stateCode<$completeCode$ 
+			 ]]>
+			 and isteps.delayState = 1
+			 and isteps.superviselevel != $superviselevel$)
+	</select>
+	
+	<!-- 待审核上报事件数量 -->
+	<select id="countJurisdictionsAuditDelay" parameterClass="map" resultClass="java.lang.Integer">
+	<![CDATA[select count(id) from (
+		select iu.id from issuesteps isteps,issues iu 
+		where 
+		 isteps.issue= iu.id 
+		 and isteps.id in (select stepid from issueapplydelay where auditorg=$orgId$)
+		 and isteps.delayState = 1 and isteps.statecode<500)
+	]]>	
+	</select>
+	<!-- 下辖待验证事件数量 -->
+	<select id="countJurisdictionsVerificationForViewTab" parameterClass="map" resultClass="java.lang.Integer">
+			SELECT COUNT(*) FROM ISSUESTEPS ISTEPS,ISSUES IU 
+		      WHERE 
+		       ISTEPS.ISSUE= IU.ID 
+		<isPropertyAvailable property="orgLevel" prepend=" and ">
+			<isNull property="searchOrgId">
+				IU.CREATEORGLEVEL=$orgLevel$ and IU.CREATEORGINTERNALCODE like '$orgCode$%'
+			</isNull>
+			<isNotNull property="searchOrgId">
+				IU.CREATEORGLEVEL=$orgLevel$ and IU.CREATEORGINTERNALCODE like '$searchOrgCode$%'
+			</isNotNull>
+			<isPropertyAvailable property="functionalOrgType">
+				<isNotNull property="functionalOrgType" prepend=" and ">
+								IU.CREATEORGFUNCTIONALORGTYPE = $functionalOrgType$
+				</isNotNull>
+				<isNull property="functionalOrgType" prepend=" and ">
+								IU.CREATEORGFUNCTIONALORGTYPE=0
+				</isNull>
+			</isPropertyAvailable>
+		</isPropertyAvailable>
+		<isNotPropertyAvailable property="orgLevel" prepend=" and ">
+						IU.CREATEORGINTERNALCODE = '$orgCode$'
+		</isNotPropertyAvailable>
+		       AND ISTEPS.STATECODE = $statecode$
+		<!--  AND IU.STATUS = $status$ -->
+		       AND IU.HISTORIC = 0 
+	</select>
+	
+	<!-- 待评分事件数量 (已过时)-->
+	<select id="countJurisdictionsGradeDelayForViewTab" parameterClass="map" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM ISSUESTEPS ISTEPS,ISSUES IU 
+		      WHERE 
+		       ISTEPS.ISSUE= IU.ID
+		       and not exists (select 1 from issueevaluate iv where iv.issueid = iu.id) 
+		<isPropertyAvailable property="orgLevel" prepend=" and ">
+						isteps.targetorglevel=$orgLevel$ and isteps.TARGETINTERNALCODE like '$orgCode$%'
+			<isPropertyAvailable property="functionalOrgType">
+				<isNotNull property="functionalOrgType" prepend=" and ">
+								isteps.targetorgfunctionalorgType = $functionalOrgType$
+				</isNotNull>
+				<isNull property="functionalOrgType" prepend=" and ">
+								isteps.targetorgfunctionalorgType=0
+				</isNull>
+			</isPropertyAvailable>
+		</isPropertyAvailable>
+	<![CDATA[
+		AND isteps.ENDDATE >= #nowDate#
+	]]>
+		       AND ISTEPS.STATECODE =$completeCode$
+		       AND IU.HISTORIC = 0 
+	</select>
+	
+	<!-- 待评分事件数量（新）-->
+	<select id="countJurisdictionsGradeDelayForViewTab_new" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from completedIssue ci where  dealtime >= #limitDate#
+		<dynamic>
+			AND NOT EXISTS (SELECT 1 FROM ISSUEEVALUATE WHERE ISSUEEVALUATE.ISSUEID = ci.ISSUEID)
+				<isPropertyAvailable property="orgLevel"
+					prepend=" and ">
+					ci.createOrgLevel=$orgLevel$ and ci.createOrginternalCode like
+					'$orgCode$%'
+					<isPropertyAvailable property="functionalOrgType">
+						<isNotNull property="functionalOrgType" prepend=" and ">
+							ci.crateOrgFunctionalType = $functionalOrgType$
+						</isNotNull>
+						<isNull property="functionalOrgType" prepend=" and ">
+							ci.crateOrgFunctionalType=0
+						</isNull>
+					</isPropertyAvailable>
+				</isPropertyAvailable>
+				<isNotPropertyAvailable property="orgLevel"
+					prepend=" and ">
+					ci.createOrginternalCode = '$orgCode$'
+				</isNotPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 下辖待审核事件列表 -->
+	<select id="findJurisdictionAuditDelay" parameterClass="map" resultMap="issueViewJurisdictionAuditDelayResult">
+		<![CDATA[
+		select  iu.id as issueId,
+		 cstep.delayState as delayState,
+         iu.serialnumber,
+         iu.subject,
+         iu.status,
+         iu.occurdate,
+         cstep.source currentOrg,
+         iu.occurorg,
+         iu.createOrg,
+         cstep.target targetOrg,
+         iu.sourceperson,
+         iu.sourcekind,
+         iu.sourcemobile,
+         iu.urgent,
+         iu.fromSerialNumber,
+         iu.createDate,
+		 iu.deadLine,
+         cstep.id as stepId,
+         cstep.superviselevel,
+         iu.lastOrg,
+         iu.CREATEUSER,
+         cstep.statecode,
+         iu.hours,
+         iu.minute,
+          iu.ISSUETYPEID,
+		  iu.ISSUETYPEDOMAINID,
+		  iu.eventState,
+		  iy.applydate as dealTime
+         from issuesteps cstep,issues iu,ISSUEAPPLYDELAY iy
+		where 
+		 cstep.issue= iu.id 
+		 and cstep.id = iy.stepid
+		 and auditstate >1
+		 ]]>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+        <isPropertyAvailable property="orgLevel" prepend=" and ">
+						cstep.id in (select stepid from issueapplydelay where auditorg in (select id from organizations where orginternalcode like '$orgCode$%'  and orgLevel=$orgLevel$
+						<isPropertyAvailable property="functionalOrgType">
+							<isNotNull property="functionalOrgType" prepend=" and ">
+								functionalorgType = $functionalOrgType$
+							</isNotNull>
+							<isNull property="functionalOrgType" prepend=" and ">
+								functionalorgType is null
+							</isNull>
+						</isPropertyAvailable>
+						))
+						</isPropertyAvailable>
+						<isNotPropertyAvailable property="orgLevel" prepend=" and ">
+							cstep.id in (select stepid from issueapplydelay where auditorg=$orgId$)
+						</isNotPropertyAvailable>
+		<!--2014.9.15重新确认了需求，只查询状态为待办的待审核记录 -->
+		<![CDATA[ and cstep.stateCode<$completeCode$ ]]>
+         and iu.historic = 0
+         and cstep.delayState = 1
+         and cstep.superviselevel != $superviselevel$
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getIssueEvaluateById" parameterClass="long" resultMap="issueViewAndEvaluateOnlyResult">
+	    select id, evaluateType,evaluateContent,evaluateTime from issueEvaluate where issueId=#value#
+	</select>
+	
+	<select id="getIssueStepDelayWorkDaysById" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		select delayWorkDay from issuesteps where id = #value#
+	</select>
+	
+	<select id="searchIssueStepsByIssueId" parameterClass="java.lang.Long" resultMap="issueStepResult">
+		select * from issuesteps where issue = #value#
+	</select>
+	<select id="searchAllIssueStepsByStepId" parameterClass="java.lang.Long" resultMap="issueStepResult">
+		select * from issuesteps where issue = (select issue from issuesteps where id = #value#)
+	</select>
+	<select id="getDocfilesByIdAndModuleKey" parameterClass="java.util.Map" resultMap="attachFileResult">
+		SELECT A.ID,B.FILENAME,B.PHYSICSFULLFILENAME FILEPATH,A.ISSUEID,A.ISSUELOGID FROM ISSUEHASATTACHFILES A,ATTACHFILES B
+		WHERE A.ID=B.MODULEOBJECTID AND B.MODULEKEY=#moduleKey# AND A.ISSUEID=#fileId# AND A.FILETYPE=#fileType#
+	</select>
+	
+	<select id="queryIssueExistForCount" parameterClass="Issue" resultClass="java.lang.Integer">
+		select count(*) from issues iu where iu.uniqueidformobile=#uniqueIdForMobile# and iu.occurorg=#occurOrg.id#
+	</select>
+	
+	<!-- 已办结 抽出单表 -->
+	
+
+
+	<select id="findJurisdictionsCompletedByIssueId" parameterClass="map"
+		resultMap="completedIssueMap">
+	<![CDATA[
+		  select iu.publicltycass,
+			 iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,cstep.source currentOrg,iu.occurorg,iu.createOrg,
+			 cstep.target targetOrg,cstep.lastdealdate as dealTime, iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, 
+			 cstep.id as stepId,cstep.superviselevel,iu.lastOrg,iu.CREATEUSER,cstep.statecode as dealState,ie.evaluatetype,ie.evaluatecontent,
+			 ie.evaluatetime ,iu.hours,iu.minute,cstep.delayState,ti.topState,ti.topdate, p.orgid porgId,ti.orgid torgId, iu.createorginternalcode createOrginternalCode,iu.CREATEORGFUNCTIONALORGTYPE crateOrgFunctionalType,iu.createorglevel createOrgLevel,0 as moveMark,iu.issueKind issueKind,iu.occurLocation occurLocation,iu.relatePeopleCount relatePeopleCount
+			 , iu.ISSUETYPEID,iu.ISSUETYPEDOMAINID,iu.eventState
+		  from issuesteps cstep,issues iu 
+
+		  left join issueEvaluate ie on ie.issueid = iu.id
+		  left join publicltycass p on iu.id=p.issueid and p.orgid= $orgId$
+		  left join topIssues ti on ti.issueId = iu.id and ti.orgId=$orgId$ and ti.issueTag = 3
+		  where 
+		  cstep.issue= iu.id 
+			   and cstep.stateCode >= $completeCode$ 
+			   and iu.historic = 0  and iu.id=$issueId$
+	]]>
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+
+	<insert id="addCompletedIssue" parameterClass="CompletedIssue">
+		insert into
+		completedIssue(publicltycass,issueId,topState,delayState,serialNumber,subject,status,occurDate,currentOrg,occurOrg,createOrg,targetOrg,dealTime,sourcePerson,sourceKind,sourceMobile,urgent,stepId,superviseLevel,lastOrg,createUser,dealState,evaluateTime,evaluateType,evaluateContent,hours,minute,porgId,torgId,createOrginternalCode,topDate,crateOrgFunctionalType,createOrgLevel,issueKind,occurLocation,relatePeopleCount,ISSUETYPEDOMAINID,ISSUETYPEID)
+		values(#publicltycass#,#issueId#,#topState#,#delayState#,#serialNumber#,#subject#,#status#,#occurDate#,#currentOrg.id#,#occurOrg.id#,#createOrg.id#,#targeOrg.id#,#dealTime#,#sourcePerson#,#sourceKind.id#,#sourceMobile#,#urgent#,#issueStepId#,#superviseLevel#,#lastOrg.id#,#createUser#,#dealState#,#evaluateTime#,#evaluateType#,#evaluateContent#,#hours#,#minute#,#porgId#,#torgId#,#createOrginternalCode#,#topDate#,#crateOrgFunctionalType#,#createOrgLevel#,#issueKind.id#,#occurLocation#,#relatePeopleCount#
+		,#issueType.issueTypeDomain.id#,#issueType.id#)
+	</insert>
+
+	
+	<select id="countCompletedIssue" parameterClass="map"
+		resultClass="long">
+		select count(*) from completedIssue ci where 1=1
+		<dynamic>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+				    ci.ISSUETYPEDOMAINID=$issueType$ 
+			</isPropertyAvailable>
+			<isPropertyAvailable property="evaluationType">
+				<isNotEmpty property="evaluationType" prepend=" and ">
+					<isEqual property="evaluationType" compareValue="0">
+							NOT
+					</isEqual>
+						EXISTS (SELECT 1 FROM ISSUEEVALUATE WHERE ISSUEEVALUATE.ISSUEID = ci.ISSUEID)
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgLevel" prepend=" and ">
+					<isNull property="searchOrgId">
+						ci.createOrgLevel=$orgLevel$ and ci.createOrginternalCode like '$orgCode$%'
+					</isNull>
+					<isNotNull property="searchOrgId">
+						ci.createOrgLevel=$orgLevel$ and ci.createOrginternalCode like '$searchOrgCode$%'
+					</isNotNull>
+					<isPropertyAvailable property="functionalOrgType">
+						<isNotNull property="functionalOrgType" prepend=" and ">
+							ci.crateOrgFunctionalType = $functionalOrgType$
+						</isNotNull>
+						<isNull property="functionalOrgType" prepend=" and ">
+							ci.crateOrgFunctionalType=0
+						</isNull>
+					</isPropertyAvailable>
+				</isPropertyAvailable>
+				<isNotPropertyAvailable property="orgLevel"
+					prepend=" and ">
+					ci.createOrginternalCode = '$orgCode$'
+				</isNotPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<select id="findCompletedIssueByPage" parameterClass="map"
+		resultMap="completedIssueMap">
+		select
+		PUBLICLTYCASS , 
+		ISSUEID , 
+		<isEqual property="isCurrentOrg" compareValue="1">
+			TOPSTATE,
+		</isEqual>
+		<isEqual property="isCurrentOrg" compareValue="0">
+			0  as topState ,
+		</isEqual>
+		DELAYSTATE ,
+		SERIALNUMBER ,  
+		SUBJECT ,     
+		STATUS , 
+		OCCURDATE ,   
+		CURRENTORG ,    
+		OCCURORG ,   
+		CREATEORG , 
+		TARGETORG ,   
+		DEALTIME as dealTime,    
+		SOURCEPERSON ,   
+		SOURCEKIND ,      
+		SOURCEMOBILE ,   
+		URGENT ,   
+		STEPID ,    
+		SUPERVISELEVEL ,     
+		LASTORG ,     
+		CREATEUSER ,     
+		DEALSTATE ,     
+		EVALUATETIME ,  
+		EVALUATETYPE ,     
+		EVALUATECONTENT ,   
+		HOURS ,      
+		MINUTE ,    
+		TOPDATE ,     
+		PORGID ,    
+		TORGID ,
+		CREATEORGINTERNALCODE ,      
+		CRATEORGFUNCTIONALTYPE ,			
+		CREATEORGLEVEL,
+		MOVEMARK,
+		issueKind,
+		occurLocation,
+		relatePeopleCount,
+		 ISSUETYPEID,
+		 ISSUETYPEDOMAINID,
+		 eventState
+		from completedIssue ci where 1=1 
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				ci.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<dynamic>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+				ci.ISSUETYPEDOMAINID=$issueType$
+			</isPropertyAvailable>
+			<isPropertyAvailable property="evaluationType">
+				<isNotEmpty property="evaluationType" prepend=" and ">
+					<isEqual property="evaluationType" compareValue="0">
+							NOT
+					</isEqual>
+						EXISTS (SELECT 1 FROM ISSUEEVALUATE WHERE ISSUEEVALUATE.ISSUEID = ci.ISSUEID)
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgLevel" prepend=" and ">
+					<isNull property="searchOrgId">
+						ci.createOrgLevel=$orgLevel$ and ci.createOrginternalCode like '$orgCode$%'
+					</isNull>
+					<isNotNull property="searchOrgId">
+						ci.createOrgLevel=$orgLevel$ and ci.createOrginternalCode like '$searchOrgCode$%'
+					</isNotNull>
+					<isPropertyAvailable property="functionalOrgType">
+						<isNotNull property="functionalOrgType" prepend=" and ">
+							ci.crateOrgFunctionalType = $functionalOrgType$
+						</isNotNull>
+						<isNull property="functionalOrgType" prepend=" and ">
+							ci.crateOrgFunctionalType=0
+						</isNull>
+					</isPropertyAvailable>
+				</isPropertyAvailable>
+				<isNotPropertyAvailable property="orgLevel"
+					prepend=" and ">
+					ci.createOrginternalCode = '$orgCode$'
+				</isNotPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="userOrgLevel">
+				<isLessEqual property="userOrgLevel" compareValue="10">
+					<isPropertyAvailable property="sortField">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+			</isLessEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<select id="getCompletedByIssueId" parameterClass="long" resultMap="completedIssueMap">
+		select
+			PUBLICLTYCASS , 
+			ISSUEID , 
+			TOPSTATE , 
+			DELAYSTATE ,
+			SERIALNUMBER ,  
+			SUBJECT ,     
+			STATUS , 
+			OCCURDATE ,   
+			CURRENTORG ,    
+			OCCURORG ,   
+			CREATEORG , 
+			TARGETORG ,   
+			DEALTIME as dealTime,    
+			SOURCEPERSON ,   
+			SOURCEKIND ,      
+			SOURCEMOBILE ,   
+			URGENT ,   
+			STEPID ,    
+			SUPERVISELEVEL ,     
+			LASTORG ,     
+			CREATEUSER ,     
+			DEALSTATE ,     
+			EVALUATETIME ,  
+			EVALUATETYPE ,     
+			EVALUATECONTENT ,   
+			HOURS ,      
+			MINUTE ,    
+			TOPDATE ,     
+			PORGID ,    
+			TORGID ,
+			CREATEORGINTERNALCODE ,      
+			CRATEORGFUNCTIONALTYPE ,			
+			CREATEORGLEVEL,
+			MOVEMARK,
+			issueKind,
+			occurLocation,
+			relatePeopleCount,
+			 ISSUETYPEID,
+		     ISSUETYPEDOMAINID,
+		     eventState
+		from completedIssue where issueId=$issueId$
+	</select>
+	<update id="completedTopIssue" parameterClass="map" >
+		update completedIssue set topstate=#topstate#,torgid=#torgid#,topdate=#topdate# where issueId=#issueId#
+	</update>
+	
+	<update id="publicltycassIssue" parameterClass="map" >
+		update completedIssue set publicltycass=#publicltycass# where issueId=#issueId#
+	</update>
+	
+	<delete id="removeCompletedIssueByIssueId" parameterClass="long">
+		delete from completedIssue where issueId =#issueId#
+	</delete>
+	
+	<!-- 下辖超时事件数量 -->
+	<select id="countTimeOutIssue" parameterClass="map" resultClass="java.lang.Integer">
+	<![CDATA[select count(0) from (select issue
+		  from issuesteps istep,issues iu
+		  where  exists (select 1 from issuesteps cstep where 1=1]]>
+	  	<isEqual property="supervise" compareValue="0">
+			<![CDATA[  and cstep.superviselevel >=100 ]]>
+		</isEqual>
+		<isEqual property="supervise" compareValue="100">
+			<![CDATA[  and cstep.superviselevel =100 ]]>
+		</isEqual>  
+		<isEqual property="supervise" compareValue="200">
+			<![CDATA[  and cstep.superviselevel =200 ]]>
+		</isEqual>    
+	<![CDATA[and  (cstep.statecode <$completeCode$ or cstep.statecode=$verification$)	]]>
+		<include refid="sql_findJurisdictions_leaderView" />	  
+	<![CDATA[ and cstep.id=istep.id) and istep.issue = iu.id ]]>
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+	<![CDATA[)]]>
+	</select>
+	
+	<!-- 下辖超时事件列表 -->
+	<select id="findTimeOutIssue" parameterClass="map"	resultMap="issueViewTimeOutResult">
+	<![CDATA[	
+		   select iu.id as issueId,
+		   iu.serialnumber,
+		   iu.subject,
+		   iu.status,
+		   iu.occurdate,
+		   istep.source currentOrg,
+		   iu.occurorg,
+		   iu.createOrg,
+		   istep.target targetOrg,
+		   istep.lastdealdate as dealTime,
+		   iu.sourceperson,
+		   iu.sourcekind,
+		   iu.sourcemobile,
+		   iu.urgent,
+		   istep.id as stepId,
+		   istep.superviselevel,
+		   iu.lastOrg,
+		   iu.CREATEUSER,
+		   istep.statecode,
+		   iu.hours,
+		   iu.minute,
+		   istep.delayState,
+		   iu.fromSerialNumber,
+		   iu.createDate,
+		   iu.deadLine,
+		    iu.ISSUETYPEID,
+		    iu.ISSUETYPEDOMAINID,
+		    iu.eventState
+		   from  issuesteps istep,issues iu
+		   where exists (
+			  select 1 from issuesteps cstep where 1=1]]>
+	    <isEqual property="supervise" compareValue="0">
+			<![CDATA[  and cstep.superviselevel >=100 ]]>
+		</isEqual>
+		<isEqual property="supervise" compareValue="100">
+			<![CDATA[  and cstep.superviselevel =100 ]]>
+		</isEqual>  
+		<isEqual property="supervise" compareValue="200">
+			<![CDATA[  and cstep.superviselevel =200 ]]>
+		</isEqual>
+		<![CDATA[  and  (cstep.statecode <$completeCode$ or cstep.statecode=$verification$) ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	<![CDATA[ and cstep.id = istep.id)   and istep.issue = iu.id ]]>
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			 iu.ISSUETYPEDOMAINID=$issueType$
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="userOrgLevel">
+				<isLessEqual property="userOrgLevel" compareValue="10">
+					<isPropertyAvailable property="sortField">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+				</isLessEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+		
+	<update id="updateIssueFromSerialNumber" parameterClass="java.util.Map">
+		UPDATE ISSUES SET FROMSERIALNUMBER = #fromSerialNumber# WHERE ID = #issueId#
+	</update>
+	<update id="updateIssueDeadLine" parameterClass="Issue">
+		UPDATE ISSUES SET deadLine = deadLine + #deadLine# WHERE ID = #id#
+	</update>
+	
+	<select id="countGradeDelayIssue" parameterClass="map"
+		resultClass="long">
+		select count(*) from completedIssue ci where  dealtime >= #limitDate#
+		<dynamic>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+				    ci.ISSUETYPEDOMAINID=$issueType$ 
+			</isPropertyAvailable>
+			<isPropertyAvailable property="evaluationType">
+				<isNotEmpty property="evaluationType" prepend=" and ">
+					<isEqual property="evaluationType" compareValue="0">
+							NOT
+					</isEqual>
+						EXISTS (SELECT 1 FROM ISSUEEVALUATE WHERE ISSUEEVALUATE.ISSUEID = ci.ISSUEID)
+				</isNotEmpty>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="orgLevel" prepend=" and ">
+					<isNull property="searchOrgId">
+						ci.createOrgLevel=$orgLevel$ and ci.createOrginternalCode like '$orgCode$%'
+					</isNull>
+					<isNotNull property="searchOrgId">
+						ci.createOrgLevel=$orgLevel$ and ci.createOrginternalCode like '$searchOrgCode$%'
+					</isNotNull>
+					<isPropertyAvailable property="functionalOrgType">
+						<isNotNull property="functionalOrgType" prepend=" and ">
+							ci.crateOrgFunctionalType = $functionalOrgType$
+						</isNotNull>
+						<isNull property="functionalOrgType" prepend=" and ">
+							ci.crateOrgFunctionalType=0
+						</isNull>
+					</isPropertyAvailable>
+				</isPropertyAvailable>
+				<isNotPropertyAvailable property="orgLevel"
+					prepend=" and ">
+					ci.createOrginternalCode = '$orgCode$'
+				</isNotPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<select id="findGradeDelayIssueByPage" parameterClass="map"
+		resultMap="completedIssueMap">
+		select
+		PUBLICLTYCASS , 
+		ISSUEID , 
+		<isEqual property="isCurrentOrg" compareValue="1">
+			TOPSTATE,
+		</isEqual>
+		<isEqual property="isCurrentOrg" compareValue="0">
+			0  as topState ,
+		</isEqual>
+		DELAYSTATE ,
+		SERIALNUMBER ,  
+		SUBJECT ,     
+		STATUS , 
+		OCCURDATE ,   
+		CURRENTORG ,    
+		OCCURORG ,   
+		CREATEORG , 
+		TARGETORG ,   
+		DEALTIME as dealTime,    
+		SOURCEPERSON ,   
+		SOURCEKIND ,      
+		SOURCEMOBILE ,   
+		URGENT ,   
+		STEPID ,    
+		SUPERVISELEVEL ,     
+		LASTORG ,     
+		CREATEUSER ,     
+		DEALSTATE ,     
+		EVALUATETIME ,  
+		EVALUATETYPE ,     
+		EVALUATECONTENT ,   
+		HOURS ,      
+		MINUTE ,    
+		TOPDATE ,     
+		PORGID ,    
+		TORGID ,
+		CREATEORGINTERNALCODE ,      
+		CRATEORGFUNCTIONALTYPE ,			
+		CREATEORGLEVEL,
+		MOVEMARK,
+		issueKind,
+		occurLocation,
+		relatePeopleCount,
+		 ISSUETYPEID,
+		 ISSUETYPEDOMAINID,
+		 eventState
+		from completedIssue ci where dealtime >= #limitDate#
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				ci.sourceKind=$sourceType$
+			</isNotNull>
+		</isPropertyAvailable>
+		<dynamic>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+				ci.ISSUETYPEDOMAINID=$issueType$
+			</isPropertyAvailable>
+			<isPropertyAvailable property="evaluationType">
+				<isNotEmpty property="evaluationType" prepend=" and ">
+					<isEqual property="evaluationType" compareValue="0">
+							NOT
+					</isEqual>
+						EXISTS (SELECT 1 FROM ISSUEEVALUATE WHERE ISSUEEVALUATE.ISSUEID = ci.ISSUEID)
+				</isNotEmpty>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="orgLevel" prepend=" and ">
+					<isNull property="searchOrgId">
+						ci.createOrgLevel=$orgLevel$ and ci.createOrginternalCode like '$orgCode$%'
+					</isNull>
+					<isNotNull property="searchOrgId">
+						ci.createOrgLevel=$orgLevel$ and ci.createOrginternalCode like '$searchOrgCode$%'
+					</isNotNull>
+					<isPropertyAvailable property="functionalOrgType">
+						<isNotNull property="functionalOrgType" prepend=" and ">
+							ci.crateOrgFunctionalType = $functionalOrgType$
+						</isNotNull>
+						<isNull property="functionalOrgType" prepend=" and ">
+							ci.crateOrgFunctionalType=0
+						</isNull>
+					</isPropertyAvailable>
+				</isPropertyAvailable>
+				<isNotPropertyAvailable property="orgLevel"
+					prepend=" and ">
+					ci.createOrginternalCode = '$orgCode$'
+				</isNotPropertyAvailable>
+					
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="userOrgLevel">
+				<isLessEqual property="userOrgLevel" compareValue="10">
+					<isPropertyAvailable property="sortField">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+				</isLessEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<update id="publiclty"  parameterClass="map">
+		update issues set publicltycass=#flag# where id =#issueId#
+	</update>
+	
+	<update id="updateEventStateByIssueId"  parameterClass="map">
+		update issues set eventState=1 where id =#issueId#
+	</update>
+	
+	<update id="updateCompletedIssueEventStateByIssueId"  parameterClass="map">
+		update completedIssue set eventState=1 where issueId =#issueId#
+	</update>
+</sqlMap>

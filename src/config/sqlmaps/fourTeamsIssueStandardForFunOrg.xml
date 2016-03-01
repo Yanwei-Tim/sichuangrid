@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="fourTeamsIssueStandardForFunOrg">
+	<typeAlias alias="fourTeamsIssueStandardForFunOrg" type="com.tianque.fourTeams.fourTeamsIssue.domain.FourTeamsIssueStandardForFunOrg" />
+
+	<resultMap id="issueStandardForFunOrgResult" class="fourTeamsIssueStandardForFunOrg">
+		<result column="id" property="id" />
+		<result column="userLevel" property="userLevel" />
+		<result column="orgId" property="organization.id" />
+		<result column="yellowLimitAccept" property="yellowLimitAccept" />
+		<result column="yellowLimitHandle" property="yellowLimitHandle" />
+		<result column="redLimitAccept" property="redLimitAccept" />
+		<result column="redLimitHandle" property="redLimitHandle" />
+		<result column="itemname" property="itemName.id" />
+		<result column="remark" property="remark" />
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+		
+	</resultMap>
+
+	<insert id="addIssueStandardForFunOrg" parameterClass="fourTeamsIssueStandardForFunOrg">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_issueStandardForFunOrg.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into issueStandardForFunOrg
+		(
+		id,orgId,userLevel,yellowLimitAccept,yellowLimitHandle,redLimitAccept,redLimitHandle,itemname,
+		remark,	createDate,createUser
+		)
+		values
+		(
+		 #id#,#organization.id#,#userLevel#,#yellowLimitAccept#,#yellowLimitHandle#,#redLimitAccept#,#redLimitHandle#,#itemName.id#,
+		 #remark#,#createDate#,#createUser#
+		)
+	</insert>
+	<update id="updateIssueStandardForFunOrg"  parameterClass="fourTeamsIssueStandardForFunOrg">
+		update issueStandardForFunOrg set updateUser=#updateUser#,updateDate=#updateDate#,
+			yellowLimitAccept=#yellowLimitAccept#,
+			yellowLimitHandle=#yellowLimitHandle#,
+			redLimitAccept=#redLimitAccept#,
+			redLimitHandle=#redLimitHandle#,
+			remark=#remark#
+		<dynamic>
+			<isNotNull property="organization" prepend=",">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull property="userLevel" prepend=",">
+				userLevel=#userLevel#
+			</isNotNull>
+			<isNotNull property="itemName" prepend=",">
+				itemName=#itemName.id#
+			</isNotNull>
+		</dynamic>
+		where id=#id#
+	</update>
+	
+	<select id="countIssueStandardForFunOrgsForList" parameterClass="map" resultClass="integer">
+		select count(*) from issueStandardForFunOrg 
+		where (userLevel=#userLevel# and orgId in( select id from organizations where parentid=#orgId#)) 
+		or orgId is null
+	</select>
+	
+	<select id="findIssueStandardForFunOrgsForList" parameterClass="map" resultMap="issueStandardForFunOrgResult">
+		select * from issueStandardForFunOrg 
+		where (userLevel=#userLevel# and orgId  in( select id from organizations where parentid=#orgId#)) 
+		or orgId is null
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findItemTypeByFunOrgId" parameterClass="long" resultMap="issueStandardForFunOrgResult">
+		select * from issueStandardForFunOrg where orgId=#value#
+	</select>
+	
+	<select id="getIssueStandardForFunOrgById" parameterClass="long" resultMap="issueStandardForFunOrgResult">
+		select * from issueStandardForFunOrg where id = #value#
+	</select>
+	
+	<select id="getIssueStandardForFunOrgByOrgIdAndItemId" parameterClass="map" resultMap="issueStandardForFunOrgResult">
+		select * from issueStandardForFunOrg where 1=1
+		<dynamic>
+			<isNotNull prepend=" and " property="orgId">
+				orgId=#orgId#
+			</isNotNull>
+			<isNull prepend=" and " property="orgId">
+				orgId is null
+			</isNull>
+			<isNotNull prepend=" and " property="itemId">
+				itemname=#itemId#
+			</isNotNull>
+			<isNull prepend=" and " property="itemId">
+				itemname is null
+			</isNull>
+		</dynamic>
+	</select>
+	
+	<delete id="deleteIssueStandardForFunOrgByIds" parameterClass="list">
+		delete from issueStandardForFunOrg where id in
+		<iterate open="(" close=")" conjunction=",">
+			#ids[]#
+		</iterate>
+	</delete>
+	
+	<select id="validateRepeatByOrgIdAndItemName" parameterClass="fourTeamsIssueStandardForFunOrg" resultClass="integer">
+		select count(0) from issueStandardForFunOrg where orgid=#organization.id# and itemname=#itemName.id#
+		<dynamic>
+			<isNotNull prepend=" and " property="id">
+				id<![CDATA[<>]]>#id#
+			</isNotNull>
+		</dynamic>
+	</select>
+</sqlMap>

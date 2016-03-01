@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="searchEnterprise">
+	<typeAlias alias="SearchEnterpriseVo" type="com.tianque.domain.vo.SearchEnterpriseVo"/>
+	<resultMap id="fullEnterpriseResult" class="com.tianque.domain.Enterprise"
+		extends="enterprise.enterpriseResultForList">
+		<result property="comprehensiveManageMembers" column="id"
+			select="comprehensiveManageMember.getComprehensiveManageMembersByEnterpriseId" />
+	</resultMap>
+
+	<sql id="sql_where">
+		<![CDATA[from enterprises where orgInternalCode like #orgInternalCode#||'%' ]]>
+		<dynamic>
+			<isPropertyAvailable property="name" >
+				<isNotEmpty property="name" prepend=" and ">
+					<![CDATA[name like #name#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="businessLicense" >
+				<isNotEmpty property="businessLicense" prepend=" and ">
+					<![CDATA[businessLicense like #businessLicense#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="legalPerson" >
+				<isNotEmpty property="legalPerson" prepend=" and ">
+					<![CDATA[legalPerson like #legalPerson#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="industryId" >
+				<isNotEmpty property="industryId" prepend=" and ">
+					industry = #industryId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="typeId" >
+				<isNotEmpty property="typeId" prepend=" and ">
+					type = #typeId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="attentionExtentId" >
+				<isNotEmpty property="attentionExtentId" prepend=" and ">
+					attentionExtentId = #attentionExtentId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="minArea">
+				<isNotNull property="minArea" prepend=" and ">
+					<![CDATA[area >= #minArea#]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maxArea">
+				<isNotNull property="maxArea" prepend=" and ">
+					<![CDATA[area <= #maxArea#]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isRiskEnterprise">
+				<isNotNull property="isRiskEnterprise" prepend=" and ">
+					<![CDATA[isRiskEnterprise = #isRiskEnterprise#]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="enterpriseTelephone">
+				<isNotEmpty property="enterpriseTelephone" prepend=" and ">
+					<![CDATA[enterpriseTelephone like #enterpriseTelephone#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="minPartyMemberAmount">
+				<isNotNull property="minPartyMemberAmount" prepend=" and ">
+					<![CDATA[partyMemberAmount >= #minPartyMemberAmount#]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maxPartyMemberAmount">
+				<isNotNull property="maxPartyMemberAmount" prepend=" and ">
+					<![CDATA[partyMemberAmount <= #maxPartyMemberAmount#]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fax">
+				<isNotEmpty property="fax" prepend=" and ">
+					<![CDATA[fax like #fax#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="minEmployeeAmount">
+				<isNotNull property="minEmployeeAmount" prepend=" and ">
+					<![CDATA[employeeAmount >= #minEmployeeAmount#]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maxEmployeeAmount">
+				<isNotNull property="maxEmployeeAmount" prepend=" and ">
+					<![CDATA[employeeAmount <= #maxEmployeeAmount#]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty property="mobileNumber" prepend=" and ">
+					<![CDATA[mobileNumber like #mobileNumber#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="minRegisteredCapital">
+				<isNotNull property="minRegisteredCapital" prepend=" and ">
+					<![CDATA[registeredCapital >= #minRegisteredCapital#]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maxRegisteredCapital">
+				<isNotNull property="maxRegisteredCapital" prepend=" and ">
+					<![CDATA[registeredCapital <= #maxRegisteredCapital#]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="telephone">
+				<isNotEmpty property="telephone" prepend=" and ">
+					<![CDATA[telephone like #telephone#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="address">
+				<isNotEmpty property="address" prepend=" and ">
+					<![CDATA[address like #address#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="hiddenCases">
+				<isNotEmpty property="hiddenCases" prepend=" and ">
+					<![CDATA[hiddenCases like '%'||#hiddenCases#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="hiddenRectification">
+				<isNotEmpty property="hiddenRectification" prepend=" and ">
+					<![CDATA[hiddenRectification like #hiddenRectification#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="comprehensiveManageMember1">
+				<isNotEmpty property="comprehensiveManageMember1" prepend=" and ">
+					<![CDATA[id in (select enterpriseId from comprehensiveManageMembers where type in (select id from propertydicts where displayName ='综治负责人')  and   name = #comprehensiveManageMember1#)]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="comprehensiveManageMember2">
+				<isNotEmpty property="comprehensiveManageMember2" prepend=" and ">
+					<![CDATA[id in (select enterpriseId from comprehensiveManageMembers where type in (select id from propertydicts where displayName ='综治专干') and   name = #comprehensiveManageMember2#)]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="comprehensiveManageMember1Telephone">
+				<isNotEmpty property="comprehensiveManageMember1Telephone" prepend=" and ">
+					<![CDATA[id in (select enterpriseId from comprehensiveManageMembers where type in (select id from propertydicts where displayName ='综治负责人')  and  telephone = #comprehensiveManageMember1Telephone#)]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="comprehensiveManageMember2Telephone">
+				<isNotEmpty property="comprehensiveManageMember2Telephone" prepend=" and ">
+					<![CDATA[id in (select enterpriseId from comprehensiveManageMembers where type in (select id from propertydicts where displayName ='综治专干') and  telephone = #comprehensiveManageMember2Telephone#)]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="keyType">
+				<isNotEmpty property="keyType" prepend=" and ">
+					keyType=#keyType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="renovateType">
+				<isNotNull prepend=" and " property="renovateType">
+					renovateType = #renovateType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis# 
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isNotEmpty property="hasServiceTeamMember" prepend=" and ">
+				<isEqual property="hasServiceTeamMember" compareValue="0">
+					id in (select objectId from serviceMemberHasObject where (objectType='SAFETYPRODUCTIONKEY' or objectType='FIRESAFETYKEY' or objectType='SECURITYKEY'  or objectType='ENTERPRISEKEY' or objectType='ENTERPRISEDOWNKEY') and onduty=1)
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="1">
+					id not in (select objectId from serviceMemberHasObject where (objectType='SAFETYPRODUCTIONKEY' or objectType='FIRESAFETYKEY' or objectType='SECURITYKEY' or objectType='ENTERPRISEKEY' or objectType='ENTERPRISEDOWNKEY') and onduty=1)	 
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="-1">
+					1=1	 
+				</isEqual>
+			</isNotEmpty>
+			
+			<isNotEmpty property="hasServiceRecord" prepend=" and ">
+				<isEqual property="hasServiceRecord" compareValue="0">
+					 id in (select objectId from serviceRecordRelyObject where (objectType='SAFETYPRODUCTIONKEY' or objectType='FIRESAFETYKEY' or objectType='SECURITYKEY' or objectType='ENTERPRISEKEY' or objectType='ENTERPRISEDOWNKEY') )
+				</isEqual>
+				<isEqual property="hasServiceRecord" compareValue="1">
+					 id not in (select objectId from serviceRecordRelyObject where (objectType='SAFETYPRODUCTIONKEY' or objectType='FIRESAFETYKEY' or objectType='SECURITYKEY' or objectType='ENTERPRISEKEY' or objectType='ENTERPRISEDOWNKEY'))	 
+				</isEqual>
+				<isEqual property="hasServiceRecord" compareValue="-1">
+					1=1	 
+				</isEqual>
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	<select id="countSearchEnterprise" parameterClass="SearchEnterpriseVo" resultClass="int">
+		<include refid="common.sql_count" />
+		<include refid="sql_where"/>
+	</select>
+
+	<select id="searchEnterprise" parameterClass="SearchEnterpriseVo" resultMap="fullEnterpriseResult">
+		select enterprises.*,'$importantLocationType$' as locationType 
+		<include refid="sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findEnterpriseNameAndPinyinAndOrgInternalCode" parameterClass="java.util.Map" resultMap="enterprise.enterpriseResult">
+		select * from enterprises where (name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%' ) and orgInternalCode like '$orgInternalCode$%' order by id
+	</select>
+
+</sqlMap>

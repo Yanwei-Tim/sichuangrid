@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="evaluationIssueHandle">
+	<typeAlias alias="EvaluationIssueHandle"
+		type="com.tianque.plugin.weChat.domain.evaluationIssueHandle.EvaluationIssueHandle" />
+
+	<resultMap id="evaluationIssueHandleResult" class="EvaluationIssueHandle">
+		<result property="id" column="id" />
+		<result property="org.id" column="orgId"/>
+		<result property="org.orgInternalCode" column="orgCode"/>
+		<result property="toUserName" column="toUserName" />
+		<result property="openId" column="openId" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="scorePerson" column="scorePerson" />
+		<result property="scoreStarNumber" column="scoreStarNumber" />
+		<result property="content" column="content" />
+		<result property="issueName" column="issueName" />
+		
+		<result property="closeCaseDate" column="closeCaseDate" />
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+ 
+    <sql id="sql_where">
+		<dynamic>
+			<isNotEmpty prepend=" and " property="evaluationIssueHandle.scorePerson">
+				(w.scorePerson like '%'||#evaluationIssueHandle.scorePerson#||'%')
+			</isNotEmpty>
+			
+			<isNotEmpty property="evaluationIssueHandle.startCloseCaseDate" prepend="and">
+				<![CDATA[w.closeCaseDate >= #evaluationIssueHandle.startCloseCaseDate#]]>
+			</isNotEmpty>
+			<isNotEmpty property="evaluationIssueHandle.endCloseCaseDate" prepend="and">
+				<![CDATA[w.closeCaseDate <= #evaluationIssueHandle.endCloseCaseDate#]]>
+			</isNotEmpty>
+			
+			<isNotEmpty prepend=" and " property="evaluationIssueHandle.org.orgInternalCode">
+				w.orgCode = #evaluationIssueHandle.org.orgInternalCode#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="evaluationIssueHandle.serialNumber">
+				w.serialNumber = #evaluationIssueHandle.serialNumber#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="evaluationIssueHandle.issueName">
+				w.issueName = #evaluationIssueHandle.issueName#
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	<insert id="addEvaluationIssueHandle" parameterClass="EvaluationIssueHandle">
+	     <selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_wechat_evaluation_issue.NEXTVAL AS id FROM DUAL
+			]]>
+         </selectKey>
+		     insert into wechat_evaluation_issue
+		     (id,orgId,orgCode,toUserName,openId,serialNumber,issueName,scorePerson,scoreStarNumber,content,closeCaseDate,createUser,updateUser,createDate,updateDate)
+		     values
+		     (#id#,#org.id#,#org.orgInternalCode#,#toUserName#,#openId#,#serialNumber#,#issueName#,#scorePerson#,#scoreStarNumber#,#content#,#closeCaseDate#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	 </insert>
+	 <select id="getEvaluationIssueHandleBySerialNumber" parameterClass="java.lang.String"
+		     resultMap="evaluationIssueHandleResult">
+		     select * from wechat_evaluation_issue where serialNumber=#serialNumber#
+	</select>
+	
+	<select id="findEvaluationIssueHandleResults" parameterClass="java.util.Map" resultMap="evaluationIssueHandleResult">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_start" />
+			</isNotNull>
+		</isPropertyAvailable>
+		select * from wechat_evaluation_issue w where 1=1
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+		</dynamic>
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_end" />
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+
+	<select id="countFindEvaluationIssueHandleResults" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(1) from wechat_evaluation_issue where orgCode=#evaluationIssueHandle.org.orgInternalCode#
+	</select>
+</sqlMap>

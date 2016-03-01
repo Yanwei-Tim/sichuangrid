@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="operateLog">
+	<typeAlias alias="operateLog" type="com.tianque.domain.OperateLog" />
+
+	<resultMap class="operateLog" id="operateLogResult">
+		<result property="id" column="id"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="operation" column="operation"/>
+		<result property="operationType" column="operationType"/>
+		<result property="moduleName" column="moduleName"/>
+		<result property="moduleType" column="moduleType"/>
+		<result property="operationContent" column="OPERATIONCONTENT" typeHandler="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+		<result property="operateTime" column="operateTime"/>
+		<result property="userName" column="username"/>
+		<result property="logLevel" column="logLevel"/>
+		<result property="clientIp" column="clientIp"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+	</resultMap>
+
+<!-- 新增操作日志信息 -->
+	<insert id="addoperateLog" parameterClass="operateLog">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_operateLogs.NEXTVAL as id from dual ]]>
+		</selectKey>
+			INSERT INTO operateLogs(
+					id,orgId,operation,logLevel,operationType,moduleName,username,clientIp,orgInternalCode,operateTime,operationContent,moduleType
+			)VALUES(
+					#id#,#organization.id#,#operation#,#logLevel#,#operationType#,#moduleName#,#userName#,#clientIp#,#orgInternalCode#,#operateTime#,
+					#operationContent,handler=org.springframework.orm.ibatis.support.ClobStringTypeHandler#,#moduleType#
+			)
+	</insert>
+	
+	
+	<select id="statisticsOperateLogs" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(id) from operateLogs 
+		where orgInternalCode like #orgInternalCode#||'%' and  operationType=#operationType# and  moduleType=#moduleType#
+		<isNotNull property="startDate" prepend=" and ">
+		operateTime  > =#startDate#
+		</isNotNull>
+		<isNotNull property="endDate" prepend=" and ">
+		operateTime  <![CDATA[<]]> #endDate#
+		</isNotNull>
+	</select>
+	
+	
+	<select id="statisticsAllOperate" parameterClass="java.util.Map" resultClass="java.util.HashMap" >
+		select nvl(num,0) num,operate from 
+		<iterate  property="operatetypes" open="(" close=")"  conjunction="union">
+			<![CDATA[
+				 select   #operatetypes[]#  operate  from dual
+			]]>
+		</iterate>
+		  t1
+         left join 
+         (select count(*) num ,operationtype from operatelogs  
+         <dynamic prepend="where ">
+         	<isPropertyAvailable property="orgInternalCode">
+         		<isNotNull property="orgInternalCode" prepend=" and ">
+         	     orgInternalCode like #orgInternalCode#||'%'
+         		</isNotNull>
+         	</isPropertyAvailable>
+         	<isPropertyAvailable property="moduletypes">
+				<isNotEmpty property="moduletypes" prepend=" and ">
+					moduleType in 
+					<iterate  property="moduletypes" open="(" close=")"  conjunction="union">
+					<![CDATA[
+				           select   #moduletypes[]#  operate  from dual
+			         ]]>
+					</iterate>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isNotNull property="startDate" prepend=" and ">
+		           operateTime  > =#startDate#
+		    </isNotNull>
+		    <isNotNull property="endDate" prepend=" and ">
+		           operateTime  <![CDATA[<]]> #endDate#
+		    </isNotNull>
+         </dynamic>
+          group by operationtype) t2
+          on t1.operate=t2.operationtype
+	</select>
+
+
+    <select id="getoperateLogById" parameterClass="java.lang.Long" resultMap="operateLogResult">
+    	select * from operateLogs where id=#id#
+    </select>
+	<delete id="deleteoperateLogsByDateRange" parameterClass="map">
+		delete operateLogs
+		where  
+		<![CDATA[
+				operateTime > #startDate#
+				AND
+				operateTime < #endDate#
+			]]>
+	</delete>
+</sqlMap>

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="rectificativePersonTemp">
+    <typeAlias alias="RectificativePersonTemp" type="com.tianque.plugin.dataManage.population.rectificativePersonTemp.domain.RectificativePersonTemp" />
+  	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />		                                                                                                   
+    
+    <resultMap id="rectificativePersonTempResultForBase" class="RectificativePersonTemp" extends="attentionPopulationTempBaseInfo.attentionPopulationBaseInfoResult">
+		<result column="penaltyTerm" property="penaltyTerm" />
+		<result column="rectifyStartDate" property="rectifyStartDate" />
+		<result column="rectifyEndDate" property="rectifyEndDate" />
+		<result column="recentSituation" property="recentSituation" />
+		<result column="bussinessRemark" property="bussinessRemark" />
+		<result column="executeType" property="executeType.id" />
+	</resultMap>
+    <resultMap id="rectificativePersonTempResultForList" class="RectificativePersonTemp" extends="rectificativePersonTemp.rectificativePersonTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+		<result column="accusation" property="accusation" />
+	</resultMap>
+	<sql id="updateBusinessSql">
+		penaltyTerm=#penaltyTerm#,
+		rectifyStartDate=#rectifyStartDate#,
+		rectifyEndDate=#rectifyEndDate#,
+		recentSituation=#recentSituation#,
+		bussinessRemark=#bussinessRemark#,
+		executeType=#executeType.id#,
+		accusation=#accusation#,
+		attentionExtent=#attentionExtent.id#
+	</sql>
+	<sql id="claim_sql_where">
+		from DM_rectificativePersons_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	<!-- 新写内容 -->
+	<select id="countFindTemps" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	<select id="findTemps" resultMap="rectificativePersonTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findTempPageList" resultMap="rectificativePersonTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countTempList" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	
+	<insert id="addRectificativePersonTemp" parameterClass="RectificativePersonTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_rectificativePersons_Temp.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO DM_rectificativePersons_Temp
+		(
+		<include refid="populationTempBaseInfo.addBaseInfoFields" />
+		,<include refid="dataManage.addDataManage"/>
+		,penaltyTerm,
+		rectifyStartDate,
+		rectifyEndDate,
+		recentSituation,
+		bussinessRemark,
+		executeType,
+		attentionExtent,actualPopulationType,
+		accusation
+		)
+		VALUES
+		(
+		<include refid="populationTempBaseInfo.addBaseInfoData" />
+		,<include refid="dataManage.addValueDataManage"/>
+		,#penaltyTerm#,
+		#rectifyStartDate#,
+		#rectifyEndDate#,
+		#recentSituation#,
+		#bussinessRemark#,
+		#executeType.id#,
+		#attentionExtent.id#,#actualPopulationType#,
+		#accusation#
+		)
+
+	</insert>
+	
+    <select id="getRectificativePersonTempById" parameterClass="Long"
+		resultMap="rectificativePersonTempResultForList">
+	  <![CDATA[
+	  	select * from DM_rectificativePersons_Temp where id = #value#
+	  ]]>
+	</select>
+	<delete id="deleteRectificativePersonTempById" parameterClass="Long">
+	   delete DM_rectificativePersons_Temp where id = #value#
+	</delete>
+	<select id="findRectificativePersonTempsByIdcardAndOrgInternalCode" resultMap="rectificativePersonTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_rectificativePersons_Temp where  1=1 and 
+			(orgInternalCode like #orgInternalCode#||'%' or 
+						#orgInternalCode# like orgInternalCode||'%')
+				and(
+				<iterate property="idCardNo" conjunction="or">
+						upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+	</select>
+	<update id="updateRectificativePersonTempInIdByIdCardAndIdList"  parameterClass="java.util.Map">
+		update DM_rectificativePersons_Temp set inid = #id# where idcardno = #idCardNo# and
+			(orgInternalCode like #orgInternalCode#||'%' or 
+						#orgInternalCode# like orgInternalCode||'%') and
+		 (claimstate = 1 or claimstate is null or 
+			<iterate property="idList" conjunction="or">
+						id = #idList[]#
+			</iterate>
+		 )
+	</update>
+	<update id="updateRectificativePersonTempInIdById"  parameterClass="java.util.Map">
+		update DM_rectificativePersons_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<update id="updateRectificativePersonTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_rectificativePersons_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	<select id="getRectificativePersonTempByInId" parameterClass="Long"
+		resultMap="rectificativePersonTempResultForList">
+	  <![CDATA[
+	  	select * from DM_rectificativePersons_Temp where inid = #value#
+	  ]]>
+	</select>
+	<update id="updateRectificativePersonTemp" parameterClass="RectificativePersonTemp">
+		update DM_rectificativePersons_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="rectificativePersonTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<update id="updateRepeatState" parameterClass="RectificativePersonTemp">
+		update DM_rectificativePersons_Temp d set repeatState = 0
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_rectificativePersons_Temp t group by t.idCardNo having count(*)>1) 
+	</update>
+	<update id="updateRepeatStateForDelete" parameterClass="RectificativePersonTemp">
+		update DM_rectificativePersons_Temp d set repeatState = 1
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_rectificativePersons_Temp t group by t.idCardNo having count(*)=1) 
+	</update>
+	<update id="updateRectificativePersonTempByOrgId" parameterClass="java.util.Map">
+		update DM_rectificativePersons_Temp set repeatState=#claimDetail.repeatState#  where id=#id#
+	</update>
+	<select id="findRectificativePersonTempsByIdcardAndImportOrgId" resultMap="rectificativePersonTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_rectificativePersons_Temp where  1=1
+		<dynamic>
+			<isPropertyAvailable property="importDepartmentId">
+				<isNotNull property="importDepartmentId" prepend=" and ">
+					importDepartmentId=#claimDetail.importDepartmentId#
+				</isNotNull>
+			</isPropertyAvailable>
+				and(
+				<iterate property="idCardNo" conjunction="or">
+						upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+		</dynamic>
+	</select>
+	<update id="updateRectificativePersonTempBase" parameterClass="RectificativePersonTemp">
+		update DM_rectificativePersons_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updateRectificativePersonTempBusiness" parameterClass="RectificativePersonTemp">
+		update DM_rectificativePersons_Temp set
+		<include refid="rectificativePersonTemp.updateBusinessSql" />
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+</sqlMap>

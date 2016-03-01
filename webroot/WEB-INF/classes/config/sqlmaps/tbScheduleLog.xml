@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="tbScheduleLog">
+	<typeAlias alias="tbScheduleLog" type="com.tianque.plugin.tbSchedule.domain.TBScheduleLog" />
+	<typeAlias alias="tbScheduleLogException" type="com.tianque.plugin.tbSchedule.domain.TBScheduleLogException" />
+	<typeAlias alias="idCardNoExpLog" type="com.tianque.plugin.tbSchedule.domain.IdCardNoExpLog" />
+
+	<resultMap class="tbScheduleLog" id="tbScheduleLogFullMap">
+		<result property="id" column="id" />
+		<result property="jobName" column="jobName" />
+		<result property="taskParameter" column="taskParameter" />
+		<result property="ownSign" column="ownSign" />
+		<result property="taskItemNum" column="taskItemNum" />
+		<result property="taskItems" column="taskItems" />
+		<result property="eachFetchDataNum" column="eachFetchDataNum" />
+		<result property="startTime" column="startTime" />
+		<result property="endTime" column="endTime" />
+		<result property="remark" column="remark" />
+		<result property="appName" column="appName" />
+		<result property="listSize" column="listSize" />
+	</resultMap>
+
+	<resultMap class="tbScheduleLog" id="tbScheduleLogSimpleMap">
+		<result property="id" column="id" />
+		<result property="jobName" column="jobName" />
+		<result property="taskParameter" column="taskParameter" />
+		<result property="ownSign" column="ownSign" />
+		<result property="taskItemNum" column="taskItemNum" />
+		<result property="taskItems" column="taskItems" />
+		<result property="eachFetchDataNum" column="eachFetchDataNum" />
+		<result property="startTime" column="startTime" />
+		<result property="endTime" column="endTime" />
+		<result property="remark" column="remark" />
+		<result property="appName" column="appName" />
+		<result property="listSize" column="listSize" />
+		<result property="exceptionNum" column="exceptionNum" />
+	</resultMap>
+
+	<resultMap class="idCardNoExpLog" id="idCardNoExpLogMap">
+		<result property="expIdCardNo" column="expIdCardNo" />
+		<result property="expMessage" column="expMessage" />
+	</resultMap>
+
+	<insert id="saveTBScheduleLog" parameterClass="tbScheduleLog">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_TBSCHEDULELOG.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		INSERT INTO TBSCHEDULELOG ( ID, JOBNAME, TASKPARAMETER, OWNSIGN, TASKITEMNUM, TASKITEMS, EACHFETCHDATANUM, STARTTIME, REMARK, APPNAME, EXCEPTIONNUM)
+		VALUES(#id#, #jobName#,
+		#taskParameter#, #ownSign#, #taskItemNum#, #taskItems#, #eachFetchDataNum#, #startTime#, #remark#, #appName#, 0)
+	</insert>
+	<insert id="addTBScheduleLogForException" parameterClass="tbScheduleLogException">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_TBSCHEDULELOGEXCEPTION.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		INSERT INTO TBSCHEDULELOGEXCEPTION (ID, LOGID, ERRORMSG, ERRORTIME) VALUES(#id#, #tbScheduleLog.id#, #errorMsg#, #errorTime#)
+	</insert>
+
+	<insert id="addIdCardNoExpLog" parameterClass="idCardNoExpLog">
+		insert into idCardNoExpLog(expIdCardNo,expMessage) values(#expIdCardNo#,#expMessage#)
+	</insert>
+
+	<select id="checkExsitForIdCardNo" resultMap="idCardNoExpLogMap" parameterClass="map">
+		select * from idCardNoExpLog where expIdCardNo = #expIdCardNo#
+	</select>
+
+	<sql id="sql_findIdCardNoExpLogForList">
+		select * from idCardNoExpLog
+		<dynamic prepend=" where ">
+			<isNotEmpty property="expIdCardNo">
+				expIdCardNo like #expIdCardNo#||'%'
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+
+	<select id="countIdCardNoExpLogForList" resultClass="java.lang.Integer">
+		select count(*) from (
+		<include refid="sql_findIdCardNoExpLogForList" />
+		)
+	</select>
+
+	<select id="findIdCardNoExpLogForList" resultMap="idCardNoExpLogMap" parameterClass="idCardNoExpLog">
+		<include refid="sql_findIdCardNoExpLogForList" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+				</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+
+
+	<update id="updateTBScheduleLogIsEnd" parameterClass="tbScheduleLog">
+		UPDATE TBSCHEDULELOG SET ENDTIME = #endTime#,LISTSIZE = #listSize# WHERE ID = #id#
+	</update>
+	<update id="updateTBScheduleLogIsException" parameterClass="tbScheduleLog">
+		UPDATE TBSCHEDULELOG SET EXCEPTIONNUM = exceptionNum + 1 WHERE ID = #id#
+	</update>
+	<select id="getFullTBScheduleLogForView" parameterClass="java.lang.Long" resultMap="tbScheduleLogFullMap">
+		SELECT * FROM TBSCHEDULELOG WHERE ID = #id#
+	</select>
+	<select id="countTBScheduleLogExceptionListByLogId" resultClass="java.lang.Integer">
+		SELECT count(*) FROM TBSCHEDULELOGEXCEPTION WHERE LOGID = #id#
+	</select>
+	<select id="getTBScheduleLogExceptionListByLogId" parameterClass="java.lang.Long" resultClass="tbScheduleLogException">
+		SELECT * FROM TBSCHEDULELOGEXCEPTION WHERE LOGID = #id#
+	</select>
+	<sql id="sql_queryTBScheduleLogForPage">
+		SELECT ID, JOBNAME, TASKPARAMETER, OWNSIGN, TASKITEMNUM, TASKITEMS, EACHFETCHDATANUM, STARTTIME, ENDTIME, REMARK, APPNAME, LISTSIZE, EXCEPTIONNUM
+		FROM TBSCHEDULELOG T
+	</sql>
+	<select id="queryTBScheduleLogForPageCount" parameterClass="tbScheduleLog" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM (
+		<include refid="sql_queryTBScheduleLogForPage" />
+		)
+	</select>
+	<select id="queryTBScheduleLogForPage" parameterClass="tbScheduleLog" resultMap="tbScheduleLogSimpleMap">
+		<include refid="sql_queryTBScheduleLogForPage" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+				</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>

@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mentalPatientTask">
+    <typeAlias alias="mentalPatientTask"	type="com.tianque.plugin.taskList.domain.MentalPatientTask" />
+	<resultMap id="mentalPatientTaskMap" class="mentalPatientTask" >
+	    <result column="id" property="id" />  
+	    <result column="orgId" property="organization.id" />
+	    <result column="orginternalcode" property="organization.orgInternalCode"/>
+    	<result column="place" property="place" />
+		<result column="time" property="time" />
+		<result column="name" property="name" />
+		<result column="guardianName" property="guardianName" />
+		<result column="guardianTel" property="guardianTel" />
+		<result column="isDriinked" property="isDriinked" />
+		<result column="exception" property="exception" />
+		<result column="statusJustice" property="statusJustice" />
+		<result column="statusPolice" property="statusPolice" />
+		<result column="hasReplay" property="hasReplay" />
+		<result column="hasException" property="hasException" />
+		<result column="attitudePolice" property="attitudePolice" />
+		<result column="attitudeJustice" property="attitudeJustice" />
+		<result column="signDatePolice" property="signDatePolice" />
+		<result column="signDateJustice" property="signDateJustice" />
+		<result column="signMemberNamePolice" property="signMemberNamePolice" />
+		<result column="signMemberNameJustice" property="signMemberNameJustice" />
+		<result column="isout" property="isout" />
+		<result column="reporter" property="reporter" />
+		<result column="reporterTel" property="reporterTel" />
+		<result column="remark" property="remark" />
+		<result column="helpPeople" property="helpPeople" />
+		<result property="idCard" column="idCard" />
+		<result property="phone" column="phone" />
+		<result column="createDate" property="createDate" />
+	    <result column="createUser" property="createUser" />
+	    <result column="updateDate" property="updateDate" />
+	    <result column="updateUser" property="updateUser" />
+	    <result property="mentalPatientId" column="mentalPatientId" />
+	</resultMap>
+	
+	<resultMap id="MobileMentalPatientTaskMap" class="mentalPatientTask" extends="mentalPatientTaskMap" >
+		<!-- 用于手机接口返回被回复数量 -->
+		<result property="replyCount" column="replyCount" />
+	</resultMap>
+	<sql id="sql_where">      
+		where 1=1
+		<dynamic>
+			<isNotEqual property="mode" compareValue="gridConfigTask">
+				<isNotEmpty  property="orgCode" prepend="and">
+					ORGINTERNALCODE like #orgCode#||'%' 
+				</isNotEmpty>
+			</isNotEqual>
+			<isEqual property="mode" compareValue="gridConfigTask" prepend=" and ">
+				ORGINTERNALCODE in (select a.orgInternalCode from gridConfigTask a where 1=1
+				<isNotEmpty  property="orgCode" prepend="and">
+					ORGINTERNALCODE like #orgCode#||'%' 
+				</isNotEmpty>
+				<isNotNull property="funOrgId" prepend=" and ">
+					a.funorgid = #funOrgId#
+				</isNotNull>
+				)
+			</isEqual>
+		    <isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+				(place like #fastSearchKeyWords#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" or ">
+				name like #fastSearchKeyWords#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" or ">
+				helpPeople like #fastSearchKeyWords#||'%')
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="conditionStartDate">
+				<isNotNull property="conditionStartDate" prepend=" and ">
+				<![CDATA[ time >= #conditionStartDate# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="conditionEndDate">
+				<isNotNull property="conditionEndDate" prepend=" and ">
+				<![CDATA[ time <= #conditionEndDate# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isNotEmpty  property="name" prepend="and">
+				name like #name# || '%'
+			</isNotEmpty>
+			<isNotEmpty  property="place" prepend="and">
+				place like #place# || '%'
+			</isNotEmpty>
+			<isNotEmpty  property="guardianTel" prepend="and">
+				guardianTel like #guardianTel# || '%'
+			</isNotEmpty>
+			<isNotEmpty  property="guardianName" prepend="and">
+				guardianName like #guardianName# || '%'
+			</isNotEmpty>
+			<isNotEmpty  property="isDriinked" prepend="and">
+				isDriinked = #isDriinked# 
+			</isNotEmpty>
+			<isNotEmpty  property="exception" prepend="and">
+				exception = #exception# 
+			</isNotEmpty>
+			<isNotEmpty  property="isout" prepend="and">
+				isout = #isout# 
+			</isNotEmpty>
+			<isNotEmpty  property="hasReplay" prepend="and">
+				hasReplay = #hasReplay# 
+			</isNotEmpty>
+			<isNotEmpty  property="hasException" prepend="and">
+				hasException = #hasException# 
+			</isNotEmpty>
+			<isNotEmpty  property="statusPolice" prepend="and">
+				statusPolice = #statusPolice# 
+			</isNotEmpty>
+			<isNotEmpty  property="statusJustice" prepend="and">
+				statusJustice = #statusJustice# 
+			</isNotEmpty>
+			<isNotEmpty  property="helpPeople" prepend="and">
+				helpPeople like '%'||#helpPeople#|| '%'
+			</isNotEmpty>
+			<isNotEmpty  property="idCard" prepend="and">
+				idCard like #idCard#|| '%'
+			</isNotEmpty>
+			<isNotEmpty  property="phone" prepend="and">
+				phone like #phone#|| '%'
+			</isNotEmpty>
+			<isNotEmpty  property="mentalPatientId" prepend="and">
+				mentalPatientId = #mentalPatientId#
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	<update id="updateMentalPatientTask" parameterClass="mentalPatientTask">
+		update mentalPatientTask d set 
+		d.time=#time#,
+		d.place=#place#,
+		d.name=#name#,
+		d.guardianTel=#guardianTel#,
+		d.isDriinked=#isDriinked#,
+		d.exception=#exception#,
+		d.isout=#isout#,
+		<isNotNull property="hasReplay">
+		d.hasReplay=#hasReplay#,
+		</isNotNull>
+		<isNotNull property="hasException">
+		d.hasException=#hasException#,
+		</isNotNull>
+		d.remark = #remark#,
+		d.helpPeople = #helpPeople#,
+		d.idCard = #idCard#,
+		d.phone = #phone#
+		
+		where  d.id=#id#
+	</update>
+	
+	<select id="findMentalPatientTask" parameterClass="map" resultMap="MobileMentalPatientTaskMap">
+	  	select mentalPatientTask.*,
+     (select count(1) from TaskListReply where 
+     TaskListReply.taskid=mentalPatientTask.id
+     <isNotEmpty  property="modulekey" prepend="and">
+					modulekey=#modulekey# 
+				</isNotEmpty>
+      )replyCount
+      from mentalPatientTask 
+	  	<include refid="sql_where"/> 
+		order by TIME desc
+	</select>
+	
+	<select id="countMentalPatientTask" parameterClass="map" resultClass="java.lang.Integer">
+	  	select count(0) from mentalPatientTask
+	  	 <include refid="sql_where"/>
+	</select>
+	
+	<select id="searchMentalPatientTask" parameterClass="map" resultMap="mentalPatientTaskMap">
+	  	select * from mentalPatientTask
+	  	    <include refid="sql_where"/>
+		order by TIME desc
+	</select>
+	
+	<select id="countSearchMentalPatientTask" parameterClass="map" resultClass="java.lang.Integer">
+	  	select count(0) from mentalPatientTask
+	  	<include refid="sql_where"/>
+	</select>
+	
+	<select id="getById" parameterClass="java.lang.Long" resultMap="mentalPatientTaskMap">
+	  	select * from mentalPatientTask where id=#value#
+	</select>
+	
+	<insert id="addMentalPatientTask" parameterClass="mentalPatientTask">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_mentalPatientTask.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into mentalPatientTask
+		(id,orgId,orginternalcode,hasException,time,place,name,guardianName,guardianTel,isDriinked,exception,isout,reporter,reporterTel,remark,helpPeople,createUser,createDate,idCard,phone,mentalPatientId)
+		values
+		(#id#,#organization.id#,#organization.orgInternalCode#,#hasException#,#time#,#place#,#name#,#guardianName#,#guardianTel#,#isDriinked#,#exception#,#isout#,#reporter#,#reporterTel#,#remark#,#helpPeople#,#createUser#,#createDate#,#idCard#,#phone#,#mentalPatientId#		
+		)
+	</insert>
+	
+	<delete id="deleteMentalPatientTaskById" parameterClass="java.util.List">
+		delete from mentalPatientTask where id in
+    	<iterate conjunction="," open="(" close=")" >
+            #ids[]#
+        </iterate>
+	</delete>
+	
+</sqlMap>

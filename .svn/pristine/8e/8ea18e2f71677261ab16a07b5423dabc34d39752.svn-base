@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="gridConfigTask">
+
+	<typeAlias alias="foodOrgTreeNode" type="com.tianque.plugin.taskList.domain.OrgTreeNode" />	
+	
+	<typeAlias alias="gridConfigTask" type="com.tianque.plugin.taskList.domain.GridConfigTask" />
+	<resultMap id="gridConfigTaskResult" class="gridConfigTask">
+		<result property="id" column="id" />
+		<result property="funOrgId" column="funOrgId" />
+		<result property="areaOrgId" column="areaOrgId" />
+		<result property="areaOrgLevel" column="areaOrgLevel" />
+		<result property="areaParentId" column="areaParentId" />
+		<result property="createUser" column="createuser" />
+		<result property="updateUser" column="updateuser" />
+		<result property="createDate" column="createdate" />
+		<result property="updateDate" column="updatedate" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+	</resultMap>
+
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization"/>
+	<resultMap id="organizationResult" class="Organization">
+		<result property="id" column="id" />
+		<result property="orgName" column="orgName" />
+		<result property="orgType.id" column="orgType" />
+		<result property="orgLevel.id" column="orgLevel" />
+		<result property="parentOrg.id" column="parentId" />
+	</resultMap>
+	
+	<resultMap id="organizationAllResult" class="Organization">
+		<result property="id" column="id" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="orgName" column="orgName" />
+		<result property="orgType.id" column="orgType" />
+		<result property="orgLevel.id" column="orgLevel" />
+		<result property="departmentNo" column="departmentNo" />
+		<result property="subCount" column="subCount" />
+		<result property="subCountFun" column="subCountFun" />
+		<result property="parentOrg.id" column="parentId" />
+		<result property="parentFunOrg.id" column="parentFunOrgId" />
+		<result property="seq" column="seq" />
+	</resultMap>
+	
+	<sql id="sql_where">
+		<dynamic prepend="WHERE">
+			
+ 			<isNotEmpty  property="parentId" prepend="and">
+ 				parentId = #parentId#
+			</isNotEmpty>
+			<isNotEmpty  property="orgType" prepend="and">
+ 				orgType = #orgType#
+			</isNotEmpty>
+			
+		</dynamic>
+	</sql>
+	
+	<insert id="addGridConfigTask">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_gridConfigTask.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		<![CDATA[
+			insert into gridConfigTask
+			(id, funOrgId,areaOrgId,areaOrgLevel,areaParentId,createUser,updateUser,createDate,updateDate,orgInternalCode)
+			values(#id#, #funOrgId#, #areaOrgId#, #areaOrgLevel#, #areaParentId#, #createUser#, #updateUser#, #createDate#, #updateDate#,#orgInternalCode#)
+		]]>
+	</insert>
+	
+	<insert id="insertGridConfigTaskByOrgids" parameterClass="java.util.Map">
+		insert into gridConfigTask (id,funOrgId,areaOrgId,areaOrgLevel,areaParentId,createUser,createDate,updateUser,updateDate,orginternalcode)
+  			select s_gridConfigTask.NEXTVAL as id,
+         		#funOrgId# as funOrgId,
+         		o.id as areaOrgId,
+         		o.orglevel areaOrgLevel,
+         		decode(o.orglevel, #funOrgLevel#, #funOrgId#, o.parentid) as areaParentId,
+         		#createUser# as createUser,
+         		sysdate as createDate,
+         		#createUser# as updateUser,
+         		sysdate as updateDate,
+         		o.orginternalcode as orginternalcode
+    		from organizations o
+   			where 
+   			<isNotEmpty property="orgids">
+				<iterate property="orgids" open="o.id in  (" close=")" conjunction=",">
+					#orgids[]#
+				</iterate>
+			</isNotEmpty>
+	</insert>
+	
+	<update id="updateGridConfigTask" parameterClass="gridConfigTask">
+		update gridConfigTask set
+			funOrgId=#funOrgId#,
+			areaOrgId=#areaOrgId#,
+			areaOrgLevel=#areaOrgLevel#,
+			areaParentId=#areaParentId#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#
+			orgInternalCode=#orgInternalCode#
+		where id=#id#
+	</update>
+	
+	<select id="countHasGridTaskList" parameterClass="java.lang.Long" resultClass="java.lang.Long">
+		select count(id) from gridConfigTask where funorgid=#orgId#
+	</select>
+
+	<select id="countGridConfigTask" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(1) from organizations 
+		<include refid="sql_where"/>
+	</select>
+	
+	<select id="searchGridConfigTask" parameterClass="java.util.Map" resultMap="organizationResult">
+		select t.id,t.orgName,t.orgType,t.orgLevel,t.parentId from(select rownum as r, o.id,o.orgName,o.orgType,o.orgLevel,o.parentId from organizations o
+		<include refid="sql_where"/>
+		<isNotEmpty  property="pageFrom" prepend="and">
+ 			rownum >= #pageFrom# 
+		</isNotEmpty>
+		order by id desc) t where 1=1
+		<isNotEmpty  property="pageTo" prepend="and">
+ 			t.r&lt;= #pageTo# 
+		</isNotEmpty>
+	</select>
+	
+	<select id="getOrgSelectComponent" parameterClass="java.util.Map" resultMap="organizationAllResult">
+		select o.id,o.orgInternalCode,o.orgName,o.orgType,o.orgLevel,o.departmentNo,o.subCount,o.subCountFun,o.parentId,o.parentFunOrgId,o.seq from organizations o 
+		where o.id in(select t.areaOrgId from gridConfigTask t where t.funorgid=#funOrgId# and t.areaparentid=#parentId#)
+	</select>
+
+	<select id="getOrganizationTreeByParentId" resultClass="foodOrgTreeNode" parameterClass="java.lang.Long">
+     select a.id as id, a.PARENTID as pId, a.ORGNAME as name
+       from organizations a        
+      where a.orgtype in (select id from propertydicts b where b.displayname = '行政区域')
+      and a.PARENTID = #value#
+      order by id
+	</select>
+	
+	<select id="getAllOrganizationsTreeByParentId" resultClass="foodOrgTreeNode"  parameterClass="java.lang.Long">
+     select a.id as id, a.PARENTID as pId, a.ORGNAME as name
+  		from (select o.id, o.PARENTID, o.ORGNAME, o.orgtype
+          		from organizations o
+         		start with o.id = #value#
+        		connect by prior o.id = o.parentid) a
+ 		where a.orgtype in
+       		(select id from propertydicts b where b.displayname = '行政区域')
+	</select>
+	
+	<select id="getCheckedIds" resultClass="java.lang.Long" parameterClass="java.lang.Long">
+     	select t.areaorgid from gridConfigTask t where t.funorgid=#funOrgId#
+	</select>
+	
+	<delete id="deleteCheckedIds" parameterClass="java.lang.Long">
+     	delete from gridConfigTask t where t.funorgid=#funOrgId#
+	</delete>
+</sqlMap>

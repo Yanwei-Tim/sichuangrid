@@ -1,0 +1,104 @@
+package com.tianque.plugin.weChat.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import com.tianque.core.vo.PageInfo;
+import com.tianque.plugin.weChat.domain.sendMessage.Article;
+import com.tianque.plugin.weChat.domain.sendMessage.TextMessage;
+import com.tianque.plugin.weChat.domain.sendMessage.text.TextSendMessage;
+import com.tianque.plugin.weChat.domain.inbox.PreciseInbox;
+
+public interface PreciseInboxService {
+	/** 收件箱列表显示 */
+	public PageInfo<PreciseInbox> findPreciseInboxs(PreciseInbox preciseInbox,
+			Integer pageNum, Integer pageSize, String sidx, String sord);
+
+	/** 新增收件箱信息 */
+	public String savePreciseInbox(PreciseInbox preciseInbox);
+
+	/** 主动回复 事件处理调用该方法 */
+	public int replyMessage(PreciseInbox preciseInbox,
+			TextSendMessage textSendMessage);
+
+	/** 保存回复 事件处理在用（TextSendMessage），微信没用 */
+	public Long saveReplyMessage(PreciseInbox preciseInbox,
+			TextSendMessage textSendMessage);
+
+	/** 根据id获取单个对象 */
+	public PreciseInbox getPreciseInboxById(Long id);
+
+	/** 根据preciseInboxId删除 */
+	public void deletePreciseInboxById(List<Long> preciseInboxIds);
+
+	/****
+	 * 设置有无效
+	 */
+	public void setAvailabilityOrInvalid(List<Long> preciseInboxIds, String flag);
+
+	public void update(PreciseInbox preciseInbox);
+
+	/** 查找最大Id */
+	public Long getMaxPreciseInboxId();
+
+	/******* 回复文本 **/
+	public String replyTextMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage);
+
+	/******* 48小时后回复文本 **/
+	public String replyMoreFortyEightTextMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage);
+
+	/******* 转发文本（支持群转发） **/
+	public String retransmissionTextMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, String openIds);
+
+	/******* 回复图片 **/
+	public String replyImageMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, Set<String> attachFiles);
+
+	/******* 48小时后回复图片 **/
+	public String replyMoreFortyEightImageMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, Set<String> attachFiles);
+
+	/******* 转发图片（支持群转发） **/
+	public String retransmissionImageMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, String openIds, String pathImage);
+
+	/******* 回复图文 **/
+	public String replyNewsMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, Set<String> attachFiles, Article article);
+
+	/******* 48小时后回复图文 **/
+	public String replyMoreFortyEightNewsMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, Set<String> attachFiles, Article article);
+
+	/******* 回复语音 **/
+	public String replyVoiceMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, Set<String> attachFiles);
+
+	/******* 48小时后回复语音 **/
+	public String replyMoreFortyEightVoiceMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, Set<String> attachFiles);
+
+	/******* 转发语音（支持群转发） **/
+	public String retransmissionVoiceMessage(PreciseInbox preciseInbox,
+			TextMessage textMessage, String openIds, String pathVoice);
+
+	/**
+	 * 根据微信号和粉丝号，修改粉丝所在的群组Id
+	 * 
+	 * @param PreciseInbox
+	 */
+
+	public Integer setGroupIdByWeChatUserIdAndFanId(PreciseInbox preciseInbox);
+
+	/** 根据用户openId查询事件总数 */
+	public Long findPreciseInboxByFromUserNameTotal(String fromUserName);
+
+	/**手机端的分页查询*/
+	public ArrayList<PreciseInbox> findPreciseInboxPaging(
+			PreciseInbox preciseInbox, Integer pageNum, Integer pageSize,
+			String sidx, String sord);
+}

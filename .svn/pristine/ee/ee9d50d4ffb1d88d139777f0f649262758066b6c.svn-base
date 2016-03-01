@@ -1,0 +1,148 @@
+package com.tianque.tqSearch.convert;
+
+import com.tianque.issue.domain.IssueEvaluate;
+import com.tianque.issue.domain.IssueNew;
+import com.tianque.issue.domain.IssueStep;
+import com.tianque.issue.state.IssueState;
+import com.tianque.issue.vo.IssueViewObject;
+import com.tianque.tqSearch.domain.IssueSolrDocument;
+
+public class IssueSolrDocumentConvert {
+	
+	public static IssueSolrDocument createIssueSolrDocument(IssueNew issue,
+			IssueStep step) {
+		IssueSolrDocument issueSolrDocument = new IssueSolrDocument();
+		issueSolrDocument.setIssueId(issue.getId());
+		issueSolrDocument.setIssueStepId(step.getId());
+		issueSolrDocument.setSubject(issue.getSubject());
+		issueSolrDocument.setStatus(issue.getStatus());
+		issueSolrDocument.setStateCode(step.getStateCode());
+		issueSolrDocument.setDelayState(step.getDelayState());
+		issueSolrDocument.setOccurDate(issue.getOccurDate());
+		issueSolrDocument.setTargetOrg(step.getTarget().getId());
+		issueSolrDocument.setCreateOrg(issue.getCreateOrg().getId());
+		issueSolrDocument.setDealTime(step.getLastDealDate());
+		issueSolrDocument.setSourceKind(issue.getSourceKind().getId());
+		if (issue.getCurrentOrg() != null) {
+			issueSolrDocument.setCurrentOrg(issue.getCurrentOrg().getId());
+		}
+		issueSolrDocument.setOccurOrg(issue.getOccurOrg().getId());
+		issueSolrDocument.setIssueTypeId(issue.getIssueType().getId());
+		issueSolrDocument.setIssueTypedDomainId(issue.getIssueType()
+				.getIssueTypeDomain().getId());
+		if (step.getEmergencyLevel() != null) {
+			issueSolrDocument.setEmergencyLevel(step.getEmergencyLevel()
+					.getId());
+		}
+		issueSolrDocument.setCreateOrgLevel(issue.getCreateOrg().getOrgLevel()
+				.getId());
+		issueSolrDocument.setCreateOrginternalCode(issue.getCreateOrg()
+				.getOrgInternalCode());
+		issueSolrDocument.setCreateOrgFunctionalOrgType(issue.getCreateOrg()
+				.getFunctionalOrgType().getId());
+		issueSolrDocument.setTargetOrgLevel(step.getTarget().getOrgLevel()
+				.getId());
+		issueSolrDocument.setTargetInternalCode(step.getTarget()
+				.getOrgInternalCode());
+		issueSolrDocument.setTargetOrgFunctionalOrgType(step.getTarget()
+				.getFunctionalOrgType() == null ? 0L : step.getTarget()
+				.getFunctionalOrgType().getId());
+		issueSolrDocument.setSubmit(step.getSubmit());
+		issueSolrDocument.setAssign(step.getAssign());
+		issueSolrDocument.setOccurLocation(issue.getOccurLocation());
+		if (issue.getIssueKind() != null) {
+			issueSolrDocument.setIssueKind(issue.getIssueKind().getId());
+		}
+		issueSolrDocument.setRelatePeopleCount(issue.getRelatePeopleCount());
+		issueSolrDocument.setSerialNumber(issue.getSerialNumber());
+		issueSolrDocument.setEndDate(step.getEndDate());
+		issueSolrDocument.setIsStayStep(step.getIsStayStep());
+		issueSolrDocument.setUrgent(issue.getUrgent());
+		issueSolrDocument.setSuperviseLevel(step.getSuperviseLevel());
+		issueSolrDocument.setEventState(issue.getEventState());
+		return issueSolrDocument;
+	}
+
+	public static IssueSolrDocument createIssueSolrDocumentForPubliclty(
+			IssueNew issue, IssueStep step, Integer publicltycass,IssueEvaluate issueEvaluate) {
+		IssueSolrDocument issueSolrDocument = createIssueSolrDocument(issue,
+				step);
+		if (issueEvaluate != null && issueEvaluate.getId() != null) {
+			issueSolrDocument.setEvaluateType(Long.valueOf(issueEvaluate.getEvaluateType()));
+			issueSolrDocument.setStatus(IssueState.GRADEDELAY);
+		}
+		issueSolrDocument.setPublicltycass(publicltycass);
+		return issueSolrDocument;
+	}
+
+	public static IssueSolrDocument createIssueSolrDocumentForEvaluate(
+			IssueNew issue, IssueStep step, Long evaluateType) {
+		IssueSolrDocument issueSolrDocument = createIssueSolrDocument(issue,
+				step);
+		issueSolrDocument.setEvaluateType(evaluateType);
+		issueSolrDocument.setIssueEvaluate(1);
+		return issueSolrDocument;
+	}
+
+	public static IssueSolrDocument createIssueSolrDocument(
+			IssueViewObject issueViewObject) {
+		IssueSolrDocument issueSolrDocument = new IssueSolrDocument();
+		issueSolrDocument.setIssueId(issueViewObject.getIssueId());
+		issueSolrDocument.setIssueStepId(issueViewObject.getIssueStepId());
+		issueSolrDocument.setSubject(issueViewObject.getSubject());
+		issueSolrDocument.setStatus(issueViewObject.getStatus());
+		issueSolrDocument
+				.setStateCode(issueViewObject.getDealState() != null ? issueViewObject
+						.getDealState().intValue() : null);
+		issueSolrDocument.setDelayState(issueViewObject.getDelayState());
+		issueSolrDocument.setOccurDate(issueViewObject.getOccurDate());
+		issueSolrDocument.setTargetOrg(issueViewObject.getTargeOrg().getId());
+		issueSolrDocument.setCreateOrg(issueViewObject.getCreateOrg().getId());
+		issueSolrDocument.setDealTime(issueViewObject.getDealTime());
+		issueSolrDocument
+				.setSourceKind(issueViewObject.getSourceKind().getId());
+		if (issueViewObject.getCurrentOrg() != null) {
+			issueSolrDocument.setCurrentOrg(issueViewObject.getCurrentOrg()
+					.getId());
+		}
+		issueSolrDocument.setOccurOrg(issueViewObject.getOccurOrg().getId());
+		issueSolrDocument
+				.setIssueTypeId(issueViewObject.getIssueType().getId());
+		issueSolrDocument.setIssueTypedDomainId(issueViewObject.getIssueType()
+				.getIssueTypeDomain().getId());
+		if (issueViewObject.getEmergencyLevel() != null) {
+			issueSolrDocument.setEmergencyLevel(issueViewObject
+					.getEmergencyLevel().getId());
+		}
+		issueSolrDocument.setCreateOrgLevel(issueViewObject.getCreateOrg()
+				.getOrgLevel().getId());
+		issueSolrDocument.setCreateOrginternalCode(issueViewObject
+				.getCreateOrg().getOrgInternalCode());
+		issueSolrDocument.setCreateOrgFunctionalOrgType(issueViewObject
+				.getCreateOrg().getFunctionalOrgType().getId());
+		issueSolrDocument.setTargetOrgLevel(issueViewObject.getTargeOrg()
+				.getOrgLevel().getId());
+		issueSolrDocument.setTargetInternalCode(issueViewObject.getTargeOrg()
+				.getOrgInternalCode());
+		issueSolrDocument.setTargetOrgFunctionalOrgType(issueViewObject
+				.getTargeOrg().getFunctionalOrgType() == null ? 0L
+				: issueViewObject.getTargeOrg().getFunctionalOrgType().getId());
+		issueSolrDocument.setSubmit(issueViewObject.getSubmit());
+		issueSolrDocument.setAssign(issueViewObject.getAssign());
+		issueSolrDocument.setOccurLocation(issueViewObject.getOccurLocation());
+		if (issueViewObject.getIssueKind() != null) {
+			issueSolrDocument.setIssueKind(issueViewObject.getIssueKind()
+					.getId());
+		}
+		issueSolrDocument.setRelatePeopleCount(issueViewObject
+				.getRelatePeopleCount());
+		issueSolrDocument.setSerialNumber(issueViewObject.getSerialNumber());
+		issueSolrDocument.setEndDate(issueViewObject.getEndDate());
+		issueSolrDocument.setIsStayStep(issueViewObject.getIsStayStep());
+		issueSolrDocument.setUrgent(issueViewObject.getUrgent());
+		issueSolrDocument
+				.setSuperviseLevel(issueViewObject.getSuperviseLevel());
+		issueSolrDocument.setEventState(issueViewObject.getEventState());
+		return issueSolrDocument;
+	}
+}

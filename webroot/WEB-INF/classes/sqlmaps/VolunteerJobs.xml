@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		CREATEDATE as createDate ,
+		UPDATEDATE as updateDate ,
+		ORGID as orgId ,
+		CLAIMPLANS as claimPlans ,
+		TELEPHONE as telephone ,
+		ORGINTERNALCODE as orgInternalCode ,
+		NAME as name ,
+		CONTRACTOR as contractor ,
+		CREATEUSER as createUser ,
+		UPDATEUSER as updateUser ,
+		REMARK as remark ,
+		CONTENT as content 
+	FROM VOLUNTEERJOBS	
+ -->	
+<sqlMap namespace="volunteerJobs">	
+	
+	<typeAlias alias="VolunteerJobs" type="com.tianque.partyBuilding.doubleRegActivities.domain.VolunteerJobs"/>
+	<typeAlias alias="SearchVolunteerJobsVo" type="com.tianque.partyBuilding.doubleRegActivities.domain.Vo.SearchVolunteerJobsVo" />
+	
+	<resultMap id="volunteerJobsResult" class="VolunteerJobs">
+		<result property="id" column="ID"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="organization.id" column="ORGID"/>
+		<result property="claimPlans" column="CLAIMPLANS"/>
+		<result property="telephone" column="TELEPHONE"/>
+		<result property="orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="name" column="NAME"/>
+		<result property="contractor" column="CONTRACTOR"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="remark" column="REMARK"/>
+		<result property="content" column="CONTENT"/>
+	</resultMap>
+	
+
+
+	<select id="getVolunteerJobsById" parameterClass="java.lang.Long" resultMap="volunteerJobsResult">
+		select * from VOLUNTEERJOBS where id=#value#
+	</select>
+	
+	<insert id="addVolunteerJobs" parameterClass="VolunteerJobs">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_VOLUNTEERJOBS.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into VOLUNTEERJOBS (ID , CREATEDATE , UPDATEDATE , ORGID , CLAIMPLANS , TELEPHONE , ORGINTERNALCODE , NAME , CONTRACTOR , CREATEUSER , UPDATEUSER , REMARK , CONTENT ) 
+		values(#id#, #createDate#, #updateDate#, #organization.id#, #claimPlans#, #telephone#, #orgInternalCode#, #name#, #contractor#, #createUser#, #updateUser#, #remark#, #content#)	
+	</insert>
+	
+	<update id="updateVolunteerJobs" parameterClass="VolunteerJobs">
+		update VOLUNTEERJOBS set id = #id# 
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="organization.id">
+					ORGID = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="claimPlans">
+					CLAIMPLANS = #claimPlans#
+				</isNotNull>
+				<isNotNull prepend="," property="telephone">
+					TELEPHONE = #telephone#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="name">
+					NAME = #name#
+				</isNotNull>
+				<isNotNull prepend="," property="contractor">
+					CONTRACTOR = #contractor#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="remark">
+					REMARK = #remark#
+				</isNotNull>
+				<isNotNull prepend="," property="content">
+					CONTENT = #content#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteVolunteerJobsById" parameterClass="java.lang.Long">	
+		delete  from VOLUNTEERJOBS where id = #value#	
+	</delete>
+	<delete id="deleteVolunteerJobsByIds" parameterClass="java.util.Map">	
+		delete  from VOLUNTEERJOBS where id 
+				<iterate close=")" open="(" prepend=" in " conjunction="," property="idList">
+					#idList[]#
+				</iterate>
+	</delete>
+	
+	<sql id="findVolunteerJobssBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="claimPlans">
+					<isNotEmpty prepend="and" property="claimPlans">
+						CLAIMPLANS like #claimPlans# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="telephone">
+					<isNotEmpty prepend="and" property="telephone">
+						TELEPHONE  like #telephone# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="name">
+					<isNotEmpty prepend="and" property="name">
+						NAME  like #name# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="contractor">
+					<isNotEmpty prepend="and" property="contractor">
+						CONTRACTOR  like #contractor# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="remark">
+					<isNotEmpty prepend="and" property="remark">
+						REMARK  like #remark# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="content">
+					<isNotEmpty prepend="and" property="content">
+						CONTENT  like #content# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+	<select id="findVolunteerJobssBySearchVo" parameterClass="SearchVolunteerJobsVo" resultMap="volunteerJobsResult">
+		select * from VOLUNTEERJOBS
+		<include refid="findVolunteerJobssBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countVolunteerJobssBySearchVo" parameterClass="SearchVolunteerJobsVo" resultClass="java.lang.Integer">
+		select count(0) from VOLUNTEERJOBS
+		<include refid="findVolunteerJobssBySearchVo_sql_where" />
+	</select>
+	
+	<select id="getVolunteerJobsByNameAndOrgId"  parameterClass="map"
+		resultMap="volunteerJobsResult">
+		select * from VOLUNTEERJOBS where NAME = #name# and orgId = #orgId#
+	</select>
+	
+	<select id="countClaimedByIdAndOrgId" parameterClass="java.util.Map" resultClass="Integer">
+		   select count(*)
+          from VOLUNTEERJOBS v,  memberHasVolunteerJobs m
+         where v.id = m.volunteerJobsId and v.orgid=#orgId# and v.id=#id#
+	</select>
+</sqlMap>

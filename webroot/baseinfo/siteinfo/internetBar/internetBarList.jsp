@@ -1,0 +1,93 @@
+<%@	page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib"%>
+<%@ include file="/includes/baseInclude.jsp"%>
+<%@ include file="/baseinfo/commonPopulation/jsFunctionInclude.jsp"%>
+<script type="text/javascript">
+<pop:formatterProperty name="attentionExtent" domainName="@com.tianque.domain.property.PropertyTypes@ATTENTION_EXTENT" />
+function operatorFormatter(el,options,rowData){
+	return "<pop:JugePermissionTag ename='updateInternetBar'><a href='javascript:;' onclick='updateOperator(event,"+rowData.id+");'><span>修改</span></a> | </pop:JugePermissionTag><pop:JugePermissionTag ename='deleteInternetBar'><a href='javascript:;' onclick='deleteOperator(event,"+rowData.id+");'><span>删除</span></a></pop:JugePermissionTag>";
+}
+function nameFont(el,options,rowData){
+	if(rowData.isEmphasis==true||rowData.isEmphasis=='true'){
+		return "<a href='javascript:;' <pop:JugePermissionTag ename='viewInternetBar'>  onclick='viewInternetBar("+rowData.id+")' </pop:JugePermissionTag> ><font color='#778899'>"+rowData.placeName+"</font></a>";
+	}
+	return "<a href='javascript:;' <pop:JugePermissionTag ename='viewInternetBar'> onclick='viewInternetBar("+rowData.id+")' </pop:JugePermissionTag> >"+rowData.placeName+"</a>";
+}
+function attentionExtentColor(el,options,rowData){
+	var displayName=attentionExtentFormatter(el,options,rowData);
+	if(displayName=='undefined'||displayName=='')
+		return '';
+	else if(displayName=='严重')
+		return '<span>严重：<span style="color:#ff0000;">█████</span></span>';
+	else if(displayName=='中等')
+		return '<span>中等：<span style="color:#ffcc00;">███</span></span>';
+	else if(displayName=='一般')
+		return '<span>一般：<span style="color:#99cc00;">█</span></span>';
+	else
+		return '';
+}
+	var gridOption={
+			colModel:[
+	          {name:"id", index:"id",hidden:true,sortable:false, frozen :true},
+	          {name:"encryptId", index:"id",hidden:true,sortable:false, frozen :true},
+	      	  {name:"operator", index:'id',label:'操作',formatter:operatorFormatter,width:80,frozen:true,sortable:false,align:'center' },
+	      	  {name:"attentionExtent",index:"attentionExtent",label:"关注程度",sortable:true,width:100,formatter:attentionExtentColor,frozen:true},
+	          {name:"placeName-Font",index:"placeName",label:"单位名称",width:200,sortable:true,frozen:true,formatter:nameFont},
+	          {name:"placeName",index:"placeName",label:"单位名称",width:100,sortable:true,frozen:true,hidden:true},
+	          {name:"placeAddress",index:"placeAddress",label:"单位地址",width:200,sortable:true,frozen:true,formatter:placeAddressColorFormatter},
+	          {name:"manager",index:"manager",label:"负责人",sortable:true,width:100,hidden:false},
+	          {name:"stationPolice",index:"stationPolice",label:"所在地派出所名称",sortable:true,width:200},
+	          {name:"totalComputerNum",index:"totalComputerNum",label:"电脑台数",sortable:true,width:80},
+	          
+	          {name:'hasServiceTeamMember', sortable:true, label:'有无治安负责人', width:140,align:'center',formatter:hasServiceTeamMemberFormatter},
+			  {name:'lastRecordTime', sortable:true, label:'最新巡场时间',align:'center', width:140},
+			  {name:'sourcesState',index:'sourcesState',label:"数据来源",sortable:false,hidden:true,formatter:sourceStateFormatter,width:80,align:'center'},
+	          {name:'updateDate', sortable:true, label:'数据更新时间', width:140},
+	          {name:"mobile",index:"mobile",label:"联系方式",width:100,sortable:true,hidden:true},
+	          {name:"netCultureLicenceNo",index:"netCultureLicenceNo",label:"网络文化经营许可证号",sortable:true,width:150,hidden:true},
+	          {name:"netSecurityAuditNo",index:"netSecurityAuditNo",label:"网络安全审核意见书号",sortable:true,width:150,hidden:true},
+	          {name:"fireAuditDocumentNo",index:"fireAuditDocumentNo",label:"消防审核意见书号",sortable:true,width:150,hidden:true},
+	          {name:"netAccessProviders",index:"netAccessProviders",label:"宽带接入服务商",sortable:true,width:110,hidden:true},
+	          {name:"internetAccessType",index:"internetAccessType",label:"接入方式",sortable:true,width:100,hidden:true},
+	          {name:"useIP", index:"useIP", width:200,label:"现使用IP",sortable:true,hidden:true},
+	          {name:"barCode", index:"barCode", width:100,label:"网吧编号",sortable:true,hidden:true},
+	          {name:"operationArea",index:"operationArea",label:"营业面积(<font size='2'>m</font><font size='1'><sup>2</sup></font>)",sortable:true,width:110,hidden:true},
+	          {name:"tempNetCardNum",index:"tempNetCardNum",label:"临时上网卡数量",sortable:true,width:110,hidden:true},
+	          {name:"logOutReason",index:"logOutReason",label:"注销原因",sortable:true,width:100,hidden:true},
+	          {name:"logOutTime",index:"logOutTime",label:"注销时间",sortable:true,width:100,hidden:true,align:'center'},
+	          {name:"isEmphasis",sortable:false,label:"是否关注",hidden:true,hidedlg:true,width:100},
+	          {name:"remark",index:"remark",label:"备注",sortable:true,width:200,hidden:true}
+				]
+			};
+	var dialogWidth=850;
+	var dialogHeight=600;
+
+	function placeAddressColorFormatter(el,options,rowData){
+	if(rowData.placeAddress !=null && rowData.placeAddress !="null"){
+		if(rowData.isEmphasis==true||rowData.isEmphasis=='true'){
+			return "<font color='#778899'>"+rowData.placeAddress+"</font>";
+		}
+		return "<font color='#000'>"+rowData.placeAddress+"</font>";
+	}else{
+		return "";
+	}
+	}
+	function getLocationName(rowData){
+		return rowData.placeName;
+	}
+</script>
+<jsp:include page="/baseinfo/commonPopulation/commonLocationList.jsp">
+	<jsp:param value="InternetBar" name="moduleName"/>
+	<jsp:param value="网吧" name="moduleCName"/>
+	<jsp:param value="治安负责人" name="supervisorPerson"/>
+	<jsp:param value="1" name="isNew"/>
+</jsp:include>
+<div style="display:none;">
+<input type="hidden" id="_locationType_" name="population.populationType" value='<s:property value="@com.tianque.core.util.BaseInfoTables@INTERNETBAR_KEY"/>'/>
+		<input type="hidden" id="_supervisorName_" 									  
+	value='<s:property value="@com.tianque.service.util.ServiceTeamMemberOrRecord@getMemberAlias(@com.tianque.core.util.BaseInfoTables@INTERNETBAR_KEY)" escape="false"/>'/>
+	<input type="hidden" id="_superviceRecordName_" 
+	value='<s:property value="@com.tianque.service.util.ServiceTeamMemberOrRecord@getRecordAlias(@com.tianque.core.util.BaseInfoTables@INTERNETBAR_KEY)" escape="false"/>'/>
+</div>
+

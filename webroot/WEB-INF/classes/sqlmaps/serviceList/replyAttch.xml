@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="replyAttch" >
+  <typeAlias alias="replyAttch" type="com.tianque.serviceList.domain.ReplyAttch" />
+  <resultMap id="replyAttchResult" class="replyAttch">
+    <result column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="path" property="path" jdbcType="VARCHAR" />
+    <result column="replyid" property="replyId" jdbcType="DECIMAL" />
+    <result column="servicetype" property="serviceType" jdbcType="DECIMAL" />
+  </resultMap>
+  <insert id="addReplyAttch" parameterClass="replyAttch" >
+  	<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_replyattch.NEXTVAL as id from dual ]]>
+	</selectKey>
+    insert into replyattch (ID, name, path, replyid, servicetype)
+    values (#id:DECIMAL#, #name:VARCHAR#, #path:VARCHAR#,#replyId:DECIMAL#,#serviceType:DECIMAL#)
+  </insert>
+  
+  <delete id="deleteReplyAttch" parameterClass="java.util.Map" >
+    delete from replyattch
+    where replyid = #id:DECIMAL# and servicetype=#type:DECIMAL#
+  </delete>
+  
+  <select id="getReplyAttchById" resultMap="replyAttchResult" parameterClass="java.lang.Long" >
+    select ID, name, path, replyid, servicetype
+    from replyattch
+    where ID = #id:DECIMAL# 
+  </select>
+  
+  <select id="getReplyAttchByIdAndType" resultMap="replyAttchResult" parameterClass="java.util.Map" >
+    select ID, name, path, replyid, servicetype
+    from replyattch
+    where replyid = #id:DECIMAL# and servicetype=#type:DECIMAL#
+  </select>
+  
+  <delete id="deleteReplyAttchById" parameterClass="java.lang.Long" >
+    delete from replyattch
+    where id = #id:DECIMAL#
+  </delete>
+</sqlMap>

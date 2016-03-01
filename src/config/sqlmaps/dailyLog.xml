@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="dailyLog">
+	<typeAlias alias="DailyLog" type="com.tianque.working.domain.DailyLog" />
+	<parameterMap id="dailyLogParams" class="DailyLog">
+		<parameter property="attendUnit" />
+		<parameter property="createDate" />
+		<parameter property="createUser" />
+		<parameter property="convenor" />
+		<parameter property="dailyDirectory" />
+		<parameter property="dealDate" />
+		<parameter property="dailyYear" />
+		<parameter property="id" />
+		<parameter property="name" />
+		<parameter property="orgInternalCode" />
+		<parameter property="organization" />
+		<parameter property="site" />
+		<parameter property="theme" />
+		<parameter property="remark" />
+		<parameter property="updateDate" />
+		<parameter property="updateUser" />
+		<parameter property="fileNumber" />
+		<parameter property="fileUnit" />
+	</parameterMap>
+	<resultMap id="dailyLogResult" class="DailyLog">
+		<result property="attendUnit" column="attendUnit" />
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="convenor" column="convenor" />
+		<result property="dailyDirectory.id" column="dailyDirectoryId" />
+		<result property="dealDate" column="dealDate" />
+		<result property="dailyYear.id" column="dailyYearId" />
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="organization.id" column="orgid" />
+		<result property="site" column="site" />
+		<result property="theme" column="theme" />
+		<result property="remark" column="remark" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="fileNumber" column="fileNumber" />
+		<result property="fileUnit" column="fileUnit" />
+	</resultMap>
+	<resultMap id="dailyLogResult1" class="DailyLog">
+		<result property="attendUnit" column="workingUnit" />
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		
+		<result property="convenor" column="participant" />
+		
+		<result property="dailyDirectory.id" column="dailyDirectoryId" />
+		<result property="dealDate" column="dealDate" />
+		<result property="dailyYear.id" column="dailyYearId" />
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="organization.id" column="orgId" />
+		<result property="site" column="proceedSite" />
+		<result property="theme" column="subject" />
+		<result property="remark" column="content" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="fileNumber" column="fileNo" />
+		<result property="fileUnit" column="workingUnit" />
+	</resultMap>
+
+	<insert id="addDailyLog" parameterClass="DailyLog">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_DailyLogs.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		DailyLogs(attendUnit,createDate,createUser,convenor,dailyDirectoryId,dealDate,dailyYearId,id,name,orgInternalCode,orgId,site,theme,remark,updateDate,updateUser,fileNumber,fileUnit)
+		VALUES(#attendUnit#,#createDate#,#createUser#,#convenor#,#dailyDirectory.id#,#dealDate#,#dailyYear.id#,#id#,#name#,#orgInternalCode#,#organization.id#,#site#,#theme#,#remark#,#updateDate#,#updateUser#,#fileNumber#,#fileUnit#)
+	</insert>
+	<update id="updateDailyLog" parameterClass="DailyLog">
+		update DailyLogs set
+		<dynamic>
+			id=#id#,convenor=#convenor#,attendUnit=#attendUnit#,site=#site#,theme=#theme#
+			<isNotNull prepend="," property="createDate">
+				createDate=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="createUser">
+				createUser=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="dailyDirectory">
+				dailyDirectoryId=#dailyDirectory.id#
+			</isNotNull>
+			<isNotNull prepend="," property="dealDate">
+				dealDate=#dealDate#
+			</isNotNull>
+			<isNotNull prepend="," property="dailyYear">
+				dailyYearId=#dailyYear.id#
+			</isNotNull>
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgid=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="remark">
+				remark=#remark#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="fileNumber">
+				fileNumber=#fileNumber#
+			</isNotNull>
+			<isNotNull prepend="," property="fileUnit">
+				fileUnit=#fileUnit#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+	<delete id="deleteDailyLogById" parameterClass="java.lang.Long">
+		delete from DailyLogs
+		where id=#value#
+	</delete>
+
+	<delete id="deleteDailyLogByYearId" parameterClass="java.lang.Long">
+		delete from DailyLogs
+		where dailyYearId=#value#
+	</delete>
+
+	<select id="getSimpleDailyLogById" parameterClass="java.lang.Long"
+		resultMap="dailyLogResult">
+	<![CDATA[select * from dailyLogs	 where id=#value#]]>
+	</select>
+	<!--
+	<select id="getSimpleDailyLogById" parameterClass="java.lang.Long"
+		resultMap="dailyLogResult">
+	<![CDATA[select * from DailyLogs	 where id=#value#]]>
+	</select>  
+	-->
+
+	<select id="findDailyLogsByDetailedRuleId" parameterClass="java.lang.Long"
+		resultMap="dailyLogResult1">
+	<![CDATA[select wkr.* from workingrecord wkr,detailedRuleDailyLogRelas relas where relas.detailedRuleId=#value# and wkr.id=relas.dailyLogId]]>
+	</select>
+	<!--  
+	  <select id="findDailyLogsByDetailedRuleId" parameterClass="java.lang.Long"
+		resultMap="dailyLogResult">
+	<![CDATA[select daily.* from DailyLogs daily,detailedRuleDailyLogRelas relas where relas.detailedRuleId=#value# and daily.id=relas.dailyLogId]]>
+	</select>
+	-->
+
+	<sql id="parent_sql_where">
+		from DailyLogs t where
+			t.dailydirectoryid in (select id from dailydirectorys d where d.parentid = #parentDailyDirectoryId#)
+			and t.orgid = #organizationId#
+			<include refid="dynamicWhereSql"/>
+	</sql>
+	<sql id="sql_where">
+		from DailyLogs
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					id=#id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId=#dailyDirectoryId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<include refid="dynamicWhereSql"/>
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_whereNew">
+		from workingrecord
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					id=#id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					dailyDirectoryId=#dailyDirectoryId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<include refid="dynamicWhereSql"/>
+		</dynamic>
+	</sql>
+
+	<sql id="dynamicWhereSql">
+		<isPropertyAvailable property="dealFrom">
+				<isNotNull property="dealFrom" prepend=" and ">
+					<![CDATA[dealDate>=#dealFrom#]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dealTo">
+				<isNotNull property="dealTo" prepend=" and ">
+					<![CDATA[dealDate<=#dealTo#]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="organizationId">
+				<isNotNull property="organizationId" prepend=" and ">
+					orgId=#organizationId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+	</sql>
+
+	<select id="findDailyLogs" parameterClass="java.util.Map" resultMap="dailyLogResult1">
+		<include refid="common.sql_select" />
+		<include refid="sql_whereNew" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countDailyLogs" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="findSubmitedAreaOrgIdsByUpdatedate" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select d.orgId from dailylogs d 
+    		where to_char(d.dealdate,'yyyy-mm')=#updatedate# and d.remark='已上报' and d.theme='治安重点整治'
+	</select>
+	<select id="findParentDailyLogs" parameterClass="java.util.Map" resultMap="dailyLogResult">
+		<include refid="common.sql_select" />
+		<include refid="parent_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countParentDailyLogs" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="parent_sql_where" />
+	</select>
+
+	<select id="countExsistedDailyLogByDirectoryId" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		from dailyLogs where DAILYDIRECTORYID = #value#
+	</select>
+</sqlMap>

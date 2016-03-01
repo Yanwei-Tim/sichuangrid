@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="CompanyPlaceAnnex">
+	<typeAlias alias="companyPlaceAnnex" type="com.tianque.baseInfo.companyPlace.domain.CompanyPlaceAnnex" />
+	<typeAlias alias="businessId" type="com.tianque.baseInfo.companyPlace.domain.CompanyPlaceBusiness" />
+	<resultMap class="companyPlaceAnnex" id="companyPlaceAnnex_ResultMap">
+	    <result column="ID"  property="id" />
+	    <result column="BUSINESSID" property="businessId.id" />
+	    <result column="fileName"  property="fileName" />
+	    <result column="annexAddress"  property="annexAddress" />
+	    <result column="CREATEUSER" property="createUser" />
+	    <result column="UPDATEUSER"  property="updateUser" />
+	    <result column="CREATEDATE"  property="createDate" />
+	    <result column="UPDATEDATE"  property="updateDate" />
+  	</resultMap>
+  	
+  	<insert id="addCompanyPlaceAnnex" parameterClass="companyPlaceAnnex">
+  		<selectKey resultClass="java.lang.Long" keyProperty="id">
+    	<![CDATA[ SELECT s_CompanyPlaceAnnex.NEXTVAL AS id FROM dual ]]>
+		</selectKey>
+		<![CDATA[ insert into CompanyPlaceAnnex
+		(id,BUSINESSID,FILENAME,ANNEXADDRESS,createUser,UPDATEUSER,createDate,UPDATEDATE)
+		values
+		(#id#,#businessId.id#,#fileName#,#annexAddress#,#createUser#,#updateUser#,#createDate#,#updateDate#) ]]>
+  	</insert>
+  	
+  	<select id="getCompanyPlaceAnnex" resultMap="companyPlaceAnnex_ResultMap"  parameterClass="java.lang.Long">
+  		select * from CompanyPlaceAnnex where id = #value#
+  	</select>
+  	
+  	<select id="queryCompanyPlaceAnnexByBusinessForList" resultMap="companyPlaceAnnex_ResultMap"  parameterClass="java.lang.Long">
+  		select * from CompanyPlaceAnnex where BUSINESSID = #value#
+  	</select>
+  	
+  	<delete id="deleteCompanyPlaceAnnex" parameterClass="java.lang.Long">
+  		delete from CompanyPlaceAnnex  where id = #value#
+  	</delete>
+  	
+  	<delete id="deleteCompanyPlaceAnnexForBusinessId" parameterClass="java.lang.Long">
+  		delete from CompanyPlaceAnnex  where BUSINESSID = #value#
+  	</delete>
+  	
+  	<update id="updateCompanyPlaceAnnex" parameterClass="companyPlaceAnnex">
+  		update CompanyPlaceAnnex ca set ca.id=#id#
+  		<isNotEmpty prepend="," property="BUSINESSID">
+  			ca.BUSINESSID = #businessId.id#
+  		</isNotEmpty>
+  		<isNotEmpty prepend="," property="fileName">
+  			ca.fileName = #fileName#
+  		</isNotEmpty>
+  		<isNotEmpty prepend="," property="annexAddress">
+  			cb.ANNEXADDRESS = #annexAddress#
+  		</isNotEmpty>
+  		where ca.id=#id#
+  	</update>  	
+</sqlMap>

@@ -1,0 +1,29 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib uri="/struts-tags" prefix="s"%>
+<%@ taglib uri="/PopGrid-taglib" prefix="pop"%>
+<%@ include file="/includes/baseInclude.jsp" %>
+<div id=tabs>
+	<ul>
+		<li id="skynet"><a href="${path}/skynetManage/dispatchByEncrypt.action?mode=${param.mode}&skynet.id=${param.id}">基本信息</a></li>
+		<li id="bayonet"><a href="${path}/bayonetManage/dispatchByEncrypt.action?mode=${param.mode}&bayonet.id=${param.id}">基本信息</a></li>
+		<li id="snapshotSystem"><a href="${path}/snapshotSystemManage/dispatchByEncrypt.action?mode=${param.mode}&snapshotSystem.id=${param.id}">基本信息</a></li>
+	</ul>
+</div>
+<script>
+var publicSecurityType="${param.publicSecurityType }";
+var mode="${param.mode }";
+$(function() {
+	if(publicSecurityType=="<s:property value='@com.tianque.publicSecurity.constant.PublicSecurityType@SKYNET'/>"){
+		$("#tabs #bayonet,#snapshotSystem").remove();
+	}
+	if(publicSecurityType=="<s:property value='@com.tianque.publicSecurity.constant.PublicSecurityType@BAYONET'/>"){
+		$("#tabs #skynet,#snapshotSystem").remove();
+	}
+	if(publicSecurityType=="<s:property value='@com.tianque.publicSecurity.constant.PublicSecurityType@SNAPSHOTSYSTEM'/>"){
+		$("#tabs #skynet,#bayonet").remove();
+	}
+	$("#tabs").tabs({cache:true,select:0});
+	
+});
+</script>

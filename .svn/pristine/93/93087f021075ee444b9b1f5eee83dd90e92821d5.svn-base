@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="incidentsAction" extends="default"
+		namespace="/incident/emergencyDisposal">
+		<default-class-ref class="incidentController"></default-class-ref>
+
+		<action name="maintainHandleWarning" method="maintainHandleWarning">
+			<result name="success" type="json">
+				<param name="root">incidents</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="findPlansSubdivisionBySubjection" method="findPlansSubdivisionBySubjection">
+			<result name="success" type="json">
+				<param name="root">incidentTypes</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="dispatchOperate" method="dispatchOperate">
+			<result name="success">
+				/incident/emergencyDisposal/right/earlyWarningDialog.jsp
+			</result>
+			<result name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="loadCaseLibraryList" method="loadCaseLibraryList">
+			<result name="success">
+				/incident/emergencyDisposal/right/caseLibraryContnet.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="loadCaseLibrary" method="loadCaseLibrary">
+			<result name="success">
+				/incident/emergencyDisposal/right/caselibraryDetail.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="incidentsListPage" method="incidentsListPage">
+			<result name="success">
+				/incident/emergencyDisposal/left/incidentDegree.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="caseLibraryDetail" method="caseLibraryDetail">
+			<result name="success">
+				/incident/emergencyDisposal/right/caseLibraryContnet.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		 <action name="findWarningIncidentsList" method="findIncidentsList">
+			<result name="success">
+				/incident/emergencyDisposal/left/earlyWarning.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findHandleIncidentsList" method="findIncidentsList">
+			<result name="success">
+				/incident/emergencyDisposal/left/handle.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="caseLibIndex" method="caseLibIndex">
+			<result name="success">
+				/incident/caselibIndex.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findCaseIncidentsList" method="findIncidentsList">
+			<result name="success">
+				/incident/emergencyDisposal/left/caseLibrary.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findCaseLibraryList" method="findIncidentsList">
+			<result name="success">
+				/incident/emergencyDisposal/right/caseLibraryContnet.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findIncidentStepFeedbacks" method="findIncidentStepFeedbacks">
+			<result name="success">
+				/incident/emergencyDisposal/right/callBackContentDialog.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findEarlyWarningContnet" method="findEarlyWarningContnet">
+			<result name="success">
+				/incident/emergencyDisposal/right/earlyWarningContnet.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findHandleContent" method="findHandleContent">
+			<result name="success">
+				/incident/emergencyDisposal/right/handleContent.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findIncidentStepList" method="findIncidentStepList">
+			<result name="success" type="json">
+				<param name="root">incidentStepList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findIncidentStep" method="findIncidentStep">
+			<result name="success" type="json">
+				<param name="root">incidentSteps</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="editView">
+				/incident/emergencyDisposal/right/editActualContent.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="handleWarning" method="handleWarning">
+			<result name="success" type="json">
+				<param name="root">incidents</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="cancelWarning" method="cancelWarning">
+			<result name="success" type="json">
+				<param name="root">incidents</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="editIncidentstep" method="editIncidentstep">
+			<result name="success" type="json">
+				<param name="root">incidentSteps</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="editIncidentStepFeedbacks" method="editIncidentStepFeedbacks">
+			<result name="success" type="json">
+				<param name="root">incidentStepFeedbacks</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

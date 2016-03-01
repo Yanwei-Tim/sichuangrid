@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="examineScores">
+	<typeAlias alias="ExamineScores" type="com.tianque.domain.ExamineScores" />
+
+	<resultMap id="examineScoresResult" class="ExamineScores">
+		<result property="id" column="id" />
+		<result property="year" column="year" />
+		<result property="annualActualScore" column="annualActualScore" />
+		<result property="annualMaxScore" column="annualMaxScore" />
+		<result property="org.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="plan.id" column="planId" />
+	</resultMap>
+
+	<insert id="addExamineScores" parameterClass="ExamineScores">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_ExamineScores.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		ExamineScores(id,year,annualActualScore,annualMaxScore,orgId,orgInternalCode,planId)
+		VALUES(#id#,#year#,#annualActualScore#,#annualMaxScore#,#org.id#,#orgInternalCode#,#plan.id#)
+	</insert>
+
+	<select id="getSimpleExamineScoresById" parameterClass="java.lang.Long"
+		resultMap="examineScoresResult">
+		<![CDATA[
+		select * from ExamineScores where id=#value#
+		]]>
+	</select>
+
+	<select id="countExsistedExamineScoresByOrgIdAndYear"
+		parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from ExamineScores where orgId=#orgId# and year like #year#||'%'
+		]]>
+	</select>
+
+	<delete id="deleteExamineScoresById" parameterClass="java.lang.Long">
+		<![CDATA[
+		delete from ExamineScores where id=#value#
+		]]>
+	</delete>
+
+	<update id="updateExamineScores" parameterClass="ExamineScores">
+		update ExamineScores set
+		<dynamic>
+			year=#year#,
+			annualActualScore=#annualActualScore#,
+			annualMaxScore=#annualMaxScore#,
+			orgId=#org.id#,
+			orgInternalCode=#orgInternalCode#,
+			planId=#plan.id#
+		</dynamic>
+	</update>
+
+	<select id="countExamineScoresForPageByOrgInternalCode"
+		parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from ExamineScores where orgInternalCode like #orgInternalCode#||'%' 
+		and orgInternalCode <> #filterOrgInternalCode#
+		]]>
+	</select>
+
+	<select id="findExamineScoresForPageByOrgInternalCode"
+		parameterClass="java.util.Map" resultMap="examineScoresResult">
+		<![CDATA[
+		select * from ExamineScores where orgInternalCode like #orgInternalCode#||'%' 
+		and orgInternalCode <> #filterOrgInternalCode#
+		]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>

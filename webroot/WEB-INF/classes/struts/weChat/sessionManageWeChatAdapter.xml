@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="sessionManageWeChatManage" extends="default"
+		namespace="/weChat/sessionManageMobileManage">
+		<default-class-ref class="sessionManageMobileAdapter"></default-class-ref>
+		
+		<action name="findPermissionList" method="findPermissionList">
+			<result name="success" type="json">
+				<param name="root">permissionList</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		
+		<action name="login" method="login">
+			<result name="loginSuccess" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="firstLogin" type="json">
+				<param name="root">reset</param>
+			</result>
+		</action>
+		<action name="updatePassword" method="updatePassword">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+		</action>
+	</package>
+</struts>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="unsettledPopulationTemp">
+	<typeAlias alias="UnsettledPopulationTemp" type="com.tianque.plugin.dataManage.population.unsettledPopulationTemp.domain.UnsettledPopulationTemp"/>
+	  <typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+	  
+	  <resultMap id="unsettledPopulationTempResultForBase" class="UnsettledPopulationTemp" extends="populationTempBaseInfo.populationBaseInfoResult">
+		<result property="certificateType.id" column="certificateType" />
+		<result property="certificateNo" column="certificateNo" />
+		<result property="unSettedTime" column="unSettedTime" />
+		<result property="unSettedReason.id" column="unSettedReason" />
+	</resultMap>
+    <resultMap id="unsettledPopulationTempResultForList" class="UnsettledPopulationTemp" extends="unsettledPopulationTemp.unsettledPopulationTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+
+	<insert id="addUnsettledPopulationTemp" parameterClass="UnsettledPopulationTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_DM_unsettledPopulations_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_unsettledPopulations_Temp 
+		(
+			<include refid="populationTempBaseInfo.addBaseInfoFields"/>
+			,<include refid="dataManage.addDataManage"/>
+		,certificateType,certificateNo,unSettedTime,unSettedReason
+		)
+		values 
+		(
+			<include refid="populationTempBaseInfo.addBaseInfoData"/>
+			,<include refid="dataManage.addValueDataManage"/>
+			,#certificateType.id#,#certificateNo#,#unSettedTime#,#unSettedReason.id#
+		)
+    </insert>
+      
+	<select id="getUnsettledPopulationTempById" parameterClass="Long"
+		resultMap="unsettledPopulationTempResultForList">
+	  <![CDATA[
+	  	select * from DM_unsettledPopulations_Temp where id = #value#
+	  ]]>
+	</select>
+	
+	
+	<sql id="claim_sql_where">
+		from DM_unsettledPopulations_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	<!-- 新写内容 -->
+	<select id="countFindTemps" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	<select id="findTemps" resultMap="unsettledPopulationTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<delete id="deleteUnsettledPopulationTempById" parameterClass="Long">
+	   delete DM_unsettledPopulations_Temp where id = #value#
+	</delete>
+	<sql id="updateBusinessSql">
+		certificateType = #certificateType.id#
+		,certificateNo = #certificateNo#
+		,unSettedTime = #unSettedTime#
+		,unSettedReason = #unSettedReason.id#
+	</sql>
+	<update id="updateUnsettledPopulationTemp" parameterClass="UnsettledPopulationTemp">
+		update DM_unsettledPopulations_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		,<include refid="unsettledPopulationTemp.updateBusinessSql" />
+		where id=#id#
+	</update>
+	<update id="updateUnsettledPopulationTempBase" parameterClass="UnsettledPopulationTemp">
+		update DM_unsettledPopulations_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updateUnsettledPopulationTempBusiness" parameterClass="UnsettledPopulationTemp">
+		update DM_unsettledPopulations_Temp set
+		<include refid="unsettledPopulationTemp.updateBusinessSql" />
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updateUnsettledPopulationTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_unsettledPopulations_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+</sqlMap>

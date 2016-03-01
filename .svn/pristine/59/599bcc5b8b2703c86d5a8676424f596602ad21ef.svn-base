@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		SENDTIME as sendTime ,
+		RECEIVETIME as receiveTime ,
+		RECEIVERMOBILE as receiverMobile ,
+		SENDER as sender ,
+		RECEIVERORGID as receiverOrgId ,
+		STATUS as status ,
+		RECEIVERORGINTERNALCODE as receiverOrgInternalCode ,
+		SENDERNAME as senderName ,
+		RECEIVERNAME as receiverName ,
+		CONTENT as content 
+	FROM SMSDOWNLINK	
+ -->	
+<sqlMap namespace="smsdownlink">	
+	
+	<typeAlias alias="Smsdownlink" type="com.tianque.sms.domain.Smsdownlink"/>
+	<typeAlias alias="SearchSmsdownlinkVo" type="com.tianque.sms.domain.vo.SearchSmsdownlinkVo" />
+	
+	<resultMap id="smsdownlinkResult" class="Smsdownlink">
+		<result property="id" column="ID"/>
+		<result property="sendTime" column="SENDTIME"/>
+		<result property="receiveTime" column="RECEIVETIME"/>
+		<result property="receiverMobile" column="RECEIVERMOBILE"/>
+		<result property="sender" column="SENDER"/>
+		<result property="receiverOrgId" column="RECEIVERORGID"/>
+		<result property="status" column="STATUS"/>
+		<result property="receiverOrgInternalCode" column="RECEIVERORGINTERNALCODE"/>
+		<result property="senderName" column="SENDERNAME"/>
+		<result property="receiverName" column="RECEIVERNAME"/>
+		<result property="content" column="CONTENT"/>
+		<result property="isRead" column="ISREAD"/>
+	</resultMap>
+	
+	<resultMap id="downlinkResult" class="Smsdownlink">
+		<result property="sender" column="SENDER"/>
+	</resultMap>
+
+	<resultMap id="contentResult" class="Smsdownlink">
+		<result property="sender" column="SENDER"/>
+		<result property="receiverMobile" column="RECEIVERMOBILE"/>
+		<result property="content" column="CONTENT"/>
+		<result property="sendTime" column="SENDTIME"/>
+		<result property="status" column="STATUS"/>
+	</resultMap>
+
+	<select id="getSmsdownlinkById" parameterClass="java.lang.Long" resultMap="smsdownlinkResult">
+		select * from SMSDOWNLINK where id=#value#
+	</select>
+	
+	<insert id="addSmsdownlink" parameterClass="Smsdownlink">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_SMSDOWNLINK.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into SMSDOWNLINK (ID , SENDTIME , RECEIVETIME , RECEIVERMOBILE , SENDER , RECEIVERORGID , STATUS , RECEIVERORGINTERNALCODE , SENDERNAME , RECEIVERNAME , CONTENT ) 
+		values(#id#, #sendTime#, #receiveTime#, #receiverMobile#, #sender#, #receiverOrgId#, #status#, #receiverOrgInternalCode#, #senderName#, #receiverName#, #content#)	
+	</insert>
+	
+	<update id="updateSmsdownlink" parameterClass="Smsdownlink">
+		update SMSDOWNLINK set id = #id# 
+				<isNotNull prepend="," property="sendTime">
+					SENDTIME = #sendTime#
+				</isNotNull>
+				<isNotNull prepend="," property="receiveTime">
+					RECEIVETIME = #receiveTime#
+				</isNotNull>
+				<isNotNull prepend="," property="receiverMobile">
+					RECEIVERMOBILE = #receiverMobile#
+				</isNotNull>
+				<isNotNull prepend="," property="sender">
+					SENDER = #sender#
+				</isNotNull>
+				<isNotNull prepend="," property="receiverOrgId">
+					RECEIVERORGID = #receiverOrgId#
+				</isNotNull>
+				<isNotNull prepend="," property="status">
+					STATUS = #status#
+				</isNotNull>
+				<isNotNull prepend="," property="receiverOrgInternalCode">
+					RECEIVERORGINTERNALCODE = #receiverOrgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="senderName">
+					SENDERNAME = #senderName#
+				</isNotNull>
+				<isNotNull prepend="," property="receiverName">
+					RECEIVERNAME = #receiverName#
+				</isNotNull>
+				<isNotNull prepend="," property="content">
+					CONTENT = #content#
+				</isNotNull>
+				<isNotNull prepend="," property="isRead">
+					ISREAD = #isRead#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<update id="updateSmsDownLinkBySender" parameterClass="map">
+		update SMSDOWNLINK set ISREAD = #isRead# 
+		where SENDER = #sender#
+	</update>
+	
+	<delete id="deleteSmsdownlinkById" parameterClass="java.lang.Long">	
+		delete  from SMSDOWNLINK where id = #value#	
+	</delete>
+	
+	<sql id="findSmsdownlinksBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="maxSendTime">
+					<isNotEmpty prepend="and" property="maxSendTime">
+						SENDTIME  <![CDATA[<=]]> #maxSendTime#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minSendTime">
+					<isNotEmpty prepend="and" property="minSendTime">
+						SENDTIME  <![CDATA[>=]]> #minSendTime#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="maxReceiveTime">
+					<isNotEmpty prepend="and" property="maxReceiveTime">
+						RECEIVETIME  <![CDATA[<=]]> #maxReceiveTime#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minReceiveTime">
+					<isNotEmpty prepend="and" property="minReceiveTime">
+						RECEIVETIME  <![CDATA[>=]]> #minReceiveTime#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="receiverMobile">
+					<isNotEmpty prepend="and" property="receiverMobile">
+						RECEIVERMOBILE  like #receiverMobile# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="sender">
+					<isNotEmpty prepend="and" property="sender">
+						SENDER = #sender#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="receiverOrgId">
+					<isNotEmpty prepend="and" property="receiverOrgId">
+						RECEIVERORGID = #receiverOrgId#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="status">
+					<isNotEmpty prepend="and" property="status">
+						STATUS = #status#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="receiverOrgInternalCode">
+					<isNotEmpty prepend="and" property="receiverOrgInternalCode">
+						RECEIVERORGINTERNALCODE  like #receiverOrgInternalCode# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="senderName">
+					<isNotEmpty prepend="and" property="senderName">
+						SENDERNAME  like #senderName# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="receiverName">
+					<isNotEmpty prepend="and" property="receiverName">
+						RECEIVERNAME  like #receiverName# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="content">
+					<isNotEmpty prepend="and" property="content">
+						CONTENT  like #content# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>
+				
+				and deleteStatus = 0 				
+		</dynamic>
+	</sql>
+	<select id="findSmsdownlinksBySearchVo" parameterClass="SearchSmsdownlinkVo" resultMap="smsdownlinkResult">
+		select * from SMSDOWNLINK 
+		<include refid="findSmsdownlinksBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countSmsdownlinksBySearchVo" parameterClass="SearchSmsdownlinkVo" resultClass="java.lang.Integer">
+		select count(0) from SMSDOWNLINK where deleteStatus = 0
+		<include refid="findSmsdownlinksBySearchVo_sql_where" />
+	</select>
+	
+	<insert id="addSmsdownlinkBigId" parameterClass="java.lang.Long">	
+		insert into smsdownlinkBigId (bigId) values (#value#)
+	</insert>
+	
+	<update id="updateSmsdownlinkBigId" parameterClass="java.lang.Long">	
+		update smsdownlinkBigId set bigId = #value# 
+	</update>
+	
+	<select id="getSmsdownlinkBigId" resultClass="java.lang.Long" >
+		select * from smsdownlinkBigId 
+	</select>
+	
+	<select id="findSmsdownlinkBySender" parameterClass="java.util.Map"  resultMap="smsdownlinkResult">
+			select * from smsdownlink s where exists ( select 0 from (
+			 	select max(id) as id from smsdownlink  S where s.sender is not null and s.deleteStatus = 0  group by s.sender) a where a.id = s.id
+			 )  and isread like #isRead#||'%' and s.sender  like #sender# || '%' and s.deleteStatus = 0 
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">s.$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable> 
+		</dynamic>
+	</select>
+	
+	<select id="countSmsdownlinkBySender" parameterClass="String" resultClass="java.lang.Integer" >
+		select count(*) from smsdownlink s where exists ( select 0 from (
+			 	select max(id) as id from smsdownlink  S where s.sender is not null and s.deleteStatus = 0 group by s.sender) a where a.id = s.id
+			 ) and isread like #isRead#||'%' and s.sender  like #sender# || '%' and s.deleteStatus = 0 
+	</select>
+	
+	<select id="getSmsdownlinkBySender" parameterClass="String"  resultMap="smsdownlinkResult" >
+		select * from  smsdownlink  s  where s.sender like #sender# || '%' order  and s.deleteStatus = 0  by s.sendtime desc
+	</select>
+	
+	<select id="getSmsContentByPhone" parameterClass="String"  resultMap="contentResult" >
+		select * from  (  select s.content ,s.sender,s.sendtime,s.receivermobile,s.status from smsdownlink s where s.sender=#phone# and s.deleteStatus = 0 
+     		union
+     	select s.content ,s.sender,s.sendtime,s.receivermobile,s.status from smsuplink s where s.receivermobile=#phone#  and s.deleteStatus = 0 ) t order by t.sendtime asc
+	</select>
+	
+	<update id="updateRestoreDeleteStatusById" parameterClass="java.lang.Long" >
+		update smsdownlink set deleteStatus = 0 where id = #value#
+	</update>
+	
+	<update id="updateDeleteStatusByIds" parameterClass="java.lang.String" >
+		update smsdownlink set deleteStatus = 1 where id in ($id$)
+	</update>
+	
+	<update id="updateDeleteStatusSmsdownlinkBySender" parameterClass="String">
+		update smsdownlink set deleteStatus = 1 where sender = #value#	
+	</update>
+	
+</sqlMap>

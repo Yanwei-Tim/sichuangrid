@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<!--当前所有属性(方便查看)：区域联建情况	
+	SELECT 	
+		ID as id ,
+		ORGID as orgId ,
+		ORGINTERNALCODE as orgInternalCode ,
+		SERVICEITEM as serviceItem ,
+		ADVANCEMENTINFO as advancementInfo ,
+		ISATTACHMENT as isAttachment ,
+		CREATEUSER as createUser ,
+		CREATEDATE as createDate ,
+		UPDATEUSER as updateUser ,
+		UPDATEDATE as updateDate 
+	FROM regionalBuildInfos	
+	
+select
+  ID as id,                    
+  regionalBuildInfoId as regionalBuildInfoId ,
+  FILENAME	as	fileName  	, 
+  FILEACTUALURL as	fileActualUrl,  
+  CREATEUSER as createUser ,
+  CREATEDATE as createDate ,
+  UPDATEUSER as updateUser ,
+  UPDATEDATE as updateDate  
+  from regionalBuildInfoAttachFiles      
+	
+	区域联建情况认领表
+select 
+ ID as id,                    
+  regionalBuildInfoId as regionalBuildInfoId ,
+  claimDepartment as claimDepartment
+  claimDate	as claimDate,
+  CREATEUSER as createUser ,
+  CREATEDATE as createDate ,
+  UPDATEUSER as updateUser ,
+  UPDATEDATE as updateDate  
+  
+  from claimRegionalBuildInfos         
+ -->	
+<sqlMap namespace="regionalBuildInfo">
+	<typeAlias alias="RegionalBuildInfo" type="com.tianque.partyBuilding.organizations.domain.RegionalBuildInfo" />
+	<typeAlias alias="RegionalBuildInfoAttachFile" type="com.tianque.partyBuilding.organizations.domain.RegionalBuildInfoAttachFile" />
+	<typeAlias alias="ClaimRegionalBuildInfo" type="com.tianque.partyBuilding.organizations.domain.ClaimRegionalBuildInfo" />
+	<typeAlias alias="RegionalBuildInfoVo" type="com.tianque.partyBuilding.organizations.domain.vo.RegionalBuildInfoVo" />
+	<resultMap class="RegionalBuildInfo" id="regionalBuildInfoResult">
+		<result property="id" column="ID"/>
+		<result property="organization.id" column="ORGID"/>
+		<result property="organization.orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="serviceItem" column="SERVICEITEM"/>
+		<result property="advancementInfo" column="ADVANCEMENTINFO"/>
+		<result property="isAttachment" column="ISATTACHMENT"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+	</resultMap>
+	
+	<!-- 区域联建情况对应的附件-->
+	<resultMap class="RegionalBuildInfoAttachFile" id="regionalBuildInfoAttachFilesResult">
+	    <result property="id" column="id"/>
+	    <result property="regionalBuildInfoId" column="regionalBuildInfoId"/>
+	    <result property="fileName" column="fileName" />
+	    <result property="fileActualUrl" column="fileActualUrl"/>
+	    <result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+  	</resultMap>
+  	
+  	<!--区域联建情况认领表  -->
+  	<resultMap class="ClaimRegionalBuildInfo" id="claimRegionalBuildInfoResult">
+	    <result property="id" column="id"/>
+	    <result property="regionalBuildInfoId" column="regionalBuildInfoId"/>
+	    <result property="claimDepartment" column="claimDepartment" />
+	    <result property="claimDate" column="claimDate"/>
+	    <result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+  	</resultMap>
+  	
+  	<!-- 新增区域联建情况 -->
+  	<insert id="addRegionalBuildInfo" parameterClass="RegionalBuildInfo">
+  		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_regionalBuildInfos.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into regionalBuildInfos 
+		(ID,ORGID,ORGINTERNALCODE,SERVICEITEM,ADVANCEMENTINFO,ISATTACHMENT,CREATEUSER,UPDATEUSER,CREATEDATE,UPDATEDATE) 
+		values(#id#,#organization.id#,#organization.orgInternalCode#,#serviceItem#,#advancementInfo#,#isAttachment#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+  	</insert>
+  	<!-- 新增区域联建情况附件 -->
+  	<insert id="addRegionalBuildInfoAttachFile" parameterClass="RegionalBuildInfoAttachFile">
+  		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_regionalBuildInfoAttachFiles.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into regionalBuildInfoAttachFiles 
+		(id,regionalBuildInfoId,fileName,fileActualUrl,createUser,createDate,updateDate,updateUser) 
+     	VALUES(#id#,#regionalBuildInfoId#,#fileName#,#fileActualUrl#,#createUser#,#createDate#,#updateDate#,#updateUser#)
+  	</insert>
+  	<!-- 新增区域联建情况认领 -->
+  	<insert id="addClaimRegionalBuildInfo" parameterClass="ClaimRegionalBuildInfo">
+  		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_claimRegionalBuildInfos.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into claimRegionalBuildInfos 
+		(id,regionalBuildInfoId,claimDepartment,claimDate,createUser,createDate,updateDate,updateUser) 
+     	VALUES(#id#,#regionalBuildInfoId#,#claimDepartment#,#claimDate#,#createUser#,#createDate#,#updateDate#,#updateUser#)
+  	</insert>
+  	
+  	<!-- where 条件 -->
+  	<sql id="search_sql_where">
+  		from regionalBuildInfos rbi
+  		 <dynamic prepend="WHERE">
+ 			<isPropertyAvailable property="organization">
+				<isNotNull property="organization.id" prepend="and">
+						rbi.orgId = #organization.id#
+				</isNotNull>
+			</isPropertyAvailable>
+ 			<isPropertyAvailable property="organization">
+				<isNotNull property="organization.orgInternalCode" prepend="and">
+						rbi.orgInternalCode like  #organization.orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="advancementInfo">
+				<isNotEmpty property="advancementInfo" prepend="and">
+					rbi.advancementInfo like #advancementInfo#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="serviceItem">
+				<isNotEmpty property="serviceItem" prepend="and">
+					rbi.serviceItem like #serviceItem#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+  	</sql>
+  	
+  	<!-- 根据条件统计区域联建情况总数 -->
+  	<select id="countRegionalBuildInfo" parameterClass="RegionalBuildInfoVo" resultClass="java.lang.Integer">
+		select count(*)
+		<include refid="search_sql_where" />
+	</select>
+
+	<!-- 根据条件查询区域联建情况 -->
+  	<select id="getRegionalBuildInfoBySearchVo" parameterClass="RegionalBuildInfoVo" resultMap="regionalBuildInfoResult">
+  		select 
+  			ID,
+  			ORGID,
+  			ORGINTERNALCODE,
+  			SERVICEITEM,
+  			ADVANCEMENTINFO,
+  			ISATTACHMENT,
+  			CREATEUSER,
+  			UPDATEUSER,
+  			CREATEDATE,
+  			UPDATEDATE
+  		<include refid="search_sql_where" />
+  		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+  	</select>
+  	
+  	<!--根据区域联建情况id查询该区域联建情况的附件  -->
+  	<select id="getRegionalBuildInfoAttachFileByRegionalBuildInfoId" parameterClass="java.lang.Long" resultMap="regionalBuildInfoAttachFilesResult">
+  		<![CDATA[ select *  from regionalBuildInfoAttachFiles where regionalBuildInfoId = #value#]]>
+  	</select>
+  	<!-- 根据区域联建情况统计认领情况数 -->
+  	<select id="countClaimRegionalBuildInfo" parameterClass="map" resultClass="java.lang.Integer">
+  		<![CDATA[ select count(*)  from claimRegionalBuildInfos where regionalBuildInfoId = #regionalBuildInfoId#]]>
+  	</select>
+  	<!--根据区域联建情况id查询该区域联建情况的认领信息  -->
+  	<select id="getClaimRegionalBuildInfoByRegionalBuildInfoId" parameterClass="map" resultMap="claimRegionalBuildInfoResult">
+  		<![CDATA[ select *  from claimRegionalBuildInfos where regionalBuildInfoId = #regionalBuildInfoId#]]>
+  		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+  	</select>
+  	
+  	<!--根据区域联建情况id查区域联建情况  -->
+  	<select id="getRegionalBuildInfoById" parameterClass="java.lang.Long" resultMap="regionalBuildInfoResult">
+  		<![CDATA[ select *  from regionalBuildInfos where id = #value#]]>
+  	</select>
+  	
+  	<!--根据id查询附件 -->
+  	<select id="getRegionalBuildInfoAttachFileById" parameterClass="java.lang.Long" resultMap="regionalBuildInfoAttachFilesResult">
+  		<![CDATA[ select *  from regionalBuildInfoAttachFiles where id = #value#]]>
+  	</select>
+  	
+  	<!--根据id查询认领情况 -->
+  	<select id="getClaimRegionalBuildInfoById" parameterClass="java.lang.Long" resultMap="claimRegionalBuildInfoResult">
+  		<![CDATA[ select *  from claimRegionalBuildInfos where id = #value#]]>
+  	</select>
+  	
+  	<!-- 修改认领情况 -->
+  	<update id="updateClaimRegionalBuildInfo" parameterClass="ClaimRegionalBuildInfo">
+  		update claimRegionalBuildInfos set id=#id#
+  		<isPropertyAvailable property="claimDepartment">
+  			<isNotEmpty  property="claimDepartment" prepend=",">
+				claimDepartment=#claimDepartment#
+			</isNotEmpty>
+  		</isPropertyAvailable>
+  		<isPropertyAvailable property="claimDate">
+  			<isNotEmpty  property="claimDate" prepend=",">
+				claimDate=#claimDate#
+			</isNotEmpty>
+  		</isPropertyAvailable>
+  		<isPropertyAvailable property="updateUser">
+  			<isNotEmpty  property="updateUser" prepend=",">
+				updateUser=#updateUser#
+			</isNotEmpty>
+  		</isPropertyAvailable>
+  		<isPropertyAvailable property="updateDate">
+  			<isNotNull  property="updateDate" prepend=",">
+				updateDate=#updateDate#
+			</isNotNull>
+  		</isPropertyAvailable>
+  		where id=#id#
+  	</update>
+  	
+  	<!--修改区域联建情况  -->
+  	<update id="updateRegionalBuildInfo" parameterClass="RegionalBuildInfo">
+  		update regionalBuildInfos set id=#id#
+  		<isPropertyAvailable property="organization">
+  			<isNotNull  property="organization.id" prepend=",">
+				ORGID=#organization.id#
+			</isNotNull>
+  		</isPropertyAvailable>
+  		<isPropertyAvailable property="organization">
+			<isNotNull  property="organization.orgInternalCode" prepend=",">
+				ORGINTERNALCODE=#organization.orgInternalCode#
+			</isNotNull>
+  		</isPropertyAvailable>
+  		<isPropertyAvailable property="serviceItem">
+  			<isNotEmpty property="serviceItem" prepend=",">
+  				serviceItem=#serviceItem#
+  			</isNotEmpty>
+  		</isPropertyAvailable>
+  		<isPropertyAvailable property="advancementInfo">
+  			<isNotEmpty property="advancementInfo" prepend=",">
+  				advancementInfo=#advancementInfo#
+  			</isNotEmpty>
+  		</isPropertyAvailable>
+  		<isPropertyAvailable property="isAttachment">
+  			<isNotNull property="isAttachment" prepend=",">
+  				isAttachment=#isAttachment#
+  			</isNotNull>
+  		</isPropertyAvailable>
+  			<isPropertyAvailable property="updateUser">
+  			<isNotEmpty  property="updateUser" prepend=",">
+				updateUser=#updateUser#
+			</isNotEmpty>
+  		</isPropertyAvailable>
+  		<isPropertyAvailable property="updateDate">
+  			<isNotNull  property="updateDate" prepend=",">
+				updateDate=#updateDate#
+			</isNotNull>
+  		</isPropertyAvailable>
+  		where id=#id#
+  	</update>
+  	
+  	
+  	<!--删除区域联建情况deleteRegionalBuildInfo  -->
+  	<delete id="deleteRegionalBuildInfo" parameterClass="java.lang.Long">
+  		<![CDATA[ delete from regionalBuildInfos where id = #value#]]>
+  	</delete>
+  	
+  	<!--根据区域联建情况id删除区域联建情况附件  -->
+  	<delete id="deleteRegionalBuildInfoAttachFileByRegionalBuildInfoId" parameterClass="java.lang.Long">
+  		<![CDATA[ delete from regionalBuildInfoAttachFiles where regionalBuildInfoId = #value#]]>
+  	</delete>
+  	
+  	<!--根据区域联建情况id删除区域联建情况认领信息  -->
+  	<delete id="deletClaimeRegionalBuildInfoByRegionalBuildInfoId" parameterClass="java.lang.Long">
+  		<![CDATA[ delete from claimRegionalBuildInfos where regionalBuildInfoId = #value#]]>
+  	</delete>
+  	
+  	<!-- 根据id删除附件 -->
+  	<delete id="deleteRegionalBuildInfoAttachFileById" parameterClass="java.lang.Long">
+  		<![CDATA[ delete from regionalBuildInfoAttachFiles where id = #value#]]>
+  	</delete>
+  	
+  	<!-- 根据id删除认领情况 -->
+  	<delete id="deletClaimeRegionalBuildInfoById" parameterClass="java.lang.Long">
+  		<![CDATA[ delete from claimRegionalBuildInfos where id = #value#]]>
+  	</delete>
+  	<!-- 为领导视图提供统计的 根据orgInternalCode的值和 internalId的值的不同得到乡镇的统计和社区的统计-->
+  	<select id="countRegionalBuildInfoByOrgIdOrOrgInternalCode" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+  		select count(*) from regionalBuildInfos rb where 
+  		<iterate property="orgIdsList" conjunction="or" open="(" close=")">
+			rb.orgId in ($orgIdsList[]$)
+		</iterate>
+  	</select>
+</sqlMap>

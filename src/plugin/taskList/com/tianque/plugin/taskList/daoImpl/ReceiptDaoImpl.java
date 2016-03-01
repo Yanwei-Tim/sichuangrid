@@ -1,0 +1,92 @@
+package com.tianque.plugin.taskList.daoImpl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.dao.AbstractBaseDao;
+import com.tianque.plugin.taskList.constants.Constants;
+import com.tianque.plugin.taskList.dao.ReceiptDao;
+import com.tianque.plugin.taskList.domain.BaseTaskVisit;
+import com.tianque.plugin.taskList.domain.FloatingPopulationTask;
+import com.tianque.plugin.taskList.domain.HiddenDangerTask;
+import com.tianque.plugin.taskList.domain.Receipt;
+import com.tianque.plugin.taskList.domain.TaskListStatistics;
+
+@Repository("receiptDao")
+public class ReceiptDaoImpl extends AbstractBaseDao implements ReceiptDao {
+
+	@Override
+	public void updateReceiptStatus(Receipt receipt, String signType) {
+		Map<String, Object> data = new HashMap<String, Object>();
+
+		data.put("tableName", receipt.getTableName());
+		data.put("id", receipt.getId());
+		data.put("signType", signType);
+		data.put("signDate", CalendarUtil.now(Constants.SIGNDATEFORMAT));
+
+		if ((Constants.POLICE).equals(signType)) {
+			data.put("attitude", receipt.getAttitudePolice());
+			data.put("signMemberName", receipt.getSignMemberNamePolice());
+		} else if ((Constants.JUSTICE).equals(signType)) {
+			data.put("attitude", receipt.getAttitudeJustice());
+			data.put("signMemberName", receipt.getSingMemberNameJustice());
+		} else {
+			data.put("attitude", receipt.getAttitude());
+			data.put("signMemberName", receipt.getSignMemberName());
+		}
+		getSqlMapClientTemplate().update("taskListCommon.updateReceiptStatus", data);
+	}
+
+	@Override
+	public List<BaseTaskVisit> getTaskSumAndVisitByParentOrgId(Map<String,Object> map) {
+//		Map map = new HashMap();
+//		map.put("parentOrgId", orgId);
+//		map.put("orgType", orgType);
+//		map.put("endDate", endDate);
+//		if(startDate!=null){
+//			map.put("startDate", startDate);
+//		}
+		return getSqlMapClientTemplate().queryForList("taskListCommon.getTaskSumAndVisitByOrgId",
+				map);
+	}
+
+	@Override
+	public List<FloatingPopulationTask> getFloatingPopulationVisitByParentOrgId(Map<String,Object> map) {
+//		Map map = new HashMap();
+//		map.put("parentOrgId", orgId);
+//		map.put("orgType", orgType);
+		return getSqlMapClientTemplate().queryForList(
+				"taskListCommon.getFloatingPopulationVisitByOrgId", map);
+	}
+
+	@Override
+	public List<HiddenDangerTask> getHiddenDangerVisitByParentOrgId(Map<String,Object> map) {
+//		Map map = new HashMap();
+//		map.put("parentOrgId", orgId);
+//		map.put("orgType", orgType);
+		return getSqlMapClientTemplate().queryForList("taskListCommon.getHiddenDangerVisitByOrgId",
+				map);
+	}
+
+	@Override
+	public List<BaseTaskVisit> getSpecialGroupSumAndVisitList(Map<String,Object> map) {
+//		Map map = new HashMap();
+//		map.put("parentOrgId", orgId);
+//		map.put("orgType", orgType);
+		return getSqlMapClientTemplate().queryForList(
+				"taskListCommon.getSpecialGroupSumAndVisitByOrgId", map);
+	}
+
+	@Override
+	public List<TaskListStatistics> getTaskListStatistics(
+			Map<String, Object> map) {
+		return getSqlMapClientTemplate().queryForList(
+				"taskListCommon.getTaskListStatistics", map);
+	}
+
+}

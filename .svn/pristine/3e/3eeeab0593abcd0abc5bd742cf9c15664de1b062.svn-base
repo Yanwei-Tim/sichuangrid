@@ -1,0 +1,370 @@
+package com.tianque.plugin.serviceTeam.serviceTeamMember.vo;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import com.tianque.core.util.BaseDomainIdEncryptUtil;
+import com.tianque.core.util.StringUtil;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.plugin.serviceTeam.serviceTeamMember.domain.ServiceTeamMember;
+
+@SuppressWarnings("serial")
+public class ServiceTeamMemberVo extends ServiceTeamMember {
+
+	private Long memberId;
+	/** 成员基本信息表主键 **/
+	private Long baseId;
+	/** 成员基本信息表主键 在sql中区别于成员详细表的baseId **/
+	private Long memberBaseId;
+	/** 身份证号 **/
+	private String idCardNo;
+	/** 团队类型 **/
+	private PropertyDict teamType;
+	/** 网格范围 过滤条件 本级，下辖.... **/
+	private String orgScope;
+	/** 固定电话 **/
+	private String homePhone;
+	/** 所在团队名称 */
+	private String teamName;
+	/** 成员名称*区别团队名称 */
+	private String memberName;
+	/** 姓名 */
+	private String name;
+	/** 手机号码 */
+	private String mobile;
+	/** 性别 **/
+	private PropertyDict gender;
+	/** 职务 */
+	private PropertyDict position;
+	/** 职责 **/
+	private String duties;
+	/** 姓名全拼 **/
+	private String fullPinyin;
+	/** 姓名简拼 **/
+	private String simplePinyin;
+	/** 备注 **/
+	private String remark;
+	/** 组织机构 **/
+	private Organization org;
+	/** 层级等级Id **/
+	private int internalId;
+	/** 出生日期 **/
+	private String birthday;
+	/** 职位 **/
+	private String job;
+	/** 是否在职 **/
+	private Long onDuty;
+	/** 所在团队数量 **/
+	private Long inTeamAmount;
+	/** 服务记录数 **/
+	private Long serviceRecordAmount;
+	/** 服务对象中的人员数量 **/
+	private Integer objectFromPopulationAmount;
+	/** 服务对象中的场所数量 **/
+	private Integer objectFromLocationCount;
+	/** 离职/再重新担任原因 **/
+	private String shiftDutyReason;
+	/** 离职/再重新担任日期 **/
+	private Date shiftDutyDate;
+	/* 服务对象类型 */
+	private String objectType;
+	/* 服务对象id */
+	private Long objectId;
+	/** 成员在团队中的ids，因为一个成员可以在多个团队中 */
+	private String memberIds;
+	/*
+	 * 成员编号信息
+	 */
+	private List<Long> memberBaseIds;
+	/**
+	 * 查询方式
+	 */
+	private String searchType;
+
+	public ServiceTeamMemberVo() {
+		super();
+	}
+
+	public Long getMemberId() {
+		return memberId;
+	}
+
+	public void setMemberId(Long memberId) {
+		this.memberId = memberId;
+	}
+
+	public Long getBaseId() {
+		return baseId;
+	}
+
+	public String getIdCardNo() {
+		return idCardNo;
+	}
+
+	public String getOrgScope() {
+		return orgScope;
+	}
+
+	public String getHomePhone() {
+		return homePhone;
+	}
+
+	public String getTeamName() {
+		return teamName;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getMobile() {
+		return mobile;
+	}
+
+	public PropertyDict getPosition() {
+		return position;
+	}
+
+	public String getDuties() {
+		return duties;
+	}
+
+	public String getFullPinyin() {
+		return fullPinyin;
+	}
+
+	public String getSimplePinyin() {
+		return simplePinyin;
+	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public Organization getOrg() {
+		return org;
+	}
+
+	public void setOrg(Organization org) {
+		this.org = org;
+	}
+
+	public void setBaseId(Long baseId) {
+		this.baseId = baseId;
+	}
+
+	public void setIdCardNo(String idCardNo) {
+		this.idCardNo = idCardNo;
+	}
+
+	public void setOrgScope(String orgScope) {
+		this.orgScope = orgScope;
+	}
+
+	public void setHomePhone(String homePhone) {
+		this.homePhone = homePhone;
+	}
+
+	public void setTeamName(String teamName) {
+		this.teamName = teamName;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setMobile(String mobile) {
+		this.mobile = mobile;
+	}
+
+	public void setPosition(PropertyDict position) {
+		this.position = position;
+	}
+
+	public void setDuties(String duties) {
+		this.duties = duties;
+	}
+
+	public void setFullPinyin(String fullPinyin) {
+		this.fullPinyin = fullPinyin;
+	}
+
+	public void setSimplePinyin(String simplePinyin) {
+		this.simplePinyin = simplePinyin;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+
+	public Long getInTeamAmount() {
+		return inTeamAmount;
+	}
+
+	public void setInTeamAmount(Long inTeamAmount) {
+		this.inTeamAmount = inTeamAmount;
+	}
+
+	public PropertyDict getGender() {
+		return gender;
+	}
+
+	public void setGender(PropertyDict gender) {
+		this.gender = gender;
+	}
+
+	public String getJob() {
+		return job;
+	}
+
+	public void setJob(String job) {
+		this.job = job;
+	}
+
+	public PropertyDict getTeamType() {
+		return teamType;
+	}
+
+	public void setTeamType(PropertyDict teamType) {
+		this.teamType = teamType;
+	}
+
+	public Long getServiceRecordAmount() {
+		return serviceRecordAmount;
+	}
+
+	public void setServiceRecordAmount(Long serviceRecordAmount) {
+		this.serviceRecordAmount = serviceRecordAmount;
+	}
+
+	public Integer getObjectFromPopulationAmount() {
+		return objectFromPopulationAmount;
+	}
+
+	public void setObjectFromPopulationAmount(Integer objectFromPopulationAmount) {
+		this.objectFromPopulationAmount = objectFromPopulationAmount;
+	}
+
+	public Integer getObjectFromLocationCount() {
+		return objectFromLocationCount;
+	}
+
+	public void setObjectFromLocationCount(Integer objectFromLocationCount) {
+		this.objectFromLocationCount = objectFromLocationCount;
+	}
+
+	public Long getOnDuty() {
+		return onDuty;
+	}
+
+	public void setOnDuty(Long onDuty) {
+		this.onDuty = onDuty;
+	}
+
+	public String getShiftDutyReason() {
+		return shiftDutyReason;
+	}
+
+	public void setShiftDutyReason(String shiftDutyReason) {
+		this.shiftDutyReason = shiftDutyReason;
+	}
+
+	public Date getShiftDutyDate() {
+		return shiftDutyDate;
+	}
+
+	public void setShiftDutyDate(Date shiftDutyDate) {
+		this.shiftDutyDate = shiftDutyDate;
+	}
+
+	public Long getMemberBaseId() {
+		return memberBaseId;
+	}
+
+	public void setMemberBaseId(Long memberBaseId) {
+		this.memberBaseId = memberBaseId;
+	}
+
+	public String getObjectType() {
+		return objectType;
+	}
+
+	public void setObjectType(String objectType) {
+		this.objectType = objectType;
+	}
+
+	public Long getObjectId() {
+		return objectId;
+	}
+
+	public void setObjectId(Long objectId) {
+		this.objectId = objectId;
+	}
+
+	public String getMemberName() {
+		return memberName;
+	}
+
+	public void setMemberName(String memberName) {
+		this.memberName = memberName;
+	}
+
+	public String getBirthday() {
+		return birthday;
+	}
+
+	public void setBirthday(String birthday) {
+		this.birthday = birthday;
+	}
+
+	public String getMemberIds() {
+		return memberIds;
+	}
+
+	public void setMemberIds(String memberIds) {
+		this.memberIds = memberIds;
+	}
+
+	public int getInternalId() {
+		return internalId;
+	}
+
+	public void setInternalId(int internalId) {
+		this.internalId = internalId;
+	}
+
+	public String getEncryptId() {
+		return BaseDomainIdEncryptUtil.encryptDomainId(baseId, this.org
+				.getOrgInternalCode(), null);
+	}
+
+	public List<Long> getMemberBaseIds() {
+		if (StringUtil.isStringAvaliable(memberIds)) {
+			List<Long> baseIdList = new ArrayList<Long>();
+			String[] memberBaseId = memberIds.split(",");
+			for (String id : memberBaseId) {
+				if (StringUtil.isStringAvaliable(id)) {
+					baseIdList.add(Long.valueOf(id));
+				}
+			}
+			return baseIdList;
+		}
+		return memberBaseIds;
+	}
+
+	public void setMemberBaseIds(List<Long> memberBaseIds) {
+		this.memberBaseIds = memberBaseIds;
+	}
+
+	public String getSearchType() {
+		return searchType;
+	}
+
+	public void setSearchType(String searchType) {
+		this.searchType = searchType;
+	}
+	
+	
+}

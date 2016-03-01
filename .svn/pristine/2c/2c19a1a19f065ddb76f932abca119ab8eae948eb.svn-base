@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="otherAttentionPersonnel">
+	<!-- 注释说明 -->
+	<typeAlias alias="OtherAttentionPersonnel" type="com.tianque.baseInfo.otherAttentionPersonnel.domain.OtherAttentionPersonnel" />
+	<typeAlias alias="SearchOtherAttentionPersonnelVo" type="com.tianque.domain.vo.SearchOtherAttentionPersonnelVo" />
+	<resultMap id="otherAttentionPersonnelResult" class="OtherAttentionPersonnel" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResult">
+		<!--关注原因  -->
+		<result property="attentionReason" column="attentionReason"/>
+		<result property="workCondition" column="workCondition"/>
+		<result property="meRemark" column="meRemark"/>
+	</resultMap>
+	
+	<resultMap id="otherAttentionPersonnelResultLists" class="OtherAttentionPersonnel" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+		<!--关注原因  -->
+		<result property="attentionReason" column="attentionReason"/>
+		<result property="workCondition" column="workCondition"/>
+		<result property="meRemark" column="meRemark"/>
+	</resultMap>
+	
+	<resultMap class="OtherAttentionPersonnel" id="OtherAttentionPersonnelResults" extends="otherAttentionPersonnelResult">    
+	    <result property="sourcesState" column="sourcesState" />
+	</resultMap>
+	
+	<sql id="fields">
+		uni.id,uni.baseinfoid,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.createUser,uni.updateUser,uni.createDate,uni.updateDate,uni.sourcesState,
+		uni.attentionReason,uni.attentionExtent,uni.workCondition,uni.meRemark,uni.isEmphasis, uni.isEmphasisReason,uni.isEmphasisDate
+	</sql>
+    
+	<insert id="addOtherAttentionPersonnel" parameterClass="OtherAttentionPersonnel">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_OTHERATTENTIONPERSONNEL.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO otherAttentionPersonnels(
+			<include refid="populationBaseInfo.addBaseInfoFields"/>,
+			isEmphasis,attentionExtent,sourcesState,attentionReason,workCondition,meRemark)
+		VALUES(
+			<include refid="populationBaseInfo.addBaseInfoData"/>,
+	        #isEmphasis#,#attentionExtent.id#,#sourcesState#,#attentionReason#,#workCondition#,#meRemark#)
+	</insert>
+
+	<select id="getOtherAttentionPersonnelById" parameterClass="java.lang.Long" resultMap="otherAttentionPersonnelResult">
+	      select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+	      from otherAttentionPersonnels uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+	      where uni.id=#value#
+	</select>
+
+	<sql id="updateBusinessSql">
+	   <include refid="populationBaseInfo.updateBaseInfoSql"/>,
+	   attentionReason=#attentionReason#,
+   	   attentionExtent=#attentionExtent.id#,
+   	   workCondition=#workCondition#,
+   	   meRemark=#meRemark#
+	</sql>
+	
+	<update id="updateOtherAttentionPersonnel" parameterClass="OtherAttentionPersonnel">
+		update otherAttentionPersonnels set
+		<isNotEmpty property="isEmphasis">
+			isEmphasis=#isEmphasis#,
+		</isNotEmpty>
+		<include refid="updateBusinessSql"/>
+		<isNotNull prepend="," property="sourcesState">
+			sourcesState=#sourcesState#
+		</isNotNull>
+		where id = #id#
+	</update>
+
+	<update id="updateBusiness" parameterClass="OtherAttentionPersonnel">
+		 update otherAttentionPersonnels set
+		<isNotEmpty property="isEmphasis">
+			isEmphasis=#isEmphasis#,
+		</isNotEmpty>
+		<include refid="updateBusinessSql"/>
+		  where id = #id#
+	</update>
+
+	<update id="updateOtherAttentionPersonnelEmphasis" parameterClass="OtherAttentionPersonnel">
+		 update otherAttentionPersonnels set
+		 	<isNotEmpty property="isEmphasis">
+				isEmphasis = $isEmphasis$,
+			</isNotEmpty>
+			updateUser = #updateUser#,
+			updateDate = #updateDate#
+		 where id = $id$
+	</update>
+
+	<update id="updateEmphasisById" parameterClass="map">
+		update otherAttentionPersonnels set isEmphasis=#isEmphasis#	where id=#id#
+	</update>
+
+	<delete id="deleteOtherAttentionPersonnelById" parameterClass="java.lang.Long">
+	    delete from otherAttentionPersonnels where id=#id#
+	</delete>
+
+	<sql id="sql_where">
+		from otherAttentionPersonnels uni left join baseInfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="name">
+				<isNotNull property="name" prepend=" and ">
+					name = #name#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="gender">
+				<isNotEmpty property="gender.id" prepend=" and ">
+					gender=#gender.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					id=#id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="organizationId">
+				<isNotNull property="organizationId" prepend=" and ">
+					orgId = #organizationId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) = upper(#idCardNo#)
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findOtherAttentionPersonnels" parameterClass="java.util.Map" resultMap="otherAttentionPersonnelResultLists">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$populationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countOtherAttentionPersonnels" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+
+	<select id="findOtherAttentionPersonnelsBySearchVo" parameterClass="SearchOtherAttentionPersonnelVo" resultMap="otherAttentionPersonnelResultLists">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$populationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countOtherAttentionPersonnelsBySearchVo" parameterClass="SearchOtherAttentionPersonnelVo" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="countExsistedOtherAttentionPersonnel" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from otherAttentionPersonnels uni left join baseInfo b on uni.baseInfoId = b.id
+		<dynamic prepend="where">
+			<isPropertyAvailable property="organizationId" >
+				<isNotNull property="organizationId" prepend=" and ">
+					orgId = $organizationId$
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="besidesId" >
+				<isNotNull property="besidesId" prepend=" and ">
+					uni.id != $besidesId$
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo" >
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) = upper(#idCardNo#)
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="getByOrgIdAndIdCardNo" parameterClass="java.util.Map" resultMap="OtherAttentionPersonnelResults">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from otherAttentionPersonnels uni left join baseInfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where upper(idCardNo) = upper(#idCardNo#) and orgId = #orgId# 
+	</select>
+
+	<select id="getByIdCard" parameterClass="java.util.Map" resultMap="OtherAttentionPersonnelResults">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from otherAttentionPersonnels uni left join baseInfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where orgId=#orgId# and
+		<iterate property="idCardNoList" open="("  close=")"  conjunction="or">
+			upper(idCardNo) like upper(#idCardNoList[]#)
+		</iterate>
+	</select>
+
+	<update id="shiftOtherAttentionPersonnel" parameterClass="java.util.Map">
+		update otherAttentionPersonnels set orgId = #orgId#, orgInternalCode = #orgInternalCode# where id = #id#
+	</update>
+	
+	<select id="getOtherAttentionPersonnelByIdCardNoList" parameterClass="map" resultMap="otherAttentionPersonnelResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from otherAttentionPersonnels uni left join baseInfo b on uni.baseInfoId = b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" AND ">
+					orgId = $orgId$
+				</isNotNull>
+			</isPropertyAvailable>
+			AND (
+			<iterate property="idCardNoList" conjunction="OR">
+				upper(idCardNo) like upper(#idCardNoList[]#)
+			</iterate>
+			)
+		</dynamic>
+	</select>
+
+	<!-- 移动数据需要的sql -->
+	<update id="updateDataMoveOtherAttentionPersonnelToOrg" parameterClass="java.util.Map">
+		update otherAttentionPersonnels set orgId = #orgId# , orgInternalCode = #orgInternalCode# where id = #id#
+	</update>
+	
+	<!-- 以下sql已经过时，需要启用请先修改  -->
+	<update id="updateBaseInfo" parameterClass="OtherAttentionPersonnel">
+		 update otherAttentionPersonnels set
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>
+		<isNotEmpty property="isEmphasis">
+		 ,isEmphasis=#isEmphasis#
+		</isNotEmpty>
+		  where id = #id#
+	</update>
+	
+	<update id="updateDeathAndLogoutStateById" parameterClass="map">
+		update otherAttentionPersonnels set
+		<isNotEmpty property="death">
+			isdeath = #death#
+		</isNotEmpty>
+		<isNotEmpty property="isEmphasis" prepend=",">
+			isEmphasis=#isEmphasis#
+		</isNotEmpty>
+		where id=#id#
+	</update>
+	
+    <update id="updateOtherAttentionPersonnelsByIdCardNoFromBasePersonnel" parameterClass="OtherAttentionPersonnel">
+		update otherAttentionPersonnels set
+        <dynamic>
+			idCardNo=#idCardNo#
+			<isNotEmpty prepend="," property="name">
+				name=#name#
+			</isNotEmpty>
+			<isNotNull property="gender">
+				<isNotNull prepend="," property="gender.id">
+					gender=#gender.id#
+				</isNotNull>
+			</isNotNull>
+			<isNotEmpty prepend="," property="fullPinyin">
+				fullPinyin=#fullPinyin#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="simplePinyin">
+				simplePinyin=#simplePinyin#
+			</isNotEmpty>
+			where IDCARDNO=#idCardNo#
+		</dynamic>
+	</update>
+	
+	<select id="getIdByBaseinfoIdAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		SELECT id from otherAttentionPersonnels  
+		where baseinfoid=#baseInfoId# and orgId=#orgId#
+	</select>
+	
+	<resultMap id="otherAttentionPersonnelDefaultListResultForDefaultList" class="OtherAttentionPersonnel" 
+		extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForDefaultList">
+		<result property="attentionReason" column="attentionReason"/>
+		<result property="workCondition" column="workCondition"/>
+		<result property="meRemark" column="meRemark"/>
+	</resultMap>
+	<sql id="default_sql_where">
+	  from otherAttentionPersonnels uni 
+	  <dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findOtherAttentionPersonnelDefaultList" resultMap="otherAttentionPersonnelDefaultListResultForDefaultList" parameterClass="map">
+	  select <include refid="fields"/>
+	  <include refid="default_sql_where" />
+	  ORDER BY ID DESC
+	</select>
+	
+	<select id="countOtherAttentionPersonnelDefaultList" resultClass="java.lang.Integer" parameterClass="map">
+		<![CDATA[select count(uni.id)]]>
+		<include refid="default_sql_where" />
+	</select>
+
+</sqlMap>

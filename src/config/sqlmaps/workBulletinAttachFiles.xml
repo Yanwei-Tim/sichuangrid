@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="workBulletinAttachFiles" >
+<typeAlias alias="workBulletinAttachFiles" type="com.tianque.working.domain.WorkBulletinAttachFiles" />
+  <resultMap id="workBulletinAttachFilesResultMap" class="workBulletinAttachFiles" >
+    <result column="ID" property="id" />
+    <result column="BULLETINID" property="bulletinId"/>
+    <result column="FILENAME" property="fileName"/>
+    <result column="FILEACTUALURL" property="fileactualUrl"/>
+    <result column="FILESIZE"   property="fileSize"/>
+    <result column="CREATEUSER" property="createUser"/>
+    <result column="UPDATEUSER" property="updateUser"/>
+    <result column="CREATEDATE" property="createDate"/>
+    <result column="UPDATEDATE" property="updateDate"/>
+  </resultMap>
+
+  <select id="selectByBulletinId" resultMap="workBulletinAttachFilesResultMap" parameterClass="workBulletinAttachFiles" >
+    select ID, BULLETINID, FILENAME, FILEACTUALURL, FILESIZE,CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE
+    from WORKBULLETINATTACHFILES
+    where BULLETINID = #bulletinId#
+  </select>
+  <select id="selectById" resultMap="workBulletinAttachFilesResultMap" parameterClass="workBulletinAttachFiles" >
+    select ID, BULLETINID, FILENAME, FILEACTUALURL, FILESIZE,CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE
+    from WORKBULLETINATTACHFILES
+    where ID = #id#
+  </select>
+  <delete id="deleteByBulletinId" parameterClass="workBulletinAttachFiles" >
+    delete from WORKBULLETINATTACHFILES
+    where BULLETINID = #bulletinId#
+  </delete>
+  <insert id="insert" parameterClass="workBulletinAttachFiles" >
+        <selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_workbulletinattachfiles.NEXTVAL as id from dual ]]>
+		</selectKey>
+    insert into WORKBULLETINATTACHFILES (ID, BULLETINID, FILENAME, FILEACTUALURL,FILESIZE, CREATEUSER,
+      UPDATEUSER, CREATEDATE, UPDATEDATE)
+    values (#id#, #bulletinId#, #fileName#, #fileactualUrl#,#fileSize#,
+      #createUser#, #updateUser#, #createDate#, #updateDate#)
+  </insert>
+  
+    <delete id="deleteWorkBulletinAttachFileById" parameterClass="java.lang.Long" >
+    delete from WORKBULLETINATTACHFILES
+    where ID = #id#
+  </delete>
+	
+	<select id="getSumAllFileSizeById" parameterClass="java.lang.Long" resultClass="java.lang.Long">
+	<![CDATA[select sum(FILESIZE) from WORKBULLETINATTACHFILES where BULLETINID=#id#]]>
+	</select>
+
+</sqlMap>

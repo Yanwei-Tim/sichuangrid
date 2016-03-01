@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="fan">
+	<typeAlias alias="Fan" type="com.tianque.plugin.weChat.domain.user.Fan"/>
+	<resultMap id="fanResult" class="Fan">
+		<result property="fanId" column="FAN_ID"/>
+		<result property="openId" column="OPEN_ID"/>
+		<result property="name" column="NAME"/>
+		<result property="groupId" column="GROUP_ID"/>
+		<result property="weChatUserId" column="WECHAT_USER_ID"/>
+		
+		<result property="nickName" column="nick_name"/>
+	    <result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+		
+	</resultMap>
+	<resultMap class="Fan" id="fanResultForList" extends="fanResult">
+		<result property="groupName" column="group_Name"/>
+	</resultMap>
+	<update id="updateFanById" parameterClass="Fan">
+		update fan set
+		<dynamic>
+			FAN_ID=#fanId#
+			<isNotNull prepend="," property="nickName">
+				nick_name=#nickName#
+			</isNotNull>
+			<isNotNull prepend="," property="groupId">
+				GROUP_ID=#groupId#
+			</isNotNull>
+			<isNotNull prepend="," property="createUser">
+				createUser=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="createDate">
+				createDate=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+		</dynamic>
+		WHERE 	FAN_ID=#fanId#
+	</update>
+	
+	
+	<insert id="saveFan" parameterClass="Fan">
+		<selectKey resultClass="java.lang.Long" keyProperty="fanId">
+			<![CDATA[
+				SELECT s_fan.NEXTVAL AS fanId FROM DUAL
+			]]>
+		</selectKey>
+		insert into fan
+		(FAN_ID,OPEN_ID,NAME,GROUP_ID,WECHAT_USER_ID,nick_name,createUser,updateUser,createDate,updateDate)
+		values
+		(#fanId#,#openId#,#name#,#groupId#,#weChatUserId#,#nickName#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	<select id="getFanById" parameterClass="Fan" resultMap="fanResultForList">
+		select 
+		    f.*,
+		        case when g.name is not null then  g.name end as group_Name 
+	    from fan f
+	    left join wechat_group g on f.group_id=g.group_id and f.wechat_user_id=g.wechat_user_id 
+		 where f.FAN_ID=#fanId#
+	</select>
+	
+	<select id="getFanByIds" parameterClass="java.lang.String" resultMap="fanResult">
+		select * from fan f where f.FAN_ID in ($value$)
+	</select>
+	
+	<select id="getFanByOpenIdAndWeChatUserId" parameterClass="Fan" resultMap="fanResult">
+		select * from fan where open_id=#openId# and  WECHAT_USER_ID=#weChatUserId#
+	</select>
+	
+	<select id="getFanListByWeChatUserId" parameterClass="java.lang.String" resultMap="fanResult">
+		select * from fan where WECHAT_USER_ID=#weChatUserId#
+	</select>
+	
+	<select id="findFanListByWeChatUserId" parameterClass="java.util.Map" resultMap="fanResult">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_start" />
+			</isNotNull>
+		</isPropertyAvailable>
+		select * from fan where WECHAT_USER_ID=#fan.weChatUserId#
+		<isNotEmpty prepend=" and " property="fan.name">
+			name like '%'||#fan.name#||'%'
+		</isNotEmpty>
+		<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+		</dynamic>
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_end" />
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	<select id="countFanListByWeChatUserId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(*) from fan where WECHAT_USER_ID=#fan.weChatUserId#
+		<isNotEmpty prepend=" and " property="fan.name">
+			name like '%'||#fan.name#||'%'
+		</isNotEmpty>
+	</select>
+	
+	<select id="getFanListByGroupIdsAndWeChatUserId" parameterClass="java.util.Map" resultMap="fanResult">
+		select * from fan where GROUP_ID in($groupIds$) and WECHAT_USER_ID=#weChatUserId#
+	</select>
+	<select id="getFanListByGroupIdAndWeChatUserId" parameterClass="java.util.Map" resultMap="fanResult">
+		select * from fan where GROUP_ID =#groupId# and WECHAT_USER_ID=#weChatUserId#
+	</select>
+	<select id="getFanListByGroupIdAndWeChatUserIdAndBeforDate" parameterClass="java.util.Map" resultMap="fanResult">
+	    select f.* from  fan f   join 
+	    (
+	                   select i.FROM_USER_NAME from inbox i where i.create_time>#beforeDate# and i.to_user_name=#weChatUserId# group by i.from_user_name
+	    ) a on   f.open_id=a.FROM_USER_NAME where f.group_id=#groupId#
+	</select>
+	
+	<delete id="deleteFanByOpenIdAndWeChatUserId">
+		delete from fan where open_id=#openId# and  WECHAT_USER_ID=#weChatUserId#
+	</delete>
+	
+	<sql id="sql_where">
+		<dynamic>
+		         <isNotEmpty prepend=" and " property="fan.name">
+					f.name like '%'||#fan.name#||'%'
+				</isNotEmpty>
+				<isNotEmpty prepend=" and " property="fan.nickName">
+					f.nick_name like '%'||#fan.nickName#||'%'
+				</isNotEmpty>
+				<isNotEmpty prepend=" and " property="fan.groupId">
+					f.group_id =#fan.groupId#
+				</isNotEmpty>
+				<isNotEmpty prepend=" and " property="fan.weChatUserId">
+					f.WECHAT_USER_ID in ($fan.weChatUserId$)
+				</isNotEmpty>
+		</dynamic>
+	</sql>
+	<select id="countFindFan" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		select count(*) from fan f where 1=1
+		<include refid="sql_where" />
+	</select>
+	<select id="findFan" parameterClass="java.util.Map"
+		resultMap="fanResultForList">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_start" />
+			</isNotNull>
+		</isPropertyAvailable>
+		select 
+		    f.*,
+		        case when g.name is not null then  g.name end as group_Name 
+	    from fan f
+	    left join wechat_group g on f.group_id=g.group_id and f.wechat_user_id=g.wechat_user_id 
+		where 1=1
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">f.$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+		</dynamic>
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_end" />
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+</sqlMap>

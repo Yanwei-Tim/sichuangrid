@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!-- 
+id
+idCardNo
+name
+gender
+nation
+birthday
+schooling
+degree
+specialPosition
+telephone
+mobileNumber
+province
+city
+district
+nativePlaceAddress
+belongOrg
+partyPosition
+joinPartyDate
+career
+endDate
+rewardAndPunishment
+accedingSituation
+joinPartyBranchDate
+democracy
+isHandicap
+isOld
+isOversea
+reportOrganization
+imgUrl
+createDate
+createUser
+updateDate
+updateUser
+ -->
+<sqlMap namespace="member">
+	<typeAlias alias="Member" type="com.tianque.partyBuilding.members.domain.Member" />
+	
+	<resultMap class="Member" id="simpleMemberResult">
+		<result property="id" column="id"/>
+		<result property="idCardNo" column="idCardNo"/>
+		<result property="name" column="name"/>
+		<result property="gender.id" column="gender"/>
+		<result property="nation.id" column="nation"/>
+		<result property="birthday" column="birthday"/>
+		<result property="schooling.id" column="schooling"/>
+		<result property="degree" column="degree"/>
+		<result property="specialPosition" column="specialPosition"/>
+		<result property="telephone" column="telephone"/>
+		<result property="mobileNumber" column="mobileNumber"/>
+		<result property="province" column="province"/>
+		<result property="city" column="city"/>
+		<result property="district" column="district"/>
+		<result property="nativePlaceAddress" column="nativePlaceAddress"/>
+		<result property="belongOrg.id" column="belongOrg"/>
+		<result property="partyPosition.id" column="partyPosition"/>
+		<result property="joinPartyDate" column="joinPartyDate"/>
+		<result property="career" column="career"/>
+		<result property="endDate" column="endDate"/>
+		<result property="rewardAndPunishment" column="rewardAndPunishment"/>
+		<result property="accedingSituation" column="accedingSituation"/>
+		<result property="joinPartyBranchDate" column="joinPartyBranchDate"/>
+		<result property="democracy.id" column="democracy"/>
+		<result property="isHandicap" column="isHandicap"/>
+		<result property="isOld" column="isOld"/>
+		<result property="isOversea" column="isOversea"/>
+		<result property="reportOrganization.id" column="reportOrganization"/>
+		<result property="imgUrl" column="imgUrl"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+	</resultMap>
+	
+	<resultMap class="Member" id="fullMemberResult" extends="simpleMemberResult">
+		<result property="partyOrg" column="partyorg"/>
+		<result property="logOut" column="logOut"/>
+	</resultMap>
+	
+	<insert id="addMember" parameterClass="Member">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_party_members.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into party_members 
+		(
+			id,idCardNo,name,gender,nation,birthday,schooling,degree,specialPosition,telephone,mobileNumber,province,
+			city,district,nativePlaceAddress,belongOrg,partyPosition,joinPartyDate,career,endDate,rewardAndPunishment,
+			accedingSituation,joinPartyBranchDate,democracy,isHandicap,isOld,isOversea,reportOrganization,imgUrl,createDate,createUser,updateDate
+		) 
+		values
+		(
+			#id#,#idCardNo#,#name#,#gender.id#,#nation.id#,#birthday#,#schooling.id#,#degree#,#specialPosition#,#telephone#,
+			#mobileNumber#,#province#,#city#,#district#,#nativePlaceAddress#,#belongOrg.id#,#partyPosition.id#,#joinPartyDate#,
+			#career#,#endDate#,#rewardAndPunishment#,#accedingSituation#,#joinPartyBranchDate#,#democracy.id#,#isHandicap#,
+			#isOld#,#isOversea#,#reportOrganization.id#,#imgUrl#,#createDate#,#createUser#,#updateDate#
+		)	
+	</insert>
+	
+	<update id="updateMember" parameterClass="Member">
+		update party_members set
+		idCardNo           =#idCardNo#,
+		name               =#name#,
+		gender             =#gender.id#,
+		nation             =#nation.id#,
+		birthday           =#birthday#,
+		schooling          =#schooling.id#,
+		degree             =#degree#,
+		specialPosition    =#specialPosition#,
+		telephone          =#telephone#,
+		mobileNumber       =#mobileNumber#,
+		province           =#province#,
+		city               =#city#,
+		district           =#district#,
+		nativePlaceAddress =#nativePlaceAddress#,
+		belongOrg          =#belongOrg.id#,
+		partyPosition      =#partyPosition.id#,
+		joinPartyDate      =#joinPartyDate#,
+		career             =#career#,
+		endDate            =#endDate#,
+		rewardAndPunishment=#rewardAndPunishment#,
+		accedingSituation  =#accedingSituation#,
+		joinPartyBranchDate=#joinPartyBranchDate#,
+		democracy          =#democracy.id#,
+		isHandicap         =#isHandicap#,
+		isOld              =#isOld#,
+		isOversea          =#isOversea#,
+		reportOrganization =#reportOrganization.id#,
+		imgUrl             =#imgUrl#,
+		updateDate         =#updateDate#,
+		updateUser         =#updateUser#
+		where id=#id#
+	</update>
+	
+	<sql id="sql_where">
+	  from party_members pm, member_associate_partyorg mp
+	 where pm.id(+) = mp.memberid
+	   and mp.orgid = #orgId#
+	   and mp.partyorgtype = #partyOrgType#
+		<dynamic>
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty prepend=" and " property="idCardNo">
+					upper(pm.idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="partyOrg">
+				<isNotEmpty prepend=" and " property="partyOrg">
+					mp.partyOrg=#partyOrg#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logOut">
+				<isNotNull property="logOut" prepend=" and ">
+					<isEqual property="logOut" compareValue="1">
+						mp.logOut = #logOut#
+					</isEqual>
+					<isEqual property="logOut" compareValue="0">
+						(mp.logOut = #logOut# or mp.logOut is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="countMembersForPage" parameterClass="map" resultClass="integer">
+		select count(pm.id)
+		<include refid="sql_where"/>
+	</select>
+	
+	<select id="findMembersForPage" parameterClass="map" resultMap="fullMemberResult">
+		select pm.*, mp.partyorg,mp.logout
+		<include refid="sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getMemberById" parameterClass="long" resultMap="simpleMemberResult">
+		select * from party_members where id=#value#
+	</select>
+	
+	<select id="getMemberByIdCardNo" parameterClass="string" resultMap="simpleMemberResult">
+		select * from party_members where idcardno=#value#
+	</select>
+	
+	<select id="isExsistedPartyOrg" parameterClass="map" resultClass="integer">
+		<isEqual property="partyOrgType" compareValue="1">
+			select count(0) 
+			from organs_Party t 
+			where t.orgid=#orgId# 
+			and t.name=#partyOrg#
+			and t.type = #dictId#
+		</isEqual>
+		<isEqual property="partyOrgType" compareValue="2">
+			select count(0) 
+			from TOWN_PARTY_ORG t 
+			where t.orgid=#orgId# 
+			and t.name=#partyOrg#
+			and t.type = #dictId#
+		</isEqual>
+		<isEqual property="partyOrgType" compareValue="3">
+			select count(0) 
+			from NEW_PARTY_ORG t 
+			where t.orgid=#orgId# 
+			and t.name=#partyOrg#
+			and t.type = #dictId#
+		</isEqual>
+		<isGreaterEqual property="partyOrgType" compareValue="10">
+			select count(0) from system_party t where t.orgid=#orgId# and t.partyName=#partyOrg#
+		</isGreaterEqual>
+		<isEqual property="partyOrgType" compareValue="5">
+			select count(0) from partyOrgInfos t where t.orgid=#orgId# and t.partybranchname=#partyOrg#
+		</isEqual>
+		
+	</select>
+</sqlMap>

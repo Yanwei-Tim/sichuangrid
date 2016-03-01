@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="elderlyPeopleTemp">
+    <typeAlias alias="ElderlyPeopleTemp" type="com.tianque.plugin.dataManage.population.elderlyPeopleTemp.domain.ElderlyPeopleTemp" />
+    <typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+    <resultMap id="elderlyPeopleTempResultForBase" class="ElderlyPeopleTemp" extends="attentionPopulationTempBaseInfo.attentionPopulationBaseInfoResult">
+		<result property="elderPeopleId" column="elderPeopleId" />
+		<result property="peopleType.id" column="peopleType" />
+		<result property="currentStatus.id" column="currentStatus" />
+		<result property="liveStatus.id" column="liveStatus" />
+		<result property="spouseStatus.id" column="spouseStatus" />
+		<result property="incomeSource.id" column="incomeSource" />
+		<result property="enterWorkDate" column="enterWorkDate" />
+		<result property="retireDate" column="retireDate" />
+		<result property="retireUnitAndDuty" column="retireUnitAndDuty" />
+		<result property="zhiwu" column="zhiwu" />
+		<result property="pension" column="pension" />
+	</resultMap>
+    <resultMap id="elderlyPeopleTempResultForList" class="ElderlyPeopleTemp" extends="elderlyPeopleTemp.elderlyPeopleTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	<sql id="updateBusinessSql">
+	        elderPeopleId= #elderPeopleId#
+			,peopleType = #peopleType.id#
+		    ,currentStatus = #currentStatus.id#
+			,liveStatus = #liveStatus.id#
+			,spouseStatus = #spouseStatus.id#
+			,incomeSource = #incomeSource.id#
+            ,enterWorkDate = #enterWorkDate#
+			,retireDate = #retireDate#
+			,pension = #pension#
+			,retireUnitAndDuty = #retireUnitAndDuty#
+			,zhiwu= #zhiwu#
+			,attentionExtent=#attentionExtent.id#
+	</sql>
+	<sql id="claim_sql_where">
+		from DM_elderlyPeople_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	
+	<select id="findTempPageList" resultMap="elderlyPeopleTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countTempList" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	
+	<insert id="addElderlyPeopleTemp" parameterClass="ElderlyPeopleTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_elderlyPeople_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_elderlyPeople_Temp
+		(<include refid="populationTempBaseInfo.addBaseInfoFields"/>,
+		enterWorkDate,retireDate,pension,liveStatus,peopleType,spouseStatus,currentStatus,incomeSource,retireUnitAndDuty,
+		zhiwu,elderPeopleId,isEmphasis,actualPopulationType,attentionExtent,
+		<include refid="dataManage.addDataManage"/>
+		)
+		values
+		(<include refid="populationTempBaseInfo.addBaseInfoData"/>,
+		#enterWorkDate#,#retireDate#,#pension#,#liveStatus.id#,#peopleType.id#,#spouseStatus.id#,#currentStatus.id#,#incomeSource.id#,#retireUnitAndDuty#,
+		#zhiwu#,#elderPeopleId#,#isEmphasis#,#actualPopulationType#,#attentionExtent.id#,
+		<include refid="dataManage.addValueDataManage"/>
+		)
+    </insert>
+    <select id="getElderlyPeopleTempById" parameterClass="Long"
+		resultMap="elderlyPeopleTempResultForList">
+	  <![CDATA[
+	  	select * from DM_elderlyPeople_Temp where id = #value#
+	  ]]>
+	</select>
+	<delete id="deleteElderlyPeopleTempById" parameterClass="Long">
+	   delete DM_elderlyPeople_Temp where id = #value#
+	</delete>
+	<select id="getElderlyPeopleTempByInId" parameterClass="Long"
+		resultMap="elderlyPeopleTempResultForList">
+	  <![CDATA[
+	  	select * from DM_elderlyPeople_Temp where inid = #value#
+	  ]]>
+	</select>
+	<update id="updateRepeatState" parameterClass="ElderlyPeopleTemp">
+		update DM_elderlyPeople_Temp d set repeatState = 0
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_elderlyPeople_Temp t group by t.idCardNo having count(*)>1) 
+	</update>
+	<update id="updateRepeatStateForDelete" parameterClass="ElderlyPeopleTemp">
+		update DM_elderlyPeople_Temp d set repeatState =1
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_elderlyPeople_Temp t group by t.idCardNo having count(*)=1) 
+	</update>
+	<update id="updateElderlyPeopleTemp" parameterClass="ElderlyPeopleTemp">
+		update DM_elderlyPeople_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		,isEmphasis = #isEmphasis#
+		    <isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="claimDetail.claimOrg">
+				claimOrgId=#claimDetail.claimOrg.id#
+			</isNotNull>
+			<isNotNull prepend="," property="claimDetail.inId">
+				inId=#claimDetail.inId#
+			</isNotNull>
+		,
+		<include refid="elderlyPeopleTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	
+	<!-- 新写内容 -->
+	<select id="countFindTemps" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	<select id="findTemps" resultMap="elderlyPeopleTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<update id="updateElderlyPeopleTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_elderlyPeople_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	<update id="updateElderlyPeopleTempBase" parameterClass="ElderlyPeopleTemp">
+		update DM_elderlyPeople_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updateElderlyPeopleTempBusiness" parameterClass="ElderlyPeopleTemp">
+		update DM_elderlyPeople_Temp set
+		<include refid="elderlyPeopleTemp.updateBusinessSql" />
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+</sqlMap>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="issueInvestigationMediateManage" extends="default" namespace="/issueInvestigationMediate/issueInvestigationMediateManage">
+		<default-class-ref class="issueInvestigationMediateController"></default-class-ref>
+		<action name="dispatch" method="dispatch">
+			<result name="success">/statAnalyse/issueInvestigationMediate/issueInvestigationMediateList.jsp</result>
+		</action>
+		
+		<action name="findMonthByYear" method="findMonthByYear">
+			<result type="json">
+				<param name="root">months</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="findWeekByYearAndMonth" method="findWeekByYearAndMonth">
+			<result type="json">
+				<param name="root">weeks</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="replaceIssueInvestigationMediate" method="replaceIssueInvestigationMediate">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="monthIssueInvestigationMediate" method="monthIssueInvestigationMediate">
+			<result name="success">/statAnalyse/index.jsp</result>
+		</action>
+		
+		<action name="weekIssueInvestigationMediate" method="weekIssueInvestigationMediate">
+			<result name="success">/statAnalyse/index.jsp</result>
+		</action>
+		
+		<action name="yearIssueInvestigationMediate" method="yearIssueInvestigationMediate">
+			<result name="success">/statAnalyse/index.jsp</result>
+		</action>
+		
+		<action name="findIssueInvestigationMediateList" method="findIssueInvestigationMediateList">
+			<result type="json">
+				<param name="root">issueInvestigationMediates</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="searchIssueInvestigationMediateList" method="searchIssueInvestigationMediateList">
+			<result type="json">
+				<param name="root">issueInvestigationMediates</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="downloadIssueInvestigationMediate" 
+			method="downloadIssueInvestigationMediate">
+			<result name="success" type="stream">
+                <param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>  
+                <param name="inputName">inputStream</param>  
+                <!-- 下载时候提示的文件名 -->  
+                <param name="contentDisposition">attachment;filename="${downloadFileName}"</param>  
+                <param name="bufferSize">4096</param>  
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

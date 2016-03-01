@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="serviceListCommon" >
+  <resultMap id="serviceListCommonResult" class="com.tianque.serviceList.domain.ServiceListCommon" >
+    <result column="ID" property="id" jdbcType="DECIMAL" />
+    <result column="INPUT_TIME" property="inputTime" jdbcType="DATE" />
+    <result column="ADDRESS" property="address" jdbcType="VARCHAR" />
+    <result column="CATEGORY" property="category.id" jdbcType="DECIMAL" />
+    <result column="DETAILS" property="details" jdbcType="VARCHAR" />
+    <result column="REMAKE" property="remake" jdbcType="CLOB" />
+    <result column="ISSIGN" property="isSign" jdbcType="DECIMAL" />
+    <result column="ISREPLY" property="isReply" jdbcType="DECIMAL" />
+    <result column="SIGNDATE" property="signDate" jdbcType="DATE" />
+    <result column="ORGID" property="organization.id" jdbcType="DECIMAL" />
+    <result column="ORGINTERNALCODE" property="organization.orgInternalCode" jdbcType="VARCHAR" />
+    <result column="SIGNPEOPLE" property="signPeople" jdbcType="VARCHAR" />
+    <result column="SIGNCONTENT" property="signContent" jdbcType="CLOB" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="DATE" />
+    <result column="CREATE_USER" property="createUser" jdbcType="VARCHAR" />
+    <result column="UPDATE_DATE" property="updateDate" jdbcType="DATE" />
+    <result column="UPDATE_USER" property="updateUser" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <sql id="sql_where">
+		<dynamic prepend="WHERE">
+			<isNotEmpty  property="organization.orgInternalCode" prepend="and">
+ 				ORGINTERNALCODE like #organization.orgInternalCode#||'%'
+			</isNotEmpty>
+ 			<isNotEmpty  property="inputTime" prepend="and">
+ 				INPUT_TIME = #inputTime#
+			</isNotEmpty>
+			<isNotEmpty  property="address" prepend="and">
+ 				ADDRESS like '%'||#address#||'%'
+			</isNotEmpty>
+			<isNotEmpty  property="category.id" prepend="and">
+ 				CATEGORY = #category.id#
+			</isNotEmpty>
+		</dynamic>
+   </sql>
+</sqlMap>

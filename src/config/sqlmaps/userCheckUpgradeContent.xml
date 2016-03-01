@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="UserCheckUpgradeContent">
+	<!-- 注释说明 -->
+	<typeAlias alias="UserCheckUpgradeContent" type="com.tianque.upgradeContent.domain.UserCheckUpgradeContent" />
+	
+	<resultMap id="userCheckUpgradeContentResult" class="UserCheckUpgradeContent">
+		<result property="id" column="ID" />
+		<result property="user.id" column="USERID" />
+		<result property="upgradeContent.id" column="upgradecontentid" />
+		<result property="checkDate" column="CHECKDATE" />
+		<result property="checkState" column="CHECKSTATE" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<insert id="addUserCheckUpgradeContent" parameterClass="UserCheckUpgradeContent">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_UPGRADECONTENTINFO.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO USERCHECKUPGRADECONTENTINFO 
+		(ID,USERID,UPGRADECONTENTID,CHECKDATE,CHECKSTATE,createUser,updateUser,createDate,updateDate) VALUES
+		(#id#,#user.id#,#upgradeContent.id#,#checkDate#,#checkState#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	<update id="updateUserCheckUpgradeContent" parameterClass="UserCheckUpgradeContent">
+		update USERCHECKUPGRADECONTENTINFO set
+			USERID = #user.id#,
+			UPGRADECONTENTID=#upgradeContent.id#,
+			CHECKDATE=#checkDate#,
+			CHECKSTATE=#checkState#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#
+		where id=#id#
+	</update>
+	
+	<delete id="deleteUserCheckUpgradeContent" parameterClass="java.lang.Long">
+		delete from USERCHECKUPGRADECONTENTINFO where id=#value#
+	</delete>
+	
+	<delete id="deleteUserCheckUpgradeContentByUpgradeContentId" parameterClass="java.lang.Long">
+		delete from USERCHECKUPGRADECONTENTINFO U where U.UPGRADECONTENTID=#value#
+	</delete>
+	
+	<select id="getUserCheckUpgradeContentById" parameterClass="java.lang.Long" resultMap="userCheckUpgradeContentResult">
+		SELECT * from USERCHECKUPGRADECONTENTINFO where id=#value#	
+	</select>
+	
+	<select id="queryUserCheckUpgradeContentForList" parameterClass="map" resultMap="userCheckUpgradeContentResult">
+		select * from USERCHECKUPGRADECONTENTINFO U WHERE U.UPGRADECONTENTID = #upgradeContentId# AND U.CHECKSTATE = 0  AND U.Userid = #userId#
+	</select>
+	
+	<select id="getUserCheckUpgradeContentByUserIdAndUpgradeContentId" parameterClass="map" resultMap="userCheckUpgradeContentResult">
+		select * from USERCHECKUPGRADECONTENTINFO U WHERE U.UPGRADECONTENTID = #upgradeContentId# AND U.Userid = #userId#
+	</select>
+</sqlMap>

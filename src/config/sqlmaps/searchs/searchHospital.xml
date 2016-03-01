@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchHospital">
+	<typeAlias alias="SearchHospitalVo" type="com.tianque.domain.vo.SearchHospitalVo" />
+	<select id="countSearchHospital" parameterClass="SearchHospitalVo"
+		resultClass="int">
+		select count(*) from hospitals where orgInternalCode like
+		'$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="unitName">
+				<isNotEmpty property="unitName" prepend=" and ">
+					(hospitalName
+					like #unitName#||'%' or fullPinyin like #unitName#||'%' or
+					simplePinyin like #unitName#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="kind">
+				<isNotEmpty property="kind.id" prepend=" and ">
+					kind =#kind.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="type">
+				<isNotEmpty property="type.id" prepend=" and ">
+					type =#type.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="level">
+				<isNotEmpty property="level.id" prepend=" and ">
+					hospitallevel =
+					#level.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="address">
+				<isNotEmpty property="address" prepend=" and ">
+					address like
+					#address#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="anotherName">
+				<isNotEmpty property="anotherName" prepend=" and ">
+					anotherName
+					like #anotherName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="hospitalName">
+				<isNotEmpty property="hospitalName" prepend=" and ">
+					hospitalName
+					like #hospitalName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="director">
+				<isNotEmpty property="director" prepend=" and ">
+					director like
+					#director#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="affiliatedUnit">
+				<isNotEmpty property="affiliatedUnit" prepend=" and ">
+					affiliatedUnit like #affiliatedUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="contactName">
+				<isNotEmpty property="contactName" prepend=" and ">
+					contactName
+					like #contactName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="telephone">
+				<isNotEmpty property="telephone" prepend=" and ">
+					telephone =
+					#telephone#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty property="mobileNumber" prepend=" and ">
+					mobileNumber
+					= #mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="true">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="false">
+						isEmphasis = #isEmphasis# 
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="attentionExtentId">
+				<isNotEmpty property="attentionExtentId" prepend=" and ">
+					attentionExtentId = #attentionExtentId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isNotEmpty property="hasServiceTeamMember" prepend=" and ">
+				<isEqual property="hasServiceTeamMember" compareValue="0">
+					id in
+					(select objectId from serviceMemberHasObject where
+					objectType='INTERNETBAR')
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="1">
+					id not
+					in (select objectId from serviceMemberHasObject where
+					objectType='INTERNETBAR')
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="-1">
+					1=1
+				</isEqual>
+			</isNotEmpty>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+				</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<sql id="sql_where">
+		from hospitals hos where orgInternalCode like '$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="unitName">
+				<isNotEmpty property="unitName" prepend=" and ">
+					(hospitalName
+					like #unitName#||'%' or fullPinyin like #unitName#||'%' or
+					simplePinyin like #unitName#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="kind">
+				<isNotEmpty property="kind.id" prepend=" and ">
+					kind =#kind.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="type">
+				<isNotEmpty property="type.id" prepend=" and ">
+					type =#type.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="level">
+				<isNotEmpty property="level.id" prepend=" and ">
+					hospitallevel =
+					#level.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isMedicalInsurance">
+				<isNotNull property="isMedicalInsurance" prepend=" and ">
+					isMedicalInsurance = #isMedicalInsurance#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="address">
+				<isNotEmpty property="address" prepend=" and ">
+					address like
+					#address#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="anotherName">
+				<isNotEmpty property="anotherName" prepend=" and ">
+					anotherName
+					like #anotherName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="hospitalName">
+				<isNotEmpty property="hospitalName" prepend=" and ">
+					hospitalName
+					like #hospitalName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="director">
+				<isNotEmpty property="director" prepend=" and ">
+					director like
+					#director#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="affiliatedUnit">
+				<isNotEmpty property="affiliatedUnit" prepend=" and ">
+					affiliatedUnit like #affiliatedUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="personLiable">
+				<isNotEmpty property="personLiable" prepend=" and ">
+					personLiable
+					like #personLiable#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="personLiableTelephone">
+				<isNotEmpty property="personLiableTelephone" prepend=" and ">
+					personLiableTelephone =#personLiableTelephone#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="personLiableMobileNumber">
+				<isNotEmpty property="personLiableMobileNumber" prepend=" and ">
+					personLiableMobileNumber =#personLiableMobileNumber#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="contactName">
+				<isNotEmpty property="contactName" prepend=" and ">
+					contactName
+					like #contactName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="telephone">
+				<isNotEmpty property="telephone" prepend=" and ">
+					telephone =
+					#telephone#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="email">
+				<isNotEmpty property="mobileNumber" prepend=" and ">
+					mobileNumber
+					= #mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="email">
+				<isNotEmpty property="email" prepend=" and ">
+					email like
+					#email#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fax">
+				<isNotEmpty property="fax" prepend=" and ">
+					fax like #fax#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="true">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="false">
+						isEmphasis = #isEmphasis# 
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="attentionExtentId">
+				<isNotEmpty property="attentionExtentId" prepend=" and ">
+					attentionExtentId = #attentionExtentId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isNotEmpty property="hasServiceTeamMember" prepend=" and ">
+				<isEqual property="hasServiceTeamMember" compareValue="0">
+					id in
+					(select objectId from serviceMemberHasObject where
+					objectType='INTERNETBAR')
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="1">
+					id not
+					in (select objectId from serviceMemberHasObject where
+					objectType='INTERNETBAR')
+				</isEqual>
+				<isEqual property="hasServiceTeamMember" compareValue="-1">
+					1=1
+				</isEqual>
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	<select id="searchSearchHospital" parameterClass="SearchHospitalVo"
+		resultMap="hospital.hospitalResultMapForList">
+		select hos.*,'$importantLocationType$' as locationType 
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+				</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countHospital" parameterClass="SearchHospitalVo" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+</sqlMap>

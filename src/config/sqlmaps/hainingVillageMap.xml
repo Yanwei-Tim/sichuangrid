@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="hainingVillageMap">
+	<typeAlias alias="HainingVillageMap" type="com.tianque.domain.HainingVillageMap"/>
+	<resultMap class="HainingVillageMap" id="hainingVillageMapResult">
+		<result property="id" column="id"/>
+		
+		<result property="departmentNo" column="departmentNo"/>
+		<result property="imgUrl" column="imgUrl"/>
+		
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>	
+	</resultMap>
+	
+	<insert id="addHainingVillageMap" parameterClass="HainingVillageMap">
+	   <selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_hainingvillagemap.NEXTVAL as id from dual ]]>
+		</selectKey>
+	   insert into hainingvillagemap(id,departmentNo,imgUrl,createUser,createDate,updateUser,updateDate)
+	   values(#id#,#departmentNo#,#imgUrl#,#createUser#,#createDate#,#updateUser#,#updateDate#)
+	</insert>
+	
+	<update id="updateHainingVillageMap" parameterClass="HainingVillageMap">
+	  update hainingvillagemap
+	  set imgUrl=#imgUrl#,createUser=#createUser#,createDate=#createDate#,updateUser=#updateUser#,updateDate=#updateDate#
+	  where id =#id#
+	</update>
+	<update id="deleteImgUrl" parameterClass="java.lang.String">
+	  update hainingvillagemap set imgUrl='' where departmentNo=#departmentNo#
+	</update>
+	
+	<select id="getHainingVillageMapByDepartmentNo" parameterClass="java.lang.String" resultMap="hainingVillageMapResult">
+	  select * from hainingvillagemap where 1=1 and departmentNo=#departmentNo#
+	</select>
+</sqlMap>

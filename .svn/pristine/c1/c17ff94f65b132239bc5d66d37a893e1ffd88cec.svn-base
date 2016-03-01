@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="workCalendar">
+	<typeAlias alias="WorkCalendar" type="com.tianque.domain.WorkCalendar" />
+	<parameterMap id="workCalendarParams" class="WorkCalendar">
+		<parameter property="id" />
+		<parameter property="year" />
+		<parameter property="month" />
+		<parameter property="day" />
+		<parameter property="dayofyear" />
+		<parameter property="holiday" />
+		<parameter property="actualDate" />
+		<parameter property="createUser" />
+		<parameter property="createDate" />
+		<parameter property="updateUser" />
+		<parameter property="updateDate" />
+		<parameter property="calendarType" />
+		<parameter property="orgId" />
+	</parameterMap>
+	<resultMap id="workCalendarResult" class="WorkCalendar">
+		<result property="id" column="id" />
+		<result property="year" column="year" />
+		<result property="month" column="month" />
+		<result property="day" column="day" />
+		<result property="dayofyear" column="dayofyear" />
+		<result property="holiday" column="holiday" />
+		<result property="actualDate" column="actualDate" />
+		<result property="startWorkTimeAM" column="startWorkTimeAM" />
+		<result property="endWorkTimeAM" column="endWorkTimeAM" />
+		<result property="startWorkTimePM" column="startWorkTimePM" />
+		<result property="endWorkTimePM" column="endWorkTimePM" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="calendarType" column="calendarType" />
+		<result property="orgId" column="orgId" />
+	</resultMap>
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization" />
+	<resultMap id="organizationResult" class="Organization">
+		<result property="id" column="id" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="orgName" column="orgName" />
+		<result property="orgType.id" column="orgType" />
+		<result property="orgLevel.id" column="orgLevel" />
+		<result property="contactWay" column="contactWay" />
+		<result property="departmentNo" column="departmentNo" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="subCount" column="subCount" />
+		<result property="subCountFun" column="subCountFun" />
+		<result property="parentOrg.id" column="parentId" />
+		<result property="parentFunOrg.id" column="parentFunOrgId" />
+		<result property="maxCode" column="maxCode" />
+		<result property="seq" column="seq" />
+		<result property="remark" column="remark" />
+		<result property="gisInfo.buildingId" column="buildingId"/>
+		<result property="gisInfo.centerX" column="centerX"/>
+		<result property="gisInfo.centerY" column="centerY"/>
+		<result property="functionalOrgType.id" column="functionalOrgType"/>
+	</resultMap>
+	<sql id="sql_typeAndOrgId">
+		<dynamic>
+		<isPropertyAvailable property="calendarType">
+			<isNotNull property="calendarType" prepend="and">
+				calendarType =#calendarType#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="orgId">
+			<isNotNull property="orgId" prepend="and">
+				orgId = #orgId#
+			</isNotNull>
+		</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<insert id="addWorkClaendars" parameterClass="WorkCalendar">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_workcalendars.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO workcalendars(id,year,month,day,dayofyear,holiday,actualDate,createUser,createDate,updateUser,updateDate,
+		startWorkTimeAM,endWorkTimeAM,startWorkTimePM,endWorkTimePM,calendarType,orgId)
+		values
+		(#id#,#year#,#month#,#day#,#dayofyear#,#holiday#,#actualDate#,#createUser#,#createDate#,#updateUser#,#updateDate#,
+		#startWorkTimeAM#,#endWorkTimeAM#,#startWorkTimePM#,#endWorkTimePM#,#calendarType#,#orgId#)
+	</insert>
+	<select id="findWorkClaendars" resultMap="workCalendarResult" parameterClass="java.util.HashMap">
+		select * from workCalendars where year=#year#
+		 <include refid="sql_typeAndOrgId" />
+		order by month,day
+	</select>
+	<select id="findFeatureOrgIds" resultClass="java.lang.Long" parameterClass="WorkCalendar">
+		select  distinct orgId from workcalendars where calendarType = 1 and year = #year#
+	</select>
+	<update id="updateWorkClaendarsIsWork" parameterClass="java.util.HashMap">
+		update
+		workcalendars set holiday=0 where year=#year# and month=#month# and day=#day#
+		 <include refid="sql_typeAndOrgId" />
+	</update>
+
+	<update id="updateWorkClaendarsIsWeek" parameterClass="java.util.HashMap">
+		update
+		workcalendars set holiday=1 where year=#year# and month=#month# and day=#day#
+		 <include refid="sql_typeAndOrgId" />
+	</update>
+	<update id="deleteWorkClaendar" parameterClass="WorkCalendar">
+		delete workcalendars where  year=#year#
+		 <include refid="sql_typeAndOrgId" />
+	</update>
+	<update id="updateWorkClaendarsActualDate" parameterClass="java.util.HashMap">
+		update
+		workcalendars set actualDate=#actualDate# where id=#id#
+		 <include refid="sql_typeAndOrgId" />
+	</update>
+	<update id="updateWorkTime" parameterClass="java.util.HashMap">
+		update workcalendars 
+		set startWorkTimeAM=#startWorkTimeAM#,endWorkTimeAM=#endWorkTimeAM#,startWorkTimePM=#startWorkTimePM#,endWorkTimePM=#endWorkTimePM#
+		where year=#year# and month=#month# and day=#day#
+		 <include refid="sql_typeAndOrgId" />
+	</update>
+	<!--  
+	<select id="getWorkClaendarsById" resultMap="workCalendarResult" parameterClass="java.util.HashMap">
+		select * from workcalendars where year=#year# and month=#month# and day=#day#
+	</select>
+	-->
+	<select id="getWorkClaendarsByHoliday"  resultClass="java.lang.Long">
+		<![CDATA[select count(*) from workcalendars where holiday=0]]>
+	</select>
+	
+	<select id="getWorkClaendarsByHolidays" resultClass="java.lang.Long">
+		<![CDATA[select count(*) from workcalendars where holiday=1]]>
+	</select>
+	
+	<select id="getWorkClaendarsByYear" resultClass="java.lang.Long" parameterClass="java.util.HashMap">
+		select year from workcalendars 
+		<dynamic prepend="where">
+			<isPropertyAvailable property="year">
+				<isNotNull property="year" prepend=" and ">
+					year=#year#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="calendarType">
+				<isNotNull property="calendarType" prepend=" and ">
+					calendarType=#calendarType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId=#orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			</dynamic>
+	</select>
+	<select id="getPreviousDate" resultMap="workCalendarResult" parameterClass="java.util.HashMap">
+		<![CDATA[select * from workcalendars  where calendarType = 0 and actualDate <(select actualDate from workcalendars where  calendarType = 0 and year=#year# and month=#month# and day=#day#) and holiday not in(1,7)  order by actualDate]]>
+	</select>
+	
+	<select id="getFutureDate" resultMap="workCalendarResult" parameterClass="java.util.HashMap">
+		<![CDATA[select * from workcalendars  where calendarType = 0 and actualDate >(select actualDate from workcalendars where  calendarType = 0 and year=#year# and month=#month# and day=#day#) and holiday not in(1,7)  order by actualDate]]>
+	</select>
+	<select id="getFutureDateByCityOrgId" resultMap="workCalendarResult" parameterClass="java.util.HashMap">
+		<![CDATA[select * from workcalendars  where actualDate >(select actualDate from workcalendars where year=#year# and month=#month# and day=#day# and calendarType = 1 and orgId = #orgId# ) and holiday not in(1,7) and calendarType = 1 and orgId = #orgId#  order by actualDate]]>
+	</select>
+	<select id="getWorkCalendarByDateString" parameterClass="java.lang.String" resultMap="workCalendarResult">
+	    <![CDATA[
+	        select * from workcalendars where year||'-'||month||'-'||day = #value#
+	    ]]>
+	</select>
+	<select id="getWorkDaysFromStartTimeToEndTime" resultClass="java.lang.Integer" parameterClass="java.util.HashMap">
+		<![CDATA[select count(*) from workcalendars  where calendarType = 0 and actualDate >=#startTime# and actualDate<=#endTime# and holiday not in (1,7)]]>
+	</select>
+	<select id="getWorkDaysFromStartTimeToEndTimeByFeature" resultClass="java.lang.Integer" parameterClass="java.util.HashMap">
+		<![CDATA[select count(*) from workcalendars  where calendarType = 1 and orgId= #orgId# and  actualDate >=#startTime# and actualDate<=#endTime# and holiday not in (1,7)]]>
+	</select>
+	<select id="getWorkDaysInfoFromStartTimeToEndTime" resultClass="java.lang.String" parameterClass="java.util.HashMap">
+		<![CDATA[select  to_char(actualDate, 'yyyy-MM-dd') actualDate from workcalendars  where calendarType = 0 and actualDate >=#startTime# and actualDate<=#endTime# and holiday not in (1,7) order by actualDate]]>
+	</select>
+	<select id="getWorkDaysInfoFromStartTimeToEndTimeByFeature" resultClass="java.lang.String" parameterClass="java.util.HashMap">
+		<![CDATA[select to_char(actualDate, 'yyyy-MM-dd') actualDate from workcalendars  where calendarType = 1 and orgId= #orgId# and  actualDate >=#startTime# and actualDate<=#endTime# and holiday not in (1,7) order by actualDate]]>
+	</select>
+	<select id="findCurrentWeek" resultMap="workCalendarResult" parameterClass="java.util.HashMap">
+		<![CDATA[select * from workcalendars t where  t.calendarType = 0 and t.actualdate >=#startTime# and t.actualdate<=#endTime# order by actualdate ]]>
+	</select>
+	<select id="findCurrentWeekByFeature" resultMap="workCalendarResult" parameterClass="java.util.HashMap">
+		<![CDATA[select * from workcalendars t where  calendarType = 1 and orgId= #orgId# and t.actualdate >=#startTime#  and t.actualdate<=#endTime# order by actualdate ]]>
+	</select>
+	
+</sqlMap>

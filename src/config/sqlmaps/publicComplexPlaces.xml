@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="publicComplexPlaces">
+	<typeAlias alias="PublicComplexPlaces" type="com.tianque.baseInfo.publicComplexPlaces.domain.PublicComplexPlaces" />
+
+	<resultMap id="publicComplexPlacesResult" class="PublicComplexPlaces" extends="locationBaseInfo.locationBaseInfoResult">
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="placeName" column="placeName" />
+		<result property="placeAddress" column="placeAddress" />
+		<result property="manager" column="manager" />
+		<result property="managerMobile" column="managerMobile" />
+		<result property="managerTelephone" column="managerTelephone" />
+		<result property="type.id" column="type" />
+		<result property="detailedType.id" column="detailedType" />
+		<result property="hiddenCases" column="hiddenCases" />
+		<result property="hiddenRectification" column="hiddenRectification" />
+		<result property="remark" column="remark"/> 
+		<result column="imgUrl" property="imgUrl" />
+		<result property="logOutReason" column="logOutReason"/>
+		<result property="logOutTime" column="logOutTime"/>
+		<result property="gisInfo.buildingId" column="buildingId" />
+        <result property="gisInfo.centerX" column="centerX" />
+        <result property="gisInfo.centerY" column="centerY" />
+        <result column="attentionExtent" property="attentionExtent.id"/>		
+	</resultMap>
+	<!-- 为列表显示准备的返回值 -->
+	<resultMap id="publicComplexPlacesResultForList" class="PublicComplexPlaces" extends="locationBaseInfo.locationBaseInfoResultForList">
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="placeName" column="placeName" />
+		<result property="placeAddress" column="placeAddress" />
+		<result property="manager" column="manager" />
+		<result property="managerMobile" column="managerMobile" />
+		<result property="managerTelephone" column="managerTelephone" />
+		<result property="type.id" column="type" />
+		<result property="detailedType.id" column="detailedType" />
+		<result property="hiddenCases" column="hiddenCases" />
+		<result property="hiddenRectification" column="hiddenRectification" />
+		<result column="imgUrl" property="imgUrl" />
+		<result property="remark" column="remark"/> 
+		<result property="logOutReason" column="logOutReason"/>
+		<result property="logOutTime" column="logOutTime"/>
+		<result property="gisInfo.buildingId" column="buildingId" />
+        <result property="gisInfo.centerX" column="centerX" />
+        <result property="gisInfo.centerY" column="centerY" />
+        <result column="attentionExtent" property="attentionExtent.id"/>
+		<result property="sourcesState" column="sourcesState"/>
+	</resultMap>
+	<insert id="addPlace" parameterClass="PublicComplexPlaces">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_publicComplexPlaces.NEXTVAL as id from dual]]>
+		</selectKey>
+		insert into publicComplexPlaces (
+		id,orgId,orgInternalCode,placeName,placeAddress,manager,imgUrl,managerMobile,managerTelephone,type,detailedType,hiddenCases,hiddenRectification,
+		logOutReason,logOutTime,remark,fullPinyin,simplePinyin,attentionExtent,
+		createUser,updateUser,createDate,updateDate,buildingId,centerX,centerY,sourcesState
+		)values(
+		#id#,#organization.id#,#orgInternalCode#,#placeName#,#placeAddress#,#manager#,#imgUrl#,#managerMobile#,#managerTelephone#,#type.id#,#detailedType.id#,
+		#hiddenCases#,#hiddenRectification#,#logOutReason#,#logOutTime#,#remark#,#fullPinyin#,#simplePinyin#,#attentionExtent.id#,
+		#createUser#,#updateUser#,#createDate#,#updateDate#,#gisInfo.buildingId#,#gisInfo.centerX#,#gisInfo.centerY#,#sourcesState#)
+	
+	</insert>
+	<update id="updatePlace" parameterClass="PublicComplexPlaces">
+		update publicComplexPlaces set
+			orgId=#organization.id#,
+			orgInternalCode=#orgInternalCode#,
+			placeName=#placeName#,
+			placeAddress=#placeAddress#,
+			manager=#manager#,
+			managerMobile=#managerMobile#,
+			managerTelephone=#managerTelephone#,
+			type=#type.id#,
+			detailedType=#detailedType.id#,
+			hiddenCases=#hiddenCases#,
+			hiddenRectification=#hiddenRectification#,
+			logOutReason=#logOutReason#,
+			logOutTime=#logOutTime#,
+			remark=#remark#,
+			imgUrl=#imgUrl#,
+			fullPinyin=#fullPinyin#,
+			simplePinyin=#simplePinyin#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#,
+			buildingId = #gisInfo.buildingId#,
+			centerX = #gisInfo.centerX#,
+			centerY = #gisInfo.centerY#,
+			attentionExtent=#attentionExtent.id#
+		where id=#id#
+	</update>
+	<update id="updateEmphasiseById" parameterClass="map">
+		update publicComplexPlaces set
+			isEmphasis=#isEmphasis#,
+			logOutReason=#logOutReason#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#,
+			logOutTime=#logOutTime#
+		where id=#id#	
+	</update>
+	<sql id="sql_where">
+		from publicComplexPlaces
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+						isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<delete id="deletePlaceById" parameterClass="java.lang.Long">
+		delete from publicComplexPlaces  where id=#id#
+	</delete>
+	<select id="getPlaceById" parameterClass="java.lang.Long" resultMap="publicComplexPlacesResult">
+		<![CDATA[select * from publicComplexPlaces where id= #value#]]>
+	</select>
+	
+	<select id="countPlaces" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*)
+		<include refid="sql_where" />
+	</select>
+	<select id="findPlaces" parameterClass="java.util.Map" resultMap="publicComplexPlacesResultForList">
+		select publicComplexPlaces.*,'$importantLocationType$' as locationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select  id="getPlaceByPlaceName" parameterClass="java.util.Map" resultMap="publicComplexPlacesResult">
+		select * from publicComplexPlaces where   placeName=#placeName# and  orgId=#orgId#
+	</select>
+</sqlMap>

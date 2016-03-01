@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+    
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="statisticsPlaceManage" extends="default"
+		namespace="/baseInfoStat/statisticsPlace">
+		<default-class-ref class="statisticsPlaceController" />
+		
+		<action name="getStatisticsPlaceInfoList" method="getStatisticsPlaceInfoList">
+			<result type="json" name="success">
+				<param name="root">personnelAreaData</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="getStatisticsImportantPlaceColumn" method="getStatisticsImportantPlaceColumn">
+			<result type="json">
+				<param name="root">personnelColumn</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="getStatisticsImportantPlacePie" method="getStatisticsImportantPlacePie">
+			<result type="json">
+				<param name="root">placePie</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+	</package>
+</struts>

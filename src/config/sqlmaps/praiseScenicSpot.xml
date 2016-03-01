@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="praiseScenicSpot">
+    <typeAlias alias="praiseScenicSpot" type="com.tianque.baseInfo.scenicManage.praiseScenicSpot.domain.PraiseScenicSpot"/>
+	
+	<resultMap class="praiseScenicSpot" id="praiseScenicSpotResultMap" extends="baseDomain.baseDomainResult">
+		<result property="scenicSpotId" column="scenicSpotId"/>
+		<result property="feedbackType.id" column="feedbackType"/>
+		<result property="feedbackTime" column="feedbackTime"/>
+		<result property="feedbackPerson" column="feedbackPerson"/>
+		<result property="feedbackPersonTelephone" column="feedbackPersonTelephone"/>
+		<result property="introduction" column="introduction"/>
+		<result property="fullPinyin" column="fullPinyin"/>
+		<result property="simplePinyin" column="simplePinyin"/>
+	</resultMap>
+	
+	<sql id="sql_where">
+		from praiseScenicSpot
+		where scenicSpotId = #scenicSpotId#
+	</sql>
+
+	<select id="findPraiseScenicSpotList" parameterClass="praiseScenicSpot" resultMap="praiseScenicSpotResultMap">
+		<![CDATA[select * ]]>
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+	   </dynamic>
+	</select>
+
+	<select id="countPraiseScenicSpotList" parameterClass="praiseScenicSpot"  resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<insert id="addPraiseScenicSpot" parameterClass="praiseScenicSpot">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[select S_praiseScenicSpot.NEXTVAL as id from dual ]]>
+	    </selectKey>
+		<![CDATA[
+	    	insert into praiseScenicSpot(
+	    		id,scenicSpotId,feedbackType,feedbackTime,feedbackPerson,feedbackPersonTelephone,introduction,
+	    		fullPinyin,simplePinyin,createUser,createDate)
+	    	values(
+	    		#id#,#scenicSpotId#,#feedbackType.id#,#feedbackTime#,#feedbackPerson#,#feedbackPersonTelephone#,#introduction#,
+	    		#fullPinyin#,#simplePinyin#,#createUser#,#createDate#)
+		]]>
+	</insert>
+
+	<delete id="deletePraiseScenicSpotById" parameterClass="java.lang.Long">
+	    delete praiseScenicSpot where id=#value#
+	</delete>
+	
+	<select id="getPraiseScenicSpotById" parameterClass="java.lang.Long" resultMap="praiseScenicSpotResultMap">
+		select * from praiseScenicSpot where id=#value#
+	</select>
+
+</sqlMap>

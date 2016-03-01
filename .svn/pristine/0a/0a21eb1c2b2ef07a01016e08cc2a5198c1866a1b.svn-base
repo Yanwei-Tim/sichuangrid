@@ -1,0 +1,893 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="issueLeaderViewCache">
+	<typeAlias alias="IssueViewObject" type="com.tianque.issue.vo.IssueViewObject" />
+	<typeAlias alias="CompletedIssue" type="com.tianque.issue.domain.CompletedIssue"/>
+	<typeAlias alias="IssueCacheVO" type="com.tianque.issueLeaderViewCache.domain.IssueCacheVO" />
+	<resultMap id="issueViewResult" class="IssueViewObject">
+		<result property="superviseLevel" column="superviseLevel" nullValue="-1"/>
+		<result property="issueId" column="issueId" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="subject" column="subject" />
+		<result property="status" column="status" />
+		<result property="occurDate" column="occurDate" />
+		<result property="currentOrg.id" column="currentOrg" />
+		<result property="occurOrg.id" column="occurOrg" />
+		<result property="targeOrg.id" column="targetOrg" />
+		<result property="dealTime" column="lastdealdate" />
+		<result property="sourcePerson" column="sourcePerson" />
+		<result property="sourceKind.id" column="sourceKind" />
+		<result property="sourceMobile" column="sourceMobile" />
+		<result property="issueLogId" column="stepId" />
+		<result property="issueStepId" column="stepId" />
+		<result property="supervisionState" column="superviselevel" nullValue="-1"/>
+		<result property="urgent" column="urgent" />
+		<result property="dealState" column="statecode" />
+		<result property="delayState" column="delayState" nullValue="0"/>
+		<result property="lastOrg.id" column="lastOrg" />
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="fromSerialNumber" column="fromSerialNumber"/>
+		<result property="createDate" column="createDate"/>
+		<result property="deadLine" column="deadLine"/>
+		<result property="createName" column="CREATEUSER" select="issue.getFullUserByUerName" />	
+		<result property="issueType.issueTypeDomain.id" column="ISSUETYPEDOMAINID"/>
+		<result property="issueType.id" column="ISSUETYPEID"/>
+	</resultMap>
+	
+	<resultMap id="issueViewJurisdictionResult" class="IssueViewObject" extends="issueViewResult">
+		<result property="createOrg.id" column="createOrg"/>	
+	</resultMap>
+	
+	<resultMap id="issueViewTopPublicltycassResult" class="IssueViewObject" extends="issueViewResult">
+		<result property="createOrg.id" column="createOrg"/>	
+		<result property="publicltycass" column="publicltycass" />
+	</resultMap>
+	
+	<resultMap id="issueViewAndEvaluateResult" class="IssueViewObject" extends="issueViewResult">
+		<result property="evaluateType" column="evaluateType" />
+		<result property="evaluateContent" column="evaluateContent" />
+		<result property="evaluateTime" column="evaluateTime" />
+	</resultMap>
+	
+	<resultMap id="issueViewJurisdictionsCompleteResult" class="IssueViewObject" extends="issueViewAndEvaluateResult">
+		<result property="publicltycass" column="publicltycass" />
+		<result property="createOrg.id" column="createOrg"/>
+		<result property="issueContent" column="issueContent" typeHandler="ClobStringTypeHandler"/>		
+	</resultMap>
+	
+	<resultMap class="CompletedIssue" id="completedIssueMap">
+		<result property="publicltycass" column="publicltycass" />
+		<result property="issueId" column="issueId" />
+		<result property="delayState" column="delayState" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="subject" column="subject" />
+		<result property="status" column="status" />
+		<result property="occurDate" column="occurDate" />
+		<result property="occurOrg.id" column="occurOrg" />
+		<result property="createOrg.id" column="createOrg" />
+		<result property="targeOrg.id" column="targetOrg" />
+		<result property="currentOrg.id" column="currentOrg" />
+		<result property="dealTime" column="lastdealdate" />
+		<result property="sourcePerson" column="sourcePerson" />
+		<result property="sourceKind.id" column="sourceKind" />
+		<result property="sourceMobile" column="sourceMobile" />
+		<result property="urgent" column="urgent" />
+		<result property="issueStepId" column="stepId" />
+		<result property="superviseLevel" column="superviseLevel" />
+		<result property="lastOrg.id" column="lastOrg" />
+		<result property="createUser" column="createUser" />
+		<result property="dealState" column="dealState" />
+		<result property="evaluateType" column="evaluateType" />
+		<result property="evaluateContent" column="evaluateContent" />
+		<result property="evaluateTime" column="evaluateTime" />
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="porgId" column="porgId" />
+		<result property="torgId" column="torgId" />
+		<result property="createOrginternalCode" column="createOrginternalCode" />
+		<result property="crateOrgFunctionalType" column="crateOrgFunctionalType" />
+		<result property="createOrgLevel" column="createOrgLevel" />
+		<result property="moveMark" column="moveMark"/>
+		<result property="issueKind.id" column="issueKind"/>
+		<result property="occurLocation" column="occurLocation"/>
+		<result property="relatePeopleCount" column="relatePeopleCount"/>
+		<result property="issueType.issueTypeDomain.id" column="ISSUETYPEDOMAINID"/>
+		<result property="issueType.id" column="ISSUETYPEID"/>
+	</resultMap>
+
+	<select id="countJurisdictionsNeedDo" parameterClass="map" resultClass="java.lang.Integer">
+		select count(iu.id)
+          from issuesteps isteps, issues iu
+         where iu.id = isteps.issue
+           and isteps.targetorgLevel = #orgLevel# and isteps.TARGETINTERNALCODE like #orgCode# || '%'
+           and isteps.targetorgfunctionalorgType = 0
+           <![CDATA[ and isteps.stateCode < #completeCode# ]]>
+           and iu.historic = 0
+	</select>
+	
+	<select id="findJurisdictionsNeedDo" parameterClass="map"	resultMap="issueViewJurisdictionResult">
+		 select iu.id                as issueId,
+		        cstep.delayState     as delayState,
+		        iu.serialnumber,
+		        iu.subject,
+		        iu.status,
+		        iu.occurdate,
+		        cstep.source         currentOrg,
+		        iu.occurorg,
+		        cstep.target         targetOrg,
+		        iu.createOrg,
+		        iu.sourceperson,
+		        iu.sourcekind,
+		        iu.sourcemobile,
+		        iu.urgent,
+		        cstep.id             as stepId,
+		        cstep.superviselevel,
+		        cstep.lastdealdate,
+		        iu.lastOrg,
+		        iu.CREATEUSER,
+		        iu.fromSerialNumber,
+		        iu.createDate,
+		        iu.deadLine,
+		        cstep.statecode,
+		        iu.hours,
+		        iu.minute,
+		        iu.ISSUETYPEID,
+				iu.ISSUETYPEDOMAINID
+		   from issuesteps cstep, issues iu
+		  where iu.id = cstep.issue
+		    and cstep.targetorgLevel = #orgLevel#
+		    and cstep.TARGETINTERNALCODE like #orgCode# || '%'
+		    and cstep.targetorgfunctionalorgType = 0
+		    <![CDATA[ and cstep.stateCode < #completeCode# ]]>
+		    and iu.historic = 0
+		  order by  issueId desc
+	</select>
+	
+	<select id="countJurisdictionsAuditDelayByLevel" parameterClass="map" resultClass="java.lang.Integer">
+		select count(iu.id)
+          from issuesteps isteps, issues iu
+         where isteps.issue = iu.id
+           and isteps.id in
+               (select stepid
+                  from issueapplydelay
+                 where auditorg in
+                       (select id
+                          from organizations
+                         where orginternalcode like #orgCode# || '%'
+                           and orgLevel = #orgLevel#))
+           <![CDATA[ and isteps.stateCode < #completeCode# ]]>
+           and iu.historic = 0
+           and isteps.delayState = 1
+		   and isteps.targetorgfunctionalorgType = 0
+           and isteps.superviselevel != #superviselevel#
+	</select>
+
+	<select id="findJurisdictionAuditDelay" parameterClass="map" resultMap="issueViewJurisdictionResult">
+		 select iu.id                as issueId,
+		        cstep.delayState     as delayState,
+		        iu.serialnumber,
+		        iu.subject,
+		        iu.status,
+		        iu.occurdate,
+		        cstep.source         currentOrg,
+		        iu.occurorg,
+		        iu.createOrg,
+		        cstep.target         targetOrg,
+		        iu.sourceperson,
+		        iu.sourcekind,
+		        iu.sourcemobile,
+		        iu.urgent,
+		        iu.fromSerialNumber,
+		        iu.createDate,
+		        iu.deadLine,
+		        cstep.id             as stepId,
+		        cstep.superviselevel,
+		        cstep.lastdealdate,
+		        iu.lastOrg,
+		        iu.CREATEUSER,
+		        cstep.statecode,
+		        iu.hours,
+		        iu.minute,
+		        iu.ISSUETYPEID,
+				iu.ISSUETYPEDOMAINID
+		   from issuesteps cstep, issues iu
+		  where cstep.issue = iu.id
+		    and cstep.id in
+		        (select stepid
+		           from issueapplydelay
+		          where auditorg in (select id
+		                               from organizations
+		                              where orginternalcode like #orgCode# || '%'
+		                                and orgLevel = #orgLevel#))
+		    <![CDATA[ and cstep.stateCode < #completeCode# ]]>
+		    and iu.historic = 0
+		    and cstep.delayState = 1
+		    and cstep.targetorgfunctionalorgType = 0
+		    and cstep.superviselevel != #superviselevel#
+		  order by issueId desc
+	</select>
+	
+	<select id="countJurisdictionsVerification" parameterClass="map" resultClass="java.lang.Integer">
+		select count(iu.id)
+          from issuesteps isteps, issues iu
+         where iu.id = isteps.issue
+           and isteps.stateCode = #completeCode# 
+           and iu.historic = 0
+           and iu.CREATEORGLEVEL = #orgLevel#
+           and iu.CREATEORGINTERNALCODE like #orgCode# || '%'
+           and iu.CREATEORGFUNCTIONALORGTYPE = 0
+	</select>
+	
+	<select id="findJurisdictionsVerification" parameterClass="map"	resultMap="issueViewJurisdictionsCompleteResult">
+		select case
+		         when p.id is null then
+		          0
+		         else
+		          1
+		       end as publicltycass,
+		       iu.id as issueId,
+		       iu.serialnumber,
+		       iu.subject,
+		       iu.status,
+		       iu.occurdate,
+		       cstep.source currentOrg,
+		       iu.occurorg,
+		       iu.createOrg,
+		       cstep.target targetOrg,
+		       cstep.lastdealdate,
+		       iu.sourceperson,
+		       iu.sourcekind,
+		       iu.sourcemobile,
+		       iu.urgent,
+		       iu.fromSerialNumber,
+		       iu.createDate,
+		       iu.deadLine,
+		       cstep.id as stepId,
+		       cstep.superviselevel,
+		       iu.lastOrg,
+		       iu.CREATEUSER,
+		       cstep.statecode,
+		       ie.evaluatetype,
+		       ie.evaluatecontent,
+		       ie.evaluatetime,
+		       iu.hours,
+		       iu.minute,
+		       cstep.delayState,
+		       iu.issuecontent,
+		       iu.ISSUETYPEID,
+			   iu.ISSUETYPEDOMAINID
+		  from issuesteps cstep, issues iu
+		  left join issueEvaluate ie
+		    on ie.issueid = iu.id
+		  left join publicltycass p
+		    on iu.id = p.issueid
+		 where cstep.issue = iu.id
+		   and cstep.stateCode = #completeCode#
+		   and cstep.target > 0
+		   and iu.historic = 0
+		   and iu.CREATEORGLEVEL = #orgLevel#
+		   and iu.CREATEORGINTERNALCODE like #orgCode# || '%'
+		   and iu.CREATEORGFUNCTIONALORGTYPE = 0
+		 order by issueId desc
+	</select>
+	
+	<select id="countGradeDelayIssue" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*)
+		  from completedIssue ci
+		 where dealtime >= #limitDate#
+		   and ci.createOrgLevel = #orgLevel#
+		   and ci.createOrginternalCode like #orgCode# || '%'
+		   and ci.crateOrgFunctionalType = 0
+	</select>
+	
+	<select id="findGradeDelayIssueByPage" parameterClass="map" resultMap="completedIssueMap">
+		select  PUBLICLTYCASS,
+		        ISSUEID,
+		        DELAYSTATE,
+		        SERIALNUMBER,
+		        SUBJECT,
+		        STATUS,
+		        OCCURDATE,
+		        CURRENTORG,
+		        OCCURORG,
+		        CREATEORG,
+		        TARGETORG,
+		        DEALTIME               as lastdealdate,
+		        SOURCEPERSON,
+		        SOURCEKIND,
+		        SOURCEMOBILE,
+		        URGENT,
+		        STEPID,
+		        SUPERVISELEVEL,
+		        LASTORG,
+		        CREATEUSER,
+		        DEALSTATE,
+		        EVALUATETIME,
+		        EVALUATETYPE,
+		        EVALUATECONTENT,
+		        HOURS,
+		        MINUTE,
+		        PORGID,
+		        TORGID,
+		        CREATEORGINTERNALCODE,
+		        CRATEORGFUNCTIONALTYPE,
+		        CREATEORGLEVEL,
+		        MOVEMARK,
+		        issueKind,
+		        occurLocation,
+		        relatePeopleCount,
+		        ISSUETYPEID,
+		        ISSUETYPEDOMAINID
+		   from completedIssue ci
+		  where dealtime >= #limitDate#
+		    and ci.createOrgLevel = #orgLevel#
+		    and ci.createOrginternalCode like #orgCode# || '%'
+		    and ci.crateOrgFunctionalType = 0
+		  order by issueId desc
+	</select>
+	
+	<select id="countJurisdictionsFollow" parameterClass="map" resultClass="java.lang.Integer">
+		select count(0)
+		   from (select issue, stateCode
+		           from issuesteps
+		          where id in (select max(id)
+		                         from issuesteps cstep
+		                        where cstep.stateCode >= #completeCode# 
+		                          and cstep.targetorgLevel = #orgLevel#
+		                          and cstep.TARGETINTERNALCODE like #orgCode# || '%'
+		                          and cstep.targetorgfunctionalorgType = 0
+		                        group by issue)) istep,
+		        issues iu
+		  where istep.issue = iu.id
+		    and iu.historic = 0
+		    <![CDATA[ and istep.stateCode < #issueCompleteCode# and iu.status < #verification# ]]>
+	</select>
+	
+	<select id="findJurisdictionsFollow" parameterClass="map"	resultMap="issueViewJurisdictionResult">
+		select iu.id                as issueId,
+		       iu.serialnumber,
+		       iu.subject,
+		       iu.status,
+		       iu.occurdate,
+		       istep.source         currentOrg,
+		       iu.occurorg,
+		       iu.createOrg,
+		       istep.target         targetOrg,
+		       istep.lastdealdate,
+		       iu.sourceperson,
+		       iu.sourcekind,
+		       iu.sourcemobile,
+		       iu.urgent,
+		       istep.id             as stepId,
+		       istep.superviselevel,
+		       iu.lastOrg,
+		       iu.CREATEUSER,
+		       iu.fromSerialNumber,
+		       iu.createDate,
+		       iu.deadLine,
+		       istep.statecode,
+		       iu.hours,
+		       iu.minute,
+		       istep.delayState,
+		       iu.ISSUETYPEID,
+			   iu.ISSUETYPEDOMAINID
+		  from (select *
+		          from issuesteps
+		         where id in (select max(id)
+		                        from issuesteps cstep
+		                       where cstep.stateCode >= #completeCode# 
+		                         and cstep.targetorgLevel = #orgLevel#
+		                         and cstep.TARGETINTERNALCODE like #orgCode# || '%'
+		                         and cstep.targetorgfunctionalorgType = 0
+		                       group by issue)) istep,
+		       issues iu
+		 where istep.issue = iu.id
+		   and iu.historic = 0
+		   <![CDATA[ and istep.stateCode < #issueCompleteCode# and iu.status < #verification# ]]>
+		 order by issueId desc
+	</select>
+	
+	<select id="countJurisdictionsDone" parameterClass="map" resultClass="java.lang.Integer">
+		select count(0)
+		  from issues iu
+		 where iu.historic = 0
+		   and exists (select 1
+		          from issuesteps cstep
+		         where cstep.stateCode >= #completeCode#
+		           and cstep.targetorgLevel = #orgLevel#
+		           and cstep.TARGETINTERNALCODE like #orgCode# || '%'
+		           and cstep.targetorgfunctionalorgType = 0
+		           and cstep.issue = iu.id)
+	</select>
+	
+	<select id="findJurisdictionsDone" parameterClass="map"	resultMap="issueViewTopPublicltycassResult">
+		select case
+		         when p.id is null then
+		          0
+		         else
+		          1
+		       end as publicltycass,
+		       iu.id as issueId,
+		       iu.serialnumber,
+		       iu.subject,
+		       iu.status,
+		       iu.occurdate,
+		       istep.source currentOrg,
+		       iu.occurorg,
+		       iu.createOrg,
+		       istep.target targetOrg,
+		       istep.lastdealdate,
+		       iu.sourceperson,
+		       iu.sourcekind,
+		       iu.sourcemobile,
+		       iu.urgent,
+		       istep.id as stepId,
+		       istep.superviselevel,
+		       iu.lastOrg,
+		       iu.CREATEUSER,
+		       iu.fromSerialNumber,
+		       iu.createDate,
+		       iu.deadLine,
+		       istep.statecode,
+		       iu.hours,
+		       iu.minute,
+		       istep.delayState,
+		       iu.ISSUETYPEID,
+			   iu.ISSUETYPEDOMAINID
+		  from (select *
+		          from (select cstep.*,
+		                       row_number() over(partition by cstep.issue order by cstep.id desc) as rnk
+		                  from issuesteps cstep
+		                 where cstep.stateCode >= #completeCode#
+		                   and cstep.targetorgLevel = #orgLevel#
+		                   and cstep.TARGETINTERNALCODE like #orgCode# || '%'
+		                   and cstep.targetorgfunctionalorgType = 0)
+		         where rnk = 1) istep,
+		       issues iu
+		  left join publicltycass p
+		    on iu.id = p.issueid
+		 where istep.issue = iu.id
+		   and iu.historic = 0
+		 order by issueId desc
+	</select>
+	
+	
+	<select id="findJurisdictionsDoneHistory" parameterClass="map"	resultMap="issueViewTopPublicltycassResult">
+		select case
+		         when p.id is null then
+		          0
+		         else
+		          1
+		       end as publicltycass,
+		       iu.id as issueId,
+		       iu.serialnumber,
+		       iu.subject,
+		       iu.status,
+		       iu.occurdate,
+		       istep.source currentOrg,
+		       iu.occurorg,
+		       iu.createOrg,
+		       istep.target targetOrg,
+		       istep.lastdealdate,
+		       iu.sourceperson,
+		       iu.sourcekind,
+		       iu.sourcemobile,
+		       iu.urgent,
+		       istep.id as stepId,
+		       istep.superviselevel,
+		       iu.lastOrg,
+		       iu.CREATEUSER,
+		       iu.fromSerialNumber,
+		       iu.createDate,
+		       iu.deadLine,
+		       istep.statecode,
+		       iu.hours,
+		       iu.minute,
+		       istep.delayState,
+		       iu.ISSUETYPEID,
+			   iu.ISSUETYPEDOMAINID
+		  from (select *
+		          from (select cstep.*,
+		                       row_number() over(partition by cstep.issue order by cstep.id desc) as rnk
+		                  from ISSUESTEPS_HISTORY cstep
+		                 where cstep.stateCode >= #completeCode#
+		                   and cstep.targetorgLevel = #orgLevel#
+		                   and cstep.TARGETINTERNALCODE like #orgCode# || '%'
+		                   and cstep.targetorgfunctionalorgType = 0)
+		         where rnk = 1) istep,
+		       ISSUES_HISTORY iu
+		  left join publicltycass p
+		    on iu.id = p.issueid
+		 where istep.issue = iu.id
+		   and iu.historic = 0
+		 order by issueId desc
+	</select>
+	
+	<select id="countJurisdictionsDoneHistory" parameterClass="map" resultClass="java.lang.Integer">
+		select count(0)
+		  from ISSUES_HISTORY iu
+		 where iu.historic = 0
+		   and exists (select 1
+		          from ISSUESTEPS_HISTORY cstep
+		         where cstep.stateCode >= #completeCode#
+		           and cstep.targetorgLevel = #orgLevel#
+		           and cstep.TARGETINTERNALCODE like #orgCode# || '%'
+		           and cstep.targetorgfunctionalorgType = 0
+		           and cstep.issue = iu.id)
+	</select>
+
+	<select id="countCompletedIssue" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*)
+		  from completedIssue ci
+		 where ci.createOrgLevel = #orgLevel#
+		   and ci.createOrginternalCode like #orgCode# || '%'
+		   and ci.crateOrgFunctionalType = 0
+	</select>
+	
+	<select id="findCompletedIssueByPage" parameterClass="map" resultMap="completedIssueMap">
+		select PUBLICLTYCASS,
+		       ISSUEID,
+		       DELAYSTATE,
+		       SERIALNUMBER,
+		       SUBJECT,
+		       STATUS,
+		       OCCURDATE,
+		       CURRENTORG,
+		       OCCURORG,
+		       CREATEORG,
+		       TARGETORG,
+		       DEALTIME               as lastdealdate,
+		       SOURCEPERSON,
+		       SOURCEKIND,
+		       SOURCEMOBILE,
+		       URGENT,
+		       STEPID,
+		       SUPERVISELEVEL,
+		       LASTORG,
+		       CREATEUSER,
+		       DEALSTATE,
+		       EVALUATETIME,
+		       EVALUATETYPE,
+		       EVALUATECONTENT,
+		       HOURS,
+		       MINUTE,
+		       PORGID,
+		       TORGID,
+		       CREATEORGINTERNALCODE,
+		       CRATEORGFUNCTIONALTYPE,
+		       CREATEORGLEVEL,
+		       MOVEMARK,
+		       issueKind,
+		       occurLocation,
+		       relatePeopleCount,
+		       ISSUETYPEID,
+			   ISSUETYPEDOMAINID
+		  from completedIssue ci
+		 where ci.createOrgLevel = #orgLevel#
+		   and ci.createOrginternalCode like #orgCode# || '%'
+		   and ci.crateOrgFunctionalType = 0
+		 order by issueId desc
+	</select>
+	
+	<select id="countJurisdictionsSubmit" parameterClass="map" resultClass="java.lang.Integer">
+		select count(0)
+		  from issues iu
+		 where iu.historic = 0
+		   and exists (select 1
+		          from issuesteps cstep
+		         where cstep.submit = #submit#
+		           and cstep.targetorgLevel = #orgLevel#
+		           and cstep.TARGETINTERNALCODE like #orgCode# || '%'
+		           and cstep.targetorgfunctionalorgType = 0
+		           and cstep.issue = iu.id)
+	</select>
+	
+	<select id="findJurisdictionsSubmit" parameterClass="map"	resultMap="issueViewTopPublicltycassResult">
+		select case
+		         when p.id is null then
+		          0
+		         else
+		          1
+		       end as publicltycass,
+		       iu.id as issueId,
+		       istep.delayState as delayState,
+		       iu.serialnumber,
+		       iu.subject,
+		       iu.status,
+		       iu.occurdate,
+		       istep.source currentOrg,
+		       iu.occurorg,
+		       iu.createOrg,
+		       istep.target targetOrg,
+		       iu.sourceperson,
+		       iu.sourcekind,
+		       iu.sourcemobile,
+		       iu.urgent,
+		       istep.id as stepId,
+		       istep.superviselevel,
+		       istep.lastdealdate,
+		       iu.lastOrg,
+		       iu.CREATEUSER,
+		       iu.fromSerialNumber,
+		       iu.createDate,
+		       iu.deadLine,
+		       istep.statecode,
+		       iu.hours,
+		       iu.minute,
+		       iu.ISSUETYPEID,
+			   iu.ISSUETYPEDOMAINID
+		  from issuesteps istep, issues iu
+		  left join publicltycass p
+		    on iu.id = p.issueid
+		 where istep.issue = iu.id
+		   and iu.historic = 0
+		   and istep.id = (select max(id)
+		                     from issuesteps cstep
+		                    where cstep.submit = #submit#
+		                      and cstep.targetorgLevel = #orgLevel#
+		                      and cstep.TARGETINTERNALCODE like #orgCode# || '%'
+		                      and cstep.targetorgfunctionalorgType = 0
+		                      and iu.id = cstep.issue)
+		 order by issueId desc
+	</select>
+	
+	<select id="countJurisdictionsAssgin" parameterClass="map" resultClass="java.lang.Integer"> 
+		select count(0)
+		  from issues iu, issuesteps step
+		 where iu.historic = 0
+		   and step.id = (select max(id)
+		                    from issuesteps cstep
+		                   where cstep.assign = #assgin#
+		                     and cstep.targetorgLevel = #orgLevel#
+		                     and cstep.TARGETINTERNALCODE like #orgCode# || '%'
+		                     and cstep.targetorgfunctionalorgType = 0
+		                     and cstep.issue = iu.id)
+	</select>
+	
+	<select id="findJurisdictionsAssgin" parameterClass="map"	resultMap="issueViewTopPublicltycassResult">
+		select case
+		         when p.id is null then
+		          0
+		         else
+		          1
+		       end as publicltycass,
+		       iu.id as issueId,
+		       iu.serialnumber,
+		       iu.subject,
+		       iu.status,
+		       iu.occurdate,
+		       istep.source currentOrg,
+		       iu.occurorg,
+		       iu.createOrg,
+		       istep.target targetOrg,
+		       iu.sourceperson,
+		       iu.sourcekind,
+		       iu.sourcemobile,
+		       iu.urgent,
+		       istep.id as stepId,
+		       istep.superviselevel,
+		       istep.lastdealdate,
+		       iu.lastOrg,
+		       iu.fromSerialNumber,
+		       iu.createDate,
+		       iu.deadLine,
+		       iu.CREATEUSER,
+		       istep.statecode,
+		       iu.hours,
+		       iu.minute,
+		       istep.delayState,
+		       iu.ISSUETYPEID,
+			   iu.ISSUETYPEDOMAINID
+		  from issuesteps istep, issues iu
+		  left join publicltycass p
+		    on iu.id = p.issueid
+		 where iu.id = istep.issue
+		   and iu.historic = 0
+		   and istep.id = (select max(id)
+		                     from issuesteps cstep
+		                    where cstep.assign = #assgin#
+		                      and cstep.targetorgLevel = #orgLevel#
+		                      and cstep.TARGETINTERNALCODE like #orgCode# || '%'
+		                      and cstep.targetorgfunctionalorgType = 0
+		                      and cstep.issue = iu.id)
+		 order by issueId desc
+	</select>
+	
+	<select id="countJurisdictionsSkipIssue" parameterClass="map" resultClass="java.lang.Integer">
+		select count(0)
+		  from issues iu
+		 where iu.historic = 0
+		   and exists (select *
+		          from issuesteps cstep
+		         where EMERGENCYLEVEL is not null
+		           and cstep.targetorgLevel = #orgLevel#
+		           and cstep.TARGETINTERNALCODE like #orgCode# || '%'
+		           and cstep.targetorgfunctionalorgType = 0
+		           and cstep.issue = iu.id)
+	</select>
+
+	<select id="findJurisdictionsSkeipIssue" parameterClass="map"	resultMap="issueViewTopPublicltycassResult">
+		select case
+		         when p.id is null then
+		          0
+		         else
+		          1
+		       end as publicltycass,
+		       iu.id as issueId,
+		       iu.serialnumber,
+		       iu.subject,
+		       iu.status,
+		       iu.occurdate,
+		       istep.source currentOrg,
+		       iu.occurorg,
+		       iu.createOrg,
+		       istep.target targetOrg,
+		       istep.lastdealdate,
+		       iu.sourceperson,
+		       iu.sourcekind,
+		       iu.sourcemobile,
+		       iu.urgent,
+		       istep.id as stepId,
+		       istep.superviselevel,
+		       iu.lastOrg,
+		       iu.CREATEUSER,
+		       istep.statecode,
+		       iu.fromSerialNumber,
+		       iu.createDate,
+		       iu.deadLine,
+		       iu.hours,
+		       iu.minute,
+		       istep.delayState,
+		       iu.ISSUETYPEID,
+			   iu.ISSUETYPEDOMAINID
+		  from issuesteps istep, issues iu
+		  left join publicltycass p
+		    on iu.id = p.issueid
+		 where istep.issue = iu.id
+		   and iu.historic = 0
+		   and istep.id = (select max(id)
+		                     from issuesteps cstep
+		                    where EMERGENCYLEVEL is not null
+		                      and cstep.targetorgLevel = #orgLevel#
+		                      and cstep.TARGETINTERNALCODE like #orgCode# || '%'
+		                      and cstep.targetorgfunctionalorgType = 0
+		                      and cstep.issue = iu.id)
+		 order by issueId desc
+	</select>
+	
+	<select id="countJurisdictionsPublicltyCassDone" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*)
+		  from completedIssue ci
+		 where ci.PUBLICLTYCASS = 1
+		   and ci.createOrgLevel = #orgLevel#
+		   and ci.createOrginternalCode like #orgCode# || '%'
+		   and ci.crateOrgFunctionalType = 0
+	</select>
+
+	<select id="findJurisdictionsPublicltyCassDone" parameterClass="map"	resultMap="completedIssueMap">
+		select PUBLICLTYCASS,
+		       ISSUEID,
+		       DELAYSTATE,
+		       SERIALNUMBER,
+		       SUBJECT,
+		       STATUS,
+		       OCCURDATE,
+		       CURRENTORG,
+		       OCCURORG,
+		       CREATEORG,
+		       TARGETORG,
+		       DEALTIME               as lastdealdate,
+		       SOURCEPERSON,
+		       SOURCEKIND,
+		       SOURCEMOBILE,
+		       URGENT,
+		       STEPID,
+		       SUPERVISELEVEL,
+		       LASTORG,
+		       CREATEUSER,
+		       DEALSTATE,
+		       EVALUATETIME,
+		       EVALUATETYPE,
+		       EVALUATECONTENT,
+		       HOURS,
+		       MINUTE,
+		       PORGID,
+		       TORGID,
+		       CREATEORGINTERNALCODE,
+		       CRATEORGFUNCTIONALTYPE,
+		       CREATEORGLEVEL,
+		       MOVEMARK,
+		       issueKind,
+		       occurLocation,
+		       relatePeopleCount,
+		       ISSUETYPEID,
+			   ISSUETYPEDOMAINID
+		  from completedIssue ci
+		 where ci.PUBLICLTYCASS = 1
+		   and ci.createOrgLevel = #orgLevel#
+		   and ci.createOrginternalCode like #orgCode# || '%'
+		   and ci.crateOrgFunctionalType = 0
+		 order by issueId desc
+	</select>
+	
+	<select id="countTimeOutIssue" parameterClass="map" resultClass="java.lang.Integer">
+		select count(0)
+		  from (select issue
+		          from issuesteps istep, issues iu
+		         where exists (select 1
+		                  from issuesteps cstep
+		                 where cstep.superviselevel >= #supervise#
+		                   and (<![CDATA[ cstep.statecode < #completeCode# ]]> or cstep.statecode = #verification#)
+		                   and cstep.targetorgLevel = #orgLevel#
+		                   and cstep.TARGETINTERNALCODE like #orgCode# || '%'
+		                   and cstep.targetorgfunctionalorgType = 0
+		                   and cstep.id = istep.id)
+		           and istep.issue = iu.id)
+	</select>
+	
+	<select id="findTimeOutIssue" parameterClass="map"	resultMap="issueViewJurisdictionResult">
+		select iu.id                as issueId,
+		       iu.serialnumber,
+		       iu.subject,
+		       iu.status,
+		       iu.occurdate,
+		       istep.source         currentOrg,
+		       iu.occurorg,
+		       iu.createOrg,
+		       istep.target         targetOrg,
+		       istep.lastdealdate,
+		       iu.sourceperson,
+		       iu.sourcekind,
+		       iu.sourcemobile,
+		       iu.urgent,
+		       istep.id             as stepId,
+		       istep.superviselevel,
+		       iu.lastOrg,
+		       iu.CREATEUSER,
+		       istep.statecode,
+		       iu.hours,
+		       iu.minute,
+		       istep.delayState,
+		       iu.fromSerialNumber,
+		       iu.createDate,
+		       iu.deadLine,
+		       iu.ISSUETYPEID,
+			   iu.ISSUETYPEDOMAINID
+		  from issuesteps istep, issues iu
+		 where exists (select 1
+		          from issuesteps cstep
+		         where cstep.superviselevel >=  #supervise#
+		           and (<![CDATA[ cstep.statecode < #completeCode# ]]> or cstep.statecode = #verification#)
+		           and cstep.targetorgLevel = #orgLevel#
+		           and cstep.TARGETINTERNALCODE like #orgCode# || '%'
+		           and cstep.targetorgfunctionalorgType = 0
+		           and cstep.id = istep.id)
+		   and istep.issue = iu.id
+		 order by issueId desc
+	</select>
+
+	<select id="findPageInfoByCacheKey" resultClass="java.lang.String" parameterClass="java.lang.String">
+			select dataObject from issueCache where cacheKey=#value#
+	</select>
+	
+	<select id="getCountByCacheKey" resultClass="java.lang.Integer" parameterClass="java.lang.String">
+		select dataCount from issueCache where cacheKey=#value#
+	</select>
+	
+	<delete id="deleteByCacheKey" parameterClass="java.lang.String">
+		delete from issueCache where cacheKey=#value#
+	</delete>
+	
+	<insert id="addIssueCache" parameterClass="IssueCacheVO">
+		insert into issueCache(cacheKey,dataCount,dataObject) values(#keyCache#,#dataCount#,#dataObject#)
+	</insert>
+	
+	<select id="getDataCount" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		select count(1) from issueCache where cacheKey=#value#
+	</select>
+	
+	
+</sqlMap>

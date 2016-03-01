@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="houseFamily" extends="default" namespace="/baseinfo/houseFamily">
+		<default-class-ref class="houseFamilyController"></default-class-ref>
+		<action name="moveHouseMember" method="moveHouseMember">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<action name="existAccountNumber" method="existAccountNumber">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<action name="addFamilyMemberByIdCardNo" method="addFamilyMemberByIdCardNo">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="changeHouseHold" method="changeHouseHold">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		
+		<action name="changeHouseHoldByEncrypt" method="changeHouseHoldByEncrypt">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		
+		<action name="findHouseFamilyMembersByOrgIdAndId" method="findHouseFamilyMembersByOrgIdAndId">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="changeAccountNumber" method="changeAccountNumber">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<action name="deleteByIds" method="deleteByIds">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="dispatchOperate" method="dispatchOperate">
+			<result name="edit">
+				/baseinfo/familyInfo/houseFamily/changeAccountDlg.jsp
+			</result>
+			<result name="maintain">
+				/baseinfo/familyInfo/houseFamily/maintainHouseFamilyMemberDlg.jsp
+			</result>
+			<result name="change">
+				/baseinfo/familyInfo/houseFamily/changeHouseHoldDlg.jsp
+			</result>
+			<result name="move">
+				/baseinfo/familyInfo/houseFamily/moveHouseMemberDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="dispatchOperateByEncrpt" method="dispatchOperateByEncrpt">
+			<result name="edit">
+				/baseinfo/familyInfo/houseFamily/changeAccountDlg.jsp
+			</result>
+			<result name="maintain">
+				/baseinfo/familyInfo/houseFamily/maintainHouseFamilyMemberDlg.jsp
+			</result>
+			<result name="change">
+				/baseinfo/familyInfo/houseFamily/changeHouseHoldDlg.jsp
+			</result>
+			<result name="move">
+				/baseinfo/familyInfo/houseFamily/moveHouseMemberDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="findHouseFamilyById" method="findHouseFamilyById">
+			<result name="success">
+				/baseinfo/familyInfo/houseFamily/viewHouseFamilyDlg.jsp
+			</result>
+			<result name="print">
+				/baseinfo/familyInfo/houseFamily/viewHouseFamilyPrintDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="findHouseFamilyByEncryptId" method="findHouseFamilyByEncryptId">
+			<result name="success">
+				/baseinfo/familyInfo/houseFamily/viewHouseFamilyDlg.jsp
+			</result>
+			<result name="print">
+				/baseinfo/familyInfo/houseFamily/viewHouseFamilyPrintDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="findHouseFamilyByOrgId" method="findHouseFamilyByOrgId">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findHouseFamilyByIdForMobile" method="findHouseFamilyById">
+			<result name="success" type="json">
+				<param name="root">houseFamily</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="haveRepatCardOrNo" method="haveRepatCardOrNo">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+	</package>
+</struts>

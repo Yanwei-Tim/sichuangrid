@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="overseaPersonnel">
+
+	<typeAlias alias="OverseaPersonnel" type="com.tianque.baseInfo.overseaPersonnel.domain.OverseaPersonnel" />
+	
+	<resultMap id="overseaPersonnelResult" class="OverseaPersonnel">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="gender.id" column="gender" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="birthday" column="birthday" />
+		<result property="certificateNo" column="certificateNo" />
+		<result property="nationality" column="nationality" />
+		<result property="certificateType.id" column="certificateType" />
+		<result property="arrivalTime" column="arrivalTime" />
+		<result property="leaveTime" column="leaveTime" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="telephone" column="telephone" />
+		<result property="workUnit" column="workUnit" />
+		<result property="remark" column="remark" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="imgUrl" column="imgUrl" />
+		<result property="currentAddress" column="currentAddress" />
+		<result property="logOut" column="logOut" />
+		<result property="currentAddressType.id" column="currentAddressType"/>
+		<result property="community" column="community"/>
+		<result property="block" column="block"/>
+		<result property="unit" column="unit"/>
+		<result property="room" column="room"/>
+		<result property="profession.id" column="profession"/>
+		<result property="englishName" column="englishName"/>
+		<result property="certificateStrartDay" column="certificateStrartDay"/>
+		<result property="certificateEndDay" column="certificateEndDay"/>
+		<result property="inflowReason" column="inflowReason"/>
+		<result column="isHaveHouse" property="isHaveHouse" />
+		<result column="noHouseReason" property="noHouseReason" />
+		<result property="logoutDetail.logout" column="logout" />
+		<result property="logoutDetail.logoutReason" column="logoutReason" />
+		<result property="logoutDetail.logoutDate" column="logoutDate"/>
+		<result property="nativePlaceAddress" column="nativePlaceAddress"/>
+		<result property="mail" column="mail"/>
+		<result property="sourcesState" column="sourcesState"/>
+	</resultMap>
+	<resultMap class="OverseaPersonnel" id="gisOverseaPersonnelDetial" extends="overseaPersonnelResult">
+		<result property="actualType" column="actualType"/>
+	</resultMap>
+	<resultMap class="OverseaPersonnel" id="GisOverseaPersonnelResult">
+		<result property="actualType" column="actualType"/>
+		<result property="id" column="personId"/>
+		<result property="englishName" column="name"/>
+		<result property="certificateType.id" column="idcardtype"/>
+		<result property="certificateNo" column="idcard"/>
+		<result property="gender.id" column="gender"/>
+		<result property="noHouseReason" column="nohousereason"/>
+		<result property="isHaveHouse" column="ishavehouse"/>
+		<result property="imgUrl" column="imgurl"/>
+	
+	</resultMap>
+
+	<insert id="addOverseaPersonnel" parameterClass="OverseaPersonnel">
+	    <selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_overseaPersonnel.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO overseaPersonnel
+		(id,name,gender,orgId,orgInternalCode,birthday,certificateNo,mobileNumber,telephone,nationality,certificateType,arrivalTime,leaveTime,workUnit,remark,fullPinyin,
+		simplePinyin,createDate,createUser,imgUrl,currentAddress,logOut,currentAddressType,community,block,unit,room,profession,englishName,certificateStrartDay,certificateEndDay,inflowReason,isHaveHouse,noHouseReason,mail,nativePlaceAddress,sourcesState,updateDate)
+		VALUES(#id#,#name#,#gender.id#,#organization.id#,#orgInternalCode#,#birthday#,#certificateNo#,#mobileNumber#,#telephone#,#nationality#,#certificateType.id#,#arrivalTime#,#leaveTime#,
+		#workUnit#,#remark#,#fullPinyin#,#simplePinyin#,#createDate#,#createUser#,#imgUrl#,#currentAddress#,#logOut#,
+		#currentAddressType.id#,#community#,#block#,#unit#,#room#,#profession.id#,#englishName#,#certificateStrartDay#,#certificateEndDay#,#inflowReason#,#isHaveHouse#,#noHouseReason#,#mail#,#nativePlaceAddress#,#sourcesState#,SYSDATE)
+	</insert>
+
+	<select id="getOverseaPersonnelById" parameterClass="java.lang.Long"
+		resultMap="overseaPersonnelResult">
+		<![CDATA[select * from overseaPersonnel where id=#value#]]>
+	</select>
+
+	<update id="updateoverseaPersonnelById" parameterClass="OverseaPersonnel">
+		UPDATE overseaPersonnel SET
+				updateUser = #updateUser#,
+				updateDate = #updateDate#,
+				 <isNotEmpty property="logOut">
+					logOut = #logOut#,
+				 </isNotEmpty>
+				orgId = $organization.id$,
+				orgInternalCode = #orgInternalCode#
+		where id = $id$
+	</update>
+
+	<update id="updateOverseaPersonnel" parameterClass="OverseaPersonnel">
+		update overseaPersonnel set
+				currentAddress = #currentAddress#,
+				certificateNo = #certificateNo#,
+				birthday = #birthday#,
+				name = #name#,
+				fullPinyin = #fullPinyin#,
+				gender = #gender.id#,
+				profession = #profession.id#,
+				simplePinyin = #simplePinyin#,
+				mobileNumber = #mobileNumber#,
+				orgInternalCode = #orgInternalCode#,
+				orgId = #organization.id#,
+				imgUrl = #imgUrl#,
+				telephone = #telephone#,
+				workUnit = #workUnit#,
+				remark = #remark#,
+				updateDate = SYSDATE,
+				updateUser = #updateUser#,
+				nationality = #nationality#,
+				certificateType = #certificateType.id#,
+				arrivalTime = #arrivalTime#,
+				leaveTime = #leaveTime#,
+				<isNotEmpty property="logOut">
+					logOut = #logOut#,
+				</isNotEmpty>
+				currentAddressType=#currentAddressType.id#,
+				community = #community#,
+				block = #block#,
+				unit = #unit#,
+				room = #room#,
+				englishName = #englishName#,
+				certificateStrartDay = #certificateStrartDay#,
+				certificateEndDay = #certificateEndDay#,
+				inflowReason = #inflowReason#,
+				isHaveHouse = #isHaveHouse#,
+		        mail=#mail#,
+		        nativePlaceAddress=#nativePlaceAddress#,
+				noHouseReason = #noHouseReason#
+			where id = #id#
+	</update>
+
+	<delete id="deleteOverseaPersonnelById" parameterClass="java.lang.Long">
+		delete
+		from overseaPersonnel where id=#value#
+	</delete>
+
+	<select id="countOverseaPersonnelForListPage" parameterClass="map"
+		resultClass="java.lang.Integer">
+		select count(*) from overseaPersonnel where orgInternalCode like
+		#orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="logOut">
+				<isNotNull property="logOut" prepend=" and ">
+					logOut = #logOut#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findOverseaPersonnelForListPage" parameterClass="map"
+		resultMap="overseaPersonnelResult">
+		<include refid="common.sql_select" />
+		from overseaPersonnel where orgInternalCode like #orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="logOut">
+				<isNotNull property="logOut" prepend=" and ">
+					logOut =#logOut#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="getOverseaPersonnelByOrgAndName" parameterClass="java.util.Map"
+		resultMap="overseaPersonnelResult">
+		select * from overseaPersonnel where name=#name# and
+		orgId=#OrgId#
+	</select>
+
+	<select id="getOverseaPersonnelByCertificateNoAndOrganizationId"
+		parameterClass="map" resultMap="overseaPersonnelResult">
+		select * from overseaPersonnel where
+		orgId = $organizationId$ and certificateno=#certificateNo#
+	</select>
+
+	<select id="countOrtherOverseaPersonnelByOrgInternalCode"
+		parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		select count(*) from
+		overseaPersonnel where orgInternalCode like #orgInternalCode#||'%'
+	</select>
+	<select id="getOverseaPersonnelByCertificate" parameterClass="java.util.Map"
+		resultMap="overseaPersonnelResult">
+		select * from overseaPersonnel where orgId = $organizationId$
+		<!--fateson add   -->
+		<isNull  property="certificateType"  >
+		and   certificateType is null
+		</isNull>
+		<isNotNull property="certificateType">
+		and  certificateType=#certificateType#
+		</isNotNull>
+		and
+		certificateNo = #certificateNo#
+		<!-- 
+		<iterate property="certificateList" conjunction="or">
+			certificateNo like
+			#certificateList[]#
+		</iterate>
+		 -->
+	</select>
+	<update id="updateOverseaPersonnelInofosByIdCardNoFromBasePersonnel" parameterClass="OverseaPersonnel">
+		update overseaPersonnel set
+		<dynamic>
+			certificateNo=#certificateNo#
+			<isNotEmpty prepend="," property="name">
+				name=#name#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="fullPinyin">
+				fullPinyin=#fullPinyin#
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="simplePinyin">
+				simplePinyin=#simplePinyin#
+			</isNotEmpty>
+			<isNotNull property="gender">
+				<isNotNull prepend="," property="gender.id">
+					gender=#gender.id#
+				</isNotNull>
+			</isNotNull>
+			where certificateNo=#certificateNo#
+		</dynamic>
+	</update>
+	
+	<select id="countOverseaPersonnelByOrgForGis" parameterClass="map" resultClass="java.lang.Integer">
+		select count (*)  from overseaPersonnel  where orgInternalCode like #orgInternalCode#||'%'
+		<isNotEmpty prepend="and" property="logout">
+			logout=0
+		</isNotEmpty>
+	</select>
+	
+	<select id="findOverseaPersonnelByOrgForGis" parameterClass="map" resultMap="GisOverseaPersonnelResult">
+		select 'overseaStaff' as actualType ,ol.id as personId, ol.englishName as name, ol.certificateType as idcardtype, ol.certificateNo as idcard,
+			ol.gender as gender, ol.noHouseReason as nohousereason, ol.isHaveHouse as ishavehouse, ol.imgurl as imgurl
+		from overseaPersonnel ol where ol.orgInternalCode like #orgInternalCode#||'%'
+			<isNotEmpty prepend="and" property="logout">
+				ol.logout=0
+			</isNotEmpty>
+	</select>
+	
+	<select id="findGisOverseaStaffById" parameterClass="java.lang.Long" resultMap="gisOverseaPersonnelDetial">
+			select 'overseaStaff' as actualType ,ol.* from 	overseaPersonnel ol where ol.id=#value#
+	</select>
+	
+	<select id="findAllBindingOverseaStaffByorgCodeForGis" parameterClass="map" resultMap="gisOverseaPersonnelDetial">
+		select 'overseaStaff' as actualType ,ol.* 
+		  from overseaPersonnel ol, houseHasActualPopulation ph
+		 where ol.id = ph.populationid
+		   and ol.orginternalcode like #orgInternalCode#||'%'
+		   and ph.persontype = #personType#
+		   and ph.populationType = #populationType#
+		   and ph.defaultLivingHouse = #defaultLivingHouse#
+		   and exists (select *
+		          from houseinfo hi
+		         where hi.centerx is not null
+		           and hi.id = ph.houseid)
+	</select>
+	
+	<update id="updateActualPopulationToHasHouseState" parameterClass="java.util.Map">
+		update overseaPersonnel set 
+		<include refid="populationBaseInfo.isHasHouseInfo"/>
+		,currentAddress = #currentAddress#
+		where id=#id#
+	</update>
+	
+	<!-- 移动数据需要的sql -->
+	<update id="updateDataMoveOverseaPersonnelToOrg" parameterClass="java.util.Map">
+		update overseaPersonnel set orgId = #orgId# , orgInternalCode = #orgInternalCode# where id = #id#
+	</update>
+	
+</sqlMap>

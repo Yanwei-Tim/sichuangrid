@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="serviceRecord">
+	<typeAlias alias="ServiceRecord" type="com.tianque.plugin.serviceTeam.serviceRecord.domain.ServiceRecord"/>
+	<typeAlias alias="ServiceRecordVo" type="com.tianque.plugin.serviceTeam.serviceRecord.vo.ServiceRecordVo"/>
+	<typeAlias alias="UsedInfo" type="com.tianque.domain.UsedInfo" />
+	
+	<resultMap id="serviceRecordResult" class="ServiceRecordVo">
+		<result property="id" column="id"/>
+		<result property="organization.orgInternalCode" column="orgCode"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="teamId" column="teamId"/>
+		<result property="occurDate" column="occurDate"/>
+		<result property="occurPlace" column="occurPlace"/>
+		<result property="serviceMembers" column="serviceMembers"/>
+		<result property="serviceJoiners" column="serviceJoiners"/>
+		<result property="serviceObjects" column="serviceObjects"/>
+		<result property="recordType" column="recordType"/>
+		<result property="createDate" column="createDate"/>
+		<result property="serviceContent" column="serviceContent"/>
+	</resultMap>
+	<resultMap class="UsedInfo" id="userSignForUsedInfoResult">
+		<result property="org.id" column="ORGID"/>
+		<result property="org.orgName" column="ORGNAME"/>
+		<result property="daySpecialCrowdCount" column="daySpecialCrowdCount"/>
+		<result property="weekSpecialCrowdCount" column="weekSpecialCrowdCount"/>
+		<result property="monthSpecialCrowdCount" column="monthSpecialCrowdCount"/>
+	</resultMap>
+	
+	<sql id="sql_where">
+		from serviceRecords
+		<dynamic prepend="WHERE">
+			<isNotEmpty  property="displayLevel" prepend="and">
+				<isEqual property="displayLevel" compareValue="sameGrade">
+					 orgCode = #organization.orgInternalCode# 	
+				</isEqual>	
+				<isEqual property="displayLevel" compareValue="directJurisdiction">
+					 orgCode like #organization.orgInternalCode#||'__' 	
+				</isEqual>
+				<isEqual property="displayLevel" compareValue="allJurisdiction">
+					 orgCode like #organization.orgInternalCode#||'%' 	
+				</isEqual>		
+			</isNotEmpty>
+			<isNotEmpty  property="objectId" prepend="and">
+				id in (select recordId from serviceRecordRelyObject where objectId=#objectId# 
+			<isPropertyAvailable property="objectTypeList">
+				<isNotNull property="objectTypeList">
+					and objectType in
+				   	<iterate property="objectTypeList" conjunction="," open="(" close=")">
+						#objectTypeList[]#
+					</iterate>
+				</isNotNull>
+			</isPropertyAvailable>
+			)
+			</isNotEmpty>
+			<isNotEmpty property="occurDateStart" prepend="and">
+				<![CDATA[occurDate >= #occurDateStart#]]>
+			</isNotEmpty>
+			<isNotEmpty property="occurDateEnd" prepend="and">
+				<![CDATA[occurDate <= #occurDateEnd#]]>
+			</isNotEmpty>
+			<isNotEmpty property="recordAddDateStart" prepend="and">
+				<![CDATA[createDate >= #recordAddDateStart#]]>
+			</isNotEmpty>
+			<isNotEmpty property="recordAddDateEnd" prepend="and">
+				<![CDATA[createDate <= #recordAddDateEnd#]]>
+			</isNotEmpty>
+			<isNotEmpty property="occurPlace" prepend="and">
+				occurPlace like '%'||#occurPlace#||'%' 
+			</isNotEmpty>
+			<isNotEmpty property="serviceMembers" prepend="and">
+				serviceMembers like '%'||#serviceMembers#||'%' 
+			</isNotEmpty>
+			<isNotEmpty property="serviceJoiners" prepend="and">
+				serviceJoiners like '%'||#serviceJoiners#||'%' 
+			</isNotEmpty>
+			<isNotEmpty property="serviceObjects" prepend="and">
+				serviceObjects like '%'||#serviceObjects#||'%' 
+			</isNotEmpty>
+			<isNotEmpty property="serviceContent" prepend="and">
+				serviceContent like '%'||#serviceContent#||'%' 
+			</isNotEmpty>
+			<isNotEmpty property="recordType" prepend="and">
+				recordType =#recordType#
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	<insert id="addServiceRecord" parameterClass="ServiceRecord">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_servicerecord.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		<![CDATA[
+			insert into servicerecords
+			(id, orgCode,orgId,teamId,occurDate,occurPlace,serviceMembers,serviceJoiners,serviceObjects,recordType,serviceContent,createUser,updateUser,createDate,updateDate)
+			values(#id#, #organization.orgInternalCode#, #organization.id#,#teamId#, #occurDate#, #occurPlace#, #serviceMembers#,#serviceJoiners#,#serviceObjects#,#recordType#, #serviceContent#, #createUser#, #updateUser#, #createDate#, #updateDate#)
+		]]>
+	</insert>
+	
+	<update id="updateServiceRecord" parameterClass="ServiceRecord">
+		update ServiceRecords set
+			
+			occurDate=#occurDate#,
+			occurPlace=#occurPlace#,
+			serviceMembers=#serviceMembers#,
+			serviceJoiners=#serviceJoiners#,
+			serviceObjects=#serviceObjects#,
+			recordType=#recordType#,
+			serviceContent=#serviceContent#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#
+		where id=#id#
+	</update>
+	
+	<select id="getServiceRecordById" parameterClass="java.lang.Long"
+		resultMap="serviceRecordResult">
+		select id,orgCode,orgId,teamId,occurDate,occurPlace,serviceMembers,serviceJoiners,serviceObjects,recordType,serviceContent,updateUser,updateDate,createDate
+		from serviceRecords where id=#value#
+	</select>
+
+	<select id="countFindServiceRecords" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="findServiceRecords" parameterClass="java.util.Map"
+		resultMap="serviceRecordResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getMinTime" resultClass="java.util.Date">
+		select min(occurDate) from serviceRecords
+
+	</select>
+	
+	<delete id="deleteServiceRecord" parameterClass="java.lang.Long">
+    	delete from ServiceRecords where id=#value#
+    </delete>
+ 
+    <select id="countServiceTeamHasRecords" parameterClass="long"  resultClass="java.lang.Integer">
+		<include refid="common.sql_count" /> from serviceTeamMemberDetails t,servicerecordrelymember tr where t.baseid = tr.memberid and t.teamid = #value#
+	</select>
+	
+	 <select id="countServiceRecordsForTeamMember" parameterClass="long"  resultClass="java.lang.Integer">
+	 select count(*)  from servicerecordrelymember where memberId in (select id from serviceTeamMemberDetails where baseID = #value#)
+	</select>
+	
+	<select id="findServiceTeamInServiceRecords" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		select count(*) from serviceRecords where id=#value#
+	</select>
+	<update id="updateMemberInRecord" parameterClass="ServiceRecord">
+		update serviceRecords set serviceMembers=#serviceMembers# where id=#id#
+	</update>
+	
+	<update id="updateServiceRecordsOrg" parameterClass="java.util.Map">
+		update serviceRecords set orgId=#orgId#,orgCode=#orgCode# where id in (
+		select recordId from servicerecordrelyobject where objectType=#objectType# and objectId=#objectId#
+		)
+	</update>
+	<update id="updateServiceRecordsOrgAndObejctId" parameterClass="java.util.Map">
+		update serviceRecords set orgId=#orgId#,orgCode=#orgCode#  where id in (
+		select recordId from servicerecordrelyobject where objectType=#objectType# and objectId=#oldObjectId#
+		)
+	</update>
+	<update id="updateServiceRecordRelyObject" parameterClass="java.util.Map">
+		update servicerecordrelyobject set objectId=#newObjectId# where objectType=#objectType# and objectId=#oldObjectId#
+	</update>
+	<update id="updateServiceRecordsOrgAndObejctIdAndObjectType" parameterClass="java.util.Map">
+		update serviceRecords set orgId=#orgId#,orgCode=#orgCode#,object=#newObjectType# where id in (
+		select recordId from servicerecordrelyobject where objectType=#objectType# and objectId=#oldObjectId#
+		)
+	</update>
+	<update id="updateServiceRecordRelyObjectAndObjectType" parameterClass="java.util.Map">
+		update servicerecordrelyobject set objectId=#newObjectId#,objectType=#newObjectType# where objectType=#objectType# and objectId=#oldObjectId#
+	</update>
+	
+	<delete id="deleteServiceRecordHasObject" parameterClass="map">
+	<![CDATA[	delete from servicerecordrelyobject 
+	                  WHERE objectType=#objectType# 
+	                    and objectId=#objectId#
+	]]>
+	</delete>
+	
+	<select id="getSpecialCrowdCountForUsedInfo" parameterClass="java.util.Map" resultMap="userSignForUsedInfoResult">
+		select org.id as orgId,org.orgName as orgname,
+				(select count(1) specialCrowdCount from serviceRecordRelyObject s left join servicerecords r
+       				on s.recordid= r.id 
+       				where s.objecttype in('positiveInfo','rectificativePerson','mentalPatient','druggy','idleYouth') 
+      					and r.createdate between #beforDayStartDate# and #beforDayEndDate# and r.orgcode like org.orginternalcode || '%'
+       			) as daySpecialCrowdCount,
+       			(select count(1) specialCrowdCount from serviceRecordRelyObject s left join servicerecords r
+       				on s.recordid= r.id 
+       				where s.objecttype in('positiveInfo','rectificativePerson','mentalPatient','druggy','idleYouth') 
+      					and r.createdate between #beforWeekMonday# and #beforWeekSunday# and r.orgcode like org.orginternalcode || '%'
+       			) as weekSpecialCrowdCount,
+       			(select count(1) specialCrowdCount from serviceRecordRelyObject s left join servicerecords r
+       				on s.recordid= r.id 
+       				where s.objecttype in('positiveInfo','rectificativePerson','mentalPatient','druggy','idleYouth') 
+      					and r.createdate between #monthStartDate# and #monthEndDate# and r.orgcode like org.orginternalcode || '%'
+       			) as monthSpecialCrowdCount
+       from organizations org  
+		where org.parentid=#orgId# 
+		and org.orgtype=#orgTypeId#
+		order by org.seq
+	</select>
+</sqlMap>

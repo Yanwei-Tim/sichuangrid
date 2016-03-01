@@ -1,0 +1,291 @@
+package com.tianque.plugin.taskList.serviceImpl;
+
+import java.io.File;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.util.FileUtil;
+import com.tianque.core.util.GridProperties;
+import com.tianque.core.util.StoredFile;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.validate.DomainValidator;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.property.OrganizationType;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.plugin.taskList.constant.TaskConstant;
+import com.tianque.plugin.taskList.constants.Constants;
+import com.tianque.plugin.taskList.dao.HiddenDangerDao;
+import com.tianque.plugin.taskList.domain.HiddenDanger;
+import com.tianque.plugin.taskList.domain.HiddenDangerVo;
+import com.tianque.plugin.taskList.domain.TaskListAttachFile;
+import com.tianque.plugin.taskList.service.HiddenDangerService;
+import com.tianque.plugin.taskList.service.TaskListAttachFileService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+
+/**
+ * 发现隐患模块service层实现
+ * 
+ * @author GAOHU
+ *
+ */
+@Transactional
+@Service("hiddenDangerService")
+public class HiddenDangerServiceImpl implements HiddenDangerService {
+
+	@Autowired
+	private HiddenDangerDao hiddenDangerDao;
+
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+
+	@Qualifier("hiddenDangerValidator")
+	@Autowired
+	private DomainValidator<HiddenDanger> domainValidator;
+
+	@Autowired
+	private PropertyDictService propertyDictService;
+	
+	@Autowired
+	private TaskListAttachFileService hiddenDangerAnnexService;
+
+	@Autowired
+	private TaskListAttachFileService hiddenDangerAnnexService;
+
+	@Override
+	public HiddenDanger getHiddenDangerById(Long id) {
+
+		if (id == null) {
+			throw new BusinessValidationException("参数异常，请稍后重试！");
+		}
+		HiddenDanger hiddenDanger;
+		try {
+
+			hiddenDanger = hiddenDangerDao.getHiddenDangerById(id);
+			List<TaskListAttachFile> hiddenDangerAnnexFiles = hiddenDangerAnnexService
+					.queryTaskListAttachFilesByBusinessId(id, Constants.HIDDENDANGER_KEY);
+			hiddenDanger.setHiddenDangerAnnexFiles(hiddenDangerAnnexFiles);
+			return hiddenDanger;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类HiddenDangerServiceImpl的getHiddenDangerById方法出现异常，原因：", "获取安全隐患时出现错误", e);
+		}
+
+	}
+
+	@Override
+	public void addHiddenDanger(HiddenDanger hiddenDanger, String[] attachFile,
+			String[] attachFiles, String[] attachFileNames) {
+		if (hiddenDanger == null) {
+			throw new BusinessValidationException("参数异常，请稍后重试！");
+		}
+
+		try {
+			hiddenDangerValidate(hiddenDanger);
+			autoFillOrganizationInternalCode(hiddenDanger);
+
+			hiddenDanger.setOrgInternalCode(organizationDubboService
+					.getOrgInternalCodeById(hiddenDanger.getOrganization().getId()));
+			hiddenDanger.setCellName(ThreadVariable.getUser().getName());
+			hiddenDanger.setTelephone(ThreadVariable.getUser().getMobile());
+			hiddenDanger = hiddenDangerDao.addHiddenDanger(hiddenDanger);
+			if (attachFile != null && attachFile.length != 0) {
+				String[] strTmp = attachFile[0].split(",");
+
+				iterableAttachFilesForMobile(strTmp, hiddenDanger);
+			}
+			if (attachFiles != null && attachFiles.length != 0) {
+				String[] strTmpForSingle = attachFiles[0].split(",");
+
+				iterableAttachFilesForMobile(strTmpForSingle, hiddenDanger);
+			}
+			//,A ,AA ,AAA格式
+			if (attachFileNames != null && attachFileNames.length != 0) {
+				String[] strTmpForPcTemp = new String[attachFileNames.length];
+				for (int i = 0; i < attachFileNames.length; i++) {
+					String[] strTmpForPc = attachFileNames[i].split(",");
+
+					strTmpForPcTemp[i] = strTmpForPc[1];
+
+				}
+
+				iterableAttachFilesForMobile(strTmpForPcTemp, hiddenDanger);
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类HiddenDangerServiceImpl的addHiddenDanger方法出现异常，原因：", "新增安全隐患时出现错误", e);
+		}
+	}
+
+	@Override
+	public void deleteHiddenDanger(List<Long> ids) {
+		if (ids == null) {
+			throw new BusinessValidationException("参数异常，请稍后重试！");
+		}
+		try {
+
+			hiddenDangerDao.deleteHiddenDanger(ids);
+			for (Long id : ids) {
+				hiddenDangerAnnexService.deleteTaskListAttachFilesByBusinessId(id,
+						Constants.HIDDENDANGER_KEY);
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类HiddenDangerServiceImpl的deleteHiddenDanger方法出现异常，原因：", "删除安全隐患时出现错误", e);
+		}
+
+	}
+
+	@Override
+	public HiddenDanger updateHiddenDanger(HiddenDanger hiddenDanger) {
+		if (hiddenDanger == null) {
+			throw new BusinessValidationException("参数异常，请稍后重试！");
+		}
+		try {
+
+			return hiddenDangerDao.updateHiddenDanger(hiddenDanger);
+
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类HiddenDangerServiceImpl的updateHiddenDanger方法出现异常，原因：", "更新安全隐患时出现错误", e);
+		}
+
+	}
+
+	@Override
+	public PageInfo<HiddenDanger> searchHiddenDanger(HiddenDangerVo hiddenDangerVo, String type,
+			Integer pageNum, Integer pageSize, String sortField, String order) {
+		if (hiddenDangerVo == null) {
+			throw new BusinessValidationException("查询条件为空，请稍后重试！");
+		}
+		try {
+			String hiddenDangerType = Constants.getHiddenDangerMap(type);
+			if (hiddenDangerType != null) {
+				PropertyDict hiddenDangerTypeDict = propertyDictService
+						.findPropertyDictByDomainNameAndDictDisplayName(
+								PropertyTypes.DANGER_EXCEPTION_TYPE, hiddenDangerType);
+				hiddenDangerVo.setExceptionTypeId(hiddenDangerTypeDict.getId());
+			}
+			PropertyDict orgTypeDict = propertyDictService
+					.findPropertyDictByDomainNameAndDictDisplayName(
+							PropertyTypes.ORGANIZATION_TYPE, OrganizationType.FUNCTION_KEY);
+
+			Organization org = organizationDubboService.getFullOrgById(hiddenDangerVo
+					.getOrganization().getId());
+
+			if (orgTypeDict.getId().equals(org.getOrgType().getId())) {
+				hiddenDangerVo.setOrgInternalCode(organizationDubboService
+						.getOrgInternalCodeById(org.getParentOrg().getId()));
+
+			} else {
+				hiddenDangerVo.setOrgInternalCode(org.getOrgInternalCode());
+			}
+			return hiddenDangerDao.searchHiddenDanger(hiddenDangerVo, pageNum, pageSize, sortField,
+					order);
+
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类HiddenDangerServiceImpl的searchHiddenDanger方法出现异常，原因：", "查询安全隐患时出现错误", e);
+		}
+
+	}
+	
+	
+	@Override
+	public TaskListAttachFile getHiddenDangerAnenx(Long id) {
+		if (id == null) {
+			throw new BusinessValidationException("参数异常，请稍后重试！");
+		}
+		try {
+
+	@Override
+	public TaskListAttachFile getHiddenDangerAnenx(Long id) {
+		if (id == null) {
+			throw new BusinessValidationException("参数异常，请稍后重试！");
+		}
+		try {
+
+			return hiddenDangerAnnexService.getTaskListAttachFileById(id);
+
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类HiddenDangerServiceImpl的getHiddenDangerAnenx方法出现异常，原因：", "获取安全隐患附件时出现错误", e);
+		}
+
+	}
+
+	private void autoFillOrganizationInternalCode(HiddenDanger hiddenDanger) {
+		Organization org = organizationDubboService.getSimpleOrgById(hiddenDanger.getOrganization()
+				.getId());
+		if (org == null) {
+			throw new BusinessValidationException("找不到指定的网格");
+		}
+		hiddenDanger.setOrgInternalCode(org.getOrgInternalCode());
+	}
+
+	private void hiddenDangerValidate(HiddenDanger hiddenDanger) {
+		ValidateResult hiddenDangerValidator = domainValidator.validate(hiddenDanger);
+		if (hiddenDangerValidator.hasError()) {
+			throw new BusinessValidationException(hiddenDangerValidator.getErrorMessages());
+		}
+	}
+
+	@Override
+	public HiddenDanger updateHiddenDangerSignDetail(HiddenDanger hiddenDanger) {
+		if (hiddenDanger == null) {
+			throw new BusinessValidationException("参数异常，请稍后重试！");
+		}
+		try {
+			hiddenDanger.setIshandle(TaskConstant.HANDLE_STATE);
+			return hiddenDangerDao.updateHiddenDangerSignDetail(hiddenDanger);
+
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类HiddenDangerServiceImpl的updateHiddenDanger方法出现异常，原因：", "更新安全隐患时出现错误", e);
+		}
+	}
+	
+	
+	// 手机端 附件上传
+		private void iterableAttachFilesForMobile(String[] files,
+				HiddenDanger hiddenDanger) throws Exception {
+			if (files != null && files.length > 0) {
+				for (String attachFileName : files) {
+					addAttachFileForMobile(attachFileName, hiddenDanger);
+				}
+			}
+		}
+
+	// 手机端 附件上传
+	private void iterableAttachFilesForMobile(String[] files, HiddenDanger hiddenDanger)
+			throws Exception {
+		if (files != null && files.length > 0) {
+			for (String attachFileName : files) {
+				addAttachFileForMobile(attachFileName, hiddenDanger);
+			}
+		}
+	}
+
+	private void addAttachFileForMobile(String attachFileName, HiddenDanger hiddenDanger)
+			throws Exception {
+		TaskListAttachFile hiddenDangerAnnex = new TaskListAttachFile();
+		hiddenDangerAnnex.setBusinessId(hiddenDanger.getId());
+		StoredFile storeFile = FileUtil.copyTmpFileToStoredFile(attachFileName,
+				GridProperties.HIDDENDANGER_PATH);
+		hiddenDangerAnnex.setPhysicsFullFileName(storeFile.getStoredFilePath() + File.separator
+				+ storeFile.getStoredFileName());
+		hiddenDangerAnnex.setFileName(attachFileName);
+		hiddenDangerAnnex.setModuleKey(Constants.HIDDENDANGER_KEY);
+		hiddenDangerAnnexService.addTaskListAttachFile(hiddenDangerAnnex);
+	}
+
+}

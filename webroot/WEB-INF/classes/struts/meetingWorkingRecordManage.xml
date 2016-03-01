@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="meetingWorkingRecordManage" extends="default"
+		namespace="/workingRecord/meetingWorkingRecordManage">
+		<default-class-ref class="meetingWorkingRecordController"></default-class-ref>
+		<action name="addMeetingWorkingRecord" method="addMeetingWorkingRecord">
+			<result type="json">
+				<param name="root">meetingWorkingRecord</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="updateMeetingWorkingRecord" method="updateMeetingWorkingRecord">
+			<result type="json">
+				<param name="root">meetingWorkingRecord</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="deleteMeetingWorkingRecord" method="deleteMeetingWorkingRecord">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<action name="meetingWorkingList" method="meetingWorkingList">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/workingRecord/meetingWorkingRecord/maintainDailyLogMeetDlg.jsp
+			</result>
+		</action>
+		<action name="getMeetingWorkingRecordById" method="getMeetingWorkingRecordById">
+			<result type="json" name="success">
+				<param name="root">meetingWorkingRecord</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

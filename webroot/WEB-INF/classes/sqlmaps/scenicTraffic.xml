@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="scenicTraffic">
+	<typeAlias alias="ScenicTraffic" type="com.tianque.baseInfo.scenicManage.scenicTraffic.domain.ScenicTraffic" />
+
+	<resultMap id="scenicTrafficResult" class="ScenicTraffic" >
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgInternalCode" />
+		<result property="startAddress" column="startAddress" />
+		<result property="endAddress" column="endAddress" />
+		<result property="trafficType.id" column="trafficType" />
+		<result property="phone" column="phone" />
+		<result property="trafficName" column="trafficName" />
+		<result property="managerUnit" column="managerUnit" />
+		<result column="managerPeople" property="managerPeople" />
+		<result column="managerPeoplePhone" property="managerPeoplePhone" />
+		<result column="aroundScenic" property="aroundScenic" />
+		<result column="firstBusTime" property="firstBusTime" />
+		<result column="lastBusTime" property="lastBusTime" />
+		<result column="fullPinYin" property="fullPinYin" />
+		<result column="simplePinYin" property="simplePinYin" />
+		<result column="imgUrl" property="imgUrl" />
+		<result property="remark" column="remark"/> 
+		<result property="logOutReason" column="logOutReason"/>
+		<result property="logOutTime" column="logOutTime"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="isEmphasis" column="isEmphasis" />
+	</resultMap>
+
+	<insert id="addScenicTraffic" parameterClass="ScenicTraffic">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_SCENICTRAFFIC.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		INSERT INTO SCENICTRAFFIC (ID, ORGID, ORGINTERNALCODE, STARTADDRESS, ENDADDRESS, TRAFFICTYPE, PHONE, TRAFFICNAME, MANAGERUNIT, 
+		MANAGERPEOPLE, MANAGERPEOPLEPHONE, AROUNDSCENIC, FIRSTBUSTIME, LASTBUSTIME, REMARK, IMGURL, fullPinYin, SIMPLEPINYIN, CREATEUSER, 
+		CREATEDATE, UPDATEDATE, SOURCESSTATE, LOGOUTREASON, ISEMPHASIS, LOGOUTTIME)VALUES(
+		#id#,#organization.id#,#organization.orgInternalCode#,#startAddress#, #endAddress#, #trafficType.id#, #phone#, #trafficName#, #managerUnit#, 
+		#managerPeople#, #managerPeoplePhone#, #aroundScenic#, #firstBusTime#, #lastBusTime#, #remark#, #imgUrl#, #fullPinYin#, #simplePinYin#, 
+		#createUser#, #createDate#, #updateDate#, #sourcesState#, #logOutReason#, #isEmphasis#, #logOutTime#)	
+	</insert>
+	<update id="updateScenicTraffic" parameterClass="ScenicTraffic">
+		UPDATE SCENICTRAFFIC SET UPDATEDATE = #updateDate#
+		<isNotNull prepend="," property="updateUser">
+			updateUser = #updateUser#
+		</isNotNull>
+		<isNotNull prepend="," property="isEmphasis">
+			isEmphasis = #isEmphasis#
+		</isNotNull>
+		<isNotNull prepend="," property="organization">
+			orgId=#organization.id#
+		</isNotNull>
+		<isNotNull prepend="," property="organization">
+			orgInternalCode=#organization.orgInternalCode#
+		</isNotNull>
+		<isNotNull prepend="," property="startAddress">
+			STARTADDRESS=#startAddress#
+		</isNotNull>
+		<isNotNull prepend="," property="endAddress">
+			ENDADDRESS=#endAddress#
+		</isNotNull>
+		<isNotNull prepend="," property="trafficType">
+			TRAFFICTYPE=#trafficType.id#
+		</isNotNull>
+		<isNotNull prepend="," property="phone">
+			PHONE=#phone#
+		</isNotNull>
+		<isNotNull prepend="," property="imgUrl">
+			imgUrl=#imgUrl#
+		</isNotNull>
+		<isNotNull prepend="," property="remark">
+			remark=#remark#
+		</isNotNull>
+		<isNotNull prepend="," property="fullPinYin">
+			fullPinYin=#fullPinYin#
+		</isNotNull>
+		<isNotNull prepend="," property="simplePinYin">
+			simplePinYin=#simplePinYin#
+		</isNotNull>
+		<isNotNull prepend="," property="trafficName">
+			TRAFFICNAME=#trafficName#
+		</isNotNull>
+		<isNotNull prepend="," property="managerUnit">
+			managerUnit=#managerUnit#
+		</isNotNull>
+		<isNotNull prepend="," property="managerPeople">
+			managerPeople=#managerPeople#
+		</isNotNull>
+		<isNotNull prepend="," property="managerPeoplePhone">
+			managerPeoplePhone=#managerPeoplePhone#
+		</isNotNull>
+		<isNotNull prepend="," property="aroundScenic">
+			aroundScenic=#aroundScenic#
+		</isNotNull>
+		<isNotNull prepend="," property="firstBusTime">
+			firstBusTime=#firstBusTime#
+		</isNotNull>
+		<isNotNull prepend="," property="lastBusTime">
+			lastBusTime=#lastBusTime#
+		</isNotNull>
+		WHERE ID=#id#
+	</update>
+	<update id="updateEmphasiseById" parameterClass="java.util.Map">
+		UPDATE SCENICTRAFFIC SET ISEMPHASIS=#isEmphasis#, LOGOUTREASON=#logOutReason#, UPDATEUSER=#updateUser#, UPDATEDATE=#updateDate#, LOGOUTTIME=#logOutTime# WHERE ID = #id#	
+	</update>
+	
+	<delete id="deleteScenicTrafficById" parameterClass="java.lang.Long">
+		DELETE FROM SCENICTRAFFIC WHERE ID=#id#
+	</delete>
+	<select id="getScenicTrafficById" parameterClass="java.lang.Long" resultMap="scenicTrafficResult">
+		<![CDATA[SELECT * FROM SCENICTRAFFIC WHERE ID = #value#]]>
+	</select>
+		
+</sqlMap>

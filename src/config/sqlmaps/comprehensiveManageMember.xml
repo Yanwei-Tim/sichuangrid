@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="comprehensiveManageMember">
+	<typeAlias alias="ComprehensiveManageMember" type="com.tianque.domain.ComprehensiveManageMember" />
+	<parameterMap class="ComprehensiveManageMember" id="comprehensiveManageMemberParams">
+		<parameter property="id"/>
+		<parameter property="createUser"/>
+		<parameter property="createDate"/>
+		<parameter property="updateUser"/>
+		<parameter property="updateDate"/>
+		<parameter property="enterpriseId"/>
+		<parameter property="type"/>
+		<parameter property="name"/>
+		<parameter property="telephone"/>
+		<parameter property="mobileNumber"/>
+		<parameter property="fullPinyin"/>
+		<parameter property="simplePinyin"/>
+	</parameterMap>
+	
+	<resultMap class="ComprehensiveManageMember" id="comprehensiveManageMemberResult">
+		<result property="id" column="id"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="enterpriseId" column="enterpriseId"/>
+		<result property="type.id" column="type"/>
+		<result property="name" column="name"/>
+		<result property="telephone" column="telephone"/>
+		<result property="mobileNumber" column="mobileNumber"/>
+		<result property="fullPinyin" column="fullPinyin"/>
+		<result property="simplePinyin" column="simplePinyin"/>
+	</resultMap>
+	
+	<insert id="comprehensiveManageMember.addComprehensiveManageMember" parameterClass="ComprehensiveManageMember">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_comprehensiveManageMembers.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into comprehensiveManageMembers (id, createUser, createDate, enterpriseId, type, name, telephone, mobileNumber, fullPinyin, simplePinyin)
+		values(#id#, #createUser#, #createDate#, #enterpriseId#, #type.id#, #name#, #telephone#,#mobileNumber#, #fullPinyin#, #simplePinyin#)
+	</insert>
+	
+	<select id="comprehensiveManageMember.getComprehensiveManageMemberById" parameterClass="java.lang.Long" resultMap="comprehensiveManageMemberResult">
+		select * from comprehensiveManageMembers where id = #value#
+	</select>
+	
+	<select id="comprehensiveManageMember.findComprehensiveManageMembersByEnterpriseId" parameterClass="java.lang.Long" resultMap="comprehensiveManageMemberResult">
+		select * from comprehensiveManageMembers where enterpriseId = #value#
+	</select>
+	
+	<select id="getComprehensiveManageMembersByEnterpriseId" parameterClass="java.lang.Long" resultMap="comprehensiveManageMemberResult">
+		select * from comprehensiveManageMembers where enterpriseId = #value#
+	</select>
+	
+</sqlMap>

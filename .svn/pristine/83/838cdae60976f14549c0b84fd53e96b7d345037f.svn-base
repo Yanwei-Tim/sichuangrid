@@ -1,0 +1,923 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="houseInfo">
+	<typeAlias alias="HouseInfo" type="com.tianque.baseInfo.actualHouse.domain.HouseInfo"/>
+	<typeAlias alias="PropertyDomain" type="com.tianque.domain.PropertyDomain" />
+	<typeAlias alias="SearchHouseInfoVo" type="com.tianque.domain.vo.SearchHouseInfoVo" />
+	<typeAlias alias="layoutTag" type="com.tianque.baseInfo.buildDatas.domain.vo.LayoutTagVo" />
+	<typeAlias alias="Builddatas" type="com.tianque.baseInfo.buildDatas.domain.Builddatas"/>
+
+	<resultMap id="houseInfoResult" class="HouseInfo" extends="houseInfoBaseResult.houseInfoBaseResult" >
+		<result column="centerLon"  property="openLayersMapInfo.centerLon"/>
+		<result column="centerLat"  property="openLayersMapInfo.centerLat"/>
+		<result column="featureId"  property="openLayersMapInfo.featureId"/>
+	</resultMap>
+	<resultMap id="actualHouseInfoResult" class="HouseInfo" extends="houseInfoResult">
+        <result property="isRentalHouse" column="isRentalHouse" />
+        <result property="builddatasId" column="BUILDDATASID" />
+        <result property="address" column="address" />
+        <!--房屋人数 -->
+        <result property="memberNum" column="memberNum" />
+	</resultMap>
+
+	<resultMap id="GishouseInfoResult" class="HouseInfo">
+		<result column="houseId" property="id" />
+		<result column="currentAddress" property="address" />
+		<result column="houseOwner" property="houseOwner" />
+		<result column="buildingName" property="buildingName" />
+		<result column="houseArea" property="houseArea" />
+		<result column="houseCode" property="houseCode" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="organization.orgInternalCode" />
+		 <result property="isRentalHouse" column="isRentalHouse" />
+
+	</resultMap>
+	<resultMap class="HouseInfo" id="GisCountHouseInfoResult">
+		<result property="gisSearchType" column="gisSearchType"/>
+		<result property="giscountNum" column="giscountNum"/>
+	</resultMap>
+
+	<resultMap class="HouseInfo" id="houseInfoList">
+		<result column="id" property="id" />
+		<result column="houseOwner" property="houseOwner" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="centerLon"  property="openLayersMapInfo.centerLon"/>
+		<result column="centerLat"  property="openLayersMapInfo.centerLat"/>
+		<result column="featureId"  property="openLayersMapInfo.featureId"/>
+		<result column="address" property="address" />
+	</resultMap>
+
+	<select id="getId" resultClass="java.lang.Long">
+		<![CDATA[SELECT S_houseInfo.NEXTVAL as id from dual ]]>
+	</select>
+
+	<insert id="addActualHouse" parameterClass="HouseInfo">
+		INSERT INTO houseInfo_$shardCode$
+			(isRentalHouse, <include refid="commonHouseInfo.addHouseInfoFields"/>)
+		VALUES
+			(#isRentalHouse#, <include refid="commonHouseInfo.addHouseInfoData"/>)
+	</insert>
+
+
+	<update id="updateActualHouse" parameterClass="HouseInfo">
+		update houseInfo_$shardCode$ set
+				isRentalHouse=#isRentalHouse#,
+            	<include refid="commonHouseInfo.updateHouseInfo"/>
+            where id=#id#
+	</update>
+
+	<update id="updateHouseInfoForPopulation" parameterClass="HouseInfo">
+		update houseInfo_$shardCode$ set
+				houseCode=#houseCode#,
+				houseUses=#houseUses.id#,
+				addressType=#addressType.id#,
+				address=#address#,
+				community=#community#,
+				block=#block#,
+				unit=#unit#,
+				room=#room#,
+				propertyTypes=#propertyTypes.id#,
+				name=#name#,
+				fullPinyin=#fullPinyin#,
+				simplePinyin=#simplePinyin#,
+				certificateType=#certificateType.id#,
+				certificateNumbe=#certificateNumbe#,
+				propertyPersonTel=#propertyPersonTel#,
+				propertyPersonMobile=#propertyPersonMobile#,
+				isRentalHouse=#isRentalHouse#,
+				remark=#remark#
+            where id=#id#
+	</update>
+
+	<delete id="deleteHouseInfoById" parameterClass="java.util.Map">
+		delete from houseInfo_$shardCode$ where id=#id#
+	</delete>
+
+<!-- 	<delete id="deleteInfrastructureByHouseInfoIdAndDictIds" parameterClass="java.util.Map">
+		delete from houseHasPropertyDicts where houseInfoId=#houseInfoId# and propertyDictId  in
+		<iterate property="propertyDictIds" close=")" open="("
+		   	conjunction=",">
+		   	#propertyDictIds[]#
+	  	</iterate>
+	</delete> -->
+
+	<select id="countHouseByBuildingId" parameterClass="java.util.Map" resultClass="int">
+		select count(*) from houseInfo_$shardCode$ where buildingId=#buildingId#
+	</select>
+
+
+	<select id="searchMapScope" parameterClass="java.util.Map" resultMap="actualHouseInfoResult">
+		<![CDATA[
+		select *  from houseinfo t where t.centerx > #minOption.centerX#   and   t.centerx < #maxOption.centerX#
+        and  t.centery > #minOption.centerY#  and   t.centery < #maxOption.centerY#
+        ]]>
+	</select>
+<!-- 	<update id="updateBuildingId" parameterClass="HouseInfo">
+		update houseInfo set buildingId=#buildingId#,updateDate=#updateDate#,updateUser=#updateUser# where id=#id#
+	</update> -->
+
+	<select id="getSimpleHouseInfoById" parameterClass="java.util.Map"  resultMap="actualHouseInfoResult">
+		select * from HouseInfo_$shardCode$ where id=#id#
+	</select>
+	
+	<select id="getSimpleHouseInfoByIds" parameterClass="java.util.Map" resultMap="actualHouseInfoResult">
+		select * from HouseInfo_$shardCode$ where id in 
+		<iterate open="("  close=")"  conjunction="," property="ids">
+		   #ids[]#
+		</iterate>
+	</select>
+
+
+	<select id="getHouseInfoByHouseCode" parameterClass="java.util.Map" resultMap="actualHouseInfoResult">
+		SELECT * FROM HouseInfo
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="houseCode">
+				<isNotEmpty property="houseCode" prepend=" and ">
+					houseCode = #houseCode#
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findHouseInfosByHouseCodeAndOrgId" parameterClass="java.util.Map" resultMap="actualHouseInfoResult">
+		<![CDATA[ 
+					SELECT * FROM HouseInfo_$shardCode$ where houseCode like #houseCode#||'%' and orgId = #organizationId#
+		]]>
+	</select>
+	<!-- <select id="checkIsHasHouseByHouseCodeAndOrgId" parameterClass="java.util.Map" resultMap="actualHouseInfoResult">
+		SELECT * FROM HouseInfo where houseCode = #houseCode# and orgId = #organizationId#
+	</select> -->
+	<select id="findHouseInfosByHouseAddressAndOrgId" parameterClass="java.util.Map" resultMap="actualHouseInfoResult">
+		SELECT * FROM HouseInfo_$shardCode$  where address like #address#||'%' and orgId = #organizationId#
+	</select>
+
+	<!-- <select id="getRentalHouseInfoById" parameterClass="java.util.Map" resultMap="actualHouseInfoResult">
+		<![CDATA[select * from HouseInfo h
+			where h.houseCode in (select hi.houseCode from HouseInfo hi where hi.id=#houseId#)]]>
+	</select>
+ -->
+	<sql id="sql_where">
+		from HouseInfo_$shardCode$
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="address">
+				<isNotNull property="address" prepend=" and " open="(" close=")">
+					address like '%'||#address#||'%' or houseOwner like '%'||#address#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="buildingId">
+				<isNotNull property="buildingId" prepend=" and ">
+					buildingId = #buildingId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isBuildingId">
+				<isNotNull property="isBuildingId" prepend=" and ">
+					buildingId is null
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="builddatasId">
+				<isNotNull property="builddatasId" prepend=" and ">
+					builddatasId = #builddatasId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isBuilddatasId">
+				<isNotNull property="isBuilddatasId" prepend=" and ">
+					builddatasId is null
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="featureId">
+				<isNotNull property="featureId" prepend=" and ">
+					featureId = #featureId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isFeatureId">
+				<isNotNull property="isFeatureId" prepend=" and ">
+					featureId is null
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="searchAllHouseInfos" parameterClass="SearchHouseInfoVo" resultMap="actualHouseInfoResult">
+		<include refid="common.sql_select" />
+		from HouseInfo
+		<include refid="commonHouseInfo.search_sql_where" />
+	</select>
+	<select id="countHouseInfos" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="findHouseInfos" parameterClass="java.util.Map"
+		resultMap="actualHouseInfoResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countSearchHouseInfo" parameterClass="map" resultClass="int">
+		select count(h.id) from (select hi.*, nvl(num, 0) cut from houseinfo_$shardCode$ hi left join (select count(*) num, houseid from househasactualpopulation group by houseid) hh
+        on hi.id = hh.houseid) h where 1=1
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseCodeAndAddress">
+				<isNotEmpty prepend=" and " property="houseCodeAndAddress">
+					(houseCode like #houseCodeAndAddress#||'%' or address like '%'||#houseCodeAndAddress#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseCode">
+				<isNotEmpty prepend=" and " property="houseCode">
+					houseCode like #houseCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="address">
+				<isNotEmpty prepend=" and " property="address">
+					address like '%'||#address#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="propertyTypes">
+				<isNotNull prepend=" and " property="propertyTypes.id">
+					propertyTypes=#propertyTypes.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty prepend=" and " property="name">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="certificateType">
+				<isNotNull prepend=" and " property="certificateType.id">
+					certificateType=#certificateType.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="certificateNumbe">
+				<isNotEmpty prepend=" and " property="certificateNumbe">
+					certificateNumbe like #certificateNumbe#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseUses">
+				<isNotNull prepend=" and " property="houseUses.id">
+					houseUses=#houseUses.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseStructure">
+				<isNotNull prepend=" and " property="houseStructure.id">
+					houseStructure=#houseStructure.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="builtYearFrom" >
+				<isNotEmpty prepend=" and " property="builtYearFrom">
+					<![CDATA[ builtYear >= #builtYearFrom# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="builtYearEnd">
+				<isNotEmpty prepend=" and " property="builtYearEnd">
+					<![CDATA[ builtYear <= #builtYearEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseAreaFrom" >
+				<isNotNull prepend=" and " property="houseAreaFrom">
+					<![CDATA[ houseArea >= #houseAreaFrom# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseAreaEnd">
+				<isNotNull prepend=" and " property="houseAreaEnd">
+					<![CDATA[ houseArea <= #houseAreaEnd# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="buildingName">
+				<isNotEmpty prepend=" and " property="buildingName">
+					buildingName like #buildingName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="buildingUses">
+				<isNotNull prepend=" and " property="buildingUses.id">
+					buildingUses=#buildingUses.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="propertyName">
+				<isNotEmpty prepend=" and " property="propertyName">
+					propertyName  like #propertyName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="ownProperty">
+				<isNotNull prepend=" and " property="ownProperty.id">
+					ownProperty=#ownProperty.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="rentalBuildings">
+				<isNotNull prepend=" and " property="rentalBuildings.id">
+					rentalBuildings=#rentalBuildings.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="housingVouchers">
+				<isNotNull prepend=" and " property="housingVouchers.id">
+					housingVouchers=#housingVouchers.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseRightNumber">
+				<isNotEmpty prepend=" and " property="houseRightNumber">
+					houseRightNumber like #houseRightNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseRightNumberDateFrom" >
+				<isNotEmpty prepend=" and " property="houseRightNumberDateFrom">
+					<![CDATA[ houseRightNumberDate >= #houseRightNumberDateFrom# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseRightNumberDateEnd">
+				<isNotEmpty prepend=" and " property="houseRightNumberDateEnd">
+					<![CDATA[ houseRightNumberDate <= #houseRightNumberDateEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="landDocuments">
+				<isNotNull prepend=" and " property="landDocuments.id">
+					landDocuments=#landDocuments.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseSource" >
+				<isNotEmpty prepend=" and " property="houseSource.id">
+					houseSource=#houseSource.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="landRightsNumbe">
+				<isNotEmpty prepend=" and " property="landRightsNumbe">
+					landRightsNumbe like #landRightsNumbe#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="landRightsNumbeDateFrom" >
+				<isNotEmpty prepend=" and " property="landRightsNumbeDateFrom">
+					<![CDATA[ landRightsNumbeDate >= #landRightsNumbeDateFrom# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="landRightsNumbeDateEnd">
+				<isNotEmpty prepend=" and " property="landRightsNumbeDateEnd">
+					<![CDATA[ landRightsNumbeDate <= #landRightsNumbeDateEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isRentalHouse">
+				<isNotNull prepend=" and " property="isRentalHouse">
+					isRentalHouse=#isRentalHouse#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="memberNum">
+				<isNotEmpty prepend=" and " property="memberNum">
+					 h.cut = #memberNum#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseId">
+				<isNotNull property="houseId" prepend="and">
+					h.id not in (#houseId#)					
+				</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="id">
+		<isNotEmpty prepend=" and " property="id">
+			id=#id#
+		</isNotEmpty>
+		</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="searchHouseInfo" parameterClass="map" resultMap="actualHouseInfoResult">
+		select h.id,h.orgId,h.orgInternalCode,h.buildingId,h.houseCode,h.address,h.builddatasid,h.addressType,h.community,h.block,h.unit,h.room,
+		h.buildingName,h.buildingUses,h.propertyName,h.houseOwner,h.houseOwnerIdCardNo,h.telephone,h.mobileNumber,
+		h.houseDoorModel,h.builtYear,h.houseStructure,h.houseArea,h.houseUses,h.houseSource,h.ownProperty,h.rentalBuildings,
+		h.housingVouchers,h.houseRightNumber,h.houseRightNumberDate,h.landDocuments,h.landRightsNumbe,h.landRightsNumbeDate,h.propertyTypes,
+		h.name,h.imgUrl,h.fullPinyin,h.simplePinyin,h.certificateType,h.certificateNumbe,h.propertyPersonTel,h.propertyPersonMobile,
+		h.remark,h.buildingId,h.centerX,h.centerY,h.createDate,h.createUser,h.updateDate,h.updateUser,h.centerLon,h.centerLat,h.featureId,h.isRentalHouse,h.cut,
+		h.sourcesState,h.houseAddress,h.memberNum
+		from (select hi.*, nvl(num, 0) cut from houseinfo_$shardCode$ hi left join (select count(*) num, houseid from househasactualpopulation group by houseid) hh on hi.id = hh.houseid) h where 1=1
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode# || '%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseCodeAndAddress">
+				<isNotEmpty prepend=" and " property="houseCodeAndAddress">
+					(houseCode like #houseCodeAndAddress#||'%' or address like '%'||#houseCodeAndAddress#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseCode">
+				<isNotEmpty prepend=" and " property="houseCode">
+					houseCode like #houseCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="address">
+				<isNotEmpty prepend=" and " property="address">
+					address like '%'||#address#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="propertyTypes">
+				<isNotNull prepend=" and " property="propertyTypes.id">
+					propertyTypes=#propertyTypes.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty prepend=" and " property="name">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="certificateType">
+				<isNotNull prepend=" and " property="certificateType.id">
+					certificateType=#certificateType.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="certificateNumbe">
+				<isNotEmpty prepend=" and " property="certificateNumbe">
+					certificateNumbe like #certificateNumbe#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseUses">
+				<isNotNull prepend=" and " property="houseUses.id">
+					houseUses=#houseUses.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseStructure">
+				<isNotNull prepend=" and " property="houseStructure.id">
+					houseStructure=#houseStructure.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="builtYearFrom" >
+				<isNotEmpty prepend=" and " property="builtYearFrom">
+					<![CDATA[ builtYear >= #builtYearFrom# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="builtYearEnd">
+				<isNotEmpty prepend=" and " property="builtYearEnd">
+					<![CDATA[ builtYear <= #builtYearEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseAreaFrom" >
+				<isNotNull prepend=" and " property="houseAreaFrom">
+					<![CDATA[ houseArea >= #houseAreaFrom# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseAreaEnd">
+				<isNotNull prepend=" and " property="houseAreaEnd">
+					<![CDATA[ houseArea <= #houseAreaEnd# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="buildingName">
+				<isNotEmpty prepend=" and " property="buildingName">
+					buildingName like #buildingName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="buildingUses">
+				<isNotNull prepend=" and " property="buildingUses.id">
+					buildingUses=#buildingUses.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="propertyName">
+				<isNotEmpty prepend=" and " property="propertyName">
+					propertyName  like #propertyName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="ownProperty">
+				<isNotNull prepend=" and " property="ownProperty.id">
+					ownProperty=#ownProperty.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="rentalBuildings">
+				<isNotNull prepend=" and " property="rentalBuildings.id">
+					rentalBuildings=#rentalBuildings.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="housingVouchers">
+				<isNotNull prepend=" and " property="housingVouchers.id">
+					housingVouchers=#housingVouchers.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseRightNumber">
+				<isNotEmpty prepend=" and " property="houseRightNumber">
+					houseRightNumber like #houseRightNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseRightNumberDateFrom" >
+				<isNotEmpty prepend=" and " property="houseRightNumberDateFrom">
+					<![CDATA[ houseRightNumberDate >= #houseRightNumberDateFrom# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseRightNumberDateEnd">
+				<isNotEmpty prepend=" and " property="houseRightNumberDateEnd">
+					<![CDATA[ houseRightNumberDate <= #houseRightNumberDateEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="landDocuments">
+				<isNotNull prepend=" and " property="landDocuments.id">
+					landDocuments=#landDocuments.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseSource" >
+				<isNotEmpty prepend=" and " property="houseSource.id">
+					houseSource=#houseSource.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="landRightsNumbe">
+				<isNotEmpty prepend=" and " property="landRightsNumbe">
+					landRightsNumbe like #landRightsNumbe#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="landRightsNumbeDateFrom" >
+				<isNotEmpty prepend=" and " property="landRightsNumbeDateFrom">
+					<![CDATA[ landRightsNumbeDate >= #landRightsNumbeDateFrom# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="landRightsNumbeDateEnd">
+				<isNotEmpty prepend=" and " property="landRightsNumbeDateEnd">
+					<![CDATA[ landRightsNumbeDate <= #landRightsNumbeDateEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isRentalHouse">
+				<isNotNull prepend=" and " property="isRentalHouse">
+					isRentalHouse=#isRentalHouse#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="memberNum">
+				<isNotNull prepend=" and " property="memberNum">
+					h.cut = #memberNum#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseId">
+				<isNotNull property="houseId" prepend="and">
+					h.id not in (#houseId#)					
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="id">
+			<isNotEmpty prepend=" and " property="id">
+				id=#id#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">h.$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="getHouseInfoByHouseAddressAndOrgId" parameterClass="java.util.Map" resultMap="actualHouseInfoResult">
+		<![CDATA[ SELECT * FROM HouseInfo_$shardCode$ where address = #address# and orgId = #organizationId# ]]>
+	</select>
+	
+	<select id="getHouseInfoByHouseCodeAndOrgId" parameterClass="java.util.Map" resultMap="actualHouseInfoResult">
+		<![CDATA[ SELECT * FROM HouseInfo_$shardCode$ where houseCode = #houseCode# and orgId = #organizationId# ]]>
+	</select>
+
+	<update id="updateHousePropertyForGis" parameterClass="HouseInfo">
+		 <![CDATA[
+		update houseInfo_$shardCode$ set
+			   buildingId=#gisInfo.buildingId#,
+			   centerX=#gisInfo.centerX#,
+			   centerY=#gisInfo.centerY#,
+			   updateDate=#updateDate#,
+			   updateUser=#updateUser#
+	     where id=#id#
+	  ]]>
+	</update>
+		<update id="unBundHouseInfoById" parameterClass="java.util.Map">
+		 <![CDATA[
+		update houseInfo_$shardCode$ set
+			   buildingId=null,
+			   centerX=null,
+			   centerY=null
+	     where id=#id#
+	  ]]>
+	</update>
+	<sql id="houseInfosForPageByTagSql">
+	 from houseInfo
+	 where
+	 <isNotNull property="tag">
+	 (houseCode like $tag$||'%' or address like $tag$||'%')	 AND
+	 </isNotNull>
+	 buildingId is null
+	</sql>
+
+	<select id="countHouseInfosForPageByTag" parameterClass="map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="houseInfosForPageByTagSql" />
+	</select>
+
+	<select id="findHouseInfosForPageByTag" parameterClass="map" resultMap="actualHouseInfoResult">
+		<include refid="common.sql_select" />
+		<include refid="houseInfosForPageByTagSql" />
+	</select>
+
+	<select id="countHouseInfosByBuildingIdForPage" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from houseInfo where buildingId=#buildingId#
+	</select>
+	<select id="findHouseInfosByBuildingIdForPage" parameterClass="map" resultMap="actualHouseInfoResult">
+		select * from houseInfo where buildingId=#buildingId#
+	</select>
+
+	<update id="unbindHousePropertyById" parameterClass="long">
+		update houseInfo set buildingId=null,centerX=null,centerY=null where id=#value#
+	</update>
+
+	<select id="getHouseInfoByAddress" parameterClass="java.lang.String" resultMap="actualHouseInfoResult">
+		select * from houseInfo where address=#address#
+	</select>
+
+	<select id="findGisHouseInfoById" parameterClass="long" resultMap="GishouseInfoResult">
+        select  h.id as houseId,  h.address as currentAddress, h.houseowner as houseOwner,h.orgId,h.orginternalcode
+        	,h.buildingName as buildingName, h.houseArea as houseArea, h.houseCode as houseCode,h.isrentalhouse as isRentalHouse
+    	 from houseinfo h  where id=#value#
+	</select>
+
+	<select id="countGisHouseInfos" parameterClass="map" resultClass="java.lang.Integer">
+		select count(distinct(h.housecode)) from houseInfo h
+		 where h.orgInternalCode like  #orgCode#||'%' and  (h.houseCode like  '$queryStr$%' or  h.address like  '%$queryStr$%')
+	</select>
+
+	<select  id="getGisHouseInfoByQueryStrAndOrgCode" parameterClass="map" resultMap="actualHouseInfoResult">
+		select * from houseinfo h
+		   where  h.orgInternalCode like #orgCode#||'%' and  (h.houseCode like  '$queryStr$%' or  h.address like  '%$queryStr$%')
+	</select>
+
+	<select id="countActualHouseByOrgCode" parameterClass="String" resultMap="GisCountHouseInfoResult">
+		select count(*) as giscountNum, 'actualHouse' as gisSearchType
+			from  houseinfo ho  where ho.orgInternalCode like #orgInternalCode#||'%'
+	</select>
+	<select id="countRentalHouseByorgCode" parameterClass="String" resultMap="GisCountHouseInfoResult">
+		select count(*) as giscountNum, 'rentalHouse' as gisSearchType
+			from  houseinfo ho  where ho.isrentalhouse=1 and ho.orgInternalCode like #orgInternalCode#||'%'
+	</select>
+
+	<select id="countKeyGishouseInfos" parameterClass="String" resultClass="Integer">
+		select count (*) from houseinfo where  orgInternalCode like #orgInternalCode#||'%'
+	</select>
+	<select id="countKeyRentalGishouseInfos" parameterClass="map" resultClass="Integer">
+		select count (*) from houseinfo where  orgInternalCode like #orgInternalCode#||'%' and isrentalhouse =1
+	</select>
+	<select id="getKeyGishouseInfosByOrgCode" parameterClass="String" resultMap="actualHouseInfoResult">
+		select * from houseinfo h  where  h.orgInternalCode like #orgCode#||'%'
+	</select>
+	<select id="getKeyRentalGishouseInfosByOrgCode" parameterClass="map" resultMap="actualHouseInfoResult">
+		select * from houseinfo h  where  h.orgInternalCode like #orgCode#||'%' and isrentalhouse =1
+	</select>
+	<select id="findAllBindingHouseInfoByOrgInternalCode" parameterClass="String" resultMap="houseInfoResult">
+		select * from houseinfo hi where  hi.orgInternalCode like #orgInternalCode#||'%' and hi.centerx is not null
+	</select>
+	<select id="findAllBindingHouseInfoByBuildingId" parameterClass="long" resultMap="houseInfoResult">
+		select * from houseinfo hi where hi.buildingid = #buildingId#
+	</select>
+	<select id="countUnRentHouseByOrgInternalCode" parameterClass="String" resultClass="Integer">
+		select count (*) from houseinfo where  orgInternalCode like #orgInternalCode#||'%' and isrentalhouse =1
+	</select>
+	<select id="countRentHouseByOrgInternalCode" parameterClass="String" resultClass="Integer">
+		select count (*) from houseinfo where  orgInternalCode like #orgInternalCode#||'%' and isrentalhouse =0
+	</select>
+
+	<update id="updateBuildDatasId" parameterClass="HouseInfo">
+	 <![CDATA[
+		update houseinfo_$shardCode$ set
+			   builddatasId=#builddatasId#,
+			   featureId=#openLayersMapInfo.featureId#,
+			   centerLon=#openLayersMapInfo.centerLon#,
+			   centerLat=#openLayersMapInfo.centerLat#,
+			   centerLon2=#openLayersMapInfo.centerLon2#,
+		 	   centerLat2=#openLayersMapInfo.centerLat2#,
+			   updateDate=#updateDate#,
+			   updateUser=#updateUser#
+	     where id=#id#
+	  ]]>
+	</update>
+
+	<select id="countHouseInfoByBuilddatasidAndHouseUse" parameterClass="java.util.Map" resultClass="Long">
+		select count(*) from houseInfo_$shardCode$ h where h.builddatasid = #builddatasid#  and h.houseUses = #houseUse#
+	</select>
+
+	<!-- <select id="countHouseInfoByBuilddatasidAndisrentalhouse" parameterClass="java.util.Map" resultClass="Long">
+		select count(*) from houseInfo h where h.builddatasid = #builddatasid#  and h.isrentalhouse = #isrentalhouse#
+	</select> -->
+
+	<select id="searchAllHouseName" resultClass="layoutTag" parameterClass="map">
+		select id as id, room || '-' || decode(name, null, '无房主', name) as label, '房屋' as category, 1 as buildType from houseinfo_$shardCode$ where orginternalcode like #orgInternalCode#||'%' and builddatasid = #builddatasid#
+	</select>
+
+	<update id="changeHouseCode" parameterClass="java.util.Map">
+		update houseInfo_$shardCode$ set houseCode=#houseCode# where orgId=#orgId# and houseCode=#oldHouseCode#
+	</update>
+
+	<update id="changeRentalHouseCode" parameterClass="java.util.Map">
+		update rentalHouse set houseCode=#houseCode# where orgId=#orgId# and houseCode=#oldHouseCode#
+	</update>
+
+	<select id="countHouseByOrgIdAndHouseCode" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from houseInfo_$shardCode$ where orgId=#orgId# and houseCode=#houseCode#
+	</select>
+	<select id="getHouseRoomAndNameById" parameterClass="java.util.Map" resultClass="String">
+		select room || '-' || decode(name, null, '无房主', name) as name from houseInfo_$shardCode$ where id=#id#
+	</select>
+	
+	<update id="bound" parameterClass="java.util.Map">
+		  update houseinfo_$shardCode$ set CENTERLON=#centerLon#,CENTERLAT=#centerLat# where id=#id#
+	</update>
+	
+	<update id="unbound" parameterClass="java.util.Map">
+		update houseinfo_$shardCode$ set CENTERLON='',CENTERLAT='',featureId='' where id=#id#
+	</update>
+	
+	<sql id="findHouseListByOrgIdExcludeHousId_sql">
+		where orgId=#orgId# and id not in (#houseId#)
+	</sql>
+	<select id="countFindHouseListByOrgIdExcludeHousId" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from houseinfo_$shardCode$
+		<include refid="findHouseListByOrgIdExcludeHousId_sql"/>
+	</select>
+	<select id="findHouseListByOrgIdExcludeHousId" parameterClass="java.util.Map" resultMap="actualHouseInfoResult">
+		select * from houseinfo_$shardCode$ <include refid="findHouseListByOrgIdExcludeHousId_sql"/>
+	</select>
+	
+		<update id="updateBuildingName" parameterClass="java.util.Map">
+		 <![CDATA[
+		 update houseinfo_$shardCode$ set 
+		 	buildingName=#buildingName#,
+		 	centerLon=#openLayersMapInfo.centerLon#,
+		 	centerLat=#openLayersMapInfo.centerLat#,
+		 	centerLon2=#openLayersMapInfo.centerLon2#,
+		 	centerLat2=#openLayersMapInfo.centerLat2#
+		 
+		  where id=#id#
+		 ]]>
+	</update>
+	
+	<select id="findHouseInfoByOrgIdAddress" parameterClass="java.util.Map" resultMap="houseInfoResult">
+		select * from houseInfo_$shardCode$ where orgId=#orgId# and address=#address#
+	</select>
+	
+	<select id="countHouseInfoByAddressAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from houseinfo_$shardCode$ where orgId=#orgId# and address=#address# and id !=#id#
+	</select>
+	
+	<select id="findHouseInfoByAddressAndOrgId" parameterClass="java.util.Map" resultMap="actualHouseInfoResult">
+		select * from houseinfo_$shardCode$ where orgId=#orgId# and address=#address# and id !=#id#
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<update id="updateSimpleHouseInfo" parameterClass="HouseInfo">
+		update houseInfo_$shardCode$ 
+		<dynamic prepend="set">
+		<isNotNull property="address" prepend=",">
+			address=#address#
+		</isNotNull>
+		<isNotNull property="buildingUses.id" prepend=",">
+			BUILDINGUSES=#buildingUses.id#
+		</isNotNull>
+		<isNotNull property="houseUses.id" prepend=",">
+			houseUses=#houseUses.id#
+		</isNotNull>
+		<isNotNull property="houseSource.id" prepend=",">
+			Housesource=#houseSource.id#
+		</isNotNull>
+		<isNotNull property="housingVouchers.id" prepend=",">
+			Housingvouchers=#housingVouchers.id#
+		</isNotNull>
+		<isNotNull property="landDocuments.id" prepend=",">
+			Landdocuments=#landDocuments.id#
+		</isNotNull>
+		<isNotNull property="propertyTypes.id" prepend=",">
+			Propertytypes=#propertyTypes.id#
+		</isNotNull>
+		<isNotNull property="certificateType.id" prepend=",">
+			Certificatetype=#certificateType.id#
+		</isNotNull>
+		<isNotNull property="houseStructure.id" prepend=",">
+			Housestructure=#houseStructure.id#
+		</isNotNull>
+		
+		<isNotNull property="houseCode" prepend=",">
+			Housecode = #houseCode#
+		</isNotNull>
+		<isNotNull property="isRentalHouse" prepend=",">
+			isrentalhouse=#isRentalHouse#
+		</isNotNull>
+		<isNotNull property="houseAddress" prepend=",">
+			houseaddress=#houseAddress#
+		</isNotNull>
+		<isNotNull property="buildingName" prepend=",">
+			buildingname=#buildingName#
+		</isNotNull>
+		<isNotNull property="propertyName" prepend=",">
+			Propertyname=#propertyName#
+		</isNotNull>
+		<isNotNull property="houseOwner" prepend=",">
+			Houseowner=#houseOwner#
+		</isNotNull>
+		<isNotNull property="houseOwnerIdCardNo" prepend=",">
+			houseowneridcardno=#houseOwnerIdCardNo#
+		</isNotNull>
+		<isNotNull property="telephone" prepend=",">
+			telephone=#telephone#
+		</isNotNull>
+		<isNotNull property="houseDoorModel" prepend=",">
+			Housedoormodel=#houseDoorModel#
+		</isNotNull>
+		<isNotNull property="builtYear" prepend=",">
+			Builtyear=#builtYear#
+		</isNotNull>
+		<isNotNull property="houseArea" prepend=",">
+				Housearea=#houseArea#
+		</isNotNull>
+		<isNotNull property="houseRightNumber" prepend=",">
+			Houserightnumber=#houseRightNumber#
+		</isNotNull>
+		<isNotNull property="houseRightNumberDate" prepend=",">
+			Houserightnumberdate=#houseRightNumberDate#
+		</isNotNull>
+		<isNotNull property="landRightsNumbe" prepend=",">
+			Landrightsnumbe=#landRightsNumbe#
+		</isNotNull>
+		<isNotNull property="landRightsNumbeDate" prepend=",">
+			Landrightsnumbedate=#landRightsNumbeDate#
+		</isNotNull>
+		<isNotNull property="name" prepend=",">
+			name=#name#
+		</isNotNull>
+		<isNotNull property="certificateNumbe" prepend=",">
+			Certificatenumbe=#certificateNumbe#
+		</isNotNull>
+		<isNotNull property="propertyPersonTel" prepend=",">
+			Propertypersontel=#propertyPersonTel#
+		</isNotNull>
+		<isNotNull property="propertyPersonMobile" prepend=",">
+			Propertypersonmobile=#propertyPersonMobile#
+		</isNotNull>
+	    <isNotNull property="remark" prepend=",">
+			remark=#remark#
+		</isNotNull>
+		</dynamic>
+	 where id=#id#
+	</update>
+	
+    <select id="getMaxHouseInfoId" resultClass="java.lang.Integer">
+		select max(id)  from houseInfo
+	</select>
+	
+	<select id="findHouseInfosByStartIdAndEndId" parameterClass="java.util.Map"  resultMap="actualHouseInfoResult">
+		 <![CDATA[
+		 	select * from houseInfo where id>=#startId# and id < #endId#
+		 ]]>
+	</select>
+	
+	<select id="findIdsFromRecoverDataInfosByStartDateAndType" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		 <![CDATA[select BUSINESSID  from RECOVERDATAINFOS where BUSINESSTYPE=#type# and CREATEDATE>#startDate#]]>
+	</select>
+	<!--房屋人数注释-->
+	<update id="updateHouseInfoMemberNum" parameterClass="java.util.Map">
+		update $tableName$ t set t.MemberNum = t.MemberNum + #num# where id = #houseId# 
+		<isEqual prepend="and" property="num" compareValue="-1">
+			<![CDATA[t.MemberNum > 0]]>
+		</isEqual>
+	</update>
+	
+ 	<select id="getLogOutByPopulationTypeAndPopulationId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select logout  from $tableName$ where id = #populationId#
+	</select>
+	
+		
+	<!--统计住宅总数-->
+	<select id="countResidential" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from houseInfo_$shardCode$ where BUILDINGUSES=#buildingUses# and ORGINTERNALCODE like #orgCode# ||'%'
+		<isPropertyAvailable property="isRentalHouse">
+			<isNotNull property="isRentalHouse">
+			and isRentalHouse = #isRentalHouse#
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	
+	<!--统计人房关联的住宅数-->
+	<select id="countRelation" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT COUNT(H.ID) FROM HOUSEINFO_$shardCode$ H WHERE H.BUILDINGUSES = #buildingUses# 
+		AND H.MEMBERNUM > 0 AND H.ORGINTERNALCODE LIKE #orgCode# ||'%'
+		<isPropertyAvailable property="isRentalHouse">
+			<isNotNull property="isRentalHouse">
+				and H.isRentalHouse = #isRentalHouse#
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	
+</sqlMap>

@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="gpsTwoDimensionMap">
+	<typeAlias alias="GpsInfoVo" type="com.tianque.openLayersMap.domian.vo.GpsInfoVo" />
+	<typeAlias alias="SearchInfoVo" type="com.tianque.openLayersMap.domian.vo.SearchInfoVo" />
+	
+	<resultMap id="gpsTwoDimensionMapResult" class="GpsInfoVo">
+		<result column="id" property="id" />
+		<result column="longitude" property="lon" />
+		<result column="latitude" property="lat" />
+		<result column="locatedate" property="locateDate" />
+		<result column="devicenumber" property="code" />
+		<result column="positionDescription" property="address" />
+		<result column="username" property="userName" />
+		<result column="longitude2" property="lon2" />
+		<result column="latitude2" property="lat2" />
+	</resultMap>
+	<resultMap id="gpsTwoDimensionMapPeripheryResult" extends="gpsTwoDimensionMapResult" class="GpsInfoVo">
+		<result column="distance" property="distance" />
+	</resultMap>
+	
+	<sql id="sql_screenCoordinateVo">
+		<isNotNull property="searchInfoVo">
+			<isNotEmpty prepend="and" property="searchInfoVo.minDate">
+				<![CDATA[ p.locatedate >= #searchInfoVo.minDate# ]]>
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="searchInfoVo.maxDate">
+				<![CDATA[ p.locatedate <= #searchInfoVo.maxDate# ]]>
+			</isNotEmpty>
+			<isEqual property="searchInfoVo.gisType" compareValue="3D">
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLon">
+					<![CDATA[ p.longitude>#screenCoordinateVo.minLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+					<![CDATA[ p.longitude<#screenCoordinateVo.maxLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+					<![CDATA[ p.latitude>#screenCoordinateVo.minLat# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+					<![CDATA[ p.latitude<#screenCoordinateVo.maxLat# ]]>
+				</isNotEmpty>
+			</isEqual>
+			<isNotEqual  property="searchInfoVo.gisType"  compareValue="3D">
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLon">
+					<![CDATA[ p.longitude2>#screenCoordinateVo.minLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+					<![CDATA[ p.longitude2<#screenCoordinateVo.maxLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+					<![CDATA[ p.latitude2>#screenCoordinateVo.minLat# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+					<![CDATA[ p.latitude2<#screenCoordinateVo.maxLat# ]]>
+				</isNotEmpty>
+			</isNotEqual>
+		</isNotNull>
+	</sql>
+	
+	<sql id="sql_from_where">
+		from  positioningTrajectory p,(
+		       select username, max(locatedate) maxLocatedate from positioningtrajectory group by username
+		  ) pt
+		where pt.username = p.username and pt.maxLocatedate = p.locatedate 
+		<dynamic>
+			<isNotEmpty prepend="and" property="id">
+				p.id = #id#
+			</isNotEmpty>
+			<isNotNull property="searchInfoVo">
+				<isNotEqual property="searchInfoVo.searchValue" compareValue="'null'">
+					<isNotEmpty prepend="and" property="searchInfoVo.searchValue">
+						p.username in ($searchInfoVo.searchValue$)
+					</isNotEmpty>
+				</isNotEqual>
+			</isNotNull>
+			<include refid="sql_screenCoordinateVo"/>
+		</dynamic>
+	</sql>
+	
+	<select id="countTwoDimensionMapPageInfoByScreenCoordinateVoAndSearchValue" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from 
+		  	(select p.username, max(locatedate) maxLocatedate from positioningtrajectory p 
+		  
+		  <dynamic prepend="WHERE">
+		  		<isPropertyAvailable property="id">
+					<isNotEmpty prepend="and" property="id">
+						p.id = #id#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isNotNull property="searchInfoVo">
+					<isNotEqual property="searchInfoVo.searchValue" compareValue="'null'">
+					<isNotEmpty prepend="and" property="searchInfoVo.searchValue">
+						p.username in ($searchInfoVo.searchValue$)
+					</isNotEmpty>
+				</isNotEqual>
+				</isNotNull>
+				<include refid="sql_screenCoordinateVo"/>
+			</dynamic>
+		  	group by p.username)
+			
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByScreenCoordinateVoAndSearchValue" parameterClass="java.util.Map" resultMap="gpsTwoDimensionMapResult">
+		<include refid="common.sql_page_start"/>
+			select p.id,p.longitude,p.latitude ,p.longitude2,p.latitude2,TO_CHAR(p.locatedate,'yyyy-MM-dd HH24:mi:ss') locatedate,p.devicenumber,p.positionDescription,p.username
+			<include refid="sql_from_where"/>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField333">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="getViewPopupInfoByIdAndType" parameterClass="java.util.Map" resultMap="gpsTwoDimensionMapResult">
+		select p.id,p.longitude,p.latitude ,p.longitude2,p.latitude2,TO_CHAR(p.locatedate,'yyyy-MM-dd HH24:mi:ss') locatedate,p.devicenumber,p.positionDescription,p.username
+		<include refid="sql_from_where"/>
+	</select>
+
+	<select id="countTwoDimensionMapInfoByUserNameAndTypeName" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) from  positioningTrajectory p where p.username in ($userName$)
+	</select>
+	
+	<sql id="sql_where_periphery">
+		from (
+			select p.id,p.longitude,p.latitude ,p.longitude2,p.latitude2,TO_CHAR(p.locatedate,'yyyy-MM-dd HH24:mi:ss') locatedate,p.devicenumber,p.positionDescription,p.username
+			<isNotNull property="circumInfoVo">
+				<isNotNull property="circumInfoVo.lon">
+					<isNotNull property="circumInfoVo.lat" prepend=" , ">
+						<isEqual property="circumInfoVo.gisType" compareValue="3D">
+							round(sqrt(power(((#circumInfoVo.lon# - p.longitude) * #PI# * #R#
+							* COS(((#circumInfoVo.lat# + p.latitude) / 2) * #PI# / 180) / 180),2)
+							+ power(((#circumInfoVo.lat# - p.latitude) *#PI# * #R# / 180),2)),2)  
+						</isEqual>
+						<isNotEqual property="circumInfoVo.gisType" compareValue="3D">
+							round(sqrt(power(((#circumInfoVo.lon# - p.longitude2) * #PI# * #R#
+							* COS(((#circumInfoVo.lat# + p.latitude2) / 2) * #PI# / 180) / 180),2)
+							+ power(((#circumInfoVo.lat# - p.latitude2) *#PI# * #R# / 180),2)),2)  
+						</isNotEqual>
+						distance
+					</isNotNull>
+				</isNotNull>
+			</isNotNull>
+			from  positioningTrajectory p,(
+			       select userName, max(locatedate) maxLocatedate from positioningtrajectory group by username
+			  ) pt
+			where pt.userName = p.userName and pt.maxLocatedate = p.locatedate 
+		) t 
+		<dynamic prepend="where">
+			<isNotNull property="circumInfoVo">
+				<isNotNull property="circumInfoVo.range" prepend="and ">
+			 		<![CDATA[ t.distance < #circumInfoVo.range# ]]>
+			 	</isNotNull>
+				<isNotNull property="circumInfoVo.queryStr" prepend="and">
+					t.username in ($circumInfoVo.queryStr$) 
+				</isNotNull>
+			</isNotNull>
+		</dynamic>
+	</sql>
+	
+	<select id="countTwoDimensionMapCircumInfoByElementsAndRangeAndCenterLonLat" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select  count(*)
+		<include refid="sql_where_periphery" />
+	</select>
+	
+	<select id="findTwoDimensionMapCircumInfoByElementsAndRangeAndCenterLonLat" parameterClass="java.util.Map" resultMap="gpsTwoDimensionMapPeripheryResult">
+		<include refid="common.sql_page_start"/>
+			select *
+			<include refid="sql_where_periphery" />
+			<isNotNull property="centerLon">
+				<isNotNull property="centerLat">	
+					<isNotNull property="range" prepend=" order by ">
+					 	 distance 
+					</isNotNull>
+				</isNotNull>
+			</isNotNull>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countTwoDimensionMapPageInfoByScreenCoordinateVoAndSearchInfoVo" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from 
+		  	(select p.username, max(p.locatedate) maxLocatedate from positioningtrajectory p 
+		  	
+		  	<dynamic prepend="WHERE">
+		  		<isPropertyAvailable property="id">
+					<isNotEmpty prepend="and" property="id">
+						p.id = #id#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isNotNull property="searchInfoVo">
+				<isNotEqual property="searchInfoVo.searchValue" compareValue="'null'">
+					<isNotEmpty prepend="and" property="searchInfoVo.searchValue">
+						p.username in ($searchInfoVo.searchValue$)
+					</isNotEmpty>
+				</isNotEqual>
+					
+				</isNotNull>
+				<include refid="sql_screenCoordinateVo"/>
+			</dynamic>
+		  	group by p.username)
+			
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByScreenCoordinateVoAndSearchInfoVo" parameterClass="java.util.Map" resultMap="gpsTwoDimensionMapResult">
+		<include refid="common.sql_page_start"/>
+			select p.id,p.longitude,p.latitude ,p.longitude2,p.latitude2,TO_CHAR(p.locatedate,'yyyy-MM-dd HH24:mi:ss') locatedate,p.devicenumber,p.positionDescription,p.username
+			<include refid="sql_from_where"/>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField333">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+</sqlMap>

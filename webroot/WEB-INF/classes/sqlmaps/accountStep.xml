@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="accountStep">
+	<typeAlias alias="AccountStep" type="com.tianque.xichang.working.flow.domain.AccountStep" />
+	<resultMap class="AccountStep" id="accountStepResult">
+		<result property="id" column="ID"/>
+		<result property="accountId" column="ACCOUNTID"/>
+		<result property="accountType" column="ACCOUNTTYPE"/>
+		<result property="targetOrg.id" column="targetOrgid"/>
+		<result property="targetOrg.orgInternalCode" column="targetOrgcode"/>
+		<result property="isFinish" column="isFinish"/>
+		<result property="finishType" column="finishType"/>
+		<result property="reportToTownEnd" column="reportToTownEnd"/>
+		<result property="reportToCityEnd" column="reportToCityEnd"/>
+		<result property="reportToFunctionEnd" column="reportToFunctionEnd"/>
+		<result property="realOrCirculation" column="realOrCirculation"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+	</resultMap>
+	
+	<insert id="addAccountStep" parameterClass="AccountStep">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_ACCOUNTSTEPS_XICHANG.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into accountSteps_xichang
+		(
+			id,accountid,accounttype,targetOrgid,targetOrgcode,isFinish,createuser,createdate,REPORTTOTOWNEND,reportToCityEnd,reportToFunctionEnd,orgType
+		) 
+		values
+		(
+			#id#,#accountId#,#accountType#,#targetOrg.id#,#targetOrg.orgInternalCode#,#isFinish#,#createUser#,#createDate#,#reportToTownEnd#,#reportToCityEnd#,#reportToFunctionEnd#,#orgType#     	
+		)
+	</insert>
+	
+	<update id="updateAccountStep" parameterClass="AccountStep">
+		update accountSteps_xichang set isFinish=#isFinish#
+		<isNotEmpty property="updateUser" prepend=",">
+			updateUser=#updateUser#
+		</isNotEmpty>
+		<isNotNull property="updateDate" prepend=",">
+			updateDate=#updateDate#
+		</isNotNull>
+		<isNotNull property="finishType" prepend=",">
+			FINISHTYPE=#finishType#
+		</isNotNull>
+		<isNotNull property="reportToTownEnd" prepend=",">
+			reportToTownEnd=#reportToTownEnd#
+		</isNotNull>
+		<isNotNull property="reportToCityEnd" prepend=",">
+			reportToCityEnd=#reportToCityEnd# 
+		</isNotNull>
+		<isNotNull property="reportToFunctionEnd" prepend=",">
+			reportToFunctionEnd=#reportToFunctionEnd# 
+		</isNotNull>
+		<isNotNull property="realOrCirculation" prepend=",">
+			realOrCirculation=#realOrCirculation# 
+		</isNotNull>
+		where  id =(select max(id) from accountSteps_xichang where accountid=#accountId# and accounttype=#accountType# and targetOrgid=#targetOrg.id#)
+	</update>
+	
+	
+	
+	<!-- 根据时间和orgid查询出所有的 accountstep 用于扣分统计Job-->
+	<select id="getAccountStepByDateAndTargetOrgId" resultMap="accountStepResult" parameterClass="map">
+		select * from accountSteps_xichang where targetOrgId=#targetOrgId# and createDate <![CDATA[ >= ]]> #startDate# and createDate <![CDATA[ < ]]> #endDate#
+	</select>
+	
+	<select id="getLastAccountStepByAccountIdAndAccountTypeAndOrgCodeAndIsFinish" resultMap="accountStepResult" parameterClass="map">
+		select * from accountSteps_xichang where id=(select max(id) from accountSteps_xichang where accounttype=#accountType# and accountid=#accountId#
+		and targetorgcode like #orgCode#||'%' and isFinish=#isFinish#)
+	</select>
+	
+	<select id="getLastAccountStepByAccountIdAndAccountTypeAndOrgIdAndIsFinish" resultMap="accountStepResult" parameterClass="map">
+		select * from accountSteps_xichang where id=(select max(id) from accountSteps_xichang where accounttype=#accountType# and accountid=#accountId#
+		and targetorgid= #orgId# and isFinish=#isFinish#)
+	</select>
+	
+</sqlMap>

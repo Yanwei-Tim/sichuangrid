@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="dangerousGoodsPractitioner">
+	<!-- 注释说明 -->
+	<typeAlias alias="DangerousGoodsPractitioner" type="com.tianque.baseInfo.dangerousGoodsPractitioner.domain.DangerousGoodsPractitioner" />
+
+	<resultMap id="dangerousGoodsPractitionerResult" class="DangerousGoodsPractitioner" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResult">
+		<result property="workingCertificate" column="workingCertificate" />
+		<result property="workingCertificateNo" column="workingCertificateNo" />
+		<result property="legalPerson" column="legalPerson" />
+		<result property="legalPersonTelephone" column="legalPersonTelephone" />
+		<result property="legalPersonMobileNumber" column="legalPersonMobileNumber" />
+		<result property="dangerousWorkingType.id" column="dangerousWorkingType" />
+		<result property="periodOfValidityStart" column="periodofvaliditystart"/>
+		<result property="periodOfValidityEnd" column="periodofvalidityend"/>
+	</resultMap>
+	
+	<resultMap class="DangerousGoodsPractitioner" id="dangerousGoodsPractitionerResults" extends="dangerousGoodsPractitionerResult">    
+	    <result property="sourcesState" column="sourcesState" />
+	</resultMap>
+	<!-- 这两个resultMap内容一致，继承关系不一样 -->
+	<resultMap id="dangerousGoodsPractitionerResultForList" class="DangerousGoodsPractitioner" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+		<result property="workingCertificate" column="workingCertificate" />
+		<result property="workingCertificateNo" column="workingCertificateNo" />
+		<result property="legalPerson" column="legalPerson" />
+		<result property="legalPersonTelephone" column="legalPersonTelephone" />
+		<result property="legalPersonMobileNumber" column="legalPersonMobileNumber" />
+		<result property="dangerousWorkingType.id" column="dangerousWorkingType" />
+		<result property="periodOfValidityStart" column="periodofvaliditystart"/>
+		<result property="periodOfValidityEnd" column="periodofvalidityend"/>
+	</resultMap>
+	
+	<sql id="fields">
+		uni.id,uni.baseinfoid,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.attentionExtent,uni.dangerousWorkingType,uni.workingCertificate,
+   		uni.workingCertificateNo,uni.periodOfValidityStart,uni.periodOfValidityEnd,uni.legalPerson,uni.legalPersonTelephone,
+   		uni.legalPersonMobileNumber,uni.isEmphasis,uni.isEmphasisReason,uni.isEmphasisDate,uni.sourcesState,uni.createUser,
+   		uni.updateUser,uni.createDate,uni.updateDate
+	</sql>
+
+	<insert id="addDangerousGoodsPractitioner" parameterClass="DangerousGoodsPractitioner">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_dangerousGoodsPractitioners.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO dangerousGoodsPractitioners(
+		<include refid="populationBaseInfo.addBaseInfoFields"/>,
+		workingCertificate,workingCertificateNo,legalPerson,legalPersonTelephone,legalPersonMobileNumber,dangerousWorkingType,
+		periodofvaliditystart,periodofvalidityend,isEmphasis,attentionExtent,sourcesState)
+		VALUES(
+		<include refid="populationBaseInfo.addBaseInfoData"/>,
+        #workingCertificate#,#workingCertificateNo#,#legalPerson#,#legalPersonTelephone#,#legalPersonMobileNumber#,#dangerousWorkingType.id#,
+		#periodOfValidityStart#,#periodOfValidityEnd#,#isEmphasis#,#attentionExtent.id#,#sourcesState#)
+	</insert>
+
+	<select id="getDangerousGoodsPractitionerById" parameterClass="java.lang.Long"
+	      resultMap="dangerousGoodsPractitionerResult">
+	      select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+	      from dangerousGoodsPractitioners uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+	      where uni.id=#id#
+	</select>
+
+	<sql id="updateBusinessSql">
+	   <include refid="populationBaseInfo.updateBaseInfoSql"/>,
+	   dangerousWorkingType=#dangerousWorkingType.id#,
+	   legalPerson=#legalPerson#,
+	   legalPersonTelephone=#legalPersonTelephone#,
+	   legalPersonMobileNumber=#legalPersonMobileNumber#,
+	   workingCertificate=#workingCertificate#,
+	   workingCertificateNo=#workingCertificateNo#,
+	   periodofvaliditystart = #periodOfValidityStart#,
+   	   periodOfValidityEnd = #periodOfValidityEnd#,
+   	   attentionExtent=#attentionExtent.id#
+	</sql>
+	<update id="updateDangerousGoodsPractitioner" parameterClass="DangerousGoodsPractitioner">
+		update dangerousGoodsPractitioners set
+		<isNotEmpty property="isEmphasis">
+			isEmphasis = #isEmphasis#,
+		</isNotEmpty>
+		<include refid="updateBusinessSql"/>
+		where id = #id#
+	</update>
+
+	<update id="updateBaseInfo" parameterClass="DangerousGoodsPractitioner">
+		update dangerousGoodsPractitioners set
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>
+		where id = #id#
+	</update>
+
+	<update id="updateBusiness" parameterClass="DangerousGoodsPractitioner">
+		 update dangerousGoodsPractitioners set
+		 <isNotEmpty property="isEmphasis">
+		 	isEmphasis = #isEmphasis#,
+		 </isNotEmpty>
+		<include refid="updateBusinessSql"/>
+		  where id = #id#
+	</update>
+
+
+	<update id="updateDangerousGoodsPractitionerEmphasis" parameterClass="DangerousGoodsPractitioner">
+		 update dangerousGoodsPractitioners set
+		 		<isNotEmpty property="isEmphasis">
+					isEmphasis = $isEmphasis$,
+				</isNotEmpty>
+				updateUser = #updateUser#,
+				updateDate = #updateDate#
+		  where id = $id$
+	</update>
+
+	<update id="updateEmphasisById" parameterClass="map">
+		update dangerousGoodsPractitioners set isEmphasis=#isEmphasis#	where id=#id#
+	</update>
+
+	<update id="updateDeathAndLogoutStateById" parameterClass="map">
+		update dangerousGoodsPractitioners set
+		<isNotEmpty property="death">
+			isdeath = #death#
+		</isNotEmpty>
+		<isNotEmpty property="isEmphasis" prepend=",">
+			isEmphasis=#isEmphasis#
+		</isNotEmpty>
+		where id=#id#
+	</update>
+
+
+	<delete id="deleteDangerousGoodsPractitionerById" parameterClass="java.lang.Long">
+	    delete from dangerousGoodsPractitioners
+	    where id=#id#
+	</delete>
+
+	<sql id="sql_where">
+		from dangerousGoodsPractitioners uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="name">
+				<isNotNull property="name" prepend=" and ">
+					name = #name#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="gender">
+				<isNotEmpty property="gender.id" prepend=" and ">
+					gender=#gender.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					id=#id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="organizationId">
+				<isNotNull property="organizationId" prepend=" and ">
+					orgId = #organizationId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) = upper(#idCardNo#)
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findDangerousGoodsPractitioners" parameterClass="DangerousGoodsPractitioner" resultMap="dangerousGoodsPractitionerResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countDangerousGoodsPractitioners" parameterClass="DangerousGoodsPractitioner" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="countExsistedDangerousGoodsPractitioner" parameterClass="map" resultClass="java.lang.Integer">
+		select count(*) from dangerousGoodsPractitioners uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="where">
+			<isPropertyAvailable property="organizationId" >
+				<isNotNull property="organizationId" prepend=" and ">
+					uni.orgId = $organizationId$
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="besidesId" >
+				<isNotNull property="besidesId" prepend=" and ">
+					id != $besidesId$
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo" >
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) = upper(#idCardNo#)
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="getByOrgIdAndIdCardNo" parameterClass="java.util.Map"
+		resultMap="dangerousGoodsPractitionerResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from dangerousGoodsPractitioners uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where upper(idCardNo) = upper(#idCardNo#) and uni.orgId=#orgId# 
+	</select>
+
+	<select id="getByIdCard" parameterClass="java.util.Map"
+		resultMap="dangerousGoodsPractitionerResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from dangerousGoodsPractitioners uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgId=#orgId# 
+		and
+		<iterate property="idCardNoList" open="("  close=")"  conjunction="or">
+		upper(idCardNo) like upper(#idCardNoList[]#)
+		</iterate>
+	</select>
+
+	<update id="shiftDangerousGoodsPractitioner" parameterClass="java.util.Map">
+		update dangerousGoodsPractitioners set orgId = #orgId#, orgInternalCode = #orgInternalCode# where id = #id#
+	</update>
+	
+	<select id="getDangerousGoodsPractitionerByIdCardNoList"
+		parameterClass="map" resultMap="dangerousGoodsPractitionerResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		FROM dangerousGoodsPractitioners uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" AND ">
+					orgId = $orgId$
+				</isNotNull>
+			</isPropertyAvailable>
+			AND (
+			<iterate property="idCardNoList" conjunction="OR">
+				upper(idCardNo) like upper(#idCardNoList[]#)
+			</iterate>
+			)
+		</dynamic>
+	</select>
+	
+	
+
+<!--     <update id="updateDangerousGoodsPractitionersByIdCardNoFromBasePersonnel" parameterClass="DangerousGoodsPractitioner"> -->
+<!-- 		update dangerousGoodsPractitioners set -->
+<!--         <dynamic> -->
+<!-- 			idCardNo=#idCardNo# -->
+<!-- 			<isNotEmpty prepend="," property="name"> -->
+<!-- 				name=#name# -->
+<!-- 			</isNotEmpty> -->
+<!-- 			<isNotNull property="gender"> -->
+<!-- 				<isNotNull prepend="," property="gender.id"> -->
+<!-- 					gender=#gender.id# -->
+<!-- 				</isNotNull> -->
+<!-- 			</isNotNull> -->
+<!-- 			<isNotEmpty prepend="," property="fullPinyin"> -->
+<!-- 				fullPinyin=#fullPinyin# -->
+<!-- 			</isNotEmpty> -->
+<!-- 			<isNotEmpty prepend="," property="simplePinyin"> -->
+<!-- 				simplePinyin=#simplePinyin# -->
+<!-- 			</isNotEmpty> -->
+<!-- 			where IDCARDNO=#idCardNo# -->
+<!-- 		</dynamic> -->
+<!-- 	</update> -->
+	
+	<!-- 移动数据需要的sql -->
+	<update id="updateDataMoveDangerousGoodsPractitionerToOrg" parameterClass="java.util.Map">
+		update dangerousGoodsPractitioners set orgId = #orgId# , orgInternalCode = #orgInternalCode# where id = #id#
+	</update>
+	
+	<select id="getIdByBaseinfoIdAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		SELECT id from dangerousGoodsPractitioners  
+		where baseinfoid=#baseInfoId# and orgId=#orgId#
+	</select>
+	
+	<resultMap id="dangerousGoodsPractitionerResultForDefaultList" class="DangerousGoodsPractitioner" 
+		extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForDefaultList">
+		<result property="workingCertificate" column="workingCertificate" />
+		<result property="workingCertificateNo" column="workingCertificateNo" />
+		<result property="legalPerson" column="legalPerson" />
+		<result property="legalPersonTelephone" column="legalPersonTelephone" />
+		<result property="legalPersonMobileNumber" column="legalPersonMobileNumber" />
+		<result property="dangerousWorkingType.id" column="dangerousWorkingType" />
+		<result property="periodOfValidityStart" column="periodofvaliditystart"/>
+		<result property="periodOfValidityEnd" column="periodofvalidityend"/>
+	</resultMap>
+	<sql id="default_sql_where">
+	  from dangerousGoodsPractitioners uni 
+	  <dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findDangerousGoodsPractitionerDefaultList" resultMap="dangerousGoodsPractitionerResultForDefaultList" parameterClass="map">
+	  select <include refid="fields"/>
+	  <include refid="default_sql_where" />
+	  ORDER BY ID DESC
+	</select>
+	
+	<select id="countDangerousGoodsPractitionerDefaultList" resultClass="java.lang.Integer" parameterClass="map">
+		<![CDATA[select count(uni.id)]]>
+		<include refid="default_sql_where" />
+	</select>
+</sqlMap>

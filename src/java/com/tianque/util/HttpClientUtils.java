@@ -1,0 +1,184 @@
+package com.tianque.util;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.NameValuePair;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.params.HttpClientParams;
+import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.tinygroup.commons.tools.StringUtil;
+
+import com.tianque.core.exception.ServiceException;
+import com.tianque.core.util.EncryptUtil;
+import com.tianque.core.util.GridProperties;
+import com.tianque.plugin.weChat.proxy.util.UTF8PostMethod;
+
+/**
+ * @ClassName: HttpClientUtils
+ * @Description: HTTP请求工具类（事件与呼叫中心对接时创建）
+ * @author wangxiaohu wsmalltiger@163.com
+ * @date 2014年10月24日 下午3:00:33
+ */
+public class HttpClientUtils {
+	static Logger logger = LoggerFactory.getLogger(HttpClientUtils.class);
+
+	/**
+	 * @Description: 执行请求
+	 * @author wangxiaohu wsmalltiger@163.com
+	 * @param httpMethod
+	 *            请求方式
+	 * @param url
+	 *            请求链接
+	 * @param params
+	 *            请求参数
+	 * @return 请求结果
+	 * @throws
+	 */
+	private static String execute(String url, Map<String, String> params) {
+		HttpClient client = new HttpClient();
+		Map<String, String> urlMap = convertUrl(url);
+		client.getHostConfiguration().setHost(urlMap.get("host"),
+				Integer.parseInt(urlMap.get("port")));
+		String postUrl = urlMap.get("url");
+		PostMethod post = new UTF8PostMethod(postUrl.replace("//", "/"));
+		try {
+			params = params == null ? new HashMap<String, String>() : params;
+			params.put("_",
+					EncryptUtil.md5Encrypt(System.currentTimeMillis() + "")
+							.hashCode() + "");
+			List<NameValuePair> nameValuePairList = parameterConvert(params);
+			NameValuePair[] nameValuePairs = new NameValuePair[nameValuePairList
+					.size()];
+			nameValuePairList.toArray(nameValuePairs);
+			post.setRequestBody(nameValuePairs);
+			client.executeMethod(post);
+			return post.getResponseBodyAsString();
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		} finally {
+			post.releaseConnection();
+		}
+		return null;
+	}
+
+	private static Map<String, String> convertUrl(String url) {
+		String errorMessage = "[" + url + "]URL不合法！";
+		if (url == null || "".equals(url)) {
+			throw new NullPointerException(errorMessage);
+		}
+		Map<String, String> urlMap = new HashMap<String, String>();
+		try {
+			url = url.indexOf("://") == -1 ? url : url.substring(url
+					.indexOf("://") + 3);
+			String[] hostPort = url.substring(0, url.indexOf("/")).split(":");
+			if ("".equals(hostPort[0])) {
+				throw new NullPointerException(errorMessage + "无法确定服务器地址！");
+			}
+			urlMap.put("host", hostPort[0]);
+			int port = 80;
+			try {
+				port = Integer.parseInt(hostPort[1]);
+			} catch (Exception e) {
+			}
+			urlMap.put("port", port + "");
+			urlMap.put("url", url.substring(url.indexOf("/")));
+		} catch (Exception e) {
+			logger.error(errorMessage, e);
+		}
+		return urlMap;
+	}
+
+	/**
+	 * @Description: 发送post请求
+	 * @author wangxiaohu wsmalltiger@163.com
+	 * @param url
+	 *            请求链接
+	 * @param params
+	 *            请求参数
+	 * @return 返回结果
+	 * @throws
+	 */
+	public static String post(String url, Map<String, String> params) {
+		return execute(url, params);
+	}
+
+	private static List<NameValuePair> parameterConvert(
+			Map<String, String> params) {
+		if (params == null || params.isEmpty()) {
+			return null;
+		}
+		List<NameValuePair> httpParams = new ArrayList<NameValuePair>();
+		for (Entry<String, String> param : params.entrySet()) {
+			httpParams.add(new NameValuePair(param.getKey(), param.getValue()));
+		}
+		return httpParams;
+	}
+
+	/**
+	 * 外网代理(因为社管平台不能直接访问外网，需要通过代理服务器访问外网)
+	 * @Title: postProxyToOutside 
+	 * @param proxiedUrl 被代理url
+	 * @param paramMap 参数
+	 * @return: String
+	 */
+	public static String postProxyToOutside(String proxiedUrl, Map<String, String> paramMap) {
+		String outsideProxyUrl = GridProperties.TO_OUTSIDE_PROXY_SERVER_URL;
+		if (StringUtil.isBlank(outsideProxyUrl)) {
+			throw new ServiceException("外网代理地址未配置");
+		}
+		if (paramMap == null) {
+			paramMap = new HashMap<String, String>();
+		}
+		paramMap.put("tq_proxied_url", proxiedUrl);
+		return postMethodSimple(outsideProxyUrl, paramMap);
+	}
+	/**
+	 * 简单代理
+	 * @param url
+	 * @param params
+	 * @return
+	 */
+	public static String postMethodSimple(String url, Map<String, String> params) {
+        System.setProperty("jsse.enableSNIExtension", "false");
+        HttpClient client = new HttpClient();
+		HttpClientParams cparams = client.getParams();
+		cparams.setContentCharset("UTF-8");
+		PostMethod post = new PostMethod(url);
+		if (null != params && !params.isEmpty()) {
+			post.setRequestBody(parameterToArrayt(params));
+			//			RequestEntity requestEntity = new StringRequestEntity(JSON.toJSONString(params),
+			//					"application/json",
+			//					"UTF-8");
+			//			post.setRequestEntity(requestEntity);
+		}
+		try {
+			client.executeMethod(post);
+			return post.getResponseBodyAsString();
+		} catch (Exception e) {
+			logger.error("代理出错，原因：" + e.getMessage());
+			throw new RuntimeException("代理错误：", e);
+		} finally {
+			post.releaseConnection();
+		}
+	}
+
+	private static NameValuePair[] parameterToArrayt(Map<String, String> params) {
+		if (params == null || params.isEmpty()) {
+			return null;
+		}
+		NameValuePair[] nameValues = new NameValuePair[params.size()];
+		int i = 0;
+		for (Entry<String, String> param : params.entrySet()) {
+			nameValues[i] = new NameValuePair(param.getKey(), param.getValue());
+			i++;
+		}
+		return nameValues;
+	}
+}

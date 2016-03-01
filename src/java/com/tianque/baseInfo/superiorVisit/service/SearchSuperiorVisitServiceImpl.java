@@ -1,0 +1,165 @@
+package com.tianque.baseInfo.superiorVisit.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.tianque.baseInfo.base.domain.ActualPopulation;
+import com.tianque.baseInfo.superiorVisit.dao.SearchSuperiorVisitDao;
+import com.tianque.baseInfo.superiorVisit.dao.SuperiorVisitDao;
+import com.tianque.baseInfo.superiorVisit.domain.SuperiorVisit;
+import com.tianque.core.globalSetting.service.GlobalSettingService;
+import com.tianque.core.globalSetting.util.GlobalSetting;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.vo.SearchSuperiorVisitVo;
+import com.tianque.domain.vo.VisitTypeVo;
+import com.tianque.excel.definition.SpecialGroupsContext;
+import com.tianque.service.ActualPopulationProcessorService;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.userAuth.api.PermissionDubboService;
+import com.tianque.util.IdCardUtil;
+
+@Service("searchSuperiorVisitService")
+public class SearchSuperiorVisitServiceImpl implements
+		SearchSuperiorVisitService {
+	@Autowired
+	private SearchSuperiorVisitDao searchSuperiorVisitDao;
+	@Autowired
+	private SuperiorVisitDao superiorVisitDao;
+	@Autowired
+	private PropertyDictService propertyDictService;
+	@Autowired
+	private GlobalSettingService globalSettingService;
+	@Autowired
+	private ActualPopulationProcessorService actualPopulationProcessorService;
+	@Autowired
+	private PermissionDubboService permissionDubboService;
+	@Override
+	public PageInfo<SuperiorVisit> searchAttentionPersonnel(
+			SearchSuperiorVisitVo searchSuperiorVisitVo, int pageNum,
+			int pageSize, String sortField, String order) {
+		PageInfo<SuperiorVisit> superiorVisit = searchSuperiorVisitDao.searchAttentionPersonnel(
+				searchSuperiorVisitVo, pageNum, pageSize, sortField, order);
+		return superiorVisit=hiddenIdCard(superiorVisit);
+	}
+
+	@Override
+	public List<SuperiorVisit> searchSuperiorVisitsForExport(
+			SearchSuperiorVisitVo searchSuperiorVisitVo, Integer page,
+			Integer rows, String sortField, String order) {
+		List<SuperiorVisit> list = searchSuperiorVisitDao
+				.searchSuperiorVisitsForExport(searchSuperiorVisitVo, page,
+						rows, sortField, order);
+		initSuperiorVisitsForVisitType(list);
+		if (GlobalSetting.NOT_DEPENDENT
+				.equals(globalSettingService
+						.getGlobalValue(GlobalSetting.BUSINESS_DEPENDENT_ACTUAL_POPULATION))) {
+			return list;
+		} else {
+			if (null != list && list.size() > 0) {
+				ActualPopulation actualPopulation = null;
+				for (SuperiorVisit superiorVisit : list) {
+					actualPopulation = actualPopulationProcessorService
+							.getActualPopulationbyOrgIdAndIdCardNo(
+									superiorVisit.getOrganization().getId(),
+									superiorVisit.getIdCardNo());
+					if (null != actualPopulation) {
+						superiorVisit.setHouseCode(actualPopulation
+								.getHouseCode());
+						superiorVisit.setNoHouseReason(actualPopulation
+								.getNoHouseReason());
+					}
+				}
+			}
+			return list;
+		}
+	}
+
+	private void initSuperiorVisitsForVisitType(List<SuperiorVisit> list) {
+		if (null != list && list.size() > 0) {
+			for (SuperiorVisit visit : list) {
+				if (null != visit.getVisitType()) {
+					visit.setTypeName(visit.getVisitType().longValue() > 0l ? "正常访："
+							: "异常访：");
+					visit.setTypeName(visit.getTypeName()
+							+ initSuperiorVisitForVisitType(visit));
+				}
+			}
+		}
+	}
+
+	private String initSuperiorVisitForVisitType(SuperiorVisit superiorVisit) {
+		List<VisitTypeVo> list = superiorVisitDao
+				.findVisitTypeById(superiorVisit.getId());
+		String typeName = "";
+		if (null != list && list.size() > 0) {
+			for (int i = 0; i < list.size(); i++) {
+				PropertyDict pro = propertyDictService.getPropertyDictById(list
+						.get(i).getSuperiorVisitType());
+				typeName += pro.getDisplayName();
+				if (i != list.size() - 1) {
+					typeName += "、";
+				}
+			}
+		}
+		return typeName;
+	}
+
+	@Override
+	public List<SuperiorVisit> findSuperiorVisitByNameAndPinyinAndOrgInternalCode(
+			String name, String orgInternalCode) {
+		return searchSuperiorVisitDao
+				.findSuperiorVisitByNameAndPinyinAndOrgInternalCode(name,
+						orgInternalCode);
+	}
+
+	@Override
+	public PageInfo<SuperiorVisit> fastSearchSuperiorVisit(
+			SearchSuperiorVisitVo searchSuperiorVisitVo, Integer page,
+			Integer rows, String sidx, String sord) {
+		PageInfo<SuperiorVisit>  superiorVisit = searchSuperiorVisitDao.fastSearchSuperiorVisit(
+				searchSuperiorVisitVo, page, rows, sidx, sord);
+		superiorVisit=hiddenIdCard(superiorVisit);
+		return superiorVisit;
+		
+	}
+	
+	//隐藏身份证中间4位
+			private PageInfo<SuperiorVisit> hiddenIdCard(PageInfo<SuperiorVisit> pageInfo){
+					//判断权限，有权限不隐藏
+					if(permissionDubboService.
+							isUserHasPermission(ThreadVariable.getUser().getId(), "isSuperiorVisitManagementNotHidCard")){
+						return pageInfo;
+					}
+					List<SuperiorVisit> list = pageInfo.getResult();
+					int index=0;
+					for (SuperiorVisit verification:list) {
+						verification.setIdCardNo(IdCardUtil.hiddenIdCard(verification.getIdCardNo()));
+						list.set(index, verification);
+						index++;
+					}
+					pageInfo.setResult(list);
+					return pageInfo;
+			}
+
+	@Override
+	public String[][] getExportPopertyArray() {
+		if (GlobalSetting.NOT_DEPENDENT
+				.equals(globalSettingService
+						.getGlobalValue(GlobalSetting.BUSINESS_DEPENDENT_ACTUAL_POPULATION))) {
+			return SpecialGroupsContext.getSuperiorVisitPropertyArraySlf();
+		} else {
+			return SpecialGroupsContext.getSuperiorVisitPropertyArrayRla();
+		}
+	}
+
+	@Override
+	public Integer getCount(SearchSuperiorVisitVo visitVo) {
+		// TODO Auto-generated method stub
+		return searchSuperiorVisitDao.getCount(visitVo);
+	}
+
+}

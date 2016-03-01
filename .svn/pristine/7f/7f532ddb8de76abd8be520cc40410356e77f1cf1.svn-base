@@ -1,0 +1,1 @@
+alter table keyplaces add updateDate DATE;

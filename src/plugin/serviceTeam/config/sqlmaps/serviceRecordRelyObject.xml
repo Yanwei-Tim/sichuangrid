@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="serviceRecordRelyObject">
+	<typeAlias alias="ServiceRecordRelyObject" type="com.tianque.plugin.serviceTeam.serviceRecord.domain.ServiceRecordRelyObject"/>
+	<resultMap id="ServiceRecordRelyObject" class="ServiceRecordRelyObject">
+		<result property="id" column="id"/>
+		<result property="recordId" column="recordId"/>
+		<result property="objectType" column="objectType"/>
+		<result property="objectId" column="objectId"/>
+		<result property="objectName" column="objectName"/>
+	</resultMap>
+	
+	<insert id="addServiceRecordRelyObject" parameterClass="ServiceRecordRelyObject">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_serviceRecordRelyObject.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		<![CDATA[
+			insert into serviceRecordRelyObject
+			(id, recordId,objectType,objectName,objectId)
+			values(#id#, #recordId#, #objectType#,#objectName#,#objectId#)
+		]]>
+	</insert>
+	
+	<select id="findServiceObjects"  parameterClass="long" resultClass="ServiceRecordRelyObject">
+		<![CDATA[ select * from serviceRecordRelyObject where recordId = #value# ]]>
+	</select>
+	
+	<delete id="deleteServiceRecordRelyObjects" parameterClass="map">
+    	delete from serviceRecordRelyObject where recordId=#id# 
+    	<isNotEmpty property="serviceObjectId" prepend="and">
+    		objectid=#serviceObjectId#
+    	</isNotEmpty>
+    </delete>
+    
+    <select id="findServiceRecordRelyObjectsByInfo"  parameterClass="ServiceRecordRelyObject" resultClass="ServiceRecordRelyObject">
+		select * from serviceRecordRelyObject 
+		where objectId=#objectId# and (objectType=#objectType# or objectType=(select upper(#objectType#) from dual))
+	</select>
+	
+	<update id="updateServiceRecordRelyObject" parameterClass="ServiceRecordRelyObject">
+    	update serviceRecordRelyObject set 
+    	objectId=#objectId# 
+    	where objectType=#objectType# and orgId=#orgId# and cardNoOrName=#cardNoOrName#
+    </update>
+    
+    <update id="setOrgIdAndCardNoOrName" parameterClass="java.util.Map">
+    	update serviceRecordRelyObject set 
+    	orgId=#orgId#,cardNoOrName=#cardNoOrName#
+    	where objectType=#objectType# and objectId=#objectId#
+    </update>
+</sqlMap>

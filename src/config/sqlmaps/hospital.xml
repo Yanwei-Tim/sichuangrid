@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="hospital">
+	<typeAlias alias="Hospital" type="com.tianque.domain.Hospital" />
+	<parameterMap id="hospitalParams" class="Hospital">
+		<parameter property="id" />
+		<parameter property="hospitalName" />
+		<parameter property="organization" />
+		<parameter property="orgInternalCode" />
+		<parameter property="anotherName" />
+		<parameter property="kind" />
+		<parameter property="address" />
+		<parameter property="type" />
+		<parameter property="director" />
+		<parameter property="affiliatedUnit" />
+		<parameter property="level" />
+		<parameter property="isMedicalInsurance" />
+		<parameter property="contactName" />
+		<parameter property="telephone" />
+		<parameter property="mobileNumber" />
+		<parameter property="email" />
+		<parameter property="fax" />
+		<parameter property="remark" />
+		<parameter property="createDate" />
+		<parameter property="updateUser" />
+		<parameter property="createUser" />
+		<parameter property="updateDate" />
+		<parameter property="simplePinyin" />
+		<parameter property="fullPinyin" />
+		<parameter property="logOutReason"/>
+		<parameter property="logOutTime"/>
+		<parameter property="imgUrl"/>
+	</parameterMap>
+	
+	<resultMap id="hospitalResult" class="Hospital" extends="locationBaseInfo.locationBaseInfoResult">
+		<result property="id" column="id" />
+		<result property="hospitalName" column="hospitalName" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="organization.orgInternalCode" column="orgInternalCode" />
+		<result property="anotherName" column="anotherName" />
+		<result property="kind.id" column="kind" />
+		<result property="address" column="address" />
+		<result property="director" column="director" />
+		<result property="affiliatedUnit" column="affiliatedUnit" />
+		<result property="type.id" column="type" />
+		<result property="isMedicalInsurance" column="isMedicalInsurance" />
+		<result property="contactName" column="contactName" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="telephone" column="telephone" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="email" column="email" />
+		<result property="fax" column="fax" />
+		<result property="remark" column="remark" />
+		<result property="logOutReason" column="logOutReason" />
+		<result property="logOutTime" column="logOutTime" />
+		<result property="imgUrl" column="imgUrl" />
+		<result property="attentionExtent.id" column="attentionExtent" />
+	</resultMap>
+	
+	<resultMap id="hospitalResultMapForList" class="Hospital" extends="locationBaseInfo.locationBaseInfoResultForList">
+		<result property="id" column="id" />
+		<result property="hospitalName" column="hospitalName" />
+		<result property="organization.id" column="orgId" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="organization.orgInternalCode" column="orgInternalCode" />
+		<result property="anotherName" column="anotherName" />
+		<result property="kind.id" column="kind" />
+		<result property="address" column="address" />
+		<result property="director" column="director" />
+		<result property="affiliatedUnit" column="affiliatedUnit" />
+		<result property="type.id" column="type" />
+		<result property="isMedicalInsurance" column="isMedicalInsurance" />
+		<result property="contactName" column="contactName" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="telephone" column="telephone" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="email" column="email" />
+		<result property="fax" column="fax" />
+		<result property="remark" column="remark" />
+		<result property="logOutReason" column="logOutReason" />
+		<result property="logOutTime" column="logOutTime" />
+		<result property="imgUrl" column="imgUrl" />
+		<result property="attentionExtent.id" column="attentionExtent" />
+	</resultMap>
+
+	<insert id="addHospital" parameterClass="Hospital">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_hospitals.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO hospitals(id,hospitalName,orgId,orgInternalCode,anotherName,kind,address,type,director,affiliatedUnit,hospitalLevel,isMedicalInsurance,
+		contactName,telephone,mobileNumber,email,fax,remark,createDate,updateUser,createUser,updateDate,simplePinyin,fullPinyin,logOutReason,logOutTime,imgUrl,ATTENTIONEXTENT)
+		values
+		(#id#,#hospitalName#,#organization.id#,#orgInternalCode#,#anotherName#,#kind.id#,#address#,#type.id#,#director#,#affiliatedUnit#,#level.id#,#isMedicalInsurance#,
+		#contactName#,#telephone#,#mobileNumber#,#email#,#fax#,#remark#,#createDate#,#updateUser#,#createUser#,#updateDate#,#simplePinyin#,#fullPinyin#,#logOutReason#,#logOutTime#,#imgUrl#,#attentionExtent.id#)
+	</insert>
+	
+	<update id="updateHospital" parameterClass="Hospital">
+		update hospitals set
+			hospitalName=#hospitalName#,
+			orgId=#organization.id#,
+			orgInternalCode=#orgInternalCode#,
+			anotherName=#anotherName#,
+			kind=#kind.id#,
+			address=#address#,
+			type=#type.id#,
+			director=#director#,
+			affiliatedUnit=#affiliatedUnit#,
+			hospitalLevel=#level.id#,
+			isMedicalInsurance=#isMedicalInsurance#,
+			contactName=#contactName#,
+			telephone=#telephone#,
+			mobileNumber=#mobileNumber#,
+			email=#email#,
+			fax=#fax#,
+			remark=#remark#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#,
+			simplePinyin=#simplePinyin#,
+			fullPinyin=#fullPinyin#,
+			logOutReason=#logOutReason#,
+			logOutTime=#logOutTime#,
+			imgUrl=#imgUrl#,
+			attentionExtent = #attentionExtent.id#
+		where id=#id#
+	</update>
+	<update id="updateEmphasiseById" parameterClass="map">
+		update hospitals set
+			isEmphasis=#isEmphasis#,
+			logOutReason=#logOutReason#,
+			updateUser=#updateUser#,
+		    updateDate=#updateDate#,
+			logOutTime=#logOutTime#
+		where id=#id#	
+	</update>
+	<sql id="sql_where">
+		from hospitals
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="hospitalName">
+				<isNotNull property="hospitalName" prepend=" and ">
+					hospitalName = #hospitalName#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="organization">
+				<isNotNull property="organization" prepend=" and ">
+					orgId = #organization.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+						isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<delete id="deleteHospitalById" parameterClass="java.lang.Long">
+		delete from hospitals  where id=#id#
+	</delete>
+	<select id="getHospitalById" parameterClass="java.lang.Long" resultMap="hospitalResult">
+		<![CDATA[select * from hospitals where id= #value#]]>
+	</select>
+	
+	<select id="countHospital" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*)
+		<include refid="sql_where" />
+	</select>
+	<select id="findHospital" parameterClass="java.util.Map" resultMap="hospitalResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+		<select id="getHospitalByMap" parameterClass="java.util.Map" resultMap="hospitalResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+</sqlMap>

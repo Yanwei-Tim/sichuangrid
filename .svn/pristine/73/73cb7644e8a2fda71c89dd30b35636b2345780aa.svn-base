@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="otherLocaleManage" extends="default"
+		namespace="/baseinfo/otherLocaleManage">
+		<default-class-ref class="otherLocaleController"></default-class-ref>
+
+		<action name="otherLocaleList" method="findOtherLocalesForPage">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="dispatchOperate" method="dispatch">
+			<result name="success">
+				/baseinfo/siteinfo/otherLocale/maintainOtherLocaleDlg.jsp
+			</result>
+			<result name="search">
+				/baseinfo/siteinfo/otherLocale/searchOtherLocaleCondition.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+			 <!-- <result name="print">
+				/baseinfo/siteinfo/otherLocale/otherLocalePrintDlg.jsp
+			</result> -->
+			<result name="print">
+				/baseinfo/commonPopulation/printTabPreviewDlg.jsp
+			</result>
+			 <result name="view">
+				/baseinfo/siteinfo/otherLocale/OtherLocaleViewDlg.jsp
+			</result>
+		</action>
+		<!-- 解密調用 -->
+		<action name="dispatchOperateByEncrypt" method="dispatchByEncrypt">
+			<result name="success">
+				/baseinfo/siteinfo/otherLocale/maintainOtherLocaleDlg.jsp
+			</result>
+			
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+			 <!-- <result name="print">
+				/baseinfo/siteinfo/otherLocale/otherLocalePrintDlg.jsp
+			</result> -->
+			<result name="print">
+				/baseinfo/commonPopulation/printTabPreviewDlg.jsp
+			</result>
+			 <result name="view">
+				/baseinfo/siteinfo/otherLocale/OtherLocaleViewDlg.jsp
+			</result>
+		</action>
+		
+		
+		<action name="dispatchOperateForGis" method="dispatch">
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+			 <result name="view">
+				/baseinfo/siteinfo/otherLocale/OtherLocaleViewDlg_gis.jsp
+			</result>
+		</action>
+
+		<action name="addOtherLocale" method="addOtherLocale">
+			<result name="success" type="json">
+				<param name="root">otherLocale</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="addOtherLocaleForMobile" method="addOtherLocale">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="deleteOtherLocale" method="deleteOtherLocaleById">
+			<result name="success" type="json">
+				<param name="root">placeId</param>
+			</result>
+		</action>
+		
+		<action name="shiftDispatch"  method="shiftDispatch">
+			<result name="success">
+					/common/shiftTree.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="shiftOtherLocale" method="shiftOtherLocale">
+			<result type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="addPositiveInfo" method="addPositiveInfo">
+			<result type="json">
+				<param name="root">positiveInfos</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateOtherLocale" method="updateOtherLocale">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateOtherLocaleById" method="updateOtherLocaleById">
+			<result name="success" type="json">
+				<param name="root">otherLocale</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="hasDuplicateOtherLocaleName" method="hasDuplicateOtherLocaleName">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		
+		<action name="hasRelatePlace" method="hasRelatePlace">
+			<result name="success" type="json">
+				<param name="root">bol</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		
+		<action name="updateEmphasiseById" method="updateEmphasiseById">
+		    <result type="json" name="success">
+				<param name="root">locationIds</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="viewOtherLocale" method="viewOtherLocale">
+		    <result name="success">/baseinfo/siteinfo/otherLocale/OtherLocaleView.jsp</result>
+		</action>
+		
+		<action name="getOtherLocaleById" method="getOtherLocaleById">
+		    <result type="json" name="success">
+				<param name="root">otherLocale</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+	</package>
+</struts>

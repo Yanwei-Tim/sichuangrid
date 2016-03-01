@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="propagandaAndVerification">
+
+	<typeAlias alias="PropagandaAndVerification" type="com.tianque.plugin.taskList.domain.PropagandaAndVerification" />
+
+
+
+	<resultMap id="propagandaAndVerificationResult" class="PropagandaAndVerification">
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgid" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="occurrenceDate" column="occurrenceDate" />
+		<result property="address" column="address" />
+		<result property="name" column="name" />
+		<result property="propaganda" column="propaganda" />
+		<result property="verificationReport" column="verificationReport" />
+		
+		<result property="ishandle" column="ishandle" />
+		<result property="advice" column="advice" />
+		<result property="signDate" column="signDate" />
+		<result property="signUserName" column="signUserName" />
+		<result property="cellName" column="cellName" />
+		<result property="telephone" column="telephone" />
+		<result property="remark" column="remark" />
+		<result property="createUser" column="createuser" />
+		<result property="updateUser" column="updateuser" />
+		<result property="createDate" column="createdate" />
+		<result property="updateDate" column="updatedate" />
+		
+		<result property="idCard" column="idCard" />
+		<result property="phone" column="phone" />
+	</resultMap>
+	
+	
+	<resultMap id="propagandaAndVerificationResultByName" class="PropagandaAndVerification">
+	  <result column="address" property="address" />
+	  <result column="name" property="name" />
+	</resultMap>
+
+<sql id="select_base_field">
+id,orgid,orgInternalCode,occurrenceDate,address,name,propaganda,verificationReport,ishandle,advice,signDate,signUserName,cellName,telephone,remark,createuser,updateuser,createdate,updatedate,idCard,phone
+</sql>
+	<insert id="addPropagandaAndVerification" parameterClass="PropagandaAndVerification">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_PROPAGANDAANDVERIFICATION.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into propagandaAndVerification
+		(
+		id,orgid,orgInternalCode,occurrenceDate,name,address,propaganda,verificationReport,advice,signDate,signUserName,cellName,telephone,remark,createuser,updateuser,createdate,updatedate,idCard,phone
+		)
+		values
+		(
+		#id#,#organization.id#,#orgInternalCode#,#occurrenceDate#,#name#,#address#,#propaganda#,#verificationReport#,#advice#,#signDate#,#signUserName#,#cellName#,#telephone#,#remark#,#createUser#,#updateUser#,#createDate#,#updateDate#,#idCard#,#phone#
+		)
+	</insert>
+	
+	<delete id="deletePropagandaAndVerificationByIds" parameterClass="java.util.Map">
+		delete from propagandaAndVerification where id in
+    	<iterate conjunction="," open="(" close=")" property="ids">
+            #ids[]#
+        </iterate>
+	</delete>
+
+
+	<select id="getPropagandaAndVerificationById" resultMap="propagandaAndVerificationResult"
+		parameterClass="java.lang.Long">
+		select <include refid="select_base_field"/>
+		 from propagandaAndVerification where id = #value#
+
+	</select>
+
+	<update id="updatePropagandaAndVerification" parameterClass="PropagandaAndVerification">
+
+		update PropagandaAndVerification set
+		<dynamic>
+			id=#id#
+			
+			<isNotNull prepend="," property="organization.id">
+				ORGID = #organization.id#
+				</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+
+			<isPropertyAvailable property="occurrenceDate">
+				<isNotNull property="occurrenceDate" prepend=",">
+					occurrenceDate=#occurrenceDate#
+				</isNotNull>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="address">
+				<isNotNull property="address" prepend=",">
+					address=#address#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="name">
+				<isNotNull property="name" prepend=",">
+					name=#name#
+				</isNotNull>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="propaganda">
+				<isNotNull property="propaganda" prepend=",">
+					propaganda=#propaganda#
+				</isNotNull>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="verificationReport">
+				<isNotNull property="verificationReport" prepend=",">
+					verificationReport=#verificationReport#
+				</isNotNull>
+			</isPropertyAvailable>
+
+			
+			<isPropertyAvailable property="remark">
+				<isNotNull property="remark" prepend=",">
+					remark=#remark#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="updateUser">
+				<isNotNull property="updateUser" prepend=",">
+					updateUser=#updateUser#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="updateDate">
+				<isNotNull property="updateDate" prepend=",">
+					updateDate=#updateDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCard">
+				<isNotNull property="idCard" prepend=",">
+					idCard=#idCard#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="phone">
+				<isNotNull property="phone" prepend=",">
+					phone=#phone#
+				</isNotNull>
+			</isPropertyAvailable>
+			where id=#id#
+		</dynamic>
+	</update>
+
+   <sql id="search_sql_where">
+		from PropagandaAndVerification h
+	<dynamic prepend="where">
+			
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+				(address like #fastSearchKeyWords#||'%' or  name like  #fastSearchKeyWords#||'%')
+				</isNotNull>
+			</isPropertyAvailable>
+			
+				 <isNotEqual property="mode" compareValue="gridConfigTask">
+			           <isNotNull property="orgInternalCode" prepend=" and ">
+						orgInternalCode like  #orgInternalCode#||'%'
+					 </isNotNull>
+		          </isNotEqual>
+				 <isEqual property="mode" compareValue="gridConfigTask" prepend=" and ">
+				 	orgInternalCode in (select a.orgInternalCode from gridConfigTask a where 1=1
+					 <isNotNull property="orgInternalCode" prepend=" and ">
+						a.orgInternalCode like  #orgInternalCode#||'%'
+					 </isNotNull>
+					 <isNotNull property="funOrgId" prepend=" and ">
+						a.funorgid = #funOrgId#
+					 </isNotNull>
+					 )
+		          </isEqual>
+			
+			<isPropertyAvailable property="address">
+				<isNotNull property="address" prepend=" and ">
+					address=#address#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="occurrenceDateStart">
+				<isNotNull property="occurrenceDateStart" prepend=" and ">
+					<![CDATA[ occurrenceDate >= #occurrenceDateStart# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="occurrenceDateEnd">
+				<isNotNull property="occurrenceDateEnd" prepend=" and ">
+					<![CDATA[ occurrenceDate <= #occurrenceDateEnd# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="propaganda">
+				<isNotNull property="propaganda" prepend=" and ">
+					propaganda=#propaganda#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="verificationReport">
+				<isNotNull property="verificationReport" prepend=" and ">
+					verificationReport=#verificationReport#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="ishandle">
+				<isNotNull property="ishandle" prepend="and">
+					ishandle=#ishandle#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="idCard">
+				<isNotNull property="idCard" prepend="and">
+					idCard like #idCard#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="phone">
+				<isNotNull property="phone" prepend="and">
+					phone like #phone#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+		
+		</dynamic>
+
+	</sql>
+
+
+	<select id="countPropagandaAndVerificationByVo" parameterClass="map" resultClass="java.lang.Integer">
+		select count(h.id) 
+		<include refid="search_sql_where"/>
+	</select>
+	
+	<select id="searchPropagandaAndVerification" parameterClass="map" resultMap="propagandaAndVerificationResult">
+	select <include refid="select_base_field"/>
+		<include refid="search_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+<!-- 更新签收详细 -->
+<update id="updatePropagandaAndVerificationSignDetail" parameterClass="PropagandaAndVerification">
+		update PropagandaAndVerification set 
+		<dynamic>
+			id=#id#
+			<isPropertyAvailable property="advice">
+				<isNotNull property="advice" prepend=",">
+					advice=#advice#
+				</isNotNull>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="signDate">
+				<isNotNull property="signDate" prepend=",">
+					signDate=#signDate#
+				</isNotNull>
+			</isPropertyAvailable>
+	
+			<isPropertyAvailable property="signUserName">
+				<isNotNull property="signUserName" prepend=",">
+					signUserName=#signUserName#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="ishandle">
+				<isNotNull property="ishandle" prepend=",">
+					ishandle=#ishandle#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="updateUser">
+				<isNotNull property="updateUser" prepend=",">
+					updateUser=#updateUser#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="updateDate">
+				<isNotNull property="updateDate" prepend=",">
+					updateDate=#updateDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			where id=#id#
+		</dynamic>
+	</update>
+
+  <select id="findPropagandaAndVerificationByName" parameterClass="java.util.Map"
+		resultMap="propagandaAndVerificationResultByName">
+		select address,name
+		from PropagandaAndVerification where name like #name#||'%' 
+		and ORGINTERNALCODE like #orgCode#||'%' group by name,address
+	</select>
+	
+</sqlMap>

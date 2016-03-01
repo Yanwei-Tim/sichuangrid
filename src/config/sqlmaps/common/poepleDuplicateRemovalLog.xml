@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="PoepleDuplicateRemovalLog">
+	<typeAlias alias="PoepleDuplicateRemovalLog" type="com.tianque.baseInfo.base.domain.PoepleDuplicateRemovalLog"/>
+	<typeAlias alias="DuplicatePeople" type="com.tianque.baseInfo.base.domain.DuplicatePeople"/>
+	<!-- 去重操作日志 -->
+	<resultMap class="PoepleDuplicateRemovalLog" id="poepleDuplicateRemovalLogResult">
+		<result property="id" column="id"/>
+		<result property="dataOrg.id" column="dataOrgId"/>
+		<result property="dataOrg.orgInternalCode" column="dataInternalcode"/>
+		<result property="dataId" column="dataId"/>
+		<result property="idCardNo" column="idCardNo"/>
+		<result property="name" column="name"/>
+		<result property="dataType" column="dataType"/>
+		<result property="baseInfoId" column="baseInfoId"/>
+		<result property="actualId" column="actualId"/>
+		<result property="actualType" column="actualType"/>
+		<result property="populationType" column="populationType"/>
+		<result property="operateType" column="operateType"/>
+		<result property="operateDate" column="operateDate"/>
+		<result property="baseInfo" column="baseInfo"/>
+	</resultMap>
+	
+	<!-- 查询重复的数据的返回（分组） -->
+	<resultMap class="DuplicatePeople" id="duplicatePeopleForBaseInfoResult">
+		<result property="baseInfoId" column="baseInfoId"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="tableName" column="tableName"/>
+		<result property="populationType" column="populationType"/>
+		<result property="total" column="total"/>
+	</resultMap>
+	
+	<!-- 所有的重复的数据 -->
+	<resultMap class="DuplicatePeople" id="duplicatePeopleAllResult">
+		<result property="id" column="id"/>
+		<result property="baseInfoId" column="baseInfoId"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="idCardNo" column="idCardNo"/>
+		<result property="tableName" column="tableName"/>
+		<result property="populationType" column="populationType"/>
+		<result property="logOut" column="logOut"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+	<!--根据baseInfoid去修改的时候做记录日志  -->
+	<resultMap class="DuplicatePeople" id="duplicatePeopleResultForLog">
+		<result property="id" column="id"/>
+		<result property="baseInfoId" column="baseInfoId"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="idCardNo" column="idCardNo"/>
+		<result property="tableName" column="tableName"/>
+		<result property="populationType" column="populationType"/>
+	</resultMap>
+
+	<!-- 新增操作日志 -->
+	<insert id="addPoepleDuplicateRemovalLog" parameterClass="PoepleDuplicateRemovalLog">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_poepleDuplicateRemovalLogs.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into poepleDuplicateRemovalLogs(
+			id,dataOrgId,dataInternalcode,dataId,idCardNo,name,dataType,baseInfoId,actualId,actualType,populationType,operateType,operateDate,baseInfo
+		) values(
+			#id#,#dataOrg.id#,#dataOrg.orgInternalCode#,#dataId#,#idCardNo#,#name#,#dataType#,#baseInfoId#,#actualId#,#actualType#,#populationType#,#operateType#,#operateDate#,#baseInfo#
+		)
+	</insert>
+	<!-- 根据Id查询去重操作记录 -->
+	<select id="getPoepleDuplicateRemovalLogById" resultMap="poepleDuplicateRemovalLogResult" parameterClass="java.lang.Long">
+		select * from poepleDuplicateRemovalLogs where id =#value#
+	</select>
+	<!-- 分组查询重复的数据 -->
+	<select id="queryDuplicatePeopleBaseInfoForList" parameterClass="java.util.Map" resultMap="duplicatePeopleForBaseInfoResult">
+		<![CDATA[select baseInfoId,orgId,'$tableName$' as tableName,'$tableName$' as populationType,count(baseInfoId) as total from $tableName$ t group by baseInfoId,orgId having count(baseInfoId)>1 and baseInfoId=#baseInfoId#]]> 
+	</select>
+	<!-- 根据baseInfoId和orgId查询同网格下的重复数据 -->
+	<select id="queryDuplicatePeopleAllForList" parameterClass="java.util.Map" resultMap="duplicatePeopleAllResult">
+		select 
+			t.id as id,
+			t.baseInfoId as baseInfoId,
+			t.orgId as orgId,
+			b.idCardNo as idCardNo,
+			'$tableName$' as tableName, 
+			'$tableName$' as populationType,
+			t.isEmphasis as logOut,
+			t.createDate as createDate,
+			t.updateDate as updateDate
+		from $tableName$ t,baseInfo b where t.baseInfoId=b.id and orgId=#orgId# and baseInfoId=#baseInfoId#
+	</select>
+	
+	<!-- 根据oldBaseInfoId修改 baseInfoId（全部的业务信息） -->
+	<update id="updateAllBusinessPopulationDuplicate" parameterClass="java.util.Map">
+		update $tableName$ t set t.baseInfoId=#baseInfoId# where t.baseInfoId=#oldBaseInfoId#
+	</update>
+	<!-- 根据id、tableName、orgId修改 baseInfoId（单类的业务信息） -->
+	<update id="updateBusinessPopulationDuplicate" parameterClass="java.util.Map">
+		update $tableName$ t set t.baseInfoId=#baseInfoId# where t.id=#id# and orgId=#orgId#
+	</update>
+	
+	<!-- 根据baseInfoId和orgId查询同网格下的重复数据 -->
+	<select id="queryDuplicatePeopleAllActualForList" parameterClass="java.util.Map" resultMap="duplicatePeopleAllResult">
+		select 
+			t.id as id,
+			t.baseInfoId as baseInfoId,
+			t.orgId as orgId,
+			b.idCardNo as idCardNo,
+			'$tableName$' as tableName, 
+			'$tableName$' as populationType,
+			t.logOut as logOut,
+			t.createDate as createDate,
+			t.updateDate as updateDate
+		from $tableName$ t,baseInfo b where t.baseInfoId=b.id and orgId=#orgId# and baseInfoId=#baseInfoId#
+	</select>
+	
+	
+	<select id="getAlonePopulationDuplicateTotal" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[
+			select count(*) 
+                      from (select baseInfoId,
+                                   orgId,
+                                   count(baseInfoId) as total
+                              from $tableName$
+                             group by baseInfoId, orgId
+                            having count(baseInfoId) > 1)
+		]]>
+	</select>
+	<!-- baseinfo表去重以后的各个表去重分组查询 （要考虑分页）-->
+	<select id="queryDuplicatePeopleByGroupByPagingForList" parameterClass="java.util.Map" resultMap="duplicatePeopleForBaseInfoResult">
+		<include refid="common.sql_page_start"/>
+		<![CDATA[
+			select baseInfoId,
+			       orgId,
+			       '$tableName$' as tableName,
+			       '$tableName$' as populationType,
+			       count(baseInfoId) as total
+			  from $tableName$ t
+			 group by baseInfoId, orgId
+			having count(baseInfoId) > 1
+			 order by t.orgId				
+		]]> 
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<!-- 统计BaseInfo表的重复数据的个数 -->
+	<select id="getBaseIbfoPopulationDuplicateTotal" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[
+			select count(*) 
+                      from (select idCardNo,
+                                   count(idCardNo) as total
+                              from $tableName$
+                             group by idCardNo
+                            having count(idCardNo) > 1)
+		]]>
+	</select>
+	<!-- 根据实口id和类型统计所拥有的业务信息的个数 -->
+	<select id="getActualPopulationHasBusinessTotal" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from populationTypes p where p.actualid=#actualId# and p.actualtype=#actualType#
+	</select>
+	
+	
+	<!--根据老的baseInfoId和tablename去修改baseinfoid -->
+	<update id="updateBaseInfoIdByTableNameAndOldBaseInfoId" parameterClass="java.util.Map" >
+		update $tableName$ t set t.baseInfoId=#newBaseInfoId# where t.baseInfoId=#oldBaseInfoId#
+	</update>
+	
+	<!-- 根据baseId去查询数据 为日志做准备的 -->
+	<select id="queryDuplicatePeopleToLogForList" parameterClass="java.util.Map" resultMap="duplicatePeopleResultForLog">
+		select 
+			t.id as id,
+			t.baseInfoId as baseInfoId,
+			t.orgId as orgId,
+			b.idCardNo as idCardNo,
+			'$tableName$' as tableName,
+			'$tableName$' as populationType
+		from $tableName$ t,baseInfo b where t.baseInfoId=b.id and t.baseInfoId=#baseInfoId#
+	</select>
+	<!-- 业务人员分页取出重复的数据-->
+	<select id="queryAllBusinessPopulationDuplicatePeopleByPagingForList" resultMap="duplicatePeopleAllResult" parameterClass="java.util.Map">
+		<![CDATA[
+		select 
+			tb.id as id,
+			tb.baseInfoId as baseInfoId,
+			tb.orgId as orgId,
+			b.idCardNo as idCardNo,
+			'$tableName$' as tableName, 
+			'$tableName$' as populationType,
+			tb.isEmphasis as logOut,
+			tb.createDate as createDate,
+			tb.updateDate as updateDate
+		  from $tableName$ tb,baseInfo b
+		 where (baseinfoid, orgId) in (
+		                               
+		                               select baseinfoid, orgId
+		                                 from (select rownum row_num, t1.*
+		                                          from (select baseinfoid, orgid
+		                                                  from $tableName$
+		                                                 group by baseinfoid, orgid
+		                                                having count(baseinfoid) >= 2 order by orgid) t1
+		                                         where rownum <= #endRow#)
+		                                where row_num > #startRow#) and tb.baseInfoId=b.id
+		]]>
+	</select>
+	
+	<!-- 户籍和流动分页取出重复的数据-->
+	<select id="queryAllHouseholdStaffAndFloatingDuplicatePeopleByPagingForList" resultMap="duplicatePeopleAllResult" parameterClass="java.util.Map">
+		<![CDATA[
+		select 
+			tb.id as id,
+			tb.baseInfoId as baseInfoId,
+			tb.orgId as orgId,
+			b.idCardNo as idCardNo,
+			'$tableName$' as tableName, 
+			'$tableName$' as populationType,
+			tb.logOut as logOut,
+			tb.createDate as createDate,
+			tb.updateDate as updateDate
+		  from $tableName$ tb,baseInfo b
+		 where (baseinfoid, orgId) in (
+		                               
+		                               select baseinfoid, orgId
+		                                 from (select rownum row_num, t1.*
+		                                          from (select baseinfoid, orgid
+		                                                  from $tableName$
+		                                                 group by baseinfoid, orgid
+		                                                having count(baseinfoid) >= 2 order by orgid) t1
+		                                         where rownum <= #endRow#)
+		                                where row_num > #startRow#) and tb.baseInfoId=b.id
+		]]>
+	</select>
+	
+</sqlMap>

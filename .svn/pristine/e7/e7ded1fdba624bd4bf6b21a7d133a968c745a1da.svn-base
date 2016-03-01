@@ -1,0 +1,273 @@
+package com.tianque.userAccountLoginDetail.controller;
+
+import java.util.List;
+
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Actions;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.controller.ControllerHelper;
+import com.tianque.core.base.SearchBaseAction;
+import com.tianque.core.systemLog.service.SystemLogService;
+import com.tianque.core.systemLog.util.ModelType;
+import com.tianque.core.systemLog.util.OperatorType;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.GridPage;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.datatransfer.ExcelExportHelper;
+import com.tianque.domain.Organization;
+import com.tianque.domain.UserSign;
+import com.tianque.excel.definition.SpecialGroupsContext;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.userAccountLoginDetail.domain.UserAccountLoginDetail;
+import com.tianque.userAccountLoginDetail.service.UserAccountLoginDetailService;
+import com.tianque.userAccountLoginDetail.vo.UserAccountLoginStatisticsVo;
+import com.tianque.userAccountLoginDetail.vo.UserAccountSearchVo;
+
+@Scope("request")
+@Namespace("/sysadmin/userAccountLoginDetailManage")
+@Controller("userAccountLoginDetailController")
+public class UserAccountLoginDetailController extends SearchBaseAction{
+
+	private Organization organization;
+	private Integer searchType;
+	private List<UserSign>  userSignList;
+	private List<UserAccountLoginStatisticsVo> listVo;
+	private Long userId;
+	/** 导出本页或全部标识 */
+	private boolean pageOnly;
+	private UserAccountSearchVo userAccountSearchVo;
+	
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private UserAccountLoginDetailService userAccountLoginDetailService;
+	@Autowired
+	private SystemLogService systemLogService;
+	
+	/***
+	 * 报表查看
+	 * @return
+	 */
+	@Actions(value = { @Action(value = "viewUserAccountLoginStatistics", results = {
+			@Result(name = "success", location = "/userCount/viewAccountLoginStatistics.jsp"),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) }) })
+	public String viewUserAccountLoginStatistics() throws Exception{
+		if(organization==null || organization.getId()==null){
+			errorMessage="查询失败，未获得参数信息";
+			return ERROR;
+		}
+		organization = organizationDubboService.getSimpleOrgById(organization.getId());
+		listVo = userAccountLoginDetailService.getAccountLoginDetailStatistics(organization.getId());
+		return SUCCESS;
+	}
+	
+	/***
+	 * 高级查询跳转
+	 * @return
+	 */
+	@Actions(value = { @Action(value = "searchAccount", results = {
+			@Result(name = "success", location = "/userCount/searchAccountDialog.jsp"),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) }) })
+	public String searchAccount() throws Exception{
+		if(organization==null || searchType==null){
+			errorMessage="查询失败，未获得参数信息";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+	
+	@Action(value = "searchUserAccountForPageResult", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String searchUserAccountForPageResult() throws Exception {
+		if(userAccountSearchVo==null || userAccountSearchVo.getOrganization()==null || userAccountSearchVo.getSearchType()==null){
+			errorMessage="查询失败，未获得正确查询参数";
+			return ERROR;
+		}
+		PageInfo<UserAccountLoginDetail> pageInfo = ControllerHelper
+		.processAllOrgRelativeName(userAccountLoginDetailService.searchUserAccountForPageResult(userAccountSearchVo, page, rows, "orgCode", sord),
+				organizationDubboService,
+				new String[] { "organization" }, userAccountSearchVo.getOrganization().getId());
+		gridPage = new GridPage<UserAccountLoginDetail>(pageInfo);
+		return SUCCESS;
+	}
+	
+	@Action(value = "findUserAccountForPageResult", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String findUserAccountForPageResult() throws Exception {
+		if(organization==null || organization.getId()==null||searchType==null){
+			errorMessage="查询失败，未获得正确查询参数";
+			return ERROR;
+		}
+		PageInfo<UserAccountLoginDetail> pageInfo = ControllerHelper
+		.processAllOrgRelativeName(userAccountLoginDetailService.findUserAccountLoginDetailForPageResult(organization, searchType, page, rows, "orgCode", sord),
+				organizationDubboService,
+				new String[] { "organization" }, organization.getId());
+		gridPage = new GridPage<UserAccountLoginDetail>(pageInfo);
+		return SUCCESS;
+	}
+	
+	/***
+	 * 根据用户ID查询登录详情
+	 * @return
+	 */
+	@Actions(value = { @Action(value = "getUserLoginDetailByUserId", results = {
+			@Result(name = "success", location = "/userCount/viewUserLoginDeatil.jsp"),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) }) })
+	public String getUserLoginDetailByUserId() throws Exception{
+		if(userId==null || searchType==null){
+			errorMessage="查询失败，未获得参数信息";
+			return ERROR;
+		}
+		userSignList = userAccountLoginDetailService.getUserSignByUserIdAndDate(userId, searchType);
+		return SUCCESS;
+	}
+	
+	
+	/***
+	 * 生成报表
+	 * @return
+	 */
+	@Action(value = "createUserAccountLoginDetail", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"true", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String createUserAccountLoginDetail() throws Exception{
+		userAccountLoginDetailService.createUserAccountLoginDetail();
+		return SUCCESS;
+	}
+	
+	
+	@Action(value = "downloadAccountLoginDetailsAll", results = { @Result(name = "success", type = "json", params = {
+			"root", "gridPage", "ignoreHierarchy", "false" }) })
+	public void downloadAccountLoginDetailsAll() throws Exception {
+		if (organization == null || organization.getId()==null || searchType==null) {
+			errorMessage = "无法定位需要导出的数据";
+		} else {
+			if (!pageOnly) {
+				pageOnly = true;
+				Integer count = userAccountLoginDetailService.findUserAccountLoginDetailForPageResult(organization, searchType, 1, Integer.MAX_VALUE, sidx, sord).getResult().size();
+					
+				String[][] excelDefines = SpecialGroupsContext
+						.getUserAccountLoginDetailsPropertyArray();
+				exportDataAll(count, excelDefines, "账号活跃度清单");
+			}
+			systemLogService.log(com.vladium.logging.Logger.INFO,
+					ModelType.USERCOUNTMANAGE, OperatorType.EXPORT,
+					ThreadVariable.getSession().getUserName()+ " 导出账号活跃度清单", null);
+		}
+	}
+	
+
+	@Action(value = "downloadAccountLoginDetails", results = { @Result(name = "success", type = "json", params = {
+			"root", "gridPage", "ignoreHierarchy", "false" }) })
+	public String downloadAccountLoginDetails() throws Exception {
+		if (organization == null || organization.getId()==null || searchType==null) {
+			errorMessage = "无法定位需要导出的数据";
+			return ERROR;
+		}
+		List<UserAccountLoginDetail> records = getNeedExportDatas(page);
+		inputStream = ExcelExportHelper.exportDateToExcel(
+				SpecialGroupsContext.getUserAccountLoginDetailsPropertyArray(),
+				records);
+		downloadFileName = new String("账号活跃度清单".getBytes("gbk"), "ISO8859-1")
+				+ ".xls";
+		systemLogService.log(com.vladium.logging.Logger.INFO,
+				ModelType.USERCOUNTMANAGE, OperatorType.EXPORT, ThreadVariable
+						.getSession().getUserName()+" 导出当前页账号活跃度清单", null);
+		return STREAM_SUCCESS;
+	}
+	
+	public List<UserAccountLoginDetail> getNeedExportDatas(int page) {
+		if (organization == null || organization.getId()==null || searchType==null) {
+			return null;
+		}
+		if (pageOnly) {
+			return ControllerHelper.processAllOrgRelativeName(
+					userAccountLoginDetailService.findUserAccountLoginDetailForPageResult(
+							organization, searchType, page, rows, "orgCode", "asc"),
+							organizationDubboService,new String[] { "organization" }, null).getResult();
+		} else {
+			return ControllerHelper.processAllOrgRelativeName(
+					userAccountLoginDetailService.findUserAccountLoginDetailForPageResult(
+							organization, searchType, 1, Integer.MAX_VALUE, "orgCode", "asc"),
+							organizationDubboService,new String[] { "organization" }, null).getResult();
+		}
+	}
+	
+	
+	
+	
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public Organization getOrganization() {
+		return organization;
+	}
+	public void setOrganization(Organization organization) {
+		this.organization = organization;
+	}
+	public Integer getSearchType() {
+		return searchType;
+	}
+	public void setSearchType(Integer searchType) {
+		this.searchType = searchType;
+	}
+
+	public List<UserSign> getUserSignList() {
+		return userSignList;
+	}
+
+	public void setUserSignList(List<UserSign> userSignList) {
+		this.userSignList = userSignList;
+	}
+
+	public boolean isPageOnly() {
+		return pageOnly;
+	}
+
+	public void setPageOnly(boolean pageOnly) {
+		this.pageOnly = pageOnly;
+	}
+
+	public UserAccountSearchVo getUserAccountSearchVo() {
+		return userAccountSearchVo;
+	}
+
+	public void setUserAccountSearchVo(UserAccountSearchVo userAccountSearchVo) {
+		this.userAccountSearchVo = userAccountSearchVo;
+	}
+
+	public List<UserAccountLoginStatisticsVo> getListVo() {
+		return listVo;
+	}
+
+	public void setListVo(List<UserAccountLoginStatisticsVo> listVo) {
+		this.listVo = listVo;
+	}
+	
+	
+	
+	
+	
+}

@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="populationTempBaseInfo">
+	<typeAlias alias="Countrymen" type="com.tianque.baseInfo.base.domain.Countrymen"/>
+	<resultMap id="populationBaseInfoResult" class="Countrymen">
+		<result column="id" property="id"  nullValue="0"/>
+		<result column="orgId" property="organization.id" />
+		<result column="gender" property="gender.id" />
+		<result column="currentAddress" property="currentAddress" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="name" property="name" />
+		<result column="usedName" property="usedName"/>
+		<result column="fullPinyin" property="fullPinyin" />
+		<result column="simplePinyin" property="simplePinyin" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="telephone" property="telephone" />
+		<result column="mobileNumber" property="mobileNumber" />
+		<result column="province" property="province" />
+		<result column="city" property="city" />
+		<result column="district" property="district" />
+		<result column="nativePlaceAddress" property="nativePlaceAddress" />
+		<result column="birthday" property="birthday" />
+		<result column="workUnit" property="workUnit" />
+		<result column="remark" property="remark" />
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+		<result column="isDeath" property="isDeath"/>
+		<result column="currentAddressType" property="currentAddressType.id"/>
+		<result column="nation" property="nation.id" />
+		<result column="politicalBackground" property="politicalBackground.id" />
+		<result column="schooling" property="schooling.id" />
+		<result column="career" property="career.id" />
+		<result column="maritalState" property="maritalState.id" />
+		<result column="bloodType" property="bloodType.id" />
+		<result column="faith" property="faith.id" />
+		<result column="otherAddress" property="otherAddress" />
+		<result column="stature" property="stature" />
+		<result column="imgUrl" property="imgUrl" />
+		<result column="email" property="email" />
+		<result column="community" property="community" />
+		<result column="block" property="block" />
+		<result column="unit" property="unit" />
+		<result column="room" property="room" />
+		<result property="noHouseReason" column="noHouseReason"/>
+		<result property="isHaveHouse" column="isHaveHouse"/>
+		<result property="actualPopulationType" column="actualPopulationType"/>
+		
+		
+	</resultMap>
+	
+	<resultMap id="actualPopulationBaseInfoResult" class="Countrymen" extends="populationBaseInfoResult">
+		<result column="isHaveHouse" property="isHaveHouse" />
+		<result column="noHouseReason" property="noHouseReason" />
+	</resultMap>
+	
+	<resultMap class="java.util.HashMap" id="IdCardNoAndOrgIdResult">
+		<result property="idCardNo" column="idCardNo"/>
+		<result property="orgId" column="orgId" javaType="java.lang.Long" />
+	</resultMap>
+	
+	
+	<sql id="isHasHouseInfo">
+		isHaveHouse = #isHaveHouse#,
+		noHouseReason = #noHouseReason#
+	</sql>
+	
+	<sql id="updateActualPopulationHouseInfo">
+		<include refid="populationTempBaseInfo.isHasHouseInfo"/>
+		,currentaddresstype=#addressType#
+		,currentAddress = #currentAddress#
+		,community=#community#
+		,block=#block#
+		,unit=#unit#
+		,room=#room#
+	</sql>
+	
+	<sql id="updateCountrymenBaseInfo">
+		updateUser = #updateUser#
+		,updateDate = #updateDate#
+		,otherAddress = #otherAddress#
+		 <isNotNull property="career" prepend=",">
+			career = #career.id#
+		 </isNotNull>
+		,isDeath = #isDeath#
+		<isNotNull property="politicalBackground" prepend=",">
+			politicalBackground = #politicalBackground.id#
+		 </isNotNull>
+		 <isNotNull property="maritalState" prepend=",">
+			maritalState = #maritalState.id#
+		 </isNotNull>
+		,usedName = #usedName#
+		 <isNotNull property="nation" prepend=",">
+	    	nation = #nation.id#
+		 </isNotNull>
+		 <isNotNull property="faith" prepend=",">
+			faith = #faith.id#
+		 </isNotNull>
+		 <isNotNull property="schooling" prepend=",">
+			schooling= #schooling.id#
+		 </isNotNull>
+		 <isNotNull property="bloodType" prepend=",">
+			bloodType = #bloodType.id#
+		 </isNotNull>
+		,nativePlaceAddress = #nativePlaceAddress#
+		,province = #province#
+		,city = #city#
+		,district = #district#
+		,name = #name#
+	    ,idCardNo = #idCardNo#
+		,birthday = #birthday#
+		,email = #email#
+		<isNotNull property="gender" prepend=",">
+	    	gender = #gender.id#
+		 </isNotNull>
+		,fullPinyin = #fullPinyin#
+		,simplePinyin = #simplePinyin#
+	    ,currentAddress = #currentAddress#
+	    <!-- 为什么加上这个判断 不可以把currentAddressType设置为null吗
+	    <isNotNull property="currentAddressType" prepend=",">
+	    -->
+		,currentAddressType=#currentAddressType.id#
+		,community=#community#
+		,block=#block#
+		,unit=#unit#
+		,room=#room#
+		,mobileNumber = #mobileNumber#
+		,telephone=#telephone#
+		,stature = #stature#
+		,workUnit = #workUnit#
+		,remark = #remark#
+		,imgUrl = #imgUrl#,
+		<include refid="populationTempBaseInfo.isHasHouseInfo"/>
+		<isNotNull property="actualPopulationType" prepend=",">
+	    	actualPopulationType = #actualPopulationType#
+		 </isNotNull>
+	</sql>
+	
+	<sql id="updateBaseInfoSql">
+		 <include refid="populationTempBaseInfo.updateCountrymenBaseInfo"/>
+	</sql>
+	<sql id="addBaseInfoFields">
+		id,createDate,createUser,updateUser,updateDate,otherAddress,career,isDeath,politicalBackground
+		,maritalState,usedName,nation,faith,schooling,bloodType,nativePlaceAddress
+		,province,city,district,name,idCardNo,birthday,email,orgId,orgInternalCode,gender
+		,fullPinyin,simplePinyin,currentAddress,currentAddressType,community
+		,block,unit,room,mobileNumber,telephone,stature,workUnit,remark,imgUrl,isHaveHouse,noHouseReason
+	</sql>
+	<sql id="addBaseInfoData">
+		#id#,#createDate#,#createUser#,#updateUser#,#updateDate#,#otherAddress#,#career.id#,#isDeath#,#politicalBackground.id#
+		,#maritalState.id#,#usedName#,#nation.id#,#faith.id#,#schooling.id#,#bloodType.id#,#nativePlaceAddress#
+		,#province#,#city#,#district#,#name#,#idCardNo#,#birthday#,#email#,#organization.id#,#organization.orgInternalCode#,#gender.id#
+		,#fullPinyin#,#simplePinyin#,#otherAddress#,#currentAddressType.id#,#community#
+		,#block#,#unit#,#room#,#mobileNumber#,#telephone#,#stature#,#workUnit#,#remark#,#imgUrl#
+		,#isHaveHouse#,#noHouseReason#
+	</sql>
+	
+	
+	<update id="updateActualPopulationLogOutByPopulationTypeAndId" parameterClass="java.util.Map">
+		update $table$ set               
+		<isNotEmpty property="logoutDetail.logout">
+		 logout=#logoutDetail.logout#
+		</isNotEmpty>
+		
+		,logoutDate=#logoutDetail.logoutDate#
+		
+		
+		, logoutReason=#logoutDetail.logoutReason#
+		
+		<!-- <isNotEmpty property="logoutDetail.cancelLogoutDate" prepend=",">
+		 cancelLogoutDate=#logoutDetail.cancelLogoutDate#
+		</isNotEmpty>
+		<isNotNull property="logoutDetail.cancelLogoutReason" prepend=",">
+		 cancelLogoutReason=#logoutDetail.cancelLogoutReason#
+		</isNotNull> -->
+		<dynamic prepend=",">
+			<isEqual property="logoutDetail.logout" compareValue="0">
+				<isNotNull property="isHaveHouse">
+				<include refid="populationTempBaseInfo.updateActualPopulationHouseInfo"/>
+				</isNotNull>
+			</isEqual>
+		</dynamic>
+		where id=#id#
+	</update>
+	
+	
+	<update id="updateBussPopulationLogOutByPopulationTypeAndId" parameterClass="java.util.Map">
+		update $table$ set
+		<isNotEmpty property="logoutDetail.logout">
+		 isEmphasis=#logoutDetail.logout#
+		</isNotEmpty>
+		
+		,isEmphasisDate=#logoutDetail.logoutDate#
+		 ,isEmphasisReason=#logoutDetail.logoutReason#
+		<!-- <isNotEmpty property="logoutDetail.cancelLogoutDate" prepend=",">
+		 cancelIsEmphasisDate=#logoutDetail.cancelLogoutDate#
+		</isNotEmpty>
+		<isNotNull property="logoutDetail.cancelLogoutReason" prepend=",">
+		 cancelIsEmphasisReason=#logoutDetail.cancelLogoutReason#
+		</isNotNull> -->
+		<dynamic prepend=",">
+			<isEqual property="logoutDetail.logout" compareValue="0">
+				<isNotNull property="isHaveHouse">
+				<include refid="populationTempBaseInfo.updateActualPopulationHouseInfo"/>
+				</isNotNull>
+			</isEqual>
+		</dynamic>
+		where id=#id#
+	</update>
+	
+	
+	<sql id="updateBussLogoutDetail">
+		<isNotEmpty property="logoutDetail.logout" prepend=",">
+		 isEmphasis=#logoutDetail.logout#
+		</isNotEmpty>
+		
+		,isEmphasisDate=#logoutDetail.logoutDate#
+		 ,isEmphasisReason=#logoutDetail.logoutReason#
+		
+	  <!-- 	<isNotEmpty property="logoutDetail.cancelLogoutDate" prepend=",">
+		 cancelIsEmphasisDate=#logoutDetail.cancelLogoutDate#
+		</isNotEmpty>
+		<isNotNull property="logoutDetail.cancelLogoutReason" prepend=",">
+		 cancelIsEmphasisReason=#logoutDetail.cancelLogoutReason#
+		</isNotNull> -->
+	</sql>
+	
+	<sql id="updateActualLogoutDetail">
+		<isNotEmpty property="logoutDetail.logout" prepend=",">
+		 logout=#logoutDetail.logout#
+		</isNotEmpty>
+		,logoutDate=#logoutDetail.logoutDate#
+		,logoutReason=#logoutDetail.logoutReason#
+		<!-- <isNotEmpty property="logoutDetail.cancelLogoutDate" prepend=",">
+		 cancelLogoutDate=#logoutDetail.cancelLogoutDate#
+		</isNotEmpty>
+		<isNotNull property="logoutDetail.cancelLogoutReason" prepend=",">
+		 cancelLogoutReason=#logoutDetail.cancelLogoutReason#
+		</isNotNull> -->
+	</sql>
+	
+	<select id="getIdCardNoAndOrgIdByPopulationTableAndId" parameterClass="java.util.Map" resultMap="IdCardNoAndOrgIdResult">
+		select idCardNo,orgId from $table$ where id=#id#
+	</select>
+	<select id="getActualPopulationLogoutByIdCardNoAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select logout from floatingpopulations where orgId=#orgId# and upper(idCardNo)=upper(#idCardNo#) 
+		union
+		select logout from householdstaffs where orgId=#orgId# and upper(idCardNo)=upper(#idCardNo#) 
+	</select>
+	
+</sqlMap>

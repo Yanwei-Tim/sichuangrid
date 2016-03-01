@@ -1,0 +1,611 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="personTwoDimensionMap">
+	<typeAlias alias="personInfoVo" type="com.tianque.openLayersMap.domian.vo.PersonInfoVo" />
+	
+	<resultMap id="personInfoVoResult" class="personInfoVo">
+		<result column="id" property="id" />
+		<result column="name" property="name" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="currentaddress" property="address" />
+		<result column="gender" property="genderId.id"/>
+		<result column="centerLon" property="lon" />
+		<result column="centerLat" property="lat" />
+		<result column="centerLon2" property="lon2" />
+		<result column="centerLat2" property="lat2" />
+	</resultMap>
+	
+	<resultMap id="personInfoVoResultHasOrgCode" extends="personInfoVoResult" class="personInfoVo" >
+		<result column="orgInternalCode" property="orgInternalCode" />
+	</resultMap>
+	
+	<resultMap id="personInfoVoCertificateTypeResult" extends="personInfoVoResult" class="personInfoVo">
+<!-- 		<result column="certificateType" property="certificateType" /> -->
+		<result column="certificateType" property="certificateTypeId.id" /> 
+	</resultMap>
+		
+	<resultMap id="certificateTypeResult" extends="personInfoVoCertificateTypeResult" class="personInfoVo">
+		<result column="englishName" property="englishName" />
+	</resultMap>
+	<resultMap id="certificateTypeAndPersonTypeResult" extends="certificateTypeResult" class="personInfoVo">
+		<result column="englishName" property="englishName" />
+		<result column="personTypeName" property="personTypeName" />
+	</resultMap>
+	
+	<resultMap id="personInfoVoExtendResult" extends="personInfoVoCertificateTypeResult" class="personInfoVo">
+		<result column="personType" property="personType" />
+		<result column="personTypeName" property="personTypeName" />
+		<result column="englishName" property="englishName" />
+	</resultMap>
+	<resultMap id="personInfoVoExtendResult1" extends="personInfoVoCertificateTypeResult" class="personInfoVo">
+		<result column="personType" property="personType" />
+		<result column="personTypeName" property="personTypeName" />
+	</resultMap>
+	<resultMap  id="personInfoPersonTypeVoResult" extends="personInfoVoResult" class="personInfoVo">
+		<result property="personType" column="persontype"/>
+		<result property="gender" column="genderName"/>
+		<result column="personTypeName" property="personTypeName" />
+	</resultMap>
+	
+	<resultMap  id="personInfoVoAndPersonTypeResult" extends="personInfoVoResult" class="personInfoVo">
+		<result column="personTypeName" property="personTypeName" />
+	</resultMap>
+	
+	<sql id="sql_screenCoordinateVo">
+		<dynamic>
+			<isNotNull property="searchInfoVo">
+				<isEqual property="searchInfoVo.gisType" compareValue="3D">
+					<isNotEmpty property="screenCoordinateVo.minLon">
+						<![CDATA[ h.centerlon>#screenCoordinateVo.minLon# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+						<![CDATA[ h.centerlon<#screenCoordinateVo.maxLon# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+						<![CDATA[ h.centerlat>#screenCoordinateVo.minLat# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+						<![CDATA[ h.centerlat<#screenCoordinateVo.maxLat# ]]>
+					</isNotEmpty>
+				</isEqual>
+				<isNotEqual  property="searchInfoVo.gisType"  compareValue="3D">
+					<isNotEmpty property="screenCoordinateVo.minLon">
+						<![CDATA[ h.centerlon2>#screenCoordinateVo.minLon# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+						<![CDATA[ h.centerlon2<#screenCoordinateVo.maxLon# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+						<![CDATA[ h.centerlat2>#screenCoordinateVo.minLat# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+						<![CDATA[ h.centerlat2<#screenCoordinateVo.maxLat# ]]>
+					</isNotEmpty>
+				</isNotEqual>
+			</isNotNull>
+		</dynamic>
+	</sql>
+	
+	<sql id="searchPersonWithHouseInfo">
+		from 
+			<isEqual property="typeName" compareValue="OVERSEAPERSONNEL">
+		 		$typeName$ p
+		 	</isEqual>
+		 	<isEqual property="typeName" compareValue="UNSETTLEDPOPULATIONS">
+		 		$typeName$ p
+		 	</isEqual>
+		 	<isEqual property="typeName" compareValue="FLOATINGPOPULATIONS">
+		 		$typeName$ p left join baseinfo b on p.baseinfoid = b.id
+		 	</isEqual>
+		 	<isEqual property="typeName" compareValue="HOUSEHOLDSTAFFS">
+		 		$typeName$_$shardCode$ p left join baseinfo b on p.baseinfoid = b.id
+		 	</isEqual>
+			left join househasactualpopulation t1
+			    on t1.populationid = p.id
+			<isEqual prepend="and" property="typeName" compareValue="OVERSEAPERSONNEL">
+		 		t1.POPULATIONTYPE='overseaStaff'
+		 	</isEqual>
+		 	<isEqual prepend="and" property="typeName" compareValue="UNSETTLEDPOPULATIONS">
+		 		t1.POPULATIONTYPE='unsettledPopulation'
+		 	</isEqual>
+		 	<isEqual prepend="and" property="typeName" compareValue="FLOATINGPOPULATIONS">
+		 		t1.POPULATIONTYPE='floatingPopulation'
+		 	</isEqual>
+		 	<isEqual prepend="and" property="typeName" compareValue="HOUSEHOLDSTAFFS">
+		 		t1.POPULATIONTYPE='householdStaff'
+		 	</isEqual>
+			   and t1.persontype = 'all_actual_population'
+			left join houseinfo_$shardCode$ h on t1.houseid = h.id 
+			where 1=1 and p.logout = 0
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					p.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			and (
+				<include refid="sql_screenCoordinateVo"/>
+				or (h.centerLon is null and h.centerLat is null)
+			) 
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<!-- 未被调用  -->
+	<sql id="sql_where">
+	  <![CDATA[   from houseinfo h,
+ 	 	(select hp.houseid,hs.* from $tableName$ hs,HouseHasActualPopulation hp 
+ 		 where hs.id=hp.populationid and hp.populationtype=#personType#)p,(select pd.displayname as codename ,pd.id as code
+  		from propertydicts pd where pd.propertydomainid = (select id from propertydomains d where d.domainname = '性别')) sex 
+  		 where p.houseid =h.id and p.gender = sex.code(+)]]>
+			and (
+				<include refid="sql_screenCoordinateVo"/>
+				or (h.centerLon is null and h.centerLat is null)
+			) 
+		<dynamic prepend=" and ">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					p.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="searchValue">
+				<isNotEmpty property="searchValue" prepend=" and ">
+					(p.name like '$searchValue$%' or p.idcardno like '$searchValue$%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_where1">
+	  <isEqual property="tableName" compareValue="HOUSEHOLDSTAFFS">
+	  	 from $tableName$_$shardCode$ p
+	  </isEqual>
+	  <isNotEqual property="tableName" compareValue="HOUSEHOLDSTAFFS">
+	  	 from $tableName$ p
+	  </isNotEqual>
+	  <isNotEqual property="tableName" compareValue="UNSETTLEDPOPULATIONS">
+	  	left join baseinfo  b on p.baseinfoid=b.id
+	  </isNotEqual>
+		left join (select hp.*, h.* from houseinfo_$shardCode$ h, HouseHasActualPopulation hp
+         where h.id = hp.houseid and hp.populationtype = #personType#) h on p.id = h.populationid
+         where p.logout = 0
+	  <!-- 
+	  	from houseinfo h,
+ 	 	(select hp.houseid,hs.* from $tableName$ hs,HouseHasActualPopulation hp 
+ 		 where hs.id=hp.populationid and hp.populationtype=#personType#) p,(select pd.displayname as codename ,pd.id as code
+  		from propertydicts pd where pd.propertydomainid = (select id from propertydomains d where d.domainname = '性别')) sex 
+  		 where p.houseid =h.id and p.gender = sex.code(+) 
+  	 -->
+			<isNotEmpty property="screenCoordinateVo.minLon" prepend="and">
+				 (
+					<include refid="sql_screenCoordinateVo"/>
+					<isEqual property="isBound" compareValue="false">
+						or (centerLon is null and centerLat is null)
+					</isEqual>
+				) 
+			</isNotEmpty>
+		<dynamic prepend=" and ">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					p.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="searchValue">
+				<isNotEmpty property="searchValue" prepend=" and ">
+					(b.name like '$searchValue$%' or b.idcardno like '$searchValue$%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_where3">
+			and (
+				<include refid="sql_screenCoordinateVo"/>
+			) 
+		<dynamic prepend=" and ">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					p.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValue" parameterClass="java.util.Map" resultClass="Integer">
+		select
+		<iterate  property="personList" close=")" conjunction="+" >
+			 	<isEqual property="personList[].tableName" compareValue="FLOATINGPOPULATIONS">
+			 		(select count(0)
+                   from houseinfo_$shardCode$ h,(select hp.houseid,hs.*,b.name,b.idcardno from  $personList[].tableName$ hs left join baseinfo b on hs.baseinfoid = b.id,HouseHasActualPopulation hp 
+			 		 where hs.id=hp.populationid and hp.populationtype=#personList[].key# and hs.logout = 0) p
+			  		 where p.houseid =h.id 
+			  		 <include refid="sql_where3"/>
+			  		 <isPropertyAvailable property="searchValue">
+				        <isNotEmpty property="searchValue" prepend=" and ">
+					      (p.name like '$searchValue$%' or p.idcardno like '$searchValue$%'))
+				        </isNotEmpty>
+			         </isPropertyAvailable>
+			 	</isEqual>
+			 	<isEqual property="personList[].tableName" compareValue="HOUSEHOLDSTAFFS">
+			 		(select count(0)
+                   from houseinfo_$shardCode$ h,(select hp.houseid,hs.*,b.name,b.idcardno from  $personList[].tableName$_$shardCode$ hs left join baseinfo b on hs.baseinfoid = b.id,HouseHasActualPopulation hp 
+			 		 where hs.id=hp.populationid and hp.populationtype=#personList[].key# and hs.logout = 0) p
+			  		 where p.houseid =h.id 
+			  		 <include refid="sql_where3"/>
+			  		 <isPropertyAvailable property="searchValue">
+				        <isNotEmpty property="searchValue" prepend=" and ">
+					      (p.name like '$searchValue$%' or p.idcardno like '$searchValue$%'))
+				        </isNotEmpty>
+			         </isPropertyAvailable>
+			 	</isEqual>
+				<isEqual property="personList[].tableName" compareValue="UNSETTLEDPOPULATIONS">
+                 (select count(0)
+                   from houseinfo_$shardCode$ h,(select hp.houseid,hs.* from  $personList[].tableName$ hs,HouseHasActualPopulation hp 
+			 		 where hs.id=hp.populationid and hp.populationtype=#personList[].key# and hs.logout = 0) p
+			  		 where p.houseid =h.id 
+			  		 <include refid="sql_where3"/>
+			  		 <isPropertyAvailable property="searchValue">
+				        <isNotEmpty property="searchValue" prepend=" and ">
+					      (p.name like '$searchValue$%' or p.idcardno like '$searchValue$%'))
+				        </isNotEmpty>
+			         </isPropertyAvailable>
+		  		</isEqual>
+		  		<isEqual property="personList[].tableName" compareValue="OVERSEAPERSONNEL">
+					(select count(0)
+				      from houseinfo_$shardCode$ h,
+				 	 	(select hp.houseid,hs.* from $personList[].tableName$ hs,HouseHasActualPopulation hp 
+				 		 where hs.id=hp.populationid and hp.populationtype=#personList[].key# and hs.logout = 0) p
+				  		 where p.houseid =h.id 
+				  		 <include refid="sql_where3"/>
+				  		<isPropertyAvailable property="searchValue">
+					        <isNotEmpty property="searchValue" prepend=" and ">
+						      (p.englishName like '$searchValue$%' or p.certificateNo like '$searchValue$%')
+					        </isNotEmpty>
+			           </isPropertyAvailable>
+				</isEqual>
+		</iterate>
+	 as sum
+  from dual
+	</select>
+	
+	<sql id="sql_where2">
+	  <![CDATA[   from overseaPersonnel p,
+		(select hp.*, h.* from houseinfo_$shardCode$ h, HouseHasActualPopulation hp
+         where h.id = hp.houseid and hp.populationtype = #personType#) h 
+		where p.id = h.populationid(+)]]> and p.logout = 0
+	  <!--    from houseinfo h,
+ 	 	(select hp.houseid,hs.* from overseaPersonnel hs,HouseHasActualPopulation hp 
+ 		 where hs.id=hp.populationid and hp.populationtype=#personType#)p,(select pd.displayname as codename ,pd.id as code
+  		from propertydicts pd where pd.propertydomainid = (select id from propertydomains d where d.domainname = '性别') ) sex,
+  		(select pdt.displayname as typeName ,pdt.id as codeType
+  		from propertydicts pdt where pdt.propertydomainid = (select id from propertydomains  where domainname = '证件种类') ) IDType
+  		 where p.houseid =h.id and p.gender = sex.code(+) and p.certificateType=IDType.codeType(+) -->
+		<isNotEmpty property="screenCoordinateVo.minLon" prepend="and">
+			 (
+				<include refid="sql_screenCoordinateVo"/>
+				<isEqual property="isBound" compareValue="false">
+					or (centerLon is null and centerLat is null)
+				</isEqual>
+			) 
+		</isNotEmpty>
+		<dynamic prepend=" and ">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					p.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="searchValue">
+				<isNotEmpty property="searchValue" prepend=" and ">
+					(p.name like '$searchValue$%' or p.certificateNo like '$searchValue$%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<!--乡镇以下 精确搜索-->
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValue" parameterClass="java.util.Map" resultMap="personInfoVoExtendResult">
+		<!--<include refid="common.sql_page_start"/>-->
+		select * from
+			<iterate  property="personList" open="(" close=")" conjunction="union" >
+					<isEqual property="personList[].tableName" compareValue="OVERSEAPERSONNEL">
+						select p.id,p.name,p.englishname,p.certificateNo as idCardNo,h.address as currentaddress,h.centerLon,h.centerLat,h.centerLon2,h.centerLat2,p.gender,p.certificateType,'$personList[].key$' as personType,'$personList[].name$'  as personTypeName
+						from houseinfo_$shardCode$ h,(select hp.houseid,hs.* from  $personList[].tableName$ hs,HouseHasActualPopulation hp 
+				 		 where hs.id=hp.populationid and hp.populationtype=#personList[].key# and hs.logout = 0) p
+				  		 where p.houseid =h.id 
+				  		 <include refid="sql_where3"/>
+				  		 <isPropertyAvailable property="searchValue">
+							<isNotEmpty property="searchValue" prepend=" and ">
+								(p.name like '$searchValue$%' or p.certificateNo like '$searchValue$%')
+							</isNotEmpty>
+						</isPropertyAvailable>
+				 	</isEqual>
+					<isEqual property="personList[].tableName" compareValue="UNSETTLEDPOPULATIONS">
+				 		 select p.id,p.name,'英文名' as englishname,p.idCardNo,p.currentaddress,h.centerLon,h.centerLat,h.centerLon2,h.centerLat2,p.gender,0 as certificateType,'$personList[].key$' as personType,'$personList[].name$'  as personTypeName
+	                   from houseinfo_$shardCode$ h,(select hp.houseid,hs.* from  $personList[].tableName$ hs,HouseHasActualPopulation hp 
+				 		 where hs.id=hp.populationid and hp.populationtype=#personList[].key# and hs.logout = 0) p
+				  		 where p.houseid =h.id 
+				  		 <include refid="sql_where3"/>
+				  		 <isPropertyAvailable property="searchValue">
+					        <isNotEmpty property="searchValue" prepend=" and ">
+						      (p.name like '$searchValue$%' or p.idcardno like '$searchValue$%')
+					        </isNotEmpty>
+				         </isPropertyAvailable>
+				 	</isEqual>
+				 	<isEqual property="personList[].tableName" compareValue="HOUSEHOLDSTAFFS">
+				 		 select p.id,p.name,'英文名' as englishname,p.idCardNo,h.address currentaddress,h.centerLon,h.centerLat,h.centerLon2,h.centerLat2,p.gender,0 as certificateType,'$personList[].key$' as personType,'$personList[].name$'  as personTypeName
+	                   from houseinfo_$shardCode$ h,(select hp.houseid,hs.*,b.idcardno,b.name,b.gender from  $personList[].tableName$_$shardCode$ hs 
+	                   left join baseinfo  b on hs.baseinfoid=b.id,HouseHasActualPopulation hp 
+				 		 where hs.id=hp.populationid and hp.populationtype=#personList[].key# and hs.logout = 0) p
+				  		 where p.houseid =h.id 
+				  		 <include refid="sql_where3"/>
+				  		 <isPropertyAvailable property="searchValue">
+					        <isNotEmpty property="searchValue" prepend=" and ">
+						      (p.name like '$searchValue$%' or p.idcardno like '$searchValue$%')
+					        </isNotEmpty>
+				         </isPropertyAvailable>
+				 	</isEqual>
+				 	<isEqual property="personList[].tableName" compareValue="FLOATINGPOPULATIONS">
+				 		 select p.id,p.name,'英文名' as englishname,p.idCardNo,h.address currentaddress,h.centerLon,h.centerLat,h.centerLon2,h.centerLat2,p.gender,0 as certificateType,'$personList[].key$' as personType,'$personList[].name$'  as personTypeName
+	                   from houseinfo_$shardCode$ h,(select hp.houseid,hs.*,b.idcardno,b.name,b.gender from  $personList[].tableName$ hs 
+	                   left join baseinfo  b on hs.baseinfoid=b.id,HouseHasActualPopulation hp 
+				 		 where hs.id=hp.populationid and hp.populationtype=#personList[].key# and hs.logout = 0) p
+				  		 where p.houseid =h.id 
+				  		 <include refid="sql_where3"/>
+				  		 <isPropertyAvailable property="searchValue">
+					        <isNotEmpty property="searchValue" prepend=" and ">
+						      (p.name like '$searchValue$%' or p.idcardno like '$searchValue$%')
+					        </isNotEmpty>
+				         </isPropertyAvailable>
+				 	</isEqual>
+			</iterate>
+		<!--<include refid="common.sql_page_end"/>-->
+	</select>
+	
+	<!--<select id="countTwoDimensionMapInfoByOrgInternalCodeAndSearchValue" parameterClass="java.util.Map" resultClass="Integer">
+		<![CDATA[  select count(0) from householdstaffs p left join baseinfo b on p.baseinfoid = b.id where 
+			logout = 0 and orgInternalCode like '$orgInternalCode$%' and (b.name like '$searchValue$%' or b.idcardno like '$searchValue$%')]]>
+	</select>-->
+	
+	<select id="countBoundedTwoDimensionMapInfoByOrgInternalCodeAndSearchValue" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0)  from houseinfo_$shardCode$ h,
+		<isEqual property="tableName" compareValue="UNSETTLEDPOPULATIONS">
+		(select hp.houseid,hs.* from $tableName$ hs,HouseHasActualPopulation hp 
+ 		 where hs.id=hp.populationid and hp.populationtype=#personType# and hs.logout = 0)p
+		</isEqual>
+		<isNotEqual property="tableName" compareValue="UNSETTLEDPOPULATIONS">
+		(select hp.houseid,hs.*,b.name,b.idcardno from $tableName$ hs left join baseinfo b on hs.baseinfoid = b.id,HouseHasActualPopulation hp 
+ 		 where hs.id=hp.populationid and hp.populationtype=#personType# and hs.logout = 0)p
+		</isNotEqual>
+ 		  where p.houseid =h.id 
+		  and (h.centerLon is not null and h.centerLat is not null)
+			and p.orgInternalCode like '$orgInternalCode$%' and (p.name like '$searchValue$%' or p.idcardno like '$searchValue$%')
+	</select>
+	
+	<select id="getViewPopupInfoByIdAndTableName" parameterClass="java.util.Map" resultMap="personInfoVoResultHasOrgCode" >
+		select p.id,p.name,p.idCardNo,p.orginternalcode as orgInternalCode,h.address as currentaddress,h.centerLon,h.centerLat  ,h.centerLon2,h.centerLat2,p.gender,<![CDATA[ '身份证' ]]> as certificateType
+			 from houseinfo_$shardCode$ h,
+			 <isEqual property="tableName" compareValue="UNSETTLEDPOPULATIONS">
+			 (select hp.houseid,hs.* from  $tableName$  hs,HouseHasActualPopulation hp where hs.id=hp.populationid  and hp.populationtype=#personType# and hs.logout = 0)p
+			 </isEqual>
+			 <isNotEqual property="tableName" compareValue="UNSETTLEDPOPULATIONS">
+			 (select hp.houseid,hs.*,b.name,b.idCardNo,b.gender from  $tableName$  hs left join baseinfo b on hs.baseinfoid = b.id ,HouseHasActualPopulation hp where hs.id=hp.populationid  and hp.populationtype=#personType# and hs.logout = 0)p
+			 </isNotEqual>
+			 where p.houseid = h.id and p.id=#id# and (h.centerLon is not null and h.centerLat is not null)
+<!-- 		select p.id,p.name,p.idCardNo,p.currentaddress,h.centerLon,h.centerLat,sex.codename as gender,<![CDATA[ '身份证' ]]> as certificateType -->
+<!-- 			 from houseinfo h,(select hp.houseid,hs.* from  $tableName$  hs,HouseHasActualPopulation hp where hs.id=hp.populationid  and hp.populationtype=#personType#)p, -->
+<!-- 			 (select pd.displayname as codename ,pd.id as code from propertydicts pd where pd.propertydomainid = (select id from propertydomains d where d.domainname = '性别') )sex  -->
+<!-- 			 where p.houseid =h.id and p.gender = sex.code(+) and p.id=#id# and (h.centerLon is not null and h.centerLat is not null) -->
+	</select>
+	
+	<select id="getViewPopupInfoByIdAndTableNameForOverseaPersonnel" parameterClass="java.util.Map" resultMap="personInfoVoResultHasOrgCode" >
+		select p.id,p.orginternalcode as orgInternalCode,p.name,p.certificateNo as idCardNo,h.address as currentaddress ,h.centerLon,h.centerLat  ,h.centerLon2,h.centerLat2,p.gender,p.certificateType as certificateType
+			 from houseinfo_$shardCode$ h,(select hp.houseid,hs.* from overseaPersonnel hs,HouseHasActualPopulation hp where hs.id=hp.populationid and hp.populationtype=#personType# and hs.logout = 0)p 
+			 where p.houseid =h.id and p.id=#id# and (h.centerLon is not null and h.centerLat is not null)
+<!-- 		select p.id,p.name,p.certificateNo as idCardNo,h.address as currentaddress ,h.centerLon,h.centerLat,sex.codename as gender,IDType.typeName as certificateType -->
+<!-- 			 from houseinfo h,(select hp.houseid,hs.* from overseaPersonnel hs,HouseHasActualPopulation hp where hs.id=hp.populationid and hp.populationtype=#personType#)p, -->
+<!-- 			 (select pd.displayname as codename ,pd.id as code from propertydicts pd where pd.propertydomainid = (select id from propertydomains d where d.domainname = '性别') )sex, -->
+<!-- 			  (select pdt.displayname as typeName ,pdt.id as codeType from propertydicts pdt where pdt.propertydomainid = (select id from propertydomains  where domainname = '证件种类') ) IDType -->
+<!-- 			 where p.houseid =h.id and p.gender = sex.code(+) and p.certificateType=IDType.codeType(+) and p.id=#id# and (h.centerLon is not null and h.centerLat is not null) -->
+	</select>
+	
+	<select id="countBoundedTwoDimensionMapInfoByOrgInternalCodeAndSearchValueForOverseaPersonnel" parameterClass="java.util.Map" resultClass="Integer">
+		<![CDATA[select count(0)  from houseinfo_$shardCode$ h,
+ 	 	(select hp.houseid,hs.* from overseaPersonnel hs,HouseHasActualPopulation hp 
+ 		 where hs.id=hp.populationid and hp.populationtype=#personType# and hs.logout = 0)p
+ 		  where p.houseid =h.id 
+		  and (h.centerLon is not null and h.centerLat is not null)
+			and p.orgInternalCode like '$orgInternalCode$%' and (p.englishName like '$searchValue$%' or p.certificateNo like '$searchValue$%')]]>
+	</select>
+	
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValueForOverseaPersonnel" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0)  
+		<include refid="sql_where2"/>
+	</select>
+
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValueForOverseaPersonnel" parameterClass="java.util.Map" resultMap="certificateTypeResult">
+	<include refid="common.sql_page_start"/>
+		select p.englishname,p.id,p.name,p.certificateNo as idCardNo,h.address as currentaddress,h.centerLon,h.centerLat,h.centerLon2,h.centerLat2,p.gender,p.certificateType
+	<!-- 		select p.englishname,p.id,p.name,p.certificateNo as idCardNo,h.address as currentaddress,h.centerLon,h.centerLat  ,h.centerLon2,h.centerLat2,sex.codename as gender,IDType.typeName as certificateType -->
+			<include refid="sql_where2"/>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">h.$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndTypeName" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0)  from $typeName$
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			and logout = 0
+		</dynamic>
+	</select>
+	
+	<select id="countHouseHasPopulation" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0) from househasactualpopulation where houseId=$houseId$ and populationType='$populationType$'
+	</select>
+	
+	<select id="findPersonByHouseId" parameterClass="java.util.Map" resultMap="personInfoVoExtendResult1">
+		 select * from (select hs.id,b.name,b.idcardno,b.gender as gender,h.address currentaddress, h.centerlon,h.centerlat  ,h.centerLon2,h.centerLat2,'householdStaff' as personType,'常住人口' as personTypeName,0 as certificateType
+          from HOUSEHOLDSTAFFS_$shardCode$ hs left join baseinfo b on hs.baseinfoid = b.id left join houseinfo_$shardCode$ h on h.id = $houseId$ where hs.logout = 0)
+ 					where  id in (select hp.populationid from HouseHasActualPopulation hp
+               			where hp.houseid = $houseId$ 
+                 and hp.populationtype = 'householdStaff')
+                        union 
+                      select * from (select hs.id,b.name,b.idcardno,b.gender as gender, h.address currentaddress,h.centerlon,h.centerlat  ,h.centerLon2,h.centerLat2,'floatingPopulation' as personType,'流动人口' as personTypeName,0 as certificateType
+          from floatingpopulations hs left join baseinfo b on hs.baseinfoid = b.id left join houseinfo_$shardCode$ h on h.id = $houseId$ where  hs.logout = 0)
+ 					where  id in (select hp.populationid from HouseHasActualPopulation hp
+               			where hp.houseid = $houseId$ 
+                 and hp.populationtype = 'floatingPopulation')
+                        union 
+                        select * from (select hs.id,hs.name,hs.idcardno,hs.gender as gender,hs.currentaddress, h.centerlon,h.centerlat  ,h.centerLon2,h.centerLat2,'unsettledPopulation' as personType,'未落户人口' as personTypeName,0 as certificateType
+          from unsettledpopulations hs left join houseinfo_$shardCode$ h on h.id = $houseId$ where hs.logout = 0 )
+ 					where id in (select hp.populationid from HouseHasActualPopulation hp
+               			where hp.houseid = $houseId$ 
+                 and hp.populationtype = 'unsettledPopulation')
+                       union 
+                       select * from (select hs.id,hs.englishName,hs.certificateno,hs.gender as gender,hs.currentaddress, h.centerlon,h.centerlat  ,h.centerLon2,h.centerLat2,'overseaStaff' as personType,'境外人员' as personTypeName,hs.certificatetype as certificateType
+          from overseapersonnel hs left join houseinfo_$shardCode$ h on h.id = $houseId$ where  hs.logout = 0)
+ 					where  id in (select hp.populationid from HouseHasActualPopulation hp
+               			where hp.houseid = $houseId$ 
+                 and hp.populationtype = 'overseaStaff')
+        <dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">h.$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findPersonByHouseIdAndTableName" parameterClass="java.util.Map" resultMap="personInfoVoExtendResult1">
+		 select * from 
+		 <isEqual property="tableName" compareValue="UNSETTLEDPOPULATIONS">
+		 (select hs.id,hs.name,hs.idcardno,hs.gender as gender,hs.currentaddress, h.centerlon,h.centerlat  ,h.centerLon2,h.centerLat2,'$typeName$' as personType,'$personTypeName$' as personTypeName,0 as certificateType
+          from $tableName$  hs left join houseinfo_$shardCode$ h on h.id = $houseId$ where hs.logout = 0)
+          </isEqual>
+          <isNotEqual property="tableName" compareValue="UNSETTLEDPOPULATIONS">
+         (select hs.id,b.name,b.idcardno,b.gender as gender,h.address as currentaddress, h.centerlon,h.centerlat  ,h.centerLon2,h.centerLat2,'$typeName$' as personType,'$personTypeName$' as personTypeName,0 as certificateType
+          from $tableName$  hs left join baseinfo b on hs.baseinfoid = b.id left join houseinfo_$shardCode$ h on h.id = $houseId$ where hs.logout = 0)
+          </isNotEqual>
+ 					where  id in (select hp.populationid from HouseHasActualPopulation hp
+               			where hp.houseid = $houseId$ 
+                 and hp.populationtype = '$typeName$')
+          <dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">h.$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findOverseaStaffByHouseIdAndTableName" parameterClass="java.util.Map" resultMap="personInfoVoExtendResult1">
+		 select * from (select hs.id,hs.englishName as name ,hs.certificateno as idCardNo,hs.gender as gender,hs.currentaddress, h.centerlon,h.centerlat  ,h.centerLon2,h.centerLat2,'$typeName$' as personType,'$personTypeName$' as personTypeName,hs.certificatetype as certificateType
+          from $tableName$  hs left join houseinfo_$shardCode$ h on h.id = $houseId$ where hs.logout = 0)
+ 					where  id in (select hp.populationid from HouseHasActualPopulation hp
+               			where hp.houseid = $houseId$ 
+                 and hp.populationtype = '$typeName$')
+          <dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">h.$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndTypeName" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0) 
+		<include refid="searchPersonWithHouseInfo" />
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndTypeName" parameterClass="java.util.Map" resultMap="personInfoPersonTypeVoResult">
+		select 
+		<isEqual property="typeName" compareValue="OVERSEAPERSONNEL">
+			p.id,p.englishname as name,p.CERTIFICATENO idcardNo,
+			p.gender,t1.houseId,h.centerLon,h.centerLat,h.centerLon2,h.centerLat2,h.address currentaddress,'$personTypeName$'as personTypeName,p.gender as genderName,
+		 	'overseaStaff' as persontype
+	 	</isEqual>
+	 	<isEqual property="typeName" compareValue="UNSETTLEDPOPULATIONS">
+	 		 p.id,p.name,p.idcardNo,
+			 p.gender,t1.houseId,h.centerLon,h.centerLat,h.centerLon2,h.centerLat2,h.address currentaddress,'$personTypeName$'as personTypeName,p.gender as genderName,
+			 'unsettledPopulation' as persontype
+	 	</isEqual>
+	 	<isEqual property="typeName" compareValue="FLOATINGPOPULATIONS">
+	 		 p.id,b.name,b.idcardNo,
+			 b.gender,t1.houseId,h.centerLon,h.centerLat,h.centerLon2,h.centerLat2,h.address currentaddress,'$personTypeName$'as personTypeName,b.gender as genderName,
+			 'floatingPopulation' as persontype
+	 	</isEqual>
+	 	<isEqual property="typeName" compareValue="HOUSEHOLDSTAFFS">
+	 		 p.id,b.name,b.idcardNo,
+			 b.gender,t1.houseId,h.centerLon,h.centerLat,h.centerLon2,h.centerLat2,h.address currentaddress,'$personTypeName$'as personTypeName,b.gender as genderName,
+			 'householdStaff' as persontype 
+	 	</isEqual>
+		<include refid="searchPersonWithHouseInfo" />
+	</select>
+	
+	<select id="countBoundedTwoDimensionMapInfoByOrgInternalCodeAndTypeName" parameterClass="java.util.Map" resultClass="Integer">
+		<![CDATA[
+			select count(0) from $tableName$ where orgInternalCode like '$orgInternalCode$%'
+		]]>
+	</select>
+	
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndTypeNameForOverseaPersonnel" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0)  
+		<include refid="sql_where2"/>
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndTypeNameForOverseaPersonnel" parameterClass="java.util.Map" resultMap="certificateTypeAndPersonTypeResult">
+		<include refid="common.sql_page_start"/>
+			select p.englishname,p.id,p.name,p.certificateNo as idCardNo,h.address as currentaddress,h.centerLon,h.centerLat,h.centerLon2,h.centerLat2,p.gender,p.certificatetype as certificateType,'$personTypeName$' as personTypeName
+			<include refid="sql_where2"/>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">h.$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndTypeNameTwo" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0) 
+			<include refid="sql_where1"/>	
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndTypeName" parameterClass="java.util.Map" resultMap="personInfoVoAndPersonTypeResult" >
+		<!--<include refid="common.sql_page_start"/> -->
+			select p.id,h.address currentaddress,h.centerLon,h.centerLat,h.centerLon2,h.centerLat2,<![CDATA[ '身份证' ]]> as certificateType,'$personTypeName$' as personTypeName,
+			<isNotEqual property="tableName" compareValue="UNSETTLEDPOPULATIONS">
+				b.name,b.idCardNo,b.gender
+			</isNotEqual>
+			<isEqual property="tableName" compareValue="UNSETTLEDPOPULATIONS">
+				p.name,p.idCardNo,p.gender
+			</isEqual>
+			<include refid="sql_where1"/>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">h.$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<!--<include refid="common.sql_page_end"/> -->
+	</select>
+	
+	<select id="countPopulationByBuildDataId" parameterClass="java.util.Map" resultClass="Integer">
+		select count(*) from househasactualpopulation hp,houseInfo_$shardCode$ h
+		 where hp.houseid = h.id and hp.populationType='$populationType$'
+		and h.builddatasid = #buildDataId#
+	</select>
+</sqlMap>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="BackupBaseData">
+	<typeAlias alias="backupBaseData" type="com.tianque.plugin.orgchange.domain.BackupBaseData" />
+	<typeAlias alias="orgMapping" type="com.tianque.plugin.orgchange.domain.OrgMapping" />
+	
+	<resultMap id="backupBaseDataResult" class="backupBaseData">
+		<result property="id" column="id"/>
+		<result property="orgChangeInfo.id" column="orgChangeId"/>
+		<result property="dataId" column="dataId"/>
+		<result property="tableName" column="tableName"/>
+		<result property="organization.id" column="dataOrgId"/>
+		<result property="expansionData" column="expansionData"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+	
+	
+	<insert id="addBackupBaseData" parameterClass="orgMapping">
+	insert into backupBaseData
+  	(id,
+     orgChangeId,
+     dataId,
+     expansionData,
+     tableName,
+     dataOrgId,
+     createUser,
+     createDate,
+     updateUser,
+     updateDate)
+     select s_backupbasedata.NEXTVAL,#orgChangeInfo.id#, dataId,expansionData, #moduleTable.tableName# , dataOrgId , #moduleTable.createUser#,
+     #moduleTable.createDate#,
+     #moduleTable.updateUser#,
+     #moduleTable.updateDate# from (
+     $moduleTable.selectScript$
+    )
+	</insert>
+	
+	<select id="queryBackupInfoForPageResult" parameterClass="java.util.Map" resultMap="backupBaseDataResult">
+		select * from backupbasedata 
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="queryBackupInfoForPageResultCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from backupbasedata 
+	</select>
+	
+	<select id="getBackupInfoById" parameterClass="java.lang.Long" resultMap="backupBaseDataResult">
+		select * from backupbasedata where id=#id#
+	</select>
+	
+	<insert id="addBackupBaseDataRelation" parameterClass="backupBaseData">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_backupbasedata.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into backupBaseData
+	  	(id,
+	     orgChangeId,
+	     dataId,
+	     expansionData,
+	     tableName,
+	     dataOrgId,
+	     createUser,
+	     createDate,
+	     updateUser,
+	     updateDate)
+	     VALUES(
+	     #id#,
+	     #orgChangeInfo.id#,
+	     #dataId#,
+	     #expansionData#,
+	     #tableName#,
+	     #organization.id#,
+	     #createUser#,
+	     #createDate#,
+	     #updateUser#,
+	     #updateDate#
+	    )
+	</insert>
+	
+</sqlMap>

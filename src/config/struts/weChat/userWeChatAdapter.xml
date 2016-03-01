@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<!-- 用户相关action -->
+	<package name="userWeChatManage" extends="default"
+		namespace="/weChat/userMobileManage">
+		<default-class-ref class="userMobileAdapter"></default-class-ref>		
+		<action name="getCurrentLoginUser" method="getCurrentLoginUser">
+			<result name="success" type="json">
+				<param name="root">user</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+	</package>
+</struts>

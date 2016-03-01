@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="issueEvaluate">
+	<!-- 注释说明 -->
+	<typeAlias alias="IssueEvaluate" type="com.tianque.issue.domain.IssueEvaluate" />
+		
+	<resultMap class="IssueEvaluate" id="issueEvaluateResult">
+		<result property="id" column="id"/>
+		<result property="issue.id" column="issueId"/>
+		<result property="evaluateType" column="evaluateType"/>
+		<result property="evaluateContent" column="evaluateContent"/>
+		<result property="evaluateTime" column="evaluateTime"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+	</resultMap>
+
+	<insert id="addIssueEvaluate" parameterClass="IssueEvaluate">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_IssueEvaluate.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		IssueEvaluate(id,issueId,evaluateType,evaluateContent,evaluateTime,createUser,createDate,updateUser,updateDate)
+		VALUES(#id#,#issue.id#,#evaluateType#,#evaluateContent#,#evaluateTime#,#createUser#,#createDate#,#updateUser#,#updateDate#)
+	</insert>
+	
+	<update id="updateIssueEvaluate" parameterClass="IssueEvaluate"> 
+		update IssueEvaluate set 
+			issueId =#issue.id#,
+			evaluateType =#evaluateType#,
+			evaluateContent =#evaluateContent#,
+			evaluateTime =#evaluateTime#,
+			updateUser =#updateUser#,
+			updateDate =#updateDate#
+		where id = #id#
+	</update>
+	
+	<select id="getIssueEvaluateById" parameterClass="long" resultMap="issueEvaluateResult">
+		select * from IssueEvaluate where id=#value#
+	</select>
+	
+	<select id="getIssueEvaluateByIssueId" parameterClass="long" resultMap="issueEvaluateResult">
+		select * from IssueEvaluate where issueId=#value#
+	</select>
+	
+	<delete id="deleteIssueEvaluateByIssueId" parameterClass="long">
+		delete from IssueEvaluate where issueId=#value#
+	</delete>
+</sqlMap>

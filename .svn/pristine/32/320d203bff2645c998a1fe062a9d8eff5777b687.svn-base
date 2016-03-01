@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="reportHasProject">
+		<typeAlias alias="reportHasProject" type="com.tianque.partyBuilding.doubleRegActivities.domain.ReportHasProject" ></typeAlias>
+		
+		<resultMap id="reportHasProjectResult" class="reportHasProject">
+			<result property="reportId" column="reportId"></result>
+			<result property="projectId" column="projectId"></result>
+		</resultMap>
+		
+		<insert id="addReportHasProject" parameterClass="reportHasProject">
+			insert into reportHasProject
+				(reportId,projectId) 
+			values
+				(#reportId#,#projectId#)
+		</insert>
+		
+		<delete id="deleteReportHasProjectByReportId" parameterClass="java.lang.Long">
+			delete from reportHasProject where reportId=#value#
+		</delete>
+		<delete id="deleteReportHasProjectByReportIds" parameterClass="java.util.Map">
+			delete from reportHasProject where reportId
+			<iterate close=")" open="(" prepend=" in " conjunction="," property="reportIds">
+				#reportIds[]#
+			</iterate>
+		</delete>
+		
+		<select id="getReportHasProjectByReportId"  parameterClass="java.lang.Long"
+			resultMap="reportHasProjectResult">
+			select * from reportHasProject where reportId=#value#
+		</select>
+		<delete id="deleteReportHasProjectByProjectId" parameterClass="java.lang.Long">
+			delete from reportHasProject where projectId=#value#
+		</delete>
+		<delete id="deleteReportHasProjectByProjectIds" parameterClass="java.util.Map">
+			delete from reportHasProject where projectId
+				<iterate close=")" open="(" prepend=" in " conjunction="," property="projectIds">
+					#projectIds[]#
+				</iterate>
+		</delete>
+</sqlMap>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="redCuffTeam">
+	<!-- 注释说明 -->
+	<typeAlias alias="redCuffTeam" type="com.tianque.baseInfo.primaryOrg.domain.RedCuffTeam" />
+	
+	<resultMap id="redCuffTeamResult" class="redCuffTeam">
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgCode" />
+		<result property="memeberName" column="memeberName" />
+		<result property="idCardNo" column="idCardNo" />
+		<result property="gender.id" column="gender" />
+		<result property="birthDate" column="birthDate" />
+		<result property="phoneNumber" column="phoneNumber" />
+		<result property="nation.id" column="nation" />
+		<result property="teamType.id" column="teamType" />
+		<result property="political.id" column="political" />
+		<result property="education.id" column="education" />
+		<result property="occupation" column="occupation" />
+		<result property="fimalyAddress" column="fimalyAddress" />
+		<result property="registeredPerson" column="registeredPerson" />
+		<result property="registeredDate" column="registeredDate" />
+		<result property="remark" column="remark" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+
+	<insert id="addRedCuffTeam" parameterClass="redCuffTeam">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_redCuffTeamMember.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO redCuffTeamMember
+		(
+			id,orgId,orgCode,memeberName,idCardNo,gender,birthDate,phoneNumber,nation,teamType,political,education,occupation,fimalyAddress,registeredPerson,registeredDate,remark,createUser,createDate,updateDate
+		)
+		values
+		(
+			#id#,#organization.id#,#organization.orgInternalCode#,#memeberName#,#idCardNo#,#gender.id#,#birthDate#,#phoneNumber#,#nation.id#,#teamType.id#,#political.id#,#education.id#,
+			#occupation#,#fimalyAddress#,#registeredPerson#,#registeredDate#,#remark#,#createUser#,#createDate#,#updateDate#
+		)
+	</insert>
+	
+	<update id="updateRedCuffTeam" parameterClass="redCuffTeam">
+		update redCuffTeamMember set
+		memeberName=#memeberName#,
+		idCardNo=#idCardNo#,
+		gender=#gender.id#,
+		birthDate=#birthDate#,
+		phoneNumber=#phoneNumber#,
+		nation=#nation.id#,
+		teamType=#teamType.id#,
+		political=#political.id#,
+		education=#education.id#,
+		occupation=#occupation#,
+		fimalyAddress=#fimalyAddress#,
+		registeredPerson=#registeredPerson#,
+		registeredDate=#registeredDate#,
+		remark=#remark#,
+		updateUser=#updateUser#,
+		updateDate=#updateDate#
+		where id=#id#
+	</update>
+	
+	<delete id="deleteRedCuffTeamByIds">
+		 delete from  redCuffTeamMember where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	
+	<select id="getRedCuffTeamById" parameterClass="java.lang.Long" resultMap="redCuffTeamResult">
+		select * from redCuffTeamMember where id=#id# 
+	</select>
+	
+	<select id="countFindRedCuffTeamForList" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(1) from redCuffTeamMember where orgCode like #orgCode# || '%' 
+		<isPropertyAvailable property="teamType">
+			<isNotNull property="teamType" prepend="and">
+				teamType = #teamType#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="memeberName">
+			<isNotNull property="memeberName" prepend="and">
+				memeberName like #memeberName# ||'%'
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	
+	<select id="findRedCuffTeamForList" parameterClass="java.util.Map" resultMap="redCuffTeamResult">
+		select * from redCuffTeamMember where orgCode like #orgCode# || '%' 
+		<isPropertyAvailable property="teamType">
+			<isNotNull property="teamType" prepend="and">
+				teamType = #teamType#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="memeberName">
+			<isNotNull property="memeberName" prepend="and">
+				memeberName like #memeberName# ||'%'
+			</isNotNull>
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+</sqlMap>
+

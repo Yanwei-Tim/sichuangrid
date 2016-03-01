@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="CompanyPlace">
+<typeAlias alias="companyPlace" type="com.tianque.baseInfo.companyPlace.domain.CompanyPlace" />
+<typeAlias alias="companyPlaceVo" type="com.tianque.baseInfo.companyPlace.domain.vo.CompanyPlaceVo" />
+
+<resultMap class="com.tianque.baseInfo.companyPlace.domain.CompanyPlace" id="companyPlaceResult">
+	<result column="id" property="id" />
+	<result column="BASEID" property="baseId" />
+    <result column="TYPE" property="type.id" />
+    <result column="CLASSIFICATION" property="classifiCation.id"/>
+    <result column="CLASSIFICATIONEN"  property="classifiCationEn" />
+    <result column="CATEGORY" property="category.id"  />
+    <result column="USERNAME" property="userName" />
+    <result column="MOBILENUMBER" property="mobileNumber"  />
+    <result column="TELEPHONE" property="telePhone"  />
+    <result column="FAXNUMBER" property="faxNumber" />
+    <result column="AREA" property="area"  />
+    <result column="COVEREDAREA" property="coveredArea"  />
+    <result column="REMARKS" property="remarks" />
+    <result column="HASLICENSE" property="hasLicense"  />
+    <result column="BUSINESSLICENSENO" property="businessLicenseNo"  />
+    <result column="ORGCODE" property="orgCode"  />
+    <result column="CLOAKROOM" property="cloakRoom"  />
+    <result column="SCALETYPE" property="scaleType.id"  />
+    <result column="PARTYCOUNTNUMBER" property="partyCountNumber" />
+    <result column="NETWORKCARDNO" property="networkCardNo" />
+    <result column="REGISTEREDCAPITAL" property="registeredCapital"  />
+    <result column="REGISTEREDCAPITALNO" property="registeredCapitalNo"  />
+    <result column="BEGINTIME" property="begintime" />
+    <result column="ENDTIME" property="endtime" />
+    <result column="BUSINESSAREA" property="businessArea"  />
+    <result column="DIGVOLUME" property="digVolume" />
+    <result column="FILLVOLUME" property="fillVolume"  />
+    <result column="EMAIL" property="email"  />
+    <result column="HOSPITALNATURE" property="hospitalNature.id" />
+    <result column="GENERALSTORAGE" property="generalStorage" />
+    <result column="GENERALTYPE" property="generalType" />
+    <result column="FAXNNO" property="faxNo" />
+    <result column="NOWIP" property="nowip"  />
+    <result column="COUNTNO" property="countNo" />
+    <result column="GENERALMANAGE" property="generalManage" />
+    <result column="GENERALMENTE" property="generalMente" />
+    <result column="FIREAUDITOPINIONNO" property="fireAuditOpinionNo"  />
+    <result column="INTERNETBARNO" property="internetBarNo"  />
+    <result column="LEGALVICEPRINCIPAL" property="legalVicePrincipal"  />
+    <result column="SCHOOLNATURE" property="schoolNature.id"  />
+    <result column="SCHOOLNAMEEN" property="schoolNameEn"  />
+    <result column="SCHOOLWEBSITE" property="schoolWebSite"  />
+    <result column="ECONOMICNATURE" property="economicNature.id"  />
+    <result column="MANAGEMENTLEVEL" property="managementLevel.id"  />
+    <result column="FIRELEVEL" property="fireLevel.id" />
+    <result column="CREATEUSER" property="createUser" />
+    <result column="UPDATEUSER" property="updateUser"/>
+    <result column="CREATEDATE" property="createDate" />
+    <result column="UPDATEDATE" property="updateDate"  />
+    <result column="OPERATINGBRAND" property="operatingBrand.id"  />
+    <result column="OPERATINGMODE" property="operatingMode.id"  />
+</resultMap>
+<insert id="addCompanyPlace" parameterClass="companyPlace">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+    	<!-- <![CDATA[ SELECT s_companyplace.NEXTVAL AS id FROM dual ]]> -->
+    		select $baseId$ as id from dual 
+		</selectKey>
+<![CDATA[insert into companyPlace(id,baseId,type,classifiCation,classifiCationEn,category,userName,mobileNumber,telePhone,faxNumber,area,coveredArea,remarks,hasLicense,businessLicenseNo
+   ,orgCode,cloakRoom ,scaleType,partyCountNumber,NETWORKCARDNO,registeredCapital,REGISTEREDCAPITALNO,begintime,endtime,businessArea,digVolume,fillVolume
+   ,email,hospitalNature,generalStorage,generalType,faxnNo,nowip,countNo,generalManage,generalMente,fireAuditOpinionNo,internetBarNo
+   ,legalVicePrincipal,schoolNature, schoolNameEn,schoolWebSite,economicNature,managementLevel,fireLevel,createUser,createDate,updateUser,updateDate,operatingBrand,operatingMode
+    )
+    values(#id#,#baseId#,#type.id#,#classifiCation.id#,#classifiCationEn#,#category.id#,#userName#,#mobileNumber#,#telePhone#,#faxNumber#,#area#,#coveredArea#,#remarks#,#hasLicense#,#businessLicenseNo#
+   ,#orgCode#,#cloakRoom# , #scaleType.id#,#partyCountNumber#,#networkCardNo#,#registeredCapital#,#registeredCapitalNo#,#begintime#,#endtime#,#businessArea#,#digVolume#,#fillVolume#
+   ,#email#,#hospitalNature.id#,#generalStorage#,#generalType#,#faxNo#,#nowip#,#countNo#,#generalManage#,#generalMente#,#fireAuditOpinionNo#,#internetBarNo#
+   ,#legalVicePrincipal#, #schoolNature.id#,#schoolNameEn#,#schoolWebSite#,#economicNature.id#,#managementLevel.id#,#fireLevel.id#,#createUser#,#createDate#,#updateUser#,#updateDate#,#operatingBrand.id#,#operatingMode.id#)]]>
+</insert>
+
+<insert id="addCompanyPlaceForRecover" parameterClass="companyPlace">
+<![CDATA[insert into companyPlace(id,baseId,type,classifiCation,classifiCationEn,category,userName,mobileNumber,telePhone,faxNumber,area,coveredArea,remarks,hasLicense,businessLicenseNo
+   ,orgCode,cloakRoom ,scaleType,partyCountNumber,NETWORKCARDNO,registeredCapital,REGISTEREDCAPITALNO,begintime,endtime,businessArea,digVolume,fillVolume
+   ,email,hospitalNature,generalStorage,generalType,faxnNo,nowip,countNo,generalManage,generalMente,fireAuditOpinionNo,internetBarNo
+   ,legalVicePrincipal,schoolNature, schoolNameEn,schoolWebSite,economicNature,managementLevel,fireLevel,createUser,createDate,operatingBrand,operatingMode
+    )
+    values(#id#,#baseId#,#type.id#,#classifiCation.id#,#classifiCationEn#,#category.id#,#userName#,#mobileNumber#,#telePhone#,#faxNumber#,#area#,#coveredArea#,#remarks#,#hasLicense#,#businessLicenseNo#
+   ,#orgCode#,#cloakRoom# , #scaleType.id#,#partyCountNumber#,#networkCardNo#,#registeredCapital#,#registeredCapitalNo#,#begintime#,#endtime#,#businessArea#,#digVolume#,#fillVolume#
+   ,#email#,#hospitalNature.id#,#generalStorage#,#generalType#,#faxNo#,#nowip#,#countNo#,#generalManage#,#generalMente#,#fireAuditOpinionNo#,#internetBarNo#
+   ,#legalVicePrincipal#, #schoolNature.id#,#schoolNameEn#,#schoolWebSite#,#economicNature.id#,#managementLevel.id#,#fireLevel.id#,#createUser#,#createDate#,#operatingBrand.id#,#operatingMode.id#)]]>
+</insert>
+
+<update id="updateCompanyPlace" parameterClass="companyPlace">
+update companyPlace set id=#id#
+      <isNotNull prepend="," property="type.id" >
+      type= #type.id#
+      </isNotNull>
+      <isNotNull prepend="," property="classifiCation.id" >
+      classifiCation=#classifiCation.id#
+      </isNotNull>
+      <isNotNull prepend="," property="category.id" >
+      category=  #category.id#
+      </isNotNull>
+      <isNotNull prepend="," property="userName" >
+     	userName=#userName#
+      </isNotNull>
+      <isNotNull prepend="," property="mobileNumber" >
+     mobileNumber=   #mobileNumber#
+      </isNotNull>
+      <isNotNull prepend="," property="telePhone" >
+      telePhone=  #telePhone#
+      </isNotNull>
+      <isNotNull prepend="," property="faxNumber" >
+      faxNumber=  #faxNumber#
+      </isNotNull>
+      <isNotNull prepend="," property="area" >
+      area=  #area#
+      </isNotNull>
+      <isNotNull prepend="," property="coveredArea" >
+       coveredArea= #coveredArea#
+      </isNotNull>
+      <isNotNull prepend="," property="remarks" >
+      remarks=  #remarks#
+      </isNotNull>
+      <isNotNull prepend="," property="hasLicense" >
+       hasLicense= #hasLicense#
+      </isNotNull>
+      <isNotNull prepend="," property="businessLicenseNo" >
+       businessLicenseNo= #businessLicenseNo#
+      </isNotNull>
+      <isNotNull prepend="," property="orgCode" >
+      orgCode=  #orgCode#
+      </isNotNull>
+      <isNotNull prepend="," property="cloakRoom" >
+       cloakRoom= #cloakRoom#
+      </isNotNull>
+      <isNotNull prepend="," property="scaleType.id" >
+       scaleType= #scaleType.id#
+      </isNotNull>
+      <isNotNull prepend="," property="partyCountNumber" >
+       partyCountNumber= #partyCountNumber#
+      </isNotNull>
+      <isNotNull prepend="," property="registeredCapital" >
+      registeredCapital=  #registeredCapital#
+      </isNotNull>
+      <isNotNull prepend="," property="begintime" >
+       begintime= #begintime#
+      </isNotNull>
+      <isNotNull prepend="," property="endtime" >
+      endtime= #endtime#
+      </isNotNull>
+      <isNotNull prepend="," property="businessArea" >
+      businessArea=  #businessArea#
+      </isNotNull>
+      <isNotNull prepend="," property="digVolume" >
+      digVolume=  #digVolume#
+      </isNotNull>
+      <isNotNull prepend="," property="fillVolume" >
+      fillVolume=  #fillVolume#
+      </isNotNull>
+      <isNotNull prepend="," property="email" >
+       email= #email#
+      </isNotNull>
+      <isNotNull prepend="," property="hospitalNature.id" >
+       hospitalNature= #hospitalNature.id#
+      </isNotNull>
+      <isNotNull prepend="," property="generalStorage" >
+       generalStorage= #generalStorage#
+      </isNotNull>
+      <isNotNull prepend="," property="generalType" >
+       generalType= #generalType#
+      </isNotNull>
+      <isNotNull prepend="," property="faxNo" >
+       faxNNo= #faxNo#
+      </isNotNull>
+      <isNotNull prepend="," property="nowip" >
+       nowip= #nowip#
+      </isNotNull>
+      <isNotNull prepend="," property="countNo" >
+       countNo= #countNo#
+      </isNotNull>
+      <isNotNull prepend="," property="generalManage" >
+       generalManage= #generalManage#
+      </isNotNull>
+      <isNotNull prepend="," property="generalMente" >
+       generalMente= #generalMente#
+      </isNotNull>
+      <isNotNull prepend="," property="fireAuditOpinionNo" >
+      fireAuditOpinionNo=  #fireAuditOpinionNo#
+      </isNotNull>
+      <isNotNull prepend="," property="internetBarNo" >
+       internetBarNo= #internetBarNo#
+      </isNotNull>
+      <isNotNull prepend="," property="legalVicePrincipal" >
+       legalVicePrincipal= #legalVicePrincipal#
+      </isNotNull>
+      <isNotNull prepend="," property="schoolNature.id" >
+       schoolNature= #schoolNature.id#
+      </isNotNull>
+      <isNotNull prepend="," property="schoolNameEn" >
+       schoolNameEn= #schoolNameEn#
+      </isNotNull>
+      <isNotNull prepend="," property="schoolWebSite" >
+       schoolWebSite= #schoolWebSite#
+      </isNotNull>
+      <isNotNull prepend="," property="economicNature.id" >
+       economicNature= #economicNature.id#
+      </isNotNull>
+      <isNotNull prepend="," property="managementLevel.id" >
+      managementLevel=  #managementLevel.id#
+      </isNotNull>
+      <isNotNull prepend="," property="fireLevel.id" >
+      fireLevel=  #fireLevel.id#
+      </isNotNull>
+      <isNotNull prepend="," property="operatingBrand.id" >
+      operatingBrand=  #operatingBrand.id#
+      </isNotNull>
+      <isNotNull prepend="," property="operatingMode.id" >
+      operatingMode=  #operatingMode.id#
+      </isNotNull>
+      where id=#id#
+</update>
+
+<delete id="deleteCompanyPlace" parameterClass="java.lang.Long">
+	delete companyPlace where id=#id#
+</delete>
+<delete id="batchDeleteCompanyPlace" parameterClass="java.lang.Long">
+	delete companyPlace where id=#id#
+</delete>
+<select id="readeCompanyPlace" parameterClass="java.lang.Long" resultMap="companyPlaceResult">
+	select * from companyPlace where id=#id#
+</select>
+<sql id="sql_queryCompanyPlaceForPageResult">
+	select * from CompanyPlace 
+	<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+	</dynamic>
+</sql>
+<select id="queryCompanyPlaceForPageResult" parameterClass="companyPlace" resultClass="companyPlace">
+<include refid="sql_queryCompanyPlaceForPageResult"/>
+</select>
+<select id="queryCompanyPlaceForPageResultCount" parameterClass="companyPlace" resultClass="int">
+select count(1) from (<include refid="sql_queryCompanyPlaceForPageResult"/>)
+</select>
+
+<update id="updateCompanyPlaceByCid" parameterClass="companyPlace">
+	update companyPlace set
+	      baseId=#baseId#, type=#type.id#,classifiCation=#classifiCation.id#,classifiCationEn=#classifiCationEn#,category=#category.id#,userName=#userName#,mobileNumber=#mobileNumber#,
+	      telePhone=#telePhone#,faxNumber=#faxNumber#,area=#area#,coveredArea=#coveredArea#,remarks=#remarks#,hasLicense=#hasLicense#,businessLicenseNo=#businessLicenseNo#,
+	      orgCode=#orgCode#,cloakRoom=#cloakRoom#,scaleType=#scaleType.id#,partyCountNumber=#partyCountNumber#,networkCardNo=#networkCardNo#,registeredCapital=#registeredCapital#,registeredCapitalNo=#registeredCapitalNo#,begintime=#begintime#,
+	      endtime=#endtime#,businessArea=#businessArea#,digVolume=#digVolume#,fillVolume=#fillVolume#,email= #email#,hospitalNature=#hospitalNature.id#,
+	      generalStorage=#generalStorage#,generalType=#generalType#,faxNNo=#faxNo#,nowip=#nowip#,countNo=#countNo#,generalManage=#generalManage#,generalMente=#generalMente#,
+	      fireAuditOpinionNo=#fireAuditOpinionNo#,internetBarNo=#internetBarNo#,legalVicePrincipal=#legalVicePrincipal#,schoolNature=#schoolNature.id#,schoolNameEn=#schoolNameEn#,
+	      schoolWebSite=#schoolWebSite#,economicNature=#economicNature.id#,managementLevel=#managementLevel.id#,fireLevel=#fireLevel.id#,updateuser=#updateUser#,updatedate=#updateDate#,
+	      operatingBrand=#operatingBrand.id#,operatingMode=#operatingMode.id#
+    where id=#cid#
+</update>
+
+<select id="queryCompanyPlaceForList" parameterClass="companyPlace" resultClass="companyPlace">
+select * from companyPlace where classifiCationEn=#classifiCationEn# and org=#org.id#
+</select> 
+
+<select id="getCount" resultClass="java.lang.Integer" parameterClass="companyPlace">
+  select count(*) from companyPlace where classifiCationEn=#classifiCationEn# and org=#org.id#
+  </select>
+  
+<select id="getPlaceByPlaceName" parameterClass="java.util.Map" resultMap="companyPlaceResult">
+	  select * from companyplace c where c.baseid in (select id from companyplacebase where name=#placeName# and org=#orgId#) and c.CLASSIFICATION = #typeId#
+</select>
+  
+</sqlMap>

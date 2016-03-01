@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="newVillageBasic">
+	<typeAlias alias="newVillageBasic" type="com.tianque.newVillage.domain.NewVillageBasic" />
+	
+	<resultMap id="newVillageBasicRsult" class="newVillageBasic">
+	    <result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgCode" />
+		
+		<result property="year" column="year" />
+		<result property="quarter" column="quarter" />
+		<result property="reportStatus" column="reportStatus" />
+		<result property="reportDate" column="reportDate" />
+		<result property="reportUser" column="reportUser" />
+		<result property="checkStatus" column="checkStatus" />
+		<result property="checkDate" column="checkDate" />
+		<result property="checkUser" column="checkUser" />
+		<result property="isPlaning" column="isPlaning"/>
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+
+	<insert id="addNewVillageBasic" parameterClass="newVillageBasic">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_newvillageBasic.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into newvillageBasic
+		(id,orgId,orgCode,year,quarter,isPlaning,reportStatus,reportDate,reportUser,checkStatus,checkDate,checkUser,createUser,createDate,updateDate)
+		values
+		(#id#,#organization.id#,#organization.orgInternalCode#,#year#,#quarter#,#isPlaning#,#reportStatus#,#reportDate#,#reportUser#,#checkStatus#,
+		#checkDate#,#checkUser#,#createUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	<update id="updateNewVillageBasic" parameterClass="newVillageBasic">
+		update newvillageBasic set 
+		year=#year#,
+		quarter=#quarter#
+		where id=#id#
+	</update>
+	
+	<update id="updateReportStatus" parameterClass="java.util.Map">
+		update newvillageBasic set 
+		reportStatus=#reportStatus#,
+		reportDate=#reportDate#,
+		reportUser=#reportUser#
+		where id=#id#
+	</update>	
+	
+	<update id="updateCheckStatus" parameterClass="java.util.Map">
+		update newvillageBasic set 
+		checkStatus=#checkStatus#,
+		checkDate=#checkDate#,
+		checkUser=#checkUser#
+		where id=#id#
+	</update>
+	
+	<select id="countVillageBasicForList" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(1) from newvillageBasic where orgId=#orgId#  and isPlaning = #isPlaning#
+		<isNotNull property="year">
+			and year=#year#
+		</isNotNull>
+		<isNotNull property="quarter">
+			and quarter=#quarter#
+		</isNotNull>
+	</select>
+	
+	<select id="findVillageBasicForList" parameterClass="java.util.Map" resultMap="newVillageBasicRsult">
+		select * from newvillageBasic where orgId=#orgId# and isPlaning = #isPlaning#
+		<isNotNull property="year">
+			and year=#year#
+		</isNotNull>
+		<isNotNull property="quarter">
+			and quarter=#quarter#
+		</isNotNull>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>	
+	
+	<select id="getNewVillageBasicById" parameterClass="java.lang.Long" resultMap="newVillageBasicRsult">
+		select * from newvillageBasic where id=#id#
+	</select>
+	
+	<delete id="deleteNewVillageBasicByIds">
+		delete from  newvillageBasic where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	
+	<select id="getNewVillageBasicByYear" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(1) from newvillageBasic where orgId=#orgId# and year=#year# and isPlaning = #isPlaning#
+		<isNotNull property="quarter">
+			and quarter=#quarter# 
+		</isNotNull>
+	</select>
+	
+	<select id="findSameYearNewVillageBasics" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(1) from newvillageBasic n,basicYearInfo b 
+			where n.id=b.basicInfoId and n.orgid=#orgId# and n.year=#year# and n.reportstatus=1 and n.CHECKSTATUS !=2 and n.isPlaning=0
+	</select>
+	 
+</sqlMap>

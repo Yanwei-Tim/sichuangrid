@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="searchOtherLocale" extends="default"
+		namespace="/baseinfo/searchOtherLocale">
+		<default-class-ref class="searchOtherLocaleController"></default-class-ref>
+
+		<action name="searchOtherLocale" method="searchOtherLocale">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="downloadOtherLocale" method="downloadOtherLocale">
+			<result name="success" type="stream">
+				<param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>
+				<param name="inputName">inputStream</param>
+				<param name="contentDisposition">attachment;filename="${downloadFileName}"</param>
+				<param name="bufferSize">4096</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="downloadOtherLocaleAll" 
+			method="downloadExcelExportAll">
+		</action>
+		
+		<action name="searchOtherLocaleForAutoComplete" method="searchOtherLocaleForAutoComplete">
+			<result name="success" type="json">
+				<param name="root">autoCompleteDatas</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="fastSearch" method="fastSearch">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+	</package>
+</struts>

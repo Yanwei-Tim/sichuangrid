@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="floatingPopulationManage" extends="default" namespace="/baseinfo/floatingPopulationManage">
+		<default-class-ref class="floatingPopulationController"></default-class-ref>
+		<action name="dispath" method="dispath">
+			<result name="success">
+				/baseinfo/floatingPopulation/maintainFloatingPopulationDlg.jsp
+			</result>
+			<result name="view">
+				/baseinfo/floatingPopulation/viewFloatingPopulationDlg.jsp
+			</result>
+			<result name="print">
+				/baseinfo/commonPopulation/printTabPreviewDlg.jsp
+			</result>
+			<result name="workBench">
+				/workBench/issueManage/maintainFloatingPopulationDlg.jsp
+			</result>
+			
+		</action>
+		
+		<action name="dispathByEncrypt" method="dispathByEncrypt">
+			<result name="success">
+				/baseinfo/floatingPopulation/maintainFloatingPopulationDlg.jsp
+			</result>
+			<result name="view">
+				/baseinfo/floatingPopulation/viewFloatingPopulationDlg.jsp
+			</result>
+			<result name="print">
+				/baseinfo/commonPopulation/printTabPreviewDlg.jsp
+			</result>
+		</action>
+
+		<action name="dispathForGis" method="dispath">
+			<result name="view">
+				/baseinfo/floatingPopulation/viewFloatingPopulationDlg_gis.jsp
+			</result>
+		</action>
+
+		<action name="viewCommonPopulation" method="viewPopulation">
+			<result name="success">
+				/baseinfo/commonPopulation/viewCommonPopulation.jsp
+			</result>
+		</action>
+
+		<action name="viewInflowingPopulation" method="viewPopulation">
+			<result name="success">
+				/baseinfo/floatingPopulation/viewInflowingPopulation.jsp
+			</result>
+		</action>
+		
+		<action name="toHouseholdStaff" method="toHouseholdStaff">
+			<result name="success" type="json">
+				<param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="toHouseholdStaffByEncryptId" method="toHouseholdStaffByEncryptId">
+			<result name="success" type="json">
+				<param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="toHouseholdStaffByIds" method="toHouseholdStaffByIds">
+			<result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="getFloatingPopulationByIdForMobile" method="viewPopulation">
+			<result name="success" type="json">
+				<param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="addFloatingPopulationForMobile" method="addFloatingPopulationForMobile">
+			<result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="updateFloatingPopulationForMobile" method="updateFloatingPopulationForMobile">
+			<result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="dispathHouseInfo" method="dispathHouseInfo">
+			<result name="createHouseInfo">
+				/baseinfo/floatingPopulation/houseinfoDlg.jsp?orgId=${population.organization.id}
+			</result>
+			<result name="success" >
+				/baseinfo/floatingPopulation/houseinfoDlg.jsp?orgId=${population.organization.id}
+			</result>
+		</action>
+
+		<action name="dispathInflowingInfomation" method="dispathInflowingInfomation">
+			<result name="success">
+				/baseinfo/floatingPopulation/floatingPopulationDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="dispathInflowingInfomationForBusinessPopulation" method="dispathInflowingInfomationForBusinessPopulation">
+			<result name="success">
+				/baseinfo/floatingPopulation/floatingPopulationDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="dispathFloatingPopulationBaseInfo" method="dispathInflowingInfomation">
+			<result name="success">
+				/baseinfo/commonPopulation/populationBaseInfo.jsp
+			</result>
+		</action>
+
+		<action name="maintainFloatingPopulationBaseInfo" method="maintainFloatingPopulationBaseInfo">
+			<result name="success" type="json">
+				<param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="cacheSuccess" type="json">
+				<param name="root">cacheId</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="maintainInflowingInfomationForBusinessPopulation" method="maintainInflowingInfomationForBusinessPopulation">
+			<result name="success" type="json">
+				<param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="cacheSuccess" type="json">
+				<param name="root">cacheId</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="maintainHouseInfo" method="maintainHouseInfo">
+			<result name="success" type="json">
+				<param name="root">cacheId</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="findFloatingPopulations" method="findFloatingPopulations">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+		<action name="findFloatingPopulationsDefaultList" method="findFloatingPopulationsDefaultList">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</action>
+
+		<action name="searchFloatingPopulation" method="searchFloatingPopulation">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="fastSearchFloatingPopulation" method="fastSearchFloatingPopulation">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="saveFloatingPopulationInfo" method="maintainFloatingPopulationBusinessInfo">
+			<result type="json" name="success">
+				<param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="input">
+				<param name="root">cacheId</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="saveFloatingPopulationInfoToCache" method="saveFloatingPopulationInfoToCache">
+			<result type="json" name="success">
+				<param name="root">cacheId</param>
+			</result>
+		</action>
+
+		<action name="deleteFloatingPopulation" method="deleteFloatingPopulation">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+        </action>
+
+		<action name="hasDuplicateFloatingPopulation" method="hasDuplicateFloatingPopulation">
+			<result name="success" type="json">
+				<param name="root">hasDuplicateFloatingPopulation</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="checkCardNoIsRepeat" method="checkCardNoIsRepeat">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+
+		<action name="checkCardNoIsRepeatByEncryptId" method="checkCardNoIsRepeatByEncryptId">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+
+		<action name="updateEmphasiseById" method="updateLogOutOfFloatingPopulation">
+			<result type="json" name="success">
+				<param name="root">populationIdList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateLogOutOfFloatingPopulationByEncryptId" method="updateLogOutOfFloatingPopulationByEncryptId">
+			<result type="json" name="success">
+				<param name="root">populationIdList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateDeathOfFloatingPopulation" method="updateDeathOfFloatingPopulation">
+			<result type="json" name="success">
+				<param name="root">populationList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateDeathOfFloatingPopulationByEncryptId" method="updateDeathOfFloatingPopulationByEncryptId">
+			<result type="json" name="success">
+				<param name="root">populationList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="downloadFloatingPopulation" method="downloadFloatingPopulation">
+			<result name="success" type="stream">
+                <param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>
+                <param name="inputName">inputStream</param>
+                <param name="contentDisposition">attachment;filename="${downloadFileName}"</param>
+                <param name="bufferSize">4096</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="downloadFloatingPopulationAll" 
+			method="downloadExcelExportAll">
+		</action>
+		<action name="findFloatingPopulationByIdCardNoAndOrgId" method="findFloatingPopulationByIdCardNoAndOrgId">
+			<result type="json" name="success">
+				<param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+        <action name="shiftDispatch"  method="shiftDispatch">
+			<result name="success">
+				/common/shiftTree.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>     
+		<action name="shiftPerson" method="shiftPerson">
+			<result type="json">
+				<param name="root"></param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>	
+		
+		<action name="getActualPopulationHasTypes" method="getActualPopulationHasTypes">
+			<result name="success" type="json">
+				<param name="root">hasBusinessTypes</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

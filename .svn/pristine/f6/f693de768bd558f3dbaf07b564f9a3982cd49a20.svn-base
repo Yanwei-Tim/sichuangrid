@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="leaderTeams" >
+	<typeAlias alias="leaderTeams" type="com.tianque.domain.LeaderTeams"/>
+	<resultMap id="leaderTeamsResultMap" class="leaderTeams" >
+    	<result column="id" property="id"/>
+    	<result column="name" property="name"/>
+    	<result column="gender" property="gender"/>
+    	<result column="duty" property="duty"/>
+    	<result column="introduction" property="introduction"/>
+    	<result column="orgCode" property="orgCode"/>
+    	<result column="orgId" property="orgId"/>
+    	<result column="imageUrl" property="imageUrl"/>
+    	<result column="sort" property="sort"/>
+    	<result column="createUser" property="createUser"/>
+    	<result column="updateUser" property="updateUser"/>
+    	<result column="createDate" property="createDate"/>
+    	<result column="updateDate" property="updateDate"/>
+	</resultMap>
+	<select id="getLeaderTeamsById" resultMap="leaderTeamsResultMap" parameterClass="Long" >
+		select *
+		from leaderTeams
+		where ID = #value#
+	</select>
+	<select id="getLeaderTeamsListByOrgId" resultMap="leaderTeamsResultMap" parameterClass="leaderTeams" >
+		select *
+		from leaderTeams
+		<dynamic prepend="where">
+           <isPropertyAvailable property="orgId">
+                <isNotNull property="orgId" prepend="and">
+                        orgId = #orgId#
+                </isNotNull>
+            </isPropertyAvailable>
+       </dynamic>
+       order by sort asc
+	</select>
+	<delete id="deleteLeaderTeamsById" parameterClass="Long" >
+		delete from leaderTeams
+		where ID = #value# 
+	</delete>
+	
+	<insert id="addLeaderTeams" parameterClass="leaderTeams">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			select s_leaderTeams.NEXTVAL as id from dual
+		</selectKey>
+		insert into LeaderTeams
+		(
+		 id,name,gender,duty,introduction,orgCode,orgId,imageUrl,sort,createUser,updateUser,createDate,updateDate
+		)
+		values
+		(
+		 #id#,#name#,#gender#,#duty#,#introduction#,#orgCode#,#orgId#,#imageUrl#,#sort#,#createUser#,#updateUser#,#createDate#,#updateDate#
+		)
+			
+	</insert>
+	<update id="updateLeaderTeamsById" parameterClass="leaderTeams">
+		update LeaderTeams
+		  <dynamic prepend="set" >
+		  <isNotNull prepend="," property="name">
+		      name = #name#
+		  </isNotNull>
+		  <isNotNull prepend="," property="gender">
+		      gender = #gender#
+		  </isNotNull>
+		  <isNotNull prepend="," property="duty">
+		      duty = #duty#
+		  </isNotNull>
+		  <isNotNull prepend="," property="introduction">
+		      introduction = #introduction#
+		  </isNotNull>
+		  <isNotNull prepend="," property="orgCode">
+		      orgCode = #orgCode#
+		  </isNotNull>
+		  <isNotNull prepend="," property="orgId">
+		      orgId = #orgId#
+		  </isNotNull>
+		  <isNotNull prepend="," property="imageUrl">
+		      imageUrl = #imageUrl#
+		  </isNotNull>
+		  <isNotNull prepend="," property="sort">
+		      sort = #sort#
+		  </isNotNull>
+		  <isNotNull prepend="," property="createUser">
+		      createUser = #createUser#
+		  </isNotNull>
+		  <isNotNull prepend="," property="updateUser">
+		      updateUser = #updateUser#
+		  </isNotNull>
+		  <isNotNull prepend="," property="createDate">
+		      createDate = #createDate#
+		  </isNotNull>
+		  <isNotNull prepend="," property="updateDate">
+		      updateDate = #updateDate#
+		  </isNotNull>
+		 </dynamic>
+	    where id = #id#
+    </update>
+</sqlMap>

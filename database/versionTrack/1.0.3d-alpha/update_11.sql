@@ -1,0 +1,1 @@
+ alter table keyplaces  add emphasis  NUMBER(1)  default 0;

@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="incidentDealPlan">
+
+	<typeAlias alias="IncidentDealPlan" type="com.tianque.incident.domain.IncidentDealPlan"/>
+	<typeAlias alias="IncidentDealTeam" type="com.tianque.incident.domain.IncidentDealTeam"/>
+	<typeAlias alias="IncidentPlanStep" type="com.tianque.incident.domain.IncidentPlanStep"/>
+	<typeAlias alias="IncidentType" type="com.tianque.incident.domain.IncidentType"/>
+    <typeAlias alias="IncidentDegreeRule" type="com.tianque.incident.domain.component.IncidentDegreeRule"/>
+    
+    
+	<resultMap  id="incidentType" class="IncidentType">
+	   <result column="id" property="id" />
+	   <result column="name" property="name" />
+	   <result column="subjection"   property="subjection.id" />
+	   <result column="description"  property="description" />
+	   <result column="DEGREED"   property="degreed" />
+	</resultMap>
+	
+	<resultMap id="incidentDealPlan" class="IncidentDealPlan">
+	  <result column="id" property="id" />
+	  <result column="incidenttypeid" property="incidentType.id" />
+	  <result column="endrule" property="endRule" />
+	  <result column="degree" property="degree.id"/>
+	  <result column="endrule" property="endRule" />
+	  <result column="leadteam" property="leadTeam"/>
+	  <result column="complyteam" property="complyTeam"/>
+	</resultMap>
+	
+	<resultMap id="incidentDealTeam" class="IncidentDealTeam" >
+	  <result column="id" property="id" />
+	  <result column="incidentdealplanid" property="incidentDealPlan.id" />
+	  <result column="teamtype" property="teamType" />
+	  <result column="responsibility" property="responsibility" />
+	  <result column="composition" property="composition" />
+	  <result column="teamname" property="teamName"/>
+	  <result column="teamleader" property="teamLeader"/>
+	  <result column="teammember" property="teamMember"/>
+	</resultMap>
+	
+    <resultMap id="incidentPlanStep" class="IncidentPlanStep" >
+      <result column="id" property="id" />
+      <result column="incidentdealplanid" property="incidentDealPlan.id" />
+      <result column="seqindex" property="seqIndex" />
+      <result column="content" property="content" />
+    </resultMap>
+
+    <select id="getIncidentTypeTreeListByPropertyDictId" parameterClass="java.lang.Long" resultMap="incidentType">
+     select *  from incidenttypes where subjection = #value#
+    </select>
+    
+     <sql id="where_IncidentPlanStep">
+       from incidentplansteps  
+       <dynamic prepend="where">
+        <isPropertyAvailable property="id">
+         <isNotNull property="id" prepend="and" >
+             id  = #id#
+          </isNotNull>
+        </isPropertyAvailable>
+        <isPropertyAvailable property="incidentDealPlan">
+          <isNotNull property="incidentDealPlan" prepend="and" >
+              incidentdealplanid = #incidentDealPlan.id# 
+          </isNotNull>
+        </isPropertyAvailable>
+       </dynamic>
+     </sql>
+     <select id="countIncidentPlanStep" parameterClass="IncidentPlanStep" resultClass="java.lang.Integer">
+       select count(*) <include refid="where_IncidentPlanStep"/>
+      </select>
+     <select id="findIncidentPlanStep"  parameterClass="IncidentPlanStep" resultMap="incidentPlanStep">
+      select *  <include refid="where_IncidentPlanStep"/>
+      <dynamic prepend=" order by  ">
+	       <isPropertyAvailable property="sortField">
+	           <isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+	       </isPropertyAvailable>
+	  </dynamic>  
+    </select>
+     <select id="findMaxSeqIndexIncidentPlanStep" parameterClass="IncidentPlanStep" resultMap="incidentPlanStep">
+       select *  from incidentplansteps  where seqindex = (select max(seqindex) from  incidentplansteps inps where 
+            incidentdealplanid = #incidentDealPlan.id#  ) 
+       <isPropertyAvailable property="incidentDealPlan.id">
+          <isNotNull property="incidentDealPlan.id" prepend="and" >
+              incidentdealplanid = #incidentDealPlan.id# 
+          </isNotNull>
+        </isPropertyAvailable>
+    </select>
+    
+    <sql id="where_IncidentDealTeam">
+        from incidentdealteams
+        <dynamic prepend="where">
+        <isPropertyAvailable property="id">
+         <isNotNull property="id" prepend="and" >
+             id  = #id#
+          </isNotNull>
+        </isPropertyAvailable>
+        <isPropertyAvailable property="incidentDealPlan">
+          <isNotNull property="incidentDealPlan" prepend="and" >
+                    incidentdealplanid = #incidentDealPlan.id# 
+          </isNotNull>
+         </isPropertyAvailable>
+        <isPropertyAvailable property="teamType">
+          <isNotNull property="teamType" prepend="and" >
+              teamtype = #teamType#
+          </isNotNull>
+        </isPropertyAvailable>
+        </dynamic>
+    
+    </sql>
+    <select id="countIncidentDealTeams" parameterClass="IncidentDealTeam" resultClass="java.lang.Integer">
+     select count(*)  <include refid="where_IncidentDealTeam"/>
+    </select>
+	<select id="findIncidentDealTeams" parameterClass="IncidentDealTeam" resultMap="incidentDealTeam">
+	  select * 
+	  <include refid="where_IncidentDealTeam"/>
+	  <dynamic prepend=" order by  ">
+	       <isPropertyAvailable property="sortField">
+	           <isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+	       </isPropertyAvailable>
+	  </dynamic>  
+	</select>
+	<sql id="where_IncidentDealPlan">
+	   from incidentdealplans 
+	   <dynamic prepend="where">
+        <isPropertyAvailable property="id">
+          <isNotNull property="id" prepend="and" >
+            id = #id#
+          </isNotNull>
+        </isPropertyAvailable>
+        <isPropertyAvailable property="incidentType">
+           <isNotNull property="incidentType"  prepend="and" >
+               incidenttypeid= #incidentType.id#
+           </isNotNull>
+        </isPropertyAvailable>
+        <isPropertyAvailable property="degree">
+           <isNotNull property="degree" >
+              <isNotNull property="degree.id" prepend="and" >
+                 degree = #degree.id#
+               </isNotNull>
+          </isNotNull>
+        </isPropertyAvailable>
+      </dynamic>
+	</sql>
+    <select id="countIncidentDealPlan"  parameterClass="IncidentDealPlan"  resultClass="java.lang.Integer">
+      select count(*)  <include refid="where_IncidentDealPlan"/>
+    </select>
+   <select id="findIncidentDealPlan" parameterClass="IncidentDealPlan" resultMap="incidentDealPlan" >
+	   select * 
+	    <include refid="where_IncidentDealPlan"/>
+	    <dynamic prepend=" order by  ">
+	       <isPropertyAvailable property="sortField">
+	           <isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+	       </isPropertyAvailable>
+	    </dynamic>  
+   </select>
+   
+  
+   <insert id="addIncidentDealPlan" parameterClass="IncidentDealPlan" >
+       <selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_incidentdealplans.NEXTVAL as id from dual ]]>
+	   </selectKey>
+		insert into incidentdealplans (id,incidenttypeid,degree,endrule,leadteam,
+        complyteam,createuser,updateuser,createdate,updatedate) values(#id#,#incidentType.id#,#degree.id#,
+        #endRule#,#leadTeam#,#complyTeam#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+   </insert>
+    
+   <insert id="addIncidentDealTeams" parameterClass="IncidentDealTeam" >
+       <selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_incidentdealteams.NEXTVAL as id from dual ]]>
+	   </selectKey>
+	   insert into incidentdealteams (id,incidentdealplanid,teamtype,responsibility,composition,
+       teamname,teamleader,teammember,createuser,updateuser,createdate,updatedate) values(#id#,#incidentDealPlan.id#,
+       #teamType#,#responsibility#,#composition#,#teamName#,#teamLeader#,#teamMember#,#createUser#,#updateUser#,
+       #createDate#,#updateDate#)
+   </insert>
+    
+   <insert id="addIncidentPlanStep" parameterClass="IncidentPlanStep" >
+       <selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_incidentplansteps.NEXTVAL as id from dual ]]>
+	   </selectKey>
+	   insert into incidentplansteps (id,incidentdealplanid,seqindex,content,createuser,
+       updateuser,createdate,updatedate) values (#id#,#incidentDealPlan.id#,#seqIndex#,
+       #content#,#createUser#,#updateUser#, #createDate#,#updateDate#)
+   </insert>
+   
+   <update id="updateIncidentDealPlan" parameterClass="IncidentDealPlan">
+      update  incidentdealplans set endrule = #endRule#, updateuser = #updateUser# ,
+      updateDate = #updateDate#  where id = #id# 
+   </update>
+   
+   <update id="updateIncidentDealPlanTow" parameterClass="IncidentDealPlan">
+      update  incidentdealplans set leadteam=#leadTeam#,complyteam=#complyTeam#,
+      updateuser = #updateUser# ,updateDate = #updateDate#  where id = #id# 
+   </update>
+   
+   <update id="updateIncidentDealTeam" parameterClass="IncidentDealTeam">
+       update incidentdealteams set responsibility = #responsibility#,composition =#composition#,
+         teamname =#teamName#,teamleader =#teamLeader#,teammember=#teamMember#,
+         updateuser = #updateUser# ,updateDate = #updateDate# where id = #id#
+   </update>
+   
+   <update id="updateIncidentPlanStep" parameterClass="IncidentPlanStep">
+       update incidentplansteps set  seqindex =#seqIndex#, content=#content#,
+       updateuser =#updateUser# ,updateDate =#updateDate# where id =#id#
+   </update>
+   
+   <update id="updateIncidentPlanStepSeqIndex" parameterClass="IncidentPlanStep">
+      update incidentplansteps set  seqindex =#seqIndex# where id =#id#   
+   </update>
+   
+   
+   
+   <delete id="deleteIncidentDealPlan" parameterClass="IncidentDealPlan">
+		delete 
+        <include refid="where_IncidentDealPlan"/>
+   </delete>
+   
+   <delete id="deleteIncidentDealTeams" parameterClass="java.util.Map">
+        delete from incidentdealteams  
+        <dynamic prepend="where" >
+        <isPropertyAvailable property="incidentDealPlanId" >
+          <isNotNull property="incidentDealPlanId" prepend="and">
+              incidentdealplanid = #incidentDealPlanId# 
+           </isNotNull> 
+        </isPropertyAvailable>
+        <isPropertyAvailable property="teamType" >
+           <isNotNull property="teamType" prepend="and">
+           teamtype = #teamType#
+           </isNotNull>
+        </isPropertyAvailable>
+        <isPropertyAvailable property="idList">
+          <isNotNull property="idList" prepend="and">
+             id in 
+             <iterate open="("  close=")" conjunction="," property="idList">
+               #idList[]#
+             </iterate>
+          </isNotNull>
+        </isPropertyAvailable>
+        </dynamic>
+   </delete>
+   
+   <delete id="deleteIncidentPlanStep" parameterClass="java.util.Map">
+       delete from incidentplansteps 
+       <dynamic prepend="where" >
+           <isPropertyAvailable property="incidentDealPlanId" >
+              <isNotNull property="incidentDealPlanId" prepend="and">
+              incidentdealplanid = #incidentDealPlanId# 
+              </isNotNull> 
+          </isPropertyAvailable>
+         <isPropertyAvailable property="idList">
+          <isNotNull property="idList" prepend="and">
+             id in 
+             <iterate open="("  close=")" conjunction="," property="idList">
+               #idList[]#
+             </iterate>
+          </isNotNull>
+        </isPropertyAvailable>
+      </dynamic>
+   </delete>
+   
+</sqlMap>

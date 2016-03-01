@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="examineScoreRecord">
+	<typeAlias alias="ExamineScoreRecord" type="com.tianque.domain.ExamineScoreRecord" />
+
+	<resultMap id="examineScoreRecordResult" class="ExamineScoreRecord">
+		<result property="id" column="id" />
+		<result property="examineScoresId" column="examineScoresId" />
+		<result property="scoreContent" column="scoreContent" />
+		<result property="score" column="score" />
+		<result property="examineItem.id" column="examineItemId" />
+	</resultMap>
+
+	<insert id="addExamineScoreRecord" parameterClass="ExamineScoreRecord">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_ExamineScoreRecords.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		ExamineScoreRecords(id,examineScoresId,scoreContent,score,examineItemId)
+		VALUES(#id#,#examineScoresId#,#scoreContent#,#score#,#examineItem.id#)
+	</insert>
+
+	<select id="getSimpleExamineScoreRecordById" parameterClass="java.lang.Long"
+		resultMap="examineScoreRecordResult">
+		<![CDATA[
+		select * from ExamineScoreRecords where id=#value#
+		]]>
+	</select>
+
+	<delete id="deleteExamineScoreRecordById" parameterClass="java.lang.Long">
+		<![CDATA[
+		delete from ExamineScoreRecords where id=#value#
+		]]>
+	</delete>
+
+	<delete id="deleteExamineScoreRecordByExamineScoresId"
+		parameterClass="java.lang.Long">
+		<![CDATA[
+		delete from ExamineScoreRecords where examineScoresId=#value#
+		]]>
+	</delete>
+
+	<select id="findExamineScoreRecordsByExamineScoresId"
+		parameterClass="java.lang.Long" resultMap="examineScoreRecordResult">
+		<![CDATA[
+		select * from ExamineScoreRecords where examineScoresId=#value#
+		]]>
+	</select>
+</sqlMap>

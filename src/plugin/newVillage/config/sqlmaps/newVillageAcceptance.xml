@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="newVillageAcceptance">
+	<typeAlias alias="newVillageAssessmentVo"
+		type="com.tianque.newVillage.vo.NewVillageAssessmentVo" />
+	<!--查询累计数据-->
+	<resultMap id="cumulativeAcceptanceResult" class="newVillageAssessmentVo">
+		 <result property = "organization.id" column="orgId" /> 
+		 <result property = "characteristicPlanting" column="characteristicPlanting" /> 
+		 <result property = "capitaHousingArea" column="capitaHousingArea" /> 
+		 <result property = "recreationalActivitiesPeople" column="recreationalActivitiesPeople" /> 
+		 <result property = "socialWorkCenterArea" column="socialWorkCenterArea" /> 
+		 <result property = "villageRoad" column="villageRoad" /> 
+		 <result property = "villageHardenedRoad" column="villageHardenedRoad" /> 
+		 <result property = "drinkingWaterNum" column="drinkingWaterNum" /> 
+		 <result property = "involveHouseCount" column="involveHouseCount" /> 
+		 <result property = "sanitarySewage" column="sanitarySewage" /> 
+	</resultMap>
+	<!--查询最新数据-->
+	<resultMap id="currentAcceptanceResult" class="newVillageAssessmentVo">
+		  <result property = "organization.id" column="orgId" /> 
+		  <result property = "cultivatedLandArea" column="cultivatedLandArea" /> 
+		  <result property = "totalHouseholdsNum" column="totalHouseholdsNum" /> 
+		  <result property = "totalPeopleNum" column="totalPeopleNum" /> 
+		  <result property = "householdIncome" column="householdIncome" /> 
+		  <result property = "agriculturalIncome" column="agriculturalIncome" /> 
+		  <result property = "farmerPerIncome" column="farmerPerIncome" /> 
+		  <result property = "isAllStanding" column="isAllStanding" /> 
+		  <result property = "houseProblemCount" column="houseProblemCount" /> 
+		  <result property = "compulsoryEducationCount" column="compulsoryEducationCount" /> 
+		  <result property = "inCompulsoryEducationCount" column="inCompulsoryEducationCount" /> 
+		  <result property = "insuredNumber" column="insuredNumber" /> 
+		  <result property = "hasBuyInsurance" column="hasBuyInsurance" />
+		  <result property = "surveySatisfaction" column="surveySatisfaction" /> 
+		  <result property = "threeSatisfaction" column="threeSatisfaction" /> 
+		  <result property = "isPowerGrid" column="isPowerGrid" /> 
+		  <result property = "treatmentPollution" column="treatmentPollution" /> 
+		  <result property = "garbageDisposal" column="garbageDisposal" />
+	</resultMap>
+	
+	<sql id="baseinfoId_sql">
+		(select n.id from newvillagebasic n left join organizations org on n.orgid=org.id
+		where n.year=#year# and n.reportstatus=1 and n.isplaning=0 and n.checkstatus=1
+		and n.createDate in (select max(createDate) from newvillagebasic where year=#year# group by orgid)
+		group by n.orgid,n.id)
+		
+	</sql>
+	
+	<select id="findCumulativeNewVillageBasic" parameterClass="java.util.Map" resultMap="cumulativeAcceptanceResult">
+		select c1.orgid,sum(characteristicPlanting) characteristicPlanting,sum(capitaHousingArea) capitaHousingArea,sum(recreationalActivitiesPeople) recreationalActivitiesPeople,
+		sum(socialWorkCenterArea) socialWorkCenterArea,sum(villageRoad) villageRoad,sum(villageHardenedRoad) villageHardenedRoad,
+		sum(drinkingWaterNum) drinkingWaterNum,sum(involveHouseCount) involveHouseCount,sum(sanitarySewage) sanitarySewage
+		from IndustryDevelopment i left join newvillagebasic c1 on i.basicinfoid=c1.id  left join NewVillage n on c1.id=n.basicinfoid
+		left join CommonServiceInfo co on co.basicinfoid = c1.id left join Infrastructure it on it.basicinfoid = c1.id
+		left join EnvironmentalReform er on  er.basicinfoid=c1.id where c1.year = #year# and c1.reportstatus=1 and c1.isplaning=0 and c1.checkstatus=1 group by c1.orgid
+	</select>
+	
+	<select id="findcurrentNewVillageBasic" parameterClass="java.util.Map" resultMap="currentAcceptanceResult">
+		select b.orgId orgId,cultivatedLandArea,totalHouseholdsNum,totalPeopleNum,
+		isAllStanding,(noHouseCount+dangerousHouseCount+housingDifficultCount) houseProblemCount,householdIncome,agriculturalIncome,
+		farmerPerIncome,compulsoryEducationCount,inCompulsoryEducationCount,insuredNumber,hasBuyInsurance,
+		surveySatisfaction,threeSatisfaction,isPowerGrid,treatmentPollution,garbageDisposal
+		from basicyearinfo b
+		left join 
+		NewVillage n on b.basicinfoid = n.basicinfoid
+		left join 
+		FarmerPerIncomeInfo f on f.basicinfoid = b.basicinfoid
+		left join 
+		CommonServiceInfo c  on c.basicinfoid = b.basicinfoid
+		left join 
+		OrganizationConstruction o on o.basicinfoid = b.basicinfoid
+		left join 
+		Infrastructure it on it.basicinfoid = b.basicinfoid
+		left join 
+		EnvironmentalReform e on e.basicinfoid = b.basicinfoid
+		where b.basicinfoid in <include refid="baseinfoId_sql"/>
+	</select>
+	
+</sqlMap>

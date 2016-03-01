@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="dangerousChemicalsUnit">
+	<typeAlias alias="dangerousChemicalsUnit" type="com.tianque.baseInfo.dangerousChemicalsUnit.domain.DangerousChemicalsUnit" />
+
+	<resultMap id="dangerousChemicalsUnitResult" class="dangerousChemicalsUnit" extends="locationBaseInfo.locationBaseInfoResult">
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="unitName" property="unitName" />
+		<result column="unitAddress" property="unitAddress" />
+		<result column="superintendent" property="superintendent" />
+		<result column="telephone" property="telephone" />
+		<result column="unitType" property="unitType" />
+		<result column="commodityType" property="commodityType" />
+		<result column="copyScope" property="copyScope" />
+		<result column="storageDevice" property="storageDevice" />
+		<result column="logOutReason" property="logOutReason" />
+		<result column="logOutTime" property="logOutTime" />
+		<result column="fullPinyin" property="fullPinyin" />
+		<result column="simplePinyin" property="simplePinyin" />
+		<result column="remark" property="remark" />
+		<result property="imgUrl" column="imgUrl"/>
+		<result property="gisInfo.buildingId" column="buildingId" />
+        <result property="gisInfo.centerX" column="centerX" />
+        <result property="gisInfo.centerY" column="centerY" />
+        <result column="attentionExtent" property="attentionExtent.id"/>
+	</resultMap>
+	
+	<resultMap id="dangerousChemicalsUnitResultForList" class="dangerousChemicalsUnit" extends="locationBaseInfo.locationBaseInfoResultForList">
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="unitName" property="unitName" />
+		<result column="unitAddress" property="unitAddress" />
+		<result column="superintendent" property="superintendent" />
+		<result column="telephone" property="telephone" />
+		<result column="unitType" property="unitType" />
+		<result column="commodityType" property="commodityType" />
+		<result column="copyScope" property="copyScope" />
+		<result column="storageDevice" property="storageDevice" />
+		<result column="logOutReason" property="logOutReason" />
+		<result column="logOutTime" property="logOutTime" />
+		<result column="fullPinyin" property="fullPinyin" />
+		<result column="simplePinyin" property="simplePinyin" />
+		<result column="remark" property="remark" />
+		<result property="imgUrl" column="imgUrl"/>
+		<result property="gisInfo.buildingId" column="buildingId" />
+        <result property="gisInfo.centerX" column="centerX" />
+        <result property="gisInfo.centerY" column="centerY" />
+        <result column="attentionExtent" property="attentionExtent.id"/>
+        <result property="sourcesState" column="sourcesState"/>
+	</resultMap>
+
+	<insert id="addDangerousChemicalsUnit" parameterClass="dangerousChemicalsUnit">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_dangerousChemicalsUnit.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into dangerousChemicalsUnit
+		(
+			id,orgId,orgInternalCode,unitName,unitAddress,superintendent,telephone,unitType,commodityType,copyScope,storageDevice,
+			isEmphasis,logOutReason,logOutTime,createDate,createUser,updateDate,updateUser,fullPinyin,simplePinyin,remark,buildingId,centerX,centerY,imgUrl,attentionExtent,sourcesState
+		)
+		values
+		(
+			#id#,#organization.id#,#orgInternalCode#,#unitName#,#unitAddress#,#superintendent#,#telephone#,#unitType#,#commodityType#,#copyScope#,#storageDevice#,
+			#isEmphasis#,#logOutReason#,#logOutTime#,#createDate#,#createUser#,#updateDate#,#updateUser#,#fullPinyin#,#simplePinyin#,#remark#,
+            #gisInfo.buildingId#,#gisInfo.centerX#,#gisInfo.centerY#,#imgUrl#,#attentionExtent.id#,#sourcesState#
+		)
+	</insert>
+
+	<select id="getDangerousChemicalsUnitById" parameterClass="java.lang.Long" resultMap="dangerousChemicalsUnitResult">
+		<![CDATA[SELECT * FROM dangerousChemicalsUnit where id = #value#]]>
+	</select>
+	<select id="findDangerousChemicalsUnitByOrgId" parameterClass="map" resultMap="dangerousChemicalsUnitResult">
+		<![CDATA[SELECT * FROM dangerousChemicalsUnit where orgId = #orgId# ]]>
+	</select>
+
+	<delete id="deleteDangerousChemicalsUnitbyId" parameterClass="java.lang.Long">
+		delete from dangerousChemicalsUnit where id = #value#
+	</delete>
+	<update id="updateEmphasiseById" parameterClass="map">
+		update dangerousChemicalsUnit set isEmphasis=#isEmphasis#,logOutReason=#logOutReason# ,logOutTime = #logOutTime#
+		where id=#id#
+	</update>
+	<sql id="sql_where">
+		from dangerousChemicalsUnit
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend="and ">
+					<isEqual property="isEmphasis" compareValue="true">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+				<isNotNull property="isEmphasis" prepend="and ">
+					<isEqual property="isEmphasis" compareValue="false">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="unitName">
+				<isNotNull property="unitName" prepend=" and ">
+					unitName = #unitName#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+<select id="countDangerousChemicalsUnit" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+<select id="findDangerousChemicalsUnit" parameterClass="java.util.Map" resultMap="dangerousChemicalsUnitResultForList">
+		select dangerousChemicalsUnit.*,'$importantLocationType$' as locationType
+		<include refid="sql_where" />
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+<update id="updateDangerousChemicalsUnit" parameterClass="dangerousChemicalsUnit">
+		update dangerousChemicalsUnit set
+		 <dynamic>
+	      unitName=#unitName#
+            <isPropertyAvailable prepend="," property="organization">
+            	orgId=#organization.id#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="orgInternalCode">
+            	orgInternalCode=#orgInternalCode#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="unitAddress">
+            	unitAddress=#unitAddress#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="superintendent">
+            	superintendent=#superintendent#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="telephone">
+            	telephone=#telephone#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="unitType">
+            	unitType=#unitType#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="commodityType">
+            	commodityType=#commodityType#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="copyScope">
+            	copyScope=#copyScope#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="storageDevice">
+            	storageDevice=#storageDevice#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="isEmphasis">
+            	isEmphasis=#isEmphasis#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="logOutReason">
+            	logOutReason=#logOutReason#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="logOutTime">
+            	logOutTime=#logOutTime#
+             </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="remark">
+            	remark=#remark#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="imgUrl">
+            	imgUrl=#imgUrl#
+            </isPropertyAvailable>
+           <isPropertyAvailable prepend="," property="updateUser">
+            	updateUser=#updateUser#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="updateDate">
+            	updateDate=#updateDate#
+            </isPropertyAvailable>
+			<isNotEmpty property="fullPinyin" prepend=",">
+				fullPinyin = #fullPinyin#
+			</isNotEmpty>
+			<isNotEmpty property="simplePinyin" prepend=",">
+				simplePinyin = #simplePinyin#
+			</isNotEmpty>
+			<isNotEmpty property="gisInfo" prepend=",">
+			    buildingId = #gisInfo.buildingId#,
+			    centerX = #gisInfo.centerX#,
+			    centerY = #gisInfo.centerY#
+			</isNotEmpty>
+			<isNotNull prepend="," property="attentionExtent">
+				attentionExtent = #attentionExtent.id#
+			</isNotNull>
+			where id = #id#
+         </dynamic>
+	</update>
+
+
+	<select id="getDangerousChemicalsUnitByUnitName" parameterClass="java.util.Map"
+		resultMap="dangerousChemicalsUnitResult">
+		select * from dangerousChemicalsUnit where orgId=#orgId# and unitName=#unitName#
+	</select>
+	
+	<select id="getDangerousChemicalsUnitByMap" parameterClass="java.util.Map" resultMap="dangerousChemicalsUnitResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>

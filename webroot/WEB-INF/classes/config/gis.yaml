@@ -1,0 +1,75 @@
+###############################***地图配置文件***######################################
+# 说明：
+# mapType 在TQLayer.js中配置了多个类型的图层，可以通过修改过此值，来加载不同的地图
+#   sichuan 对应TQLayer.js中配置的图层的类型
+#如果地图服务部署两套，则有必要配置两套地图服务【production | development】
+#      production       对应服务器上的地图服务
+#      development    对应本地开发的地图服务
+#upgrade  如果需要隐藏地图(不允许绑定数据、网格员定位数据的录入)，设置为true，否则设置为false
+#isUseTqSearch 是否使用统一搜索查询数据
+#WFS  热区图层配置
+#     featureName    对应热区名称，如某个建筑物热区的名字【杭州大厦】
+#     featureId          对应热区的唯一性标识
+###################################################################################
+gis.indexmap: http://10.0.66.66:8080/openLayersMap/product_3.0/map.jsp
+gis.boundBuildData: http://10.0.66.66:8080/openLayersMap/product_3.0/gis2Dbuilddatas.jsp
+resource: resource/openLayersMap/js/OpenLayers/OpenLayers-min.js,resource/openLayersMap/js/readJs/Map.js,resource/openLayersMap/js/readJs/init.js
+integrationVersions: product3.0
+#change this value[true|false],query object from different db
+isUseTqSearch: false
+#change this value[true|false],show or hide map
+upgrade: false
+#change this value and layers to show different map
+mapType: sichuan
+sichuan: 
+   lon: 104.06654108315706
+   lat: 30.572269037513724
+   production: 
+          WFS: 
+             layerPath: http://192.168.20.253:8090/iserver/services/data-scWFSmap/wfs100/utf-8
+             featureType: scmap
+             featurePrefix: scmap
+             featureName: 名称
+             featureId: OID
+          M3D: 
+             layerPath: http://10.0.188.222:8699/FileService/image
+             resolutions: [1.40625, 0.703125, 0.3515625, 0.17578125, 0.087890625, 0.0439453125,0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125,0.001373291015625, 0.0006866455078125, 0.00034332275390625,0.000171661376953125, 0.0000858306884765625, 0.00004291534423828125,0.00002145767211914062, 0.00001072883605957031,0.00000536441802978515,0.000002682209014892578]
+          M2D: 
+             layerPath: http://10.0.188.222:8698/FileService/image
+             resolutions: [1.40625, 0.703125, 0.3515625, 0.17578125, 0.087890625, 0.0439453125,0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125,0.001373291015625, 0.0006866455078125, 0.00034332275390625,0.000171661376953125, 0.0000858306884765625, 0.00004291534423828125,0.00002145767211914062, 0.00001072883605957031,0.00000536441802978515,0.000002682209014892578]
+          MS: null
+   development: 
+          WFS: 
+             layerPath: http://119.6.63.65:8090/iserver/services/data-supermapdata/wfs100/utf-8
+             featureType: wusheng
+             featurePrefix: mapdata
+             featureName: 名称
+             featureId: OID
+          M3D: 
+             layerPath: http://42.120.49.194:8070/FileService/image
+             resolutions: [1.40625, 0.703125, 0.3515625, 0.17578125, 0.087890625, 0.0439453125,0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125,0.001373291015625, 0.0006866455078125, 0.00034332275390625,0.000171661376953125, 0.0000858306884765625, 0.00004291534423828125,0.00002145767211914062, 0.00001072883605957031,0.00000536441802978515,0.000002682209014892578]
+          M2D: 
+             layerPath: http://42.120.49.194:8698/FileService/image
+             resolutions: [1.40625, 0.703125, 0.3515625, 0.17578125, 0.087890625, 0.0439453125,0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125,0.001373291015625, 0.0006866455078125, 0.00034332275390625,0.000171661376953125, 0.0000858306884765625, 0.00004291534423828125,0.00002145767211914062, 0.00001072883605957031,0.00000536441802978515,0.000002682209014892578]
+          MS: null
+oldSichuan: 
+   lon: 104.06654108315706
+   lat: 30.572269037513724
+   WFS: 
+      layerPath: http://192.168.10.254:9010/wsrq1017_WFS/wfs
+      featureType: WS_RQ1017
+      featurePrefix: Map25D_YinchuanBuilding25D
+      featureName: 名称
+      featureId: OID
+   M3D: 
+      layerPath: http://10.0.188.200:9010/ws2013101725/wmts
+      layerLayers: wusheng251017
+   M2D: 
+      layerPath: http://10.0.188.200:9010/sc_all1017/services/tile
+      resolutions: [5.948652514575699E-4,2.9743262572878496E-4,1.522855043731379E-4,7.614275218656895E-5,3.8071376093284474E-5,1.9035688046642237E-5,9.517844023321119E-6,4.758922011660559E-6,2.3794610058302796E-6,1.1897305029151398E-6]
+   MS: null
+#videoServicePath
+videoServicePath: http://222.75.162.187:8080/RemoteRest/services/TempMap/TempVideo/MapServer/0/query
+#transformat 2.5D lonlat to 2D lonlat
+transformatPath: http://222.75.162.187:8080/RemoteRest/services/TempMap/TempImageBaseMap/MapServer/exts/AffineTransformationSOE/AffineTransformation
+transformatDepartmentNo: 511622

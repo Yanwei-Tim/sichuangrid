@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="investigationRemediationManage" extends="default"
+		namespace="/workingRecord/investigationRemediationManage">
+		<default-class-ref class="investigationRemediationController"></default-class-ref>
+		<action name="dispatch" method="dispatch">
+			<result name="PREPARE_ADD_REPORT">
+				/daily/statementsReported/investigationRemediation/maintainInvestigationRemediationDlg.jsp
+			</result>
+			<result name="PREPARE_UPDATE_MONTH_REPORT">
+				/daily/statementsReported/investigationRemediation/maintainInvestigationRemediationDlg.jsp
+			</result>
+			<result name="PREPARE_VIEW_MONTH_REPORT">
+				/daily/statementsReported/investigationRemediation/maintainInvestigationRemediationDlg.jsp
+			</result>
+			<result name="print">
+				/daily/statementsReported/investigationRemediation/maintainInvestigationRemediationPrintDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="investigationRemediationList" method="investigationRemediationList">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="getInvestigationRemediationByReportTime" method="getInvestigationRemediationByReportTime">
+			<result type="json">
+				<param name="root">investigationRemediation</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="addInvestigationRemediation" method="addInvestigationRemediation">
+			<result type="json">
+				<param name="root">investigationRemediation</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="updateInvestigationRemediation" method="updateInvestigationRemediation">
+			<result type="json">
+				<param name="root">investigationRemediation</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="deleteInvestigationRemediation" method="deleteInvestigationRemediation">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<action name="downloadInvestigationRemediation" method="downloadInvestigationRemediation">
+			<result name="success" type="stream">
+				<param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>
+				<param name="inputName">inputStream</param>
+				<param name="contentDisposition">attachment;filename="${downloadFileName}"</param>
+				<param name="bufferSize">4096</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="reportBack" method="reportBack">
+			<result  type="json">
+				<param name="root">investigationRemediation</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="reportInvestigationRemediation" method="reportInvestigationRemediation">
+			<result  type="json">
+				<param name="root">investigationRemediation</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="judgeReportCondition" method="judgeReportCondition">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+	</package>
+</struts>

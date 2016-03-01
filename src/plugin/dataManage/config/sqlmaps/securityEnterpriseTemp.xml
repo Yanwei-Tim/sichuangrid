@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="securityEnterpriseTemp">
+	<typeAlias alias="SecurityEnterpriseTemp" type="com.tianque.plugin.dataManage.location.securityEnterpriseTemp.domain.SecurityEnterpriseTemp" />
+	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+	
+	<resultMap id="securityEnterpriseTempResultForBase" class="SecurityEnterpriseTemp" extends="enterpriseTemp.enterpriseTempResultForBase">
+	</resultMap>
+	
+    <resultMap id="securityEnterpriseTempResultForList" class="SecurityEnterpriseTemp" extends="securityEnterpriseTemp.securityEnterpriseTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<sql id="claim_sql_where">
+		from DM_SecurityE_Temp d where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	<sql id="updateBusinessSql">
+		 type = #type.id#
+		,telephone = #telephone#
+		,mobileNumber = #mobileNumber#
+		,isRiskEnterprise = #isRiskEnterprise#
+		,hiddenCases = #hiddenCases#
+		,hiddenRectification = #hiddenRectification#
+		,attentionExtent=#attentionExtent.id#
+	</sql>
+	<insert id="addSecurityEnterpriseTemp" parameterClass="SecurityEnterpriseTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_SecurityE_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_SecurityE_Temp
+		(id,orgId,orgInternalCode,name,type,manager,address,attentionExtent,telephone,mobileNumber,
+		 isRiskEnterprise,hiddenCases,hiddenRectification,remark,createDate,createUser,
+		<include refid="dataManage.addDataManage"/>
+		)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#name#,#type.id#,#manager#,#address#,#attentionExtent.id#,#telephone#,#mobileNumber#,
+		#isRiskEnterprise#,#hiddenCases#,#hiddenRectification#,#remark#,#createDate#,#createUser#,
+		<include refid="dataManage.addValueDataManage"/>
+		)
+    </insert>
+    
+    <select id="findTempPageList" resultMap="securityEnterpriseTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select d.*,'securityKey' as keyType ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	 <update id="updateSecurityEnterpriseTempInIdById"  parameterClass="java.util.Map">
+		update DM_SecurityE_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<update id="updateSecurityEnterpriseTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_SecurityE_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	
+	<update id="updateSecurityEnterpriseTemp" parameterClass="SecurityEnterpriseTemp">
+		update DM_SecurityE_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="securityEnterpriseTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	
+	<select id="findTemps" resultMap="securityEnterpriseTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select d.*,'securityKey' as keyType ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countFindTemps" resultClass="java.lang.Integer"
+		parameterClass="searchVo">
+			select count(id)  <include refid="claim_sql_where" />
+	</select>
+	<select id="getSecurityEnterpriseTempById" parameterClass="long" resultMap="securityEnterpriseTempResultForList">
+		select d.*,'securityKey' as keyType from DM_SecurityE_Temp d where d.id=#value#
+	</select>
+	<!-- 修改场所信息 -->
+	<update id="updateSecurityEnterpriseTempInfo" parameterClass="SecurityEnterpriseTemp">
+		update DM_SecurityE_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="securityEnterpriseTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<delete id="deleteSecurityEnterpriseTempById" parameterClass="Long">
+	   delete DM_SecurityE_Temp where id = #value#
+	</delete>
+</sqlMap>

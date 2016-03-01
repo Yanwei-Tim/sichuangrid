@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="SysAttachment">
+	<typeAlias alias="SysAttachment" type="com.tianque.sysAttachment.domain.SysAttachment" />
+	<resultMap class="SysAttachment" id="sysAttachmentResult">
+		<result column="id" property="id" />
+		<result column="FILE_NAME" property="fileName" />
+		<result column="FILE_PATH" property="filePath" />
+		<result column="TARGET_TYPE" property="targetType" />
+		<result column="TARGET_ID" property="tragetId" />
+		<result column="FILE_TYPE" property="fileType" />
+		<result column="REAL_NAME" property="realName" />
+		<result column="CREATE_USER" property="createUser" />
+		<result column="UPDATE_USER" property="updateUser" />
+		<result column="UPDATE_DATE" property="updateDate" />
+		<result column="CREATE_DATE" property="createDate" />
+	</resultMap>
+	
+	<insert id="addSysAttachment" parameterClass="SysAttachment">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_SYS_ATTACHMENT.NEXTVAL as id from dual ]]>
+		</selectKey>
+			INSERT INTO SYS_ATTACHMENT(
+					ID,FILE_NAME,FILE_PATH,TARGET_TYPE,TARGET_ID,FILE_TYPE,REAL_NAME,CREATE_USER,UPDATE_USER,UPDATE_DATE,CREATE_DATE
+			)VALUES(
+					#id#,#fileName#,#filePath#,#targetType#,#tragetId#,#fileType#,#realName#,#createUser#,#updateUser#,#updateDate#,#createDate#
+			)
+	</insert>
+	
+	<select id="getSysAttachment" parameterClass="java.lang.Long">
+		select * from SYS_ATTACHMENT where id = #value#
+	</select>
+	
+	<select id="querySysAttachmentByTypeAndFileNameForList" parameterClass="map" resultMap="sysAttachmentResult">
+		select * from SYS_ATTACHMENT where TARGET_TYPE = #targetType# and REAL_NAME = #realName# and target_id = #tragetId#
+	</select>
+	
+	<delete id="deleteSysAttachment" parameterClass="java.lang.Long">
+		delete SYS_ATTACHMENT where id = #value#
+	</delete>
+	
+	<delete id="deleteSysAttachmentByTargetId" parameterClass="java.lang.Long">
+		delete SYS_ATTACHMENT where target_id = #value#
+	</delete>
+	
+	<delete id="deleteSysAttachmentByTargetIdAndType" parameterClass="map">
+		delete SYS_ATTACHMENT where target_id = #targetId# and TARGET_TYPE = #targetType#
+	</delete>
+</sqlMap>

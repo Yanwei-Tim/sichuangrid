@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="addressInfo">
+	<typeAlias alias="Countrymen" type="com.tianque.baseInfo.base.domain.Countrymen"/>
+	<typeAlias alias="AttentionPopulation" type="com.tianque.baseInfo.base.domain.AttentionPopulation"/>
+	
+	<resultMap id="populationAddressInfoResult" class="Countrymen">
+		<result column="id" property="id"  nullValue="0"/>
+		<result column="isHaveHouse" property="isHaveHouse"/>
+		<result column="noHouseReason" property="noHouseReason"/>
+		<result column="currentAddress" property="currentAddress" />
+		<result column="otherAddress" property="otherAddress" />
+		<result column="remark" property="remark" />
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+	</resultMap>
+	
+	<resultMap id="attentionPopulationGetAddressInfoResult" class="AttentionPopulation" extends="baseInfo.populationBaseInfoResult">
+		<result column="isHaveHouse" property="isHaveHouse"/>
+		<result column="noHouseReason" property="noHouseReason"/>
+		<result column="currentAddress" property="currentAddress" />
+		<result column="otherAddress" property="otherAddress" />
+		<result column="remark" property="remark" />
+	</resultMap>
+	
+	<sql id="addressInfoFields">
+		isHaveHouse,noHouseReason,currentAddress,otherAddress,remark
+	</sql>
+	
+	<sql id="joinAddressInfo">
+		left join addressInfo adds on uni.addressInfoId = adds.id 
+	</sql>
+	
+	<insert id="addAddressInfo" parameterClass="Countrymen">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_addressInfo.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into addressInfo (
+			id,createDate,createUser,updateUser,updateDate,isHaveHouse,noHouseReason,currentAddress,otherAddress,remark,addorgid,addorgcode
+		) values (
+			#id#,#createDate#,#createUser#,#updateUser#,#updateDate#,#isHaveHouse#,#noHouseReason#,#currentAddress#,#otherAddress#,#remark#,#organization.id#,#orgInternalCode#
+		)
+	</insert>
+	
+	<update id="updateAddressInfo" parameterClass="Countrymen">
+	     update addressInfo set 
+          	updateUser = #updateUser#,
+		 	updateDate = #updateDate#,
+		 	isHaveHouse = #isHaveHouse#,
+			noHouseReason = #noHouseReason#,
+			currentAddress = #currentAddress#,
+			otherAddress = #otherAddress#,
+			remark = #remark#
+		where id = #addressInfoId#
+	</update>
+
+    <delete id="deleteAddressInfo" parameterClass="java.lang.Long">
+    	delete from addressInfo where id=#value#
+    </delete>
+    
+	<select id="getAddressInfoById" parameterClass="java.lang.Long" resultMap="populationAddressInfoResult">
+	    select * from addressInfo where id=#value#
+	</select>
+	<select id="getAddressInfoByIdForList" parameterClass="java.util.List" resultMap="populationAddressInfoResult">
+		select * from addressInfo
+		<dynamic prepend=" WHERE ">
+			<isNotEmpty>
+				ID IN
+				<iterate conjunction="," open="(" close=")">#value[]#</iterate>
+			</isNotEmpty>
+			<isEmpty>ID = 0</isEmpty>
+		</dynamic>
+	</select>
+
+	<update id="updateAddressByPopulationTypeAndPopulationId" parameterClass="java.util.Map" >
+	   		<isEqual property="populationType" compareValue="householdStaff">
+			update addressInfo set CURRENTADDRESS=#houseAddress# where id = 
+			(select addressInfoId from householdStaffs_$shardCode$ where id = #populationId#) 
+			</isEqual>
+			<isEqual property="populationType" compareValue="floatingPopulation">
+			update addressInfo set CURRENTADDRESS=#houseAddress# where id = 
+			(select addressInfoId from floatingPopulations where id = #populationId#) 
+			</isEqual>
+			<isEqual  property="populationType" compareValue="unsettledPopulation">
+			update unsettledPopulations set CURRENTADDRESS=#houseAddress# where id = #populationId#
+			</isEqual>
+			<isEqual property="populationType" compareValue="overseaStaff">
+			update overseapersonnel set CURRENTADDRESS=#houseAddress# where id = #populationId#
+			</isEqual>
+	</update>
+	
+	<select id="getAddressCount" resultClass="java.lang.Integer" parameterClass="java.lang.Long">
+	<![CDATA[
+		select count(*) from addressInfo where addorgid is null
+		 ]]>
+	</select>
+	
+	<select id="getAddressIds" resultClass="java.lang.Long" parameterClass="java.util.Map">
+		<![CDATA[
+		select id
+		  from (select id, rownum rn from addressInfo where rownum < #end# and addorgid is null order by id) t
+		 where t.rn >= #start#
+		 ]]>
+	</select>
+	
+	<update id="updateAddressOrgById" parameterClass="java.util.Map">
+		update addressInfo set addorgid = #orgId#, addorgcode = #orgCode# where id = #id#
+	</update>
+	
+	<parameterMap  id="callsMap" class="java.util.Map">    
+        <parameter property="tableName" jdbcType="varchar2" javaType="java.lang.String" mode="IN" />    
+    </parameterMap>
+	<procedure id="updateAddressByTable" parameterMap="callsMap">
+		{call update_addressinfo_org (?)} 
+	</procedure>
+	
+</sqlMap>

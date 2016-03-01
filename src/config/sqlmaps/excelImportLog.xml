@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="excelImportLog">
+	<typeAlias alias="ExcelImportLog" type="com.tianque.baseInfo.excelimportlog.domain.ExcelImportLog"/>
+	<typeAlias alias="ExcelImportLogVO" type="com.tianque.baseInfo.excelimportlog.domain.ExcelImportLogVO"/>
+	
+	
+	<resultMap class="ExcelImportLog" id="excelImportLogResult">
+		<result property="id" column="id"/>
+		<result property="uuid" column="uuid"/>
+		<result property="fileName" column="fileName"/>
+		<result property="fileType" column="fileType"/>
+		<result property="status" column="status"/>
+		<result property="importDataNum" column="importDataNum"/>
+		<result property="currentDealNum" column="currentDealNum"/>
+		<result property="errorCountNum" column="errorCountNum"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateDate" column="updateDate"/>	
+		<result property="importModuleName" column="importModuleName"/>
+		<result property="organizationId.id" column="organizationId"/>
+		<result property="organizationId.orgInternalCode" column="orginternalcode"/>
+	</resultMap>
+	
+	<sql id="sql_where_search">
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="importModuleName" prepend=" and ">
+				 importModuleName=#importModuleName# 
+			</isNotEmpty>
+			<isNotEmpty property="organizationId" prepend=" and ">
+				 orgInternalCode like #organizationId.orgInternalCode#||'%' 
+			</isNotEmpty>
+			<isNotEmpty property="startTime" prepend=" and ">
+				 updateDate >=#startTime#
+			</isNotEmpty>
+			<isNotEmpty property="endTime" prepend=" and ">
+				<![CDATA[updateDate<=#endTime#]]> 
+			</isNotEmpty>
+			<isNotEmpty property="operateName" prepend=" and ">
+				 createUser like #operateName#||'%'
+			</isNotEmpty>
+			<isEqual property="status" prepend=" and " compareValue="1">
+			 errorCountNum > 0
+			</isEqual>
+			<isEqual property="status" prepend=" and " compareValue="0">
+			 errorCountNum = 0
+			</isEqual>
+		</dynamic>		
+	</sql> 
+	
+	<insert id="addImportLog" parameterClass="ExcelImportLog">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+		<![CDATA[SELECT S_excelimportlog.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into excelimportlog(id,uuid,fileName,fileType,status,importDataNum,currentDealNum,errorCountNum,createUser,createDate,importModuleName,organizationId,orginternalcode)
+		values(#id#,#uuid#,#fileName#,#fileType#,#status#,#importDataNum#,#currentDealNum#,#errorCountNum#,#createUser#,#createDate#,#importModuleName#,#organizationId.id#,#organizationId.orgInternalCode#) 
+	</insert>
+	
+	<update id="updateImportLogCurrentNum" parameterClass="java.util.Map">
+		update excelimportlog set currentDealNum=#currentDealNum#,errorCountNum=#errorCountNum# where uuid=#uuid#
+	</update>
+	
+	<update id="updateImportStatus" parameterClass="java.util.Map">
+		update excelimportlog set status=#status#,updateDate=#updateDate# where uuid=#uuid#
+	</update>
+	<sql id="sql_where">
+		<dynamic prepend=" WHERE ">
+			<isPropertyAvailable property="status">
+				<isNotNull property="status" prepend=" and ">
+					status=#status# 
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="createUser">
+				<isNotNull property="createUser" prepend=" and ">
+					createUser=#createUser# 
+				</isNotNull>
+			</isPropertyAvailable>
+		 </dynamic>
+	</sql>
+	<select id="countSearchImportLog" parameterClass="map" resultClass="int">
+		select count(h.id) from excelimportlog h   
+		<include refid="sql_where" />
+		 <dynamic prepend="order by">
+		 	<isNotNull property="sortField">$sortField$</isNotNull>
+		 	<isNotNull property="order">$order$</isNotNull>
+		</dynamic>
+	</select>
+	<select id="searchImportLog" parameterClass="map" resultMap="excelImportLogResult">
+		select id,uuid,fileName,fileType,status,importDataNum,currentDealNum,errorCountNum,createUser,createDate,updateDate,importModuleName,organizationId,orgInternalCode
+		from excelimportlog 
+		<include refid="sql_where" />
+		 <dynamic prepend="order by">
+		 	<isNotNull property="sortField">$sortField$</isNotNull>
+		 	<isNotNull property="order">$order$</isNotNull>
+		</dynamic>
+	</select>
+	
+	<select id="searchImportLogHasName" parameterClass="map" resultMap="excelImportLogResult">
+		select g.id,g.uuid,g.fileName,g.fileType,g.status,g.importDataNum,g.currentDealNum,
+		g.errorCountNum,g.createUser,g.createDate,g.updateDate,g.importModuleName,g.organizationId,g.orgInternalCode
+		from excelimportlog g where 1=1
+		<isPropertyAvailable property="status">
+			<isNotNull property="status" prepend=" and ">
+				g.status=#status# 
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="createUser">
+			<isNotNull property="createUser" prepend=" and ">
+				g.createUser=#createUser# 
+			</isNotNull>
+		</isPropertyAvailable>
+		 <dynamic prepend="order by">
+		 	<isNotNull property="sortField">$sortField$</isNotNull>
+		 	<isNotNull property="order">$order$</isNotNull>
+		</dynamic>
+	</select>
+	
+	<select id="selectExcelimportlog" parameterClass="ExcelImportLogVO" resultMap="excelImportLogResult">
+		select g.id,g.uuid,g.fileName,g.fileType,g.status,g.importDataNum,g.currentDealNum,g.errorCountNum,
+			   g.createUser,g.createDate,g.updateDate,g.importModuleName,g.organizationId,g.orgInternalCode
+		from excelimportlog g where 1=1
+		<isNotEmpty property="importModuleName" prepend=" and ">
+			 g.importModuleName=#importModuleName# 
+		</isNotEmpty>
+		<isNotEmpty property="organizationId" prepend=" and ">
+			 g.orgInternalCode like #organizationId.orgInternalCode#||'%' 
+		</isNotEmpty>
+		<isNotEmpty property="startTime" prepend=" and ">
+			 g.updateDate >=#startTime#
+		</isNotEmpty>
+		<isNotEmpty property="endTime" prepend=" and ">
+			<![CDATA[g.updateDate<=#endTime#]]> 
+		</isNotEmpty>
+		<isNotEmpty property="operateName" prepend=" and ">
+			 g.createUser like #operateName#||'%'
+		</isNotEmpty>
+		<isEqual property="status" prepend=" and " compareValue="1">
+		 g.errorCountNum > 0
+		</isEqual>
+		<isEqual property="status" prepend=" and " compareValue="0">
+		 g.errorCountNum = 0
+		</isEqual>	
+		 <dynamic prepend="order by">
+		 	<isNotNull property="sortField">$sortField$</isNotNull>
+		 	<isNotNull property="order">$order$</isNotNull>
+		</dynamic>
+	</select>
+	<select id="countSelectExcelimportlog" parameterClass="ExcelImportLogVO" resultClass="java.lang.Integer">
+		select count(e.id)
+			from excelimportlog e
+		<include refid="sql_where_search" />
+	</select>
+	<delete id="excelImportLogClean" parameterClass="java.util.Map">
+		<![CDATA[delete from excelimportlog e where e.createdate<=#cleanTime# ]]>
+	</delete>
+	
+	<select id="getExcelimportlogById" parameterClass="java.lang.Long" resultMap="excelImportLogResult">
+		select * from excelimportlog where id = #value#
+	</select>
+</sqlMap>

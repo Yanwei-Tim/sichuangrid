@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gridterm">
+
+	<typeAlias alias="GridTerm" type="com.tianque.domain.GridTerm" />
+	<parameterMap id="gridTermParams" class="GridTerm">
+		<parameter property="id" />
+		<parameter property="termNo" />
+		<parameter property="sysDefaultName" />
+		<parameter property="specificName" />
+		<parameter property="moduleName" />
+	</parameterMap>
+
+	<resultMap id="gridTermResult" class="GridTerm">
+		<result property="id" column="id" />
+		<result property="termNo" column="termNo" />
+		<result property="sysDefaultName" column="sysDefaultName" />
+		<result property="specificName" column="specificName" />
+		<result property="moduleName" column="moduleName" />
+	</resultMap>
+
+	<insert id="addGridTerm" parameterClass="GridTerm">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_gridterms.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO gridterms(id,termNo,sysDefaultName,specificName,moduleName)
+		VALUES(#id#,#termNo#,#sysDefaultName#,#specificName#,#moduleName#)
+	</insert>
+
+	<select id="findById" parameterClass="long"
+		resultClass="GridTerm">
+		select * from gridterms where id=#value#
+	</select>
+
+	<select id="findByTermNo" parameterClass="string"
+		resultClass="GridTerm">
+		select * from gridterms where termNo=#value#
+	</select>
+
+	<update id="updateGridTerm" parameterClass="GridTerm">
+		update gridterms set
+		specificName=#specificName# where id=#id#
+	</update>
+	
+	<select id="findByModuleName" parameterClass="string"
+		resultMap="gridTermResult">
+		select * from gridterms where moduleName=#value#
+	</select>
+</sqlMap>

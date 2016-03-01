@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+    
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="workDiaryManage" extends="default"
+		namespace="/dailyLog/workDiaryManage">
+		<default-class-ref class="workDiaryController"></default-class-ref>
+		
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/daily/workDiary/maintainWorkDiaryDlg.jsp
+			</result>
+			<result name="workBench">
+				/workBench/issueManage/maintainWorkDiaryDlg.jsp
+			</result>
+			<result name="search">
+				/daily/workDiary/searchWorkDiaryCondition.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="addWorkDiary" method="addWorkDiary">
+			<result type="json" name="success">
+				<param name="root">workDiary</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="findWorkDiaryForPageByOrgId" method="findWorkDiaryForPageByOrgId">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="editWorkDiary" method="updateWorkDiary">
+			<result type="json" name="success">
+				<param name="root">workDiary</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="deleteWorkDiaryById" method="deleteWorkDiaryById">
+			<result name="success" type="json">
+				<param name="root">deleteIds</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="permanentAddressLog">
+	<typeAlias alias="PermanentAddressLog" type="com.tianque.baseInfo.permanentAddress.domain.PermanentAddressLog" />
+	<resultMap id="permanentAddressLogResult" class="PermanentAddressLog">
+		<result property="id" column="id"/>
+		<result property="province" column="province"/>
+		<result property="city" column="city"/>
+		<result property="district" column="district"/>
+		<result property="addslevel" column="addslevel"/>
+		<result property="addressNo" column="addressNo"/>
+		<result property="changedName" column="changedName"/>
+		<result property="optionType" column="optionType"/>
+		<result property="jobState" column="jobState"/>
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+
+	<sql id="com_orderBy_sql_where">
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<sql id="propertys">
+		id,province,city,district,addslevel,addressNo,changedName,optionType,jobState,createUser,updateUser,createDate,updateDate
+	</sql>
+
+	<insert id="addPermanentAddressLog" parameterClass="PermanentAddressLog" >
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			select S_PERMANENTADDRESSLOG.NEXTVAL AS id from dual
+		</selectKey>
+		insert into PERMANENTADDRESSLOG 
+			( <include refid="propertys"/> ) 
+		values 
+			(#id#,#province#,#city#,#district#,#addslevel#,#addressNo#,#changedName#,#optionType#,#jobState#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	<delete id="deletePermanentAddressLog" parameterClass="java.lang.Long">
+		delete from PERMANENTADDRESSLOG where id = #id#
+	</delete>
+	
+	<sql id="updateSql">
+		province = province,
+		city = city,
+		district = district,
+		addslevel = addslevel,
+		addressNo = addressNo,
+		changedName = changedName,
+		optionType = optionType,
+		jobState = jobState,
+		updateUser = updateUser,
+		updateDate = updateDate
+	</sql>
+	
+	<update id="updatePermanentAddressLog" parameterClass="PermanentAddressLog">
+		update PERMANENTADDRESSLOG set 
+			<include refid="updateSql"/>
+			where id = id
+	</update>
+	
+	<select id="getPermanentAddressLogById" parameterClass="java.lang.Long" resultMap="permanentAddressLogResult">
+		select <include refid="propertys"/>
+			from PERMANENTADDRESSLOG 
+			where id = #id#
+	</select>
+	
+	<select id="findPermanentAddressLogByJobstatus" parameterClass="java.lang.Integer" resultMap="permanentAddressLogResult">
+		select <include refid="propertys"/>
+			from PERMANENTADDRESSLOG 
+			where JOBSTATE = #value# order by id asc
+	</select>
+	
+	<update id="updatePermanentAddressLogJobstatus" parameterClass="map">
+		update PERMANENTADDRESSLOG set JOBSTATE = #jobState# where id=#id#
+	</update>
+	<select id="findAllPermanentAddressLog" resultMap="permanentAddressLogResult">
+		select * from  permanentaddresslog
+		<include refid="com_orderBy_sql_where" />
+	</select>
+	
+	<select id="countFindAllPermanentAddressLog" resultClass="java.lang.Integer">
+		select count(*) from permanentaddresslog 
+	</select>
+	
+	<delete id="deleteLogByIds">
+		delete permanentaddresslog where 
+		 <iterate conjunction="," open=" id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	
+	<select id="findPermanentAddressLogByJobstatusAndIds" resultMap="permanentAddressLogResult">
+		select * from permanentaddresslog where id in 
+		<iterate conjunction="," open="(" close=")">
+				#[]#
+		</iterate>
+	</select>
+</sqlMap>

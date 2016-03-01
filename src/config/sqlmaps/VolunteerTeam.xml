@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		CREATEDATE as createDate ,
+		UPDATEDATE as updateDate ,
+		ORGID as orgId ,
+		BELONGORG as belongOrg ,
+		ORGINTERNALCODE as orgInternalCode ,
+		CREATEUSER as createUser ,
+		UPDATEUSER as updateUser ,
+		NAME as name ,
+		SERVICEDIRECTION as serviceDirection ,
+		REMARK as remark 
+	FROM VOLUNTEER_TEAM	
+ -->	
+<sqlMap namespace="volunteerTeam">	
+	
+	<typeAlias alias="VolunteerTeam" type="com.tianque.partyBuilding.volunteerTeam.domain.VolunteerTeam"/>
+	<typeAlias alias="SearchVolunteerTeamVo" type="com.tianque.partyBuilding.volunteerTeam.domain.vo.SearchVolunteerTeamVo" />
+	
+	<resultMap id="volunteerTeamResult" class="VolunteerTeam">
+		<result property="id" column="ID"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="organization.id" column="ORGID"/>
+		<result property="belongOrg.id" column="BELONGORG"/>
+		<result property="orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="name" column="NAME"/>
+		<result property="serviceDirection" column="SERVICEDIRECTION"/>
+		<result property="remark" column="REMARK"/>
+	</resultMap>
+	<resultMap id="memberNumResult" extends="volunteerTeamResult" class="VolunteerTeam">
+		<result property="memberNum" column="memberNum"/>
+	</resultMap>
+
+
+	<select id="getVolunteerTeamById" parameterClass="java.lang.Long" resultMap="volunteerTeamResult">
+		select * from VOLUNTEER_TEAM where id=#value#
+	</select>
+	
+	<insert id="addVolunteerTeam" parameterClass="VolunteerTeam">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_VOLUNTEER_TEAM.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into VOLUNTEER_TEAM (ID , CREATEDATE , UPDATEDATE , ORGID , BELONGORG , ORGINTERNALCODE , CREATEUSER , UPDATEUSER , NAME , SERVICEDIRECTION , REMARK ) 
+		values(#id#, #createDate#, #updateDate#, #organization.id#, #belongOrg.id#, #orgInternalCode#, #createUser#, #updateUser#, #name#, #serviceDirection#, #remark#)	
+	</insert>
+	
+	<update id="updateVolunteerTeam" parameterClass="VolunteerTeam">
+		update VOLUNTEER_TEAM set id = #id# 
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="organization">
+					ORGID = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="belongOrg">
+					BELONGORG = #belongOrg.id#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="name">
+					NAME = #name#
+				</isNotNull>
+				<isNotNull prepend="," property="serviceDirection">
+					SERVICEDIRECTION = #serviceDirection#
+				</isNotNull>
+				<isNotNull prepend="," property="remark">
+					REMARK = #remark#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteVolunteerTeamById" parameterClass="java.lang.Long">	
+		delete  from VOLUNTEER_TEAM where id = #value#	
+	</delete>
+	
+	<sql id="findVolunteerTeamsBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="belongOrg">
+				<isNotEmpty prepend="and" property="belongOrg">
+					BELONGORG = #belongOrg#
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="name">
+				<isNotEmpty prepend="and" property="name">
+					NAME  like #name# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="serviceDirection">
+				<isNotEmpty prepend="and" property="serviceDirection">
+					SERVICEDIRECTION  like #serviceDirection# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>				
+			<isPropertyAvailable property="remark">
+				<isNotEmpty prepend="and" property="remark">
+					REMARK  like #remark# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isNotEmpty  property="displayLevel">
+				<isEqual property="displayLevel" prepend="and" compareValue="sameGrade">
+					 orgInternalCode = #orgInternalCode# 	
+				</isEqual>	
+				<isEqual property="displayLevel" prepend="and" compareValue="directJurisdiction">
+					 orgInternalCode like #orgInternalCode#||'__' 	
+				</isEqual>	
+				<isEqual property="displayLevel" prepend="and" compareValue="allJurisdiction">
+					 orgInternalCode like #orgInternalCode#||'%' 	
+				</isEqual>	
+			</isNotEmpty>		
+		</dynamic>
+	</sql>
+	<select id="findVolunteerTeamsBySearchVo" parameterClass="SearchVolunteerTeamVo" resultMap="memberNumResult">
+		select * from VOLUNTEER_TEAM 
+		left join (select teamId, count(*) memberNum from VOLUNTEER_MEMBER group by teamId) m on m.teamid = id
+		<include refid="findVolunteerTeamsBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countVolunteerTeamsBySearchVo" parameterClass="SearchVolunteerTeamVo" resultClass="java.lang.Integer">
+		select count(0) from VOLUNTEER_TEAM
+		<include refid="findVolunteerTeamsBySearchVo_sql_where" />
+	</select>
+	
+	<select id="getByOrgIdAndName" parameterClass="java.util.Map" resultMap="volunteerTeamResult">
+		select * from VOLUNTEER_TEAM where orgId = #orgId# and name = #name# and rownum=1
+	</select>
+
+</sqlMap>

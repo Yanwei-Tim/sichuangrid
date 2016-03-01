@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="keyWords">
+	<typeAlias alias="keyWord"
+		type="com.tianque.plugin.weChat.domain.user.KeyWord" />
+
+	<resultMap id="KeyWordResult" class="keyWord">
+		<result property="id" column="KEYWORD_ID" />
+		<result property="keyName" column="KEY_NAME" />
+		<result property="keyRemark" column="KEY_REMARK" />
+		<result property="sourceId" column="SOURCE_Id" />
+		<result property="sourceDescription" column="source_description" />
+		<result property="sourceTypeDict.id" column="source_type" />
+		<result property="weChatUserId" column="WECHATUSERID" />
+		<result property="org.id" column="org_id" />
+		<result property="org.orgInternalCode" column="ORGINTERNALCODE" />
+
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	<update id="updateKeyWord" parameterClass="keyWord">
+		update keyword set
+		<dynamic>
+			KEYWORD_ID=#id#
+			<isNotNull prepend="," property="keyName">
+				KEY_NAME=#keyName#
+			</isNotNull>
+			<isNotNull prepend="," property="keyRemark">
+				KEY_REMARK=#keyRemark#
+			</isNotNull>
+			<isNotNull prepend="," property="sourceId">
+				SOURCE_Id=#sourceId#
+			</isNotNull>
+			<isNotNull prepend="," property="sourceDescription">
+				source_description=#sourceDescription#
+			</isNotNull>
+			<isNotNull prepend="," property="sourceTypeDict.id">
+				source_type=#sourceTypeDict.id#
+			</isNotNull>
+			<isNotNull prepend="," property="weChatUserId">
+				WECHATUSERID=#weChatUserId#
+			</isNotNull>
+			<isNotNull prepend="," property="org.id">
+				org_id=#org.id#
+			</isNotNull>
+			<isNotNull prepend="," property="org.orgInternalCode">
+				ORGINTERNALCODE=#org.orgInternalCode#
+			</isNotNull>
+
+			<isNotNull prepend="," property="createUser">
+				createUser=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="createDate">
+				createDate=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+
+		</dynamic>
+		WHERE KEYWORD_ID=#id#
+	</update>
+	
+		<update id="updateKeyWordBySourceId" parameterClass="keyWord">
+		update keyword set
+		<dynamic>
+			SOURCE_Id=#sourceId#
+			<isNotNull prepend="," property="sourceDescription">
+				source_description=#sourceDescription#
+			</isNotNull>
+			<isNotNull prepend="," property="sourceTypeDict.id">
+				source_type=#sourceTypeDict.id#
+			</isNotNull>
+
+			<isNotNull prepend="," property="createUser">
+				createUser=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="createDate">
+				createDate=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+
+		</dynamic>
+		WHERE	SOURCE_Id=#sourceId#
+	</update>
+
+	<insert id="saveKeyWord" parameterClass="keyWord">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT s_KEYWORD.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		insert into keyword
+		(KEYWORD_ID,KEY_NAME,KEY_REMARK,SOURCE_Id,source_description,source_type,WECHATUSERID,org_id,ORGINTERNALCODE,createUser,updateUser,createDate,updateDate)
+		values
+		(#id#,#keyName#,#keyRemark#,#sourceId#,#sourceDescription#,#sourceTypeDict.id#,#weChatUserId#,#org.id#,#org.orgInternalCode#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	</insert>
+	<sql id="sql_where">
+		<dynamic>
+				<isNotEmpty prepend=" and " property="keyWord.keyName">
+					k.KEY_NAME like '%'||#keyWord.keyName#||'%'
+				</isNotEmpty>
+			    <isGreaterThan property="keyWord.sourceTypeDict.id" prepend=" and " compareValue ="0">
+					k.source_type =#keyWord.sourceTypeDict.id#
+				</isGreaterThan>
+				<isNotEmpty prepend=" and " property="keyWord.weChatUserId">
+					k.WECHATUSERID = #keyWord.weChatUserId#
+				</isNotEmpty>
+				<isNotEmpty prepend=" and " property="keyWord.org.id">
+					k.org_id = #keyWord.org.id#
+				</isNotEmpty>
+		</dynamic>
+	</sql>
+
+	<select id="countFindKeyWords" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		select count(*) from keyword k where 1=1
+		<include refid="sql_where" />
+	</select>
+
+	<select id="getCountByWeChatUserId" parameterClass="java.lang.String"
+		resultClass="java.lang.Long">
+		select count(*) from keyword k where
+		k.weChatUserId=#weChatUserId#
+	</select>
+	
+	<select id="getKeyWordByWeChatUserId" parameterClass="java.lang.String"
+		resultMap="KeyWordResult">
+		select * from keyword k where
+		k.weChatUserId=#weChatUserId#  order by updateDate DESC
+	</select>
+
+	<select id="getKeyWordByWeChatIdAndKeyName" parameterClass="keyWord"
+		resultMap="KeyWordResult">
+		SELECT * FROM keyword k WHERE k.WECHATUSERID=#weChatUserId#
+		and k.KEY_NAME=#keyName#
+	</select>
+
+	<select id="getKeyWordById" parameterClass="java.lang.Long"
+		resultMap="KeyWordResult">
+		SELECT * FROM keyword k WHERE k.KEYWORD_ID=#value#
+	</select>
+	
+	<select id="getKeyWordBySourceId" parameterClass="java.lang.String"
+		resultMap="KeyWordResult">
+		SELECT * FROM keyword k WHERE k.SOURCE_Id like '%'||#value#||'%'
+	</select>
+
+	<delete id="deleteKeyWordById" parameterClass="java.lang.Long">
+		delete from
+		keyword WHERE KEYWORD_ID=#value#
+	</delete>
+	
+	<delete id="deleteKeyWordByWeChatUserId" parameterClass="java.lang.String">
+		delete from
+		keyword WHERE WECHATUSERID=#value#
+	</delete>
+	<select id="findKeyWord" parameterClass="java.util.Map"
+		resultMap="KeyWordResult">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_start" />
+			</isNotNull>
+		</isPropertyAvailable>
+		select * from keyword k
+		where 1=1
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">k.$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_end" />
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+
+</sqlMap>

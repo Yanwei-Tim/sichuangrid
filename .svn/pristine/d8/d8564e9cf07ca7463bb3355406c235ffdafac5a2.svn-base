@@ -1,0 +1,52 @@
+package com.tianque.plugin.weChat.service.impl;
+
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.base.AbstractBaseService;
+import com.tianque.plugin.weChat.dao.FanDao;
+import com.tianque.plugin.weChat.domain.user.Fan;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+import com.tianque.plugin.weChat.service.FanService;
+import com.tianque.plugin.weChat.service.WeChatGroupService;
+import com.tianque.plugin.weChat.service.WeChatService;
+
+/**粉丝信息处理服务类*/
+@Service("fanService")
+@Transactional
+public class FanServiceImpl extends AbstractBaseService implements FanService {
+	private static Logger logger = Logger.getLogger(FanServiceImpl.class);
+	@Autowired
+	private WeChatService weChatService;
+	@Autowired
+	private WeChatGroupService weChatGroupService;
+	@Autowired
+	private FanDao fanDao;
+
+	@Override
+	public Long saveFan(Map<String, String> messageMap, TencentUser tencentUser) {
+		String openId = messageMap.get("FromUserName");
+		if (fanDao.getFanByOpenId(openId) == null) {
+			Fan fan = weChatService.getFanByOpenId(openId, tencentUser);
+			Long groupId = weChatService.getGroupIdByOpenId(openId, tencentUser);
+			fan.setGroupId(groupId);
+			return fanDao.saveFan(fan);
+		}
+		return null;
+	}
+
+	@Override
+	public Fan getFanByOpenId(String openId) {
+		return fanDao.getFanByOpenId(openId);
+	}
+
+	@Override
+	public int deleteFanByOpenId(String openId) {
+		return fanDao.deleteFanByOpenId(openId);
+	}
+
+}

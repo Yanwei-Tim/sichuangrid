@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="issueInvestigationMediate">
+	<!-- 注释说明 -->
+	<typeAlias alias="IssueInvestigationMediate" type="com.tianque.domain.IssueInvestigationMediate" />
+	<typeAlias alias="SearchIssueInvestigationMediateVo" type="com.tianque.domain.vo.SearchIssueInvestigationMediateVo"/>
+	<typeAlias alias="ClobStringTypeHandler"
+		type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+
+	<resultMap id="issueInvestigationMediateResult" class="IssueInvestigationMediate">
+		<result property="id" column="id" />
+		<result property="typeName" column="typeName" />
+		<result property="typeSubsetName" column="typeSubsetName" />
+		<result property="cityCount" column="cityCount" />
+		<result property="districtCount" column="districtCount" />
+		<result property="townCount" column="townCount" />
+		<result property="villageCount" column="villageCount" />
+		<result property="subtotal" column="subtotal" />
+		<result property="yearCumulative" column="yearCumulative" />
+		<result property="startDate" column="startDate" />
+		<result property="endDate" column="endDate" />
+		<result property="year" column="year" />
+		<result property="month" column="month" />
+		<result property="week" column="week" />
+		<result property="types" column="types" />
+		<result property="searchEndDate" column="searchEndDate" />
+		<result property="quarter" column="quarter" />
+	</resultMap>
+	
+		<resultMap id="weekIssueInvestigationMediateResult" class="IssueInvestigationMediate">
+		<result property="week" column="week" />
+		<result property="startDate" column="startDate" />
+		<result property="endDate" column="endDate" />
+	</resultMap>
+	
+	
+	<resultMap id="searchIssueInvestigationMediateVoResult" class="SearchIssueInvestigationMediateVo" >
+		<result property="organizationInvestigation.id" column="orgIdInvestigation"/>
+		<result property="organizationMediate.id" column="orgIdMediate"/>
+		<result property="issueType.id" column="issueTypeId"/>
+		<result property="issueNew.id" column="issueNewId"/>
+		<result property="dealType" column="dealType"/>
+		<result property="dealState" column="dealState"/>
+	</resultMap>
+	
+	<resultMap id="searchImportantIssueInvestigationMediateVoResult" class="SearchIssueInvestigationMediateVo" >
+		<result property="organizationInvestigation.id" column="orgIdInvestigation"/>
+		<result property="organizationMediate.id" column="orgIdMediate"/>
+		<result property="issueNew.id" column="issueNewId"/>
+		<result property="dealType" column="dealType"/>
+		<result property="dealState" column="dealState"/>
+	</resultMap>
+
+	<insert id="addIssueInvestigationMediate" parameterClass="IssueInvestigationMediate">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_IssueInvestigationMediate.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		<![CDATA[INSERT INTO
+		issueInvestigationMediate(id,typeName,typeSubsetName,cityCount,districtCount,townCount,villageCount,subtotal,yearCumulative,startDate,endDate,year,month,week,types,searchEndDate,quarter)
+		values(#id#,#typeName#,#typeSubsetName#,#cityCount#,#districtCount#,#townCount#,#villageCount#,#subtotal#,#yearCumulative#,#startDate#,#endDate#,#year#,#month#,#week#,#types#,#searchEndDate#,#quarter#)]]>
+	</insert>
+	
+	<select id="findIssueInvestigationMediateListBystartDateAndendDate"  parameterClass="java.util.Map" resultMap="searchIssueInvestigationMediateVoResult">
+		<![CDATA[select iw.OCCURORG as orgIdInvestigation , il.DEALORGID as orgIdMediate , iw.ISSUETYPEID as issueTypeId , il.ISSUEID as issueNewId , il.DEALTYPE,il.dealState from  issuelogs il, issues iw  where  iw.id = il.issueid and (il.dealState = 1001 or il.dealState = 1002 or il.dealState = 1003 or il.DEALTYPE = 0) and  il.createdate >= #startDate# and il.createdate <= #endDate# ]]>
+	</select>
+	
+	<select id="findImportantIssueInvestigationMediateListBystartDateAndendDate" parameterClass="java.util.Map" resultMap="searchImportantIssueInvestigationMediateVoResult">
+		<![CDATA[select iw.OCCURORG as orgIdInvestigation , il.DEALORGID as orgIdMediate , il.ISSUEID as issueNewId , il.DEALTYPE,il.dealState from issuelogs il, issues iw  where  iw.id = il.issueid and (il.dealState = 1001 or il.dealState = 1002 or il.dealState = 1003 or il.DEALTYPE = 0) and iw.important = 1 and  il.createdate >= #startDate# and il.createdate <= #endDate# ]]>
+	</select>
+	
+	<select id="findAllIssueInvestigationMediateBystartDateAndendDate" parameterClass="java.util.Map" resultMap="issueInvestigationMediateResult">
+		<![CDATA[select * from issueInvestigationMediate where startDate >= #startDate# and endDate <= #endDate#]]>
+	</select>
+	
+	<select id="countIssueInvestigationMediateForPage" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[select count(*) from issueInvestigationMediate]]>
+	</select>
+	
+	<select id="findIssueInvestigationMediateForPage" parameterClass="java.util.Map" resultMap="issueInvestigationMediateResult">
+		<![CDATA[select * from issueInvestigationMediate]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findIssueInvestigationMediateList" parameterClass="IssueInvestigationMediate" resultMap="issueInvestigationMediateResult">
+		<![CDATA[select * from issueInvestigationMediate]]>
+		<dynamic prepend="where">
+			<isNotNull prepend=" and " property="year">
+				year = #year#
+			</isNotNull>
+			<isNotNull prepend=" and " property="month">
+				month = #month#
+			</isNotNull>
+			<isNotNull prepend=" and " property="week">
+				week = #week#
+			</isNotNull>
+			<isNotEmpty prepend=" and " property="types">
+				types = #types#
+			</isNotEmpty>
+			<isNotNull prepend=" and " property="quarter">
+				quarter = #quarter#
+			</isNotNull>
+		</dynamic>
+		order by id asc
+	</select>
+	
+	<select id="findOneIssueInvestigationMediate" parameterClass="IssueInvestigationMediate" resultMap="issueInvestigationMediateResult">
+		<![CDATA[select * from issueInvestigationMediate]]>
+		<dynamic prepend="where">
+			<isNotNull prepend=" and " property="year">
+				year = #year#
+			</isNotNull>
+			<isNotNull prepend=" and " property="month">
+				month = #month#
+			</isNotNull>
+			<isNotNull prepend=" and " property="week">
+				week = #week#
+			</isNotNull>
+			<isNotEmpty prepend=" and " property="types">
+				types = #types#
+			</isNotEmpty>
+			<isNotNull prepend=" and " property="quarter">
+				quarter = #quarter#
+			</isNotNull>
+		</dynamic>
+		AND ROWNUM = 1
+	</select>
+	
+	<delete id="deleteIssueInvestigationMediateByYearAndMonthAndWeekAndTypes" parameterClass="java.util.Map">
+		delete from issueInvestigationMediate
+		<dynamic prepend="where">
+			<isNotNull prepend=" and " property="year">
+				year = #year#
+			</isNotNull>
+			<isNotNull prepend=" and " property="month">
+				month = #month#
+			</isNotNull>
+			<isNotNull prepend=" and " property="week">
+				week = #week#
+			</isNotNull>
+			<isNotEmpty prepend=" and " property="types">
+				types = #types#
+			</isNotEmpty>
+		</dynamic>
+	</delete>
+	
+	<delete id="deleteIssueInvestigationMediateByYearAndQuarterAndTypes" parameterClass="java.util.Map">
+		delete from issueInvestigationMediate
+		<dynamic prepend="where">
+			<isNotNull prepend=" and " property="year">
+				year = #year#
+			</isNotNull>
+			<isNotNull prepend=" and " property="quarter">
+				quarter = #quarter#
+			</isNotNull>
+			<isNotEmpty prepend=" and " property="types">
+				types = #types#
+			</isNotEmpty>
+		</dynamic>
+	</delete>
+	
+	<select id="findAllYear" resultClass="java.lang.Long">
+		select year from issueInvestigationMediate group by year order by year
+	</select>
+	
+	<select id="findMonthByYear" parameterClass="java.lang.Long" resultClass="java.lang.Long">
+		<![CDATA[select month from issueInvestigationMediate where year = #year# and month > 0 group by month order by month]]>
+	</select>
+	
+	<select id="findWeekByYearAndMonth" parameterClass="java.util.Map" resultMap="weekIssueInvestigationMediateResult">
+		<![CDATA[select week,startdate,enddate from issueInvestigationMediate where year = #year# and month = #month# and week > 0 group by week,startdate,enddate order by week]]>
+	</select>
+</sqlMap>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="fireSafetyEnterpriseTemp">
+	<typeAlias alias="FireSafetyEnterpriseTemp" type="com.tianque.plugin.dataManage.location.fireSafetyEnterpriseTemp.domain.FireSafetyEnterpriseTemp" />
+	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+	
+	<resultMap id="fireSafetyEnterpriseTempResultForBase" class="FireSafetyEnterpriseTemp" extends="enterpriseTemp.enterpriseTempResultForBase">
+	</resultMap>
+	
+    <resultMap id="fireSafetyEnterpriseTempResultForList" class="FireSafetyEnterpriseTemp" extends="fireSafetyEnterpriseTemp.fireSafetyEnterpriseTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<sql id="claim_sql_where">
+		from DM_FireSafetyE_Temp d where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	<sql id="updateBusinessSql">
+		 type = #type.id#
+		,telephone = #telephone#
+		,mobileNumber = #mobileNumber#
+		,isRiskEnterprise = #isRiskEnterprise#
+		,hiddenCases = #hiddenCases#
+		,hiddenRectification = #hiddenRectification#
+		,attentionExtent=#attentionExtent.id#
+	</sql>
+	<insert id="addFireSafetyEnterpriseTemp" parameterClass="FireSafetyEnterpriseTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_FireSafetyE_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_FireSafetyE_Temp
+		(id,orgId,orgInternalCode,name,type,manager,address,attentionExtent,telephone,mobileNumber,
+	 	 isRiskEnterprise,hiddenCases,hiddenRectification,remark,createDate,createUser,
+		<include refid="dataManage.addDataManage"/>
+		)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#name#,#type.id#,#manager#,#address#,#attentionExtent.id#,#telephone#,#mobileNumber#,
+		#isRiskEnterprise#,#hiddenCases#,#hiddenRectification#,#remark#,#createDate#,#createUser#,
+		<include refid="dataManage.addValueDataManage"/>
+		)
+    </insert>
+    
+    <select id="findTempPageList" resultMap="fireSafetyEnterpriseTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select d.*,'fireSafetyKey' as keyType ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	 <update id="updateFireSafetyEnterpriseTempInIdById"  parameterClass="java.util.Map">
+		update DM_FireSafetyE_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<update id="updateFireSafetyEnterpriseTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_FireSafetyE_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	
+	<update id="updateFireSafetyEnterpriseTemp" parameterClass="FireSafetyEnterpriseTemp">
+		update DM_FireSafetyE_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="fireSafetyEnterpriseTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	
+	<select id="findTemps" resultMap="fireSafetyEnterpriseTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select d.*,'fireSafetyKey' as keyType ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countFindTemps" resultClass="java.lang.Integer"
+		parameterClass="searchVo">
+			select count(id)  <include refid="claim_sql_where" />
+	</select>
+	<select id="getFireSafetyEnterpriseTempById" parameterClass="long" resultMap="fireSafetyEnterpriseTempResultForList">
+		select d.*,'fireSafetyKey' as keyType from DM_FireSafetyE_Temp d where d.id=#value#
+	</select>
+	<!-- 修改场所信息 -->
+	<update id="updateFireSafetyEnterpriseTempInfo" parameterClass="FireSafetyEnterpriseTemp">
+		update DM_FireSafetyE_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="fireSafetyEnterpriseTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<delete id="deleteFireSafetyEnterpriseTempById" parameterClass="Long">
+	   delete DM_FireSafetyE_Temp where id = #value#
+	</delete>
+</sqlMap>

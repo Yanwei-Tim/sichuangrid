@@ -1,0 +1,751 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="issueNew">
+	<!-- 注释说明 -->
+	<typeAlias alias="IssueNew" type="com.tianque.issue.domain.IssueNew" />
+	<typeAlias alias="IssueType" type="com.tianque.domain.IssueType" />
+	<typeAlias alias="IssueStep" type="com.tianque.issue.domain.IssueStep" />
+	<typeAlias alias="IssueViewObject" type="com.tianque.issue.vo.IssueViewObject"/>
+	<typeAlias alias="ClobStringTypeHandler" type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+	<typeAlias alias="SearchPartIssueVo" type="com.tianque.domain.vo.SearchPartIssueVo" />
+
+	<resultMap id="issueViewResult" class="IssueViewObject">
+		<result property="issueId" column="issueId" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="subject" column="subject" />
+		<result property="status" column="status" />
+		<result property="occurDate" column="occurDate" />
+		<result property="currentOrg.id" column="currentOrg" />
+		<result property="occurOrg.id" column="occurOrg" />
+		<result property="dealTime" column="lastdealdate" />
+		<result property="sourcePerson" column="sourcePerson" />
+		<result property="sourceKind.id" column="sourceKind" />
+		<result property="sourceMobile" column="sourceMobile" />
+		<result property="issueLogId" column="stepId" />
+		<result property="supervisionState" column="superviselevel" />
+		<result property="urgent" column="urgent" />
+		<result property="dealState" column="statecode" />
+		<result property="lastOrg.id" column="lastOrg" />
+	</resultMap>
+	
+	<resultMap id="issuestepsResult" class="IssueStep">
+	    <result property="id" column="id" />
+		<result property="source.id" column="source" />
+		<result property="target.id" column="target" />
+		<result property="state" column="state" />
+		<result property="stateCode" column="stateCode" />
+		<result property="entryDate" column="entryDate" />
+		<result property="endDate" column="endDate" />
+		<result property="lastDealDate" column="lastDealDate" />
+		<result property="issue.id" column="issue" />
+		<result property="superviseLevel" column="superviseLevel" />
+		<result property="backTo.id" column="backTo" />
+	</resultMap>
+	
+	<resultMap id="issueTypeResult" class="IssueType">
+		<result property="id" column="id" />
+		<result property="internalId" column="internalId" />
+		<result property="issueTypeDomain.id" column="domainId" />
+		<result property="issueTypeName" column="issueTypeName" />
+		<result property="indexId" column="indexId" />
+		<result property="content" column="content" />
+		<result property="simplePinYin" column="simplePinYin" />
+		<result property="fullPinYin" column="fullPinYin" />
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<resultMap id="SearchPartIssueVoResult" class="SearchPartIssueVo">
+		<result property="issueId" column="issueId" />
+		<result property="serialNumber" column="serialNumber" />
+	</resultMap>
+	
+	<resultMap class="IssueNew" id="issuGisResult">
+		<result property="id" column="issueId" />
+		<result property="occurOrg.id" column="occurOrg" />
+		<result property="occurDate" column="occurDate" />
+		<result property="subject" column="subject" />
+		<result property="occurLocation" column="occurLocation"/>
+		<result property="mainCharacters" column="mainCharacters"/>
+		<result property="keyPersonType" column="keyPersonType"/>
+		<result property="gisInfo.buildingId" column="buildingId"/>
+		<result property="gisInfo.centerX" column="centerX"/>
+		<result property="gisInfo.centerY" column="centerY"/>
+	</resultMap>
+		<resultMap class="IssueNew" id="gisIssueNewsDetialInfo">
+		<result property="id" column="issueId" />
+		<result property="currentOrg.id" column="currentOrg" />
+		<result property="subject" column="subject" />
+		<result property="occurLocation" column="occurLocation"/>
+		<result property="occurDate" column="occurDate" />
+		<result property="mainCharacters" column="mainCharacters"/>	
+     	<result property="status" column="statecode" />
+   		<result property="domainname" column="domainname"/>	
+	</resultMap>
+	
+	<resultMap class="IssueNew" id="GisCountIssueNewInfoResult">
+		<result property="gisSearchType" column="gisSearchType"/>
+		<result property="giscountNum" column="giscountNum"/>
+	</resultMap>
+
+	<insert id="addIssue" parameterClass="IssueNew">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_Issues.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO
+		Issues(id,serialNumber,subject,occurOrg,occurOrgInternalCode,createOrg,createOrgInternalCode,lastOrg,lastOrgInternalCode,lastUsername,
+		currentOrgDisplayName,issueKind,important,sourcePerson,sourceKind,sourceMobile,occurDate,relatePeopleCount,relateAmount,occurLocation,
+		mainCharacters,issueContent,remark,displayStyle,status,urgent,createUser,updateUser,createDate,updateDate,isEmergency,lon,lat,currentOrg)
+		VALUES(#id#,#serialNumber#,#subject#,#occurOrg.id#,#occurOrgInternalCode#,#createOrg.id#,#createOrgInternalCode#,#lastOrg.id#,#lastOrgInternalCode#,
+		#lastUsername#,#currentOrgDisplayName#,#issueKind.id#,
+		<isNull property="important">0</isNull>
+		<isNotNull property="important">#important#</isNotNull>
+		,#sourcePerson#,#sourceKind.id#,#sourceMobile#,#occurDate#,#relatePeopleCount#,
+		#relateAmount#,#occurLocation#,#mainCharacters#,#issueContent,handler=ClobStringTypeHandler#,#remark,handler=ClobStringTypeHandler#,#displayStyle#,
+		#status#,
+		<isNull property="urgent">0</isNull>
+		<isNotNull property="urgent">#urgent#</isNotNull>
+		,#createUser#,#updateUser#,#createDate#,#updateDate#,#isEmergency#,#lon#,#lat#,#currentOrg.id#)
+	</insert>
+
+	<select id="getViewIssueLogById" parameterClass="java.lang.Long"
+		resultMap="issueNewResult.issueLogViewResult">
+		<![CDATA[
+		select il.dealtime,il.supervisionstate from issuelogs il where il.id=#value#
+		]]>
+	</select>
+    <select id="countIssueByIssueTypeId" parameterClass="java.lang.Long"
+        resultClass="java.lang.Integer">
+        <include refid="common.sql_count" />
+        from IssueHasTypes where issueTypeId=#value#
+    </select>
+	<select id="getSimpleIssueById" parameterClass="java.lang.Long"
+		resultMap="issueNewResult.issueResult">
+		<![CDATA[select * from Issues where id=#value#]]>
+	</select>
+	<select id="getSimpleIssueByIssueId" parameterClass="java.lang.Long"
+		resultMap="issuestepsResult">
+		<![CDATA[  
+		SELECT * FROM issuesteps  where id=(select max(id) from issuesteps where issue=#value#) 
+		]]>
+	</select>
+	<insert id="addIssueHasTypes" parameterClass="java.util.Map">
+		INSERT INTO
+		IssueHasTypes(issueId,issueTypeId,issueTypeDomainId)
+		VALUES(#issueId#,#issueTypeId#,#issueTypeDomainId#)
+	</insert>
+
+	<delete id="deleteIssueById" parameterClass="java.lang.Long">
+		delete from
+		Issues where id=#value#
+	</delete>
+
+	<delete id="deleteIssueHasTypesByIssueId" parameterClass="java.lang.Long">
+		delete
+		from IssueHasTypes where issueId=#value#
+	</delete>
+
+	<update id="updateIssueUrgentState" parameterClass="map">
+		update Issues set
+			urgent=#urgented#
+		where id=#id#
+	</update>
+	
+	<update id="updateIssue" parameterClass="IssueNew">
+		update Issues set
+		<dynamic>
+			id=#id#,
+			lastUsername=#lastUsername#,
+			currentOrgDisplayName=#currentOrgDisplayName#,
+			issueKind=#issueKind.id#,
+			sourceMobile=#sourceMobile#,
+			occurLocation=#occurLocation#,
+			mainCharacters=#mainCharacters#,
+			issueContent=#issueContent,handler=ClobStringTypeHandler#,
+			remark=#remark,handler=ClobStringTypeHandler#,
+			displayStyle=#displayStyle#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#,
+			important=#important#,
+			isEmergency=#isEmergency#
+			<isNotNull prepend="," property="serialNumber">
+				serialNumber=#serialNumber#
+			</isNotNull>
+			<isNotNull prepend="," property="subject">
+				subject=#subject#
+			</isNotNull>
+			<isNotNull prepend="," property="occurOrg">
+				occurOrg=#occurOrg.id#
+			</isNotNull>
+			<isNotNull prepend="," property="occurOrgInternalCode">
+				occurOrgInternalCode=#occurOrgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="sourcePerson">
+				sourcePerson=#sourcePerson#
+			</isNotNull>
+			<isNotNull prepend="," property="relatePeopleCount">
+				relatePeopleCount=#relatePeopleCount#
+			</isNotNull>
+			<isNotNull prepend="," property="relateAmount">
+				relateAmount=#relateAmount#
+			</isNotNull>
+			<isNotNull prepend="," property="occurDate">
+				occurDate=#occurDate#
+			</isNotNull>
+			<isNotNull prepend="," property="urgent">
+				urgent=#urgent#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+
+	<delete id="deleteIssueHasTypesByIssueIdAndIssueTypeId"
+		parameterClass="java.util.Map">
+		delete from IssueHasTypes where issueId=#issueId# and
+		issueTypeId=#issueTypeId#
+	</delete>
+
+	<select id="getIssueTypesByIssueId" resultMap="issueTypeResult">    
+		<![CDATA[
+		select it.* from issueTypes it,issueHasTypes iht 
+		where it.id=iht.issueTypeId and iht.issueId=#value#  
+		]]>
+	</select>
+
+	<resultMap id="fullIssueResult" class="IssueNew"
+		extends="issueNewResult.issueResult">
+		<!--<result property="issueTypes" column="id"
+			select="issueNew.getIssueTypesByIssueId" />
+		--><result property="fromSerialNumber" column="fromSerialNumber"/>
+	</resultMap>
+
+	<select id="getFullIssueById" parameterClass="java.lang.Long"
+		resultMap="fullIssueResult">
+		<![CDATA[select * from Issues where id=#value#]]>
+	</select>
+
+	<select id="getFullIssueByIssueStepId" parameterClass="java.lang.Long"
+		resultMap="fullIssueResult">
+		<![CDATA[select iu.* from Issues iu,issuesteps steps where iu.id=steps.issue and steps.id=#value#]]>
+	</select>
+
+	<sql id="selectIssueViewResultField">
+		select iu.id as issueId,iu.serialnumber,iu.subject,iu.status,iu.occurdate,iu.currentorgdisplayname,iu.occurorg,iu.sourceperson,iu.sourcekind,
+		iu.sourcemobile,iu.urgent,il.supervisionState,il.id as issueLogId,il.dealtime,il.supervisionstate,il.dealState,il.targeOrgId,iu.lastOrg   
+	</sql>
+	<sql id="selectIssueViewResultFieldNew">
+		select iu.id as issueId,iu.serialnumber,iu.subject,iu.status,iu.occurdate,iu.currentorgdisplayname,iu.occurorg,iu.sourceperson,iu.sourcekind,
+		iu.sourcemobile,iu.urgent,il.supervisionState,il.id as issueLogId,il.dealtime,
+		il.supervisionstate,il.dealState,il.targeOrgId,iu.lastOrg,iu.createdate   
+	</sql>
+	<sql id="selectOrderIssueViewResultFieldNew">
+		select distinct iu.id as issueId,iu.serialnumber,iu.subject,iu.occurDate,iu.currentOrgDisplayName,iu.occurOrg,iu.sourceKind,iu.createdate 
+	</sql>
+
+	<select id="countSperiviseIssues" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		
+		select count(*) from issues iu,issuelogs il where il.targeorginternalcode like #orgCode#||'%'
+		 and il.dealstate <![CDATA[ >= ]]> $dealstate1$ and il.dealstate <![CDATA[ <= ]]> $dealState2$ and iu.id=il.issueid 
+		
+	</select>
+	<select id="findSperviseIssues" parameterClass="java.util.Map"
+		resultMap="issueNewResult.issueViewResult">
+		<include refid="selectIssueViewResultField"/>
+		
+		 from issues iu,issuelogs il where il.targeorginternalcode like #orgCode#||'%' 
+		and il.dealstate <![CDATA[ >= ]]> $dealstate1$ and il.dealstate <![CDATA[ <= ]]> $dealState2$ and iu.id=il.issueid 
+		
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findMyJurisdictionsNeedDoIssues" parameterClass="java.util.Map"
+		resultMap="issueNewResult.issueViewResultNew">
+		<include refid="selectIssueViewResultFieldNew"/>
+		<![CDATA[
+		 from issues iu,issuelogs il 
+		where il.targeorginternalcode like #targeOrgInternalCode#||'%' and il.dealstate<#dealState# and iu.id=il.issueid 
+		and iu.id not in(select issueid from historicalIssues where orgId=#targeOrgId# or orgInternalCode like #orgInternalCode#||'%')
+		]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countMyJurisdictionsNeedDoIssues" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from issues iu,issuelogs il where il.targeorginternalcode like #targeOrgInternalCode#||'%'
+		and il.dealstate<#dealState# and iu.id=il.issueid and iu.id not in(select issueid from historicalIssues where orgId=#targeOrgId# or orgInternalCode like #orgInternalCode#||'%')
+		]]>
+	</select>
+
+	<select id="findMyDoneIssues" parameterClass="java.util.Map"
+		resultMap="issueNewResult.issueViewResultNew">
+		<include refid="selectIssueViewResultFieldNew"/>
+		<![CDATA[
+		 from issues iu,issuelogs il where il.targeorgid=#targeOrgId# 
+		and il.dealstate in ]]>
+		<iterate property="dealStateList" open="(" close=")"
+			conjunction=",">
+			#dealStateList[]#
+		</iterate>
+		<![CDATA[ 
+		and iu.id=il.issueid and iu.id not in(select issueid from historicalIssues where orgId=#targeOrgId#)
+		]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countMyDoneIssues" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from issues iu,issuelogs il where il.targeorgid=#targeOrgId# and il.dealstate in ]]>
+		<iterate property="dealStateList" open="(" close=")"
+			conjunction=",">
+			#dealStateList[]#
+		</iterate>
+		<![CDATA[ 
+		and iu.id=il.issueid and iu.id not in(select issueid from historicalIssues where orgId=#targeOrgId#)
+		]]>
+	</select>
+
+	<select id="findMyJurisdictionsDoneIssues" parameterClass="java.util.Map"
+		resultMap="issueNewResult.issueViewResultNew">
+		<include refid="selectIssueViewResultFieldNew"/>
+		<![CDATA[
+		 from issues iu,issuelogs il 
+		where iu.occurorginternalcode like #targeOrgInternalCode#||'%' and il.dealstate=#dealState#
+		and iu.id=il.issueid and iu.id not in(select issueid from historicalIssues where orgId=#targeOrgId#)
+		]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countMyJurisdictionsDoneIssues" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from issues iu,issuelogs il where iu.occurorginternalcode like #targeOrgInternalCode#||'%'
+		and il.dealstate=#dealState# and iu.id=il.issueid and iu.id not in(select issueid from historicalIssues where orgId=#targeOrgId#)
+		]]>
+	</select>
+
+	<select id="getIssueViewObjectById" parameterClass="java.lang.Long"
+		resultMap="issueNewResult.issueViewResult">
+		<include refid="selectIssueViewResultField"/>
+	   <![CDATA[
+         from issues iu,issuesteps il 
+        where iu.id=il.issue and il.id = #issueLogId#
+        ]]>
+	</select>
+
+	<select id="getIssueViewObjectByIssueId" parameterClass="java.lang.Long"
+		resultMap="issueViewResult">
+		select iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,iu.currentOrg,iu.occurorg,isteps.lastdealdate, 
+		iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, isteps.id as stepId,isteps.superviselevel,iu.lastOrg,isteps.statecode 
+		from issues iu,issuesteps isteps where isteps.id=iu.currentStep and iu.id =#value#
+	</select>
+
+	<update id="updateIssueWhenDeal" parameterClass="java.util.Map">
+		update issues set
+		<dynamic>
+			id = #id#
+			<isNotNull property="currentOrgDisplayName" prepend=",">
+				currentOrgDisplayName = #currentOrgDisplayName#
+			</isNotNull>
+			<isNotNull property="lastOrg" prepend=",">
+				lastOrg =
+				#lastOrg.id#
+			</isNotNull>
+			<isNotNull property="lastOrgInternalCode" prepend=",">
+				lastOrgInternalCode = #lastOrgInternalCode#
+			</isNotNull>
+			<isNotNull property="lastUsername" prepend=",">
+				lastUsername =
+				#lastUsername#
+			</isNotNull>
+			<isNotNull property="status" prepend=",">
+				status = #status#
+			</isNotNull>
+			where id = #id#
+		</dynamic>
+	</update>
+	
+	<select id="findIssueNewsByStartDateAndEndDate" parameterClass="java.util.Map" resultMap="issueNewResult.issueResult">
+		<![CDATA[select * from issues where occurDate >= #startDate# and occurDate < #endDate# 
+		and createorginternalcode = '$orgCode$']]>
+	</select>
+	
+	
+	<select id="findMyAllIssueIds" parameterClass="java.util.Map"
+				resultMap="issueNewResult.issueOrderViewResultNews">
+		<!-- <include refid="selectOrderIssueViewResultFieldNew"/> -->
+		<![CDATA[
+		select distinct iu.id as issueId,iu.serialnumber,iu.subject,
+		iu.occurDate,iu.currentOrgDisplayName,iu.occurOrg,iu.sourceKind,iu.createdate,il.dealtime as dealTime, 
+	    il.dealstate as dealstate
+		
+		 from issues iu,issuelogs il where il.targeorgid=#targeOrgId# 
+		 and iu.id=il.issueid and iu.id not in(select issueid from historicalIssues where orgId=#targeOrgId#) and il.dealstate in(1,2,101,1001,1002,1003)
+		]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<select id="countMyAllIssue" parameterClass="java.lang.Long"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		 select count(distinct iu.id)
+		 from issues iu,issuelogs il where il.targeorgid=#targeOrgId# 
+		 and iu.id=il.issueid and iu.id not in(select issueid from historicalIssues where orgId=#targeOrgId#) and il.dealstate in(1,2,101,1001,1002,1003)
+		]]>
+	</select>
+	
+	<select id="countMyJurisdictionsAllIssue" parameterClass="java.lang.String"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		 select count(distinct iu.id)
+		 from issues iu,issuelogs il where il.targeorginternalcode like #targeOrgInternalCode#||'%' and iu.id=il.issueid 
+		 and iu.id not in(select issueid from historicalIssues where orgInternalCode like #targeOrgInternalCode#||'%') and il.dealstate in(1,2,101,1001,1002,1003)
+		]]>
+	</select>
+	
+	
+	
+	<select id="findMyJurisdictionsAllIssueIds" parameterClass="java.util.Map"
+				resultMap="issueNewResult.issueOrderViewResultNews">
+		<!-- <include refid="selectOrderIssueViewResultFieldNew"/> -->
+		<![CDATA[
+		select distinct iu.id as issueId,iu.serialnumber,iu.subject,
+		iu.occurDate,iu.currentOrgDisplayName,iu.occurOrg,iu.sourceKind,iu.createdate,il.dealtime as dealTime, 
+	    il.dealstate as dealstate
+		 from issues iu,issuelogs il where il.targeorginternalcode like #targeOrgInternalCode#||'%' and iu.id=il.issueid 
+		 and iu.id not in(select issueid from historicalIssues where orgInternalCode like #targeOrgInternalCode#||'%') and il.dealstate in(1,2,101,1001,1002,1003)
+		]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findAllIssueByIssueId" parameterClass="java.lang.Long"
+		resultMap="issueNewResult.issueViewResultNew">
+		<include refid="selectIssueViewResultFieldNew"/>
+		<![CDATA[
+		 from issues iu,issuelogs il where
+		 iu.id = #issueId# and il.id = (select max(id) from issuelogs ils where ils.issueid = #issueId# and ils.dealstate in (1,2,101,1001,1002,1003)) and iu.id=il.issueid
+		]]>
+	</select>
+	
+	<update id="changeIssueCreateDate" parameterClass="map">
+		update issues set
+		createDate=#createDate#
+		where id=#id#
+	</update>
+	
+	<update id="updateIssueCurrentStepAndOrg" parameterClass="IssueNew">
+		update issues set
+			currentStep=#currentStep.id#,
+			currentOrg=#currentOrg.id#,
+			status=#status#
+		where id=#id#
+	</update>
+	
+	<select id="countMyNeedDoIssues" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from issues iu,issuelogs il where il.targeorgid=#targeOrgId# and il.dealstate<#dealState# and iu.id=il.issueid 
+		and iu.id not in(select issueid from historicalIssues where orgId=#targeOrgId#)
+		]]>
+	</select>
+	<select id="getFullIssueMobileByIssueStepId" parameterClass="java.lang.Long"
+		resultMap="fullIssueResult">
+		<![CDATA[select iu.* from Issues iu where iu.id=#value#]]>
+	</select>
+	
+	<select id="countActualHouseByOrgInternalCode" parameterClass="map" resultMap="GisCountIssueNewInfoResult">
+		select count(*) as giscountNum, #totalNum# as gisSearchType from  issues where occurOrgInternalCode like #orgInternalCode#'%'
+	</select>
+	<select id="countDomainnameIssueNewsByorgCode" parameterClass="map" resultMap="GisCountIssueNewInfoResult">
+		<iterate prepend=""  property="typeIssue" conjunction=" union ">
+			select count (distinct ib.id) as gisCountNum , #typeIssue[]# as gisSearchType
+				 from issuehastypes ia, issues ib , issuetypedomains ic 
+         where ia.issueid =ib.id and ia.issuetypedomainid = ic.id and ic.domainname=#typeIssue[]# and occurOrgInternalCode like #orgInternalCode#'%'
+		</iterate>
+	</select>
+	
+	<select id="countStatusIssueNewsByorgCode" parameterClass="map" resultMap="GisCountIssueNewInfoResult">
+		 select count(distinct iu.id) as gisCountNum , #issueComplete# as gisSearchType  
+			from issuesteps isteps, issues iu where iu.id = isteps.issue   and isteps.statecode=#giscountState# and occurorginternalcode like '$occurorginternalcode$%'
+ 		  and iu.id not in (select issueid from historicalIssues where orginternalcode =#occurorginternalcode#) 
+  		 	union
+  		 select count(distinct iu.id) as gisCountNum , #dealing# as gisSearchType  
+			from issuesteps isteps, issues iu where iu.id = isteps.issue   and isteps.statecode not in(#giscountState#) and occurorginternalcode like '$occurorginternalcode$%'
+ 		  and iu.id not in (select issueid from historicalIssues where orginternalcode = #occurorginternalcode#) 
+	</select>
+	
+	<select id="countIssueIsUrentTypeByorgCode" parameterClass="map" resultMap="GisCountIssueNewInfoResult">
+		select count(iss.id) as gisCountNum, #important# as gisSearchType from issues iss 
+			where iss.occurorginternalcode like '$occurorginternalcode$%' and iss.important=1
+ 				union
+		select count(iss.id) as gisCountNum, #isEmergency# as gisSearchType from issues iss 
+			where iss.occurorginternalcode like '$occurorginternalcode$%' and iss.isemergency=1
+	</select>
+	<select id="countIssueNewsListSearchByQueryStrAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+			select count(*)
+      	from issuesteps isteps, issues iu where iu.id = isteps.issue
+	 		and iu.occurorginternalcode like '$occurorginternalcode$%'  and iu.id not in  (select issueid from historicalIssues where orgInternalCode like '$occurorginternalcode$%')
+	 		and (iu.subject like '$queryStr$%' or iu.occurlocation like '%$queryStr$%')
+	</select>
+	
+	<select id="issueNewsListSearchByQueryStrAndOrgId" parameterClass="map" resultMap="issuGisResult">
+		select iu.id as issueId, 'searchGisIssueNews' as keyPersonType,  iu.occurOrg,iu.mainCharacters, iu.subject,  iu.occurdate,  iu.occurlocation,  isteps.statecode,
+      		 iu.buildingid, iu.centerX,  iu.centery, iu.important,iu. isEmergency
+      	from issuesteps isteps, issues iu where iu.id = isteps.issue
+	 		and iu.occurorginternalcode like '$occurorginternalcode$%'  and iu.id not in  (select issueid from historicalIssues where orgInternalCode like '$occurorginternalcode$%')
+	 		and (iu.subject like '$queryStr$%' or iu.occurlocation like '%$queryStr$%')
+ 		 <![CDATA[order by iu.occurdate desc,important desc,isEmergency desc ]]>
+	</select>
+	
+	<select id="countGisUncompleteIssueNewsFutureSearchByOrgCode" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[
+			select count(distinct iu.id) 
+	  		from issues iu, issuetypedomains istdms,  issuesteps isteps, issuehastypes ishtyps
+	 			where iu.id = ishtyps.issueid  and iu.id = isteps.issue  and istdms.id = ishtyps.issuetypedomainid  and iu.occurorginternalcode like '$occurorginternalcode$%'
+	   		and iu.id not in (select issueid  from historicalIssues where orgInternalCode like '$occurorginternalcode$%') and isteps.statecode <#dealState# 
+		 	]]>
+		 	<isPropertyAvailable property="important" prepend=" and ">
+        			iu.important =#issueNewsfield# 
+            </isPropertyAvailable>
+		 	<isPropertyAvailable property="isemergency" prepend=" and ">
+        			iu.isEmergency =#issueNewsfield#
+            </isPropertyAvailable>
+		 	<isPropertyAvailable property="typeDomainName" prepend=" and ">
+        			istdms.domainname =#issueNewsfield# 
+            </isPropertyAvailable>
+	</select>
+	<select id="gisUncompleteIssueNewsFutureSearchByOrgCode" parameterClass="map" resultMap="issuGisResult">
+		<![CDATA[
+			select distinct iu.id as issueId, 'searchGisIssueNews' as keyPersonType, iu.occurOrg,  iu.mainCharacters,
+	       		iu.subject, iu.occurdate,  iu.occurlocation, iu.buildingid, iu.centerX, iu.centery, iu.important, iu.isEmergency
+	  		from issues iu, issuetypedomains istdms,  issuesteps isteps, issuehastypes ishtyps
+	 			where iu.id = ishtyps.issueid  and iu.id = isteps.issue  and istdms.id = ishtyps.issuetypedomainid  and iu.occurorginternalcode like '$occurorginternalcode$%'
+	   		and iu.id not in (select issueid  from historicalIssues where orgInternalCode like '$occurorginternalcode$%') and isteps.statecode <#dealState# 
+		 	]]>
+		 	<isPropertyAvailable property="important" prepend=" and ">
+        			iu.important =#issueNewsfield# 
+            </isPropertyAvailable>
+		 	<isPropertyAvailable property="isemergency" prepend=" and ">
+        			iu.isEmergency =#issueNewsfield#
+            </isPropertyAvailable>
+		 	<isPropertyAvailable property="typeDomainName" prepend=" and ">
+        			istdms.domainname =#issueNewsfield# 
+            </isPropertyAvailable>
+            
+            <![CDATA[order by iu.occurdate desc,important desc,isEmergency desc ]]>
+		
+	</select>
+	<select id="countGisCompleteIssueNewsFutureSearchByOrgCode" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+			select count(distinct iu.id) 
+	  		from issues iu, issuetypedomains istdms,  issuesteps isteps, issuehastypes ishtyps
+	 			where iu.id = ishtyps.issueid  and iu.id = isteps.issue  and istdms.id = ishtyps.issuetypedomainid  and iu.occurorginternalcode like '$occurorginternalcode$%'
+	   		and iu.id not in (select issueid  from historicalIssues where orgInternalCode like '$occurorginternalcode$%') and isteps.statecode =#issueNewsStatefield# 
+        <isNotNull property="issueNewsfield" prepend=" and ">
+        	<isEqual property="issueNewsType" compareProperty="important">
+        			iu.important =#issueNewsfield# 
+        	</isEqual>
+        	<isEqual property="issueNewsType" compareProperty="isemergency">
+        			iu.isEmergency =#issueNewsfield#
+        	</isEqual>
+        	<isEqual property="issueNewsType" compareProperty="typeDomainName">
+        			istdms.domainname =#issueNewsfield# 
+        	</isEqual>
+        </isNotNull>
+	</select>
+	
+	<select id="gisCompleteIssueNewsFutureSearchByOrgCode" parameterClass="map" resultMap="issuGisResult">
+			select distinct iu.id as issueId, 'searchGisIssueNews' as keyPersonType, iu.occurOrg,  iu.mainCharacters,
+	       		iu.subject, iu.occurdate,  iu.occurlocation, iu.buildingid, iu.centerX,   iu.centery, iu.important, iu.isEmergency
+	  		from issues iu, issuetypedomains istdms,  issuesteps isteps, issuehastypes ishtyps
+	 			where iu.id = ishtyps.issueid  and iu.id = isteps.issue  and istdms.id = ishtyps.issuetypedomainid  and iu.occurorginternalcode like '$occurorginternalcode$%'
+	   		and iu.id not in (select issueid  from historicalIssues where orgInternalCode like '$occurorginternalcode$%') and isteps.statecode =#issueNewsStatefield# 
+        <isNotNull property="issueNewsfield" prepend=" and ">
+        	<isEqual property="issueNewsType" compareProperty="important">
+        			iu.important =#issueNewsfield# 
+        	</isEqual>
+        	<isEqual property="issueNewsType" compareProperty="isemergency">
+        			iu.isEmergency =#issueNewsfield#
+        	</isEqual>
+        	<isEqual property="issueNewsType" compareProperty="typeDomainName">
+        			istdms.domainname =#issueNewsfield# 
+        	</isEqual>
+        </isNotNull>
+		 <![CDATA[order by iu.occurdate desc,important desc,isEmergency desc ]]>
+	</select>
+	<select id="countTypeKeyIssueNewsListByOrgCode" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+			select count(distinct iu.id) 
+  		from issues  iu, issuetypedomains istdms,  issuehastypes ishtyps
+ 				where iu.id = ishtyps.issueid and istdms.id = ishtyps.issuetypedomainid  and iu.occurorginternalcode like '$occurorginternalcode$%'
+   		and iu.id not in (select issueid  from historicalIssues where orgInternalCode like '$occurorginternalcode$%')
+	   <isNotNull property="issueNewsfield" prepend=" and ">
+   			<isEqual property="issueNewsType" compareValue="important">
+				iu.important =#issueNewsfield# 
+			</isEqual>
+   			<isEqual property="issueNewsType" compareValue="isemergency">
+				iu.isEmergency =#issueNewsfield#
+			</isEqual>
+   			<isEqual property="issueNewsType" compareValue="typeDomainName">
+				istdms.domainname =#issueNewsfield#
+			</isEqual>
+  	   </isNotNull>
+	</select>
+	
+	<select id="searchTypeKeyIssueNewsListByOrgCode" parameterClass="map" resultMap="issuGisResult">
+		select distinct iu.id as issueId, 'searchGisIssueNews' as keyPersonType, iu.occurOrg, iu.mainCharacters, iu.subject,
+                iu.occurdate,  iu.occurlocation, iu.buildingid,  iu.centerX, iu.centery, iu.important, iu.isEmergency
+  		from issues  iu, issuetypedomains istdms,  issuehastypes ishtyps
+ 				where iu.id = ishtyps.issueid and istdms.id = ishtyps.issuetypedomainid  and iu.occurorginternalcode like '$occurorginternalcode$%'
+   		and iu.id not in (select issueid  from historicalIssues where orgInternalCode like '$occurorginternalcode$%')
+	   <isNotNull property="issueNewsfield" prepend=" and ">
+   			<isEqual property="issueNewsType" compareValue="important">
+				iu.important =#issueNewsfield# 
+			</isEqual>
+   			<isEqual property="issueNewsType" compareValue="isemergency">
+				iu.isEmergency =#issueNewsfield#
+			</isEqual>
+   			<isEqual property="issueNewsType" compareValue="typeDomainName">
+				istdms.domainname =#issueNewsfield#
+			</isEqual>
+  	   </isNotNull>
+  	 	<![CDATA[order by iu.occurdate desc,important desc,isEmergency desc ]]>
+	</select>
+	
+	<select id="findBindingIssueNewsByOrgCodeAndType" parameterClass="map" resultMap="issuGisResult">
+		select distinct iu.id as issueId, 'searchGisIssueNews' as keyPersonType, iu.occurOrg, iu.mainCharacters, iu.subject,
+               iu.occurdate,  iu.occurlocation, iu.buildingid,  iu.centerX, iu.centery, iu.important, iu.isEmergency
+  		  from issues  iu, issuetypedomains istdms, issuesteps isteps, issuehastypes ishtyps
+ 		 where iu.id = ishtyps.issueid 
+ 		   and istdms.id = ishtyps.issuetypedomainid 
+ 		   and iu.id = isteps.issue 
+ 		   and iu.conterx is not null
+ 		   and iu.occurorginternalcode like #orgInternalCode#||'%'
+ 		   and isteps.statecode &lt; #dealState#
+   		   and iu.id not in (select issueid  from historicalIssues where orgInternalCode like #orgInternalCode#||'%')
+	   <isNotNull property="issueNewsfield" prepend=" and ">
+   			<isEqual property="issueNewsType" compareValue="important">
+				iu.important = #issueNewsfield# 
+			</isEqual>
+   			<isEqual property="issueNewsType" compareValue="isemergency">
+				iu.isEmergency = #issueNewsfield#
+			</isEqual>
+   			<isEqual property="issueNewsType" compareValue="typeDomainName">
+				istdms.domainname = #issueNewsfield#
+			</isEqual>
+  	   </isNotNull>
+	</select>
+	
+	<select id="findAllBindingIssueNewsByOrgInternalCode" parameterClass="String" resultMap="issuGisResult">
+		select iu.id as issueId, 'issueNews' as keyPersonType, 
+		       iu.occurOrg, iu.mainCharacters, iu.subject,
+               iu.occurdate,  iu.occurlocation, iu.buildingid,
+               iu.centerX, iu.centery, iu.important, iu.isEmergency
+  		  from issues iu
+ 		 where iu.centerx is not null
+ 		   and iu.occurorginternalcode like #orgInternalCode#||'%'
+   		   and iu.id not in (select issueid from historicalIssues where orgInternalCode like #orgInternalCode#||'%')
+    </select>
+	
+	
+	<select id="countStateKeyIssueNewsListByOrgId" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+			select count(distinct iu.id)
+  		from issues  iu, issuetypedomains istdms,issuesteps isteps,   issuehastypes ishtyps
+ 				where iu.id = ishtyps.issueid   and iu.id = isteps.issue    and istdms.id = ishtyps.issuetypedomainid  and iu.occurorginternalcode like '$occurorginternalcode$%'
+   		and iu.id not in (select issueid  from historicalIssues where orgInternalCode like '$occurorginternalcode$%')
+   		 <isNotNull property="issueNewsfield" prepend=" and ">
+	   		<isEqual property="issueNewsfield" compareValue="1000">
+					isteps.statecode =#issueNewsfield# 
+			</isEqual>
+				<isEqual property="issueNewsfield" compareValue="1">
+					<![CDATA[isteps.statecode <#dealState# ]]>
+			</isEqual>
+		</isNotNull>
+	</select>
+	<select id="searchStateKeyIssueNewsListByOrgId" parameterClass="map" resultMap="issuGisResult">
+		select distinct iu.id as issueId, 'searchGisIssueNews' as keyPersonType, iu.occurOrg, iu.mainCharacters, iu.subject,
+                iu.occurdate,  iu.occurlocation, iu.buildingid,  iu.centerX, iu.centery, iu.important, iu.isEmergency
+  		from issues  iu, issuetypedomains istdms,issuesteps isteps,   issuehastypes ishtyps
+ 				where iu.id = ishtyps.issueid   and iu.id = isteps.issue    and istdms.id = ishtyps.issuetypedomainid  and iu.occurorginternalcode like '$occurorginternalcode$%'
+   		and iu.id not in (select issueid  from historicalIssues where orgInternalCode like '$occurorginternalcode$%')
+   		 <isNotNull property="issueNewsfield" prepend=" and ">
+	   		<isEqual property="issueNewsfield" compareValue="1000">
+					isteps.statecode =#issueNewsfield# 
+			</isEqual>
+				<isEqual property="issueNewsfield" compareValue="1">
+					<![CDATA[isteps.statecode <#dealState# ]]>
+			</isEqual>
+		</isNotNull>
+		 <![CDATA[order by iu.occurdate desc,important desc,isEmergency desc ]]>
+	</select>
+	
+	<select id="getIssueNewsDatialInfoByIssueId" parameterClass="map" resultMap="gisIssueNewsDetialInfo">
+		select iu.id as issueId, iu.subject,  iu.occurlocation, iu.occurdate, iu.maincharacters, iu.currentOrg,
+	       isteps.statecode, istdms.domainname, 'searchGisIssueNews' as keyPersonType
+  		from issues iu, issuesteps isteps, issuetypedomains istdms, issuehastypes ishtyps
+			 where iu.id = ishtyps.issueid and iu.id =isteps.issue and istdms.id = ishtyps.issuetypedomainid  and iu.id = #issueId#
+   		 and iu.id not in (select issueid from historicalIssues where orgId = #occurOrgId#)
+	</select>
+	
+	<update id="updateIssueNewsInfoForGis" parameterClass="IssueNew">
+		update issues set
+			centerX=#gisInfo.centerX#,
+			centerY=#gisInfo.centerY#,
+			buildingId=#gisInfo.buildingId#,
+			updateDate=#updateDate#,
+		 	updateUser=#updateUser# 
+	 	where id=#id#
+	</update>
+	<update id="unBindIssueNewsOnMap" parameterClass="java.lang.Long">
+		update issues set
+			centerX=null,
+			centerY=null,
+			buildingId=null
+		where id=#id#
+	</update>
+	
+	<!-- 根据事件单号查询事件 -->
+	<select id="getIssueBySerialNumber" parameterClass="string" resultMap="fullIssueResult">
+		select * from issues where serialnumber = #value#
+	</select>
+	<!-- 根据事件单号查询事件 -->
+	<select id="getIssueByFromSerialNumber" parameterClass="string" resultMap="fullIssueResult">
+		select * from issues where fromSerialNumber = #value#
+	</select>
+	
+</sqlMap>

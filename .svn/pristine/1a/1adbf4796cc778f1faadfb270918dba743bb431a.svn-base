@@ -1,0 +1,228 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="/struts-tags" prefix="s"%>
+<%@ taglib uri="/PopGrid-taglib" prefix="pop"%>
+<%@ include file="/includes/baseInclude.jsp"%>
+
+<input type="hidden" id="idCardNo" name="idCardNo" value="<s:property value="#parameters.idCardNo"/>"/>
+
+<div class="content">
+	<div style="width: 100%;">
+		<table id="pList"></table>
+		<div id="pListPager"></div>
+	</div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+	    $("#pList").jqGridFunction({
+		url:"${path}/baseinfo/personnelTrackInfoManage/findpersonnelTracksByidCardNo.action?idCardNo="+$("#idCardNo").val(),
+		datatype: "json",
+		colModel:[
+	    	{name:"id", index:"id", hidden:true},
+  			{name:"operationDate", index:"operationDate",label:"时间",width:100},
+  			{name:"personnelOrganization.orgName", index:"personnelOrganization.orgName", width:200, label:"所属网格"},
+  			{name:"operationOrganization.orgName", index:"operationOrganization.orgName", width:160, label:"操作用户所属网格",hidden:true},
+  			{name:"oldPersonnelOrganization.orgName", index:"oldPersonnelOrganization.orgName", width:160, label:"之前所属网格",hidden:true},
+  			{name:"personnelName", index:"personnelName", width:160, label:"姓名",hidden:true},
+  			{name:"personnelType", index:"personnelType", width:160, label:"人员类型",hidden:true,formatter:personnelTypeFormatter},
+  			{name:"idCardNo", index:"idCardNo", width:160, label:"身份证号码",hidden:true},
+  			{name:"operationType", index:"operationType", width:160, label:"操作类型",hidden:true,formatter:operationTypeFormatter},
+  			{name:"personinitType", index:"personinitType", width:100, label:"类型",formatter:residentTypeFormatter},
+  			{name:"operationContent", index:"operationContent", width:250, label:"操作",formatter:operationContentFormatter}
+
+  		],
+  		page:1,
+  		width: <s:property value="#parameters.width"/>,
+		height: <s:property value="#parameters.height"/>
+	});
+});
+function operationTypeFormatter(el,options,rowData){
+	var datavalue = rowData.operationType;
+	if(datavalue=='1'){
+		return "关注";
+	}
+	if(datavalue=='2'){
+		return "取消关注";
+	}
+	if(datavalue=='3'){
+		return "重新关注";
+	}
+	if(datavalue=='4'){
+		return "转移";
+	}
+	if(datavalue=='5'){
+		return "迁入到";
+	}
+	if(datavalue=='6'){
+		return "迁出";
+	}
+	if(datavalue=='7'){
+		return "录入";
+	}
+	if(datavalue=='9'){
+		return "注销";
+	}
+	if(datavalue=='10'){
+		return "删除";
+	}
+	if(datavalue=='11'){
+		return "取消注销";
+	}
+	return "";
+}
+function qq(datavalue){
+	if(datavalue=='1'){
+		return "关注";
+	}
+	if(datavalue=='2'){
+		return "取消关注";
+	}
+	if(datavalue=='3'){
+		return "重新关注";
+	}
+	if(datavalue=='4'){
+		return "转移";
+	}
+	if(datavalue=='5'){
+		return "迁入到";
+	}
+	if(datavalue=='6'){
+		return "迁出";
+	}
+	if(datavalue=='7'){
+		return "录入";
+	}
+	if(datavalue=='9'){
+		return "注销";
+	}
+	if(datavalue=='10'){
+		return "删除";
+	}
+	if(datavalue=='11'){
+		return "取消注销";
+	}
+	return "";
+}
+function personnelTypeFormatter(el,options,rowData){
+	var datavalue = rowData.personnelType;
+	if(datavalue.toUpperCase()=='POSITIVEINFO'){
+		return "刑释人员";
+	}
+    if(datavalue.toUpperCase()=='IDLEYOUTH'){
+        return "重点青少年";
+    }
+    if(datavalue.toUpperCase()=='DANGEROUSGOODSPRACTITIONER'){
+         return "危险品从业人员";
+    }
+    if(datavalue.toUpperCase()=='DRUGGY'){
+        return "吸毒人员";
+    }
+    if(datavalue.toUpperCase()=='MENTALPATIENT'){
+       return "精神病人员";
+    }
+    if(datavalue.toUpperCase()=='RECTIFICATIVEPERSON'){
+       return "社区矫正人员";
+    }
+    if(datavalue.toUpperCase()=='SUPERIORVISIT'){
+       return "重点上访人员";
+    }
+    if(datavalue.toUpperCase()=='POORPEOPLE'){
+       return "需救助人员";
+    }
+    if(datavalue.toUpperCase()=='OTHERATTENTIONPERSONNEL'){
+        return "其他人员";
+     }
+    if(datavalue.toUpperCase()=='FLOATINGPOPULATION'){
+        return "流动人口";
+     }
+    if(datavalue.toUpperCase()=='INHABITANT'){
+        return "常住人口";
+     }
+    if(datavalue.toUpperCase()=='OVERSEAPERSONNEL'){
+    	return "境外人员";
+    }
+    return "";
+}
+function aa(datavalue){
+	if(datavalue.toUpperCase()=='POSITIVEINFO'){
+		return "刑释人员";
+	}
+    if(datavalue.toUpperCase()=='IDLEYOUTH'){
+        return "重点青少年";
+    }
+    if(datavalue.toUpperCase()=='DANGEROUSGOODSPRACTITIONER'){
+         return "危险品从业人员";
+    }
+    if(datavalue.toUpperCase()=='DRUGGY'){
+        return "吸毒人员";
+    }
+    if(datavalue.toUpperCase()=='MENTALPATIENT'){
+       return "精神病人员";
+    }
+    if(datavalue.toUpperCase()=='RECTIFICATIVEPERSON'){
+       return "社区矫正人员";
+    }
+    if(datavalue.toUpperCase()=='SUPERIORVISIT'){
+       return "重点上访人员";
+    }
+    if(datavalue.toUpperCase()=='POORPEOPLE'){
+       return "需救助人员";
+    }
+    if(datavalue.toUpperCase()=='OTHERATTENTIONPERSONNEL'){
+        return "其他人员";
+     }
+    if(datavalue.toUpperCase()=='FLOATINGPOPULATION'){
+        return "流动人口";
+     }
+    if(datavalue.toUpperCase()=='INHABITANT'){
+        return "常住人口";
+     }
+    if(datavalue.toUpperCase()=='OVERSEAPERSONNEL'){
+    	return "境外人员";
+    }
+    return "";
+}
+function residentTypeFormatter(el,options,rowData){
+	var datavalue = rowData.personinitType;
+	if(datavalue=='1'){
+		return "特殊人群信息类";
+	}
+	if(datavalue=='2'){
+		return "转移流动信息类";
+	}
+	if(datavalue=='3'){
+		return "迁户注销信息类";
+	}
+	return "";
+
+}
+
+function operationContentFormatter(el,options,rowData){
+    var datavalue=qq(rowData.operationType);
+    if(datavalue=='录入'){
+    	return rowData.personnelName+"在"+rowData.personnelOrganization.orgName+"的"+aa(rowData.personnelType)+"中被"+qq(rowData.operationType);
+    }
+	if(datavalue=='关注'||datavalue=='重新关注'||datavalue=='取消关注'){
+		return rowData.personnelName+"在"+aa(rowData.personnelType)+"中被"+qq(rowData.operationType);
+	}
+	if(datavalue=='转移'){
+		return rowData.personnelName+"从"+rowData.oldPersonnelOrganization.orgName+"的"+aa(rowData.personnelType)+"中被"+qq(rowData.operationType);
+	}
+	if(datavalue=='迁出'){
+		return rowData.personnelName+"从"+rowData.oldPersonnelOrganization.orgName+"中"+qq(rowData.operationType);
+	}
+	if(datavalue=='迁入到'){
+		return rowData.personnelName+""+qq(rowData.operationType)+""+rowData.oldPersonnelOrganization.orgName;
+	}
+	if(datavalue=="注销"){
+		return rowData.personnelName+"在"+aa(rowData.personnelType)+"中"+qq(rowData.operationType);
+	}
+	if(datavalue=='删除'){
+		return rowData.personnelName+"在"+aa(rowData.personnelType)+"中被"+qq(rowData.operationType);
+	}
+	if(datavalue=="取消注销"){
+		return rowData.personnelName+"在"+aa(rowData.personnelType)+"中"+qq(rowData.operationType);
+	}
+
+}
+</script>

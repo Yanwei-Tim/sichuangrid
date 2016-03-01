@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="tableOperate">
+	<select id="existTableFindByTableName" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(1) from user_tables u where u.table_name = #tableName#
+	</select>
+	<select id="existTableFieldFindByTableNameAndField"  parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(1) from user_tab_columns u where u.table_name = #tableName# and u.COLUMN_NAME =#field# 
+	</select>
+	
+	<update id="FieldsToTable" parameterClass="java.util.Map">
+		<![CDATA[alter table $tableName$ add $fields$ $fieldsType$]]>
+	</update>
+	
+	<update id="dropFieldsFromTable" parameterClass="java.util.Map">
+		<![CDATA[alter table $tableName$ drop column $fields$]]>
+	</update>
+	
+	<statement id="addFieldsToTable" parameterClass="java.util.Map" >
+		alter table $tableName$ add $fields$ $fieldsType$
+	</statement>
+
+	<statement id="statementEditSql" parameterClass="java.lang.String">  
+		$value$
+	</statement>
+	
+	<update id="updateLonlat" parameterClass="java.util.Map">
+		update $tableName$ 
+		set centerLon = #centerLon#,centerLat=#centerLat#,centerLon2=#centerLon2#,centerLat2=#centerLat2#
+		where id=#id#
+		<dynamic >
+			<isPropertyAvailable property="type" prepend="and">
+				type=#type#
+			</isPropertyAvailable>
+		</dynamic>
+	</update>
+</sqlMap>

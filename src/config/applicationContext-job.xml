@@ -1,0 +1,830 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+	http://www.springframework.org/schema/jee
+	http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+	<bean id="builddataStatTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="builddataJob" />
+		<property name="targetMethod" value="statisticBuilddata" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="builddataStatTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="builddataStatTask" />
+		<property name="cronExpression">
+			<value>${builddataJobCronTime}</value>
+		</property>
+	</bean>
+	
+	<bean id="sessionTimeOutTask" class="org.springframework.scheduling.quartz.JobDetailBean">
+		<property name="jobClass"
+			value="com.tianque.component.SessionTimeOutScheduling"></property>
+	</bean>
+	<bean id="sessionTimeOutTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail" ref="sessionTimeOutTask" />
+		<property name="startDelay" value="60000" />
+		<property name="repeatInterval" value="${sessionRepeatInterval}"/>
+	</bean>
+	
+<!--	 短信发件箱job短信-->
+<!--	<bean id="smsUplinkJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">-->
+<!--		<property name="targetBean" value="smsUplinkJob"/>-->
+<!--		<property name="targetMethod" value="smsUplinkJobDo"/>-->
+<!--		<property name="shouldRecover" value="true" />-->
+<!--	</bean>-->
+<!--	<bean id="smsUplinkJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">-->
+<!--		<property name="jobDetail" ref="smsUplinkJobTask"/>-->
+<!--		<property name="cronExpression">-->
+<!--				<value>${smsUplinkJobTime}</value>-->
+<!--		</property>-->
+<!--	</bean>-->
+<!--	-->
+<!--	 短信收件箱job短信-->
+<!--	<bean id="smsDownlinkJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">-->
+<!--		<property name="targetBean" value="smsDownlinkJob"/>-->
+<!--		<property name="targetMethod" value="smsDownlinkJobDo"/>-->
+<!--		<property name="shouldRecover" value="true" />-->
+<!--	</bean>-->
+<!--	<bean id="smsDownlinkJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">-->
+<!--		<property name="jobDetail" ref="smsDownlinkJobTask"/>-->
+<!--		<property name="cronExpression">-->
+<!--				<value>${smsDownlinkJobTime}</value>-->
+<!--		</property>-->
+<!--	</bean>-->
+	
+	<!-- 服务办事自动督办调度 -->
+	<bean id="autoIsueSuperviseJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="issueOvertimeHandlerJob" />
+		<property name="targetMethod" value="autoIsueSupervise" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="autoIsueSuperviseJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="autoIsueSuperviseJobTask" />
+		<property name="cronExpression" value="${autoIsueSuperviseJobDoTime}" />
+	</bean>
+	
+	<!-- 服务办事类型统计调度 -->
+	<bean id="issueTypeStanalMonthJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="issueTypeStanalJob" />
+		<property name="targetMethod" value="addMonthIssueTypeStanals" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="issueTypeStanalMonthJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="issueTypeStanalMonthJobTask" />
+		<property name="cronExpression" value="${issueTypeStanalMonthJobDoTime}" />
+	</bean>
+
+
+    <!-- 服务办事办理统计调度 -->
+	<bean id="monthIssueDealStat" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="issueDealStatJob" />
+		<property name="targetMethod" value="addMonthOrgLoginStanals" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="issueDealStatJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="monthIssueDealStat" />
+		<property name="cronExpression" value="${issueDealStatMonthTime}" />
+	</bean>
+	
+	<!-- 社区矫正人员到期取消关注 -->
+	<bean id="rectificativePersonJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="rectificativePersonJob"/>
+		<property name="targetMethod" value="emphasisRectificativePersonJob"/>
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="rectificativePersonJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="rectificativePersonJobTask"/>
+		<property name="cronExpression">
+				<value>${rectificativePersonJobCronTime}</value>
+		</property>
+	</bean>
+	
+	<!--刑释解教人员到期取消关注 -->
+	<bean id="positiveInfoNewJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="positiveInfoNewJob"/>
+		<property name="targetMethod" value="emphasisPositiveInfoJob"/>
+		<property name="shouldRecover" value="true"/>
+	</bean>
+	<bean id="positiveInfoNewJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="positiveInfoNewJobTask"/>
+		<property name="cronExpression">
+			<value>${positiveInfoNewJobCronTime}</value>
+		</property>
+	</bean>
+	
+	<!--重点青少年到期取消关注 -->
+	<bean id="idleYouthJobTowTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="idleYouthTowJob" />
+		<property name="targetMethod" value="emphasisIdleYouthJob" />
+		<property name="shouldRecover" value="true" />
+		<property name="concurrent" value="false"></property>
+	</bean>
+	<bean id="idleYouthTowJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="idleYouthJobTowTask" />
+		<property name="cronExpression" value="${idleYouthTowJobCronTime}"/>
+	</bean>
+	
+	<!--台帐目录是否自动启用 -->
+	<bean id="whetherAutoStartDailyYearJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="whetherAutoStartDailyYearJob" />
+		<property name="targetMethod" value="dailyYearJob" />
+		<property name="shouldRecover" value="true" />
+		<property name="concurrent" value="false"></property>
+	</bean>
+	<bean id="whetherAutoStartDailyYearJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="whetherAutoStartDailyYearJobTask" />
+		<property name="cronExpression" value="${dailyYearJobCronTime}"/>
+	</bean>
+
+
+	<!--
+	 <bean id="actualCompanyStatJobTask"
+		class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="actualCompanyStatJob" />
+		<property name="targetMethod" value="statisticsMonthMessage" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="actualCompanyStatJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="actualCompanyStatJobTask" />
+		<property name="cronExpression" value="${actualCompanyStatJobCronTime}" />
+	</bean> 
+	-->
+
+
+	<bean id="newEconomicStatJobTask"
+		class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="newEconomic" />
+		<property name="targetMethod" value="statisticsMonthMessage" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="newEconomicStatJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="newEconomicStatJobTask" />
+		<property name="cronExpression" value="${newEconomicStatJobCronTime}" />
+	</bean>
+	
+	
+	<bean id="youthStatistJobTask"
+		class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="youthStatistJob" />
+		<property name="targetMethod" value="statisticsMonthMessage" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="youthStatistJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="youthStatistJobTask" />
+		<property name="cronExpression" value="${youthStatistJobTime}" />
+	</bean>
+
+	<!--老年人流动人口-->
+	<bean id="floatingPopulationJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="floatingPopulationJob" />
+		<property name="targetMethod" value="updateFloatingPopulationLogOut" />
+		<property name="shouldRecover" value="true" />
+		<property name="concurrent" value="false"></property>
+	</bean>
+	<bean id="floatingPopulationJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="floatingPopulationJobTask" />
+		<property name="cronExpression" value="${floatingPopulationJobCronTime}">
+		</property>
+	</bean>
+	
+	<!--老年人户籍人口-->
+	<bean id="householdStaffTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="householdStaffJob" />
+		<property name="targetMethod" value="updateHouseholdStaffLogOut" />
+		<property name="shouldRecover" value="true" />
+		<property name="concurrent" value="false"></property>
+	</bean>
+	<bean id="householdStaffJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="householdStaffTask" />
+		<property name="cronExpression" value="${householdStaffOneTaskCronTime}">
+		</property>
+	</bean>
+	
+	<!--育龄妇女-->
+	<bean id="nurturesWomenStaffTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="nurturesWomenJob" />
+		<property name="targetMethod" value="nurturesWomenLogout" />
+		<property name="shouldRecover" value="true" />
+		<property name="concurrent" value="false"></property>
+	</bean>
+	<bean id="nurturesWomenJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="nurturesWomenStaffTask" />
+		<property name="cronExpression" value="${nurturesWomenJobCronTime}">
+		</property>
+	</bean>
+	
+	<bean id="baseInfoStatTypeJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="baseInfoStatTypeJob" />
+		<property name="targetMethod" value="saveBaseInfoStatType" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="baseInfoStatTypeJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="baseInfoStatTypeJobTask" />
+		<property name="cronExpression" value="${baseInfoStatTypeJobCronTime}" />
+	</bean>
+
+	<!--趋势图 
+	 重点人员和以前的重点单位的月统计现在没有在用，现在用baseInfoStatistic表里面的数据
+	<bean id="statisticsMonthMessageJob" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+        <property name="targetBean" value="automaticStatisticsTendencyChart" />
+		<property name="targetMethod" value="statisticsMonthMessage" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="statisticsMonthMessageTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail">
+            <ref bean="statisticsMonthMessageJob"/>
+        </property>
+        <property name="cronExpression">
+            <value>${statisticsMonthMessageTime}</value>
+        </property>
+	</bean>
+	-->
+	<!-- systemLogs在分表前将上个月的日志备份到systemLogs_Archive表并且清除上个月的日志的job现在没有必要这样做了 
+	<bean id="archiveSystemLogsJobDetailFactoryBean" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+        <property name="targetBean" value="archiveSystemLogsJob" />
+		<property name="targetMethod" value="archiveSystemLogs" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="archiveSystemLogsTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail">
+            <ref bean="archiveSystemLogsJobDetailFactoryBean"/>
+        </property>
+        <property name="cronExpression">
+            <value>${archiveSystemLogsTime}</value>
+        </property>
+	</bean>
+	-->
+
+	<bean id="automaticPopulationStatJob"
+			class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+	        <property name="targetBean" value="automaticPopulationStat" />
+			<property name="targetMethod" value="statisticsMonthMessage" />
+			<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="automaticPopulationStatTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+			<property name="jobDetail">
+	            <ref bean="automaticPopulationStatJob"/>
+	        </property>
+	        <property name="cronExpression">
+	            <value>${automaticPopulationStatTime}</value>
+	        </property>
+	</bean>
+	
+	<bean id="automaticAttentionPopulationStatJob" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+	        <property name="targetBean" value="automaticAttentionPopulationStat" />
+			<property name="targetMethod" value="statisticsMonthMessage" />
+			<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="automaticAttentionPopulationStatTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+			<property name="jobDetail">
+	            <ref bean="automaticAttentionPopulationStatJob"/>
+	        </property>
+	        <property name="cronExpression">
+	            <value>${automaticAttentionPopulationStatTime}</value>
+	        </property>
+	</bean>
+	
+	<!-- 事件处理成绩表综合指标job -->
+	<bean id="statRegradeJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="statRegradeJob" />
+		<property name="targetMethod" value="statRegradedPoints" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="statRegradeJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="statRegradeJobTask" />
+		<property name="cronExpression" value="${statRegradedPointsTime}" />
+	</bean>
+	
+	<!-- 事件处理报表 -->
+	<bean id="issueReportStatJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="issueReportStatJob" />
+		<property name="targetMethod" value="statIssueReport" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="issueReportStatJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="issueReportStatJobTask" />
+		<property name="cronExpression" value="${issueReportStatTime}" />
+	</bean>
+	
+	<!-- 生成事件处理统计历史数据 -->
+	
+	<bean id="issueAnalysisChartJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="issueAnalysisChartJob" />
+		<property name="targetMethod" value="createIssueAnalysisChartData" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	
+	<bean id="issueAnalysisChartJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="issueAnalysisChartJobTask" />
+		<property name="cronExpression" value="${issueAnalysisChartJobTime}" />
+	</bean>
+
+	<!-- 实有人员类型分布图-->
+	<bean id="automaticHouseholdStaffPopulationStatFactoryBean" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+        <property name="targetBean" value="automaticHouseholdStaffPopulationStat" />
+		<property name="targetMethod" value="statisticsMonthMessage" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="automaticHouseholdStaffPopulationStatJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail">
+            <ref bean="automaticHouseholdStaffPopulationStatFactoryBean"/>
+        </property>
+        <property name="cronExpression">
+            <value>${automaticHouseholdStaffPopulationStatTime}</value>
+        </property>
+	</bean>
+	
+	<!-- 青少年按月统计-->
+	<bean id="automaticYouthPopulationStatFactoryBean" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+        <property name="targetBean" value="automaticYouthPopulationStat" />
+		<property name="targetMethod" value="statisticsMonthMessage" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="automaticYouthPopulationStatJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail">
+            <ref bean="automaticYouthPopulationStatFactoryBean"/>
+        </property>
+        <property name="cronExpression">
+            <value>${automaticYouthPopulationStatTime}</value>
+        </property>
+	</bean>
+	
+	<!-- 青少年领导视图总数缓存-->
+	<bean id="leaderYouthsViewCountStatFactoryBean" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+        <property name="targetBean" value="leaderYouthsViewCountJob" />
+		<property name="targetMethod" value="leaderViewHourMessage" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="leaderYouthsViewCountJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail">
+            <ref bean="leaderYouthsViewCountStatFactoryBean"/>
+        </property>
+        <property name="cronExpression">
+            <value>${leaderYouthsViewCountJobTime}</value>
+        </property>
+	</bean>
+	
+	<!-- 领导视图统计数据 -->
+	
+	<bean id="leaderViewCountJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="leaderViewCountJob" />
+		<property name="targetMethod" value="leaderViewHourMessage" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="leaderViewCountJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+			<property name="jobDetail">
+	            <ref bean="leaderViewCountJobTask"/>
+	        </property>
+	        <property name="cronExpression">
+	            <value>${leaderViewCountJobStatTime}</value>
+	        </property>
+	</bean>
+	<bean id="leaderViewHouseCountJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="leaderViewHouseCountJob" />
+		<property name="targetMethod" value="leaderViewHouseInfoMessage" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="leaderViewHouseCountJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+			<property name="jobDetail">
+	            <ref bean="leaderViewHouseCountJobTask"/>
+	        </property>
+	        <property name="cronExpression">
+	            <value>${leaderViewHouseCountJobStatTime}</value>
+	        </property>
+	</bean>
+	<bean id="attentionPeopleLeaderViewCountJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="attentionPeopleLeaderViewCountJob" />
+		<property name="targetMethod" value="attentionPeopleLeaderViewMessage" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="attentionPeopleLeaderViewCountJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+			<property name="jobDetail">
+	            <ref bean="attentionPeopleLeaderViewCountJobTask"/>
+	        </property>
+	        <property name="cronExpression">
+	            <value>${attentionPeopleLeaderViewCountJobStatTime}</value>
+	        </property>
+	</bean>
+	
+	
+	<!-- 三本台账时限考核成绩 -->
+	<bean id="statisticsAccountTimeoutsJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="statisticsAccountTimeoutsJob" />
+		<property name="targetMethod" value="createStatisticsAccountTimeoutData" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="statisticsAccountTimeoutsJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="statisticsAccountTimeoutsJobTask" />
+		<property name="cronExpression" value="${statisticsAccountTimeoutsStatTime}" />
+	</bean>
+	
+	<!-- 三本台账报表统计 -->
+	<bean id="accountReportJobJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="accountReportJob" />
+		<property name="targetMethod" value="createAccountReportJobData" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="accountReportJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="accountReportJobJobTask" />
+		<property name="cronExpression" value="${accountReportStatTime}" />
+	</bean>
+	<!-- 三本台账报表统计社区 -->
+	<bean id="accountReportVillageJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="oldAccountReportVillageJob" />
+		<property name="targetMethod" value="createAccountReportJobData" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="accountReportVillageJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="accountReportVillageJobTask" />
+		<property name="cronExpression" value="${accountReportStatVillageTime}" />
+	</bean>
+	
+	
+	
+	<!--同步户籍地 -->
+	<bean id="syncPermanentAddressJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="syncPermanentAddressJob" />
+		<property name="targetMethod" value="syncPermanentAddress" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="syncPermanentAddressJobJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="syncPermanentAddressJobTask" />
+		<property name="cronExpression" value="${syncPermanentAddressTime}" />
+	</bean>
+	
+	<!--删除互动交流收、发件箱过期的消息 -->
+	<bean id="interactCommunicationMessageCleanJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="interactCommunicationMessageCleanJob" />
+		<property name="targetMethod" value="cleanInteractCommunicationMessage" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="interactCommunicationMessageCleanJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="interactCommunicationMessageCleanJobTask" />
+		<property name="cronExpression" value="${interactCommunicationMessageCleanTime}" />
+	</bean>
+	<!--删除导入日志过期的消息 -->
+	<bean id="excelImportLogCleanJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="excelImportLogCleanJob" />
+		<property name="targetMethod" value="excelImportLogClean" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="excelImportLogCleanJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="excelImportLogCleanJobTask" />
+		<property name="cronExpression" value="${excelImportLogCleanTime}" />
+	</bean>
+	<!--单位场所领导视图统计 -->
+	<bean id="companyPlaceLeaderViewJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="companyPlaceLeaderViewJob" />
+		<property name="targetMethod" value="companyPlaceLeaderView" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="companyPlaceLeaderViewJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="companyPlaceLeaderViewJobTask" />
+		<property name="cronExpression" value="${companyPlaceLeaderViewTime}" />
+	</bean>
+	<!--单位场所统计报表统计 -->
+	<bean id="companyPlaceAnalyzStatisticsJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="companyPlaceAnalyzStatisticsJob" />
+		<property name="targetMethod" value="companyPlaceAnalyzStatistics" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="companyPlaceAnalyzStatisticsJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="companyPlaceAnalyzStatisticsJobTask" />
+		<property name="cronExpression" value="${companyPlaceAnalyzStatisticsTime}" />
+	</bean>
+	<!--组织机构统计JOB-->
+	<bean id="organizationAnalyzingJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="organizationAnalyzingJob" />
+		<property name="targetMethod" value="addOrganizationHistory" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="organizationAnalyzingJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="organizationAnalyzingJobTask" />
+		<property name="cronExpression" value="${organizationAnalyzingTime}" />
+	</bean>
+	<!--组织机构-党委部门统计JOB-->
+	<bean id="departmentPartyStatisticsJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="departmentPartyStatisticsJob" />
+		<property name="targetMethod" value="addDepartmentPartyHistory" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="departmentPartyStatisticsJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="departmentPartyStatisticsJobTask" />
+		<property name="cronExpression" value="${departmentPartyAnalyzingTime}" />
+	</bean>
+	
+	<!--用户覆盖率统计报表报表统计 -->
+	<bean id="userActivateReportJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="userActivateReportJob" />
+		<property name="targetMethod" value="createUserActivateReportData" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="userActivateReportJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="userActivateReportJobTask" />
+		<property name="cronExpression" value="${userActivateReportTime}" />
+	</bean>
+	<!--手机事件统计报表，生成各个大类对应的办理情况表 -->
+	<bean id="issueAnalysisToMobileJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="issueAnalysisToMobileJob" />
+		<property name="targetMethod" value="createIssueAnalysisToMobileData" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="issueAnalysisToMobileJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="issueAnalysisToMobileJobTask" />
+		<property name="cronExpression" value="${issueAnalysisToMobileTime}" />
+	</bean>
+	
+	<!--青羊事件对接数据同步到社管 -->
+	<bean id="issueJointTempDataSyncJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="issueJointTempDataSyncJob" />
+		<property name="targetMethod" value="syncIssueJointTempData" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="issueJointTempDataSyncJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="issueJointTempDataSyncJobTask" />
+		<property name="cronExpression" value="${issueJointTempDataSyncTime}" />
+	</bean>
+	
+	<!-- 生成实口的领导视图历史月份 -->
+	<bean id="actualPopulationLeaderViewSummaryCountJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="actualPopulationLeaderViewSummaryCountJob" />
+		<property name="targetMethod" value="createActualPopulationLeaderViewSummaryData" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="actualPopulationLeaderViewSummaryCountJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="actualPopulationLeaderViewSummaryCountJobTask" />
+		<property name="cronExpression" value="${actualPopulationLeaderViewSummaryCountTime}" />
+	</bean>
+	<!--生成业务人员的领导视图历史月份 -->
+	<bean id="bussinessPopulationLeaderViewSummaryCountJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="bussinessPopulationLeaderViewSummaryCountJob" />
+		<property name="targetMethod" value="createBussinessPopulationLeaderViewSummaryData" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="bussinessPopulationLeaderViewSummaryCountJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="bussinessPopulationLeaderViewSummaryCountJobTask" />
+		<property name="cronExpression" value="${bussinessPopulationLeaderViewSummaryCountTime}" />
+	</bean>
+	<!--生成青少年的领导视图历史月份-->
+	<bean id="youthsLeaderViewSummaryCountJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="youthsLeaderViewSummaryCountJob" />
+		<property name="targetMethod" value="createYouthsLeaderViewSummaryData" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="youthsLeaderViewSummaryCountJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="youthsLeaderViewSummaryCountJobTask" />
+		<property name="cronExpression" value="${youthsLeaderViewSummaryCountTime}" />
+	</bean>
+	<!--生成房屋的领导视图历史月份 -->
+	<bean id="houseLeaderViewSummaryCountJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="houseLeaderViewSummaryCountJob" />
+		<property name="targetMethod" value="createHouseLeaderViewSummaryData" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="houseLeaderViewSummaryCountJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="houseLeaderViewSummaryCountJobTask" />
+		<property name="cronExpression" value="${houseLeaderViewSummaryCountTime}" />
+	</bean>
+	<!--单位场所领导视图历史月份 -->
+	<bean id="companyplaceLeaderViewSummaryCountJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="companyplaceLeaderViewSummaryCountJob" />
+		<property name="targetMethod" value="createCompanyplaceLeaderViewSummaryData" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="companyplaceLeaderViewSummaryCountJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="companyplaceLeaderViewSummaryCountJobTask" />
+		<property name="cronExpression" value="${companyplaceLeaderViewSummaryCountTime}" />
+	</bean>
+	
+	<!--社管对接事件当前处理状态同步到青羊事件对接数据 -->
+	<bean id="syncIssueStatusToIssueJointTempDataJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="syncIssueStatusToIssueJointTempDataJob" />
+		<property name="targetMethod" value="syncIssueStatusToIssueJointTempData" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="syncIssueStatusToIssueJointTempDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="syncIssueStatusToIssueJointTempDataJobTask" />
+		<property name="cronExpression" value="${syncIssueStatusToIssueJointTempDataTime}" />
+	</bean>
+	<!--网格化服务管理信息系统使用情况每天统计-->
+	<bean id="usedInfoEverDayCountJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="usedInfoEverDayCountJob" />
+		<property name="targetMethod" value="createUsedInfoEverDayCountCache" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="usedInfoEverDayCountJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="usedInfoEverDayCountJobTask" />
+		<property name="cronExpression" value="${usedInfoEverDayCountTime}" />
+	</bean>
+	
+	<bean id="schedulerFactoryBean"	class="org.springframework.scheduling.quartz.SchedulerFactoryBean" lazy-init="false">
+		<property name="dataSource">
+			<ref bean="zzGrid_main_ds" />
+		</property>
+		<property name="overwriteExistingJobs" value="true"/>
+		<property name="applicationContextSchedulerContextKey" value="applicationContext" />
+		<property name="configLocation" value="classpath:quartz.properties" />
+		<property name="triggers">
+			<list>
+				<ref local="sessionTimeOutTrigger" />
+				<ref local="idleYouthTowJobTrigger"/>
+				<!-- 重点人员和以前的重点单位的月统计现在没有在用，现在用baseInfoStatistic表里面的数据
+				<ref local="statisticsMonthMessageTrigger" />
+				 -->
+				<!--  <ref local="issueTypeStanalMonthJobTrigger" />-->
+				<ref local="issueDealStatJobTrigger" />
+				<ref local="baseInfoStatTypeJobTrigger" />
+				<!-- systemLogs在分表前将上个月的日志备份到systemLogs_Archive表并且清除上个月的日志的job现在没有必要这样做了
+				<ref local="archiveSystemLogsTrigger" />
+				 -->
+				<ref local="automaticPopulationStatTrigger"/>
+				<ref local="automaticAttentionPopulationStatTrigger"/>
+				<!-- <ref local="actualCompanyStatJobTrigger"/> -->
+				<ref local="newEconomicStatJobTrigger"/>
+				<ref local="rectificativePersonJobTrigger"/>
+				<ref local="positiveInfoNewJobTrigger"/>
+				<ref local="builddataStatTrigger" />
+				<ref local="orgLoginStanalsMonthCronTrigger" />
+				<ref local="loginManageCronTrigger" />
+				<ref local="whetherAutoStartDailyYearJobTrigger" />
+				<ref local="autoIsueSuperviseJobTrigger" />
+<!--				<ref local="smsUplinkJobTrigger" />-->
+<!--				<ref local="smsDownlinkJobTrigger" />-->
+				<ref local="youthStatistJobTrigger" />
+				<ref local="statRegradeJobTrigger"/>
+				<ref local="floatingPopulationJobTrigger"/>
+				<ref local="householdStaffJobTrigger"/>
+				<ref local="nurturesWomenJobTrigger"/>
+				<ref local="issueReportStatJobTrigger"/>
+				<ref local="issueAnalysisChartJobTrigger"/>
+				<ref local="automaticHouseholdStaffPopulationStatJobTrigger"/>
+				<ref local="leaderViewCountJobTrigger"/>
+				<ref local="leaderViewHouseCountJobTrigger"/>
+				<ref local="attentionPeopleLeaderViewCountJobTrigger"/>
+				<ref local="statisticsAccountTimeoutsJobTrigger"/>
+				<ref local="accountReportJobTrigger"/>
+				<ref local="syncPermanentAddressJobJobTrigger"/>
+				<ref local="accountReportVillageJobTrigger"/>
+				<ref local="interactCommunicationMessageCleanJobTrigger"/>
+				<ref local="excelImportLogCleanJobTrigger"/>
+				<ref local="companyPlaceLeaderViewJobTrigger"/>
+				<ref local="companyPlaceAnalyzStatisticsJobTrigger"/>
+				<ref local="organizationAnalyzingJobTrigger"/>
+				<ref local="departmentPartyStatisticsJobTrigger"/>
+				<ref local="automaticYouthPopulationStatJobTrigger"/>
+				<ref local="leaderYouthsViewCountJobTrigger"/>
+				<!-- <ref local="householdStaffMoveMongoDbTrigger"/> -->
+				<ref local="systemLogsTableCreateJobTrigger"/>
+				<ref local="userActivateReportJobTrigger"/>
+				<ref local="issueAnalysisToMobileJobTrigger"/>
+				<ref local="basesituationStatementStatisticsJobTrigger"/>
+				<ref local="cleanLeaderviewcacheJobTrigger"/>
+				<ref local="issueJointTempDataSyncJobTrigger"/>
+				<ref local="syncIssueStatusToIssueJointTempDataJobTrigger"/>
+				<ref local="issueExtractionJobTrigger"/>
+				<ref local="actualPopulationLeaderViewSummaryCountJobTrigger"/>
+				<ref local="bussinessPopulationLeaderViewSummaryCountJobTrigger"/>
+				<ref local="youthsLeaderViewSummaryCountJobTrigger"/>
+				<ref local="houseLeaderViewSummaryCountJobTrigger"/>
+				<ref local="companyplaceLeaderViewSummaryCountJobTrigger"/>
+				<ref local="smsReceivedboxsJobTrigger"/>
+				<ref local="smsSendBoxsJobTrigger"/>
+				<ref local="issueCacheJobTrigger"/>
+				<ref local="usedInfoEverDayCountJobTrigger"/>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- 用户登录情况统计调度 -->
+	<bean id="orgLoginStanalsJob" class="com.tianque.job.realization.OrgLoginStanalsJob" scope="prototype" />
+	<bean id="orgLoginStanalsMonthJobTask"
+		class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="orgLoginStanalsJob" />
+		<property name="targetMethod" value="addMonthOrgLoginStanals" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="orgLoginStanalsMonthCronTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="orgLoginStanalsMonthJobTask" />
+		<property name="cronExpression" value="${orgLoginStanalsMonthTime}" />
+	</bean>
+	
+	<!-- 用户登录情况 -->
+	<bean id="loginManageJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="loginManageJob" />
+		<property name="targetMethod" value="addMonthLoginManageJob" />
+		<property name="shouldRecover" value="true" />
+		<property name="concurrent" value="false"></property>
+	</bean>
+	<bean id="loginManageCronTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="loginManageJobTask" />
+		<property name="cronExpression" value="${loginManageMonthTime}">
+		</property>
+	</bean>
+	
+	<!--户籍人口同步mongodb 
+	<bean id="householdStaffMoveMongoDbTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="householdStaffMoveMongoDbJob" />
+		<property name="targetMethod" value="execute" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="householdStaffMoveMongoDbTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="householdStaffMoveMongoDbTask" />
+		<property name="cronExpression">
+			<value>${householdStaffMoveMongoDbTime}</value>
+		</property>
+	</bean>
+	-->
+	
+	<!--系统操作日志建表job-->
+	<bean id="systemLogsTableCreateJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="systemLogsTableCreateJob" />
+		<property name="targetMethod" value="createSystemLogTable" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="systemLogsTableCreateJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="systemLogsTableCreateJobTask" />
+		<property name="cronExpression">
+			<value>${systemLogsTableCreateJobTime}</value>
+		</property>
+	</bean>
+	
+	<!--基本信息统计报表job-->
+	<bean id="basesituationStatementStatisticsJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="basesituationStatementStatisticsJob" />
+		<property name="targetMethod" value="addBasesituationStatementStatistics" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="basesituationStatementStatisticsJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="basesituationStatementStatisticsJobTask" />
+		<property name="cronExpression">
+			<value>${basesituationStatementStatisticsJobTime}</value>
+		</property>
+	</bean>
+	
+<!-- 清除缓存表说有数据job -->
+	<bean id="cleanLeaderviewcacheJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="cleanLeaderviewcacheJob" />
+		<property name="targetMethod" value="cleanLeaderviewcache" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="cleanLeaderviewcacheJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="cleanLeaderviewcacheJobTask" />
+		<property name="cronExpression">
+			<value>${cleanLeaderviewcacheTime}</value>
+		</property>
+	</bean>
+	
+	<!-- 已办结事件历史数据分离job -->
+	<bean id="issueExtractionJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="issueExtractionJob" />
+		<property name="targetMethod" value="extractionIssues" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="issueExtractionJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="issueExtractionJobTask" />
+		<property name="cronExpression" value="${issueExtractionJobDoTime}" />
+	</bean>
+	
+	<!--短信收发信箱分表job -->
+	<bean id="smsReceivedboxsJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="smsReceivedboxsJob" />
+		<property name="targetMethod" value="executeRec" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="smsReceivedboxsJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="smsReceivedboxsJobTask" />
+		<property name="cronExpression" value="${smsReceivedboxsJobTaskTime}" />
+	</bean>
+	<bean id="smsSendBoxsJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="smsSendBoxsJob" />
+		<property name="targetMethod" value="executeSend" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	<bean id="smsSendBoxsJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="smsSendBoxsJobTask" />
+		<property name="cronExpression" value="${smsSendBoxsJobTime}" />
+	</bean>
+	
+	<!-- 事件列表缓存job 	-->
+	<bean id="issueCacheJobTask" class="frameworkx.springframework.scheduling.quartz.BeanInvokingJobDetailFactoryBean">
+		<property name="targetBean" value="issueCacheJob" />
+		<property name="targetMethod" value="handleIssueCache" />
+		<property name="shouldRecover" value="true" />
+	</bean>
+	
+	<bean id="issueCacheJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="issueCacheJobTask" />
+		<property name="cronExpression" value="${issueCacheJobTime}" />
+	</bean>
+
+</beans>

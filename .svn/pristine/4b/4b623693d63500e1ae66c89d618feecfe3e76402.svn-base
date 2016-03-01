@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="enterpriseKeyTemp">
+	<typeAlias alias="EnterpriseKeyTemp" type="com.tianque.plugin.dataManage.location.enterpriseKeyTemp.domain.EnterpriseKeyTemp" />
+	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+	
+	<resultMap id="enterpriseKeyTempResultForBase" class="EnterpriseKeyTemp" extends="enterpriseTemp.enterpriseTempResultForBase">
+		<result property="industry.id" column="industry"/>
+		<result property="businessLicense" column="businessLicense"/>
+		<result property="area" column="area"/>
+		<result property="registeredCapital" column="registeredCapital"/>
+		<result property="employeeAmount" column="employeeAmount"/>
+		<result property="partyMemberAmount" column="partyMemberAmount"/>
+		<result property="enterpriseTelephone" column="enterpriseTelephone"/>
+		<result property="fax" column="fax"/>
+	</resultMap>
+	
+    <resultMap id="enterpriseKeyTempResultForList" class="EnterpriseKeyTemp" extends="enterpriseKeyTemp.enterpriseKeyTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<sql id="claim_sql_where">
+		from DM_enterpriseKey_Temp d where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	<sql id="updateBusinessSql">
+		industry = #industry.id#
+		,businessLicense = #businessLicense#
+		,area = #area#
+		,registeredCapital = #registeredCapital#
+		,employeeAmount = #employeeAmount#
+		,partyMemberAmount = #partyMemberAmount#
+		,enterpriseTelephone = #enterpriseTelephone#
+		,fax = #fax#
+		,telephone = #telephone#
+		,mobileNumber = #mobileNumber#
+		,isRiskEnterprise = #isRiskEnterprise#
+		,hiddenCases = #hiddenCases#
+		,hiddenRectification = #hiddenRectification#
+		,attentionExtent=#attentionExtent.id#
+	</sql>
+	<insert id="addEnterpriseKeyTemp" parameterClass="EnterpriseKeyTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_enterpriseKey_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_enterpriseKey_Temp
+		(id,orgId,orgInternalCode,name,manager,address,industry,businessLicense,area,registeredCapital,
+		 employeeAmount,partyMemberAmount,enterpriseTelephone,fax,telephone,mobileNumber,attentionExtent,
+		 isRiskEnterprise,hiddenCases,hiddenRectification,remark,createDate,createUser,type,
+		<include refid="dataManage.addDataManage"/>
+		)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#name#,#manager#,#address#,#industry.id#,#businessLicense#,#area#,
+		#registeredCapital#,#employeeAmount#,#partyMemberAmount#,#enterpriseTelephone#,#fax#,#telephone#,#mobileNumber#,#attentionExtent.id#,
+		#isRiskEnterprise#,#hiddenCases#,#hiddenRectification#,#remark#,#createDate#,#createUser#,(select id from propertyDicts where displayName='规上企业'),
+		<include refid="dataManage.addValueDataManage"/>
+		)
+    </insert>
+	
+	 <select id="findTempPageList" resultMap="enterpriseKeyTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select d.*,'enterpriseKey' as keyType ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<update id="updateEnterpriseKeyTempInIdById"  parameterClass="java.util.Map">
+		update DM_enterpriseKey_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<update id="updateEnterpriseKeyTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_enterpriseKey_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	
+	<update id="updateEnterpriseKeyTemp" parameterClass="EnterpriseKeyTemp">
+		update DM_enterpriseKey_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="enterpriseKeyTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	
+	<select id="findTemps" resultMap="enterpriseKeyTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select d.*,'enterpriseKey' as keyType ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countFindTemps" resultClass="java.lang.Integer"
+		parameterClass="searchVo">
+			select count(id)  <include refid="claim_sql_where" />
+	</select>
+	<select id="getEnterpriseKeyTempById" parameterClass="long" resultMap="enterpriseKeyTempResultForList">
+		select d.*,'enterpriseKey' as keyType from DM_enterpriseKey_Temp d where d.id=#value#
+	</select>
+	<!-- 修改场所信息 -->
+	<update id="updateEnterpriseKeyTempInfo" parameterClass="EnterpriseKeyTemp">
+		update DM_enterpriseKey_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="enterpriseKeyTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<delete id="deleteEnterpriseKeyTempById" parameterClass="Long">
+	   delete DM_enterpriseKey_Temp where id = #value#
+	</delete>
+</sqlMap>

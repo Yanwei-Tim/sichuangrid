@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="contradictionManage" extends="default" namespace="/baseinfo/rectificativePersonManage">
+		<default-class-ref class="contradictionController"></default-class-ref>
+		<action name="dispatch" method="dispatch">
+		      <result name="success">
+		          /baseinfo/contradiction/searchContradictionDlg.jsp
+		      </result>
+		</action>
+		<action name="preContradictionList" method="preContradictionList">
+            <result name="success">
+                /baseinfo/contradiction/contradictionList.jsp
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+	</package>
+</struts>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="gisFunction">
+	<typeAlias alias="GisFunction"
+		type="com.tianque.openLayersMap.domian.GisFunction" />
+	
+	<resultMap class="GisFunction" id="gisFunctionResult" >
+		<result property="id" column="id" />
+		<result property="boundEventName" column="boundEventName" />
+		<result property="unBoundEventName" column="unBoundEventName" />
+		<result property="boundEventIsValid" column="boundEventIsValid" />
+		<result property="unBoundEventIsValid" column="unBoundEventIsValid" />
+		<result property="event.id" column="event"/>
+		<result property="moduleId" column="moduleId"/>
+		<result property="sonClassId" column="sonClassId"/>
+		<result property="iconUrl" column="iconUrl" />
+		<result property="isViewIcon" column="isViewIcon" />
+		<result property="titleName" column="titleName" />
+		<result property="titleValue" column="titleValue" />
+		<result property="detailsUrl" column="detailsUrl" />
+		<result property="fieldNameA" column="fieldNameA" />
+		<result property="fieldNameB" column="fieldNameB" />
+		<result property="fieldNameC" column="fieldNameC" />
+		<result property="fieldNameD" column="fieldNameD" />
+		<result property="fieldNameE" column="fieldNameE" />
+		<result property="fieldA" column="fieldA" />
+		<result property="fieldB" column="fieldB" />
+		<result property="fieldC" column="fieldC" />
+		<result property="fieldD" column="fieldD" />
+		<result property="fieldE" column="fieldE" />
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="searchFieldA"  column="searchFieldA"/>
+		<result property="searchFieldB"  column="searchFieldB"/>
+		<result property="searchFieldC"  column="searchFieldC"/>
+		<result property="searchFieldAName"  column="searchFieldAName"/>
+		<result property="searchFieldBName"  column="searchFieldBName"/>
+		<result property="searchFieldCName"  column="searchFieldCName"/>
+		<result property="functionType"  column="functionType"/>
+		<result property="detailFieldNameA" column="detailFieldNameA" />
+		<result property="detailFieldNameB" column="detailFieldNameB" />
+		<result property="detailFieldNameC" column="detailFieldNameC" />
+		<result property="detailFieldNameD" column="detailFieldNameD" />
+		<result property="detailFieldNameE" column="detailFieldNameE" />
+		<result property="detailFieldA" column="detailFieldA" />
+		<result property="detailFieldB" column="detailFieldB" />
+		<result property="detailFieldC" column="detailFieldC" />
+		<result property="detailFieldD" column="detailFieldD" />
+		<result property="detailFieldE" column="detailFieldE" />
+	</resultMap>
+	
+	<insert id="addGisFunction">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			select
+			s_gisFunction.NEXTVAL as id from dual
+		</selectKey>
+		insert into gisFunction value(id,boundEventName,unBoundEventName,boundEventIsValid,unBoundEventIsValid,event,
+		moduleId,sonClassId,iconUrl,isViewIcon,titleName,titleValue,detailsUrl,fieldNameA,fieldNameB,fieldNameC,
+		fieldNameD,fieldNameE,fieldA,fieldB,fieldC,fieldD,fieldE,createDate,createUser,updateDate,updateUser,
+		searchFieldA,searchFieldB,searchFieldC,searchFieldAName,searchFieldBName,searchFieldCName,functionType,
+		detailFieldNameA,detailFieldNameB,detailFieldNameC,detailFieldNameD,detailFieldNameE,detailFieldA,detailFieldB,
+		detailFieldC,detailFieldD,detailFieldE)
+		values(#id#,#boundEventName#,#unBoundEventName#,#boundEventIsValid#,#unBoundEventIsValid#,#event.id#,
+		#moduleId#,#sonClassId#,#iconUrl#,#isViewIcon#,#titleName#,#titleValue#,#detailsUrl#,#fieldNameA#,#fieldNameB#,#fieldNameC#,
+		#fieldNameD#,#fieldNameE#,#fieldA#,#fieldB#,#fieldC#,#fieldD#,#fieldE#,#createDate#,#createUser#,#updateDate#,#updateUser#,
+		#searchFieldA#,#searchFieldB#,#searchFieldC#,#searchFieldAName#,#searchFieldBName#,#searchFieldCName#,#functionType#,
+		#detailFieldNameA#,#detailFieldNameB#,#detailFieldNameC#,#detailFieldNameD#,#detailFieldNameE#,#detailFieldA#,#detailFieldB#,
+		#detailFieldC#,#detailFieldD#,#detailFieldE#)
+	</insert>
+
+	<update id="updateGisFunction" parameterClass="GisFunction">
+		update gisFunction set boundEventName=#boundEventName#,unBoundEventName=#unBoundEventName#,boundEventIsValid=#boundEventIsValid#,
+		unBoundEventIsValid=#unBoundEventIsValid#,event=#event.id#,moduleId=#moduleId#,sonClassId=#sonClassId#,iconUrl=#iconUrl#,isViewIcon=#isViewIcon#,
+		titleName=#titleName#,titleValue=#titleValue#,detailsUrl=#detailsUrl#,fieldNameA=#fieldNameA#,fieldNameB=#fieldNameB#,
+		fieldNameC=#fieldNameC#,fieldNameD=#fieldNameD#,fieldNameE=#fieldNameE#,fieldA=#fieldA#,fieldB=#fieldB#,fieldC=#fieldC#,
+		fieldD=#fieldD#,fieldE=#fieldE#,updateDate=#updateDate#,updateUser=#updateUser#,
+		searchFieldA=#searchFieldA#,searchFieldB=#searchFieldB#,searchFieldC=#searchFieldC#,searchFieldAName=#searchFieldAName#,
+		searchFieldBName=#searchFieldBName#,searchFieldCName=#searchFieldCName#,functionType=#functionType#,
+		detailFieldNameA=#detailFieldNameA#,detailFieldNameB=#detailFieldNameB#,detailFieldNameC=#detailFieldNameC#,
+		detailFieldNameD=#detailFieldNameD#,detailFieldNameE=#detailFieldNameE#,detailFieldA=#detailFieldA#,detailFieldB=#detailFieldB#,
+		detailFieldC=#detailFieldC#,detailFieldD=#detailFieldD#,detailFieldE=#detailFieldE# where id=#id#
+	</update>
+	
+	<!-- 根据大类表id删除数据 -->
+	<delete id="deleteGisFunctionByModuleId" parameterClass="Long">
+		delete from gisFunction where moduleId=#moduleId#
+	</delete>
+	
+	<!-- 根据子类表id删除数据 -->
+	<delete id="deleteGisFunctionBySonClassId" parameterClass="Long">
+		delete from gisFunction where sonClassId=#sonClassId#
+	</delete>
+	
+	<select id="getGisFunctionById" parameterClass="Long" resultMap="gisFunctionResult" >
+		select * from gisFunction where id=#id#
+	</select>
+	
+	<select id="getGisFunctionByModuleIdAndFunctionType" parameterClass="java.util.Map" resultMap="gisFunctionResult">
+		select * from gisfunction g where g.moduleId=#moduleId# and g.functiontype=#functionType#
+	</select>
+	
+	<select id="getGisFunctionBySonClassIdAndFunctionType" parameterClass="java.util.Map" resultMap="gisFunctionResult">
+		select * from gisfunction g where g.sonClassId=#sonClassId# and g.functiontype=#functionType#
+	</select>
+</sqlMap>

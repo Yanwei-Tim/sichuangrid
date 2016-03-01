@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchSuperiorVisitVo">
+<typeAlias alias="SSVcondition" type="com.tianque.domain.vo.SearchSuperiorVisitVo" />
+	<sql id="sql_where">
+		from superiorvisits uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgInternalCode like '$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend=" and ">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>		
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty property="mobileNumber" prepend=" and ">
+					mobileNumber like #mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="telephone">
+				<isNotEmpty property="telephone" prepend=" and ">
+					telephone like #telephone#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthdayStart">
+				<isNotNull property="birthdayStart" prepend=" and ">
+					birthday <![CDATA[>=]]> #birthdayStart#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthdayEnd">
+				<isNotNull property="birthdayEnd" prepend=" and ">
+					birthday <![CDATA[<=]]> #birthdayEnd#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="province">
+				<isNotEmpty property="province" prepend=" and ">
+					province like #province#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="city">
+				<isNotEmpty property="city" prepend=" and ">
+					city like #city#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="district">
+				<isNotEmpty property="district" prepend=" and ">
+					district like #district#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workUnit">
+				<isNotEmpty property="workUnit" prepend=" and ">
+					workUnit like #workUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativePlaceAddress">
+				<isNotEmpty property="nativePlaceAddress" prepend=" and ">
+					nativePlaceAddress like '$nativePlaceAddress$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentAddress">
+				<isNotEmpty property="currentAddress" prepend=" and ">
+					currentAddress like '$currentAddress$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isDeath">
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="1">
+						isDeath = #isDeath#
+					</isEqual>
+					<isEqual property="isDeath" compareValue="0">
+						(isDeath = #isDeath# or isDeath is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="gender">
+				<isNotNull property="gender.id" prepend=" and ">
+					gender=#gender.id#
+				</isNotNull>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="career">
+				<isNotNull property="career.id" prepend=" and ">
+					career=#career.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="bloodType">
+				<isNotNull property="bloodType.id" prepend=" and ">
+					bloodType=#bloodType.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="nation">
+				<isNotNull property="nation.id" prepend=" and ">
+					nation=#nation.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="politicalBackground">
+				<isNotNull property="politicalBackground.id" prepend=" and ">
+					politicalBackground=#politicalBackground.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="maritalState">
+				<isNotNull property="maritalState.id" prepend=" and ">
+					maritalState=#maritalState.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isNotNull property="schooling.id" prepend=" and ">
+				schooling = #schooling.id#
+			</isNotNull>
+			
+			<isPropertyAvailable property="faith">
+				<isNotNull property="faith.id" prepend=" and ">
+					faith=#faith.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="minStature">
+				<isNotNull property="minStature" prepend=" and ">
+					stature <![CDATA[>=]]> #minStature#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maxStature">
+				<isNotNull property="maxStature" prepend=" and ">
+					stature <![CDATA[<=]]> #maxStature#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			
+			<isPropertyAvailable property="email">
+				<isNotEmpty property="email" prepend=" and ">
+					email like #email#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="visitState">
+				<isNotNull property="visitState.id" prepend=" and ">
+					visitState = #visitState.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="visitType">
+				<isNotNull property="visitType" prepend=" and ">
+					visitType = #visitType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="visitReason">
+				<isNotEmpty property="visitReason" prepend=" and ">
+					visitReason like '$visitReason$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+					(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+				</isNotNull>
+			</isPropertyAvailable>
+			<include refid="attentionPopulationBaseInfo.serviceTeamInfoForSearch"/>
+		</dynamic>
+	</sql>
+
+	<select id="searchSuperiorVisit" parameterClass="SSVcondition"  resultMap="superiorVisit.superiorVisitResultForList">
+		select <include refid="superiorVisit.fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countSuperiorVisit" parameterClass="SSVcondition" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="findSuperiorVisitNameAndPinyinAndOrgInternalCode" parameterClass="java.util.Map" resultMap="superiorVisit.superiorVisitResult">
+		select <include refid="superiorVisit.fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>  
+		from superiorvisits uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where (name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%' ) and orgInternalCode like '$orgInternalCode$%' order by id
+	</select>
+	
+	<select id="getCountSuperiorVisitByOrgInternalCodeAndMap" parameterClass="java.util.Map" resultClass="int">
+		select count(*) from superiorVisits uni where  uni.orgInternalCode like '$orgInternalCode$%' and uni.isEmphasis =0
+		<dynamic>
+			<isPropertyAvailable property="isHelped">
+				<isNotNull property="isHelped" prepend=" and ">
+					<isEqual property="isHelped" compareValue="1">
+						uni.id in (select personId from helpPersonnels where personType = 'superiorVisits')
+					</isEqual>
+					<isEqual property="isHelped" compareValue="0">
+						uni.id not in (select personId from helpPersonnels where personType = 'superiorVisits')
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countFastSuperiorVisit" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*)
+			from superiorvisits uni left join baseinfo b on uni.baseInfoId=b.id 
+			where orgInternalCode like '$orgInternalCode$%'
+			<isPropertyAvailable property="name">
+					<isNotNull property="name">
+						<isNotEmpty property="name" prepend=" and ">
+							(name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%')
+						</isNotEmpty>
+					</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo" >
+					<isNotEmpty property="idCardNo" prepend=" and ">
+						upper(idCardNo) like upper(#idCardNo#)||'%'
+					</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+					(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+					<isNotNull property="isEmphasis" prepend=" and ">
+						<isEqual property="isEmphasis" compareValue="1">
+							isEmphasis = #isEmphasis#
+						</isEqual>
+						<isEqual property="isEmphasis" compareValue="0">
+							isEmphasis = #isEmphasis#
+						</isEqual>
+					</isNotNull>
+			</isPropertyAvailable>
+	</select>
+	<select id="searchFastSuperiorVisit" parameterClass="java.util.Map" resultMap="superiorVisit.superiorVisitResultForList">
+		select <include refid="superiorVisit.fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> ,'$populationType$' as populationType
+		from superiorvisits uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where orgInternalCode like '$orgInternalCode$%'
+		<isPropertyAvailable property="fastSearchKeyWords">
+			<isNotNull property="fastSearchKeyWords" prepend=" and ">
+				(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend=" and ">
+					(name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%')
+				</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="idCardNo" >
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="isDeath" >
+			<isNotNull property="isDeath" prepend=" and ">
+				<isEqual property="isDeath" compareValue="1">
+					isDeath = #isDeath#
+				</isEqual>
+				<isEqual property="isDeath" compareValue="0">
+					(isDeath = #isDeath# or isDeath is null)
+				</isEqual>
+			</isNotNull>
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>

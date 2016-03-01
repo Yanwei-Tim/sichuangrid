@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="peopleInfo">
+	<typeAlias alias="peopleInfo" type="com.tianque.xichang.working.steadyWork.domain.PeopleInfo" />
+	<resultMap class="peopleInfo" id="peopleInfoMap">
+		<result property="id" column="ID"/>
+		<result property="steadyWorkId" column="STEADYWORKID"/>
+		<result property="name" column="NAME"/>
+		<result property="idCardNo" column="IDCARDNO"/>
+		<result property="gender.id" column="GENDER"/>
+		<result property="birthDay" column="BIRTHDAY"/>
+		<result property="mobileNumber" column="MOBILENUMBER"/>
+		<result property="isPartyMember" column="ISPARTYMEMBER"/>
+		<result property="permanentAddress" column="PERMANENTADDRESS"/>
+		<result property="position.id" column="POSITION"/>
+	</resultMap>
+	
+	<insert id="addPeopleInfo" parameterClass="peopleInfo">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_steadywork_peopleinfo.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into steadywork_peopleinfo 
+		(
+		  id,steadyworkid,name,idcardno,mobilenumber,gender,birthday,permanentaddress,ispartymember,position
+		) 
+		values
+		(
+		  #id#,#steadyWorkId#,#name#,#idCardNo#,#mobileNumber#,#gender.id#,#birthDay#,#permanentAddress#,#isPartyMember#,#position.id#
+		)
+	</insert>
+	
+	<delete id="deletePeopleInfoBySteadyWorkIds" parameterClass="list">
+		delete from steadywork_peopleinfo where steadyworkid in
+		<iterate open="(" close=")" conjunction=",">
+			#ids[]#
+		</iterate>
+	</delete>
+	
+	<delete id="deletePeopleInfoBySteadyWorkId" parameterClass="long">
+		delete from steadywork_peopleinfo where steadyworkid=#value#
+	</delete>
+	
+	<select id="findPeopleInfoBySteadyWorkId" parameterClass="long" resultMap="peopleInfoMap">
+		select * from steadywork_peopleinfo where steadyworkid=#value#
+	</select>
+	
+	<select id="getPeopleInfoById" parameterClass="long" resultMap="peopleInfoMap">
+		select * from steadywork_peopleinfo where id=#value#
+	</select>
+</sqlMap>

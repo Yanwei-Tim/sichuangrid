@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="FamilyInfo">
+	<typeAlias alias="FamilyInfo" type="com.tianque.tenHouseholdsJoint.domain.FamilyInfo" />
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization" />
+
+	<resultMap id="familyInfoResult" class="FamilyInfo">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="logOut" column="logOut" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgInternalCode" />
+		<result property="teamId" column="teamId" />
+		<result property="teamName" column="teamName" />
+		<result property="helpLine" column="helpLine" />
+		<result property="certificateNumber" column="certificateNumber" />
+		<result property="familyAddress" column="familyAddress" />
+		<result property="familyState" column="familyState" />
+		<result property="alarmCenter.id" column="alarmCenter" />
+		<result property="policeRoom.id" column="policeRoom" />
+		<result property="SMSNumber" column="SMSNumber" />
+		<result property="voiceNumber" column="voiceNumber" />
+		<result property="isInformOther" column="isInformOther" />
+		<result property="isReceiveOtherAlarm" column="isReceiveOtherAlarm" />
+		<result property="isCallOther" column="isCallOther" />
+		<result property="isReceiveOtherCall" column="isReceiveOtherCall" />
+		<result property="centerLon" column="centerLon" />
+		<result property="centerLat" column="centerLat" />
+		<result property="centerLon2" column="centerLon2" />
+		<result property="centerLat2" column="centerLat2" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<insert id="addFamilyInfo" parameterClass="FamilyInfo">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_familyInfo.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO familyInfo
+		(id,name,orgId,orgInternalCode,teamId,teamName,helpLine,certificateNumber,familyAddress,familyState,alarmCenter,policeRoom,SMSNumber,voiceNumber,
+		isInformOther,isReceiveOtherAlarm,isCallOther,isReceiveOtherCall,centerLon,centerLat,centerLon2,centerLat2,createUser,createDate)
+		VALUES(#id#,#name#,#organization.id#,#organization.orgInternalCode#,#teamId#,#teamName#,#helpLine#,#certificateNumber#,#familyAddress#,#familyState#,#alarmCenter.id#,#policeRoom.id#,#SMSNumber#,#voiceNumber#,
+		#isInformOther#,#isReceiveOtherAlarm#,#isCallOther#,#isReceiveOtherCall#,#centerLon#,#centerLat#,#centerLon2#,#centerLat2#,#createUser#,#createDate#)
+	</insert>
+	
+	<delete id="deleteFamilyInfo">
+		delete from  familyInfo where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	
+	<update id="updateFamilyInfo" parameterClass="FamilyInfo">
+	update familyInfo set
+	<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgId=#organization.id#
+			</isNotNull>
+			<isNotNull prepend="," property="organization">
+				orgInternalCode=#organization.orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="teamId">
+				teamId=#teamId#
+			</isNotNull>
+			<isNotNull prepend="," property="teamName">
+				teamName=#teamName#
+			</isNotNull>
+			<isNotNull prepend="," property="helpLine">
+				helpLine=#helpLine#
+			</isNotNull>
+			<isNotNull prepend="," property="certificateNumber">
+				certificateNumber=#certificateNumber#
+			</isNotNull>
+			<isNotNull prepend="," property="familyAddress">
+				familyAddress=#familyAddress#
+			</isNotNull>
+			<isNotNull prepend="," property="familyState">
+				familyState=#familyState#
+			</isNotNull>
+			<isNotNull prepend="," property="alarmCenter">
+				alarmCenter=#alarmCenter.id#
+			</isNotNull>
+			<isNotNull prepend="," property="policeRoom">
+				policeRoom=#policeRoom.id#
+			</isNotNull>
+			<isNotNull prepend="," property="SMSNumber">
+				SMSNumber=#SMSNumber#
+			</isNotNull>
+			<isNotNull prepend="," property="voiceNumber">
+				voiceNumber=#voiceNumber#
+			</isNotNull>
+			<isNotNull prepend="," property="isInformOther">
+				isInformOther=#isInformOther#
+			</isNotNull>
+			<isNotNull prepend="," property="isReceiveOtherAlarm">
+				isReceiveOtherAlarm=#isReceiveOtherAlarm#
+			</isNotNull>
+			<isNotNull prepend="," property="isCallOther">
+				isCallOther=#isCallOther#
+			</isNotNull>
+			<isNotNull prepend="," property="isReceiveOtherCall">
+				isReceiveOtherCall=#isReceiveOtherCall#
+			</isNotNull>
+			<isNotNull prepend="," property="centerLon">
+				centerLon=#centerLon#
+			</isNotNull>
+			<isNotNull prepend="," property="centerLat">
+				centerLat=#centerLat#
+			</isNotNull>
+			<isNotNull prepend="," property="centerLon2">
+				centerLon2=#centerLon2#
+			</isNotNull>
+			<isNotNull prepend="," property="centerLat2">
+				centerLat2=#centerLat2#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+<select id="queryFamilyInfoForPageResultCount" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+select count(*) from familyInfo where (logOut=0 or logOut is null)
+			<isNotEmpty property="orgInternalCode" prepend="and">
+				orgInternalCode like #orgInternalCode#||'%'
+			</isNotEmpty>
+</select>
+<select id="queryFamilyInfoForPageResult" parameterClass="java.util.HashMap" resultMap="familyInfoResult">
+select * from familyInfo where (logOut=0 or logOut is null)
+			<isNotEmpty property="orgInternalCode" prepend="and">
+				orgInternalCode like #orgInternalCode#||'%'
+			</isNotEmpty>
+  		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+</select>
+<select id="getFamilyInfoById" parameterClass="java.lang.Long" resultMap="familyInfoResult">
+	select * from familyInfo where id=#value#
+</select>
+<select id="getFamilyInfoByHelpLine" parameterClass="java.lang.String" resultMap="familyInfoResult">
+	select * from familyInfo where helpLine=#helpLine#
+</select>
+<select id="queryFamilyInfoByTeamIdForList" parameterClass="java.lang.Long" resultMap="familyInfoResult">
+	select * from familyInfo where teamId=#teamId#
+</select>
+<select id="queryFamilyInfoByHelpLineForList" parameterClass="FamilyInfo" resultClass="java.util.List">
+	select id,name,orgId,orgInternalCode,teamId,teamName,helpLine,certificateNumber,familyAddress,familyState,alarmCenter,policeRoom,SMSNumber,voiceNumber,
+		isInformOther,isReceiveOtherAlarm,isCallOther,isReceiveOtherCall,centerLon,centerLat,centerLon2,centerLat2,logOut,createUser,createDate,updateUser,updateDate
+		 from familyInfo 
+	<dynamic prepend="WHERE">
+		<isNotEmpty property="helpLine" prepend="and">
+			helpLine = #helpLine#
+		</isNotEmpty>
+		<isNotEmpty property="id" prepend="and">
+  			 id != #id#
+  		</isNotEmpty>
+	</dynamic>
+</select>
+<sql id="sql_where">
+	from familyInfo where 1=1
+		<isPropertyAvailable property="orgInternalCode">
+			<isNotNull property="orgInternalCode" prepend="and">
+				orgInternalCode like #orgInternalCode#||'%'
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="organization">
+			<isNotNull property="organization" prepend="and">
+				orgInternalCode like #organization.orgInternalCode# || '%'
+			</isNotNull>
+		</isPropertyAvailable>
+		<isNotEmpty property="name" prepend="and">
+			name like #name# || '%'
+		</isNotEmpty>
+		<isNotEmpty property="helpLine" prepend="and">
+			helpLine = #helpLine#
+		</isNotEmpty>
+		<isNotEmpty property="certificateNumber" prepend="and">
+			certificateNumber = #certificateNumber#
+		</isNotEmpty>
+		<isPropertyAvailable property="alarmCenter">
+			<isNotNull property="alarmCenter.id" prepend="and">
+				alarmCenter = #alarmCenter.id#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isNotNull property="familyState" prepend="and">
+			familyState = #familyState#
+		</isNotNull>
+		<isNotNull property="teamId" prepend="and">
+			teamId = #teamId#
+		</isNotNull>
+		<isNotNull property="logOut" prepend="and">
+			<isEqual property="logOut" compareValue="0">
+			(logOut = #logOut# or logOut is null)
+			</isEqual>
+			<isEqual property="logOut" compareValue="1">
+			logOut = #logOut#
+			</isEqual>
+		</isNotNull>
+		<isPropertyAvailable property="policeRoom">
+			<isNotNull property="policeRoom.id" prepend="and">
+				policeRoom = #policeRoom.id#
+			</isNotNull>
+		</isPropertyAvailable>
+</sql>
+<!--高级查询Count-->
+<select id="queryFamilyByConditionForPageResultCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	select count(*) <include refid="sql_where"/>
+</select>
+<!--高级查询-->
+<select id="queryFamilyByConditionForPageResult" parameterClass="java.util.Map" resultMap="familyInfoResult">
+	select * <include refid="sql_where"/>
+	<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+	</dynamic>
+</select>
+
+<select id="queryFamilyInfosForList" parameterClass="FamilyInfo" resultMap="familyInfoResult">
+	select * <include refid="sql_where"/>
+</select>
+
+<update id="updateLogoutFamilyById" parameterClass="java.util.Map">
+	update familyInfo set logOut=#logStatus# where id=#id#
+</update>
+
+</sqlMap>

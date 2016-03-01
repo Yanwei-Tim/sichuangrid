@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="servicePerson">
+	<typeAlias alias="ServicePerson" type="com.tianque.domain.ServicePerson"/>
+	<resultMap id="serPersonResult" class="ServicePerson">
+		<result property="id" column="id"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="name" column="name"/>
+		<result property="position" column="position"/>
+		<result property="phone" column="phone"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="fullPinyin" column="fullPinyin"/>
+		<result property="simplePinyin" column="simplePinyin"/>
+	</resultMap>
+	
+	<select id="findServicePersonForPage" parameterClass="java.util.Map" resultMap="serPersonResult">
+		<![CDATA[
+			SELECT * FROM SERVICEPERSONS WHERE ORGINTERNALCODE = #orgInternalCode#
+		]]>	
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<select id="getTotalRowSize" resultClass="java.lang.Integer" parameterClass="java.lang.String">
+		<![CDATA[
+			SELECT COUNT(*)	FROM SERVICEPERSONS WHERE ORGINTERNALCODE LIKE '$orgInternalCode$%'
+		]]>
+	</select>
+	
+	<select id="getServicePersonById" parameterClass="java.lang.Long" resultMap="serPersonResult">
+		<![CDATA[
+			SELECT * FROM SERVICEPERSONS WHERE ID = #value#
+		]]>
+	</select>
+	
+	<delete id="deleteServicePersonById" parameterClass="java.lang.Long">
+		<![CDATA[
+			DELETE FROM SERVICEPERSONS WHERE ID = #value#
+		]]>
+	</delete>
+	
+	<insert id="addServicePerson" parameterClass="ServicePerson">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[
+				SELECT S_SERVICEPERSONS.NEXTVAL AS id FROM DUAL
+			]]>
+		</selectKey>
+		<![CDATA[
+			INSERT INTO SERVICEPERSONS
+			(id, orgId, name, position, phone, orgInternalCode, fullPinyin, simplePinyin, createUser, updateUser, createDate, updateDate)
+			VALUES(#id#, #organization.id#, #name#, #position#, #phone#, #orgInternalCode#, #fullPinyin#, #simplePinyin#, #createUser#, #updateUser#, #createDate#, #updateDate#)
+		]]>
+	</insert>
+	
+	<update id="updateServicePerson" parameterClass="ServicePerson">
+		<![CDATA[
+			UPDATE SERVICEPERSONS SET 
+		]]>
+		<dynamic>
+			ID = #id#
+			<isNotNull prepend="," property="name">
+				NAME = #name#
+			</isNotNull>
+			<isNotNull prepend="," property="position">
+				POSITION = #position#
+			</isNotNull>
+			<isNotNull prepend="," property="phone">
+				PHONE = #phone#
+			</isNotNull>
+			<isNotNull prepend="," property="fullPinyin">
+				FULLPINYIN = #fullPinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="simplePinyin">
+				SIMPLEPINYIN = #simplePinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser = #updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate = #updateDate#
+			</isNotNull>
+			WHERE ID = #id#
+		</dynamic>
+	</update>
+</sqlMap>

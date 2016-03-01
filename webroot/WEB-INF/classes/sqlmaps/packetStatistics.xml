@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="packetStatistics">
+	<insert id="populationStatTypeStatistics" parameterClass="java.util.Map" >
+		insert into populationStatType_$year$_$month$ (id,typeName,total,startDate,endDate,year,month,
+		populationType,orgInternalCode,percentage,sum,objectsum,monthcreate,createDate,createUser,involveTibetCount,involveSinkiangCount,dispose)
+			select s_populationStatType.NEXTVAL, t2.*,1
+			from (select max(typeName),sum(total),max(startDate),max(endDate),max(year),max(month),populationType,orgcode,
+			             max(percentage),sum(sum),sum(objectsum),sum(monthcreate),max(createDate),max(createUser),
+			             sum(involveTibetCount),sum(involveSinkiangCount)
+			      from (select p.*,substr(p.orginternalcode,1,instr(p.orginternalcode, '.', 1, #orgLevel#)) orgCode
+					    from populationStatType_$year$_$month$ p
+					    <isPropertyAvailable property="baseinfoType">
+                          	 	<isNotNull property="baseinfoType">
+                          	 		where p.populationtype=#baseinfoType#
+                          	 	</isNotNull>
+					     </isPropertyAvailable>
+					      ) t1
+				   where t1.orgCode is not null
+				  group by (t1.orgCode, t1.populationtype)
+			)t2
+	</insert>
+	
+	<insert id="youthStatTypeStatistics" parameterClass="java.util.Map" >
+		insert into youthstattype_$year$_$month$ (id,typeName,total,startDate,endDate,year,month,
+		populationType,orgInternalCode,percentage,sum,objectsum,monthcreate,createDate,createUser,involveTibetCount,involveSinkiangCount,dispose)
+			select s_youthstattype.NEXTVAL, t2.*,1
+			from (select max(typeName),sum(total),max(startDate),max(endDate),max(year),max(month),populationType,orgcode,
+			             max(percentage),sum(sum),sum(objectsum),sum(monthcreate),max(createDate),max(createUser),
+			             sum(involveTibetCount),sum(involveSinkiangCount)
+			      from (select p.*,substr(p.orginternalcode,1,instr(p.orginternalcode, '.', 1, #orgLevel#)) orgCode
+					    from youthstattype_$year$_$month$ p) t1
+				   where t1.orgCode is not null
+				  group by (t1.orgCode, t1.populationtype)
+			)t2
+	</insert>
+	
+	<insert id="primaryOrganizationsStatistics" parameterClass="java.util.Map" >
+		insert into primaryOrganizations_$year$_$month$(id,typeName,total,startDate,endDate,year,month,
+		primaryOrgType,orgInternalCode,percentage,sum,objectsum,monthcreate,memberNum,createDate,createUser,dispose)
+   			select S_PRIMARYORGANIZATIONSTYPE.NEXTVAL, t2.*,1
+			from (select max(typeName),sum(total),max(startDate),max(endDate),max(year),max(month),primaryOrgType,orgcode,
+			             max(percentage),sum(sum),sum(objectsum),sum(monthcreate),sum(memberNum),max(createDate),max(createUser)
+			      from (select p.*,substr(p.orginternalcode,1,instr(p.orginternalcode, '.', 1, #orgLevel#)) orgCode
+					    from primaryOrganizations_$year$_$month$ p) t1
+				   where t1.orgCode is not null
+				  group by (t1.orgCode, t1.primaryOrgType)
+			)t2
+	</insert>
+	
+	<insert id="departmentPartyStatistics" parameterClass="java.util.Map" >
+		insert into departmentparty_$year$_$month$(id,typeName,total,startDate,endDate,year,month,
+		primaryOrgType,orgInternalCode,percentage,sum,objectsum,monthcreate,memberNum,createDate,createUser,dispose)
+   			select S_PRIMARYORGANIZATIONSTYPE.NEXTVAL, t2.*,1
+			from (select max(typeName),sum(total),max(startDate),max(endDate),max(year),max(month),primaryOrgType,orgcode,
+			             max(percentage),sum(sum),sum(objectsum),sum(monthcreate),sum(memberNum),max(createDate),max(createUser)
+			      from (select p.*,substr(p.orginternalcode,1,instr(p.orginternalcode, '.', 1, #orgLevel#)) orgCode
+					    from departmentparty_$year$_$month$ p) t1
+				   where t1.orgCode is not null
+				  group by (t1.orgCode, t1.primaryOrgType)
+			)t2
+	</insert>
+	
+	<insert id="statistichistoryStatistics" parameterClass="java.util.Map" >
+		insert into statistichistory_$year$_$month$ (id,countvalue,resited,recidivism,createuser,sum,total,
+		typename,orgname,orginternalcode, monthcreate,attentionnum,
+		ishelp,nohelp,baseinfotype,startdate,enddate,year,month,createdate,dispose)
+   			select s_statistichistory.NEXTVAL, t2.*,1
+			from (select max(countvalue),sum(resited),sum(recidivism),max(createuser),sum(sum),sum(total),typename,
+					 	 '',orgcode,sum(monthcreate),sum(attentionnum),sum(ishelp),sum(nohelp),baseinfotype,max(startdate),
+						 max(enddate),max(year),max(month),max(createdate)
+			      from (select p.*,substr(p.orginternalcode,1,instr(p.orginternalcode, '.', 1, #orgLevel#)) orgCode
+					    from statistichistory_$year$_$month$ p
+					     <isPropertyAvailable property="baseinfoType">
+                          	 	<isNotNull property="baseinfoType">
+                          	 		where p.baseinfotype=#baseinfoType#
+                          	 	</isNotNull>
+					     </isPropertyAvailable>
+					    ) t1
+				   where t1.orgCode is not null
+				  group by (t1.orgCode, t1.baseinfotype,t1.typename)
+			)t2
+	</insert>
+	
+	<insert id="householdstaffstatStatistics" parameterClass="java.util.Map" >
+		insert into householdstaffstat_$year$_$month$ (id,year,month,typeName,populationType,startDate,endDate,
+		createDate,createUser,orgInternalCode,monthcreate,dispose)
+   			select s_statistichistory.NEXTVAL, t2.*,1
+			from (select max(year),max(month),typename,populationType,max(startdate),max(enddate),
+						 max(createdate),max(createUser),orgcode,sum(monthcreate)
+			      from (select p.*,substr(p.orginternalcode,1,instr(p.orginternalcode, '.', 1, #orgLevel#)) orgCode
+					    from householdstaffstat_$year$_$month$ p) t1
+				   where t1.orgCode is not null
+				  group by (t1.orgCode, t1.populationType,t1.typename)
+			)t2
+	</insert>
+	
+	<insert id="companyPlaceStatTypeStatistics" parameterClass="java.util.Map" >
+		insert into companyPlaceStatType_$year$_$month$(
+				id,year,month,orgInternalCode,startDate,endDate,typeName,baseinfoType,objectSum,monthcreate,dispose)
+			select s_statisticCompanyPlaceHistory.NEXTVAL, t2.*,1
+			from (select max(year),max(month),orgcode,max(startdate),max(enddate),'',baseinfoType,
+						 sum(objectSum),sum(monthcreate)
+			      from (select p.*,substr(p.orginternalcode,1,instr(p.orginternalcode, '.', 1, #orgLevel#)) orgCode
+					    from companyPlaceStatType_$year$_$month$ p) t1
+				   where t1.orgCode is not null
+				  group by (t1.orgCode, t1.baseinfoType)
+			)t2
+	</insert>
+	<!-- 备份表需呀调用的方法   开始-->
+	
+	<insert id="populationStatType_bStatistics" parameterClass="java.util.Map" >
+		insert into populationStatType_b_$year$_$month$ (id,typeName,total,startDate,endDate,year,month,
+		populationType,orgInternalCode,percentage,sum,objectsum,monthcreate,createDate,createUser,involveTibetCount,involveSinkiangCount,dispose)
+			select s_populationStatType.NEXTVAL, t2.*,1
+			from (select max(typeName),sum(total),max(startDate),max(endDate),max(year),max(month),populationType,orgcode,
+			             max(percentage),sum(sum),sum(objectsum),sum(monthcreate),max(createDate),max(createUser),
+			             sum(involveTibetCount),sum(involveSinkiangCount)
+			      from (select p.*,substr(p.orginternalcode,1,instr(p.orginternalcode, '.', 1, #orgLevel#)) orgCode
+					    from populationStatType_b_$year$_$month$ p
+					    <isPropertyAvailable property="baseinfoType">
+                          	 	<isNotNull property="baseinfoType">
+                          	 		where p.populationtype=#baseinfoType#
+                          	 	</isNotNull>
+					     </isPropertyAvailable>
+					      ) t1
+				   where t1.orgCode is not null
+				  group by (t1.orgCode, t1.populationtype)
+			)t2
+	</insert>
+	
+	<insert id="youthStatType_bStatistics" parameterClass="java.util.Map" >
+		insert into youthstattype_b_$year$_$month$ (id,typeName,total,startDate,endDate,year,month,
+		populationType,orgInternalCode,percentage,sum,objectsum,monthcreate,createDate,createUser,involveTibetCount,involveSinkiangCount,dispose)
+			select s_youthstattype.NEXTVAL, t2.*,1
+			from (select max(typeName),sum(total),max(startDate),max(endDate),max(year),max(month),populationType,orgcode,
+			             max(percentage),sum(sum),sum(objectsum),sum(monthcreate),max(createDate),max(createUser),
+			             sum(involveTibetCount),sum(involveSinkiangCount)
+			      from (select p.*,substr(p.orginternalcode,1,instr(p.orginternalcode, '.', 1, #orgLevel#)) orgCode
+					    from youthstattype_b_$year$_$month$ p) t1
+				   where t1.orgCode is not null
+				  group by (t1.orgCode, t1.populationtype)
+			)t2
+	</insert>
+	
+	<insert id="primaryOrganizations_bStatistics" parameterClass="java.util.Map" >
+		insert into primaryOrganizations_b_$year$_$month$(id,typeName,total,startDate,endDate,year,month,
+		primaryOrgType,orgInternalCode,percentage,sum,objectsum,monthcreate,memberNum,createDate,createUser,dispose)
+   			select S_PRIMARYORGANIZATIONSTYPE.NEXTVAL, t2.*,1
+			from (select max(typeName),sum(total),max(startDate),max(endDate),max(year),max(month),primaryOrgType,orgcode,
+			             max(percentage),sum(sum),sum(objectsum),sum(monthcreate),sum(memberNum),max(createDate),max(createUser)
+			      from (select p.*,substr(p.orginternalcode,1,instr(p.orginternalcode, '.', 1, #orgLevel#)) orgCode
+					    from primaryOrganizations_b_$year$_$month$ p) t1
+				   where t1.orgCode is not null
+				  group by (t1.orgCode, t1.primaryOrgType)
+			)t2
+	</insert>
+	
+	<insert id="departmentParty_bStatistics" parameterClass="java.util.Map" >
+		insert into departmentparty_b_$year$_$month$(id,typeName,total,startDate,endDate,year,month,
+		primaryOrgType,orgInternalCode,percentage,sum,objectsum,monthcreate,memberNum,createDate,createUser,dispose)
+   			select S_PRIMARYORGANIZATIONSTYPE.NEXTVAL, t2.*,1
+			from (select max(typeName),sum(total),max(startDate),max(endDate),max(year),max(month),primaryOrgType,orgcode,
+			             max(percentage),sum(sum),sum(objectsum),sum(monthcreate),sum(memberNum),max(createDate),max(createUser)
+			      from (select p.*,substr(p.orginternalcode,1,instr(p.orginternalcode, '.', 1, #orgLevel#)) orgCode
+					    from departmentparty_b_$year$_$month$ p) t1
+				   where t1.orgCode is not null
+				  group by (t1.orgCode, t1.primaryOrgType)
+			)t2
+	</insert>
+	
+	<insert id="statistichistory_bStatistics" parameterClass="java.util.Map" >
+		insert into statistichistory_b_$year$_$month$ (id,countvalue,resited,recidivism,createuser,sum,total,
+		typename,orgname,orginternalcode, monthcreate,attentionnum,
+		ishelp,nohelp,baseinfotype,startdate,enddate,year,month,createdate,dispose)
+   			select s_statistichistory.NEXTVAL, t2.*,1
+			from (select max(countvalue),sum(resited),sum(recidivism),max(createuser),sum(sum),sum(total),typename,
+					 	 '',orgcode,sum(monthcreate),sum(attentionnum),sum(ishelp),sum(nohelp),baseinfotype,max(startdate),
+						 max(enddate),max(year),max(month),max(createdate)
+			      from (select p.*,substr(p.orginternalcode,1,instr(p.orginternalcode, '.', 1, #orgLevel#)) orgCode
+					    from statistichistory_b_$year$_$month$ p
+					     <isPropertyAvailable property="baseinfoType">
+                          	 	<isNotNull property="baseinfoType">
+                          	 		where p.baseinfotype=#baseinfoType#
+                          	 	</isNotNull>
+					     </isPropertyAvailable>
+					    ) t1
+				   where t1.orgCode is not null
+				  group by (t1.orgCode, t1.baseinfotype,t1.typename)
+			)t2
+	</insert>
+	
+	<insert id="householdstaffstat_bStatistics" parameterClass="java.util.Map" >
+		insert into householdstaffstat_b_$year$_$month$ (id,year,month,typeName,populationType,startDate,endDate,
+		createDate,createUser,orgInternalCode,monthcreate,dispose)
+   			select s_statistichistory.NEXTVAL, t2.*,1
+			from (select max(year),max(month),typename,populationType,max(startdate),max(enddate),
+						 max(createdate),max(createUser),orgcode,sum(monthcreate)
+			      from (select p.*,substr(p.orginternalcode,1,instr(p.orginternalcode, '.', 1, #orgLevel#)) orgCode
+					    from householdstaffstat_b_$year$_$month$ p) t1
+				   where t1.orgCode is not null
+				  group by (t1.orgCode, t1.populationType,t1.typename)
+			)t2
+	</insert>
+	
+	<insert id="companyPlaceStatType_bStatistics" parameterClass="java.util.Map" >
+		insert into companyPlaceStatType_b_$year$_$month$(
+				id,year,month,orgInternalCode,startDate,endDate,typeName,baseinfoType,objectSum,monthcreate,dispose)
+			select s_statisticCompanyPlaceHistory.NEXTVAL, t2.*,1
+			from (select max(year),max(month),orgcode,max(startdate),max(enddate),'',baseinfoType,
+						 sum(objectSum),sum(monthcreate)
+			      from (select p.*,substr(p.orginternalcode,1,instr(p.orginternalcode, '.', 1, #orgLevel#)) orgCode
+					    from companyPlaceStatType_b_$year$_$month$ p) t1
+				   where t1.orgCode is not null
+				  group by (t1.orgCode, t1.baseinfoType)
+			)t2
+	</insert>
+	
+	<!-- 备份表需呀调用的方法   结束-->
+	
+	
+	
+	<statement id="createDisposeColumn" parameterClass="java.util.Map" >
+		alter table $type$_$year$_$month$ add dispose number(1)
+	</statement>
+	
+	<statement id="createOrgIdColumn" parameterClass="java.util.Map" >
+		alter table $type$_$year$_$month$ add orgId number(10)
+	</statement>
+	
+	<update id="fillOrgIdForTable" parameterClass="java.util.Map" >
+		update $type$_$year$_$month$ p set $orgIdName$ = (select id from organizations o where o.orginternalcode = p.$orgCodeName$)
+	</update>
+	
+	<delete id="cleanCreateData" parameterClass="java.util.Map">
+		delete from $type$_$year$_$month$ p where dispose = 1  
+	</delete>
+	
+	<delete id="cleanHistoryData" parameterClass="java.util.Map">
+		delete from $type$_$year$_$month$ p where dispose is null and not exists(select id from organizations o where o.id = p.$orgIdName$ and o.orgLevel = #gridProDictId#
+		<!-- 如何处理呢，只允许全国这个层级生成报表？这个比较简单这个备用  -->
+		<isPropertyAvailable property="orgCode">
+			<isNotEmpty property="orgCode" prepend=" and ">
+				o.orginternalcode like #orgCode# || '%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		) 
+	</delete>
+  
+</sqlMap>

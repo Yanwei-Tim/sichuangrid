@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="housePopulation" extends="default" namespace="/baseinfo/housePopulation">
+		<default-class-ref class="houseApplyController"></default-class-ref>
+		
+		<action name="findLivingInHouseTotalInfos"	method="findLivingInHouseTotalInfos">
+			<result  name="success" >
+				/baseinfo/housePopulation/housePopulationList.jsp
+			</result>
+		</action>
+
+		<action name="findLivingInHousePopulationInfos"	method="findLivingInHousePopulationInfos">
+			<result  name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="prepairMantanceLivingPopulation"	method="prepairMantanceLivingPopulation">
+			<result  name="success" >
+				/baseinfo/housePopulation/housePopulationMantainDlg.jsp
+			</result>
+		</action>
+
+		<action name="saveLivingPopulation"	method="saveLivingPopulation">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+
+		<action name="findNotLivingInHousePopulationInfos"	method="findNotLivingInHousePopulationInfos">
+			<result  name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+	</package>
+</struts>

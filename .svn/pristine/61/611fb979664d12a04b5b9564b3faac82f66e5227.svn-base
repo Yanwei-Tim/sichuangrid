@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="superiorVisitHistory">
+	<typeAlias alias="SuperiorVisitHistory" type="com.tianque.baseInfo.superiorVisit.domain.SuperiorVisitHistory" />
+	<typeAlias alias="visitHisType" type="com.tianque.domain.vo.VisitHisTypeVo"/>
+
+	<resultMap id="superiorVisitHistoryResult" class="SuperiorVisitHistory" >
+		<result column="id" property="id" />
+		<result column="visitDate" property="visitDate" />
+		<result column="visitType" property="visitType" />
+		<result column="visitState" property="visitState.id" />
+		<result column="visitId" property="visitId" />
+		<result column="visitReason" property="visitReason" />
+		<result property="updateUser" column="updateUser"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateDate" column="updateDate"/>	
+	</resultMap>
+
+	<resultMap class="visitHisType" id="visitHisResult">
+		<result property="superiorVisitHistoryId" column="superiorVisitHistoryId" />
+		<result property="superiorVisitType" column="superiorVisitType" />
+	</resultMap>
+
+	<insert id="addSuperiorVisitHistory" parameterClass="SuperiorVisitHistory">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_visithistory.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into superiorVisitHistory
+		(
+			id,visitDate,visitType,visitState,visitId,visitReason,createUser,createDate
+		)
+		values
+		(
+			#id#,#visitDate#,#visitType#,#visitState.id#,#visitId#,#visitReason#,#createUser#,#createDate#
+		)
+	</insert>
+
+	<update id="updateSuperiorVisitHistory" parameterClass="SuperiorVisitHistory">
+		update superiorVisitHistory set id=#id#
+		<dynamic>
+			<isNotNull prepend="," property="visitDate">
+				visitDate=#visitDate#
+			</isNotNull>
+			<isNotNull prepend="," property="visitType">
+				visitType=#visitType#
+			</isNotNull>
+			<isNotNull prepend="," property="visitState">
+				visitState=#visitState.id#
+			</isNotNull>
+			<isNotNull prepend="," property="visitReason">
+				visitReason=#visitReason#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+		</dynamic>
+		where id=#id#
+	</update>
+
+	<delete id="deleteSuperiorVisitHistoryById" parameterClass="java.lang.Long">
+		delete from superiorVisitHistory where id=#value#
+	</delete>
+
+	<select id="getSuperiorVisitHistoryById" parameterClass="java.lang.Long"
+		resultMap="superiorVisitHistoryResult">
+		select * from superiorVisitHistory where id=#value#
+	</select>
+	
+	<select id="findSuperiorVisitHistoryByVisitId" parameterClass="SuperiorVisitHistory"
+		resultMap="superiorVisitHistoryResult">
+		select * from superiorVisitHistory where visitId=#visitId# 
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countSuperiorVisitHistory" parameterClass="SuperiorVisitHistory"
+		resultClass="java.lang.Integer">
+		select count(id) from superiorVisitHistory where visitId=#visitId#
+	</select>
+
+	<insert id="addSuperiorVisitHisType" parameterClass="java.util.Map">
+		INSERT INTO visitHisTypes
+		(superiorVisitHistoryId,superiorVisitType)
+		values
+		(#superiorVisitHistoryId#,#superiorVisitType#)
+	</insert>
+
+	<select id="getVisitHisTypeById" resultMap="visitHisResult"
+		parameterClass="java.lang.Long">
+			<![CDATA[select * from visitHisTypes where superiorVisitHistoryId=#value# ]]>
+	</select>
+
+	<delete id="deleteVisitHisTypeById" parameterClass="java.lang.Long">
+		delete from	visitHisTypes where superiorVisitHistoryId=#value#
+	</delete>
+
+
+</sqlMap>

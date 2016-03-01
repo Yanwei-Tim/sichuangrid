@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="generalSituation">
+    <typeAlias alias="generalSituation"	type="com.tianque.plugin.statistics.domain.GeneralSituation" />
+    <typeAlias alias="generalStituationSearchVo" type="com.tianque.plugin.statistics.vo.GeneralStituationSearchVo" />
+	<resultMap id="generalSituationResult" class="generalSituation" >
+	    <result column="orgId" property="organization.id" />  
+	    <result column="orgCode" property="organization.orgInternalCode" />  
+	    <result column="orgName" property="organization.orgName" />  
+	    
+	    <result column="basesicType" property="basesicType" />  
+	    <result column="detailType" property="detailType" />  
+	    <result column="subType" property="subType" />  
+	    
+	    <result column="monthCreateSign" property="monthCreateSign" />  
+	    <result column="policeStationSign" property="policeStationSign" />  <!--用于重症精神病的派出所签收统计-->
+	    <result column="clinicSign" property="clinicSign" />  <!--用于重症精神病的卫生所签收统计-->
+	    <result column="allCountSign" property="allCountSign" />  
+	    <result column="monthCreateCount" property="monthCreateCount" />  
+	    <result column="allCount" property="allCount" />  
+	</resultMap>
+	
+	<resultMap id="generalBasesicTypeResult" class="generalSituation" >
+	    <result column="orgId" property="organization.id" />  
+	    <result column="orgName" property="organization.orgName" />  
+	    <result column="basesicType" property="basesicType" />  
+	    <result column="monthCreateSign" property="monthCreateSign" />  
+	    <result column="monthCreateCount" property="monthCreateCount" />  
+	</resultMap>
+	
+	<resultMap id="generalDetailTypeResult" class="generalSituation" extends="generalBasesicTypeResult">
+	    <result column="detailType" property="detailType" />  
+	</resultMap>
+	<resultMap id="generalSubTypeResult" class="generalSituation" extends="generalDetailTypeResult">
+	    <result column="subType" property="subType" />  
+	</resultMap>
+	
+	
+	
+	<!--查询只有一个类别的统计数据 宣传核查、吸毒、社区服刑、刑释-->
+	<insert id="createGeneralSituationByDate" parameterClass="java.util.Map">
+		insert into $statisticsTableName$(id,orgId,orgCode,orgName,year,month,basesicType,
+		detailType,monthCreateSign,allCountSign,monthCreateCount,allCount,createUser,createDate)
+		select s_taskListGeneralSituation.NEXTVAL,
+		o.id orgId,
+		o.orginternalcode orgCode,
+		o.orgname orgName,
+		#year#,
+		#month#,
+		#basesicType#,
+		#detailType#,
+		nvl(c.monthCreateSign,0) monthCreateSign,
+		nvl(c.allCountSign,0) allCountSign,
+		nvl(c.monthCreateCount,0) monthCreateCount,
+		nvl(c.allCount,0) allCount,
+		#createUser#,
+		#createDate#
+		from organizations o left join
+		(select  allCountSign,monthCreateSign,allCount,monthCreateCount,a.orgId from 
+		
+		(select sum(decode(p.$column$, 1, 1, 0)) allCountSign,count(1) allCount,p.orgId
+		from $tableName$ p where p.createdate<![CDATA[<]]> #endDate#
+		group by orgId) a 
+		
+		left join
+		
+		(select sum(decode(p.$column$, 1, 1, 0)) monthCreateSign,count(1) monthCreateCount,p.orgId
+		from $tableName$ p where p.createdate<![CDATA[<]]> #endDate#	and p.createdate>= #startDate#	group by orgId) b 
+		
+		on a.orgId=b.orgId) c on o.id=c.orgid
+		where o.orgtype=#orgType# and o.orglevel<![CDATA[<=]]> #orgLevel#
+	</insert>
+	<!--查询重症精神病 因为有两个签收字段，需要区分-->
+	<insert id="createGeneralSituationOfMentalpatient" parameterClass="java.util.Map">
+		insert into $statisticsTableName$(id,orgId,orgCode,orgName,year,month,basesicType,monthCreateSign,policeStationSign,clinicSign,allCountSign,monthCreateCount,allCount,createUser,createDate)
+		select s_taskListGeneralSituation.NEXTVAL,
+		o.id orgId,
+		o.orginternalcode orgCode,
+		o.orgname orgName,
+		#year#,
+		#month#,
+		#basesicType#,
+		nvl(c.monthCreateSign,0) monthCreateSign,
+		nvl(c.policeStationSign,0) policeStationSign,
+		nvl(c.clinicSign,0) clinicSign,
+		nvl(c.allCountSign,0) allCountSign,
+		nvl(c.monthCreateCount,0) monthCreateCount,
+		nvl(c.allCount,0) allCount,
+		#createUser#,
+		#createDate#
+		from organizations o left join
+		(select  allCountSign,monthCreateSign,policeStationSign,clinicSign,allCount,monthCreateCount,a.orgId from 
+		(select nvl(sum(case when (p.STATUSPOLICE=1 or p.STATUSJUSTICE=1) then 1 else 0 end),0) allCountSign,count(1) allCount,p.orgId
+		from mentalpatienttask p where p.createdate<![CDATA[<]]> #endDate#
+		group by orgId) a left join
+		(select nvl(sum(case when (p.STATUSPOLICE=1 or STATUSJUSTICE=1) then 1 else 0 end),0) monthCreateSign,
+		sum(decode(p.STATUSPOLICE, 1, 1, 0)) policeStationSign,
+		sum(decode(p.STATUSJUSTICE, 1, 1, 0)) clinicSign,
+		count(1) monthCreateCount,p.orgId
+		from mentalpatienttask p where p.createdate<![CDATA[<]]> #endDate# and p.createdate>= #startDate#	group by orgId) b on a.orgId=b.orgId) c on o.id=c.orgid
+		where o.orgtype=#orgType# and o.orglevel<![CDATA[<=]]> #orgLevel#
+	</insert>
+	<!--查询三个类别统计数据 民警带领下开展工作、异常情形报告、治安隐患-->
+	<insert id="createGeneralSituationByType" parameterClass="java.util.Map">
+	insert into $statisticsTableName$(id,orgId,orgCode,orgName,year,month,basesicType,
+		detailType,subType ,monthCreateSign,allCountSign,monthCreateCount,allCount,createUser,createDate)
+	select s_taskListGeneralSituation.NEXTVAL,
+    o.id orgId,
+    o.orginternalcode orgCode,
+    o.orgname orgName,
+    #year#,
+    #month#,
+    #basesicType#,
+    #detailType#,
+    subType,
+    nvl(c.monthCreateSign,0) monthCreateSign,
+    nvl(c.allCountSign,0) allCountSign,
+    nvl(c.monthCreateCount,0) monthCreateCount,
+    nvl(c.allCount,0) allCount,
+    #createUser#,
+    #createDate#
+    from organizations o left join
+    (select  a.subType,allCountSign,monthCreateSign,allCount,monthCreateCount,a.orgId from 
+    
+    (select $subType$ subType,sum(decode(p.$column$, 1, 1, 0)) allCountSign,count(1) allCount,p.orgId
+    from $tableName$ p where p.createdate<![CDATA[<]]>#endDate#
+    group by orgId,p.$subType$) a 
+    
+    left join
+    (select $subType$ subType,sum(decode(p.$column$, 1, 1, 0)) monthCreateSign,count(1) monthCreateCount,p.orgId
+    from $tableName$ p where p.createdate <![CDATA[<]]> #endDate# and p.createdate>=  #startDate# group by orgId,p.$subType$) b
+     
+      on a.orgId=b.orgId  where a.subType=b.subType) c on o.id=c.orgid  
+    where o.orgtype=#orgType# and o.orglevel<![CDATA[<=]]> #orgLevel#
+	</insert>
+	
+	<delete id="deleteGeneralSituationByDate" parameterClass="java.util.Map">
+		delete from $tableName$ where 1=1
+	</delete>
+	
+	
+	<sql id="search_sql">
+		<isNotNull property="basesicType">
+			<iterate prepend=" and "  property="basesicType" conjunction="," open="basesicType in (" close=")">
+							#basesicType[]#
+			</iterate>
+		</isNotNull>
+		<isNotNull property="detailType">
+			<iterate prepend=" and "  property="detailType" conjunction="," open="detailType in (" close=")">
+							#detailType[]#
+			</iterate>
+		</isNotNull>
+		<isNotNull property="subType">
+			<iterate prepend=" and "  property="subType"  conjunction="," open="subType in (" close=")">
+							#subType[]#
+			</iterate>
+		</isNotNull>
+	</sql>
+	<sql id="org_sql">
+		<isNotNull property="orgIds">
+					<iterate prepend=" and "  property="orgIds" conjunction="," open="o.id in (" close=")">
+									#orgIds[]#
+					</iterate>
+		</isNotNull> 
+	</sql>
+	
+	<!--只选择了大类-->
+	<select id="findGeneralSituationByBasesicType" parameterClass="java.util.Map" resultMap="generalBasesicTypeResult">
+		select o.id orgId,max(o.orgName) orgName
+			<isNotNull property="basesicType">
+				,basesicType
+			</isNotNull>
+			<isNull property="basesicType">
+				,'' basesictype
+			</isNull>
+		,sum(g.monthcreatesign) monthcreatesign,sum(g.monthcreatecount) monthcreatecount
+			from organizations o left join (select * from $tableName$ where 1=1	<include refid="search_sql"/>
+		) g on o.id=g.orgid where 1=1
+		 <include refid="org_sql"/>
+		group by o.id
+		<isPropertyAvailable property="basesicType">
+			<isNotNull property="basesicType">
+				,g.basesictype
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	
+	<!--只选择了大类和子类-->
+	<select id="findGeneralSituationByDetailType" parameterClass="java.util.Map" resultMap="generalDetailTypeResult">
+		select o.id orgId,max(o.orgName) orgName,basesictype,detailtype,sum(g.monthcreatesign) monthcreatesign,sum(g.monthcreatecount) monthcreatecount
+			from organizations o left join (select * from $tableName$ where 1=1	<include refid="search_sql"/>
+		) g on o.id=g.orgid where 1=1
+		<include refid="org_sql"/> group by o.id,g.basesictype,g.detailtype
+	</select>
+	
+	<!--选择了大类、子类、详情类别-->
+	<select id="findGeneralSituationBySubType" parameterClass="java.util.Map" resultMap="generalSubTypeResult">
+		select o.id orgId,max(o.orgName) orgName,basesictype,detailtype,subtype,sum(g.monthcreatesign) monthcreatesign,sum(g.monthcreatecount) monthcreatecount
+			from organizations o left join (select * from $tableName$ where 1=1	<include refid="search_sql"/>
+		) g on o.id=g.orgid where 1=1
+		<include refid="org_sql"/>  group by o.id,g.basesictype,g.detailtype,g.subtype
+	</select>
+	
+</sqlMap>

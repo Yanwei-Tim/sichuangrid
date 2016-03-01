@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchDangerousGoodsPractitioner">
+	<typeAlias alias="SearchDangerousGoodsPractitioner" type="com.tianque.domain.vo.SearchDangerousGoodsPractitioner"/>
+	<sql id="query_condition_where">
+		<dynamic>
+			<isNotEmpty property="fastSearchKeyWords" prepend=" and ">
+				(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+			</isNotEmpty>
+			<isNotEmpty property="name" prepend=" and ">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+			</isNotEmpty>
+			
+			<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+			</isNotEmpty>
+		  
+		    <isNotNull property="dangerousWorkingType.id" prepend=" and ">
+					dangerousWorkingType = $dangerousWorkingType.id$
+			</isNotNull>
+		
+		    <isNotEmpty property="legalPerson" prepend=" and ">
+					legalPerson like #legalPerson#||'%'
+			</isNotEmpty>
+		
+		    <isNotEmpty property="legalPersonMobileNumber" prepend=" and ">
+					legalPersonMobileNumber like #legalPersonMobileNumber#||'%'
+			</isNotEmpty>			
+			
+			<isNotEmpty property="legalPersonTelephone" prepend=" and ">
+					legalPersonTelephone like #legalPersonTelephone#||'%'
+			</isNotEmpty>
+			
+			<isNotEmpty property="workUnit" prepend=" and ">
+					workunit like #workUnit#||'%' 
+			</isNotEmpty>
+			
+			<isNotEmpty property="workingCertificate" prepend=" and ">
+					workingCertificate like #workingCertificate#||'%'
+			</isNotEmpty>
+			
+			<isNotEmpty property="workingCertificateNo" prepend=" and ">
+					workingCertificateNo like #workingCertificateNo#||'%'
+			</isNotEmpty>
+			
+			 <isNotNull property="startAvailableDate" prepend=" and ">
+					periodofvaliditystart  &gt;= #startAvailableDate#
+			</isNotNull>
+			
+			<isNotNull property="endAvailableDate" prepend=" and ">
+					periodofvaliditystart &lt;= #endAvailableDate#
+			</isNotNull>
+			
+			
+			<isNotNull property="gender.id" prepend=" and ">
+					gender = $gender.id$
+			</isNotNull>
+			
+			 <isNotNull property="startBirthday" prepend=" and ">
+					birthday &gt;= #startBirthday#
+			</isNotNull>
+		
+			<isNotNull property="endBirthday" prepend=" and ">
+					birthday &lt;= #endBirthday#
+			</isNotNull>
+			
+			<isNotNull property="career.id" prepend=" and ">
+					career = $career.id$
+			</isNotNull>
+			
+			<isNotEmpty property="province" prepend=" and ">
+					province = #province#
+			</isNotEmpty>
+			
+			<isNotEmpty property="city" prepend=" and ">
+					city = #city#
+			</isNotEmpty>
+			
+			<isNotEmpty property="district" prepend=" and ">
+					district = #district#
+			</isNotEmpty>
+			
+			<isNotEmpty property="nativePlaceAddress" prepend=" and ">
+					nativePlaceAddress like #nativePlaceAddress#||'%'
+			</isNotEmpty>
+			
+			<isNotEmpty property="currentAddress" prepend=" and ">
+					currentAddress like #currentAddress#||'%'
+			</isNotEmpty>
+			
+			<isNotNull property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+					isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+					isEmphasis = #isEmphasis# 
+				</isEqual>
+			</isNotNull>
+			<isNotNull property="isDeath" prepend=" and ">
+				<isEqual property="isDeath" compareValue="1">
+					isDeath = 1
+				</isEqual>
+				<isEqual property="isDeath" compareValue="0">
+					isDeath = 0
+				</isEqual>
+			</isNotNull>
+			
+			<isNotNull property="schooling.id" prepend=" and ">
+				schooling = #schooling.id#
+			</isNotNull>
+			<include refid="attentionPopulationBaseInfo.serviceTeamInfoForSearch"/>
+		</dynamic>
+	</sql>
+	
+	<sql id="fields">
+		uni.id,uni.baseinfoid,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.attentionExtent,uni.dangerousWorkingType,uni.workingCertificate,
+   		uni.workingCertificateNo,uni.periodOfValidityStart,uni.periodOfValidityEnd,uni.legalPerson,uni.legalPersonTelephone,
+   		uni.legalPersonMobileNumber,uni.isEmphasis,uni.isEmphasisReason,uni.isEmphasisDate,uni.sourcesState,uni.createUser,
+   		uni.updateUser,uni.createDate,uni.updateDate
+	</sql>
+	
+	<select id="countSearchDangerousGoodsPractitioner" parameterClass="SearchDangerousGoodsPractitioner" resultClass="int">
+		select count(*) from dangerousGoodsPractitioners uni 
+		left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgInternalCode like  #orgInternalCode#||'%'
+		<include refid="query_condition_where"/>
+	</select>
+
+	<select id="searchDangerousGoodsPractitioners" parameterClass="SearchDangerousGoodsPractitioner" resultMap="dangerousGoodsPractitioner.dangerousGoodsPractitionerResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+			from dangerousGoodsPractitioners uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+			where uni.orgInternalCode like  #orgInternalCode#||'%'
+		<include refid="query_condition_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<select id="findDangerousGoodsPractitionersNameAndPinyinAndOrgInternalCode" parameterClass="java.util.Map" resultMap="dangerousGoodsPractitioner.dangerousGoodsPractitionerResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from dangerousGoodsPractitioners uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgInternalCode like  #orgInternalCode#||'%'
+		and (name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%' ) order by id
+	</select>
+	
+	<select id="getCountDangerousGoodsByOrgInternalCodeAndMap" parameterClass="java.util.Map" resultClass="int">
+		select count(id) from dangerousGoodsPractitioners uni where  uni.orgInternalCode like #orgInternalCode#||'%' and uni.isEmphasis =0)
+		<dynamic>
+			<isPropertyAvailable property="isHelped">
+				<isNotNull property="isHelped" prepend=" and ">
+					<isEqual property="isHelped" compareValue="1">
+						uni.id in (select personId from helpPersonnels where personType = 'dangerousGoodsPractitioners')
+					</isEqual>
+					<isEqual property="isHelped" compareValue="0">
+						uni.id not in (select personId from helpPersonnels where personType = 'dangerousGoodsPractitioners')
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dangerousWorkingType">
+				<isNotNull property="dangerousWorkingType" prepend=" and ">
+					uni.dangerousWorkingType = #dangerousWorkingType#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+</sqlMap>

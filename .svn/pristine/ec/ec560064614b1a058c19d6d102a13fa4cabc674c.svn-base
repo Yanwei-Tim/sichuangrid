@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="currentTimeNew" extends="default" namespace="/stat/currentTimeNew">
+		<default-class-ref class="currentTimeNewcontroller"></default-class-ref>
+        <action name="getCurrentTimeForYear" method="getCurrentTimeForYear">
+        	<result name="success" type="json">
+				<param name="root">list</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+        </action>
+        <!-- 为统计报表一些特殊的模块提供查询年份（如果当前月是一月则只查询到上一年的12月份）（登陆情况、党委部门） -->
+        <action name="getCurrentTimeForYearToSpecial" method="getCurrentTimeForYearToSpecial">
+        	<result name="success" type="json">
+				<param name="root">list</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+        </action>
+         <!-- 为统计报表一些特殊的模块提供查询月份（只查询到当前月份的上个月）（登陆情况、党委部门） -->
+        <action name="getCurrentTimeForMonthToSpecial" method="getCurrentTimeForMonthToSpecial">
+        	<result name="success" type="json">
+				<param name="root">monthlist</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+        </action>
+        <action name="getCurrentTimeForIntegrativeQueryYear" method="getCurrentTimeForIntegrativeQueryYear">
+        	<result name="success" type="json">
+				<param name="root">list</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+        </action>
+         <action name="getCurrentTimeForMonth" method="getCurrentTimeForMonth">
+        	<result name="success" type="json">
+				<param name="root">monthlist</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+        </action>
+        
+        <action name="getCurrentTimeForQuarter" method="getCurrentTimeForQuarter">
+        	<result name="success" type="json">
+				<param name="root">list</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+        </action>
+        
+	</package>
+
+</struts>

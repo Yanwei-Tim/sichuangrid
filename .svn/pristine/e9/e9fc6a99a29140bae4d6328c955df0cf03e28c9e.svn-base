@@ -1,0 +1,21 @@
+package com.tianque.plugin.weChat.dao.impl;
+
+import java.util.List;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.plugin.weChat.dao.StatisticAnalysisDao;
+import com.tianque.plugin.weChat.vo.StatisticAnalysisDetailVo;
+import com.tianque.plugin.weChat.vo.StatisticAnalysisVo;
+
+@Repository("statisticAnalysisDao")
+public class StatisticAnalysisDaoImpl extends AbstractBaseDao implements StatisticAnalysisDao {
+
+	@Override
+	public List<StatisticAnalysisDetailVo> findStatisticAnalysisDetails(
+			StatisticAnalysisVo statisticAnalysisVo) {
+		return getSqlMapClientTemplate().queryForList(
+				"statisticAnalysis.findStatisticAnalysisDetails", statisticAnalysisVo);
+	}
+}

@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="issueanalysisNew">
+	 <sql id="yearAndMonthAndQuarter">
+	 	<isNotNull property="year" prepend="and">
+           	ia.year = #year#
+           </isNotNull>
+           <isNotNull property="month" prepend="and">
+           	ia.month = #month#
+           </isNotNull>
+           <isNotNull property="quarter" prepend="and">
+           	<isEqual property="quarter" compareValue="1">
+           		ia.month in (1,2,3)
+           	</isEqual>
+           	<isEqual property="quarter" compareValue="2">
+           		ia.month in (4,5,6)
+           	</isEqual>
+           	<isEqual property="quarter" compareValue="3">
+           		ia.month in (7,8,9)
+           	</isEqual>
+           	<isEqual property="quarter" compareValue="4">
+           		ia.month in (10,11,12)
+           	</isEqual>
+       	</isNotNull> 
+	 </sql>
+	 
+	<select id="getCountColumnByMonthAndIssueDomainName" parameterClass="java.util.Map" resultClass="java.util.HashMap" remapResults="true">
+		select org.id orgId,
+       	 org.orgname,
+      	 it.domainname,
+      	 nvl(sum(t.issuesum), 0) issuesum
+ 		from organizations org
+  		left join issuetypedomains it on it.domainname = #domainname#
+  		left join (select itd.domainname,
+                    ia.orgid,
+                    ia.issuetypedomainid,
+                    sum(ia.issuesum) issuesum,
+                    ia.orgcode
+               from issuetypedomains itd, issueanalysis ia
+              where itd.id = ia.issuetypedomainid
+                and itd.domainname = #domainname#
+              <include refid="yearAndMonthAndQuarter"/>
+              group by orgid, issuetypedomainid, orgcode, domainname
+              order by orgid) t on t.orgcode like
+                                   org.orginternalcode || '%'
+ 		where org.parentid = #orgId#
+		group by org.orgname, it.domainname, org.id,org.seq
+ 		order by org.seq	
+	</select>
+	<select id="getCountColumnByTimeAndIssueDomainName" parameterClass="java.util.Map" resultClass="java.util.HashMap" remapResults="true">		
+			select org.id orgId, org.orgname, nvl(sum(t.issuesum), 0) issuesum
+		  from organizations org
+		  left join issuetypedomains it on it.domainname = #domainname#
+		  left join (select ia.createorg orgId,
+		                    count(0) issuesum,
+		                    ia.createorginternalcode orgCode
+		               from issues ia
+		              where ia.issuetypedomainid =
+		                    (select id
+		                       from issuetypedomains
+		                      where domainname = #domainname#)
+		                and ia.createdate <![CDATA[>=]]>#startDate#
+		                and ia.createdate <![CDATA[<]]>#endDate#
+		              group by createorg, createorginternalcode
+		              order by createorg) t on t.orgcode like
+		                                       org.orginternalcode || '%'
+		 where org.parentid = #orgId#
+		 group by org.orgname, org.id,org.seq
+		 order by org.seq
+	</select>
+	
+	<!-- 获取所有事件大类历史数据 -->
+	<select id="getAllIssueDomainTypeCountPieByMonthAndYear" parameterClass="java.util.Map" resultClass="java.util.HashMap" remapResults="true">
+		select it.id, it.domainname, nvl(sum(ial.issuesum), 0) issuesum
+		  from (select itd.id, itd.domainname
+		          from issuetypedomains itd
+		         where itd.module = 'si_chuan'
+		            or itd.domainname = '民生服务') it
+		  left join
+		 (select ia.issuetypedomainid, issuesum
+		    from issueanalysis ia
+		   where ia.orgCode like #orgCode#||'%' 
+		     <include refid="yearAndMonthAndQuarter"/>
+		  ) ial on ial.issuetypedomainid = it.id
+		 group by it.id, it.domainname
+		 order by id
+	</select>
+	
+	<!-- 获取所有事件大类实时数据 -->
+	<select id="getAllIssueDomainTypeCountPieByTime" parameterClass="java.util.Map" resultClass="java.util.HashMap" remapResults="true">
+		select it.id, it.domainname, nvl(sum(ial.issuesum), 0) issuesum
+		  from (select itd.id, itd.domainname
+		          from issuetypedomains itd
+		         where itd.module = 'si_chuan'
+		            or itd.domainname = '民生服务') it
+		  left join (select isu.issuetypedomainid, count(0) issuesum
+		               from issues isu
+		              where  isu.createorginternalcode like #orgCode#||'%' 
+		                and isu.createdate <![CDATA[>=]]>#startDate#
+		                and isu.createdate <![CDATA[<]]>#endDate#
+		              group by issuetypedomainid) ial 
+		              on ial.issuetypedomainid = it.id		
+		 group by it.id, it.domainname
+		 order by id		
+	</select>
+	
+	<!-- 根据事件大类ID获取小类历史数据 -->
+	<select id="getIssueTypeCountPieByMonthAndYearAndIssueDomain" parameterClass="java.util.Map" resultClass="java.util.HashMap" remapResults="true">	
+		select it.id,
+		       it.issuetypename domainname,
+		       nvl(sum(ial.issuesum), 0) issuesum
+		  from (select itp.id, itp.issuetypename
+		          from issuetypes itp
+		         where itp.domainid = #issueTypeDomainId#) it
+		  left join
+		 (select ia.issuetypeid, issuesum
+		    from issueanalysis ia
+		   where ia.orgCode like #orgCode#||'%' 
+	      	<include refid="yearAndMonthAndQuarter"/>
+          ) ial on ial.issuetypeid = it.id
+		 group by id, it.issuetypename
+		 order by id
+	 </select>
+	 
+	<!-- 获取所有事件小类实时数据 -->
+	<select id="getAllIssueTypeCountPieByTime" parameterClass="java.util.Map" resultClass="java.util.HashMap" remapResults="true">	 
+		 select it.id,
+		       it.issuetypename domainname,
+		       nvl(sum(ial.issuesum), 0) issuesum
+		  from (select itp.id, itp.issuetypename
+		          from issuetypes itp
+		         where itp.domainid = #issueTypeDomainId#) it
+		  left join (select isu.issuetypeid, count(0) issuesum
+		               from issues isu
+		              where isu.createorginternalcode like #orgCode#||'%' 
+		                and isu.createdate <![CDATA[>=]]>#startDate#
+		                and isu.createdate <![CDATA[<]]>#endDate#
+		              group by issuetypeid) ial on ial.issuetypeid = it.id
+		 group by it.id, it.issuetypename
+		 order by id
+	 </select>
+
+	<insert id="createIssueAnalysisChartData" parameterClass="java.util.Map">
+		insert into IssueAnalysis
+		  (id,
+		   year,
+		   month,
+		   orgid,
+		   orgCode,
+		   issueTypeId,
+		   issueTypeDomainId,
+		   issueSum,
+		   createuser,
+		   createdate)
+		  select S_IssueAnalysis.NEXTVAL, t.*
+		    from (select #year# as year,
+		                 #month# as month,
+		                 i.createorg,
+		                 i.createorginternalcode,
+		                 i.issuetypeid,
+		                 i.issuetypedomainid,
+		                 count(0) as issueSum,
+		                 'admin',
+		                 #sysDate#
+		            from issues i
+		           where i.createdate between #beforeMonthLastDay# and
+		                 #nextMonthFirstDay#
+		           group by i.createorg,
+		                    i.createorginternalcode,
+		                    i.issuetypeid,
+		                    i.issuetypedomainid) t
+	</insert>
+	
+	<select id="getIssueTendencyCountFromHistory" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select sum(ia.issuesum) from issueanalysis ia  where ia.orgCode like #orgCode#||'%' 
+	      	<include refid="yearAndMonthAndQuarter"/>
+	</select>
+	
+</sqlMap>

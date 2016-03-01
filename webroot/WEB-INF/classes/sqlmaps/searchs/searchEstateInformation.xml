@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="searchEstateInformation">
+	<sql id="sql_where">
+		from estateInformation a,inhabitantHasEstate b,inhabitants c,inhabitantconnect ic 
+		     where b.inhabitantId=ic.id and b.estateId=a.id and ic.inhabitantId=c.id and a.orgInternalCode like '$orgInternalCode$%' 
+		<dynamic>
+			<isPropertyAvailable property="name" >
+				<isNotEmpty property="name" prepend=" and ">
+					c.name like '$name$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo" >
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(c.idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="proprietaryNo" >
+				<isNotNull property="proprietaryNo" prepend=" and ">
+					a.proprietaryNo like '$proprietaryNo$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="housePropertyPlace" >
+				<isNotNull property="housePropertyPlace" prepend=" and ">
+					a.housePropertyPlace like '$housePropertyPlace$%'
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="countEstateInformation" parameterClass="map" resultClass="int">
+		select count(distinct a.id) 
+		<include refid="sql_where"/>
+	</select>
+	
+	<select id="searchEstateInformations" parameterClass="map" resultMap="estateInformation.estateInformationResult">
+		select distinct a.*
+		<include refid="sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>

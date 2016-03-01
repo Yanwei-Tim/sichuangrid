@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="smsReceivedBox">
+	<typeAlias alias="SmsReceivedBox" type="com.tianque.domain.SmsReceivedBox" />
+	
+	<resultMap id="smsReceivedBoxResult" class="SmsReceivedBox">
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id"/>
+		<result column="userId" property="handleUser.id"/>
+		<result column="handlePerson" property="handlePerson"/>
+		<result column="handleMobile" property="handleMobile"/>
+		<result column="disposition" property="disposition"/>
+		<result column="sourceMobile" property="sourceMobile" />
+		<result column="targetMobile" property="targetMobile" />
+		<result column="smsContent" property="smsContent" />
+		<result column="processFlag" property="processFlag" />
+		<result column="receiverTime" property="receiverTime" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+
+	<insert id="addSmsReceivedBox" parameterClass="SmsReceivedBox">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_smsReceivedBoxs.NEXTVAL AS id FROM dual ]]>
+		</selectKey>
+		INSERT INTO smsReceivedBoxs
+			(id,orgId,sourceMobile,targetMobile,smsContent,receiverTime)
+		VALUES
+			(#id#,#organization.id#,#sourceMobile#,#targetMobile#,#smsContent#,#receiverTime#)
+	</insert>
+	
+	<update id="updateSmsReceivedBox" parameterClass="SmsReceivedBox">
+		UPDATE smsReceivedBoxs SET 
+		<dynamic>
+			processFlag=#processFlag#,
+			handlePerson=#handlePerson#,
+			disposition=#disposition#,
+			handleMobile=#handleMobile#,
+			updateDate=#updateDate#
+			<isNotNull prepend="," property="handleUser">
+				userId=#handleUser.id#
+			</isNotNull>
+			<isNull prepend="," property="handleUser">
+				userId=null
+			</isNull>
+			WHERE id=#id#
+		</dynamic>
+	</update>
+	
+	<delete id="deleteSmsReceivedBoxById" parameterClass="java.lang.Long">
+		DELETE FROM smsReceivedBoxs WHERE id=#value#
+	</delete>
+
+	<select id="getSmsReceivedBoxById" parameterClass="java.lang.Long" resultMap="smsReceivedBoxResult">
+		SELECT * FROM smsReceivedBoxs WHERE id=#value#
+	</select>
+
+	<select id="countSmsReceivedBoxsForPage" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM smsReceivedBoxs WHERE orgId = #orgId#
+	</select>
+	<select id="countSmsReceivedBoxsForPageByDate" parameterClass="map" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM smsReceivedBoxs_$date$ WHERE orgId = #orgId#
+	</select>
+	
+	<select id="findSmsReceivedBoxsForPageByDate" parameterClass="map" resultMap="smsReceivedBoxResult">
+		SELECT * FROM smsReceivedBoxs_$date$ WHERE orgId = #orgId#
+		<dynamic prepend="ORDER BY">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findSmsReceivedBoxsForPage" parameterClass="map" resultMap="smsReceivedBoxResult">
+		SELECT * FROM smsReceivedBoxs WHERE orgId = #orgId#
+		<dynamic prepend="ORDER BY">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countUnprocessSmsReceivedBox" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM smsReceivedBoxs WHERE userId = #value# and processFlag=0
+	</select>
+	
+</sqlMap>

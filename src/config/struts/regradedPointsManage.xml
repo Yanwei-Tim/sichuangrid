@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="regradedPoints" extends="default" namespace="/regradedPoints/regradedPointsManage">
+		<default-class-ref class="regradedPointsController"></default-class-ref>
+		<action name="viewSubDetail" method="viewSubDetail">
+			<result type="json">
+			    <param name="root">gridPage</param>
+                <param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="dispatch" method="dispatch">
+		    <result name="success">
+		        /statAnalyse/statRegradedPoints/regradedPoints.jsp
+		    </result>
+		</action>
+		<action name="regradedPoints" method="regradedPoints">
+		    <result type="json">
+		        <param name="root">true</param>
+                <param name="ignoreHierarchy">false</param>
+		    </result>
+		</action>
+	</package>
+</struts>

@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="commonHouseInfo">
+
+	<sql id="search_sql_where">
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseCodeAndAddress">
+				<isNotEmpty prepend=" and " property="houseCodeAndAddress">
+					(houseCode like #houseCodeAndAddress#||'%' or address like '%'||#houseCodeAndAddress#||'%' or rentalPerson like '%'||#houseCodeAndAddress#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseCode">
+				<isNotEmpty prepend=" and " property="houseCode">
+					houseCode like #houseCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="address">
+				<isNotEmpty prepend=" and " property="address">
+					address like '%'||#address#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="propertyTypes">
+				<isNotNull prepend=" and " property="propertyTypes.id">
+					propertyTypes=#propertyTypes.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty prepend=" and " property="name">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="certificateType">
+				<isNotNull prepend=" and " property="certificateType.id">
+					certificateType=#certificateType.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="certificateNumbe">
+				<isNotEmpty prepend=" and " property="certificateNumbe">
+					certificateNumbe like #certificateNumbe#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseUses">
+				<isNotNull prepend=" and " property="houseUses.id">
+					houseUses=#houseUses.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseStructure">
+				<isNotNull prepend=" and " property="houseStructure.id">
+					houseStructure=#houseStructure.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="builtYearFrom" >
+				<isNotEmpty prepend=" and " property="builtYearFrom">
+					<![CDATA[ builtYear >= #builtYearFrom# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="builtYearEnd">
+				<isNotEmpty prepend=" and " property="builtYearEnd">
+					<![CDATA[ builtYear <= #builtYearEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseAreaFrom" >
+				<isNotNull prepend=" and " property="houseAreaFrom">
+					<![CDATA[ houseArea >= #houseAreaFrom# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseAreaEnd">
+				<isNotNull prepend=" and " property="houseAreaEnd">
+					<![CDATA[ houseArea <= #houseAreaEnd# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="buildingName">
+				<isNotEmpty prepend=" and " property="buildingName">
+					buildingName like #buildingName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="buildingUses">
+				<isNotNull prepend=" and " property="buildingUses.id">
+					buildingUses=#buildingUses.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="propertyName">
+				<isNotEmpty prepend=" and " property="propertyName">
+					propertyName  like #propertyName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="ownProperty">
+				<isNotNull prepend=" and " property="ownProperty.id">
+					ownProperty=#ownProperty.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="rentalBuildings">
+				<isNotNull prepend=" and " property="rentalBuildings.id">
+					rentalBuildings=#rentalBuildings.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="housingVouchers">
+				<isNotNull prepend=" and " property="housingVouchers.id">
+					housingVouchers=#housingVouchers.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseRightNumber">
+				<isNotEmpty prepend=" and " property="houseRightNumber">
+					houseRightNumber like #houseRightNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseRightNumberDateFrom" >
+				<isNotEmpty prepend=" and " property="houseRightNumberDateFrom">
+					<![CDATA[ houseRightNumberDate >= #houseRightNumberDateFrom# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseRightNumberDateEnd">
+				<isNotEmpty prepend=" and " property="houseRightNumberDateEnd">
+					<![CDATA[ houseRightNumberDate <= #houseRightNumberDateEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="landDocuments">
+				<isNotNull prepend=" and " property="landDocuments.id">
+					landDocuments=#landDocuments.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="houseSource" >
+				<isNotEmpty prepend=" and " property="houseSource.id">
+					houseSource=#houseSource.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="landRightsNumbe">
+				<isNotEmpty prepend=" and " property="landRightsNumbe">
+					landRightsNumbe like #landRightsNumbe#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="landRightsNumbeDateFrom" >
+				<isNotEmpty prepend=" and " property="landRightsNumbeDateFrom">
+					<![CDATA[ landRightsNumbeDate >= #landRightsNumbeDateFrom# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="landRightsNumbeDateEnd">
+				<isNotEmpty prepend=" and " property="landRightsNumbeDateEnd">
+					<![CDATA[ landRightsNumbeDate <= #landRightsNumbeDateEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<sql id="addHouseInfoFields">
+		ID,address,orgId,orgInternalCode,houseCode,addressType,community,block,unit,room,buildingName,
+		buildingUses,propertyName,houseOwner,houseOwnerIdCardNo,telephone,houseDoorModel,builtYear,houseArea,
+		houseStructure,houseUses,houseSource,ownProperty,rentalBuildings,housingVouchers,houseRightNumber,houseRightNumberDate,
+		landDocuments,landRightsNumbe,landRightsNumbeDate,propertyTypes,name,fullPinyin,simplePinyin,certificateType,
+		certificateNumbe,propertyPersonTel,propertyPersonMobile,remark,buildingId,centerX,centerY,imgUrl,
+		createUser,createDate,updateUser,updateDate,sourcesState,houseAddress
+	</sql>
+
+	<sql id="addHouseInfoData">
+		#id#,#address#,#organization.id#,#orgInternalCode#,#houseCode#,#addressType.id#,#community#,#block#,#unit#,#room#,#buildingName#,
+		#buildingUses.id#,#propertyName#,#houseOwner#,#houseOwnerIdCardNo#,#telephone#,#houseDoorModel#,#builtYear#,#houseArea#,
+		#houseStructure.id#,#houseUses.id#,#houseSource.id#,#ownProperty.id#,#rentalBuildings.id#,#housingVouchers.id#,#houseRightNumber#,
+		#houseRightNumberDate#,#landDocuments.id#,#landRightsNumbe#,#landRightsNumbeDate#,#propertyTypes.id#,#name#,#fullPinyin#,#simplePinyin#,
+		#certificateType.id#,#certificateNumbe#,#propertyPersonTel#,#propertyPersonMobile#,#remark#,
+		#gisInfo.buildingId#,#gisInfo.centerX#,#gisInfo.centerY#,#imgUrl#,#createUser#,#createDate#,#updateUser#,#updateDate#,#sourcesState#,#houseAddress#
+	</sql>
+
+	<sql id="updateHouseInfo">
+		<dynamic>
+				orgId=#organization.id#,
+				houseAddress=#houseAddress#,
+				houseCode=#houseCode#,
+				houseArea=#houseArea#,
+				houseUses=#houseUses.id#,
+				houseRightNumberDate=#houseRightNumberDate#,
+				propertyTypes=#propertyTypes.id#,
+				certificateType=#certificateType.id#,
+				housingVouchers=#housingVouchers.id#,
+				buildingUses=#buildingUses.id#,
+				houseStructure=#houseStructure.id#,
+				houseSource=#houseSource.id#,
+				landDocuments=#landDocuments.id#
+				<isNotNull  property="address" prepend=",">
+					address=#address#
+				</isNotNull>
+				<isNotNull  property="addressType.id" prepend=",">
+					addressType=#addressType.id#
+				</isNotNull>
+				<isNotNull  property="community" prepend=",">
+					community=#community#
+				</isNotNull>
+				<isNotNull  property="block" prepend=",">
+					block=#block#
+				</isNotNull>
+	        	<isNotNull  property="unit" prepend=",">
+	        		unit=#unit#
+	        	</isNotNull>
+	        	<isNotNull property="room" prepend=",">
+	        		room=#room#
+	        	</isNotNull>
+	        	<isNotNull property="buildingName" prepend=",">
+	        		buildingName=#buildingName#
+	        	</isNotNull>
+	   			<isNotNull property="propertyName" prepend=",">
+	        		propertyName=#propertyName#
+	        	</isNotNull>
+	        	<isNotNull property="houseOwner" prepend=",">
+	        		houseOwner=#houseOwner#
+	        	</isNotNull>
+	        	<isNotNull property="houseOwnerIdCardNo" prepend=",">
+	        		houseOwnerIdCardNo=#houseOwnerIdCardNo#
+	        	</isNotNull>
+	        	<isNotNull property="telephone" prepend=",">
+	        		telephone=#telephone#
+	        	</isNotNull>
+	        	<isNotNull property="houseDoorModel" prepend=",">
+	        		houseDoorModel=#houseDoorModel#
+	        	</isNotNull>
+	        	<isNotNull property="builtYear" prepend=",">
+	        		builtYear=#builtYear#
+	        	</isNotNull>
+	        	<isNotNull property="ownProperty.id" prepend=",">
+	        			ownProperty=#ownProperty.id#
+	        	</isNotNull>
+	        	<isNotNull property="rentalBuildings.id" prepend=",">
+	        			rentalBuildings=#rentalBuildings.id#
+	        	</isNotNull>
+	        	<isNotNull property="houseRightNumber" prepend=",">
+	        			houseRightNumber=#houseRightNumber#
+	        	</isNotNull>
+	        	<isNotNull property="landRightsNumbe" prepend=",">
+	        			landRightsNumbe=#landRightsNumbe#
+	        	</isNotNull>
+	        	<isNotNull property="landRightsNumbeDate" prepend=",">
+	        			landRightsNumbeDate=#landRightsNumbeDate#
+	        	</isNotNull>
+	        	<isNotNull property="name" prepend=",">
+	        			name=#name#
+	        	</isNotNull>
+	        	<isNotNull property="fullPinyin" prepend=",">
+	        			fullPinyin=#fullPinyin#
+	        	</isNotNull>
+	        	<isNotNull property="simplePinyin" prepend=",">
+	        			simplePinyin=#simplePinyin#
+	        	</isNotNull>
+	        	<isNotNull property="certificateNumbe" prepend=",">
+	        			certificateNumbe=#certificateNumbe#
+	        	</isNotNull>
+	        	<isNotNull property="propertyPersonTel" prepend=",">
+	        			propertyPersonTel=#propertyPersonTel#
+	        	</isNotNull>
+	        	<isNotNull property="propertyPersonMobile" prepend=",">
+	        			propertyPersonMobile=#propertyPersonMobile#
+	        	</isNotNull>
+	        	<isNotNull property="remark" prepend=",">
+	        			remark=#remark#
+	        	</isNotNull>
+	        	<isNotNull property="imgUrl" prepend=",">
+	        			imgUrl=#imgUrl#
+	        	</isNotNull>
+	        	<isNotNull property="updateUser" prepend=",">
+	        			updateUser=#updateUser#
+	        	</isNotNull>
+	        	<isNotNull property="updateDate" prepend=",">
+	        			updateDate=#updateDate#
+	        	</isNotNull>
+	        	<isNotNull property="orgInternalCode" prepend=",">
+	        			orgInternalCode=#orgInternalCode#
+	        	</isNotNull>
+		
+		</dynamic>
+	</sql>
+</sqlMap>

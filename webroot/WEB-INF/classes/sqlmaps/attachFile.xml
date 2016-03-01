@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="attachFile">
+
+	<typeAlias alias="IssueAttachFile" type="com.tianque.issue.domain.IssueAttachFile" />
+
+	<resultMap id="issueAttachFileResult" class="IssueAttachFile">
+		<result property="id" column="id" />
+		<result property="issue.id" column="issueId" />
+		<result property="issueLog.id" column="issueLogId" />
+		<result property="fileName" column="fileName" />
+		<result property="fileActualUrl" column="fileActualUrl" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+
+	<parameterMap id="issueAttachFileParams" class="IssueAttachFile">
+		<parameter property="id"/>
+		<parameter property="issue.id"/>
+		<parameter property="issueLog.id"/>
+		<parameter property="fileName"/>
+		<parameter property="fileActualUrl"/>
+		<parameter property="createUser"/>
+		<parameter property="createDate"/>
+		<parameter property="updateUser"/>
+		<parameter property="updateDate"/>
+	</parameterMap>
+
+	<insert id="addIssueAttachFile" parameterClass="IssueAttachFile">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_issueAttachFiles.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO issueAttachFiles
+		(id,issueId,issueLogId,fileName,fileActualUrl,createUser,createDate)
+		VALUES(#id#,#issue.id#,#issueLog.id#,#fileName#,#fileActualUrl#,#createUser#,#createDate#)
+	</insert>
+	
+	<select id="getIssueAttachFileById" parameterClass="java.lang.Long" resultMap="issueAttachFileResult">
+		select * from issueAttachFiles where id=#value#
+	</select>
+	
+	<select id="getIssueAttachFilesByIssueId" parameterClass="java.lang.Long" resultMap="issueAttachFileResult">
+		select * from issueAttachFiles where issueId=#value# and issueLogId is null
+	</select>
+	
+	<select id="getIssueLogAttachFilesByIssueId" parameterClass="java.lang.Long" resultMap="issueAttachFileResult">
+		select * from issueAttachFiles where issueId=#value# and issueLogId is not null
+	</select>
+	
+	<delete id="deleteAttachFilesByIssueId" parameterClass="java.lang.Long">
+		delete from issueAttachFiles  where issueId = #value#
+	</delete>
+	<delete id="deleteAttachFileById" parameterClass="java.lang.Long">
+		delete from issueAttachFiles  where id = #value#
+	</delete>
+</sqlMap>

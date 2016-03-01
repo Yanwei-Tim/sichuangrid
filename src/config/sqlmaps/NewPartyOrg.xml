@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		CREATEDATE as createDate ,
+		UPDATEDATE as updateDate ,
+		ORGID as orgId ,
+		TYPE as type ,
+		ORGINTERNALCODE as orgInternalCode ,
+		NAME as name ,
+		CREATEUSER as createUser ,
+		UPDATEUSER as updateUser ,
+		ADDRESS as address ,
+		REMARK as remark 
+	FROM NEW_PARTY_ORG	
+ -->	
+<sqlMap namespace="newPartyOrg">	
+	
+	<typeAlias alias="NewPartyOrg" type="com.tianque.partyBuilding.organizations.domain.NewPartyOrg"/>
+	<typeAlias alias="SearchNewPartyOrgVo" type="com.tianque.partyBuilding.organizations.domain.vo.SearchNewPartyOrgVo" />
+	
+	<resultMap id="newPartyOrgResult" class="NewPartyOrg">
+		<result property="id" column="ID"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="organization.id" column="ORGID"/>
+		<result property="type.id" column="TYPE"/>
+		<result property="orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="name" column="NAME"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="address" column="ADDRESS"/>
+		<result property="remark" column="REMARK"/>
+	</resultMap>
+	
+	<select id="getNewPartyOrgById" parameterClass="java.lang.Long" resultMap="newPartyOrgResult">
+		select * from NEW_PARTY_ORG where id=#value#
+	</select>
+	
+	<insert id="addNewPartyOrg" parameterClass="NewPartyOrg">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_NEWPARTYORG.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into NEW_PARTY_ORG (ID , CREATEDATE , UPDATEDATE , ORGID , TYPE , ORGINTERNALCODE , NAME , CREATEUSER , UPDATEUSER , ADDRESS , REMARK ) 
+		values(#id#, #createDate#, #updateDate#, #organization.id#, #type.id#, #orgInternalCode#, #name#, #createUser#, #updateUser#, #address#, #remark#)	
+	</insert>
+	
+	<update id="updateNewPartyOrg" parameterClass="NewPartyOrg">
+		update NEW_PARTY_ORG set id = #id# 
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="organization">
+					ORGID = #organization.id#
+				</isNotNull>
+				<isNotNull prepend="," property="type">
+					TYPE = #type.id#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="name">
+					NAME = #name#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="address">
+					ADDRESS = #address#
+				</isNotNull>
+				<isNotNull prepend="," property="remark">
+					REMARK = #remark#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteNewPartyOrgById" parameterClass="java.lang.Long">	
+		delete  from NEW_PARTY_ORG where id = #value#	
+	</delete>
+	
+	<sql id="findNewPartyOrgsBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="maxCreateDate">
+					<isNotEmpty prepend="and" property="maxCreateDate">
+						CREATEDATE  <![CDATA[<=]]> #maxCreateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minCreateDate">
+					<isNotEmpty prepend="and" property="minCreateDate">
+						CREATEDATE  <![CDATA[>=]]> #minCreateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="maxUpdateDate">
+					<isNotEmpty prepend="and" property="maxUpdateDate">
+						UPDATEDATE  <![CDATA[<=]]> #maxUpdateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="minUpdateDate">
+					<isNotEmpty prepend="and" property="minUpdateDate">
+						UPDATEDATE  <![CDATA[>=]]> #minUpdateDate#
+					</isNotEmpty>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="type">
+					<isNotEmpty prepend="and" property="type">
+						TYPE = #type#
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="name">
+					<isNotEmpty prepend="and" property="name">
+						NAME  like #name# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="address">
+					<isNotEmpty prepend="and" property="address">
+						ADDRESS  like #address# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+				<isPropertyAvailable property="remark">
+					<isNotEmpty prepend="and" property="remark">
+						REMARK  like #remark# || '%'
+					</isNotEmpty>
+				</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+	<select id="findNewPartyOrgsBySearchVo" parameterClass="SearchNewPartyOrgVo" resultMap="newPartyOrgResult">
+		select * from NEW_PARTY_ORG
+		<include refid="findNewPartyOrgsBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countNewPartyOrgsBySearchVo" parameterClass="SearchNewPartyOrgVo" resultClass="java.lang.Integer">
+		select count(0) from NEW_PARTY_ORG
+		<include refid="findNewPartyOrgsBySearchVo_sql_where" />
+	</select>
+	
+	<select id="countByOrg" parameterClass="java.util.Map" resultClass="java.lang.Integer" >
+		select count(0) from NEW_PARTY_ORG npo where 1=1
+		<iterate prepend=" and "  property="orgIdsList" conjunction="or" open="(" close=")">
+			npo.orgId in ($orgIdsList[]$)
+		</iterate>
+	</select>
+	
+	<select id="getByOrgIdAndName" parameterClass="java.util.Map" resultMap="newPartyOrgResult">
+		select * from NEW_PARTY_ORG where orgId=#orgId# and name=#name#
+	</select>
+	
+</sqlMap>

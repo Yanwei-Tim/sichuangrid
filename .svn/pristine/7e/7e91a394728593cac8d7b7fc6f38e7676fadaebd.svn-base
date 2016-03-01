@@ -1,0 +1,193 @@
+package com.tianque.plugin.taskList.controller;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.tinygroup.commons.tools.StringUtil;
+
+import com.tianque.controller.ControllerHelper;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.vo.GridPage;
+import com.tianque.plugin.taskList.domain.MentalPatientTask;
+import com.tianque.plugin.taskList.service.MentalPatientTaskService;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+
+@Scope("request")
+@Namespace("/baseInfo/mentalPatientTaskManage")
+@Controller("mentalPatientTaskController")
+public class MentalPatientTaskController extends BaseAction {
+	private Long orgId;
+	private String ids;
+	private MentalPatientTask mentalPatientTask;
+	private Long mentalPatientTaskId;
+	@Autowired
+	private MentalPatientTaskService mentalPatientTaskService;
+	@Autowired
+	private OrganizationDubboService organizationService;
+	private String signType;
+	private Date currentTime;
+
+	@Action(value = "getMentalPatientTaskList", results = {
+			@Result(name = "success", type = "json", params = { "root", "gridPage" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String getMentalPatientTaskList() throws Exception {
+		mentalPatientTask = new MentalPatientTask();
+		mentalPatientTask.setOrganization(organizationService.getSimpleOrgById(orgId));
+		gridPage = new GridPage(ControllerHelper.processAllOrgRelativeName(mentalPatientTaskService
+				.getMentalPatientTaskList(mentalPatientTask, page, rows, sidx, sord),
+				organizationService, new String[] { "organization" }, orgId));
+		return SUCCESS;
+	}
+
+	/** 中转站 liu */
+	@Action(value = "dispatch", results = {
+			@Result(name = "add", location = "/template/task/addMentalPatientTask.ftl"),
+			@Result(name = "sign", location = "/template/task/mentalPatientTaskInfoDlg.ftl"),
+			@Result(name = "search", location = "/template/task/mentalPatient/mentalPatientSearch.ftl") })
+	public String dispatch() {
+		if ("add".equals(mode)) {
+			if (orgId == null) {
+				errorMessage = "数据新增失败，未获得正确组织机构信息";
+				return ERROR;
+			}
+			return "add";
+		}
+		if ("search".equals(mode)) {
+			return "search";
+		}
+		if ("sign".equals(mode)) {
+			currentTime = CalendarUtil.now();
+			mentalPatientTask = mentalPatientTaskService
+					.getMentalPatientTaskById(mentalPatientTaskId);
+			mentalPatientTask.setSignType(signType);
+			mentalPatientTask.setCurrentDate(currentTime);
+			return "sign";
+		}
+		if ("update".equals(mode)) {
+			mentalPatientTask = mentalPatientTaskService
+					.getMentalPatientTaskById(mentalPatientTaskId);
+			return "update";
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "addMentalPatientTask", results = {
+			@Result(name = "success", type = "json", params = { "root", "mentalPatientTask",
+					"ignoreHierarchy", "false", "excludeNullProperties", "true" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String addMentalPatientTask() throws Exception {
+		mentalPatientTask = mentalPatientTaskService.addMentalPatientTask(mentalPatientTask);
+		return SUCCESS;
+	}
+
+	@Action(value = "updateMentalPatientTask", results = {
+			@Result(name = "success", type = "json", params = { "root", "mentalPatientTask",
+					"ignoreHierarchy", "false", "excludeNullProperties", "true" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String updateMentalPatientTask() throws Exception {
+		mentalPatientTaskService.updateMentalPatientTask(mentalPatientTask);
+		return SUCCESS;
+	}
+
+	@Action(value = "viewMentalPatientTask", results = { @Result(name = "success", location = "/template/task/mentalPatient/mentalPatientTaskView.ftl") })
+	public String viewMentalPatientTask() throws Exception {
+		mentalPatientTask = mentalPatientTaskService.getMentalPatientTaskById(id);
+		return SUCCESS;
+	}
+
+	@Action(value = "deleteMentalPatientTask", results = {
+			@Result(name = "success", type = "json", params = { "root", "true",
+					"excludeNullProperties", "true" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String deleteMentalPatientTask() throws Exception {
+		mentalPatientTaskService.deleteMentalPatientTaskByIds(analyzeIds(ids));
+		return SUCCESS;
+	}
+
+	@Action(value = "searchMentalPatient", results = {
+			@Result(name = "success", type = "json", params = { "root", "gridPage",
+					"ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage",
+					"ignoreHierarchy", "false" }) })
+	public String searchMentalPatient() throws Exception {
+
+		gridPage = new GridPage(ControllerHelper.processAllOrgRelativeName(mentalPatientTaskService
+				.searchMentalPatient(mentalPatientTask, page, rows, sidx, sord),
+				organizationService, new String[] { "organization" }, null));
+
+		return SUCCESS;
+	}
+
+	private List<Long> analyzeIds(String idStr) {
+		if (idStr == null) {
+			return null;
+		}
+		String[] deleteId = idStr.split(",");
+		List<Long> idList = new ArrayList<Long>();
+		if (StringUtil.isEmpty(deleteId[0])) {
+			return null;
+		} else {
+			for (int i = 0; i < deleteId.length; i++) {
+				idList.add(Long.parseLong(deleteId[i]));
+			}
+		}
+		return idList;
+	}
+
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+	public MentalPatientTask getMentalPatientTask() {
+		return mentalPatientTask;
+	}
+
+	public void setMentalPatientTask(MentalPatientTask mentalPatientTask) {
+		this.mentalPatientTask = mentalPatientTask;
+	}
+
+	public Long getMentalPatientTaskId() {
+		return mentalPatientTaskId;
+	}
+
+	public void setMentalPatientTaskId(Long mentalPatientTaskId) {
+		this.mentalPatientTaskId = mentalPatientTaskId;
+	}
+
+	public String getIds() {
+		return ids;
+	}
+
+	public void setIds(String ids) {
+		this.ids = ids;
+	}
+
+	public String getSignType() {
+		return signType;
+	}
+
+	public void setSignType(String signType) {
+		this.signType = signType;
+	}
+
+	public Date getCurrentTime() {
+		return currentTime;
+	}
+
+	public void setCurrentTime(Date currentTime) {
+		this.currentTime = currentTime;
+	}
+
+}

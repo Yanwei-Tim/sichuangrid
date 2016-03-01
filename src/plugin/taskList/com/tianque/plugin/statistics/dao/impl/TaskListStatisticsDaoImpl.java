@@ -1,0 +1,77 @@
+package com.tianque.plugin.statistics.dao.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.dao.AbstractBaseDao;
+import com.tianque.domain.Organization;
+import com.tianque.plugin.statistics.dao.TaskListStatisticsDao;
+import com.tianque.plugin.statistics.domain.GeneralSituation;
+import com.tianque.plugin.statistics.vo.TaskListMapVo;
+@Repository("taskListStatisticsDao")
+public class TaskListStatisticsDaoImpl extends AbstractBaseDao implements TaskListStatisticsDao {
+
+	@Override
+	public List<GeneralSituation> getTaskListColumn(Map<String, Object> map) {
+		return getSqlMapClientTemplate().queryForList("taskListStatistics.getTaskListColumn",map);
+	}
+
+	@Override
+	public List<GeneralSituation> getFloatingColumn(Map<String, Object> map) {
+		return getSqlMapClientTemplate().queryForList("taskListStatistics.getFloatingColumn",map);
+	}
+
+	@Override
+	public List<GeneralSituation> getTaskListForSubType(Map<String, Object> map) {
+		return getSqlMapClientTemplate().queryForList("taskListStatistics.getTaskListForSubType",map);
+	}
+
+	@Override
+	public Integer getTaskListForTrend(Map<String, Object> map) {
+		return (Integer) getSqlMapClientTemplate().queryForObject("taskListStatistics.getTaskListForTrend",map);
+	}
+
+	@Override
+	public Integer getMonthCreateSignByCondition(Map<String, Object> map) {
+		Integer count = (Integer) getSqlMapClientTemplate().queryForObject("taskListStatistics.getMonthCreateSignByCondition",map);
+		return count==null?0:count;
+	}
+
+	@Override
+	public List<TaskListMapVo> getMaxCreatSignOrgByType(Map<String, Object> map) {
+		return getSqlMapClientTemplate().queryForList("taskListStatistics.getMaxCreatSignOrgByType",map);
+	}
+
+	@Override
+	public List<GeneralSituation> getTaskListColumnForMap(
+			Map<String, Object> map) {
+		return getSqlMapClientTemplate().queryForList("taskListStatistics.getTaskListColumnForMap",map);
+	}
+
+	@Override
+	public List<GeneralSituation> getTaskListColumnForBasesicTypeMap(
+			Map<String, Object> map) {
+		return getSqlMapClientTemplate().queryForList("taskListStatistics.getTaskListColumnForBasesicTypeMap",map);
+	}
+
+	@Override
+	public List<GeneralSituation> getTaskListColumnForDetailTypeMap(
+			Map<String, Object> map) {
+		return getSqlMapClientTemplate().queryForList("taskListStatistics.getTaskListColumnForDetailTypeMap",map);
+	}
+
+	@Override
+	public List<GeneralSituation> getTaskListColumnForSubTypeTypeMap(
+			Map<String, Object> map) {
+		return getSqlMapClientTemplate().queryForList("taskListStatistics.getTaskListColumnForSubTypeTypeMap",map);
+	}
+
+	@Override
+	public List<GeneralSituation> getTaskListColumnForSubTypesTypeMap(
+			Map<String, Object> map) {
+		return getSqlMapClientTemplate().queryForList("taskListStatistics.getTaskListColumnForSubTypesTypeMap",map);
+	}
+
+}

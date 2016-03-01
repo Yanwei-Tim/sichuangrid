@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="searchConstructionUnit" extends="default"
+		namespace="/baseinfo/searchConstructionUnit">
+		<default-class-ref class="searchConstructionUnitController"></default-class-ref>
+
+		<action name="searchConstructionUnit" method="searchConstructionUnit">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="downloadConstructionUnit" method="downloadConstructionUnit">
+			<result name="success" type="stream">
+				<param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>
+				<param name="inputName">inputStream</param>
+				<param name="contentDisposition">attachment;filename="${downloadFileName}"</param>
+				<param name="bufferSize">4096</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="searchConstructionUnitForAutoComplete" method="searchConstructionUnitForAutoComplete">
+			<result name="success" type="json">
+				<param name="root">autoCompleteDatas</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+	</package>
+</struts>

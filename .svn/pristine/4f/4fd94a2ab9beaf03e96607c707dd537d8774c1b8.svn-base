@@ -1,0 +1,647 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="fourTeamsIssue">
+	<typeAlias alias="FourTeamsIssue" type="com.tianque.fourTeams.fourTeamsIssue.domain.FourTeamsIssueNew" />
+	<typeAlias alias="IssueType" type="com.tianque.domain.IssueType" />
+	<typeAlias alias="FourTeamsIssueAttachFile" type="com.tianque.fourTeams.fourTeamsIssue.domain.FourTeamsIssueAttachFile"/>
+	<typeAlias alias="FourTeamsIssueViewObject" type="com.tianque.fourTeams.fourTeamsIssue.vo.FourTeamsIssueViewObject" />
+	<typeAlias alias="FourTeamsIssueStep" type="com.tianque.fourTeams.fourTeamsIssue.domain.FourTeamsIssueStep" />
+	<typeAlias alias="FourTeamsIssueEvaluate" type="com.tianque.fourTeams.fourTeamsIssue.domain.FourTeamsIssueEvaluate"/>
+	<typeAlias alias="ClobStringTypeHandler" type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+	<!-- 完整的事件信息 -->
+	<resultMap class="FourTeamsIssue" id="fullIssue">
+		<result property="id" column="id"/>
+		<result property="serialNumber" column="serialNumber"/>
+		<result property="subject" column="subject"/>
+		<result property="occurOrg.id" column="occurOrg"/>
+		<result property="occurOrg.orgInternalCode" column="occurOrgInternalCode"/>
+		<result property="createOrg.id" column="createOrg"/>
+		<result property="createOrg.orgInternalCode" column="createOrgInternalCode"/>
+		<result property="lastOrg.id" column="lastOrg"/>
+		<result property="lastOrg.orgInternalCode" column="lastOrgInternalCode"/>
+		<result property="lastUsername" column="lastUsername"/>
+		<result property="issueKind.id" column="issueKind"/>
+		<result property="historic" column="historic"/>
+		<result property="important" column="important"/>
+		<result property="sourcePerson" column="sourcePerson"/>
+		<result property="sourceKind.id" column="sourceKind"/>
+		<result property="sourceMobile" column="sourceMobile"/>
+		<result property="occurDate" column="occurDate"/>
+		<result property="relatePeopleCount" column="relatePeopleCount"/>
+		<result property="occurLocation" column="occurLocation"/>
+		<result property="mainCharacters" column="mainCharacters"/>
+		<result property="issueContent" column="issueContent" typeHandler="ClobStringTypeHandler"/>
+		<result property="remark" column="remark" typeHandler="ClobStringTypeHandler"/>
+		<result property="displayStyle" column="displayStyle"/>
+		<result property="status" column="status"/>
+		<result property="urgent" column="urgent"/>
+		<result property="endDate" column="completeDate"/>
+		<result property="isEmergency" column="isEmergency"/>
+		<result property="currentStep.id" column="currentStep"/>
+		<result property="lon" column="lon"/>
+		<result property="lat" column="lat"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="importantPlace" column="importantPlace" />
+		<result property="emergencyLevel.id" column="emergencyLevel" />
+		<result property="centerLon" column="centerLon"/>
+		<result property="centerLat" column="centerLat"/>
+		<result property="zoom" column="zoom"/>
+		<result property="centerLon2" column="centerLon2"/>
+		<result property="centerLat2" column="centerLat2"/>
+		<result property="uniqueIdForMobile" column="uniqueidformobile"/>
+		<result property="issueType.issueTypeDomain.id" column="ISSUETYPEDOMAINID"/>
+		<result property="issueType.id" column="ISSUETYPEID"/>	
+	</resultMap>
+	
+	<!-- 事件类型结果映射 -->
+	<resultMap id="issueTypeResult" class="IssueType">
+		<result property="id" column="id" />
+		<result property="internalId" column="internalId" />
+		<result property="issueTypeDomain.id" column="domainId" />
+		<result property="issueTypeName" column="issueTypeName" />
+	</resultMap>
+
+	<!-- 事件类附件果映射 -->
+	<resultMap id="attachFileResult" class="FourTeamsIssueAttachFile">
+		<result property="id" column="id" />
+		<result property="fileName" column="fileName" />
+		<result property="fileActualUrl" column="filePath" />
+		<result property="issue.id" column="issueId" />
+		<result property="issueLog.id" column="issueLogId" />
+	</resultMap>
+	
+	<!-- IssueViewObject映射结果-->
+	<resultMap id="issueViewResult" class="FourTeamsIssueViewObject">
+		<result property="superviseLevel" column="superviseLevel" nullValue="-1"/>
+		<result property="issueId" column="issueId" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="subject" column="subject" />
+		<result property="status" column="status" />
+		<result property="occurDate" column="occurDate" />
+		<result property="currentOrg.id" column="currentOrg" />
+		<result property="occurOrg.id" column="occurOrg" />
+		<result property="targeOrg.id" column="targetOrg" />
+		<result property="dealTime" column="lastdealdate" />
+		<result property="sourcePerson" column="sourcePerson" />
+		<result property="sourceKind.id" column="sourceKind" />
+		<result property="sourceMobile" column="sourceMobile" />
+		<result property="issueLogId" column="stepId" />
+		<result property="issueStepId" column="stepId" />
+		<result property="supervisionState" column="superviselevel" nullValue="-1"/>
+		<result property="urgent" column="urgent" />
+		<result property="dealState" column="statecode" />
+		<result property="delayState" column="delayState" nullValue="0"/>
+		<result property="lastOrg.id" column="lastOrg" />
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="createName" column="CREATEUSER" select="issue.getFullUserByUerName" />
+		<result property="issueType.issueTypeDomain.id" column="ISSUETYPEDOMAINID"/>
+		<result property="issueType.id" column="ISSUETYPEID"/>		
+	</resultMap>
+		
+	<!-- 置顶事件 (待办、历史遗留)映射结果-->
+	<resultMap id="issueViewTopResult" class="FourTeamsIssueViewObject" extends="issueViewResult">
+		<result property="topState" column="topState" />	
+		<result property="createName" column="CREATEUSER" select="issue.getFullUserByUerName" />	
+	</resultMap>
+	
+	<resultMap id="jurisdictionsNeedDoResult" class="FourTeamsIssueViewObject" extends="issueViewResult">
+		<result property="topState" column="topState" />
+		<result property="createOrg.id" column="createOrg"/>
+	</resultMap>
+	
+	<!-- 置顶事件 映射结果-->
+	<resultMap id="issueViewTopResult" class="FourTeamsIssueViewObject" extends="issueViewResult">
+		<result property="topState" column="topState" />
+		<result property="createOrg.id" column="createOrg"/>	
+	</resultMap>
+	<!-- 置顶事件(宣传事例) 映射结果-->
+	<resultMap id="issueViewTopPublicltycassResult" class="FourTeamsIssueViewObject" extends="issueViewResult">
+		<result property="topState" column="topState" />
+		<result property="createOrg.id" column="createOrg"/>
+		<result property="publicltycass" column="publicltycass" />	
+	</resultMap>
+	
+	
+	<!--我的事项- 已办事项映射结果-->
+	<resultMap id="issueViewMyDoneResult" class="FourTeamsIssueViewObject">
+		<result property="superviseLevel" column="superviseLevel" nullValue="-1"/>
+		<result property="issueId" column="issueId" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="subject" column="subject" />
+		<result property="status" column="status" />
+		<result property="occurDate" column="occurDate" />
+		<result property="occurOrg.id" column="occurOrg" />
+		<result property="targeOrg.id" column="targetOrg" />
+		<result property="sourcePerson" column="sourcePerson" />
+		<result property="sourceKind.id" column="sourceKind" />
+		<result property="sourceMobile" column="sourceMobile" />
+		<result property="supervisionState" column="superviselevel" nullValue="-1"/>
+		<result property="urgent" column="urgent" />
+		<result property="dealState" column="statecode" />
+		<result property="lastOrg.id" column="lastOrg" />
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="publicltycass" column="publicltycass" />
+		<result property="topState" column="topState" />	
+	</resultMap>
+	<!-- 包含事件评价结果的IssueViewObject映射结果 -->
+	<resultMap id="issueViewAndEvaluateResult" class="FourTeamsIssueViewObject" extends="issueViewResult">
+		<result property="evaluateType" column="evaluateType" />
+		<result property="evaluateContent" column="evaluateContent" />
+		<result property="evaluateTime" column="evaluateTime" />
+	</resultMap>
+	
+	<!--我的事项- 已办结事项映射结果 -->
+	<resultMap id="issueViewMyCompleteResult" class="FourTeamsIssueViewObject" extends="issueViewAndEvaluateResult">
+		<result property="topState" column="topState" />	
+	</resultMap>
+	<!--下辖事项列表- 已办结事项映射结果 -->
+	<resultMap id="issueViewJurisdictionsCompleteResult" class="FourTeamsIssueViewObject" extends="issueViewAndEvaluateResult">
+		<result property="publicltycass" column="publicltycass" />
+		<result property="createName" column="CREATEUSER"  select="issue.getFullUserByUerName" />	
+		<result property="topState" column="topState" />
+		<result property="createOrg.id" column="createOrg"/>	
+	</resultMap>
+	
+	<!-- 事件处理步骤结果映射 -->
+	<resultMap id="issueStepResult" class="FourTeamsIssueStep">
+			<result property="id" column="id" />
+			<result property="source.id" column="source" />
+			<result property="target.id" column="target" />
+			<result property="target.orgInternalCode" column="targetinternalcode" />
+			<result property="state" column="state" />
+			<result property="stateCode" column="stateCode" />
+			<result property="entryDate" column="entryDate" />
+			<result property="endDate" column="endDate" />
+			<result property="lastDealDate" column="lastDealDate" />
+			<result property="issue.id" column="issue" />
+			<result property="superviseLevel" column="superviseLevel" />
+			<result property="backTo.id" column="backTo" />
+			<result property="groupId" column="groupId" />
+			<result property="createUser" column="createUser" />
+			<result property="createDate" column="createDate" />
+			<result property="updateUser" column="updateUser" />
+			<result property="updateDate" column="updateDate" />
+		</resultMap>
+	
+	<resultMap class="FourTeamsIssueEvaluate" id="issueViewAndEvaluateOnlyResult">
+		<result property="id" column="id" />
+		<result property="evaluateType" column="evaluateType" />
+		<result property="evaluateContent" column="evaluateContent" />
+		<result property="evaluateTime" column="evaluateTime" />
+	</resultMap>
+
+	<select id="getFullUserByUerName" parameterClass="java.lang.String" resultClass="java.lang.String">
+		<![CDATA[select name from users where userName=#value#]]>
+	</select>
+	
+	<!-- 四支队伍下辖待办事件数量 -->	<!--判断是否查询所有，本级，下辖-->
+	<select id="countJurisdictionsNeedDo" parameterClass="map" resultClass="java.lang.Integer">
+		<![CDATA[select count(*) from (
+			select iu.id 
+			from issuesteps isteps,issues iu 
+			where iu.id=isteps.issue 
+			]]>	
+			<isEqual property="fourTeamsType" compareValue="convenienceServiceTeam">
+			<![CDATA[  and isteps.fourTeamsTypeID = 1 ]]>
+			</isEqual>
+			<isEqual property="fourTeamsType" compareValue="gridServiceTeam">
+			  <![CDATA[  and isteps.fourTeamsTypeID = 2 ]]>
+			</isEqual>
+			<isEqual property="fourTeamsType" compareValue="partyMemberPioneerServiceTeam">
+			 	 <![CDATA[  and isteps.fourTeamsTypeID = 3 ]]>
+			</isEqual>
+			<isEqual property="fourTeamsType" compareValue="communityVolunteerServiceTeam">
+			  	<![CDATA[  and isteps.fourTeamsTypeID = 4 ]]>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="allJurisdiction">
+			  <![CDATA[  and isteps.targetinternalcode like #orgCode#||'%' ]]>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="sameGrade">
+			  <!-- <![CDATA[    and cstep.targetinternalcode = #orgCode#  ]]> -->
+			  <![CDATA[  and isteps.targetinternalcode like #orgCode#||'%' ]]>
+			  <isPropertyAvailable property="orgLevel" prepend=" and ">
+			  		<!-- 本级需要显示职能部门的事件 -->
+			  		isteps.target in (select id  from organizations where orglevel = #orgLevel#)
+			  </isPropertyAvailable>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="directJurisdiction">
+			  <!-- <![CDATA[    and cstep.target in ( select id from organizations where parentid=#orgId# ) ]]>-->
+			  		and isteps.target in ( select id from organizations where parentid=#orgId# 
+			  		 <isPropertyAvailable property="orgLevel" prepend=" and ">
+			  		 		<!-- 直属下级排除职能部门 -->
+			  				<![CDATA[ orglevel <> #orgLevel# ]]>
+			  		 </isPropertyAvailable>
+			  		 )
+			</isEqual>
+			<!-- 职能部门 ，只查看本部门事件-->
+			<isEqual property="seachValue" compareValue="functional">
+			 	<![CDATA[    and isteps.targetinternalcode = #orgCode#  ]]>
+			</isEqual>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+				iu.ISSUETYPEDOMAINID=#issueType#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="sourceType">
+				<isNotNull property="sourceType" prepend=" and ">
+					iu.sourceKind=#sourceType#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+		<![CDATA[ 	
+			and isteps.stateCode<#completeCode# 
+			)
+		]]>
+	</select>
+	
+	<!-- 四支队伍待办事件列表 -->
+	<select id="findJurisdictionsNeedDoForFourTeams" parameterClass="map"	resultMap="jurisdictionsNeedDoResult">
+		<![CDATA[
+		select  iu.id as issueId,
+		 cstep.delayState as delayState,
+         iu.serialnumber,
+         iu.subject,
+         iu.status,
+         iu.occurdate,
+         cstep.source currentOrg,
+         iu.occurorg,
+         iu.createOrg,
+         cstep.target targetOrg,
+         iu.sourceperson,
+         iu.sourcekind,
+         iu.sourcemobile,
+         iu.urgent,
+         cstep.id as stepId,
+         cstep.superviselevel,
+         cstep.lastdealdate,
+         iu.lastOrg,
+         iu.CREATEUSER,
+         cstep.statecode,
+         iu.hours,
+         iu.minute,ti.topState,
+          iu.ISSUETYPEID,
+		 iu.ISSUETYPEDOMAINID
+         from issuesteps cstep,issues iu 
+         left join topIssues ti on ti.issueId = iu.id and ti.orgId=#orgId# and ti.issueTag = #issueTag#
+			where iu.id=cstep.issue 
+			]]>
+			
+		<isEqual property="fourTeamsType" compareValue="convenienceServiceTeam">
+		<![CDATA[  and cstep.fourTeamsTypeID = 1 ]]>
+		</isEqual>
+		<isEqual property="fourTeamsType" compareValue="gridServiceTeam">
+		  <![CDATA[  and cstep.fourTeamsTypeID = 2 ]]>
+		</isEqual>
+		<isEqual property="fourTeamsType" compareValue="partyMemberPioneerServiceTeam">
+		 	 <![CDATA[  and cstep.fourTeamsTypeID = 3 ]]>
+		</isEqual>
+		<isEqual property="fourTeamsType" compareValue="communityVolunteerServiceTeam">
+		  	<![CDATA[  and cstep.fourTeamsTypeID = 4 ]]>
+		</isEqual>
+		<isEqual property="seachValue" compareValue="allJurisdiction">
+		  <![CDATA[  and cstep.targetinternalcode like #orgCode#||'%' ]]>
+		</isEqual>
+		<isEqual property="seachValue" compareValue="sameGrade">
+		  <!-- <![CDATA[    and cstep.targetinternalcode = #orgCode#  ]]> -->
+		  <![CDATA[  and cstep.targetinternalcode like #orgCode#||'%' ]]>
+		  <isPropertyAvailable property="orgLevel" prepend=" and ">
+		  		<!-- 本级需要显示职能部门的事件 -->
+		  		cstep.target in (select id  from organizations where orglevel = #orgLevel#)
+		  </isPropertyAvailable>
+		</isEqual>
+		<isEqual property="seachValue" compareValue="directJurisdiction">
+		  <!-- <![CDATA[    and cstep.target in ( select id from organizations where parentid=#orgId# ) ]]>-->
+		  		and cstep.target in ( select id from organizations where parentid=#orgId# 
+		  		 <isPropertyAvailable property="orgLevel" prepend=" and ">
+		  		 		<!-- 直属下级排除职能部门 -->
+		  				<![CDATA[ orglevel <> #orgLevel# ]]>
+		  		 </isPropertyAvailable>
+		  		 )
+		</isEqual>
+		<!-- 职能部门 ，只查看本部门事件-->
+		<isEqual property="seachValue" compareValue="functional">
+		 	<![CDATA[    and cstep.targetinternalcode = #orgCode#  ]]>
+		</isEqual>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			cstep.issue in (select id from issues where ISSUETYPEDOMAINID=#issueType#)
+		</isPropertyAvailable>
+		<![CDATA[ 
+			and cstep.stateCode<#completeCode# 
+			and iu.historic = 0  
+			]]>
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=#sourceType#
+			</isNotNull>
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			ti.topState asc, ti.topDate desc
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">, $sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 四支队伍下辖已办结事件数量 -->
+	<select id="countJurisdictionsCompleted" parameterClass="map" resultClass="java.lang.Integer">
+		<![CDATA[select count(id) from (
+			select iu.id from issuesteps isteps,issues iu 
+			where iu.id=isteps.issue
+			and isteps.stateCode>=#completeCode# 
+			and iu.historic = 0 
+		]]>	
+			<dynamic>
+				<isPropertyAvailable property="sourceType">
+					<isNotNull property="sourceType" prepend=" and ">
+						iu.sourceKind=#sourceType#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isEqual property="fourTeamsType" compareValue="convenienceServiceTeam">
+				  <![CDATA[  and isteps.fourTeamsTypeID = 1 ]]>
+				</isEqual>
+				<isEqual property="fourTeamsType" compareValue="gridServiceTeam">
+				  <![CDATA[  and isteps.fourTeamsTypeID = 2 ]]>
+				</isEqual>
+				<isEqual property="fourTeamsType" compareValue="partyMemberPioneerServiceTeam">
+				 	 <![CDATA[  and isteps.fourTeamsTypeID = 3 ]]>
+				</isEqual>
+				<isEqual property="fourTeamsType" compareValue="communityVolunteerServiceTeam">
+				  	<![CDATA[  and isteps.fourTeamsTypeID = 4 ]]>
+				</isEqual>
+				<isEqual property="seachValue" compareValue="allJurisdiction">
+				  <![CDATA[  and iu.createorginternalcode like #orgCode#||'%' ]]>
+				</isEqual>
+				<isEqual property="seachValue" compareValue="sameGrade">
+				   <!-- <![CDATA[    and cstep.targetinternalcode = #orgCode#  ]]> -->
+				  <![CDATA[  and isteps.targetinternalcode like #orgCode#||'%' ]]>
+				  <isPropertyAvailable property="orgLevel" prepend=" and ">
+				  		<!-- 本级需要显示职能部门的事件 -->
+				  		isteps.target in (select id  from organizations where orglevel = #orgLevel#)
+				  </isPropertyAvailable>
+				</isEqual>
+				<isEqual property="seachValue" compareValue="directJurisdiction">
+						  <!-- <![CDATA[    and cstep.target in ( select id from organizations where parentid=#orgId# ) ]]>-->
+				  		and isteps.target in ( select id from organizations where parentid=#orgId# 
+				  		 <isPropertyAvailable property="orgLevel" prepend=" and ">
+				  		 		<!-- 直属下级排除职能部门 -->
+				  				<![CDATA[ orglevel <> #orgLevel# ]]>
+				  		 </isPropertyAvailable>
+				  	)
+				</isEqual>
+				<!-- 职能部门 ，只查看本部门事件-->
+				<isEqual property="seachValue" compareValue="functional">
+				 	<![CDATA[    and isteps.targetinternalcode = #orgCode#  ]]>
+				</isEqual>
+				<isPropertyAvailable property="issueType" prepend=" and ">
+						iu.id in (select id from issues where ISSUETYPEDOMAINID=#issueType#)
+				</isPropertyAvailable>
+				<isPropertyAvailable property="statusType">
+					<isNotEmpty property="statusType" prepend=" and ">
+						<isEqual property="statusType" compareValue="0">
+							NOT
+						</isEqual>
+						EXISTS (SELECT 1 FROM ISSUEEVALUATE WHERE ISSUEEVALUATE.ISSUEID = IU.ID)
+					</isNotEmpty>
+				</isPropertyAvailable>
+			</dynamic>
+		<![CDATA[	
+			)
+		]]>
+	</select>
+	
+	<!-- 四支队伍已办结事件列表 -->
+	<select id="findJurisdictionsCompletedForFourTeams" parameterClass="map"	resultMap="issueViewJurisdictionsCompleteResult">
+		<![CDATA[
+		select iu.publicltycass,
+			 iu.id as issueId,iu.serialnumber,iu.subject ,iu.status, iu.occurdate,cstep.source currentOrg,iu.occurorg, iu.createOrg,
+			 cstep.target targetOrg,cstep.lastdealdate, iu.sourceperson,iu.sourcekind,iu.sourcemobile,iu.urgent, 
+			 cstep.id as stepId,cstep.superviselevel,iu.lastOrg,iu.CREATEUSER,cstep.statecode,ie.evaluatetype,ie.evaluatecontent,
+			 ie.evaluatetime ,iu.hours,iu.minute,cstep.delayState,ti.topState,
+			  iu.ISSUETYPEID,
+			iu.ISSUETYPEDOMAINID
+		from issuesteps cstep,issues iu 
+		 
+		left join issueEvaluate ie on ie.issueid = iu.id
+		left join topIssues ti on ti.issueId = iu.id and ti.orgId=#orgId# and ti.issueTag = #issueTag#
+		where 
+		cstep.issue= iu.id 
+        and cstep.stateCode >= #completeCode# 
+        and iu.historic = 0
+		]]>
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=#sourceType#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isEqual property="fourTeamsType" compareValue="convenienceServiceTeam">
+		  <![CDATA[  and cstep.fourTeamsTypeID = 1 ]]>
+		</isEqual>
+		<isEqual property="fourTeamsType" compareValue="gridServiceTeam">
+		  <![CDATA[  and cstep.fourTeamsTypeID = 2 ]]>
+		</isEqual>
+		<isEqual property="fourTeamsType" compareValue="partyMemberPioneerServiceTeam">
+		 	 <![CDATA[  and cstep.fourTeamsTypeID = 3 ]]>
+		</isEqual>
+		<isEqual property="fourTeamsType" compareValue="communityVolunteerServiceTeam">
+		  	<![CDATA[  and cstep.fourTeamsTypeID = 4 ]]>
+		</isEqual>
+		<isEqual property="seachValue" compareValue="allJurisdiction">
+		  <![CDATA[  and iu.createorginternalcode like #orgCode#||'%' ]]>
+		</isEqual>
+		<isEqual property="seachValue" compareValue="sameGrade">
+		   <!-- <![CDATA[    and cstep.targetinternalcode = #orgCode#  ]]> -->
+		    <![CDATA[  and cstep.targetinternalcode like #orgCode#||'%' ]]>
+		  <isPropertyAvailable property="orgLevel" prepend=" and ">
+		  		<!-- 本级需要显示职能部门的事件 -->
+		  		cstep.target in (select id  from organizations where orglevel = #orgLevel#)
+		  </isPropertyAvailable>
+		</isEqual>
+		<isEqual property="seachValue" compareValue="directJurisdiction">
+		    <!-- <![CDATA[    and cstep.target in ( select id from organizations where parentid=#orgId# ) ]]>-->
+		  		and cstep.target in ( select id from organizations where parentid=#orgId# 
+		  		 <isPropertyAvailable property="orgLevel" prepend=" and ">
+		  		 		<!-- 直属下级排除职能部门 -->
+		  				<![CDATA[ orglevel <> #orgLevel# ]]>
+		  		 </isPropertyAvailable>
+		  	)
+		</isEqual>
+		<!-- 职能部门 ，只查看本部门事件-->
+		<isEqual property="seachValue" compareValue="functional">
+		 	<![CDATA[    and cstep.targetinternalcode = #orgCode#  ]]>
+		</isEqual>
+		<dynamic>
+			<isPropertyAvailable property="issueType" prepend=" and ">
+					iu.id in (select id from issues where ISSUETYPEDOMAINID=#issueType#)
+			</isPropertyAvailable>
+			<isPropertyAvailable property="statusType">
+				<isNotEmpty property="statusType" prepend=" and ">
+					<isEqual property="statusType" compareValue="0">
+						NOT
+					</isEqual>
+					EXISTS (SELECT 1 FROM ISSUEEVALUATE WHERE ISSUEEVALUATE.ISSUEID = IU.ID)
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			ti.topState asc, ti.topDate desc
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">, $sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 四支队伍下辖已办事件数量 -->
+	<select id="countJurisdictionsDone" parameterClass="map" resultClass="java.lang.Integer">
+		<![CDATA[select count(0) from (select issue
+	          from issuesteps
+	         where id in
+	               (select max(id)
+	                  from issuesteps cstep
+	                 where cstep.stateCode >= #completeCode# ]]>
+	          		<isEqual property="fourTeamsType" compareValue="convenienceServiceTeam">
+					  <![CDATA[  and cstep.fourTeamsTypeID = 1 ]]>
+					</isEqual>
+					<isEqual property="fourTeamsType" compareValue="gridServiceTeam">
+					  <![CDATA[  and cstep.fourTeamsTypeID = 2 ]]>
+					</isEqual>
+					<isEqual property="fourTeamsType" compareValue="partyMemberPioneerServiceTeam">
+					 	 <![CDATA[  and cstep.fourTeamsTypeID = 3 ]]>
+					</isEqual>
+					<isEqual property="fourTeamsType" compareValue="communityVolunteerServiceTeam">
+					  	<![CDATA[  and cstep.fourTeamsTypeID = 4 ]]>
+					</isEqual>
+					<isEqual property="seachValue" compareValue="allJurisdiction">
+					  <![CDATA[  and cstep.targetinternalcode like #orgCode#||'%' ]]>
+					</isEqual>
+					<isEqual property="seachValue" compareValue="sameGrade">
+					  <![CDATA[  and cstep.targetinternalcode like #orgCode#||'%' ]]>
+					  <isPropertyAvailable property="orgLevel" prepend=" and ">
+					  		<!-- 本级需要显示职能部门的事件 -->
+					  		cstep.target in (select id  from organizations where orglevel = #orgLevel#)
+					  </isPropertyAvailable>
+					</isEqual>
+					<isEqual property="seachValue" compareValue="directJurisdiction">
+				  		 and cstep.target in ( select id from organizations where parentid=#orgId# 
+				  		 <isPropertyAvailable property="orgLevel" prepend=" and ">
+				  		 		<!-- 直属下级排除职能部门 -->
+				  				<![CDATA[ orglevel <> #orgLevel# ]]>
+				  		 </isPropertyAvailable>
+				  		 )
+					</isEqual>
+					<!-- 职能部门 ，只查看本部门事件-->
+					<isEqual property="seachValue" compareValue="functional">
+					 	<![CDATA[    and cstep.targetinternalcode = #orgCode#  ]]>
+					</isEqual>
+					<isPropertyAvailable property="issueType" prepend=" and ">
+						cstep.issue in (select id from issues where ISSUETYPEDOMAINID=#issueType#)
+					</isPropertyAvailable>
+	                <![CDATA[ group by issue)) istep,issues iu where istep.issue=iu.id and iu.historic = 0]]>
+				    <isPropertyAvailable property="sourceType">
+						<isNotNull property="sourceType" prepend=" and ">
+							iu.sourceKind=#sourceType#
+						</isNotNull>
+					</isPropertyAvailable>
+	</select>
+	
+	<!-- 四支队伍已办事件列表 -->
+	<select id="findJurisdictionsDoneForFourTeams" parameterClass="map"	resultMap="issueViewTopPublicltycassResult">
+		<![CDATA[	
+ 	   select iu.publicltycass,
+ 	   iu.id as issueId,
+       iu.serialnumber,
+       iu.subject,
+       iu.status,
+       iu.occurdate,
+       cstep.source currentOrg,
+       iu.occurorg,
+       iu.createOrg,
+       cstep.target targetOrg,
+       cstep.lastdealdate,
+       iu.sourceperson,
+       iu.sourcekind,
+       iu.sourcemobile,
+       iu.urgent,
+       cstep.id as stepId,
+       cstep.superviselevel,
+       iu.lastOrg,
+       iu.CREATEUSER,
+       cstep.statecode,
+       iu.hours,
+       iu.minute,
+       cstep.delayState,ti.topState,
+        iu.ISSUETYPEID,
+		iu.ISSUETYPEDOMAINID
+	   from (select *
+	          from issuesteps
+	         where id in
+	               (select max(id)
+	                  from issuesteps istep
+	                 where istep.stateCode >= #completeCode# ]]>
+					<isEqual property="fourTeamsType" compareValue="convenienceServiceTeam">
+					  <![CDATA[  and istep.fourTeamsTypeID = 1 ]]>
+					</isEqual>
+					<isEqual property="fourTeamsType" compareValue="gridServiceTeam">
+					  <![CDATA[  and istep.fourTeamsTypeID = 2 ]]>
+					</isEqual>
+					<isEqual property="fourTeamsType" compareValue="partyMemberPioneerServiceTeam">
+					 	 <![CDATA[  and istep.fourTeamsTypeID = 3 ]]>
+					</isEqual>
+					<isEqual property="fourTeamsType" compareValue="communityVolunteerServiceTeam">
+					  	<![CDATA[  and istep.fourTeamsTypeID = 4 ]]>
+					</isEqual>
+					<isEqual property="seachValue" compareValue="allJurisdiction">
+					  <![CDATA[  and istep.targetinternalcode like #orgCode#||'%' ]]>
+					</isEqual>
+					<isEqual property="seachValue" compareValue="sameGrade">
+					  <![CDATA[  and istep.targetinternalcode like #orgCode#||'%' ]]>
+					  <isPropertyAvailable property="orgLevel" prepend=" and ">
+					  		<!-- 本级需要显示职能部门的事件 -->
+					  		istep.target in (select id  from organizations where orglevel = #orgLevel#)
+					  </isPropertyAvailable>
+					</isEqual>
+					<isEqual property="seachValue" compareValue="directJurisdiction">
+				  		 and istep.target in ( select id from organizations where parentid=#orgId# 
+				  		 <isPropertyAvailable property="orgLevel" prepend=" and ">
+				  		 		<!-- 直属下级排除职能部门 -->
+				  				<![CDATA[ orglevel <> #orgLevel# ]]>
+				  		 </isPropertyAvailable>
+				  		 )
+					</isEqual>
+					<!-- 职能部门 ，只查看本部门事件-->
+					<isEqual property="seachValue" compareValue="functional">
+					 	<![CDATA[    and istep.targetinternalcode = #orgCode#  ]]>
+					</isEqual>
+					<isPropertyAvailable property="issueType" prepend=" and ">
+						istep.issue in (select id from issues where ISSUETYPEDOMAINID=#issueType#)
+					</isPropertyAvailable>
+	                <![CDATA[ group by issue)) cstep,issues iu 
+        	left join topIssues ti on ti.issueId = iu.id and ti.orgId=#orgId# and ti.issueTag = #issueTag#
+ 		where cstep.issue = iu.id and iu.historic = 0
+		]]>
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=#sourceType#
+			</isNotNull>
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			ti.topState asc, ti.topDate desc
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">,$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getIssueStepDelayWorkDaysById" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		select delayWorkDay from issuesteps where id = #value#
+	</select>
+</sqlMap>

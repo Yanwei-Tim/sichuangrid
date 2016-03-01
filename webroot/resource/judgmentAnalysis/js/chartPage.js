@@ -1,0 +1,459 @@
+﻿$(function(){
+	var $baseGrid = $("#treeGridRegisteredPopulation");
+    var $gridSpecialCrowd = $("#gridSpecialCrowd")
+    var $gridCaringPeople = $("#gridCaringPeople")
+
+    function switchGridView() {
+      
+        //设置 人口总况 表格
+        var settings= {
+            maxHeight: 380,
+            columnsResize: true,
+            altRows: true,
+            ready: function()
+            {
+            	$baseGrid.jqxTreeGrid('expandRow', '34');
+            },
+            virtualModeCreateRecords: function (expandedRecord, done) {
+                
+                var url="";
+                var postParams={"PopulationType":"house"};
+                if(expandedRecord==null){
+                    url="/judgmentAnalysis/BusinessModelRealDataManage/getPopulationSummaryByorgId.action";                   
+                }else{              
+                    url="/judgmentAnalysis/BusinessModelRealDataManage/findPopulationSummaryByParentOrgId.action";
+                    postParams.orgId=expandedRecord.orgId;
+                } 
+                var source ={dataType: "array",id: 'orgId'};
+                $.getJSON(url,postParams,function(dataJson){
+                	
+                	source.localData=[];
+                  if(dataJson!=null && dataJson!="查询失败!")  
+                	   
+                	  source.localData=dealPercentageDataJson(dataJson);//处理百分比
+                   
+                      var dataAdapter = new $.jqx.dataAdapter(source, {
+                           loadComplete: function () {
+   	                       done(dataAdapter.records);
+   	                     }
+                         });	               
+   	                 dataAdapter.dataBind();                       	                 
+                });                                            
+            },
+            virtualModeRecordCreating: function (record) {},
+            columns: [
+                { text: '<div style="width:100%;height:100%;position: absolute;top: 0;left:0;"><div class="jqxGridDividing">' +
+                '<span class="txtLeft">所属区域</span><span class="txtRight">人口类型</span><span class="line line3 diamond3"></span></div></div>',
+                    cellsalign: 'left', align: 'center', datafield: 'orgName', width: 200 },
+                { text: '人口总数', columngroup: 'realPopulation', cellsalign: 'center', cellsformat: 'd',align: 'center', datafield: 'amount', width: 100 },
+
+                { text: '总数', columngroup: 'household', datafield: 'household_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'household', datafield: 'household_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 },
+                { text: '总数', columngroup: 'floating', datafield: 'floating_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'floating', datafield: 'floating_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 },
+                { text: '总数', columngroup: 'unsettled', datafield: 'unsettled_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'unsettled', datafield: 'unsettled_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 },
+                { text: '总数', columngroup: 'oversea', datafield: 'oversea_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'oversea', datafield: 'oversea_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 },
+
+                { text: '总数', columngroup: 'emphasis', datafield: 'emphasis_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'emphasis', datafield: 'emphasis_rate', cellsalign: 'center', align: 'center', cellsformat: 'd', width: 60 },
+                { text: '总数', columngroup: 'concern', datafield: 'concern_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'concern', datafield: 'concern_rate', cellsformat: 'd', cellsalign: 'center', align: 'center',  width: 60 },
+                { text: '总数', columngroup: 'youths', datafield: 'youths_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'youths', datafield: 'youths_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 },
+                { text: '总数', columngroup: 'unemployed', datafield: 'unemployed_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'unemployed', datafield: 'unemployed_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 },
+                { text: '总数', columngroup: 'women', datafield: 'women_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'women', datafield: 'women_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 },
+            ],
+            columnGroups:
+                [
+                    { text: '<font style="font-weight:bold">人口信息</font>', align: 'center', name: 'realPopulation' },
+                    { text: '户籍人口', parentgroup: 'realPopulation', align: 'center', name: 'household' },
+                    { text: '流动人口', parentgroup: 'realPopulation', align: 'center', name: 'floating' },
+                    { text: '未落户人口', parentgroup: 'realPopulation', align: 'center', name: 'unsettled' },
+                    { text: '境外人员', parentgroup: 'realPopulation', align: 'center', name: 'oversea' },
+                    { text: '<font style="font-weight:bold">人口业务信息</font>', align: 'center', name: 'businessPopulation' },
+                    { text: '<div id="specialCrowd_emphasis" style="position: absolute;left: 0;top:0;width:100%;height:100%;" class="jqxGridAnchor">特殊人群</div>', parentgroup: 'businessPopulation', align: 'center', name: 'emphasis' },
+                    { text: '<div id="specialCrowd_concern" style="position: absolute;left: 0;top:0;width:100%;height:100%;" class="jqxGridAnchor">关怀对象</div>', parentgroup: 'businessPopulation', align: 'center', name: 'concern' },
+                    { text: '青少年', parentgroup: 'businessPopulation', align: 'center', name: 'youths' },
+                    { text: '失业人员', parentgroup: 'businessPopulation', align: 'center', name: 'unemployed' },
+                    { text: '育龄妇女', parentgroup: 'businessPopulation', align: 'center', name: 'women' }
+                ]
+        };
+        
+
+        // 设置表格
+       if( !$baseGrid.attr('role') ){
+    	   $baseGrid.jqxTreeGrid(settings);    	   
+       }
+
+       $('#chartView').on('click','.icon_del',function(){
+            
+           $(this).closest('.modBox').remove();
+           $('#chartView .modBox').removeClass('right')
+           $('#chartView .modBox:odd').addClass('right')
+       });
+        // 点击特殊人群
+        $('#specialCrowd_emphasis').on('click',function(){
+        	$('#girdView').find('.subModBox').show();
+        	$gridSpecialCrowd.show().siblings().hide()
+        	$('#houseHeadTit').html("特殊人群的趋势分析");
+            if( !$gridSpecialCrowd.attr('role') ){
+	            $gridSpecialCrowd.jqxTreeGrid(emphasis_settings);	           
+            }
+         	 
+        });
+        
+         // 点击关怀对象
+        $('#specialCrowd_concern').on('click',function(){
+        	$('#girdView').find('.subModBox').show();
+        	$gridCaringPeople.show().siblings().hide()
+        	$('#houseHeadTit').html("关怀对象的趋势分析");
+            if( !$gridCaringPeople.attr('role') ){
+	            $gridCaringPeople.jqxTreeGrid(concern_settings);
+            }
+        });
+     
+       $('.delSubModBox').on('click',function(){
+            $(this).parent().hide()
+        });
+    
+   
+     //设置 特殊人群 表格
+     var emphasis_settings = {
+            maxHeight: 380, 
+            columnsResize: true,
+            altRows: true,
+            ready: function()
+            {
+                 $gridSpecialCrowd.jqxTreeGrid('expandRow', '34');
+            },
+            virtualModeCreateRecords: function (expandedRecord, done) {                
+                var url="";
+                var postParams={"PopulationType":"emphasis"};
+                if(expandedRecord==null){
+                    url="/judgmentAnalysis/BusinessModelRealDataManage/getPopulationSummaryByorgId.action";                   
+                }else{              
+                    url="/judgmentAnalysis/BusinessModelRealDataManage/findPopulationSummaryByParentOrgId.action";
+                    postParams.orgId=expandedRecord.orgId;
+                } 
+                var source ={dataType: "array",id: 'orgId'};
+                             
+                $.getJSON(url,postParams,function(dataJson){
+                	
+                	source.localData=[];
+                   if(dataJson!=null && dataJson!="查询失败!")  
+	                   source.localData=dealPercentageDataJson(dataJson);//处理百分比
+	                     
+	                   var dataAdapter = new $.jqx.dataAdapter(source, {
+	                        loadComplete: function () {               	 
+	                           done(dataAdapter.records);
+	                         }                   
+	                      });	               
+		                 dataAdapter.dataBind(); 		                                         
+                });                                            
+                            
+            },
+            virtualModeRecordCreating: function (record) {            	
+                if (record.level == 3) {                  
+                    record.leaf = true;
+                }
+            },
+            columns: [
+                { text: '<div style="width:100%;height:100%;position: absolute;top: 0;left:0;"><div class="jqxGridDividing">' +
+                '<span class="txtLeft">所属区域</span><span class="txtRight">人口类型</span><span class="line line2 diamond2"></span></div></div>',
+                    cellsalign: 'left', align: 'center', datafield: 'orgName', width: 200 },
+                { text: '人口总数', cellsalign: 'center', align: 'center', datafield: 'amount',cellsformat: 'd', width: 100 },
+
+                { text: '总数', columngroup: 'positiveinfo', datafield: 'positiveinfo_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'positiveinfo', datafield: 'positiveinfo_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 },
+                { text: '总数', columngroup: 'rectificative', datafield: 'rectificative_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'rectificative', datafield: 'rectificative_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 },
+                { text: '总数', columngroup: 'mentalPatient', datafield: 'mentalPatient_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'mentalPatient', datafield: 'mentalPatient_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 },
+                { text: '总数', columngroup: 'druggy', datafield: 'druggy_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'druggy', datafield: 'druggy_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 },
+
+                { text: '总数', columngroup: 'idleyouth', datafield: 'idleyouth_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'idleyouth', datafield: 'idleyouth_rate', cellsalign: 'center', align: 'center', cellsformat: 'd', width: 60 },
+                { text: '总数', columngroup: 'superiorVisit', datafield: 'superiorVisit_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'superiorVisit', datafield: 'superiorVisit_rate', cellsformat: 'd', cellsalign: 'center', align: 'center',  width: 60 },
+                { text: '总数', columngroup: 'dangerous', datafield: 'dangerous_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'dangerous', datafield: 'dangerous_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 },
+                { text: '总数', columngroup: 'otherAttention', datafield: 'otherAttention_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'otherAttention', datafield: 'otherAttention_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 }
+                
+            ],
+            columnGroups:
+                [                   
+                    { text: '刑释人员',align: 'center', name: 'positiveinfo' },
+                    { text: '社区矫正人员',align: 'center', name: 'rectificative' },
+                    { text: '严重精神障碍患者',align: 'center', name: 'mentalPatient' },
+                    { text: '吸毒人员',align: 'center', name: 'druggy' },
+                    { text: '重点青少年', align: 'center', name: 'idleyouth' },
+                    { text: '重点上访人员', align: 'center', name: 'superiorVisit' },
+                    { text: '危险品从业人员', align: 'center', name: 'dangerous' },
+                    { text: '其他人员', align: 'center', name: 'otherAttention' }
+                ]
+        };
+       
+       
+     //设置 关怀对象
+     var concern_settings = {
+          
+            maxHeight: 380,             
+            columnsResize: true,
+            altRows: true,
+            ready: function()
+            {
+                 $gridCaringPeople.jqxTreeGrid('expandRow', '34');
+            },
+            virtualModeCreateRecords: function (expandedRecord, done) {                
+                var url="";
+                var postParams={"PopulationType":"concern"};
+                if(expandedRecord==null){
+                    url="/judgmentAnalysis/BusinessModelRealDataManage/getPopulationSummaryByorgId.action";
+                }else{              
+                    url="/judgmentAnalysis/BusinessModelRealDataManage/findPopulationSummaryByParentOrgId.action";
+                    postParams.orgId=expandedRecord.orgId;
+                } 
+                var source ={dataType: "array",id: 'orgId'};
+                             
+                $.getJSON(url,postParams,function(dataJson){
+                	
+                	source.localData=[];
+                  if(dataJson!=null && dataJson!="查询失败!")  
+                	  source.localData=dealPercentageDataJson(dataJson);//处理百分比
+                     
+                   var dataAdapter = new $.jqx.dataAdapter(source, {
+				                        loadComplete: function () {               	 
+				                                       done(dataAdapter.records);
+				                                     }                   
+                                      });	               
+	                 dataAdapter.dataBind(); 
+	                                     
+                });                                            
+                            
+            },
+            virtualModeRecordCreating: function (record) {            	
+                if (record.level == 3) {                  
+                    record.leaf = true;
+                }
+            },
+            columns: [
+                { text: '<div style="width:100%;height:100%;position: absolute;top: 0;left:0;"><div class="jqxGridDividing">' +
+                '<span class="txtLeft">所属区域</span><span class="txtRight">人口类型</span><span class="line line2 diamond2"></span></div></div>',
+                    cellsalign: 'left', align: 'center', datafield: 'orgName', width: 200 },
+                { text: '人口总数', cellsalign: 'center', align: 'center', datafield: 'amount',cellsformat: 'd', width: 100 },
+
+                { text: '总数', columngroup: 'elderly', datafield: 'elderly_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'elderly', datafield: 'elderly_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 },
+                { text: '总数', columngroup: 'handicapped', datafield: 'handicapped_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'handicapped', datafield: 'handicapped_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 },
+                { text: '总数', columngroup: 'optimal', datafield: 'optimal_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'optimal', datafield: 'optimal_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 },
+                { text: '总数', columngroup: 'aidneed', datafield: 'aidneed_amount', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 90 },
+                { text: '占比', columngroup: 'aidneed', datafield: 'aidneed_rate', cellsformat: 'd', cellsalign: 'center', align: 'center', width: 60 }
+                 
+            ],
+            columnGroups:
+                [                   
+                    { text: '老年人',align: 'center', name: 'elderly' },
+                    { text: '残疾人',align: 'center', name: 'handicapped' },
+                    { text: '优抚对象',align: 'center', name: 'optimal' },
+                    { text: '需要救助人员',align: 'center', name: 'aidneed' }
+                                       
+                ]
+        }; 
+       
+     }
+     
+    /*
+    *   图表模式初始化
+    * */
+     function switchPieView(dataJson) {
+         	  
+    	 var params={};    	 
+    	 params.legend={'data':['户籍人口', '流动人口', '未落户人口', '境外人员','特殊人群', '关怀对象', '青少年','失业人员','育龄妇女']};
+    	 params.series=[ {
+    			            name:'人口总况',
+    			            type:'pie',
+    			            radius : '55%',
+    			            center: ['33%', '50%'],
+    			            data:[
+    			                {value:dataJson.household_amount, name:'户籍人口'},
+    			                {value:dataJson.floating_amount, name:'流动人口'},
+    			                {value:dataJson.unsettled_amount, name:'未落户人口'},
+    			                {value:dataJson.oversea_amount, name:'境外人员'}    			                 
+    			            ]
+    			        },
+    			        {   name:'人口业务信息总况',
+                            type:'pie',
+                            radius : ['50%', '70%'],
+                            center:  ['75%', '50%'],
+                            itemStyle : {
+                                normal : {
+                                    label : { show : true },
+                                    labelLine : { show : true }
+                                },
+                                emphasis : {
+                                    label : {
+                                        show : true,
+                                        position : 'center',
+                                        textStyle : {
+                                            fontSize : '30',
+                                            fontWeight : 'bold'
+                                        }
+                                    }
+                                }
+                            },
+                            data:[
+                                {value: dataJson.emphasis_amount, name: '特殊人群'},
+  		                        {value: dataJson.concern_amount, name: '关怀对象'},
+  		                        {value: dataJson.youths_amount, name: '青少年'}, 
+  		                        {value: dataJson.unemployed_amount, name: '失业人员'},                      
+  		                        {value: dataJson.women_amount, name: '育龄妇女'}
+                            ]
+                        }
+    			    ];
+    	 
+       createPlublicPieCharts('chartPopulationInfo',params);
+     
+    }
+     
+     
+  function createPlublicPieCharts(id,params){
+	  
+	  option = {
+			    title : {
+			        text: '',
+			        subtext: '',
+			        x:'center'
+			    },
+			    tooltip : {
+			        trigger: 'item',
+			        formatter: "{a} <br/>{b} : {c} ({d}%)"
+			    },
+			    legend: {
+			        orient : 'vertical',
+			        x : 'left',
+			        data:[]
+			    },
+			    toolbox: {
+			        show : true,
+			        feature : {			            
+			            dataView : {show: true, readOnly: false},			            
+			            restore : {show: true},
+			            saveAsImage : {show: true}
+			        }
+			    },
+			    calculable : true,
+			    series : []
+			};
+	  
+	    $.extend(true,option,params);
+        $('#'+id).buildChart(option);
+	  
+     }
+     
+     
+     function dealPercentageDataJson(dataJson){
+    	 
+    	 for(var i=0;i<dataJson.length;i++){
+    		 
+    		 dataJson[i].household_rate=dealDecimal(dataJson[i].household_rate);
+    		 dataJson[i].floating_rate=dealDecimal(dataJson[i].floating_rate);
+    		 dataJson[i].unsettled_rate=dealDecimal(dataJson[i].unsettled_rate);
+    		 dataJson[i].oversea_rate=dealDecimal(dataJson[i].oversea_rate);
+    		 dataJson[i].emphasis_rate=dealDecimal(dataJson[i].emphasis_rate);
+    		 dataJson[i].positiveinfo_rate=dealDecimal(dataJson[i].positiveinfo_rate);
+    		 dataJson[i].rectificative_rate=dealDecimal(dataJson[i].rectificative_rate);
+    		 dataJson[i].mentalPatient_rate=dealDecimal(dataJson[i].mentalPatient_rate);
+    		 dataJson[i].druggy_rate=dealDecimal(dataJson[i].druggy_rate);
+    		 dataJson[i].idleyouth_rate=dealDecimal(dataJson[i].idleyouth_rate);
+    		 dataJson[i].superiorVisit_rate=dealDecimal(dataJson[i].superiorVisit_rate);
+    		 dataJson[i].dangerous_rate=dealDecimal(dataJson[i].dangerous_rate);
+    		 dataJson[i].otherAttention_rate=dealDecimal(dataJson[i].otherAttention_rate);
+    		 dataJson[i].concern_rate=dealDecimal(dataJson[i].concern_rate);
+    		 dataJson[i].elderly_rate=dealDecimal(dataJson[i].elderly_rate);
+    		 dataJson[i].handicapped_rate=dealDecimal(dataJson[i].handicapped_rate);
+    		 dataJson[i].optimal_rate=dealDecimal(dataJson[i].optimal_rate);
+    		 dataJson[i].aidneed_rate=dealDecimal(dataJson[i].aidneed_rate);
+    		 dataJson[i].youths_rate=dealDecimal(dataJson[i].youths_rate);
+    		 dataJson[i].unemployed_rate=dealDecimal(dataJson[i].unemployed_rate);
+    		 dataJson[i].women_rate=dealDecimal(dataJson[i].women_rate);
+    	 }
+     	 return dataJson;
+     }
+     
+     function dealDecimal(Decimal){
+    	 
+    	 if(Decimal!=null && Decimal!=0){
+    		if(Decimal<0.01){
+   			  return "<0.01%";
+   		    }
+    		return 	parseFloat(parseFloat(Decimal).toFixed(2))+"%";
+		 }
+     	 return '0%';
+     }
+     
+       
+     $('#showEditMode').on('click',function(){
+         $('#chartView').toggleClass('chartEditMode');
+     });
+     
+        function init(){
+        	
+        var $showGirdView = $('#showGirdView'),
+            $showChartView = $('#showChartView'),
+            $girdView = $('#girdView'),
+            $chartView = $('#chartView');
+            switchGridView();
+  
+
+        $showGirdView.on('click',function(){
+        	
+            $(this).addClass('on').siblings().removeClass('on');          
+            $girdView.show();
+            $chartView.hide();
+            switchGridView()
+        });
+        $showChartView.on('click',function(){
+        	
+            $(this).addClass('on').siblings().removeClass('on');
+            $girdView.hide();
+            $chartView.show();
+            
+            var postParams={"PopulationType":"house"};
+                          
+            $.getJSON("/judgmentAnalysis/BusinessModelRealDataManage/getPopulationSummaryByorgId.action",postParams,function(dataJson){           
+                switchPieView(dataJson[0]);            
+            });           
+        })
+    }
+      
+       init();
+     
+       
+      
+       function fillCurrentDate(){
+    	   
+    	   var currentDate=new Date();
+           var currentYear=currentDate.getFullYear();
+           var currentMonth=currentDate.getMonth()+1;
+           var currentR=currentDate.getDate();
+           var currentH=currentDate.getHours();
+           var currentM=currentDate.getMinutes();
+           
+           var currentDateStr=currentYear+'-'+currentMonth+'-'
+                             +currentR+' '+currentH+':'+currentM
+           $('.sDate').html('（数据统计截止日期：'+currentDateStr+'）');
+           $('.endDate').html('（数据统计截止日期：'+currentDateStr+'）');
+    	   
+       }
+       
+       fillCurrentDate();
+       
+  });     

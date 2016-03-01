@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="populationStatType">
+	<typeAlias alias="PopulationStatType" type="com.tianque.plugin.analyzing.domain.PopulationStatType" />
+	<resultMap class="PopulationStatType" id="populationStatTypeResult">
+		<result property="id" column="id"/>
+		<result property="typeName" column="typeName"/>
+		<result property="total" column="total"/>
+		<result property="startDate" column="startDate"/>
+		<result property="endDate" column="endDate"/>
+		<result property="year" column="year"/>
+		<result property="month" column="month"/>
+		<result property="populationType" column="populationType"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="percentage" column="percentage"/>
+		<result property="sum" column="sum"/>
+		<result property="objectsum" column="objectsum"/>
+		<result property="monthcreate" column="monthcreate"/>
+	</resultMap>
+	<insert id="addpopulationStat" parameterClass="java.util.HashMap">
+		insert into populationStatType_$populationStatType.year$_$populationStatType.month$ (id,typeName,total,startDate,endDate,year,month,populationType,orgInternalCode,percentage,sum,objectsum,monthcreate,createDate,createUser,involveTibetCount,involveSinkiangCount)
+		select s_populationStatType.NEXTVAL ,#populationStatType.typeName#,
+		total,
+		#populationStatType.startDate#,#populationStatType.endDate#,#populationStatType.year#,
+		#populationStatType.month#,#populationStatType.populationType#,
+		orginternalcode,
+		#populationStatType.percentage#,#populationStatType.sum#,
+		objectsum,
+		monthcreate,
+		#populationStatType.createDate#,#populationStatType.createUser#,involveTibetCount,involveSinkiangCount from 
+		(select nvl(objectsum,0) objectsum,nvl(monthcreate,0) monthcreate,nvl(total,0) total,o.orginternalcode,tibet.involveTibetCount involveTibetCount,sinkiang.involveSinkiangCount involveSinkiangCount from 
+			(select count(id) objectsum,orginternalcode 
+		  	 from $tableName$ d where createDate <![CDATA[<]]> #populationStatType.endDate# 
+				 <isNotNull property="orginternalcode" prepend=" and ">
+						orginternalcode like #orginternalcode#||'%'
+				</isNotNull>
+		   	group by orginternalcode) o left join 
+		   	
+		   	(select count(id) monthcreate,orginternalcode  from $tableName$ where createDate>=#populationStatType.startDate# and createDate <![CDATA[<]]> #populationStatType.endDate# 
+		 		<isNotNull property="orginternalcode" prepend=" and ">
+					orginternalcode like #orginternalcode#||'%'
+				</isNotNull>
+				group by orginternalcode) m on o.orginternalcode=m.orginternalcode
+			left join 
+		   	(select count(id) total,orginternalcode from $tableName$ where (logOut is null or logOut=0) 
+					and	createDate<![CDATA[<]]>#nextMonthStart#
+			 	<isNotNull property="orginternalcode" prepend=" and ">
+						orginternalcode like #orginternalcode#||'%'
+				</isNotNull>
+			    group by orginternalcode ) t on o.orginternalcode=t.orginternalcode
+		 <isEqual property="tableName" compareValue="floatingPopulations">
+		 	 left join    
+      		( select count(fp.id) involveTibetCount,orginternalcode from  baseinfo bs
+      			left join floatingpopulations fp 
+      			on fp.baseinfoid = bs.id and bs.province=#involveTibet# and (fp.logout=0 or fp.logout is null)
+		      and fp.createdate >= #populationStatType.startDate#
+		      and fp.createdate <![CDATA[<]]> #populationStatType.endDate#
+		      group by fp.orginternalcode
+		   ) tibet on  o.orginternalcode=tibet.orginternalcode
+		   
+		   left join    
+      		( select count(fps.id) involveSinkiangCount,orginternalcode from  baseinfo bs
+      			left join floatingpopulations fps 
+      			on fps.baseinfoid = bs.id and bs.province=#involveSinkiang# and (fps.logout=0 or fps.logout is null)
+		      and fps.createdate >= #populationStatType.startDate#
+		      and fps.createdate <![CDATA[<]]> #populationStatType.endDate#
+		      group by fps.orginternalcode
+		   ) sinkiang on  o.orginternalcode=sinkiang.orginternalcode
+		 </isEqual>
+		  <isNotEqual property="tableName" compareValue="floatingPopulations">
+		  	left join (
+        		select 0 as involveTibetCount from dual
+        	) tibet on 1=1
+        	left join (
+        		select 0 as involveSinkiangCount  from dual
+        	)sinkiang on 1=1
+		 </isNotEqual>
+		   	
+		) 
+		
+	</insert>
+	<!--获取每个表格根据组织机构的统计 -->
+	<select id="getCountByTableName" parameterClass="java.util.HashMap" resultClass="int" >
+		select count(id) sum from $tableName$ 
+		<dynamic prepend="where ">
+			<isPropertyAvailable property="orginternalcode">
+				<isNotNull property="orginternalcode" prepend=" and ">
+					orginternalcode like #orginternalcode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		   
+	</select>
+	<!--	<select id="getCountObjectByOrgInternalCodeAndMap" parameterClass="java.util.Map" resultClass="int">
+			select count(1) total from $tableName$ p where p.isEmphasis =0  and p.orgInternalCode like '$orgInternalCode$%'
+			<dynamic>
+				<isPropertyAvailable property="positiveInfosType">
+					<isNotNull property="positiveInfosType" prepend=" and ">
+						p.positiveInfosType = #positiveInfosType#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="detoxicateCase">
+					<isNotNull property="detoxicateCase" prepend=" and ">
+						p.detoxicateCase = #detoxicateCase#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="executeType">
+					<isNotNull property="executeType" prepend=" and ">
+						p.executeType = #executeType#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="dangerLevel">
+					<isNotNull property="dangerLevel" prepend=" and ">
+						p.dangerLevel = #dangerLevel#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="poorSource">
+					<isNotNull property="poorSource" prepend=" and ">
+						p.poorSource = #poorSource#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="dangerousWorkingType">
+					<isNotNull property="dangerousWorkingType" prepend=" and ">
+						p.dangerousWorkingType = #dangerousWorkingType#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="staffType">
+					<isNotNull property="staffType" prepend=" and ">
+						p.staffType = #staffType#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="type">
+					<isNotNull property="type" prepend=" and ">
+						p.type = #type#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="hiddenTroubleLevel">
+					<isNotNull property="hiddenTroubleLevel" prepend=" and ">
+						p.hiddenTroubleLevel = #hiddenTroubleLevel#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="keytype">
+					<isNotNull property="keytype" prepend=" and ">
+						p.keytype = #keytype#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="isResettlementdate">
+					<isNotNull property="isResettlementdate" prepend=" and ">
+						<isEqual property="isResettlementdate" compareValue="1">
+							p.Resettlementdate is not null
+						</isEqual>
+						<isEqual property="isResettlementdate" compareValue="0">
+							p.Resettlementdate is null
+						</isEqual>
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="isHelped">
+					<isNotNull property="isHelped" prepend=" and ">
+						<isEqual property="isHelped" compareValue="1">
+							p.id in (select personId from helpPersonnels where personType = #helpType#)
+						</isEqual>
+						<isEqual property="isHelped" compareValue="0">
+							p.id not in (select personId from helpPersonnels where personType = #helpType#)
+						</isEqual>
+						<isEqual property="isHelped" compareValue="3">
+							p.id in (select placeId from personincharges where placeType = #helpType#)
+						</isEqual>
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="recidivism">
+					<isNotNull property="recidivism" prepend=" and ">
+						p.isCrime=#recidivism#
+					</isNotNull>
+				</isPropertyAvailable>
+						<isPropertyAvailable property="keyType">
+					<isNotNull property="keyType" prepend=" and ">
+						p.keyType=#keyType#
+					</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		</select>
+-->
+	<select id="findBaeInfo" parameterClass="map" resultClass="java.util.HashMap" remapResults="true">
+     select mo.id orgId,max(mo.orginternalcode) orgCode,max(mo.orgname) orgName ,tt.typename populationType,nvl(sum(co.dc),0) count from organizations mo 
+		<isNotNull property="tabletypes">
+		   	 left join 
+			<iterate  property="tabletypes" open="(" close=")"  conjunction="union">
+			<![CDATA[
+				 select   #tabletypes[]#  typename  from dual
+			]]>
+			</iterate>
+           tt on 1=1
+		</isNotNull>
+         left join(
+           select d.orginternalcode,tt.typename,nvl(sum(d.total),0) dc from populationstattype_$year$_$month$ d 
+		<isNotNull property="tabletypes">
+		   	 right join 
+			<iterate  property="tabletypes" open="(" close=")"  conjunction="union">
+			<![CDATA[
+				 select   #tabletypes[]#  typename  from dual
+			]]>
+			</iterate>
+           tt on d.populationtype=tt.typename
+		</isNotNull>
+		<dynamic prepend="where ">
+			<isPropertyAvailable property="year">
+				<isNotNull property="year" prepend=" and ">
+					d.year=#year#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="month">
+				<isNotNull property="month" prepend=" and ">
+					d.month=#month#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+		</dynamic>
+           group by d.orginternalcode, tt.typename)co on co.orginternalcode like mo.orginternalcode||'%' and co.typename=tt.typename
+          where 
+          <isPropertyAvailable property="orgLevelDistance">
+				<isNull property="orgLevelDistance">
+					mo.parentid=#orgId#
+				</isNull>
+				<isNotNull property="orgLevelDistance">
+					REGEXP_LIKE(mo.orginternalcode,'^' || REPLACE(#orgCode#, '.', '\.') ||'([^\.]{1,4}\.){$orgLevelDistance$}$$')
+				</isNotNull>
+			</isPropertyAvailable>
+          and mo.orgtype=#orgType#
+		<isPropertyAvailable property="populationtype">
+			<isNotNull property="populationtype" prepend=" and ">
+					tt.typename=#populationtype#
+			</isNotNull>
+		</isPropertyAvailable>
+          group by mo.id,tt.typename,mo.seq,mo.parentid
+          order by (select to_number(seq ||'00'|| mo.seq) from organizations o where o.id=mo.parentid)
+	</select>
+	<!--
+<select id="getOBjectSumOrMonthCreate" parameterClass="map" resultClass="int">
+		   select count(*) from  $tableName$ p  where p.orginternalcode like '$orgInternalCode$%'
+		   <dynamic>
+				   <isPropertyAvailable property="createDate">
+					<isNotNull property="createDate" prepend=" and ">
+						p.createDate>=#createDate#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="nextMonthStart">
+					<isNotNull property="nextMonthStart" prepend=" and ">
+						p.createDate<![CDATA[<]]>#nextMonthStart#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="keyType">
+					<isNotNull property="keyType" prepend=" and ">
+						p.keyType=#keyType#
+					</isNotNull>
+				</isPropertyAvailable>
+					<isPropertyAvailable property="positiveInfosType">
+					<isNotNull property="positiveInfosType" prepend=" and ">
+						p.positiveInfosType = #positiveInfosType#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="detoxicateCase">
+					<isNotNull property="detoxicateCase" prepend=" and ">
+						p.detoxicateCase = #detoxicateCase#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="executeType">
+					<isNotNull property="executeType" prepend=" and ">
+						p.executeType = #executeType#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="dangerLevel">
+					<isNotNull property="dangerLevel" prepend=" and ">
+						p.dangerLevel = #dangerLevel#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="poorSource">
+					<isNotNull property="poorSource" prepend=" and ">
+						p.poorSource = #poorSource#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="dangerousWorkingType">
+					<isNotNull property="dangerousWorkingType" prepend=" and ">
+						p.dangerousWorkingType = #dangerousWorkingType#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="staffType">
+					<isNotNull property="staffType" prepend=" and ">
+						p.staffType = #staffType#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="type">
+					<isNotNull property="type" prepend=" and ">
+						p.type = #type#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="hiddenTroubleLevel">
+					<isNotNull property="hiddenTroubleLevel" prepend=" and ">
+						p.hiddenTroubleLevel = #hiddenTroubleLevel#
+					</isNotNull>
+				</isPropertyAvailable>
+		   </dynamic>
+</select>
+		-->
+	<!-- 实时获取各个表的数据统计-->
+	<select id="getCountByOrgInternalCodeAndTableNameAndMap" parameterClass="java.util.Map" resultClass="java.util.HashMap" remapResults="true">
+		 select mo.id orgId,mo.orginternalcode  orgCode,mo.orgname  orgName,nvl( co.dc , 0) sum,mo.seq   seq
+		 from organizations mo 
+            left join (select o.id, count(d.id) dc from $tableName$ d 
+             , organizations o  where  d.orginternalcode like o.orginternalcode||'%' and o.parentid = #orgId#
+                      and o.orgtype =#orgType#
+              group by o.id  
+           )co on mo.id = co.id 
+           where 
+           <isPropertyAvailable property="orgLevelDistance">
+				<isNull property="orgLevelDistance">
+					mo.parentid=#orgId#
+				</isNull>
+				<isNotNull property="orgLevelDistance">
+					REGEXP_LIKE(mo.orginternalcode,'^' || REPLACE(#orgCode#, '.', '\.') ||'([^\.]{1,4}\.){$orgLevelDistance$}$$')
+				</isNotNull>
+			</isPropertyAvailable>
+           and mo.orgtype=#orgType#
+           order by mo.seq
+	</select>
+	
+	<select id="getCountColumnByMonth" parameterClass="java.util.Map" resultClass="java.util.HashMap" remapResults="true">
+		select mo.id orgId,max(mo.orginternalcode) orgCode,max(mo.orgname) orgName,nvl(sum(co.dc),0) sum,max(mo.seq) seq
+		  from organizations mo
+		  left join (select orginternalcode, total dc
+		               from populationstattype_$year$_$month$ 
+		               <dynamic prepend="where">
+								<isNotEmpty  property="populationType" prepend="and">
+									populationType = #populationType#
+								</isNotEmpty>
+							<isNotNull property="year" prepend="and">
+								year=#year#
+							</isNotNull>
+							<isNotNull property="month" prepend="and">
+								month=#month#
+							</isNotNull>
+						</dynamic>
+		             ) co on co.orginternalcode like  mo.orginternalcode || '%'
+		 where mo.parentid = #orgId# 
+		   and mo.orgtype =#orgType#
+		 group by mo.id, mo.seq
+		 order by mo.seq
+	</select>
+
+   <select id="getCountByMonth" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select sum(total) from populationstattype_$year$_$month$
+		<dynamic prepend="where">
+			<isNotNull property="populationType" prepend="and" >
+			 	populationType = #populationType#
+			</isNotNull>
+			<isNotNull property="time" prepend="and" >
+			 	to_char(startDate,'yyyy-MM') = #time#
+			</isNotNull>
+			<isNotNull property="orgCode" prepend="and">
+				orgInternalCode like #orgCode#||'%'
+			</isNotNull>
+			<isNotNull property="year" prepend="and">
+				year=#year#
+			</isNotNull>
+			<isNotNull property="month" prepend="and">
+				month=#month#
+			</isNotNull>
+		</dynamic>
+	</select>
+
+
+	<delete id="deleteInfoStatType" parameterClass="java.util.Map">
+	   delete from populationstattype_$year$_$month$ where  year=#year#  and month=#month# 
+		<isNotNull property="populationType" prepend=" and ">
+	  	populationType=#populationType#
+		</isNotNull>
+		<isNotNull property="orginternalCode" prepend=" and ">
+	      orginternalcode  like #orginternalCode#||'%' 
+	   </isNotNull>
+	</delete>
+<select id="getHouseholdStaffCountByTypes" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(id) from $tableName$ 
+		<dynamic prepend="where">
+			
+			<isNotNull property="orgCode" prepend="and">
+				orgInternalCode like #orgCode#||'%'
+			</isNotNull>
+			<isNotNull property="type" prepend="and">
+				$type$ = #typeId#
+			</isNotNull>
+			<isNotNull property="logOut" prepend="and">
+				logOut = #logOut#
+			</isNotNull>
+			<isNotNull property="startDate" prepend="and" >
+			 	to_date(#startDate#,'yyyy-MM-dd') <![CDATA[<=]]> createDate
+			</isNotNull>		
+			<isNotNull property="endDate" prepend="and" >
+			 	createDate <![CDATA[<=]]> to_date(#endDate#,'yyyy-MM-dd')
+			</isNotNull>
+		</dynamic>
+	</select>
+	
+	<select id="getHouseholdStaffTotalByDomainName" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select nvl(sum(monthcreate),0) from $tableName$_$year$_$month$ 
+		<dynamic prepend="where">
+			<isNotNull property="orgCode" prepend="and">
+				orgInternalCode like #orgCode#||'%'
+			</isNotNull>
+			<isNotEmpty property="populationType" prepend="and">
+				populationType = #domainName#
+			</isNotEmpty>
+			<isNotEmpty property="typeName" prepend="and">
+				typeName = #typeName#
+			</isNotEmpty>
+			<isNotNull property="year" prepend="and">
+				year=#year#
+			</isNotNull>
+			<isNotNull property="month" prepend="and">
+				month=#month#
+			</isNotNull>
+		</dynamic>
+	</select>
+	
+	<delete id="deleteHouseholdStaffInfoStatType" parameterClass="java.util.Map">
+	   delete from $tableName$_$year$_$month$ where  year=#year#  and month=#month# 
+		<isNotNull property="orginternalCode" prepend=" and ">
+	      orginternalcode  = #orginternalCode#
+	   </isNotNull>
+	</delete>
+	
+	<insert id="addHouseholdStaffHistoryStatistic" parameterClass="java.util.HashMap">
+		insert into $tableName$_$year$_$month$ (id,year,month,typeName,populationType,startDate,endDate,createDate,createUser,orgInternalCode,monthcreate) 
+		select s_populationStatType.NEXTVAL,t.* from 
+			(select #year#, 
+					#month#,
+					#typeName#,
+					#populationType#,
+		 			to_date(#startDate#,'yyyy-MM-dd') as startDate,
+		 			to_date(#endDate#,'yyyy-MM-dd') as endDate,
+         			#nowDate#,
+		 			'admin',
+		 			#orgInternalCode#,
+		 			count(id) as monthcreate  
+		 	from $domainTable$ where $domainType$=#typeId# and 
+			to_date(#startDate#,'yyyy-MM-dd') <![CDATA[<=]]> createDate and createDate <![CDATA[<=]]> to_date(#endDate#,'yyyy-MM-dd') group by orgInternalCode) t
+	</insert>
+	
+	
+	<delete id="deleteYouthType" parameterClass="java.util.Map">
+	   delete from youthStatType_$year$_$month$
+	</delete>
+	
+	<insert id="addYouthType" parameterClass="PopulationStatType">
+	insert into youthStatType_$year$_$month$ (id,typeName,total,startDate,endDate,year,month,populationType,orgInternalCode,percentage,sum,objectsum,monthcreate,createDate,createUser)
+		select s_youthStatType.NEXTVAL ,#typeName#,
+		total,
+		#startDate#,#endDate#,#year#,
+		#month#,#populationType#,
+		orginternalcode,
+		#percentage#,#sum#,
+		objectsum,
+		monthcreate,
+		#createDate#,#createUser# from (
+		select orgInternalCode,
+		       sum(decode(sign(y.createDate - (#endDate# + 0)), 1, 0, 1)) objectsum,
+		       sum(decode(to_char(#endDate#, 'yyyy-mm'),
+		                  to_char(y.createDate, 'yyyy-mm'),
+		                  1,
+		                  0)) monthcreate,
+		       sum(decode(sign(y.createDate - (#endDate# + 0)), 1, 0, 1))  total
+		  from 
+		 <isEqual property="searchYouthsVo.tableName" compareValue="householdStaffs">
+          householdStaffs_$shardCode$ y left join baseinfo b on y.baseInfoId = b.id
+         </isEqual>
+         <isEqual property="searchYouthsVo.tableName" compareValue="floatingPopulations">
+          floatingPopulations y left join baseinfo b on y.baseInfoId = b.id
+         </isEqual>
+         <isEqual property="searchYouthsVo.tableName" compareValue="unsettledPopulations">
+          unsettledPopulations y
+         </isEqual>
+		 where logOut = 0
+		    <isPropertyAvailable property="searchYouthsVo.beginAge">
+				<isNotNull property="searchYouthsVo.beginAge" prepend=" and ">
+		          (#endDate# + 0 - add_months(BIRTHDAY, 12*#searchYouthsVo.beginAge#))>=0
+		          </isNotNull>
+           </isPropertyAvailable>
+           <isPropertyAvailable property="searchYouthsVo.endAge">
+				<isNotNull property="searchYouthsVo.endAge" prepend=" and ">
+					0>=(#endDate# + 0 - add_months(BIRTHDAY,12*#searchYouthsVo.endAge#))
+				</isNotNull>
+			</isPropertyAvailable>
+		   and BIRTHDAY is not null
+		   <isPropertyAvailable property="searchYouthsVo.politicalBackground">
+			 	<isNotNull property="searchYouthsVo.politicalBackground.id" prepend=" and ">
+			 		politicalBackground = #searchYouthsVo.politicalBackground.id#
+			 	</isNotNull>
+		   </isPropertyAvailable>
+		 group by orgInternalCode
+		)
+	</insert>
+
+</sqlMap>

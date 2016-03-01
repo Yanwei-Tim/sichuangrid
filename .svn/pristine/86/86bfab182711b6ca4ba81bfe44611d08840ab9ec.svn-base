@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="examinePlanManage" extends="default" namespace="/examine/examinePlanManage">
+		<default-class-ref class="examinePlanController"></default-class-ref>
+		<action name="dispatch"
+			method="dispatch">
+			<result name="success">
+				/examine/examinePlan/maintainExaminePlanDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="addExaminePlan" method="addExaminePlan">
+			<result name="success" type="json">
+				<param name="root">examinePlan</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateExaminePlan" method="updateExaminePlan">
+			<result name="success" type="json">
+				<param name="root">examinePlan</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="findExaminePlans" method="findExaminePlans">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="validateYear" method="validateYear">
+			<result name="success" type="json">
+		        <param name="root">true</param>
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		<action name="validateExaminePlanYearHasAvailable" method="validateExaminePlanYearHasAvailable">
+			<result name="success" type="json">
+		        <param name="root">true</param>
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		<action name="deleteExaminePlanById" method="deleteExaminePlanById">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

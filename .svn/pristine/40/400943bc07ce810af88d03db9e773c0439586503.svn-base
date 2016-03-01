@@ -1,0 +1,258 @@
+package com.tianque.plugin.weChat.service.impl;
+
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import net.sf.json.JSONObject;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.tianque.core.base.AbstractBaseService;
+import com.tianque.core.exception.ServiceException;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.plugin.weChat.dao.WeChatGroupDao;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+import com.tianque.plugin.weChat.domain.user.WeChatGroup;
+import com.tianque.plugin.weChat.proxy.service.BaseHttpClientService;
+import com.tianque.plugin.weChat.proxy.util.HttpProxyUtil;
+import com.tianque.plugin.weChat.service.TencentUserService;
+import com.tianque.plugin.weChat.service.WeChatGroupService;
+import com.tianque.plugin.weChat.service.WeChatService;
+import com.tianque.plugin.weChat.util.Constants;
+
+@Component("weChatGroupService")
+public class WeChatGroupServiceImpl extends AbstractBaseService implements WeChatGroupService {
+	private static Logger logger = Logger.getLogger(WeChatGroupServiceImpl.class);
+
+	@Autowired
+	private WeChatService weChatService;
+	@Autowired
+	private WeChatGroupDao weChatGroupDao;
+
+	@Autowired
+	private BaseHttpClientService baseHttpClientService;
+	@Autowired
+	private TencentUserService tencentUserService;
+	
+	
+	public PageInfo<WeChatGroup> findWeChatGroup(WeChatGroup weChatGroup, Integer pageNum,
+			Integer pageSize, String sidx, String sord) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		if ("groupId".equals(sidx))
+			sidx = "GROUP_ID";
+		if ("weChatUserId".equals(sidx))
+			sidx = "WECHAT_USER_ID";
+		if ("countFan".equals(sidx))
+			sidx = "count_fan";
+		map.put("sortField", sidx);
+		map.put("order", sord);
+		map.put("WeChatGroup", weChatGroup);
+		PageInfo<WeChatGroup> pageInfo = weChatGroupDao.findWeChatGroup(map, pageNum, pageSize);
+		return pageInfo;
+	}
+
+	/**根据服务号id（微信端）群列表*/
+	public List<WeChatGroup> getGroupListWeChatUserId(String weChatUserId) {
+		return weChatGroupDao.getGroupListWeChatUserId(weChatUserId);
+	}
+
+	/**
+	 * 保存用户分组
+	 */
+	@Override
+	public boolean saveWeChatGroup(TencentUser tencentUser) {
+		List<WeChatGroup> weChatGroupList = weChatService.getWeChatGroupList(tencentUser);
+		if (weChatGroupList == null) {
+			return false;
+		} else {
+			deleteWeChatGroupByWeChatUserId(tencentUser.getWeChatUserId());
+			for (WeChatGroup group : weChatGroupList) {
+				weChatGroupDao.addWeChatGroup(group);
+			}
+			logger.error("微信号["+tencentUser.getWeChatUserId()+"]保存分组成功");
+			return true;
+		}
+	}
+
+	/**
+	 * 创建分组
+	 * @param tencentUser
+	 * @param groupName
+	 * @return
+	 */
+	public WeChatGroup createGroup(TencentUser tencentUser, String groupName) {
+		WeChatGroup group = new WeChatGroup();
+		/**拼装发送消息的url*/
+		String jsonData = "{\"group\":{\"name\":\"%s\"}}";
+		String url = Constants.CREATE_GROUP_URL.replace("ACCESS_TOKEN",
+				weChatService.getAccessToken(tencentUser))
+				+ "&requestType=createGroup&content="
+				+ URLEncoder.encode(jsonData.format(jsonData, groupName));
+		String jsonText = baseHttpClientService.postMethod(url);
+		JSONObject jsonObject = null;
+		try {
+			jsonObject = JSONObject.fromObject(URLDecoder.decode(jsonText, "UTF-8"));
+			if (null != jsonObject) {
+				group.setGroupId(jsonObject.getJSONObject("group").getLong("id"));
+				group.setName(jsonObject.getJSONObject("group").getString("name"));
+				logger.error("微信号["+tencentUser.getWeChatUserId()+"]创建分组成功 id["+group.getGroupId()+"]名称["+group.getName()+"]");
+			} else {
+				return null;
+			}
+		
+		} catch (Exception e) {
+			group = null;
+			logger.error("微信号["+tencentUser.getWeChatUserId()+"]创建分组失败。名称:"+groupName);
+			logger.error("创建分组失败" + jsonObject.getInt("errcode") + ":"
+					+ jsonObject.getString("errmsg"));
+			return null;
+		}
+		return group;
+	}
+
+	/**
+	 * 添加分组
+	 */
+	public Long addWeChatGroup(WeChatGroup weChatGroup) {
+		TencentUser tencentUser=tencentUserService.getTencentUserByWeChatUserId(weChatGroup.getWeChatUserId());
+		WeChatGroup w=createGroup(tencentUser, weChatGroup.getName());
+		weChatGroup.setCountFan(0L);
+		weChatGroup.setGroupId(w.getGroupId());
+		return weChatGroupDao.addWeChatGroup(weChatGroup);
+	}
+   /**
+    *修改分组
+    */
+	@Override
+	public Integer updateWeChatGroup(WeChatGroup weChatGroup) {
+		TencentUser tencentUser=tencentUserService.getTencentUserByWeChatUserId(weChatGroup.getWeChatUserId());
+		boolean flag=updateGroup(tencentUser, Integer.parseInt(weChatGroup.getGroupId()+""), weChatGroup.getName());
+		if(flag==true)
+		return weChatGroupDao.updateWeChatGroupById(weChatGroup);
+		else 
+			throw new ServiceException("修改分组失败！");
+	}
+
+	/**
+	 * 修改分组
+	 * @param tencentUser
+	 * @param groupId
+	 * @param groupName
+	 * @return
+	 */
+	public boolean updateGroup(TencentUser tencentUser, int groupId, String groupName) {
+		/**拼装发送消息的url*/
+		String jsonData = "{\"group\":{\"id\":\"%s\",\"name\":\"%s\"}}";
+		String url = Constants.UPDATE_GROUP_URL.replace("ACCESS_TOKEN",
+				weChatService.getAccessToken(tencentUser))
+				+ "&requestType=updateGroup&content="
+				+ URLEncoder.encode(jsonData.format(jsonData, groupId, groupName));
+		try {
+			String jsonText = baseHttpClientService.postMethod(url);
+			JSONObject jsonObject = JSONObject.fromObject(URLDecoder.decode(jsonText, "UTF-8"));
+			if (null != jsonObject) {
+				if (jsonObject.getInt("errcode") == 0) {
+					logger.error("微信号["+tencentUser.getWeChatUserId()+"]修改分组成功 id["+groupId+"]名称["+groupName+"]");
+					return true;
+				} else {
+					logger.error("微信号["+tencentUser.getWeChatUserId()+"]修改分组失败 id["+groupId+"]名称["+groupName+"]");
+					logger.error("修改分组失败 errcode:{}" + jsonObject.getInt("errcode") + " errmsg:{}"
+							+ jsonObject.getString("errmsg"));
+					return false;
+				}
+			} else {
+				return false;
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return false;
+		}
+	}
+
+	/**
+	 * 移动用户分组
+	 * @param tencentUser
+	 * @param openId
+	 * @param groupId
+	 * @return
+	 */
+	public boolean removeUserForGroup(TencentUser tencentUser, String openId, int groupId) {
+		//String jsonData = "{\"openid\":\"%s\",\"to_groupid\":%d}";
+		String url = Constants.REMOVE_USERFORGROUP_URL.replace("ACCESS_TOKEN",
+				weChatService.getAccessToken(tencentUser));
+			/*	+ "&requestType=removeGroup&content="
+				+ URLEncoder.encode(jsonData.format(jsonData, openId, groupId));*/
+		 Map params =  new HashMap(); 
+		 params.put("openid", openId);
+		 params.put("to_groupid", groupId);	
+		String contentJson = JSONObject.fromObject(params).toString();
+		
+		try {
+			//String jsonText = baseHttpClientService.postMethod(url);
+			String jsonText = HttpProxyUtil.postMethod(url, "removeGroup", contentJson);
+			JSONObject jsonObject = JSONObject.fromObject(URLDecoder.decode(jsonText, "UTF-8"));
+			if (null != jsonObject) {
+				if (jsonObject.getInt("errcode") == 0) {
+					logger.error("移动粉丝分组成功");
+					return true;
+				} else {
+					logger.error("移动粉丝失败 errcode:{}" + jsonObject.getInt("errcode") + " errmsg:{}"
+							+ jsonObject.getString("errmsg"));
+					return false;
+				}
+			} else {
+				return false;
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return false;
+		}
+	}
+
+	/**
+	 * 根据微信号id（微信端）和groupId（微信端）获取群租对象
+	 */
+	@Override
+	public WeChatGroup getGroupByGroupIdAndWeChatUserId(WeChatGroup weChatGroup) {
+		return weChatGroupDao.getGroupByGroupIdAndWeChatUserId(weChatGroup);
+	}
+
+	/**
+	 * 根据微信号id（微信端）删除群组信息
+	 */
+	@Override
+	public void deleteWeChatGroupByWeChatUserId(String weChatUserId) {
+		weChatGroupDao.deleteWeChatGroupByWeChatUserId(weChatUserId);
+	}
+	/**
+	 * 根据id加载对象	
+	 * @param weChatGroup
+	 * @return
+	 */
+	public WeChatGroup getWeChatGroupById(WeChatGroup weChatGroup)
+	{
+		return weChatGroupDao.getWeChatGroupById(weChatGroup);
+	}
+
+	@Override
+	public List<WeChatGroup> getGroupListByOrgId(Long orgId) {
+		if (orgId == null) {
+			throw new ServiceException("组织机构为空!");
+		}
+		return weChatGroupDao.getGroupListByOrgId(orgId);
+	}
+
+	@Override
+	public Long getGroupListByName(String name) {
+		
+		if (name == null) {
+			throw new ServiceException("分组名称为空!");
+		}
+		return weChatGroupDao.getGroupListByName(name);
+	}
+}

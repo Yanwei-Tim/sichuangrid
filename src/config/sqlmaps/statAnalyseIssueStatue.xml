@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="statAnalyseIssueStatue">
+	<typeAlias alias="StatAnalyseIssue" type="com.tianque.domain.StatAnalyseIssue" />
+	<parameterMap class="StatAnalyseIssue" id="issueParameterMap">
+		<parameter property="organization.id" />
+		<parameter property="orgInternalCode" />
+		<parameter property="state" />
+		<parameter property="startDate" />
+		<parameter property="endDate" />
+	</parameterMap>
+	<select id="getNoDealExtended" parameterClass="StatAnalyseIssue"
+		resultClass="int">
+		<![CDATA[select count(*) from issuelogs i,overtimeissuelog o 
+			]]>
+		where i.id = o.issuelogid and i.dealstate <![CDATA[<1001]]>
+		<isPropertyAvailable property="orgInternalCode">
+			<isNotEmpty property="orgInternalCode" prepend=" and ">
+					<![CDATA[i.TARGEORGINTERNALCODE like #orgInternalCode#||'%']]>
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="startDate">
+			<isNotNull property="startDate" prepend=" and ">
+				i.createdate <![CDATA[>=]]>
+				#startDate#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="endDate">
+			<isNotNull property="endDate" prepend=" and ">
+				i.createdate <![CDATA[<=]]>
+				#endDate#
+			</isNotNull>
+		</isPropertyAvailable>
+
+	</select>
+	<select id="getAlreadyDealExtended" parameterClass="StatAnalyseIssue"
+		resultClass="int">
+	<![CDATA[select count(*) from issuelogs i,overtimeissuelog o 
+			]]>
+		where
+		i.id = o.issuelogid and i.dealstate <![CDATA[ >= 1001]]>
+		and
+		i.dealstate <![CDATA[ < 2000]]>
+		<isNotEmpty property="orgInternalCode" prepend=" and ">
+					<![CDATA[i.TARGEORGINTERNALCODE like #orgInternalCode#||'%']]>
+		</isNotEmpty>
+		<isPropertyAvailable property="startDate">
+			<isNotNull property="startDate" prepend=" and ">
+				i.createdate <![CDATA[>=]]>
+				#startDate#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="endDate">
+			<isNotNull property="endDate" prepend=" and ">
+				i.createdate <![CDATA[<=]]>
+				#endDate#
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	<select id="getNoDealNormal" parameterClass="StatAnalyseIssue"
+		resultClass="int">
+		<![CDATA[select count(*) from issuelogs i where i.id not in (select o.issuelogid from overtimeissuelog o)
+			]]>
+		and i.dealstate <![CDATA[<1001]]>
+		<isNotEmpty property="orgInternalCode" prepend=" and ">
+					<![CDATA[i.TARGEORGINTERNALCODE like #orgInternalCode#||'%']]>
+		</isNotEmpty>
+		<isPropertyAvailable property="startDate">
+			<isNotNull property="startDate" prepend=" and ">
+				i.createdate <![CDATA[>=]]>
+				#startDate#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="endDate">
+			<isNotNull property="endDate" prepend=" and ">
+				i.createdate <![CDATA[<=]]>
+				#endDate#
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	<select id="getAlreadyDealNormal" parameterClass="StatAnalyseIssue"
+		resultClass="int">
+	<![CDATA[select count(*) from issuelogs i where i.id not in (select o.issuelogid from overtimeissuelog o)
+			]]>
+		and i.dealstate <![CDATA[ >= 1001]]>
+		and i.dealstate <![CDATA[ < 2000]]>
+		<isNotEmpty property="orgInternalCode" prepend=" and ">
+					<![CDATA[i.TARGEORGINTERNALCODE like #orgInternalCode#||'%']]>
+		</isNotEmpty>
+		<isPropertyAvailable property="startDate">
+			<isNotNull property="startDate" prepend=" and ">
+				i.createdate <![CDATA[>=]]>
+				#startDate#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="endDate">
+			<isNotNull property="endDate" prepend=" and ">
+				i.createdate <![CDATA[<=]]>
+				#endDate#
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+<select id="statIssueNormalNotDone" parameterClass="java.util.Map" resultMap="baseInfoStanal.baseInfoStanalResult">
+	   select 
+		   <![CDATA[(select id from organizations where id = vOrg.id) orgId,]]>
+		   <![CDATA[(select orgname from  organizations org where org.id = vOrg.id) orgName,]]>
+		   <![CDATA[(select count(id) from issuelogs where targeorginternalcode like (select Orginternalcode from organizations where id =vOrg.Id)||'%']]>
+		   <![CDATA[and dealstate<=1000]]>
+		   <dynamic>
+               <isPropertyAvailable property="startDate">
+                   <isNotEmpty property="startDate" prepend="and">
+                       <![CDATA[ createDate >= #startDate#]]>
+                   </isNotEmpty>
+               </isPropertyAvailable>
+               <isPropertyAvailable property="endDate">
+                   <isNotEmpty property="endDate" prepend="and">
+                       <![CDATA[ createDate <= #endDate#]]>
+                   </isNotEmpty>
+               </isPropertyAvailable>
+           </dynamic>
+		   <![CDATA[and id not in (select il.id from issuelogs il,overtimeissuelog ol where ol.issuelogid=il.id)) count]]>
+		from organizations vOrg
+		<![CDATA[where vOrg.Parentid = #orgId# order by vOrg.id]]> 
+	</select>
+	
+	<select id="statIssueOverTimeNotDone" parameterClass="java.util.Map" resultMap="baseInfoStanal.baseInfoStanalResult">
+	   select 
+		   <![CDATA[(select id from organizations where id = vOrg.id) orgId,]]>
+		   <![CDATA[(select orgname from  organizations org where org.id = vOrg.id) orgName,]]>
+		   <![CDATA[(select count(0) from issuelogs il,overtimeissuelog ol where ol.issuelogid=il.id and il.dealstate<=1000]]>
+		   <dynamic>
+               <isPropertyAvailable property="startDate">
+                   <isNotEmpty property="startDate" prepend="and">
+                       <![CDATA[ il.createDate >= #startDate#]]>
+                   </isNotEmpty>
+               </isPropertyAvailable>
+               <isPropertyAvailable property="endDate">
+                   <isNotEmpty property="endDate" prepend="and">
+                       <![CDATA[ il.createDate <= #endDate#]]>
+                   </isNotEmpty>
+               </isPropertyAvailable>
+           </dynamic>
+		   <![CDATA[) count]]>
+		from organizations vOrg
+		<![CDATA[where vOrg.Parentid = #orgId# order by vOrg.id]]>
+	</select>
+	
+	<select id="statIssueNormalDone" parameterClass="java.util.Map" resultMap="baseInfoStanal.baseInfoStanalResult">
+	   select 
+		   <![CDATA[(select id from organizations where id = vOrg.id) orgId,]]>
+		   <![CDATA[(select orgname from  organizations org where org.id = vOrg.id) orgName,]]>
+		   <![CDATA[(select count(id) from issuelogs where targeorginternalcode like (select Orginternalcode from organizations where id =vOrg.Id)||'%']]>
+		   <![CDATA[and dealstate>=1000 and dealstate<=2000]]>
+		   <dynamic>
+               <isPropertyAvailable property="startDate">
+                   <isNotEmpty property="startDate" prepend="and">
+                       <![CDATA[ createDate >= #startDate#]]>
+                   </isNotEmpty>
+               </isPropertyAvailable>
+               <isPropertyAvailable property="endDate">
+                   <isNotEmpty property="endDate" prepend="and">
+                       <![CDATA[ createDate <= #endDate#]]>
+                   </isNotEmpty>
+               </isPropertyAvailable>
+           </dynamic>
+		   <![CDATA[and id not in (select il.id from issuelogs il,overtimeissuelog ol where ol.issuelogid=il.id)) count]]>
+		from organizations vOrg
+		<![CDATA[where vOrg.Parentid = #orgId# order by vOrg.id]]>
+	</select>
+	<select id="statIssueOverTimeDone" parameterClass="java.util.Map" resultMap="baseInfoStanal.baseInfoStanalResult">
+	   select 
+		   <![CDATA[(select id from organizations where id = vOrg.id) orgId,]]>
+		   <![CDATA[(select orgname from  organizations org where org.id = vOrg.id) orgName,]]>
+		   <![CDATA[(select count(0) from issuelogs il,overtimeissuelog ol where ol.issuelogid=il.id and il.dealstate>=1000 and il.dealstate<=2000]]>
+		   <dynamic>
+               <isPropertyAvailable property="startDate">
+                   <isNotEmpty property="startDate" prepend="and">
+                       <![CDATA[ il.createDate >= #startDate#]]>
+                   </isNotEmpty>
+               </isPropertyAvailable>
+               <isPropertyAvailable property="endDate">
+                   <isNotEmpty property="endDate" prepend="and">
+                       <![CDATA[ il.createDate <= #endDate#]]>
+                   </isNotEmpty>
+               </isPropertyAvailable>
+           </dynamic>
+		   <![CDATA[) count]]>
+		from organizations vOrg
+		<![CDATA[where vOrg.Parentid = #orgId# order by vOrg.id]]>
+	</select>
+</sqlMap>

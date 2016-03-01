@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="workCalendar" extends="default" namespace="/sysadmin/workCalendarManger">
+		<default-class-ref class="workCalendarController"></default-class-ref>
+		<action name="findWorkCalendar" method="findWorkCalendar">
+			<result name="success">
+				/sysadmin/workCalendar/workCalendar.jsp
+			</result>
+			<result name="change" type="json">
+				<param name="root">monthAndDay</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findFeatureOrgs" method="findFeatureOrgs">
+			<result name="success" type="json">
+				<param name="root">orgList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="addWorkCalendar" method="addWorkCalendar">
+			<result type="json">
+				<param name="root">monthAndDay</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="updateWorkTime" method="updateWorkTime">
+			<result type="json">
+				<param name="root">monthAndDay</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+			<action name="updateWorkCalendarIsWeek" method="updateWorkCalendarIsWeek">
+			<result type="json">
+				<param name="root">flg</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="deleteWorkCalendar" method="deleteWorkCalendar">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="isYear" method="isYear">
+			<result type="json">
+				<param name="root">flg</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateWorkCalendarIsWork" method="updateWorkCalendarIsWork">
+			<result type="json">
+				<param name="root">flg</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="findLoginOfCurrentWeek" method="findLoginOfCurrentWeek">
+			<result name="success" type="json">
+				<param name="root">loginOfCurrentWeek</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		
+	</package>
+	<package name="hotModuelWorkCalendar" extends="workCalendar" namespace="/hotModuel/sysadmin/workCalendarManger"></package>
+</struts>

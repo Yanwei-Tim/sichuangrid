@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="detailedRuleManage" extends="default" namespace="/evaluate/detailedRuleManage">
+		<default-class-ref class="detailedRuleController"></default-class-ref>
+		
+		<action name="getDetailedRuleById" method="getDetailedRuleById">
+			<result type="json">
+				<param name="root">detailedRule</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="findDialyLogTypesByDetailedRuleId" method="findDialyLogTypesByDetailedRuleId">
+			<result type="json">
+				<param name="root">dialyLogTypeInternalIds</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="findDailyLogsByDetailedRuleId" method="findDailyLogsByDetailedRuleId">
+			<result type="json">
+				<param name="root">dailyLogs</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+	</package>
+</struts>

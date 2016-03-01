@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="sessionManage" extends="default"
+		namespace="/sessionManage">
+		<default-class-ref class="sessionManageController"></default-class-ref>
+		
+		<action name="searchIp"
+			method="searchIp">
+			<result name="success" type="json">
+				<param name="root">loginnames</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		
+		<action name="login"
+			method="login">
+			<result name="loginSuccess" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="firstLogin" type="json">
+				<param name="root">false</param>
+			</result>
+			<result name="loginSuccessNeedUpdatePsw" type="json">
+				<param name="root">passwordOutTime</param>
+			</result>
+			<result name="loginFailure" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="mockLogin"
+			method="mockLogin">
+			<result name="loginSuccess" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="firstLogin" type="json">
+				<param name="root">false</param>
+			</result>
+			<result name="loginFailure" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="loginForDlg"
+			method="login">
+			<result name="loginSuccess" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="loginFailure" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="logout"
+			method="logout">
+			<result name="success" type="redirect">${#parameters.indexPath[0]}/login.jsp</result>
+			<result name="xicang" type="redirect">/login/xichang/login.jsp</result>
+			<result name="chengdu" type="redirect">/login/chengdu/login.jsp</result>
+			<result name="jinjiang" type="redirect">/login/jinjiang/login.jsp</result>
+			<result name="nanchuan" type="redirect">${#parameters.indexPath[0]}/login/cqnanchuan/login.jsp</result>
+			<result name="hechuan" type="redirect">${#parameters.indexPath[0]}/login/cqhechuan/login.jsp</result>
+		</action>
+		<action name="getLoginInfo"
+			method="getLoginInfo">
+			<result name="success" type="json">
+				<param name="root">user</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="getCurrentSession"
+			method="getCurrentSession">
+			<result name="success" type="json">
+				<param name="root">session</param>
+			</result>
+		</action>
+		<action name="toFirstPasswordUpdate"
+			method="getCurrentSession">
+			<result name="success">
+				/passwordUpdate.jsp
+			</result>
+		</action>
+		<action name="passwordOutTimeUpdate"
+			method="getCurrentSession">
+			<result name="success">
+				/passwordOutTimeUpdate.jsp
+			</result>
+		</action>
+		<action name="onlineSessions"
+			method="getSessionList">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="findAllSessions"
+			method="findAllSessions">
+			<result type="json">
+				<param name="root">sessions</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="deleteSession"
+			method="deleteSession">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		
+		<action name="getCurrentLoginInfoByHaiNing" method="getCurrentLoginInfoByHaiNing">
+			<result name="success" type="json">
+				<param name="root">currentLoginInfoVo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<!-- 余杭 begin -->
+		<action name="isYuH" method="isYuH">
+			<result name="success" type="json">
+				<param name="root">bool</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		
+		<action name="isXiCangLogo" method="isXiCangLogo">
+			<result name="success" type="json">
+				<param name="root">bool</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		
+		<action name="isWuShengLogo" method="isWuShengLogo">
+			<result name="success" type="json">
+				<param name="root">bool</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		
+		<action name="getCurrentLoginInfoByYuH" method="getCurrentLoginInfoByYuH">
+			<result name="success" type="json">
+				<param name="root">currentLoginInfoVo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="isProvince" method="isProvince">
+			<result name="success" type="json">
+				<param name="root">bool</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<action name="isVillageOrg" method="isVillageOrg">
+			<result name="success" type="json">
+				<param name="root">bool</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<!-- 余杭 end -->
+	</package>
+</struts>

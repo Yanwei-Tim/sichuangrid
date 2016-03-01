@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd 
+	http://code.alibabatech.com/schema/dubbo
+    http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+    
+	<dubbo:application name="simple-consumer" />
+	<dubbo:registry protocol="zookeeper" address="zookeeper://192.168.10.15:2181?backup=192.168.10.33:2181,192.168.10.34:2181" file="output/dubbo.cache"/>
+    <!--<dubbo:protocol name="dubbo" port="20880" serialization="kryo" optimizer="com.tianque.userAuth.util.SerializationOptimizerImpl"/> -->
+	<dubbo:protocol name="dubbo" port="-1"/>
+	<dubbo:monitor protocol="registry"/>
+	
+	<dubbo:reference id="demoDubboService" interface="com.tianque.userAuth.api.DemoDubboService" />
+	<dubbo:reference id="permissionDubboService" interface="com.tianque.userAuth.api.PermissionDubboService" protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="searchRoleDubboService" interface="com.tianque.userAuth.api.SearchRoleDubboService" protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="organizationDubboRemoteService" cache="lru"  interface="com.tianque.userAuth.api.OrganizationDubboRemoteService" protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="userSignDubboService" interface="com.tianque.userAuth.api.UserSignDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    <dubbo:reference id="propertyDictDubboService" interface="com.tianque.userAuth.api.PropertyDictDubboService" protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="propertyDomainDubboService" interface="com.tianque.userAuth.api.PropertyDomainDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="sessionManagerDubboService" interface="com.tianque.userAuth.api.SessionManagerDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="mobileInfoDubboService" interface="com.tianque.userAuth.api.MobileInfoDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="searchUserDubboService" interface="com.tianque.userAuth.api.SearchUserDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="userAutocompleteDubboService" interface="com.tianque.userAuth.api.UserAutocompleteDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="moduelClickCountDubboService" interface="com.tianque.userAuth.api.ModuelClickCountDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="publicNoticeDubboService" interface="com.tianque.userAuth.api.PublicNoticeDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    <dubbo:reference id="notice4ShowDubboService" interface="com.tianque.userAuth.api.Notice4ShowDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    <dubbo:reference id="phoenixHbaseDubbo" interface="com.tianque.bigData.api.PhoenixHbaseDubbo"   protocol="dubbo" timeout="10000" check="false" retries="0"/>
+    <dubbo:reference id="contacterDubboService" interface="com.tianque.userAuth.api.ContacterDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    <dubbo:reference id="userHasPlatformMessageTypesDubboService" interface="com.tianque.userAuth.api.UserHasPlatformMessageTypesDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+
+ 	<!--三本台账-->
+  	<dubbo:reference id="ledgerAccountReportDubboService" interface="com.tianque.account.api.LedgerAccountReportDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="ledgerFeedBackDubboService" interface="com.tianque.account.api.LedgerFeedBackDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="ledgerPoorPeopleDubboService" interface="com.tianque.account.api.LedgerPoorPeopleDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="ledgerPoorPeopleMemberDubboService" interface="com.tianque.account.api.LedgerPoorPeopleMemberDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="ledgerSteadyWorkDubboService" interface="com.tianque.account.api.LedgerSteadyWorkDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0" />
+	<dubbo:reference id="ledgerSteadyWorkPeopleInfoDubboService" interface="com.tianque.account.api.LedgerSteadyWorkPeopleInfoDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="peopleAspirationDubboService" interface="com.tianque.account.api.PeopleAspirationDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="searchPeopleAspirationByLevelDubboService" interface="com.tianque.account.api.SearchPeopleAspirationByLevelDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="searchPoorPeopleByLevelDubboService" interface="com.tianque.account.api.SearchPoorPeopleByLevelDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="searchSteadyWorkByLevelDubboService" interface="com.tianque.account.api.SearchSteadyWorkByLevelDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="threeRecordsIssueDubboService" interface="com.tianque.account.api.ThreeRecordsIssueDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0" />
+	<dubbo:reference id="threeRecordsIssueLogDubboService" interface="com.tianque.account.api.ThreeRecordsIssueLogDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="threeRecordsIssueProcessDubboService" interface="com.tianque.account.api.ThreeRecordsIssueProcessDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="threeRecordsKeyGeneratorDubboService" interface="com.tianque.account.api.ThreeRecordsKeyGeneratorDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="threeRecordsSearchIssueStepDubboService" interface="com.tianque.account.api.ThreeRecordsSearchIssueStepDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="ledgerConvertDubboService" interface="com.tianque.account.api.LedgerConvertDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="reportFormDubboService" interface="com.tianque.account.api.ReportFormDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="replyFormDubboService" interface="com.tianque.account.api.ReplyFormDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="declareFormDubboService" interface="com.tianque.account.api.DeclareFormDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="turnFormDubboService" interface="com.tianque.account.api.TurnFormDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="assignFormDubboService" interface="com.tianque.account.api.AssignFormDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	
+	<dubbo:reference id="acceptFormDubboService" interface="com.tianque.account.api.AcceptFormDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+	<dubbo:reference id="threeRecordsComprehensiveDubboService" interface="com.tianque.account.api.ThreeRecordsComprehensiveDubboService"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+
+	<!-- 研判分析 -->
+    <dubbo:reference id="businessModelDubboService" interface="com.tianque.analysis.api.BusinessModelDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    <dubbo:reference id="businessModelRealDataDubboService" interface="com.tianque.analysis.api.BusinessModelRealDataDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    <dubbo:reference id="dimensionCombinationDubboService" interface="com.tianque.analysis.api.DimensionCombinationDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    <dubbo:reference id="dimensionDubboService" interface="com.tianque.analysis.api.DimensionDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    <dubbo:reference id="scheduleJobDubboService" interface="com.tianque.analysis.api.ScheduleJobDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    <dubbo:reference id="scheduleJobExceptionDubboService" interface="com.tianque.analysis.api.ScheduleJobExceptionDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    <dubbo:reference id="scheduleJobInfoDubboService" interface="com.tianque.analysis.api.ScheduleJobInfoDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    <dubbo:reference id="scheduleJobLogDubboService" interface="com.tianque.analysis.api.ScheduleJobLogDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    <dubbo:reference id="scheduleLogDubboService" interface="com.tianque.analysis.api.ScheduleLogDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    <dubbo:reference id="businessDescriptionDubboService" interface="com.tianque.analysis.api.BusinessDescriptionDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    <dubbo:reference id="historyCycleDubboService" interface="com.tianque.analysis.api.HistoryCycleDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    <dubbo:reference id="dimensionCombinationCycleDubboService" interface="com.tianque.analysis.api.DimensionCombinationCycleDubboService"   protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    
+    <dubbo:reference id="tqSearchDubboService" interface="com.tianque.tqSearch.dubboService.TqSearchDubboService" check="false"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0"/>
+    
+    <dubbo:reference id="tqSearchService" interface="com.tianque.plugin.tqSearch.dubboService.TqSearchService" check="false"  protocol="dubbo" timeout="10000" filter="dubboRPCRequestFilter" retries="0" />
+</beans>

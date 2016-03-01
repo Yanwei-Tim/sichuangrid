@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchScenicTraffic">
+	<typeAlias alias="searchScenicTrafficVo" type="com.tianque.baseInfo.scenicManage.scenicTraffic.vo.SearchScenicTrafficVo" />
+	<sql id="sql_where">
+		FROM SCENICTRAFFIC
+		<dynamic prepend=" WHERE ">
+			<isPropertyAvailable property="organization.orgInternalCode">
+				<isNotEmpty property="organization.orgInternalCode" prepend=" AND ">
+					ORGINTERNALCODE LIKE #organization.orgInternalCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="unitName">
+				<isNotEmpty property="unitName" prepend=" AND ">
+					(TRAFFICNAME LIKE #unitName#||'%' OR FULLPINYIN LIKE #unitName#||'%' OR SIMPLEPINYIN LIKE #unitName#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="trafficName">
+				<isNotEmpty property="trafficName" prepend=" AND ">
+					(TRAFFICNAME LIKE #trafficName#||'%' OR FULLPINYIN LIKE #trafficName#||'%' OR SIMPLEPINYIN LIKE #trafficName#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startAddress">
+				<isNotEmpty property="startAddress" prepend=" AND ">
+					STARTADDRESS LIKE #startAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endAddress">
+				<isNotEmpty property="endAddress" prepend=" AND ">
+					ENDADDRESS LIKE #endAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="phone">
+				<isNotEmpty property="phone" prepend=" AND ">
+					PHONE LIKE #phone#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="managerUnit">
+				<isNotEmpty property="managerUnit" prepend=" AND ">
+					MANAGERUNIT LIKE #managerUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="managerPeople">
+				<isNotEmpty property="managerPeople" prepend=" AND ">
+					MANAGERPEOPLE LIKE #managerPeople#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="managerPeoplePhone">
+				<isNotEmpty property="managerPeoplePhone" prepend=" AND ">
+					MANAGERPEOPLEPHONE LIKE #managerPeoplePhone#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="trafficType">
+				<isNotEmpty property="trafficType.id" prepend=" AND ">
+					TRAFFICTYPE = #trafficType.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotEmpty property="isEmphasis" prepend=" AND ">
+					<isEqual property="isEmphasis" compareValue="true">ISEMPHASIS = #isEmphasis#</isEqual>
+					<isEqual property="isEmphasis" compareValue="false">ISEMPHASIS = #isEmphasis#</isEqual>
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<select id="countScenicTraffic" parameterClass="searchScenicTrafficVo" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	<select id="searchScenicTraffic" parameterClass="searchScenicTrafficVo" resultMap="scenicTraffic.scenicTrafficResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+</sqlMap>

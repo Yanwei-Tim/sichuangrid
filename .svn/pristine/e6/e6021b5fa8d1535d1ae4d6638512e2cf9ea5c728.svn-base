@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="replyMessage">
+	<typeAlias alias="ReplyMessage" type="com.tianque.plugin.weChat.domain.inbox.ReplyMessage"/>
+	<resultMap id="replyMessageResult" class="ReplyMessage">
+		<result property="replyMessageId" column="reply_Message_Id"/>
+		<result property="inboxId" column="inbox_Id"/>
+		<result property="content" column="content"/>
+		<result property="receiveUser" column="receive_User"/>
+		<result property="createDate" column="create_Date"/>
+	</resultMap>
+	
+	<sql id="sql_where">
+		<isNotEmpty prepend=" and " property="replyMessage.inboxId">
+        	inbox_Id=#replyMessage.inboxId#
+        </isNotEmpty>
+	</sql>
+	
+	<insert id="saveReplyMessage" parameterClass="ReplyMessage">
+		<selectKey resultClass="java.lang.Long" keyProperty="replyMessageId">
+			<![CDATA[
+				SELECT s_reply_Message.NEXTVAL AS replyMessageId FROM DUAL
+			]]>
+		</selectKey>
+		insert into reply_Message
+		(REPLY_MESSAGE_ID,INBOX_ID,CONTENT,RECEIVE_USER,CREATE_DATE)
+		values
+		(#replyMessageId#,#inboxId#,#content#,#receiveUser#,#createDate#)
+	</insert>
+	
+	<delete id="deleteReplyMessageByInboxId" parameterClass="java.lang.Long"> 
+		delete from reply_message where inbox_id=#value#
+	</delete>
+	<select id="countFindReplyMessages" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		select count(*) from REPLY_MESSAGE where 1=1
+		<include refid="sql_where" />
+	</select>
+	<select id="countRMByInboxId" parameterClass="java.lang.Long"
+		resultClass="java.lang.Long">
+		select count(reply_message_id) from reply_message where inbox_id =#value#
+	</select>
+	<select id="findReplyMessages" parameterClass="java.util.Map"
+		resultMap="replyMessageResult">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom" > 
+			    <include refid="common.sql_select_page_start"/>
+			</isNotNull>
+		 </isPropertyAvailable>
+			select * from REPLY_MESSAGE where 1=1
+		 	<include refid="sql_where" />
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		 <isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom" >
+				<include refid="common.sql_select_page_end"/>
+			</isNotNull>
+		 </isPropertyAvailable>
+	</select>
+	<select id="findReplyMessagesByInboxId" parameterClass="java.lang.Long"
+		resultMap="replyMessageResult">
+		select * from REPLY_MESSAGE where inbox_id =#value#
+	</select>
+</sqlMap>

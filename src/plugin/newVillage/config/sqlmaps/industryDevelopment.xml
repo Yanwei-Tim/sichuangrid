@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="industryDevelopment">
+	<typeAlias alias="IndustryDevelopment" type="com.tianque.newVillage.domain.IndustryDevelopment" />
+
+	<resultMap id="industryDevelopmentResult" class="IndustryDevelopment" >
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgInternalCode" />
+		<result property="newVillageBasic.id" column="basicInfoID" />
+		
+		<result property="grainCrops" column="grainCrops" />
+		<result property="economicCrops" column="economicCrops" />
+		<result property="scalePlanting" column="scalePlanting" />
+		<result property="pigNum" column="pigNum" />
+		<result property="cattleSheepNum" column="cattleSheepNum" />
+		<result property="poultryNum" column="poultryNum" />
+		<result property="aquaticProductNum" column="aquaticProductNum" />
+		<result property="scaleBreed" column="scaleBreed" />
+		<result property="specialistNum" column="specialistNum" />
+		<result property="familyFarmNum" column="familyFarmNum" />
+		<result property="plantingNum" column="plantingNum" />
+		
+		<result property="characteristicPlanting" column="characteristicPlanting" />
+		<result property="plantingHouseholdsCount" column="plantingHouseholdsCount" />
+		<result property="farmHouseholds" column="farmHouseholds" />
+		<result property="productProcessing" column="productProcessing" />
+		<result property="countyCorporateChampion" column="countyCorporateChampion" />
+		<result property="industrialOrganization" column="industrialOrganization" />
+		<result property="villaggioBoutiqueHotel" column="villaggioBoutiqueHotel" />
+		<result property="agritainment" column="agritainment" />
+		<result property="householdEmployment" column="householdEmployment" />
+		
+		 <result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+	</resultMap>
+
+	<insert id="addIndustryDevelopment" parameterClass="IndustryDevelopment">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_INDUSTRYDEVELOPMENT.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		INSERT INTO INDUSTRYDEVELOPMENT (ID, ORGID, ORGINTERNALCODE, BASICINFOID,grainCrops,economicCrops,scalePlanting,pigNum,
+		characteristicPlanting,plantingHouseholdsCount,farmHouseholds,productProcessing,countyCorporateChampion,industrialOrganization,
+		villaggioBoutiqueHotel,agritainment,householdEmployment,
+		cattleSheepNum,poultryNum,aquaticProductNum,scaleBreed,specialistNum,familyFarmNum,plantingNum,createDate,createUser,updateDate)VALUES(
+		#id#,#organization.id#,#organization.orgInternalCode#,#newVillageBasic.id#,#grainCrops#,#economicCrops#,#scalePlanting#,#pigNum#,
+		#characteristicPlanting#,#plantingHouseholdsCount#,#farmHouseholds#,#productProcessing#,#countyCorporateChampion#,#industrialOrganization#,
+		#villaggioBoutiqueHotel#,#agritainment#,#householdEmployment#,
+		#cattleSheepNum#,#poultryNum#,#aquaticProductNum#,#scaleBreed#,#specialistNum#,#familyFarmNum#,#plantingNum#,#createDate#,#createUser#,#updateDate#)	
+	</insert>
+	<update id="updateIndustryDevelopment" parameterClass="IndustryDevelopment">
+		UPDATE INDUSTRYDEVELOPMENT SET UPDATEDATE = #updateDate#
+		<isNotNull prepend="," property="updateUser">
+			updateUser = #updateUser#,
+		</isNotNull>
+			grainCrops=#grainCrops#,
+			economicCrops=#economicCrops#,
+			scalePlanting=#scalePlanting#,
+			pigNum=#pigNum#,
+			cattleSheepNum=#cattleSheepNum#,
+			poultryNum=#poultryNum#,
+			aquaticProductNum=#aquaticProductNum#,
+			scaleBreed=#scaleBreed#,
+			specialistNum=#specialistNum#,
+			familyFarmNum=#familyFarmNum#,
+			plantingNum=#plantingNum#,
+			characteristicPlanting=#characteristicPlanting#,
+			plantingHouseholdsCount=#plantingHouseholdsCount#,
+			farmHouseholds=#farmHouseholds#,
+			productProcessing=#productProcessing#,
+			countyCorporateChampion=#countyCorporateChampion#,
+			industrialOrganization=#industrialOrganization#,
+			villaggioBoutiqueHotel=#villaggioBoutiqueHotel#,
+			agritainment=#agritainment#,
+			householdEmployment=#householdEmployment#
+			
+			WHERE ID=#id#
+	</update>
+	
+	<delete id="deleteIndustryDevelopment">
+		delete from  INDUSTRYDEVELOPMENT where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	<select id="getIndustryDevelopment" parameterClass="java.lang.Long" resultMap="industryDevelopmentResult">
+		<![CDATA[SELECT * FROM INDUSTRYDEVELOPMENT WHERE ID = #value#]]>
+	</select>
+	
+	<select id="getIndustryDevelopmentByBasicId" parameterClass="java.util.Map" resultMap="industryDevelopmentResult">
+		select * from INDUSTRYDEVELOPMENT where BASICINFOID=#basicId#
+	</select>
+		
+</sqlMap>

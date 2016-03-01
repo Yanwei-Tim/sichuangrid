@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="dataTransfer" extends="default" namespace="/dataTransfer">
+		<default-class-ref class="dataTransferController"></default-class-ref>
+		<action name="importToDomain"
+			method="importToDomain">
+		</action>
+		<action name="importReportToDomain"
+			method="importReportToDomain">
+		</action>
+		<action name="threadStop"
+			method="threadStop">
+		</action>
+		<action name="reportThreadStop"
+			method="reportThreadStop">
+		</action>
+		<action name="downloadDataTemplate" method="downloadDataTemplate">
+        </action>
+        <action name="downloadErrorDataTemplate" method="downloadErrorDataTemplate">
+        </action>
+        <action name="downloadDataZipTemplate" method="downloadDataZipTemplate">
+        </action>
+		<action name="downloadReportTemplate" method="downloadReportTemplate">
+            <result name="success" type="stream">
+                <param name="contentType">application/vnd.ms-excel;charset=GBK</param>
+                <param name="inputName">inputStream</param>
+                <!-- 下载时候提示的文件名 -->
+                <param name="contentDisposition">attachment;filename="${downloadFileName}"</param>
+                <param name="bufferSize">4096</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+	</package>
+</struts>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!-- 
+id
+partyName
+contact
+mobile
+telephone
+remark
+partyOrgType
+orgId
+orgInternalCode
+createDate
+createUser
+updateDate
+updateUser
+ -->
+<sqlMap namespace="systemParty">
+	<typeAlias alias="SystemParty" type="com.tianque.partyBuilding.systemPartys.domain.SystemParty" />
+	
+	<resultMap class="SystemParty" id="systemPartyResult">
+		<result property="id" column="id"/>
+		<result property="partyName" column="partyName"/>
+		<result property="contact" column="contact"/>
+		<result property="mobile" column="mobile"/>
+		<result property="telephone" column="telephone"/>
+		<result property="remark" column="remark"/>
+		<result property="partyOrgType" column="partyOrgType"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+	</resultMap>
+	
+	<insert id="addSystemParty" parameterClass="SystemParty">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_system_party.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into system_party 
+		(
+			id,partyName,contact,mobile,telephone,remark,partyOrgType,orgId,orgInternalCode,createDate,createUser,updateDate,updateUser
+		) 
+		values
+		(
+			#id#,#partyName#,#contact#,#mobile#,#telephone#,#remark#,#partyOrgType#,#organization.id#,#orgInternalCode#,#createDate#,#createUser#,#createDate#,#createUser#
+		)	
+	</insert>
+	
+	<update id="updateSystemParty" parameterClass="SystemParty">
+		update system_party set
+		partyName         =#partyName#,
+		contact           =#contact#,
+		mobile            =#mobile#,
+		telephone         =#telephone#,
+		remark            =#remark#,
+		updateDate        =#updateDate#,
+		updateUser        =#updateUser#
+		where id=#id#
+	</update>
+	
+	<sql id="sql_where">
+		from system_party where partyOrgType=#partyOrgType#
+		<dynamic>
+			<isPropertyAvailable property="partyName">
+				<isNotEmpty property="partyName" prepend=" and ">
+					partyName like #partyName# || '%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotEmpty property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="countSystemPartysForPage" parameterClass="map" resultClass="integer">
+		select count(id)
+		<include refid="sql_where"/>
+	</select>
+	
+	<select id="findSystemPartysForPage" parameterClass="map" resultMap="systemPartyResult">
+		select *
+		<include refid="sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getSystemPartyById" parameterClass="long" resultMap="systemPartyResult">
+		select * from system_party where id=#value#
+	</select>
+	
+	<delete id="deleteSystemPartyByIds" parameterClass="map">
+		delete from system_party where partyOrgType=#partyOrgType# and id in
+		<iterate property="ids" conjunction="," open="(" close=")">
+			#ids[]#
+		</iterate>
+	</delete>
+	
+	<select id="isExsistedSystemPartyOrg" parameterClass="map" resultClass="integer">
+		select count(0) from system_party t where t.partyName=#partyName# and t.partyOrgType=#partyOrgType#
+	</select>
+</sqlMap>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="mobileInfoManage" extends="default" namespace="/sysadmin/mobileInfo">
+		<default-class-ref class="mobileInfoController"></default-class-ref>
+		<action name="findMobileInfos" method="findMobileInfos">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/sysadmin/mobileInfo/maintainMobileInfoDlg.jsp
+			</result>
+			<result name="search">
+				/sysadmin/mobileInfo/searchMobileInfoDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="addMobileInfo" method="addMobileInfo">
+			<result type="json" name="success">
+				<param name="root">mobileInfo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="downloadMobileInfo" method="downloadMobileInfo">
+			<result name="success" type="stream">
+				<param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>
+				<param name="inputName">inputStream</param>
+				<param name="contentDisposition">attachment;filename="${downloadFileName}"</param>
+				<param name="bufferSize">4096</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findMobileInfosByQueryCondition" method="findMobileInfosByQueryCondition">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

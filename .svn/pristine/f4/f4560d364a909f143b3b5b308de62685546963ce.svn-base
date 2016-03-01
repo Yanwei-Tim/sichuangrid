@@ -1,0 +1,33 @@
+package com.tianque.plugin.weChat.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.tianque.plugin.weChat.domain.sendMessage.text.TextSendMessage;
+import com.tianque.plugin.weChat.domain.user.Fan;
+import com.tianque.plugin.weChat.domain.user.TencentUser;
+import com.tianque.plugin.weChat.domain.user.WeChatGroup;
+
+public interface WeChatService {
+
+	/**接收并回复消息*/
+	public String receiveMessage(Map<String, String> messageMap);
+
+	/**主动回复消息*/
+	public int replyMessage(TextSendMessage textSendMessage, TencentUser tencentUser);
+
+	/**下载媒体*/
+	public String downloadMedia(String mediaId, TencentUser tencentUser);
+
+	/**获取access_token*/
+	public String getAccessToken(TencentUser tencentUser);
+
+	/**获取用户信息*/
+	public Fan getFanByOpenId(String openId, TencentUser tencentUser);
+
+	/**根据微信公众号获取群组列表*/
+	public List<WeChatGroup> getWeChatGroupList(TencentUser tencentUser);
+
+	/**根据openId获取他所在群组的groupId(微信方的id)*/
+	public Long getGroupIdByOpenId(String openId, TencentUser tencentUser);
+}

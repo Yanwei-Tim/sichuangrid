@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+	http://www.springframework.org/schema/jee
+	http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+	
+	<bean id="initRouterManager" class="com.tianque.dbRouterManager.InitDevelopmentRouterManager"  init-method="init" scope="singleton"/>
+	<!--
+	<bean id="dataSource"
+		class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+		<property name="driverClass"
+			value="${jdbc.driverClassName}" />
+		<property name="jdbcUrl"	value="${development.url}" />
+		<property name="user" value="${development.username}" />
+		<property name="password" value="${development.password}" />
+		<property name="acquireIncrement" value="5" />
+		<property name="acquireRetryAttempts" value="30" />
+		<property name="acquireRetryDelay" value="1000" />
+		<property name="idleConnectionTestPeriod" value="60" />
+		<property name="testConnectionOnCheckin" value="true" />
+	</bean>
+	 
+	<bean id="dataSource" class="oracle.jdbc.xa.client.OracleXADataSource">
+		<property name="user" value="${development.username}"></property>
+        <property name="password" value="${development.password}"></property>
+        <property name="URL" value="${development.url}"></property>
+        <property name="connectionProperties">
+        	<props>
+        		<prop key="oracle.jdbc.freeMemoryOnEnterImplicitCache">true</prop>
+                <prop key="PreparedStatementCacheSize">0</prop>
+                <prop key="oracle.jdbc.maxCachedBufferSize">0</prop>
+                <prop key="remarksReporting">false</prop>
+                <prop key="defaultBatchValue">1</prop>
+        	</props>
+        </property>
+	</bean>
+	-->
+	<!--
+	 <bean id="zzGrid_main_ds"  class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+		<property name="driverClass"
+			value="${jdbc.driverClassName}" />
+		<property name="jdbcUrl"	value="${development.url}" />
+		<property name="user" value="${development.username}" />
+		<property name="password" value="${development.password}" />
+		<property name="acquireIncrement" value="5" />
+		<property name="acquireRetryAttempts" value="30" />
+		<property name="acquireRetryDelay" value="1000" />
+		<property name="idleConnectionTestPeriod" value="60" />
+		<property name="testConnectionOnCheckin" value="true" />
+	</bean> 
+		-->
+		
+	<bean id="zzGrid_main_ds" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+		<!-- 基本属性 url、user、password -->
+		<property name="driverClassName" value="${jdbc.driverClassName}" />
+		<property name="url" value="${development.url}" />
+		<property name="username" value="${development.username}" />
+		<property name="password" value="${development.password}" />
+		<!-- 配置初始化大小、最小、最大 -->
+		<property name="initialSize" value="${development.dbRouter.initialSize}" />
+		<property name="minIdle" value="${development.dbRouter.minIdle}" />
+		<property name="maxActive" value="${development.dbRouter.maxActive}" />
+		<!-- 配置获取连接等待超时的时间 -->
+        <property name="maxWait" value="60000" />
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+		<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+		<property name="minEvictableIdleTimeMillis" value="300000" />
+		<property name="testWhileIdle" value="false" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+		<!-- 配置监控统计注入拦截的filters -->
+		<property name="filters" value="stat" />
+	</bean>
+	
+	<bean id="druid-stat-interceptor" class="com.alibaba.druid.support.spring.stat.DruidStatInterceptor"/>
+	<bean id="druid-type-proxyCreator" class="com.alibaba.druid.support.spring.stat.BeanTypeAutoProxyCreator">
+	  <!-- 所有ABCInterface的派生类被拦截监控  -->
+	  <property name="targetBeanType" value="com.tianque.core.base.DruidSpringMonitor" />
+	  <property name="interceptorNames">
+	      <list>
+	          <value>druid-stat-interceptor</value>
+	      </list>
+	  </property>
+	</bean>	
+	<!-- 
+	<bean id="zzGrid_main_ds"
+		class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+		<property name="driverClass"
+			value="${dbRouter.jdbc.driverClassName}" />
+		<property name="jdbcUrl" value="${development.dbRouter.url}" />
+		<property name="user" value="${development.dbRouter.username}" />
+		<property name="password" value="${development.dbRouter.password}" />
+		<property name="acquireIncrement" value="5" />
+		<property name="acquireRetryAttempts" value="30" />
+		<property name="acquireRetryDelay" value="1000" />
+		<property name="idleConnectionTestPeriod" value="60" />
+		<property name="testConnectionOnCheckin" value="false" />
+	</bean>
+ -->
+	
+	<!--  
+	<bean name="memcachedClient" class="net.rubyeye.xmemcached.utils.XMemcachedClientFactoryBean" destroy-method="shutdown" >
+        <property name="servers" value="${development.memcached.servers}"></property>
+        property name="commandFactory">
+           <bean class="net.rubyeye.xmemcached.command.BinaryCommandFactory"></bean>
+        </property>
+        <property name="sessionLocator">
+                <bean class="net.rubyeye.xmemcached.impl.KetamaMemcachedSessionLocator"></bean>
+        </property>
+   </bean>
+   -->
+   <bean id="memCachedManage" class="com.tianque.core.cache.util.MemCachedManage" init-method="init" scope="singleton">
+   		<property name="servers" value="${development.memcached.servers}"></property>
+   </bean>
+   
+
+
+     
+   <bean class="com.tianque.core.util.GlobalValue">
+   		<property name="environment" value="development"></property>
+   </bean>
+   
+   <bean id="fileManagerDao" class="com.tianque.dao.impl.FileManagerDaoImpl" scope="prototype">
+   		<property name="baseDir" value="${development.filemanage}"></property>
+   </bean>
+   
+     <!-- 
+   	<bean id="dataSourceHbase"
+		class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+		<property name="driverClass" value="${hbase.driverClassName}" />
+		<property name="jdbcUrl" value="${hbse.url}" />
+		<property name="user" value="" />
+		<property name="password" value="" />
+		<property name="acquireIncrement" value="5" />
+		<property name="acquireRetryAttempts" value="30" />
+		<property name="acquireRetryDelay" value="1000" />
+		<property name="idleConnectionTestPeriod" value="60" />
+		<property name="testConnectionOnCheckin" value="true" />
+		<property name="maxPoolSize" value="10"/>
+    	<property name="minPoolSize" value="5"/>
+	</bean>
+  -->
+      <bean id="dataSourceHbase"
+		class="com.tianque.hbase.HbaseDataSource" >
+		<property name="driverName" value="${hbase.driverClassName}" />
+		<property name="jdbcUrl" value="${hbse.url}" />
+	 </bean>
+     
+ 
+     <bean id="mongodbTemplate" class="com.tianque.mongodb.config.DatastoreFactoryBean" lazy-init="true">
+     	<property name="url" value="${development.mongodb.url}"/>
+     	<property name="dbname" value="${mongodb.dbname}"></property>
+     	<property name="slaveOk" value="${development.mongodb.slaveOk}"/>
+     	<property name="ensureIndexes" value="${development.mongodb.ensureIndexes}"/>
+     	<property name="packageNames">
+     		<list>
+     			<value>com.tianque.mongodb.demo</value>
+     		</list>
+     	</property>
+     	<property name="options">
+     		<props>
+     			<prop key="connectTimeout">${development.mongodb.connectTimeout}</prop>
+     			<prop key="maxWaitTime">${development.mongodb.maxWaitTime}</prop>
+     			<prop key="autoConnectRetry">${development.mongodb.autoConnectRetry}</prop>
+     			<prop key="connectionsPerHost">${development.mongodb.connectionsPerHost}</prop>
+     			<prop key="socketKeepAlive">${development.mongodb.socketKeepAlive}</prop>
+     			<prop key="socketTimeout">${development.mongodb.socketTimeout}</prop>
+     			<prop key="threadsAllowedToBlockForConnectionMultiplier">${development.mongodb.threadsAllowedToBlockForConnectionMultiplier}</prop>
+     		</props>
+     	</property>
+     </bean>
+      
+    <!-- <bean id="redisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="maxTotal" value="${redis.maxTotal}"></property>
+        <property name="maxIdle" value="${redis.maxIdle}"></property>
+        <property name="maxWaitMillis" value="${redis.maxWaitMillis}"></property>
+        <property name="testOnBorrow" value="${redis.testOnBorrow}"></property>
+    </bean>
+    
+     <bean id="redisConnectionFactory" class="com.tianque.core.redis.connection.RedisConnectionFactory" init-method="init" destroy-method="destroy">   
+		<property name="poolConfig" ref="redisPoolConfig"></property>
+        <property name="address" value="${development.redis.address}"></property>
+        <property name="port" value="${development.redis.port}"></property>
+        <property name="timeout" value="${development.redis.timeout}"></property>
+        <property name="reConnection" value="${development.redis.reConnection}"></property>
+    </bean>  -->
+    
+    <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<property name="maxTotal" value="${redis.maxTotal}" />
+		<property name="maxIdle" value="${redis.maxIdle}" />
+		<property name="minIdle" value="${redis.minIdle}" />
+		<property name="maxWaitMillis" value="${redis.maxWaitMillis}" />
+		<property name="testOnBorrow" value="${redis.testOnBorrow}" />
+		<property name="testOnReturn" value="${redis.testOnReturn}" />
+		<property name="testWhileIdle" value="${redis.testWhileIdle}" />
+	</bean>
+	<bean id="redisSentinel" class="com.tianque.core.redis.connection.JedisSentinelShardPool">
+		<constructor-arg index="0" value="${development.redis.masterName}" />
+		<constructor-arg index="1">
+			<set>
+				<value>${development.redis.sentinel}</value>
+			</set>
+		</constructor-arg>
+		<constructor-arg index="2" ref="jedisPoolConfig" />
+		<constructor-arg index="3" value="${development.redis.timeout}" />
+		<constructor-arg index="4" value="${development.redis.password}" />
+	</bean>
+	<!--job持久化，这个文件可以不用了-->
+	<!-- <import resource="applicationContext-job.xml"/> -->
+    <import resource="applicationContext-mq-development.xml"/>
+    <import resource="applicationContext-dubbo-development.xml"/>
+    <bean id="schedulerFactoryBean"
+		class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="applicationContextSchedulerContextKey" value="applicationContext" />
+	</bean>
+</beans>

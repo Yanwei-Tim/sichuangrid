@@ -1,0 +1,143 @@
+package com.tianque.plugin.weChat.dao.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.plugin.weChat.dao.WeChatMenuDao;
+import com.tianque.plugin.weChat.domain.ModuleTable;
+import com.tianque.plugin.weChat.domain.user.WeChatMenu;
+
+@Repository("weChatMenuDao")
+public class WeChatMenuDaoImpl extends AbstractBaseDao implements WeChatMenuDao {
+	/**
+	 * 微信菜单 列表
+	 * @param parameterMap
+	 * @param pageNum
+	 * @param pageSize
+	 * @return
+	 */
+	public PageInfo<WeChatMenu> findWeChatMenu(Map<String, Object> parameterMap, Integer pageNum,
+			Integer pageSize) {
+		return getPageInfoByParamMap(new PageInfo<ModuleTable>(), "chatMenu.countFindWeChatMenu",
+				"chatMenu.findWeChatMenu", pageNum, pageSize, parameterMap);
+
+	}
+
+	/**
+	 * 菜单与素材绑定
+	 * @param weChatMenu
+	 * @return
+	 */
+	public Integer updateWeChatMenu(WeChatMenu weChatMenu) {
+		return (Integer) getSqlMapClientTemplate().update("chatMenu.updateWeChatMenu", weChatMenu);
+	}
+
+	/**
+	 * 根据sourceid修改素材描述
+	 * @param weChatMenu
+	 * @return
+	 */
+	public Integer updateWeChatMenuBySourceId(WeChatMenu weChatMenu) {
+		return (Integer) getSqlMapClientTemplate().update("chatMenu.updateWeChatMenuBySourceId",
+				weChatMenu);
+	}
+
+	/**
+	 * 根据服务号修改菜单
+	 * @param weChatMenu
+	 * @return
+	 */
+	public Integer updateWeChatMenuByWeChatUserId(WeChatMenu weChatMenu) {
+		return (Integer) getSqlMapClientTemplate().update(
+				"chatMenu.updateWeChatMenuByWeChatUserId", weChatMenu);
+	}
+
+	/**
+	 * 加载微信菜单对象
+	 * @param id
+	 * @return
+	 */
+	public WeChatMenu getWeChatMenuById(Long id) {
+		return (WeChatMenu) getSqlMapClientTemplate().queryForObject("chatMenu.getWeChatMenuById",
+				id);
+	}
+
+	/**
+	 * 根据素材id加载微信菜单（条件like）
+	 * @param sourceId
+	 * @return
+	 */
+	public List<WeChatMenu> getWeChatMenuBySourceId(String sourceId) {
+		return (List<WeChatMenu>) getSqlMapClientTemplate().queryForList(
+				"chatMenu.getWeChatMenuBySourceId", sourceId);
+
+	}
+
+	/**
+	 * 根据服务号和key加载菜单
+	 * @param id
+	 * @return
+	 */
+	public WeChatMenu getWeChatMenuByMenuKeyAndWeChatUserId(String menuKey, String weChatUserId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("weChatUserId", weChatUserId);
+		map.put("menuKey", menuKey);
+		return (WeChatMenu) getSqlMapClientTemplate().queryForObject(
+				"chatMenu.getWeChatMenuByMenuKeyAndWeChatUserId", map);
+	}
+
+	/**
+	 * 根据服务号和层级加载菜单 
+	 * @param rank 1:一级 2：二级
+	 * @param weChatUserId
+	 * @return
+	 */
+	public List<WeChatMenu> getWeChatMenuByWeChatUserIdAndRank(Long rank, String weChatUserId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("weChatUserId", weChatUserId);
+		map.put("rank", rank);
+		return (List<WeChatMenu>) getSqlMapClientTemplate().queryForList(
+				"chatMenu.getWeChatMenuByWeChatUserIdAndRank", map);
+	}
+
+	/**
+	 * 根据服务号和叶子结点加载菜单 
+	 * @param isLeaf（1：无结点，2：有结点）
+	 * @param weChatUserId
+	 * @return
+	 */
+	public List<WeChatMenu> getWeChatMenuByWeChatUserIdAndIsleaf(Long isLeaf, String weChatUserId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("weChatUserId", weChatUserId);
+		map.put("isLeaf", isLeaf);
+		return (List<WeChatMenu>) getSqlMapClientTemplate().queryForList(
+				"chatMenu.getWeChatMenuByWeChatUserIdAndIsleaf", map);
+	}
+
+	/**
+	 * 根据微服务号删除菜单
+	 * @param weChatUserId
+	 * @return
+	 */
+	public Integer deleteWeChatMenuByWeChatUserId(String weChatUserId) {
+		return (Integer) getSqlMapClientTemplate().delete(
+				"chatMenu.deleteWeChatMenuByWeChatUserId", weChatUserId);
+	}
+
+	/**
+	 * 保存菜单
+	 * @param weChatMenu
+	 * @return
+	 */
+
+	public Long addWeChatMenu(WeChatMenu weChatMenu) {
+		return (Long) getSqlMapClientTemplate().insert("chatMenu.saveWeChatMenu", weChatMenu);
+
+	}
+
+}

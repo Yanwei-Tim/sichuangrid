@@ -1,0 +1,718 @@
+package com.tianque.plugin.taskList.controller;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.apache.struts2.json.annotations.JSON;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.util.FileUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.datatransfer.ExcelWriter;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+
+import com.tianque.plugin.analyzing.domain.OrgLoginStanals;
+import com.tianque.plugin.taskList.domain.BaseTaskVisit;
+import com.tianque.plugin.taskList.domain.FloatingPopulationTask;
+import com.tianque.plugin.taskList.domain.HiddenDangerTask;
+import com.tianque.plugin.taskList.domain.Receipt;
+import com.tianque.plugin.taskList.domain.TaskListAttachFile;
+import com.tianque.plugin.taskList.domain.TaskListReply;
+import com.tianque.plugin.taskList.service.TaskListAttachFileService;
+import com.tianque.plugin.taskList.service.TaskListCommonService;
+
+@Scope("request")
+@Namespace("/plugin/taskListManage/common")
+@Controller("taskListCommonController")
+public class TaskListCommonController extends BaseAction {
+	@Autowired
+	private TaskListCommonService taskListCommonService;
+	@Autowired
+	private TaskListAttachFileService taskListAttachFileService;
+	/** 当前系统时间  **/
+	private Date nowDate;
+	/** 签收的基本信息  **/
+	private Receipt receipt;
+	private Long orgId;
+	private List<BaseTaskVisit> allList;
+	private List<FloatingPopulationTask> floatingPopulationTaskList;
+	private List<HiddenDangerTask> hiddenDangerList;
+	private String signType;
+
+	private TaskListReply taskListReply;
+	private List<TaskListReply> taskListReplyList;
+	private String attachFileNames;
+	/** 附件id **/
+	private Long attachFileId;
+
+	@Action(value = "getNowDate", results = {
+			@Result(name = "success", type = "json", params = { "root", "nowDate" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String getSystemNowDate() throws Exception {
+		nowDate = CalendarUtil.now();
+		return SUCCESS;
+	}
+
+	@Action(value = "signRecord", results = {
+			@Result(name = "success", type = "json", params = { "root", "true" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String signRecord() throws Exception {
+		taskListCommonService.updateReceiptStatus(receipt, signType);
+		return SUCCESS;
+	}
+
+	/**
+	 * 任务清单报表数据
+	 * 
+	 */
+	@Action(value = "getVisitList", results = {
+			@Result(name = "success", type = "json", params = { "root", "allList" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String getVisitList() throws Exception {
+		if (orgId == null) {
+			this.errorMessage = "部门编号错误!";
+			return ERROR;
+		}
+		allList = taskListCommonService.getAllKindTask(orgId);
+		return SUCCESS;
+	}
+
+	/**
+	 * 流动人口报表数据
+	 * 
+	 */
+	@Action(value = "getFloatingPopulationVisitList", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"floatingPopulationTaskList" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String getFloatingPopulationVisitList() throws Exception {
+		if (orgId == null) {
+			this.errorMessage = "部门编号错误!";
+			return ERROR;
+		}
+		floatingPopulationTaskList = taskListCommonService.getFloatingPopulationTaskList(orgId);
+		return SUCCESS;
+	}
+
+	/**
+	 * 发现治安隐患报表数据
+	 * 
+	 */
+	@Action(value = "getHiddenDangerVisitList", results = {
+			@Result(name = "success", type = "json", params = { "root", "hiddenDangerList" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String getHiddenDangerVisitList() throws Exception {
+		if (orgId == null) {
+			this.errorMessage = "部门编号错误!";
+			return ERROR;
+		}
+		hiddenDangerList = taskListCommonService.getHiddenDangerVisitList(orgId);
+		return SUCCESS;
+	}
+
+	/**
+	 * 附件下载
+	 * @return
+	 * @throws Exception
+	 */
+	@Action(value = "downLoadAttachFile")
+	public String downLoadActualFile() throws Exception {
+		if (attachFileId == null) {
+			throw new BusinessValidationException("参数为空");
+		}
+		TaskListAttachFile attachFile = taskListAttachFileService
+				.getTaskListAttachFileById(attachFileId);
+		if (attachFile == null) {
+			throw new BusinessValidationException("任务清单附件不存在");
+		}
+		try {
+			inputStream = new java.io.FileInputStream(FileUtil.getWebRoot() + File.separator
+					+ attachFile.getPhysicsFullFileName());
+			downloadFileName = new String(attachFile.getFileName().getBytes("gbk"), "ISO8859-1");
+		} catch (FileNotFoundException e) {
+			throw new ServiceValidationException("附件文件不存在", e);
+		} catch (UnsupportedEncodingException uee) {
+			throw new ServiceValidationException("文件编码格式不正确", uee);
+		}
+		return STREAM_SUCCESS;
+	}
+
+	/**
+	 * 添加回复弹窗
+	 * @Title: addTaskListReply 
+	 * @return
+	 * @return: String
+	 */
+	@Action(value = "addTaskListReplyDlg", results = {
+			@Result(name = "success", location = "/task/reply/addTaskListReplyDlg.jsp"),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String addTaskListReplyDlg() {
+		if (taskListReply == null || StringUtils.isBlank(taskListReply.getModuleKey())
+				|| taskListReply.getTaskId() == null) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		taskListReply.setReplyDate(new Date());
+		taskListReply.setReplyUser(ThreadVariable.getUser().getName());
+		return SUCCESS;
+	}
+
+	@Action(value = "taskListReplyListDlg", results = {
+			@Result(name = "success", location = "/task/reply/taskListReplyListDlg.jsp"),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String taskListReplyListDlg() {
+		if (taskListReply == null) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		if (StringUtils.isBlank(taskListReply.getModuleKey())) {
+			errorMessage = "参数错误[moduleKey]";
+			return ERROR;
+		}
+		if (taskListReply.getTaskId() == null) {
+			errorMessage = "参数错误[taskId]";
+			return ERROR;
+		}
+		taskListReplyList = taskListCommonService.queryTaskListReplyByTaskId(
+				taskListReply.getModuleKey(), taskListReply.getTaskId());
+		for (TaskListReply t : taskListReplyList) {
+			t.setAnnexFiles(taskListAttachFileService.queryTaskListAttachFilesByBusinessId(
+					t.getId(), taskListReply.getModuleKey()));
+		}
+		return SUCCESS;
+	}
+
+	/**
+	 * 添加回复
+	 * @Title: addTaskListReply 
+	 * @return
+	 * @return: String
+	 */
+	@Action(value = "addTaskListReply", results = {
+			@Result(name = "success", type = "json", params = { "root", "true" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String addTaskListReply() {
+		if (StringUtils.isNotBlank(attachFileNames)) {
+			taskListReply.setAttachFileNames(attachFileNames.split(","));
+		}
+		taskListCommonService.addTaskListReply(taskListReply);
+		return SUCCESS;
+	}
+
+	/**
+	 * 查询回复
+	 * @Title: queryTaskListReplyByTaskId 
+	 * @return
+	 * @return: String
+	 */
+	@Action(value = "queryTaskListReplyByTaskId", results = {
+			@Result(name = "success", type = "json", params = { "root", "taskListReplyList" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String queryTaskListReplyByTaskId() {
+		taskListReplyList = taskListCommonService.queryTaskListReplyByTaskId(
+				taskListReply.getModuleKey(),
+				taskListReply.getTaskId());
+		return SUCCESS;
+	}
+	/**
+	 * 特殊人群统计报表列表信息
+	 * 
+	 */
+	@Action(value = "getSpecialGroupSumAndVisitList", results = {
+			@Result(name = "success", type = "json", params = { "root", "allList" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String getSpecialGroupSumAndVisitList() throws Exception {
+		if (orgId == null) {
+			this.errorMessage = "部门编号错误!";
+			return ERROR;
+		}
+		allList = taskListCommonService.getSpecialGroupSumAndVisitList(orgId);
+		return SUCCESS;
+	}
+	
+	/**
+	 **********************************************************************
+	 * 
+	 * 任务清单报表导出
+	 * 
+	 *
+	 */
+	
+	@Action(value = "downloadTask", results = {
+			@Result(name = "success", type = "stream", params = { "contentType", "application/vnd.ms-excel;charset=ISO8859-1",
+					"inputName","inputStream","contentDisposition","attachment;filename='${downloadFileName}'","bufferSize","4096" }),
+			@Result(name = "error", type = "json", params = {"root","errorMessage"}) })
+	public String downloadTask() throws Exception {
+		if (orgId == null) {
+			errorMessage = "无法定位需要导出的数据";
+			return ERROR;
+		} else {
+			List<BaseTaskVisit> records = new ArrayList<BaseTaskVisit>();
+			records = taskListCommonService.getAllKindTask(orgId);
+			inputStream = exportTaskList(records);
+			downloadFileName = new String("任务清单统计报表".getBytes("gbk"),
+					"ISO8859-1") + ".xls";
+		}
+		return SUCCESS;
+	}
+	
+	
+	private InputStream exportTaskList(List<BaseTaskVisit> records)
+			throws Exception {
+		ExcelWriter writer = constructExcelWriter();
+		writer.addWorkSheet("任务清单统计报表");
+		appendTableHead(writer, "任务清单统计报表");
+		int index=0;
+		for ( ;index < records.size(); index++) {
+			BaseTaskVisit baseTaskVisit = records.get(index);
+			appendRow(writer, index + 4,baseTaskVisit);
+		}
+		return new java.io.FileInputStream(writer.getExcelFile(UUID
+				.randomUUID() + ".xls"));
+	}
+	
+	private void appendRow(ExcelWriter writer,int index,BaseTaskVisit visit){
+		writer.addCell(index, 0, visit.getOrgname().toString());
+		writer.addCell(index, 1, visit.getPoliceSum().toString());
+		writer.addCell(index, 2, visit.getPoliceVisit().toString());
+		writer.addCell(index, 3, visit.getPublicSum().toString());
+		writer.addCell(index, 4, visit.getPublicVisit().toString());
+		writer.addCell(index, 5, visit.getExceptionSum().toString());
+		writer.addCell(index, 6, visit.getExceptionVisit().toString());
+		writer.addCell(index, 7, visit.getDruggySum().toString());
+		writer.addCell(index, 8, visit.getDruggyVisit().toString());
+		writer.addCell(index, 9, visit.getMentalPatientSum().toString());
+		writer.addCell(index, 10, visit.getMentalPatientJusticeVisit().toString());
+		writer.addCell(index, 11, visit.getMentalPatientPoliceVisit().toString());
+		writer.addCell(index, 12, visit.getRectificativeSum().toString());
+		writer.addCell(index, 13, visit.getRectificativeVisit().toString());
+		writer.addCell(index, 14, visit.getPositiveSum().toString());
+		writer.addCell(index, 15, visit.getPositiveVisit().toString());
+		writer.addCell(index, 16, visit.getHiddenDangerSum().toString());
+		writer.addCell(index, 17, visit.getHiddenDangerVisit().toString());
+		
+	}
+	
+	private void appendTableHead(ExcelWriter writer, String string
+			) {
+		writer.addCell(0, 0, "任务清单报表").mergeTo(0, 17).setFont("宋体", 20, true, false, false, false)
+		.setHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_CENTER);
+		writer.addCell(1, 0, "区域").setFont("宋体", 12, true, false, false, false).mergeTo(3, 0)
+			.setHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_CENTER);
+		writer.addCell(1, 1, "流动人口").setFont("宋体", 12, true, false, false, false).mergeTo(1, 6)
+		.setHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_CENTER);
+		writer.addCell(1, 7, "吸毒人员").setFont("宋体", 12, true, false, false, false).mergeTo(2, 8)
+		.setHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_CENTER);
+		writer.addCell(1, 9, "严重精神障碍患者").setFont("宋体", 12, true, false, false, false).mergeTo(2, 11)
+		.setHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_CENTER);
+		writer.addCell(1, 12, "社区服刑人员").setFont("宋体", 12, true, false, false, false).mergeTo(2, 13)
+		.setHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_CENTER);
+		writer.addCell(1, 14, "刑释人员").setFont("宋体", 12, true, false, false, false).mergeTo(2, 15)
+		.setHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_CENTER);
+		writer.addCell(1, 16, "发现治安隐患").setFont("宋体", 12, true, false, false, false).mergeTo(2, 17)
+		.setHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_CENTER);
+		writer.addCell(1, 16, "发现治安隐患").setFont("宋体", 12, true, false, false, false).mergeTo(2, 17)
+		.setHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_CENTER);
+		writer.addCell(2, 1, "宣传核查").setFont("宋体", 12, true, false, false, false).mergeTo(2, 2)
+		.setHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_CENTER);
+		writer.addCell(2, 3, "民警带领开展工作").setFont("宋体", 12, true, false, false, false).mergeTo(2, 4)
+		.setHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_CENTER);
+		writer.addCell(2, 5, "异常情况报告").setFont("宋体", 12, true, false, false, false).mergeTo(2, 6)
+		.setHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_CENTER);
+		writer=mergeCell(3,1,"网格员发送",3,1,writer);
+		writer=mergeCell(3,2,"已签收",3,2,writer);
+		writer=mergeCell(3,3,"网格员发送",3,3,writer);
+		writer=mergeCell(3,4,"已签收",3,4,writer);
+		writer=mergeCell(3,5,"网格员发送",3,5,writer);
+		writer=mergeCell(3,6,"已签收",3,6,writer);
+		
+		writer=mergeCell(3,7,"网格员发送",3,7,writer);
+		writer=mergeCell(3,8,"已签收",3,8,writer);
+		
+		writer=mergeCell(3,9,"网格员发送",3,9,writer);
+		writer=mergeCell(3,10,"已签收",3,10,writer);
+		writer=mergeCell(3,11,"网格员发送",3,11,writer);
+		
+		writer=mergeCell(3,12,"已签收",3,12,writer);
+		writer=mergeCell(3,13,"网格员发送",3,13,writer);
+		writer=mergeCell(3,14,"已签收",3,14,writer);
+		writer=mergeCell(3,15,"网格员发送",3,15,writer);
+		writer=mergeCell(3,16,"已签收",3,16,writer);
+		writer=mergeCell(3,17,"网格员发送",3,17,writer);
+		
+	}
+	
+	/***************************************************************
+	 * 
+	 * 流动人口统计报表导出
+	 * 
+	 */
+	@Action(value = "downloadFloating", results = {
+			@Result(name = "success", type = "stream", params = { "contentType", "application/vnd.ms-excel;charset=ISO8859-1",
+					"inputName","inputStream","contentDisposition","attachment;filename='${downloadFileName}'","bufferSize","4096" }),
+			@Result(name = "error", type = "json", params = {"root","errorMessage"}) })
+	public String downloadFloating() throws Exception {
+		if (orgId == null) {
+			errorMessage = "无法定位需要导出的数据";
+			return ERROR;
+		} else {
+			List<FloatingPopulationTask> records = new ArrayList<FloatingPopulationTask>();
+			records = taskListCommonService.getFloatingPopulationTaskList(orgId);
+			inputStream = exportFloating(records);
+			downloadFileName = new String("流动人口统计报表".getBytes("gbk"),
+					"ISO8859-1") + ".xls";
+		}
+		return SUCCESS;
+	}
+	
+
+	private InputStream exportFloating(List<FloatingPopulationTask> records) 
+			throws Exception{
+		ExcelWriter writer = constructExcelWriter();
+		writer.addWorkSheet("流动人口统计报表");
+		appendTableHead1(writer, "流动人口统计报表");
+		int index=0;
+		for ( ;index < records.size(); index++) {
+			FloatingPopulationTask floatingPopulationTask = records.get(index);
+			appendRow1(writer, index + 4,floatingPopulationTask);
+		}
+		return new java.io.FileInputStream(writer.getExcelFile(UUID
+				.randomUUID() + ".xls"));
+	}
+	
+	private void appendRow1(ExcelWriter writer,int index,FloatingPopulationTask floating){
+		writer.addCell(index, 0, floating.getOrgname().toString());
+		writer.addCell(index, 1, floating.getPoliceSum().toString());
+		writer.addCell(index, 2, floating.getPoliceVisit().toString());
+		writer.addCell(index, 3, floating.getPublicSum().toString());
+		writer.addCell(index, 4, floating.getPublicVisit().toString());
+		writer.addCell(index, 5, floating.getPublicSum().toString());
+		writer.addCell(index, 6, floating.getPublicVisit().toString());
+		writer.addCell(index, 7, floating.getPublicSum().toString());
+		writer.addCell(index, 8, floating.getPublicVisit().toString());
+		writer.addCell(index, 9, floating.getPublicSum().toString());
+		writer.addCell(index, 10, floating.getPoliceVisit().toString());
+		writer.addCell(index, 11, floating.getNoIdcardSum().toString());
+		writer.addCell(index, 12, floating.getNoIdcardVisit().toString());
+		writer.addCell(index, 13, floating.getGroupLiveSum().toString());
+		writer.addCell(index, 14, floating.getGroupLiveVisit().toString());
+		writer.addCell(index, 15, floating.getLiveSum().toString());
+		writer.addCell(index, 16, floating.getLiveVisit().toString());
+		writer.addCell(index, 17, floating.getFloatingPopulationSum().toString());
+		writer.addCell(index, 18, floating.getFloatingPopulationVisit().toString());
+	}
+	
+	private void appendTableHead1(ExcelWriter writer, String string
+			) {
+		writer.addCell(0, 0, "流动人口统计表").mergeTo(0, 18).setFont("宋体", 20, true, false, false, false)
+		.setHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_CENTER);
+		writer=mergeCell(1,0,"区域",3,0,writer);
+		writer=mergeCell(1,1,"宣传核查",2,2,writer);
+		writer=mergeCell(1,3,"民警带领开展工作",2,4,writer);
+		writer=mergeCell(1,5,"异常情况报告",1,16,writer);
+		writer=mergeCell(1,17,"总数",2,18,writer);
+		
+		writer=mergeCell(2,5,"大量聚集",2,6,writer);
+		writer=mergeCell(2,7,"异常气味",2,8,writer);
+		writer=mergeCell(2,9,"异常声音",2,10,writer);
+		writer=mergeCell(2,11,"无身份证",2,12,writer);
+		writer=mergeCell(2,13,"群租房人员来往复杂",2,14,writer);
+		writer=mergeCell(2,15,"已搬走",2,16,writer);
+		
+		writer=mergeCell(3,1,"已发送",3,1,writer);
+		writer=mergeCell(3,2,"已签收",3,2,writer);
+		writer=mergeCell(3,3,"已发送",3,3,writer);
+		writer=mergeCell(3,4,"已签收",3,4,writer);
+		writer=mergeCell(3,5,"已发送",3,5,writer);
+		writer=mergeCell(3,6,"已签收",3,6,writer);
+		writer=mergeCell(3,7,"已发送",3,7,writer);
+		writer=mergeCell(3,8,"已签收",3,8,writer);
+		writer=mergeCell(3,9,"已发送",3,9,writer);
+		writer=mergeCell(3,10,"已签收",3,10,writer);
+		writer=mergeCell(3,11,"已发送",3,11,writer);
+		writer=mergeCell(3,12,"已签收",3,12,writer);
+		writer=mergeCell(3,13,"已发送",3,13,writer);
+		writer=mergeCell(3,14,"已签收",3,14,writer);
+		writer=mergeCell(3,15,"已发送",3,15,writer);
+		writer=mergeCell(3,16,"已签收",3,16,writer);
+		writer=mergeCell(3,17,"已发送",3,17,writer);
+		writer=mergeCell(3,18,"已签收",3,18,writer);
+		
+	}
+
+	/*
+	 * ***************************************************************
+	 * 特殊人群统计表导出
+	 * 
+	 */
+	@Action(value = "downloadSpecial", results = {
+			@Result(name = "success", type = "stream", params = { "contentType", "application/vnd.ms-excel;charset=ISO8859-1",
+					"inputName","inputStream","contentDisposition","attachment;filename='${downloadFileName}'","bufferSize","4096" }),
+			@Result(name = "error", type = "json", params = {"root","errorMessage"}) })
+	public String downloadSpecial() throws Exception {
+		if (orgId == null) {
+			errorMessage = "无法定位需要导出的数据";
+			return ERROR;
+		} else {
+			List<BaseTaskVisit> records = new ArrayList<BaseTaskVisit>();
+			records = taskListCommonService.getSpecialGroupSumAndVisitList(orgId);
+			inputStream = exportSpecial(records);
+			downloadFileName = new String("特殊人群统计报表".getBytes("gbk"),
+					"ISO8859-1") + ".xls";
+		}
+		return SUCCESS;
+	}
+	
+
+	private InputStream exportSpecial(List<BaseTaskVisit> records) 
+			throws Exception{
+		ExcelWriter writer = constructExcelWriter();
+		writer.addWorkSheet("特殊人群统计报表");
+		appendTableHead2(writer, "特殊人群统计报表");
+		int index=0;
+		for ( ;index < records.size(); index++) {
+			BaseTaskVisit baseTaskVisit = records.get(index);
+		appendRow2(writer, index + 3,baseTaskVisit);
+		}
+		return new java.io.FileInputStream(writer.getExcelFile(UUID
+				.randomUUID() + ".xls"));
+	}
+	
+	private void appendRow2(ExcelWriter writer,int index,BaseTaskVisit special){
+		writer.addCell(index, 0, special.getOrgname().toString());
+		writer.addCell(index, 1, special.getDruggySum().toString());	
+		writer.addCell(index, 2, special.getDruggyVisit().toString());
+		writer.addCell(index, 3, special.getMentalPatientSum().toString());
+		writer.addCell(index, 4, special.getMentalPatientJusticeVisit().toString());
+		writer.addCell(index, 5, special.getMentalPatientPoliceVisit().toString());
+		writer.addCell(index, 6, special.getRectificativeSum().toString());
+		writer.addCell(index, 7, special.getRectificativeVisit().toString());
+		writer.addCell(index, 8, special.getPositiveSum().toString());
+		writer.addCell(index, 9, special.getPositiveVisit().toString());
+	}
+	
+	private void appendTableHead2(ExcelWriter writer, String string
+			) {
+		writer.addCell(0, 0, "特殊人群统计表").mergeTo(0, 9).setFont("宋体", 20, true, false, false, false)
+		.setHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_CENTER);
+		writer=mergeCell(1,0,"区域",2,0,writer);
+		writer=mergeCell(1,1,"吸毒人员",1,2,writer);
+		writer=mergeCell(1,3,"严重精神障碍患者",1,5,writer);
+		writer=mergeCell(1,6,"社区服刑人员",1,7,writer);
+		writer=mergeCell(1,8,"刑释人员",1,9,writer);
+		
+		writer=mergeCell(2,1,"网格员发送",2,1,writer);
+		writer=mergeCell(2,2,"已签收",2,2,writer);
+		writer=mergeCell(2,3,"网格员发送",2,3,writer);
+		writer=mergeCell(2,4,"卫生所签收",2,4,writer);
+		writer=mergeCell(2,5,"派出所签收",2,5,writer);
+		writer=mergeCell(2,6,"网格员发送",2,6,writer);
+		writer=mergeCell(2,7,"已签收",2,7,writer);
+		writer=mergeCell(2,8,"网格员发送",2,8,writer);
+		writer=mergeCell(2,9,"已签收",2,9,writer);
+	}
+	
+	/*
+	 * ****************************************
+	 * 发现治安隐患统计表导出
+	 */
+	@Action(value = "downloadHiddenDanger", results = {
+			@Result(name = "success", type = "stream", params = { "contentType", "application/vnd.ms-excel;charset=ISO8859-1",
+					"inputName","inputStream","contentDisposition","attachment;filename='${downloadFileName}'","bufferSize","4096" }),
+			@Result(name = "error", type = "json", params = {"root","errorMessage"}) })
+	public String downloadHiddenDanger() throws Exception {
+		if (orgId == null) {
+			errorMessage = "无法定位需要导出的数据";
+			return ERROR;
+		} else {
+			List<HiddenDangerTask> records = new ArrayList<HiddenDangerTask>();
+			records = taskListCommonService.getHiddenDangerVisitList(orgId);
+			inputStream = exportHiddenDanger(records);
+			downloadFileName = new String("发现治安隐患统计报表".getBytes("gbk"),
+					"ISO8859-1") + ".xls";
+		}
+		return SUCCESS;
+	}
+	
+
+	private InputStream exportHiddenDanger(List<HiddenDangerTask> records) 
+			throws Exception{
+		ExcelWriter writer = constructExcelWriter();
+		writer.addWorkSheet("发现治安隐患统计报表");
+		appendTableHead3(writer, "发现治安隐患统计报表");
+		int index=0;
+		for ( ;index < records.size(); index++) {
+			HiddenDangerTask hiddenDangerTask = records.get(index);
+		appendRow3(writer, index + 2,hiddenDangerTask);
+		}
+		return new java.io.FileInputStream(writer.getExcelFile(UUID
+				.randomUUID() + ".xls"));
+	}
+	
+	private void appendRow3(ExcelWriter writer,int index,HiddenDangerTask hidden){
+		writer.addCell(index, 0, hidden.getOrgname().toString());
+		writer.addCell(index, 1, hidden.getHiddenDangerSum().toString());	
+		writer.addCell(index, 2, hidden.getHiddenDangerVisit().toString());
+		writer.addCell(index, 3, hidden.getExplosion().toString());
+		writer.addCell(index, 4, hidden.getGunAndExplosion().toString());
+		writer.addCell(index, 5, hidden.getMakeDruggy().toString());
+		writer.addCell(index, 6, hidden.getDrinkDruggy().toString());
+		writer.addCell(index, 7, hidden.getCultActive().toString());
+		writer.addCell(index, 8, hidden.getFake().toString());
+		writer.addCell(index, 9, hidden.getYellow().toString());
+		writer.addCell(index, 10, hidden.getDrink().toString());
+		writer.addCell(index, 11, hidden.getPyramidSelling().toString());
+		writer.addCell(index, 12, hidden.getFire().toString());
+		writer.addCell(index, 13, hidden.getReceiveGood().toString());
+		writer.addCell(index, 14, hidden.getDestroyGood().toString());
+		writer.addCell(index, 15, hidden.getNoGuard().toString());
+		writer.addCell(index, 16, hidden.getOtherException().toString());
+	}
+	
+	private void appendTableHead3(ExcelWriter writer, String string
+			) {
+		writer.addCell(0, 0, "发现治安隐患统计表").mergeTo(0, 16).setFont("宋体", 20, true, false, false, false)
+		.setHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_CENTER);
+		writer=mergeCell(1,0,"区域",1,0,writer);
+		writer=mergeCell(1,1,"网格员发送",1,1,writer);
+		writer=mergeCell(1,2,"已签收",1,2,writer);
+		writer=mergeCell(1,3,"易涉暴",1,3,writer);
+		writer=mergeCell(1,4,"涉枪涉爆",1,4,writer);
+		writer=mergeCell(1,5,"涉制毒",1,5,writer);
+		writer=mergeCell(1,6,"涉吸毒",1,6,writer);
+		writer=mergeCell(1,7,"邪教活动",1,7,writer);
+		writer=mergeCell(1,8,"制假贩假",1,8,writer);
+		writer=mergeCell(1,9,"涉黄",1,9,writer);
+		writer=mergeCell(1,10,"涉赌",1,10,writer);
+		writer=mergeCell(1,11,"传销",1,11,writer);
+		writer=mergeCell(1,12,"火灾隐患",1,12,writer);
+		writer=mergeCell(1,13,"收赃",1,13,writer);
+		writer=mergeCell(1,14,"销赃",1,14,writer);
+		writer=mergeCell(1,15,"无守楼护院人员",1,15,writer);
+		writer=mergeCell(1,16,"其他异常事件",1,16,writer);
+	}
+	
+	private ExcelWriter mergeCell(int m,int n,String str,int x,int y,ExcelWriter writer){
+		writer.addCell(m, n, str).setFont("宋体", 12, true, false, false, false).mergeTo(x, y)
+		.setHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_CENTER);
+		return writer;
+	}
+	
+	private ExcelWriter constructExcelWriter() { 	 	
+		ExcelWriter writer = new ExcelWriter();
+		writer.setDefaultFont("宋体", (short) 12, false, false, false, false);
+		writer.setDefaultCellBorder(true);
+		writer.setDefaultHorizontalAlignment(ExcelWriter.HORIZONTAL_ALIGN_LEFT);
+		writer.setDefaultVerticalAlignment(ExcelWriter.VERTICAL_ALIGN_CENTER);
+		return writer;
+	}
+	
+
+	
+
+	public void setNowDate(Date nowDate) {
+		this.nowDate = nowDate;
+	}
+
+	@JSON(format = "yyyy-MM-dd HH:mm:ss")
+	public Date getNowDate() {
+		return nowDate;
+	}
+
+	public Receipt getReceipt() {
+		return receipt;
+	}
+
+	public void setReceipt(Receipt receipt) {
+		this.receipt = receipt;
+	}
+
+	public List<HiddenDangerTask> getHiddenDangerList() {
+		return hiddenDangerList;
+	}
+
+	public void setHiddenDangerList(List<HiddenDangerTask> hiddenDangerList) {
+		this.hiddenDangerList = hiddenDangerList;
+	}
+
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+	public List<BaseTaskVisit> getAllList() {
+		return allList;
+	}
+
+	public void setAllList(List<BaseTaskVisit> allList) {
+		this.allList = allList;
+	}
+
+	public List<FloatingPopulationTask> getFloatingPopulationTaskList() {
+		return floatingPopulationTaskList;
+	}
+
+	public void setFloatingPopulationTaskList(
+			List<FloatingPopulationTask> floatingPopulationTaskList) {
+		this.floatingPopulationTaskList = floatingPopulationTaskList;
+	}
+
+	public String getSignType() {
+		return signType;
+	}
+
+	public void setSignType(String signType) {
+		this.signType = signType;
+	}
+
+	public Long getAttachFileId() {
+		return attachFileId;
+	}
+
+	public void setAttachFileId(Long attachFileId) {
+		this.attachFileId = attachFileId;
+	}
+
+	public TaskListReply getTaskListReply() {
+		return taskListReply;
+	}
+
+	public void setTaskListReply(TaskListReply taskListReply) {
+		this.taskListReply = taskListReply;
+	}
+
+	public List<TaskListReply> getTaskListReplyList() {
+		return taskListReplyList;
+	}
+
+	public void setTaskListReplyList(List<TaskListReply> taskListReplyList) {
+		this.taskListReplyList = taskListReplyList;
+	}
+
+	public String getAttachFileNames() {
+		return attachFileNames;
+	}
+
+	public void setAttachFileNames(String attachFileNames) {
+		this.attachFileNames = attachFileNames;
+	}
+
+}

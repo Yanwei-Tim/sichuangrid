@@ -1,0 +1,635 @@
+--食药工商建表
+--政策法规宣传序列
+create sequence s_Policy_Propaganda
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+/*==============================================================*/
+/* Table: Policy_Propaganda     政策法规宣传                                */
+/*==============================================================*/
+create table Policy_Propaganda 
+(
+   id                   number(10)                     not null,
+   input_Time           date,
+   address              VARCHAR2(150),
+   Category             number(10),
+   Details              varchar2(300),
+   remake               varchar2(900),
+   isSign               number(1) default 0,
+   isreply              number(1) default 0,
+   signDate             date,
+   signpeople           varchar2(30),
+   signContent          varchar2(900),
+   telephone			varchar2(12),
+   create_date          date,
+   create_user          varchar2(30),
+   update_date          date,
+   update_user          varchar2(30),
+   ORGID                NUMBER(10) not null,
+   ORGINTERNALCODE      VARCHAR2(50),
+   constraint PK_POLICY_PROPAGANDA primary key   (id)
+);
+
+comment on table Policy_Propaganda is 
+'政策法规宣传';
+
+comment on column Policy_Propaganda.id is 
+'编号';
+
+comment on column Policy_Propaganda.input_Time is 
+'录入时间';
+
+comment on column Policy_Propaganda.address is 
+'地址';
+
+comment on column Policy_Propaganda.Category is 
+'类别';
+
+comment on column Policy_Propaganda.Details is 
+'详细情况';
+
+comment on column Policy_Propaganda.remake is 
+'备注';
+
+comment on column Policy_Propaganda.isSign is 
+'是否签收 0：未签收 1：已签收';
+
+comment on column Policy_Propaganda.isreply is 
+'是否回复0：未回复1：已回复';
+
+comment on column Policy_Propaganda.signDate is 
+'签收时间';
+
+comment on column Policy_Propaganda.signpeople is 
+'签收人';
+
+comment on column Policy_Propaganda.signContent is 
+'签收意见';
+
+--食品安全协管序列
+create sequence s_food_safty
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+/*==============================================================*/
+/* Table: food_safty      食品安全协管                                      */
+/*==============================================================*/
+create table food_safty 
+(
+   id                   number(10)                     not null,
+   input_Time           date,
+   address              VARCHAR2(150),
+   Category             number(10),
+   Details              varchar2(300),
+   Declaration          number(10),
+   personnel            varchar2(300),
+   remake               varchar2(900),
+   isSign               number(1) default 0,
+   isreply              number(1) default 0,
+   signDate             date,
+   signpeople           varchar2(30),
+   signContent          varchar2(900),
+   telephone			varchar2(12),
+   create_date          date,
+   create_user          varchar2(30),
+   update_date          date,
+   update_user          varchar2(30),
+   ORGID                NUMBER(10) not null,
+   ORGINTERNALCODE      VARCHAR2(50),   
+   constraint PK_FOOD_SAFTY primary key   (id)
+);
+
+comment on table food_safty is 
+'食品安全协管';
+
+comment on column food_safty.id is 
+'编号';
+
+comment on column food_safty.input_Time is 
+'录入时间';
+
+comment on column food_safty.address is 
+'地点';
+
+comment on column food_safty.Category is 
+'类别';
+
+comment on column food_safty.Details is 
+'情况描述';
+
+comment on column food_safty.Declaration is 
+'5桌以上申报';
+
+comment on column food_safty.personnel is 
+'参与人员';
+
+comment on column food_safty.remake is 
+'备注';
+
+comment on column food_safty.isSign is 
+'是否签收 0：未签收 1：已签收';
+
+comment on column food_safty.isreply is 
+'是否回复0：未回复1：已回复';
+
+comment on column food_safty.signDate is 
+'签收时间';
+
+comment on column food_safty.signpeople is 
+'签收人';
+
+comment on column food_safty.signContent is 
+'签收意见';
+
+--药品安全协管序列
+create sequence s_drugs_safty
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+/*==============================================================*/
+/* Table: drugs_safty        药品安全协管                                   */
+/*==============================================================*/
+create table drugs_safty 
+(
+   id                   number(10)                     not null,
+   input_Time           date,
+   address              VARCHAR2(150),
+   Category             number(10),
+   Details              varchar2(300),
+   personnel            varchar2(300),
+   remake               varchar2(900),
+   isSign               number(1) default 0,
+   isreply              number(1) default 0,
+   signDate             date,
+   signpeople           varchar2(30),
+   signContent          varchar2(900),
+   telephone			varchar2(12),
+   create_date          date,
+   create_user          varchar2(30),
+   update_date          date,
+   update_user          varchar2(30),
+   ORGID                NUMBER(10) not null,
+   ORGINTERNALCODE      VARCHAR2(50),   
+   constraint PK_DRUGS_SAFTY primary key   (id)
+);
+
+comment on table drugs_safty is 
+'药品安全协管';
+
+comment on column drugs_safty.id is 
+'编号';
+
+comment on column drugs_safty.input_Time is 
+'录入时间';
+
+comment on column drugs_safty.address is 
+'地点';
+
+comment on column drugs_safty.Category is 
+'类别';
+
+comment on column drugs_safty.Details is 
+'情况描述';
+
+comment on column drugs_safty.personnel is 
+'参与人员';
+
+comment on column drugs_safty.remake is 
+'备注';
+
+comment on column drugs_safty.isSign is 
+'是否签收 0：未签收 1：已签收';
+
+comment on column drugs_safty.isreply is 
+'是否回复0：未回复1：已回复';
+
+comment on column drugs_safty.signDate is 
+'签收时间';
+
+comment on column drugs_safty.signpeople is 
+'签收人';
+
+comment on column drugs_safty.signContent is 
+'签收意见';
+
+
+--工商行政管理协管序列
+create sequence s_Business_manage
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+/*==============================================================*/
+/* Table: Business_manage        工商行政管理协管                               */
+/*==============================================================*/
+create table Business_manage 
+(
+   id                   number(10)                     not null,
+   input_Time           date,
+   address              VARCHAR2(150),
+   Category             number(10),
+   Details              varchar2(300),
+   personnel            varchar2(300),
+   remake               varchar2(900),
+   isSign               number(1) default 0,
+   isreply              number(1) default 0,
+   signDate             date,
+   signpeople           varchar2(30),
+   signContent          varchar2(900),
+   telephone			varchar2(12),
+   create_date          date,
+   create_user          varchar2(30),
+   update_date          date,
+   update_user          varchar2(30),
+   ORGID                NUMBER(10) not null,
+   ORGINTERNALCODE      VARCHAR2(50),   
+   constraint PK_BUSINESS_MANAGE primary key   (id)
+);
+
+comment on table Business_manage is 
+'工商行政管理协管';
+
+comment on column Business_manage.id is 
+'编号';
+
+comment on column Business_manage.input_Time is 
+'录入时间';
+
+comment on column Business_manage.address is 
+'地点';
+
+comment on column Business_manage.Category is 
+'类别';
+
+comment on column Business_manage.Details is 
+'情况描述';
+
+comment on column Business_manage.personnel is 
+'参与人员';
+
+comment on column Business_manage.remake is 
+'备注';
+
+comment on column Business_manage.isSign is 
+'是否签收 0：未签收 1：已签收';
+
+comment on column Business_manage.isreply is 
+'是否回复0：未回复1：已回复';
+
+comment on column Business_manage.signDate is 
+'签收时间';
+
+comment on column Business_manage.signpeople is 
+'签收人';
+
+comment on column Business_manage.signContent is 
+'签收意见';
+
+--打击非法传销协管序列
+create sequence s_pyramid_sales_manage
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+/*==============================================================*/
+/* Table: pyramid_sales_manage        打击非法传销协管                          */
+/*==============================================================*/
+create table pyramid_sales_manage 
+(
+   id                   number(10)                     not null,
+   input_Time           date,
+   address              VARCHAR2(150),
+   Category             number(10),
+   pyramid_Category     number(10),
+   Details              varchar2(300),
+   personnel            varchar2(300),
+   remake               varchar2(900),
+   isSign               number(1) default 0,
+   isreply              number(1) default 0,
+   signDate             date,
+   signpeople           varchar2(30),
+   signContent          varchar2(900),
+   telephone			varchar2(12),
+   create_date          date,
+   create_user          varchar2(30),
+   update_date          date,
+   update_user          varchar2(30),
+   ORGID                NUMBER(10) not null,
+   ORGINTERNALCODE      VARCHAR2(50),   
+   constraint PK_PYRAMID_SALES_MANAGE primary key (id)
+);
+
+comment on table pyramid_sales_manage is 
+'打击非法传销协管';
+
+comment on column pyramid_sales_manage.id is 
+'编号';
+
+comment on column pyramid_sales_manage.input_Time is 
+'录入时间';
+
+comment on column pyramid_sales_manage.address is 
+'地点';
+
+comment on column pyramid_sales_manage.Category is 
+'类别';
+
+comment on column pyramid_sales_manage.pyramid_Category is 
+'传销类别';
+
+comment on column pyramid_sales_manage.Details is 
+'情况描述';
+
+comment on column pyramid_sales_manage.personnel is 
+'参与人员';
+
+comment on column pyramid_sales_manage.remake is 
+'备注';
+
+comment on column pyramid_sales_manage.isSign is 
+'是否签收 0：未签收 1：已签收';
+
+comment on column pyramid_sales_manage.isreply is 
+'是否回复0：未回复1：已回复';
+
+comment on column pyramid_sales_manage.signDate is 
+'签收时间';
+
+comment on column pyramid_sales_manage.signpeople is 
+'签收人';
+
+comment on column pyramid_sales_manage.signContent is 
+'签收意见';
+
+
+--查处取缔无证无照经营协管序列
+create sequence s_unlicensed_manage
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+/*==============================================================*/
+/* Table: unlicensed_manage       查处取缔无证无照经营协管                              */
+/*==============================================================*/
+create table unlicensed_manage 
+(
+   id                   number(10)                     not null,
+   input_Time           date,
+   address              VARCHAR2(150),
+   Category             number(10),
+   Details              varchar2(300),
+   remake               varchar2(900),
+   isSign               number(1) default 0,
+   isreply              number(1) default 0,
+   signDate             date,
+   signpeople           varchar2(30),
+   signContent          varchar2(900),
+   telephone			varchar2(12),
+   create_date          date,
+   create_user          varchar2(30),
+   update_date          date,
+   update_user          varchar2(30),
+   ORGID                NUMBER(10) not null,
+   ORGINTERNALCODE      VARCHAR2(50),   
+   constraint PK_UNLICENSED_MANAGE primary key   (id)
+);
+
+comment on table unlicensed_manage is 
+'查处取缔无证无照经营协管';
+
+comment on column unlicensed_manage.id is 
+'编号';
+
+comment on column unlicensed_manage.input_Time is 
+'录入时间';
+
+comment on column unlicensed_manage.address is 
+'地点';
+
+comment on column unlicensed_manage.Category is 
+'类别';
+
+comment on column unlicensed_manage.Details is 
+'情况描述';
+
+comment on column unlicensed_manage.remake is 
+'备注';
+
+comment on column unlicensed_manage.isSign is 
+'是否签收 0：未签收 1：已签收';
+
+comment on column unlicensed_manage.isreply is 
+'是否回复0：未回复1：已回复';
+
+comment on column unlicensed_manage.signDate is 
+'签收时间';
+
+comment on column unlicensed_manage.signpeople is 
+'签收人';
+
+comment on column unlicensed_manage.signContent is 
+'签收意见';
+
+--其它情况序列
+create sequence s_other_situation_manage
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+/*==============================================================*/
+/* Table: other_situation_manage     其它情况                           */
+/*==============================================================*/
+create table other_situation_manage 
+(
+   id                   number(10)                     not null,
+   input_Time           date,
+   address              VARCHAR2(150),
+   Details              varchar2(300),
+   remake               varchar2(900),
+   isSign               number(1) default 0,
+   isreply              number(1) default 0,
+   signDate             date,
+   signpeople           varchar2(30),
+   signContent          varchar2(900),
+   telephone			varchar2(12),
+   create_date          date,
+   create_user          varchar2(30),
+   update_date          date,
+   update_user          varchar2(30),
+   ORGID                NUMBER(10) not null,
+   ORGINTERNALCODE      VARCHAR2(50),   
+   constraint PK_OTHER_SITUATION_MANAGE primary key   (id)
+);
+
+comment on table other_situation_manage is 
+'其它情况';
+
+comment on column other_situation_manage.id is 
+'编号';
+
+comment on column other_situation_manage.input_Time is 
+'录入时间';
+
+comment on column other_situation_manage.address is 
+'地点';
+
+comment on column other_situation_manage.Details is 
+'详细情况';
+
+comment on column other_situation_manage.remake is 
+'备注';
+
+comment on column other_situation_manage.isSign is 
+'是否签收 0：未签收 1：已签收';
+
+comment on column other_situation_manage.isreply is 
+'是否回复0：未回复1：已回复';
+
+comment on column other_situation_manage.signDate is 
+'签收时间';
+
+comment on column other_situation_manage.signpeople is 
+'签收人';
+
+comment on column other_situation_manage.signContent is 
+'签收意见';
+
+--回复序列
+create sequence s_reply
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+/*==============================================================*/
+/* Table: reply            回复                                     */
+/*==============================================================*/
+create table reply 
+(
+   id                   number(10)                     not null,
+   replyDate            date,
+   replypeople          varchar2(30),
+   replyContent         varchar2(900),
+   service_id           number(10),
+   service_type         number(2),
+   constraint PK_REPLY primary key   (id)
+);
+
+comment on table reply is 
+'回复';
+
+comment on column reply.id is 
+'编号';
+
+comment on column reply.replyDate is 
+'回复时间';
+
+comment on column reply.replypeople is 
+'回复人';
+
+comment on column reply.replyContent is 
+'处理情况';
+
+comment on column reply.service_id is 
+'回复关联id';
+
+comment on column reply.service_type is 
+'食药工商类型';
+commit;
+
+--回复附件序列
+create sequence s_reply_attch
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+/*==============================================================*/
+/* Table: reply_attch       回复附件                                    */
+/*==============================================================*/
+create table reply_attch 
+(
+   id                   number(10)                     not null,
+   name                 VARCHAR2(150),
+   path                 VARCHAR2(350),
+   reply_id             number(10),
+   service_type         number(2),
+   constraint PK_REPLY_ATTCH primary key   (id)
+);
+
+comment on table reply_attch is 
+'回复附件';
+
+comment on column reply_attch.id is 
+'编号';
+
+comment on column reply_attch.name is 
+'附件名称';
+
+comment on column reply_attch.path is 
+'附件路径';
+
+comment on column reply_attch.reply_id is 
+'关联的回复id';
+
+comment on column reply_attch.service_type is 
+'食药工商类型';
+
+--回复附件序列
+create sequence s_Service_list_attch
+minvalue 1
+maxvalue 9999999999
+start with 1
+increment by 1
+cache 20;
+
+/*==============================================================*/
+/* Table: Service_list_attch        食药工商附件                            */
+/*==============================================================*/
+create table Service_list_attch 
+(
+   id                   number(10)                     not null,
+   name                 VARCHAR2(150),
+   path                 VARCHAR2(350),
+   service_id           number(10),
+   service_type         number(2),
+   constraint PK_SERVICE_LIST_ATTCH primary key   (id)
+);
+
+comment on table Service_list_attch is 
+'食药工商附件';
+
+comment on column Service_list_attch.id is 
+'编号';
+
+comment on column Service_list_attch.name is 
+'附件名称';
+
+comment on column Service_list_attch.path is 
+'附件路径';
+
+comment on column Service_list_attch.service_id is 
+'回复关联id';
+
+comment on column Service_list_attch.service_type is 
+'食药工商类型';
+commit;

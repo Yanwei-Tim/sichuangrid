@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="viewObjectVo">
+	<typeAlias alias="ViewObject" type="com.tianque.viewObject.vo.ViewObjectVo" />
+	<resultMap id="viewObjectDefNum"  class="ViewObject">
+		<result property="defProvinceNum" column="defProvinceNum" />
+		<result property="defCityNum" column="defCityNum" />
+		<result property="defDistrictNum" column="defDistrictNum" />
+		<result property="defTownNum" column="defTownNum" />
+		<result property="defVillageNum" column="defVillageNum" />
+		<result property="defGridNum" column="defGridNum" />
+		<result property="defProvinceFucDepartmentNum" column="defProvinceFucDepartmentNum" />
+		<result property="defCityFucDepartmentNum" column="defCityFucDepartmentNum" />
+		<result property="defDistrictFucDepartmentNum" column="defDistrictFucDepartmentNum" />
+		<result property="defTownFucDepartmentNum" column="defTownFucDepartmentNum" />
+	</resultMap>
+	<resultMap class="ViewObject" id="fullViewObject" extends="viewObjectDefNum">
+		<result property="provinceNum" column="provinceNum" />
+		<result property="cityNum" column="cityNum" />
+		<result property="districtNum" column="districtNum" />
+		<result property="townNum" column="townNum" />
+		<result property="villageNum" column="villageNum" />
+		<result property="gridNum" column="gridNum" />
+		<result property="provinceFucDepartmentNum" column="provinceFucDepartmentNum" />
+		<result property="cityFucDepartmentNum" column="cityFucDepartmentNum" />
+		<result property="districtFucDepartmentNum" column="districtFucDepartmentNum" />
+		<result property="townFucDepartmentNum" column="townFucDepartmentNum" />
+		<result property="selectedRadio" column="selectedRadio"/>
+		<result property="selectedCheckBoxStrs" column="selectedCheckBoxStrs"/>
+		<result property="selectedIdStrs" column="selectedIdStrs"/>
+		<result property="exclusiveIdStrs" column="exclusiveIdStrs"/>
+		<result property="id" column="id"/>
+	</resultMap>
+	<resultMap class="java.lang.Integer" id="viewObjectNum">                 
+		<result property="countNum" column="countNum" javaType="java.lang.Integer"/>
+	</resultMap>
+	<!--方法没有显示调用-->
+	<!--<select id="getViewObjectDefNum" parameterClass="java.util.List" resultClass="java.util.List" resultMap="viewObjectNum">
+		select countNum from 
+		<iterate removeFirstPrepend="true" conjunction="union all"  open="(" close=")"> 
+			select count(*) countNum from organizations where orgInternalCode like #list[].orgCode#||'%' and orgtype=#list[].type# and orglevel= #list[].level#
+		</iterate>
+	</select>-->
+
+<insert id="addViewObjectVo" parameterClass="ViewObject">
+	<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_viewObjectVo.NEXTVAL as id from dual ]]>
+	</selectKey>
+	insert into 
+	viewobjectvos
+	 (id,selectedRadio,selectedCheckBoxStrs,selectedIdStrs,exclusiveIdStrs,
+	provinceNum,cityNum,districtNum,townNum,villageNum,gridNum,provinceFucDepartmentNum,cityFucDepartmentNum,districtFucDepartmentNum,townFucDepartmentNum,
+	defProvinceNum,defCityNum,defDistrictNum,defTownNum,defVillageNum,defGridNum,defProvinceFucDepartmentNum,defCityFucDepartmentNum,defDistrictFucDepartmentNum,
+	defTownFucDepartmentNum)
+	values(
+	#id#,#selectedRadio#,#selectedCheckBoxStrs#,#selectedIdStrs#,#exclusiveIdStrs#,
+	#provinceNum#,#cityNum#,#districtNum#,#townNum#,#villageNum#,#gridNum#,#provinceFucDepartmentNum#,#cityFucDepartmentNum#,#districtFucDepartmentNum#,#townFucDepartmentNum#,
+	#defProvinceNum#,#defCityNum#,#defDistrictNum#,#defTownNum#,#defVillageNum#,#defGridNum#,#defProvinceFucDepartmentNum#,#defCityFucDepartmentNum#,#defDistrictFucDepartmentNum#,
+	#defTownFucDepartmentNum#)
+</insert>
+
+<update id="updateViewObjectVo" parameterClass="ViewObject">
+	update viewobjectvos 
+	set selectedRadio = #selectedRadio#,
+		selectedCheckBoxStrs=#selectedCheckBoxStrs#,
+		selectedIdStrs=#selectedIdStrs#,
+		exclusiveIdStrs=#exclusiveIdStrs#,
+		provinceNum=#provinceNum#,
+		cityNum=#cityNum#,
+		districtNum=#districtNum#,
+		townNum=#townNum#,
+		villageNum=#villageNum#
+		,gridNum=#gridNum#
+		,provinceFucDepartmentNum=#provinceFucDepartmentNum#
+		,cityFucDepartmentNum=#cityFucDepartmentNum#
+		,districtFucDepartmentNum=#districtFucDepartmentNum#
+		,townFucDepartmentNum=#townFucDepartmentNum#
+		,defProvinceNum=#defProvinceNum#
+		,defCityNum=#defCityNum#
+		,defDistrictNum=#defDistrictNum#
+		,defTownNum=#defTownNum#
+		,defVillageNum=#defVillageNum#
+		,defGridNum=#defGridNum#
+		,defProvinceFucDepartmentNum=#defProvinceFucDepartmentNum#
+		,defCityFucDepartmentNum=#defCityFucDepartmentNum#
+		,defDistrictFucDepartmentNum=#defDistrictFucDepartmentNum#
+		,defTownFucDepartmentNum=#defTownFucDepartmentNum#
+		where id=#id#
+		
+</update>
+
+<select id="getViewObjectVoById" resultMap="fullViewObject" parameterClass="java.lang.Long">
+	select * from viewobjectvos where id=#id#
+</select>
+<!--方法没有显示调用-->
+<!--<select id="getOrgIdsWhenSelectAll" parameterClass="java.util.Map" resultClass="java.lang.Long">
+	select id from organizations where orginternalcode like #orgCode# || '%'
+	<dynamic>
+		<isNotEmpty property="longs" prepend="and">
+			 id not in 
+			<iterate open="(" close=")" property="value" conjunction=",">
+				$longs[]$
+			</iterate>
+		</isNotEmpty>
+	</dynamic>
+</select>-->
+<!--方法没有显示调用-->
+<!--<select id="getOrgIdsWhenSelectByLevel" parameterClass="java.util.Map" resultClass="java.lang.Long">
+	
+ 	<dynamic>
+	 	<isNotEmpty property="list">
+		   <iterate conjunction="union all" property="list">
+		   select id
+		  	from organizations o
+		 	where 
+		   o.orginternalcode like  '$list[].orgCode$%' and 
+		   o.orglevel =
+		       (select id
+		           from propertydicts
+		          where propertydomainid =
+		                (select id from propertydomains where domainname = '网格分级')
+		            and internalid = $list[].level$) and
+		       o.orgtype =
+		       (select id
+		           from propertydicts
+		          where propertydomainid =
+		                (select id from propertydomains where domainname = '网格类型')
+		            and internalid = $list[].type$)
+		     </iterate> 
+	     </isNotEmpty>
+     </dynamic>
+</select>  -->                                         
+<delete id="deleteViewObjectVoById" parameterClass="java.lang.Long">
+	delete viewobjectvos where id=#value#
+</delete>
+<!--方法没有显示调用-->
+<!--<select id="getSelectedOrgNamesByOrgIdsAndTypeLevel" parameterClass="java.util.Map" resultClass="java.lang.String">
+	select orgName from organizations o where 1=1
+	 <isNotEmpty property="orgIds" prepend="and"> o.id in
+	 <iterate open="(" close=")" property="orgIds" conjunction=",">
+     	$orgIds[]$
+     </iterate>
+     </isNotEmpty>
+     
+	 <isNotEmpty property="levelId" prepend="and">
+	 o.orglevel = #levelId#
+	 </isNotEmpty>
+	 <isNotEmpty property="typeId" prepend="and">
+       o.orgtype = #typeId#
+	 </isNotEmpty>
+</select>-->
+<!--方法没有显示调用-->
+<!--<select id="getOrgIdsMobile" parameterClass="java.util.Map" resultClass="java.lang.Long">
+	select id from organizations where orginternalcode like #orgCode#||'%'
+</select>-->
+
+
+</sqlMap>

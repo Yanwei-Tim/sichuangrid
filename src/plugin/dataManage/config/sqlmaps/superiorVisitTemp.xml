@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="superiorVisitTemp">
+    <typeAlias alias="SuperiorVisitTemp" type="com.tianque.plugin.dataManage.population.superiorVisitTemp.domain.SuperiorVisitTemp" />
+  	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />		                                                                                                   
+    <resultMap id="superiorVisitTempResultForBase" class="SuperiorVisitTemp" extends="attentionPopulationTempBaseInfo.attentionPopulationBaseInfoResult">
+		<result column="visitState" property="visitState.id" />
+		<result column="visitType" property="visitType" />
+		<result column="visitReason" property="visitReason" />
+	</resultMap>
+	<resultMap id="superiorVisitTempResultForList" class="SuperiorVisitTemp" extends="superiorVisitTemp.superiorVisitTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	<resultMap id="propertyDictResult" class="com.tianque.domain.PropertyDict">
+		<result property="id" column="id"/>
+		<result property="displayName" column="displayName"/>
+	</resultMap>
+	<sql id="updateBusinessSql">
+		visitState = #visitState.id#
+		,visitType = #visitType#
+		,visitReason = #visitReason#
+		,attentionExtent=#attentionExtent.id#
+	</sql>
+	<sql id="claim_sql_where">
+		from DM_superiorVisits_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	
+	<select id="findTempPageList" resultMap="superiorVisitTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countTempList" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	
+	<insert id="addSuperiorVisitTemp" parameterClass="SuperiorVisitTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_superiorVisits_Temp.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO DM_superiorVisits_Temp
+		(
+		<include refid="populationTempBaseInfo.addBaseInfoFields" />
+		,visitState,
+		visitType,
+		visitReason,
+		attentionExtent,actualPopulationType,
+		<include refid="dataManage.addDataManage"/>
+		)
+		VALUES
+		(
+		<include refid="populationTempBaseInfo.addBaseInfoData" />
+		,#visitState.id#,
+		#visitType#,
+		#visitReason#,
+		#attentionExtent.id#,#actualPopulationType#,
+		<include refid="dataManage.addValueDataManage"/>)
+	</insert>
+	
+    <select id="getSuperiorVisitTempById" parameterClass="Long"
+		resultMap="superiorVisitTempResultForList">
+	  <![CDATA[
+	  	select * from DM_superiorVisits_Temp where id = #value#
+	  ]]>
+	</select>
+	<delete id="deleteVisitTypeTempById" parameterClass="Long">
+		delete dm_visitTypes_Temp where superiorVisitId = #value#
+	</delete>
+	
+	<insert id="addSuperiorVisitTypeTemp" parameterClass="java.util.Map">
+		INSERT INTO dm_visitTypes_Temp
+		(superiorVisitId,superiorVisitType)
+		values
+		(#superiorVisitId#,#superiorVisitType#)
+	</insert>
+		<select id="findVisitTypesTempById" resultMap="propertyDictResult">
+		<![CDATA[select p.* from dm_visitTypes_Temp  v
+		left join propertyDicts p on p.id=v.superiorVisitType where v.superiorVisitId=#value#]]>
+	</select>
+	
+	<delete id="deleteSuperiorVisitTempById" parameterClass="Long">
+	   delete DM_superiorVisits_Temp where id = #value#
+	</delete>
+	<select id="findSuperiorVisitTempsByIdcardAndOrgInternalCode" resultMap="superiorVisitTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_superiorVisits_Temp where  1=1 and 
+			(orgInternalCode like #orgInternalCode#||'%' or 
+						#orgInternalCode# like orgInternalCode||'%')
+				and(
+				<iterate property="idCardNo" conjunction="or">
+						upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+	</select>
+	<update id="updateSuperiorVisitTempInIdByIdCardAndIdList"  parameterClass="java.util.Map">
+		update DM_superiorVisits_Temp set inid = #id# where idcardno = #idCardNo# and
+			(orgInternalCode like #orgInternalCode#||'%' or 
+						#orgInternalCode# like orgInternalCode||'%') and
+		 (claimstate = 1 or claimstate is null or 
+			<iterate property="idList" conjunction="or">
+						id = #idList[]#
+			</iterate>
+		 )
+	</update>
+	<update id="updateSuperiorVisitTempInIdById"  parameterClass="java.util.Map">
+		update DM_superiorVisits_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<select id="getSuperiorVisitTempByInId" parameterClass="Long"
+		resultMap="superiorVisitTempResultForList">
+	  <![CDATA[
+	  	select * from DM_superiorVisits_Temp where inid = #value#
+	  ]]>
+	</select>
+	<update id="updateSuperiorVisitTemp" parameterClass="SuperiorVisitTemp">
+		update DM_superiorVisits_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="superiorVisitTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<update id="updateRepeatState" parameterClass="SuperiorVisitTemp">
+		update DM_superiorVisits_Temp d set repeatState = 0
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_superiorVisits_Temp t group by t.idCardNo having count(*)>1) 
+	</update>
+	<update id="updateRepeatStateForDelete" parameterClass="SuperiorVisitTemp">
+		update DM_superiorVisits_Temp d set repeatState = 1
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_superiorVisits_Temp t group by t.idCardNo having count(*)=1) 
+	</update>
+	<update id="updateSuperiorVisitTempByOrgId" parameterClass="java.util.Map">
+		update DM_superiorVisits_Temp set repeatState=#claimDetail.repeatState#  where id=#id#
+	</update>
+	<select id="findSuperiorVisitTempsByIdcardAndImportOrgId" resultMap="superiorVisitTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_superiorVisits_Temp where  1=1
+		<dynamic>
+			<isPropertyAvailable property="importDepartmentId">
+				<isNotNull property="importDepartmentId" prepend=" and ">
+					importDepartmentId=#claimDetail.importDepartmentId#
+				</isNotNull>
+			</isPropertyAvailable>
+				and(
+				<iterate property="idCardNo" conjunction="or">
+						upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+		</dynamic>
+	</select>
+	<!-- 新写内容 -->
+	<select id="countFindTemps" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	<select id="findTemps" resultMap="superiorVisitTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<update id="updateSuperiorVisitTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_superiorVisits_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	<update id="updateSuperiorVisitTempBase" parameterClass="SuperiorVisitTemp">
+		update DM_superiorVisits_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updateSuperiorVisitTempBusiness" parameterClass="SuperiorVisitTemp">
+		update DM_superiorVisits_Temp set
+		<include refid="superiorVisitTemp.updateBusinessSql" />
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+</sqlMap>

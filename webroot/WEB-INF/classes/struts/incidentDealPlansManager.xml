@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="incidentDealPlans" extends="default" namespace="/incident/incidentDealPlans">
+		<default-class-ref class="incidentDealPlansController"></default-class-ref>
+		<action name="getIncidentPlanAndDealTeam" method="getIncidentPlanAndDealTeam">
+			<result name="success" type="json">
+				<param name="root">incidentDealPlan</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="editIncidentDealPlan" method="editIncidentDealPlan">
+		    <result name="success" type="json">
+				<param name="root">incidentDealPlan</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="copyIncidentDealPlan" method="copyIncidentDealPlan">
+		    <result name="own" type="json">
+				<param name="root">"own"</param>
+			</result>
+			<result name="otherExist" type="json">
+				<param name="root">"otherExist"</param>
+			</result>
+			 <result name="success" type="json">
+				<param name="root">"success"</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="editIncidentDealPlanTow" method="editIncidentDealPlanTow">
+		    <result name="success" type="json">
+				<param name="root">incidentDealPlan</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="initIncidentPlan" method="initIncidentPlan">
+			<result name="success">
+				/incident/plaitScheme/editIncidentDeal.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findIncidentPlanSteps" method="findIncidentPlanSteps">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+      <action name="findIncidentDealTeamsList" method="findIncidentDealTeamsList">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findIncidentTypeList" method="findIncidentTypeList" >
+		 	<result name="success" type="json">
+				<param name="root">incidentTypeList</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="incidentDealTeamEidt" method="incidentDealTeamEidt">
+			<result name="success" type="json">
+			    <param name="root">incidentDealTeam2</param>
+			    <param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="initIncidentDealTeam" method="initIncidentDealTeam">
+			<result name="success">
+				/incident/plaitScheme/incidentDealTeamEdit.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="incidentPlanStepEidt" method="incidentPlanStepEdit">
+		  	<result name="success" type="json">
+		  	   	<param name="root">incidentPlanStep</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	   <action name="initIncidentPlanStep" method="initIncidentPlanStep">
+			<result name="success">
+				/incident/plaitScheme/incidentPlanStepEdit.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="deleteIncidentPlan" method="deleteIncidentPlan">
+			<result name="success" type="json">
+			    <param name="root">"success"</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="deleteIncidentDealTeam" method="deleteIncidentDealTeam">
+			<result name="success" type="json">
+			    <param name="root">"success"</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="deleteIncidentPlanStep" method="deleteIncidentPlanStep">
+			<result name="success" type="json">
+			    <param name="root">"success"</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

@@ -1,0 +1,113 @@
+package com.tianque.usedInfoOptmize.service.impl;
+
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.property.OrganizationType;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.usedInfoOptmize.dao.UsedInfoDataDao;
+import com.tianque.usedInfoOptmize.domain.UsedInfoData;
+import com.tianque.usedInfoOptmize.service.UsedInfoDataService;
+
+/**
+ * @Description:信息系统使用情况报表service
+ * @author zhangyouwei@hztianque.com
+ * @date: 2015-7-1 下午02:23:46
+ */
+@Transactional
+@Service("usedInfoDataService")
+public class UsedInfoDataServiceImpl implements UsedInfoDataService {
+
+	@Autowired
+	private UsedInfoDataDao usedInfoDataDao;
+	@Autowired
+	private PropertyDictService propertyDictService;
+
+	@Override
+	public void createUsedInfoMonthData() {
+		try {
+			int year = CalendarUtil.getNowYear();
+			int month = CalendarUtil.getNowMonth();
+			/** 上月开始 */
+			Date monthStartDate = CalendarUtil
+					.getBeforMonthFirstDayByMonthAndYear(year, month);
+			/** 上月结束 */
+			Date monthEndDate = CalendarUtil
+					.getBeforMonthLastDayByMonthAndYear(year, month);
+			PropertyDict adminOrgType = propertyDictService
+					.findPropertyDictByDomainNameAndInternalId(
+							PropertyTypes.ORGANIZATION_TYPE,
+							OrganizationType.ADMINISTRATIVE_REGION).get(0);
+			usedInfoDataDao.deleteUsedInfoMonthData();
+			usedInfoDataDao.createUsedInfoMonthData(monthStartDate,
+					monthEndDate, adminOrgType.getId());
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"UsedInfoDataServiceImpl的createUsedInfoMonthData方法错误:", e);
+		}
+	}
+
+	@Override
+	public void createUsedInfoWeekData() {
+		try {
+			/** 上周一 */
+			Date beforWeekMonday = CalendarUtil.getBeforWeekMonday(new Date());
+			/** 上周日 */
+			Date beforWeekSunday = CalendarUtil.getBeforWeekSunday(new Date());
+
+			PropertyDict adminOrgType = propertyDictService
+					.findPropertyDictByDomainNameAndInternalId(
+							PropertyTypes.ORGANIZATION_TYPE,
+							OrganizationType.ADMINISTRATIVE_REGION).get(0);
+			usedInfoDataDao.deleteUsedInfoWeekData();
+			usedInfoDataDao.createUsedInfoWeekData(beforWeekMonday,
+					beforWeekSunday, adminOrgType.getId());
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"UsedInfoDataServiceImpl的createUsedInfoWeekData方法错误:", e);
+		}
+
+	}
+
+	@Override
+	public List<UsedInfoData> findUsedInfoWeekDataByParentOrgId(Long parentOrgId) {
+		if (parentOrgId == null) {
+			throw new BusinessValidationException("请输入正确的组织机构");
+		}
+
+		try {
+			return usedInfoDataDao
+					.findUsedInfoWeekDataByParentOrgId(parentOrgId);
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"UsedInfoDataServiceImpl的findUsedInfoWeekDataByParentOrgId方法错误:",
+					e);
+		}
+	}
+
+	@Override
+	public List<UsedInfoData> findUsedInfoMonthDataByParentOrgId(
+			Long parentOrgId) {
+		if (parentOrgId == null) {
+			throw new BusinessValidationException("请输入正确的组织机构");
+		}
+		try {
+			return usedInfoDataDao
+					.findUsedInfoMonthDataByParentOrgId(parentOrgId);
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"UsedInfoDataServiceImpl的findUsedInfoMonthDataByParentOrgId方法错误:",
+					e);
+		}
+	}
+
+}

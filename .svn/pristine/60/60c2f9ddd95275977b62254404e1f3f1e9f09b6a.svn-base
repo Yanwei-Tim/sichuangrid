@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="UpgradeContent">
+	<!-- 注释说明 -->
+	<typeAlias alias="UpgradeContent" type="com.tianque.upgradeContent.domain.UpgradeContent" />
+	<typeAlias alias="UpgradeContentVO" type="com.tianque.upgradeContent.domain.VO.UpgradeContentVO" />
+	
+	<resultMap id="upgradeContentResult" class="UpgradeContent">
+		<result property="id" column="ID" />
+		<result property="upgradeDate" column="UPGRADEDATE" />
+		<result property="upgradeContent" column="UPGRADECONTENT" />
+		<result property="isUpgrad" column="ISUPGRAD" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<insert id="addUpgradeContent" parameterClass="UpgradeContent">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_UPGRADECONTENTINFO.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO UPGRADECONTENTINFO 
+		(ID,UPGRADEDATE,UPGRADECONTENT,ISUPGRAD,createUser,updateUser,createDate,updateDate) VALUES
+		(#id#,#upgradeDate#,#upgradeContent#,#isUpgrad#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	<update id="updateUpgradeContent" parameterClass="UpgradeContent">
+		update UPGRADECONTENTINFO set id=#id#
+			 <isNotNull prepend="," property="upgradeDate" >
+			 	upgradeDate=#upgradeDate#
+			 </isNotNull>
+			 <isNotNull prepend="," property="upgradeContent" >
+			 	upgradeContent=#upgradeContent#
+			 </isNotNull>
+			 <isNotNull prepend="," property="isUpgrad" >
+			 	ISUPGRAD=#isUpgrad#
+			 </isNotNull>
+			 <isNotNull prepend="," property="updateUser" >
+			 	updateUser=#updateUser#
+			 </isNotNull>
+			 <isNotNull prepend="," property="updateDate" >
+			 	updateDate=#updateDate#
+			 </isNotNull>
+		where id=#id#
+	</update>
+	
+	<delete id="deleteUpgradeContent" parameterClass="java.lang.Long">
+		delete from UPGRADECONTENTINFO where id=#value#
+	</delete>
+	
+	<select id="getUpgradeContentById" parameterClass="java.lang.Long" resultMap="upgradeContentResult">
+		SELECT * from UPGRADECONTENTINFO where id=#value#	
+	</select>
+	
+	<select id="getTheLatestUpgradeContent" parameterClass="java.lang.Long" resultMap="upgradeContentResult">
+		select * from (SELECT * from UPGRADECONTENTINFO U WHERE U.ISUPGRAD = 1 ORDER BY U.UPGRADEDATE DESC) where rownum = 1 
+	</select>
+	
+	<select id="queryUpgradeContenForPageResult" parameterClass="UpgradeContentVO" resultMap="upgradeContentResult">
+		SELECT * from UPGRADECONTENTINFO
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="queryUpgradeContenForPageResultCount" parameterClass="UpgradeContentVO" resultClass="java.lang.Integer">
+		SELECT count(*) from UPGRADECONTENTINFO
+	</select>
+</sqlMap>

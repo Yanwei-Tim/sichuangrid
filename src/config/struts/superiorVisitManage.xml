@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="superiorVisit" extends="default" namespace="/baseinfo/superiorVisit">
+		<default-class-ref class="superiorVisitController"></default-class-ref>
+		<action name="findSuperiorVisitByOrgIdAndNameOrIdCardNo" method="findSuperiorVisitByOrgIdAndNameOrIdCardNo">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="dispatch"  method="dispatch">
+			<result name="success">
+				/baseinfo/superiorVisit/maintainsuperiorVisitDlg.jsp
+			</result>
+			<result name="print">
+				/baseinfo/superiorVisit/maintainsuperiorVisitPrintDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="shiftDispatch"  method="shiftDispatch">
+			<result name="success">
+					/baseinfo/superiorVisit/shiftTree.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="shiftSuperiorvisit" method="shiftSuperiorvisit">
+			<result type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="hasDuplicateSuperiorVisit" method="hasDuplicateSuperiorVisit">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		
+	<action name="addSuperiorVisit" method="addSuperiorVisit">
+			<result type="json">
+				<param name="root">superiorVisit</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateSuperiorVisit" method="updateSuperiorVisit">
+			<result type="json">
+				<param name="root">superiorVisit</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="updateSuperiorVisitFoIsEmphasis" method="updateSuperiorVisitFoIsEmphasis">
+			<result type="json">
+				<param name="root">superiorVisit</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="delSuperiorVisit" method="delSuperiorVisit">
+			<result  name="success" type="json">
+				<param name="root">noRelatePersonIds</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="getSuperiorVisitByName" method="getSuperiorVisitByName">
+			<result type="json">
+				<param name="root">superiorVisit</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateSuperiorVisitById" method="updateSuperiorVisitById">
+			<result type="json">
+				<param name="root">superiorVisit</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="hasRelatePersons" method="hasRelatePersons">
+			<result name="success" type="json">
+				<param name="root">flag</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+
+	</package>
+</struts>

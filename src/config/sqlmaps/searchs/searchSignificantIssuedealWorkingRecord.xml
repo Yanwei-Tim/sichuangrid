@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchSignificantIssuedealWorkingRecord">
+	<!-- 方法没有显式调用 <sql id="sql_where">
+		from significantIssuedeals where orgid = #orgId#
+		<dynamic>
+
+          <isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					directoryid in ($dailyDirectoryId$)
+				</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="investigationMaxDate">
+                <isNotNull property="investigationMaxDate" prepend=" and ">
+					investigationDate <![CDATA[<=]]>
+					#investigationMaxDate#
+				</isNotNull>
+      </isPropertyAvailable>
+        <isPropertyAvailable property="investigationMinDate">
+				<isNotNull property="investigationMinDate" prepend=" and ">
+					investigationDate <![CDATA[>=]]>
+					#investigationMinDate#
+				</isNotNull>
+       </isPropertyAvailable>
+       <isPropertyAvailable property="investigationOrgName">
+          <isNotEmpty prepend="and" property="investigationOrgName">
+              investigationorgid in (select id from organizations where orgname like '$investigationOrgName$%')
+          </isNotEmpty>
+       </isPropertyAvailable>
+       <isPropertyAvailable property="accountabilityLeading">
+          <isNotEmpty property="accountabilityLeading" prepend="and">
+               ACCOUNTABILITYLEADING like '$accountabilityLeading$%'
+          </isNotEmpty>
+       </isPropertyAvailable>
+       <isPropertyAvailable property="accountabilityUnit">
+          <isNotEmpty property="accountabilityUnit" prepend="and">
+               ACCOUNTABILITYUNIT like '$accountabilityUnit$%'
+          </isNotEmpty>
+       </isPropertyAvailable>
+       <isPropertyAvailable property="address">
+          <isNotEmpty property="address" prepend="and">
+               ADDRESS like '$address$%'
+          </isNotEmpty>
+       </isPropertyAvailable>
+       <isPropertyAvailable property="significantIssuedealReason">
+          <isNotEmpty property="significantIssuedealReason" prepend="and">
+               SIGNIFICANTISSUEDEALREASON like '$significantIssuedealReason$%'
+          </isNotEmpty>
+       </isPropertyAvailable>
+       <isPropertyAvailable property="remarks">
+          <isNotEmpty property="remarks" prepend="and">
+               REMARKS like '$remarks$%'
+          </isNotEmpty>
+       </isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="searchSignificantIssuedealWorkingRecordByQuery" parameterClass="java.util.Map"
+		resultMap="significantIssuedeal.significantIssuedealResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countSearchSignificantIssuedealWorkingRecord" parameterClass="map" resultClass="int">
+		<include refid="common.sql_count" />
+		<include refid="sql_where"/>
+
+	</select> -->
+</sqlMap>

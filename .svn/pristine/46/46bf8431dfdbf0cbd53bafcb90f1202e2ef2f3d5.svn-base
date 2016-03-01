@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="LeaderViewCache" >
+	<typeAlias alias="leaderViewCache" type="com.tianque.baseInfo.leaderViewCache.domain.LeaderViewCache"/>
+	<resultMap id="leaderViewCacheResultMap" class="leaderViewCache" >
+    	<result column="invalidatetime" property="invalidateTime"/>
+    	<result column="cachekey" property="cacheKey"/>
+    	<result column="cachevalue" property="cacheValue"/>
+	</resultMap>
+	
+	<insert id="addLeaderViewCahce" parameterClass="leaderViewCache">	
+		insert into LEADERVIEWCACHE
+		(
+		 cachekey,cachetype,invalidatetime,cachevalue,createUser,updateUser,createDate,updateDate
+		)
+		values
+		(
+		 #cacheKey#,#cacheType#,#invalidateTime#,#cacheValue#,#createUser#,#updateUser#,#createDate#,#updateDate#
+		)
+	</insert>
+	
+	<select id="getLeaderViewCacheByCacheKey" parameterClass="java.lang.String" resultMap="leaderViewCacheResultMap">
+		select cachekey,invalidatetime,cachevalue from LEADERVIEWCACHE l where l.cachekey=#cacheKey#
+	</select>
+	
+	<delete id="deleteLeaderViewCacheByCacheKey" parameterClass="java.lang.String">
+		<![CDATA[delete from LEADERVIEWCACHE ld where ld.cachekey = #cacheKey# and ld.id < (select max(id) from LEADERVIEWCACHE where cachekey = #cacheKey#)]]>
+	</delete>
+	
+	<update id="updateLeaderViewCahce" parameterClass="leaderViewCache">
+		 update LEADERVIEWCACHE set invalidatetime=#invalidateTime#,cacheValue=#cacheValue#,updateUser=#updateUser#,updateDate=#updateDate# where cachekey = #cacheKey#
+	</update>
+	
+	<delete id="deleteLeaderViewCache" parameterClass="java.lang.Integer">
+		delete from LEADERVIEWCACHE where cacheType=#value#
+	</delete>
+</sqlMap>

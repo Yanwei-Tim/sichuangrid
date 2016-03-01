@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="dailyLogManage" extends="default"
+		namespace="/dailylog/dailyLogManage">
+		<default-class-ref class="dailyLogController"></default-class-ref>
+		<action name="findDailyLogs" method="findDailyLogs">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="findDailyLogsByParentId" method="findDailyLogsByParentId">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="findIssueInspectsByParentId" method="findIssueInspectsByParentId">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="findExtTreeDataByDirectoryId" method="findExtTreeDataByDirectoryId">
+			<result name="success" type="json">
+				<param name="root">extTreeDatas</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="dispatch" method="dispatch">
+			<result name="success">
+				/dailylog/dailylog/maintainDailyLogDlg.jsp
+			</result>
+			<result name="file">
+				/dailylog/dailylog/maintainDailyLogFileDlg.jsp
+			</result>
+			<result name="meet">
+				/dailylog/dailylog/maintainDailyLogMeetDlg.jsp
+			</result>
+			<result name="activity">
+				/dailylog/dailylog/maintainDailyLogActivityDlg.jsp
+			</result>
+			<result name="print">
+				/dailylog/dailylog/dailyLogPrintDlg.jsp
+			</result>
+			<result name="check" type="chain">
+				<param name="actionName">dispatch</param>
+				<param name="namespace">/dailylog/societySafeCheck</param>
+			</result>
+
+			<!--
+				<result name="report">
+				/dailylog/dailylog/maintainDailyLogReportDlg.jsp </result> <result
+				name="stuff"> /dailylog/dailylog/maintainDailyLogStuffDlg.jsp
+				</result> <result name="error" type="json"> <param
+				name="root">errorMessage</param> </result>
+			-->
+		</action>
+
+		<action name="addDailyLog" method="addDailyLog">
+			<result name="success" type="json">
+				<param name="root">dailyLog</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateDailyLog" method="updateDailyLog">
+			<result name="success" type="json">
+				<param name="root">dailyLog</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="deleteDailyLog" method="deleteDailyLog">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="issueInspectBack" method="issueInspectBack">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="deleteDailyLogAttachFile" method="deleteDailyLogAttachFile">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+
+		<action name="dailyLogMenu" method="dailyLogMenu">
+			<result name="success" type="json">
+				<param name="root">dailyTrunkDirectorys</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="dailyLogForPage" method="dailyLogForPage">
+			<result name="success">
+				/dailylog/dailylog/dailyLogList.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="filterDailyLog" method="filterDailyLog">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="downloadDailyLogAttachFile" method="downloadDailyLogAttachFile">
+			<result name="success" type="stream">
+				<param name="inputName">inputStream</param>
+				<param name="contentType">application/octet-stream;charset=GBK</param>
+				<!-- 下载时候提示的文件名 -->
+				<param name="contentDisposition">inline;filename="${downloadFileName}"</param>
+				<param name="bufferSize">4096</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="issueDispatch" method="issueDispatch">
+			<result name="success">
+				/dailylog/dailylog/issueInspectDetails.jsp
+			</result>
+			<result name="district">
+				/dailylog/dailylog/districtIssueInspectDetails.jsp
+			</result>
+			<result name="town">
+				/dailylog/dailylog/townIssueInspectDetails.jsp
+			</result>
+			<result name="village">
+				/dailylog/dailylog/villageIssueInspectDetails.jsp
+			</result>
+			<result name="issuesuccess">
+				/dailylog/dailylog/issueInspect.jsp
+			</result>
+			<result name="issueeditsuccess">
+				/dailylog/dailylog/issueInspect.jsp
+			</result>
+			<result name="print">
+				/dailylog/dailylog/issueInspectDetailsPrint.jsp
+			</result>
+			<result name="districtPrint">
+				/dailylog/dailylog/districtIssueInspectDetailsPrint.jsp
+			</result>
+			<result name="townPrint">
+				/dailylog/dailylog/townIssueInspectDetailsPrint.jsp
+			</result>
+			<result name="villagePrint">
+				/dailylog/dailylog/villageIssueInspectDetailsPrint.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+			<action name="addIssueInspect" method="addIssueInspect">
+			<result name="success" type="json">
+				<param name="root">issueInspect</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+				<action name="updateIssueInspect" method="updateIssueInspect">
+			<result name="success" type="json">
+				<param name="root">issueInspect</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+			<action name="deleteIssueInspect" method="deleteIssueInspect" >
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+			<action name="updateIssueInspectState" method="updateIssueInspectState" >
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+			<action name="saveIssueDetails" method="saveIssueDetails">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findIssueSubmitInfo" method="findIssueSubmitInfo">
+				<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+				<action name="findIssueInspects" method="findIssueInspects">
+				<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findIssueInspectByDate" method="findIssueInspectByDate">
+				<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="addDailyLogWarmMessage" method="addDailyLogWarmMessage">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="countExsistedDailyLogByDirectoryId" method="countExsistedDailyLogByDirectoryId">
+			<result type="json">
+				<param name="root">existedCount</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="getDailyLogById" method="getDailyLogById">
+			<result type="json" name="success">
+				<param name="root">dailyLog</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

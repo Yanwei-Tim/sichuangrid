@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="taskListAttachFile">
+	<typeAlias alias="taskListAttachFile" type="com.tianque.plugin.taskList.domain.TaskListAttachFile" />
+	<typeAlias alias="hiddenDanger" type="com.tianque.plugin.taskList.domain.HiddenDanger" />
+	<resultMap class="taskListAttachFile" id="taskListAttachFile_ResultMap">
+	    <result column="ID"  property="id" />
+	    <result column="BUSINESSID" property="businessId" />
+	    <result column="fileName"  property="fileName" />
+	    <result column="physicsFullFileName"  property="physicsFullFileName" />
+	    <result column="moduleKey"  property="moduleKey" />
+	    <result column="CREATEUSER" property="createUser" />
+	    <result column="UPDATEUSER"  property="updateUser" />
+	    <result column="CREATEDATE"  property="createDate" />
+	    <result column="UPDATEDATE"  property="updateDate" />
+  	</resultMap>
+  	
+  	<insert id="addTaskListAttachFile" parameterClass="taskListAttachFile">
+  		<selectKey resultClass="java.lang.Long" keyProperty="id">
+    	<![CDATA[ SELECT s_TaskListAttachFiles.NEXTVAL AS id FROM dual ]]>
+		</selectKey>
+		<![CDATA[ insert into TaskListAttachFiles
+		(id,BUSINESSID,FILENAME,physicsFullFileName,moduleKey,createUser,UPDATEUSER,createDate,UPDATEDATE)
+		values
+		(#id#,#businessId#,#fileName#,#physicsFullFileName#,#moduleKey#,#createUser#,#updateUser#,#createDate#,#updateDate#) ]]>
+  	</insert>
+  	
+  	<select id="getTaskListAttachFileById" resultMap="taskListAttachFile_ResultMap"  parameterClass="java.lang.Long">
+  		select id,BUSINESSID,FILENAME,physicsFullFileName,moduleKey,createUser,UPDATEUSER,createDate,UPDATEDATE from TaskListAttachFiles where id = #id#
+  	</select>
+  	
+  	<select id="queryTaskListAttachFilesByBusinessId" resultMap="taskListAttachFile_ResultMap"  parameterClass="java.util.Map">
+  		select id,BUSINESSID,FILENAME,physicsFullFileName,moduleKey,createUser,UPDATEUSER,createDate,UPDATEDATE from TaskListAttachFiles where
+  		moduleKey = #moduleKey# and BUSINESSID = #businessId#
+  	</select>
+  	
+  	<delete id="deleteTaskListAttachFileByIds" parameterClass="java.util.Map">
+			delete from TaskListAttachFiles where id in
+    	<iterate conjunction="," open="(" close=")" property="ids">
+            #ids[]#
+        </iterate>
+	</delete>
+  	 
+  	<delete id="deleteTaskListAttachFileById" parameterClass="java.lang.Long">
+  		delete from TaskListAttachFiles  where id = #id#
+  	</delete>
+  	
+  	<delete id="deleteTaskListAttachFileByBusinessId" parameterClass="java.util.Map">
+  		delete from TaskListAttachFiles  where 
+  		moduleKey = #moduleKey# and BUSINESSID = #businessId#
+  	</delete>
+  	
+	<delete id="deleteTaskListAttachFileByBusinessIds" parameterClass="java.util.Map">
+			delete from TaskListAttachFiles where BUSINESSID in
+    	<iterate conjunction="," open="(" close=")" property="businessIds">
+            #businessIds[]#
+        </iterate>
+        and moduleKey = #moduleKey#
+	</delete>
+</sqlMap>

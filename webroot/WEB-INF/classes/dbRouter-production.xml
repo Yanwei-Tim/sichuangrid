@@ -1,0 +1,29 @@
+<!--
+	环境：生产环境
+	功能：JDBC路由层集群配置  
+	作者：龙振东
+-->
+<routers>
+    <router id="tableShard" user-name="tqDbRouter" password="tqDbRouter"
+             key-generator-class="com.tianque.dbrouter.impl.keygenerator.RouterKeyGeneratorLong" isEnableJta="false">
+        <key-generator-config  increment="1" data-source-id="ds0"/>
+        <data-source-configs>
+           <data-source-config id="ds0" driver="oracle.jdbc.driver.OracleDriver"
+                                user-name="sichuan" password="iu(8YHJ65s1" url="jdbc:oracle:thin:@(DESCRIPTION =(ADDRESS_LIST =(ADDRESS=(PROTOCOL=TCP)(HOST=192.168.2.13)(PORT=1521)))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=scgrid)))"/>
+            <!-- 
+            <data-source-config id="ds1" driver="oracle.jdbc.driver.OracleDriver"
+                                user-name="sichuan" password="iu(8YHJ65s1" url="jdbc:oracle:thin:@(DESCRIPTION =(ADDRESS_LIST =(ADDRESS=(PROTOCOL=TCP)(HOST=192.168.2.14)(PORT=1521)))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=scgrid)))"/>
+         	-->
+        </data-source-configs>
+        <partitions>
+             <partition id="masterSlave" mode="1">
+                <shards>
+                    <shard id="shard0" data-source-id="ds0" read-weight="1" write-able="true"></shard>
+                    <!-- 
+                    <shard id="shard1" data-source-id="ds1" read-weight="5" write-able="false"></shard>
+                     -->
+                </shards>
+            </partition>
+        </partitions>
+    </router>
+</routers>

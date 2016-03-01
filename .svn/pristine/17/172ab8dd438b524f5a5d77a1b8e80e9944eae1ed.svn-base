@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="householdStaff" extends="default" namespace="/baseinfo/householdStaff">
+		<default-class-ref class="householdStaffController"></default-class-ref>
+		<action name="downloadHouseholdStaff"
+			method="downloadHouseholdStaff">
+			<result name="success" type="stream">
+                <param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>
+                <param name="inputName">inputStream</param>
+                <!-- 下载时候提示的文件名 -->
+                <param name="contentDisposition">attachment;filename="${downloadFileName}"</param>
+                <param name="bufferSize">4096</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+
+	    <action name="reflushHouseHoldData" method="reflushHouseHoldData">
+			<result name="success"  type="json">
+				<param name="root">population</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+
+		<action name="whetherHousehold" method="whetherHousehold">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+
+		<action name="dispathAddGoOutHousehold" method="dispathAddGoOutHousehold">
+			<result name="dispathAddGoOut">
+				/baseinfo/householdPopulation/goOutHouseholdDlg.jsp
+			</result>
+		</action>
+		<action name="dispathHouseholdInfoForBusinessPopulation" method="dispathHouseholdInfoForBusinessPopulation">
+			<result name="success">
+				/baseinfo/householdPopulation/householdStaffDlg.jsp
+			</result>
+		</action>
+
+		<action name="addGoOutHousehold" method="addGoOutHousehold">
+			<result name="addGoOut" type="json">
+                <param name="root">cacheId</param>
+				<param name="ignoreHierarchy">false</param>
+            </result>
+            <result name="updateGoOut" type="json">
+                <param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+
+		<action name="checkCardNoIsRepeat" method="checkCardNoIsRepeat">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+
+		<action name="dispath" method="dispath">
+			<result name="success">
+				/baseinfo/commonPopulation/commonActualPopulationDlg.jsp
+			</result>
+
+			<result name="view">
+				/baseinfo/householdPopulation/householdstaffViewDlg.jsp
+			</result>
+		</action>
+
+		<action name="dispathForGis" method="dispath">
+			<result name="view">
+				/baseinfo/householdPopulation/householdstaffViewDlg_gis.jsp
+			</result>
+		</action>
+
+		<action name="maintainHouseholdStaffBaseInfo" method="maintainHouseholdStaffBaseInfo" >
+			<result name="success" type="json">
+				<param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="cacheSuccess" type="json">
+				<param name="root">cacheId</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="maintainHouseholdInfoForBusinessPopulation" method="maintainHouseholdInfoForBusinessPopulation" >
+			<result name="success" type="json">
+				<param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="cacheSuccess" type="json">
+				<param name="root">cacheId</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="addHouseholdStaffForMobile" method="addHouseholdStaffForMobile">
+			<result type="json" name="success">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="updateHouseholdStaffForMobile" method="updateHouseholdStaffForMobile">
+			<result type="json" name="success">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="maintainHouseholdStaffBusinessInfo" method="maintainHouseholdStaffBusinessInfo">
+			<result type="json" name="success">
+				<param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="input">
+				<param name="root">cacheId</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="hasDuplicateHouseholdStaff" method="hasDuplicateHouseholdStaff">
+			<result name="success" type="json">
+				<param name="root">hasDuplicateHouseholdStaff</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="dispathHouseholdStaffBaseInfo" method="dispath">
+			<result name="success">
+				/baseinfo/commonPopulation/populationBaseInfo.jsp
+			</result>
+		</action>
+
+		<action name="viewCommonPopulation" method="viewHouseholdStaff">
+			<result name="success">
+				/baseinfo/commonPopulation/viewCommonPopulation.jsp
+			</result>
+		</action>
+
+		<action name="viewHouseholdStaff" method="viewHouseholdStaff">
+			<result name="success">
+				/baseinfo/householdPopulation/householdstaffView.jsp
+			</result>
+		</action>
+
+		<action name="getHouseholdStaffByIdForMobile" method="viewHouseholdStaff">
+			<result name="success" type="json">
+                <param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+		</action>
+
+		<action name="fastSearch" method="fastSearch">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+		</action>
+
+		<action name="addPopulation" method="addPopulation">
+			<result name="addcache" type="json">
+                <param name="root">cacheId</param>
+				<param name="ignoreHierarchy">false</param>
+            </result>
+            <result name="addSuccess" type="json">
+                <param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+            </result>
+            <result name="addsuccess" type="json">
+                <param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+
+        <action name="getHouseholdStaffById" method="dispathInHouseholdStaffInfomation">
+            <result name="success">
+                /baseinfo/householdPopulation/householdStaffDlg.jsp
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+
+        <action name="findHouseholdStaffByOrgId" method="findHouseholdStaffByOrgId">
+            <result name="success" type="json">
+                <param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+                <param name="excludeNullProperties">true</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+
+        <action name="findHouseholdStaffByOrgIdAndId" method="findHouseholdStaffByOrgIdAndId">
+            <result name="success" type="json">
+                <param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+
+        <action name="findHouseholdStaffByOrgIdAndId" method="findHouseholdStaffByOrgIdAndId">
+            <result name="success" type="json">
+                <param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+        
+        <action name="prepareSearchHouseholdStaff" method="prepareSearchHouseholdStaff">
+            <result name="success">
+            	/baseinfo/householdPopulation/searchHouseholdStaffDlg.jsp
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+
+        <action name="addHouseholdStaff" method="addHouseholdStaff">
+            <result name="success" type="json">
+                <param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+            </result>
+            <result name="input" type="json">
+            	<param name="root">cacheId</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+
+        <action name="addHouseholdStaffToCache" method="addHouseholdStaffToCache">
+            <result name="success" type="json">
+            	<param name="root">cacheId</param>
+            </result>
+        </action>
+
+        <action name="deleteHouseholdStaff" method="deleteHouseholdStaff">
+        	<result name="success"  type="json">
+				<param name="root">true</param>
+			</result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+
+        <action name="getCensusRegisterFamilyByOrgIdAndAccountNumber" method="getCensusRegisterFamilyByOrgIdAndAccountNumber">
+            <result name="success" type="json">
+                <param name="root">censusRegisterFamily</param>
+				<param name="ignoreHierarchy">false</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+        <action name="updateEmphasiseById" method="updateLogOutOfHouseholdStaff">
+			<result type="json" name="success">
+				<param name="root">populationIdList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		 <action name="updateDeathOfHouseholdStaff" method="updateDeathOfHouseholdStaff">
+			<result type="json" name="success">
+				<param name="root">populationList</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result type="json" name="error">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="findHouseholdStaffByIdCardNoAndOrgId" method="findHouseholdStaffByIdCardNoAndOrgId">
+            <result name="success" type="json">
+                <param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+        </action>
+	</package>
+</struts>

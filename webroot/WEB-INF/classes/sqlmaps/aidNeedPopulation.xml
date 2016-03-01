@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="aidNeedPopulation">
+	<typeAlias alias="AidNeedPopulation" type="com.tianque.baseInfo.aidNeedPopulation.domain.AidNeedPopulation" />
+	<resultMap class="AidNeedPopulation" id="aidNeedPopulationResult" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResult">
+		<result property="aidReason.id" column="aidReason"/>
+		<result property="isLowHouseholds" column="isLowHouseholds"/>
+		<result property="difficultCardNo" column="difficultCardNo"/>
+		<result property="difficultType.id" column="difficultType"/>
+		<result property="subsidiesAmount" column="subsidiesAmount"/>
+		<result property="subsidiesGetTime" column="subsidiesGetTime"/>
+		<result property="subsidiesStartTime" column="subsidiesStartTime"/>
+		<result property="subsidiesPopulation" column="subsidiesPopulation"/>
+		<result property="subsidiesArea" column="subsidiesArea"/>
+		<result property="sourcesState" column="sourcesState" />
+	</resultMap>
+	<!-- 这两个resultMap内容一致，继承关系不一样 -->
+	<resultMap class="AidNeedPopulation" id="aidNeedPopulationResultForList" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+		<result property="aidReason.id" column="aidReason"/>
+		<result property="isLowHouseholds" column="isLowHouseholds"/>
+		<result property="difficultCardNo" column="difficultCardNo"/>
+		<result property="difficultType.id" column="difficultType"/>
+		<result property="subsidiesAmount" column="subsidiesAmount"/>
+		<result property="subsidiesGetTime" column="subsidiesGetTime"/>
+		<result property="subsidiesStartTime" column="subsidiesStartTime"/>
+		<result property="subsidiesPopulation" column="subsidiesPopulation"/>
+		<result property="subsidiesArea" column="subsidiesArea"/>
+		<result property="sourcesState" column="sourcesState" />
+	</resultMap>
+	
+	<sql id="fields">
+		uni.id,uni.baseInfoId,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.createDate,uni.createUser,uni.updateUser,uni.updateDate
+		,aidReason,isLowHouseholds,difficultCardNo,difficultType,subsidiesAmount
+		,subsidiesGetTime,subsidiesStartTime,subsidiesPopulation,subsidiesArea
+		,isEmphasis,isEmphasisReason,isEmphasisDate,sourcesState,attentionExtent
+	</sql>
+	
+	<select id="getAidNeedPopulationByIdCardNoAndOrganizationId" parameterClass="java.util.Map" resultMap="aidNeedPopulationResult">
+		 SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		 FROM aidNeedPopulation uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		 where (upper(idCardNo) = upper(#idCardNo15#) or upper(idCardNo) = upper(#idCardNo18#))
+		 and uni.orgId = #organizationId# 
+	</select>
+	
+	<select id="getAidNeedPopulationById" parameterClass="java.lang.Long" resultMap="aidNeedPopulationResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		FROM aidNeedPopulation uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.id = #value#
+	</select>
+	
+	<sql id="sql_where">
+		from aidNeedPopulation uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotNull property="name" prepend=" and ">
+					name like '$name$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="usedName">
+				<isNotNull property="usedName" prepend=" and ">
+					usedName = #usedName#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="gender">
+				<isNotNull property="gender" prepend=" and ">
+					gender = #gender.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotNull property="idCardNo" prepend=" and ">
+					upper(idCardNo) = upper(#idCardNo#)
+				</isNotNull>
+			</isPropertyAvailable>
+		<isPropertyAvailable property="isEmphasis">
+		<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="countAidNeedPopulation" parameterClass="AidNeedPopulation" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="findAidNeedPopulation" parameterClass="AidNeedPopulation" resultMap="aidNeedPopulationResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<sql id="updateBusinessSql">
+			<isPropertyAvailable property="updateUser">
+            	updateUser=#updateUser#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="updateDate">
+            	updateDate=#updateDate#
+            </isPropertyAvailable>
+			 <isPropertyAvailable prepend="," property="aidReason">
+				aidReason = #aidReason.id#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="isLowHouseholds">
+				isLowHouseholds = #isLowHouseholds#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="difficultCardNo">
+				difficultCardNo = #difficultCardNo#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="difficultType">
+				difficultType = #difficultType.id#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="subsidiesAmount">
+				subsidiesAmount = #subsidiesAmount#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="subsidiesGetTime">
+				subsidiesGetTime = #subsidiesGetTime#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="subsidiesStartTime">
+				subsidiesStartTime = #subsidiesStartTime#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="subsidiesPopulation">
+				subsidiesPopulation = #subsidiesPopulation#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="subsidiesArea">
+				subsidiesArea = #subsidiesArea#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="attentionExtent">
+				attentionExtent = #attentionExtent.id#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="isEmphasis">
+				<isNotEmpty property="isEmphasis">
+					isEmphasis = #isEmphasis#
+				</isNotEmpty>
+			</isPropertyAvailable>
+	</sql>
+
+	<insert id="addAidNeedPopulation" parameterClass="AidNeedPopulation">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_aidNeedPopulation.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into aidNeedPopulation
+			(
+			<include refid="populationBaseInfo.addBaseInfoFields"/>,
+			aidReason,isLowHouseholds,difficultCardNo,difficultType,subsidiesAmount,subsidiesGetTime,subsidiesStartTime,subsidiesPopulation,subsidiesArea,sourcesState,attentionExtent,isEmphasis)
+		values
+			 (
+			 <include refid="populationBaseInfo.addBaseInfoData"/>,
+			 #aidReason.id#,#isLowHouseholds#,#difficultCardNo#,#difficultType.id#,#subsidiesAmount#,#subsidiesGetTime#,#subsidiesStartTime#,#subsidiesPopulation#,#subsidiesArea#,#sourcesState#,#attentionExtent.id#,#isEmphasis#
+			 )
+	</insert>
+
+
+	<select id="getByIdCard" parameterClass="java.util.Map"
+		resultMap="aidNeedPopulationResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from aidNeedPopulation uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgId=#orgId# and
+		<iterate property="idCardNoList" open="("  close=")"  conjunction="or">
+			upper(idCardNo) = upper(#idCardNoList[]#)
+		</iterate>
+	</select>
+	
+	<select id="getByOrgIdAndIdCardNo" parameterClass="map" resultMap="aidNeedPopulationResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		FROM aidNeedPopulation uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgId = #orgId# and upper(idCardNo)=upper(#idCardNo#) 
+	</select>
+
+	<delete id="deleteAidNeedPopulationById" parameterClass="java.lang.Long">
+		delete from aidNeedPopulation where id = #value#
+	</delete>
+
+		<update id="updateAidNeedPopulation" parameterClass="AidNeedPopulation">
+		update aidNeedPopulation set
+		<dynamic>
+            id=#id#
+           <isPropertyAvailable prepend="," property="updateUser">
+            	updateUser=#updateUser#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="updateDate">
+            	updateDate=#updateDate#
+            </isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="isEmphasis">
+				<isNotEmpty property="isEmphasis">
+					isEmphasis = #isEmphasis#
+				</isNotEmpty>
+			</isPropertyAvailable>
+            <isPropertyAvailable  prepend="," property="aidReason">
+				aidReason = #aidReason.id#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="isLowHouseholds">
+				isLowHouseholds = #isLowHouseholds#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="difficultCardNo">
+				difficultCardNo = #difficultCardNo#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="difficultType">
+				difficultType = #difficultType.id#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="subsidiesAmount">
+				subsidiesAmount = #subsidiesAmount#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="subsidiesGetTime">
+				subsidiesGetTime = #subsidiesGetTime#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="subsidiesStartTime">
+				subsidiesStartTime = #subsidiesStartTime#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="subsidiesPopulation">
+				subsidiesPopulation = #subsidiesPopulation#
+			</isPropertyAvailable>
+			<isPropertyAvailable  prepend="," property="subsidiesArea">
+				subsidiesArea = #subsidiesArea#
+			</isPropertyAvailable>
+			where id=#id#
+		</dynamic>
+	</update>
+	
+	<select id="getAidNeedPopulationByName" parameterClass="java.util.Map"
+		resultMap="aidNeedPopulationResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from aidNeedPopulation uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where  upper(idCardNo)=upper(#name#) and uni.orgId=#id#
+	</select>
+
+	<select id="countExsistedIdCard" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(uni.id) from aidNeedPopulation uni left join baseinfo b on uni.baseinfoid=b.id where uni.orgId=$organizationId$
+		<isNotNull property="id" prepend=" and ">
+			<![CDATA[
+				uni.id!=$id$
+			]]>
+		</isNotNull>
+		and (
+		<iterate property="idCardNoList" conjunction="or">
+			upper(idCardNo) = upper(#idCardNoList[]#)
+		</iterate>
+		)
+	</select>
+	
+	<update id="updateAidNeedPopulationForOrgById" parameterClass="java.util.Map">
+		update aidNeedPopulation set orgId = #orgId#, orgInternalCode = #orgInternalCode# where id = #id#
+	</update>
+
+	<update id="updateEmphasiseById" parameterClass="map">
+		update aidNeedPopulation set isEmphasis=#isEmphasis# where id=#id#
+	</update>
+
+	<update id="updateBusiness" parameterClass="AidNeedPopulation">
+		update aidNeedPopulation set
+		<include refid="updateBusinessSql"/>
+		where id = #id#
+	</update>
+
+	<!-- 移动数据需要的sql -->
+	<update id="updateDataMoveAidNeedPopulationToOrg" parameterClass="java.util.Map">
+		update aidNeedPopulation set orgId = #orgId# , orgInternalCode = #orgInternalCode# where id = #id#
+	</update>
+
+	<!-- 以下已经过时，语句已经没用，用到必须重新改 -->
+	<update id="updateBaseInfo" parameterClass="AidNeedPopulation">
+		update aidNeedPopulation set
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>
+		,isEmphasis=#isEmphasis#
+		where id = #id#
+	</update>
+	
+	<update id="updateDeathAndLogoutStateById" parameterClass="java.util.Map">
+		update aidNeedPopulation set
+		isEmphasis=#isEmphasis#
+		,isDeath=#death#
+		where id=#id#
+	</update>
+	
+	<update id="updateAidNeedPopulationInofosByIdCardNoFromBasePersonnel" parameterClass="AidNeedPopulation">
+		update aidNeedPopulation set
+		<dynamic>
+			idCardNo = #idCardNo#
+			<isNotEmpty property="name" prepend=",">
+				name = #name#
+			</isNotEmpty>
+			<isNotEmpty property="fullPinyin" prepend=",">
+				fullPinyin = #fullPinyin#
+			</isNotEmpty>
+			<isNotEmpty property="simplePinyin" prepend=",">
+				simplePinyin = #simplePinyin#
+			</isNotEmpty>
+			<isNotNull property="gender">
+				<isNotNull property="gender.id" prepend=",">
+					gender = #gender.id#
+				</isNotNull>
+			</isNotNull>
+			where idCardNo = #idCardNo#
+		</dynamic>
+	</update>
+	<select id="getIdByBaseinfoIdAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		SELECT id from aidNeedPopulation  
+		where baseinfoid=#baseInfoId# and orgId=#orgId#
+	</select>
+	
+	<resultMap id="aidNeedPopulationsResultForDefaultList" class="AidNeedPopulation" 
+		extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForDefaultList">
+		<result property="aidReason.id" column="aidReason"/>
+		<result property="isLowHouseholds" column="isLowHouseholds"/>
+		<result property="difficultCardNo" column="difficultCardNo"/>
+		<result property="difficultType.id" column="difficultType"/>
+		<result property="subsidiesAmount" column="subsidiesAmount"/>
+		<result property="subsidiesGetTime" column="subsidiesGetTime"/>
+		<result property="subsidiesStartTime" column="subsidiesStartTime"/>
+		<result property="subsidiesPopulation" column="subsidiesPopulation"/>
+		<result property="subsidiesArea" column="subsidiesArea"/>
+		<result property="sourcesState" column="sourcesState" />
+	</resultMap>
+	<sql id="default_sql_where">
+	  from aidNeedPopulation uni 
+	  <dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findAidNeedPopulationDefaultList" resultMap="aidNeedPopulationsResultForDefaultList" parameterClass="map">
+	  select <include refid="fields"/>
+	  <include refid="default_sql_where" />
+	  ORDER BY ID DESC
+	</select>
+	
+	<select id="countAidNeedPopulationDefaultList" resultClass="java.lang.Integer" parameterClass="map">
+		<![CDATA[select count(uni.id)]]>
+		<include refid="default_sql_where" />
+	</select>
+</sqlMap>

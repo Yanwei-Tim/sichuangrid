@@ -1,0 +1,783 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib"%>
+<%@ include file="/includes/baseInclude.jsp"%>
+<style type="text/css">
+  input[type="checkbox"]{
+     margin-left: 10px;
+     padding-top: 1px;
+    }
+   .selectingObjContent{
+ 	 border:1px solid #999999;height: 350px;width: 170px;margin-top: 3px;padding:10px 0px 0px 10px;
+   } 
+   .orgObjContent{
+  	border:1px solid #999999;height: 360px;width: 220px;margin-top: 3px;
+   }
+  .selectedObjContent{
+    border:1px solid #999999;height: 360px;width: 175px;margin-top: 3px;padding-top: 10px;padding-left: 10px;
+    font-size: 15px;
+    }
+</style>
+
+<div>
+
+<form id="viewObject">
+<div id="selectingObj" style="float:left">
+	<div>
+		<label style="font-size:17px">可选对象：</label>
+	</div>
+	<div  class="selectingObjContent">
+		<input type="radio" name="viewObjectVo.selectedRadio" id="selectAll" value="selectAll"/><label>全部</label><br/>
+		<ul>
+			<li>
+				<label><input type="radio" name="viewObjectVo.selectedRadio" id="selectByLevel" value="selectByLevel"/>按层级</label>
+				<ul>
+					<li>
+						<label><input type="checkbox" name="viewObjectVo.selectedCheckBoxs" id="province" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@PROVINCE'/>-<s:property value='@com.tianque.domain.property.OrganizationType@ADMINISTRATIVE_REGION'/>"> 省（直辖市）</label>
+					</li>
+					<li>
+						<label><input type="checkbox" name="viewObjectVo.selectedCheckBoxs" id="city" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@CITY'/>-<s:property value='@com.tianque.domain.property.OrganizationType@ADMINISTRATIVE_REGION'/>"> 市（地）</label>
+					</li>
+					
+					<li>
+						<label><input type="checkbox" name="viewObjectVo.selectedCheckBoxs" id="district" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@DISTRICT'/>-<s:property value='@com.tianque.domain.property.OrganizationType@ADMINISTRATIVE_REGION'/>"> 县（区）</label>
+					</li>
+					<li>
+						<label><input type="checkbox" name="viewObjectVo.selectedCheckBoxs" id="town" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@TOWN'/>-<s:property value='@com.tianque.domain.property.OrganizationType@ADMINISTRATIVE_REGION'/>"> 乡镇（街道）</label>
+					</li>
+					<li>
+						<label><input type="checkbox" name="viewObjectVo.selectedCheckBoxs" id="village" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@VILLAGE'/>-<s:property value='@com.tianque.domain.property.OrganizationType@ADMINISTRATIVE_REGION'/>"> 村（社区）</label><br/>
+					</li>
+					<li>
+						 <label><input type="checkbox" name="viewObjectVo.selectedCheckBoxs" id="grid" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@GRID'/>-<s:property value='@com.tianque.domain.property.OrganizationType@ADMINISTRATIVE_REGION'/>"> 网格</label>
+					</li>
+					<li>
+						<label><input type="checkbox" name="viewObjectVo.selectedCheckBoxs" id="provinceFucDepartment" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@PROVINCE'/>-<s:property value='@com.tianque.domain.property.OrganizationType@FUNCTIONAL_ORG'/>"> 省级职能部门</label>
+					</li>
+					<li>
+						<label><input type="checkbox" name="viewObjectVo.selectedCheckBoxs" id="cityFucDepartment" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@CITY'/>-<s:property value='@com.tianque.domain.property.OrganizationType@FUNCTIONAL_ORG'/>"> 市级职能部门</label>
+					</li>
+					<li>
+						<label><input type="checkbox" name="viewObjectVo.selectedCheckBoxs" id="districtFucDepartment" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@DISTRICT'/>-<s:property value='@com.tianque.domain.property.OrganizationType@FUNCTIONAL_ORG'/>"> 县级职能部门</label>
+					</li>
+					<li>
+						 <label><input type="checkbox" name="viewObjectVo.selectedCheckBoxs" id="townFucDepartment" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@TOWN'/>-<s:property value='@com.tianque.domain.property.OrganizationType@FUNCTIONAL_ORG'/>"> 乡镇职能工作站</label>
+					</li>
+					
+				</ul>
+			</li>
+		</ul>
+			<!-- 
+		<input type="radio" name="viewObjectVo.selectedRadio" id="selectByLine" value="selectByLine"/><label>按上下级</label><br/>
+			&nbsp;&nbsp;&nbsp;<input type="radio" name="viewObjectVo.selectedLevel" id="selfLevel" value="selfLevel"> <label>本级用户</label><br/>
+			&nbsp;&nbsp;&nbsp;<input type="radio" name="viewObjectVo.selectedLevel" id="directDownLevel" value="directDownLevel"> <label>直属下辖</label><br/>
+			&nbsp;&nbsp;&nbsp;<input type="radio" name="viewObjectVo.selectedLevel" id="allDownLevel" value="allDownLevel"> <label>所有下辖</label><br/>
+			&nbsp;&nbsp;&nbsp;<input type="radio" name="viewObjectVo.selectedLevel" id="allUpLevel" value="allUpLevel"> <label>所有上级</label><br/>
+		-->
+	</div>
+</div>	
+<div id="orgObj" style="float:left;margin-left: 15px">
+	<div >
+		<div class="ui-widget" >
+			<label style="font-size:16px">组织机构：</label>
+			<input id="org-tree-autocomplete" type="text" style="width:131px;height:17px;"/>
+		
+		<a id="refreshOrgTreeRefresh">
+		  <div style="border:0;width:16px;height:16px;background-color:transparent; position:absolute;top:8px;left:410px;cursor:pointer;outline: none;background:url(/resource/system/js/jqueryui/default/images/ui-icons_0078ae_256x240.png) no-repeat -64px -80px;">
+		  </div>
+		</a>
+		
+		</div>
+		
+	</div>
+	<div id="evaluate-select" class="orgObjContent" style="overflow: auto;height:355px;">
+		<div id="evaluate_tree_navigation" style="padding:10px 0 0 10px;"></div>
+	</div>
+</div>
+
+<div id="selectedObj" style="float: left;margin-left: 15px">
+	<div>
+		<label style="font-size:17px">已选对象：</label>
+	</div>
+	<div  class="selectedObjContent">
+	省级<span id="provinceNum" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@PROVINCE'/>-<s:property value='@com.tianque.domain.property.OrganizationType@ADMINISTRATIVE_REGION'/>"><a href="javascript:;" style="text-decoration:underline;">0</a></span>个<br/>
+	市级<span id="cityNum" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@CITY'/>-<s:property value='@com.tianque.domain.property.OrganizationType@ADMINISTRATIVE_REGION'/>"><a href="javascript:;" style="text-decoration:underline;">0</a></span>个<br/>
+	县区级<span id="districtNum" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@DISTRICT'/>-<s:property value='@com.tianque.domain.property.OrganizationType@ADMINISTRATIVE_REGION'/>"><a href="javascript:;" style="text-decoration:underline;">0</a></span>个<br/>
+	乡镇<span id="townNum" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@TOWN'/>-<s:property value='@com.tianque.domain.property.OrganizationType@ADMINISTRATIVE_REGION'/>"><a href="javascript:;" style="text-decoration:underline;">0</a></span>个<br/>
+	村（社区）<span id="villageNum" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@VILLAGE'/>-<s:property value='@com.tianque.domain.property.OrganizationType@ADMINISTRATIVE_REGION'/>"><a href="javascript:;" style="text-decoration:underline;">0</a></span>个<br/>
+	网格<span id="gridNum" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@GRID'/>-<s:property value='@com.tianque.domain.property.OrganizationType@ADMINISTRATIVE_REGION'/>"><a href="javascript:;" style="text-decoration:underline;">0</a></span>个<br/>  
+	省级职能部门<span id="provinceFucDepartmentNum" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@PROVINCE'/>-<s:property value='@com.tianque.domain.property.OrganizationType@FUNCTIONAL_ORG'/>"><a href="javascript:;" style="text-decoration:underline;">0</a></span>个<br/>
+	市级职能部门<span id="cityFucDepartmentNum" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@CITY'/>-<s:property value='@com.tianque.domain.property.OrganizationType@FUNCTIONAL_ORG'/>"><a href="javascript:;" style="text-decoration:underline;">0</a></span>个<br/>
+	县区级职能部门<span id="districtFucDepartmentNum" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@DISTRICT'/>-<s:property value='@com.tianque.domain.property.OrganizationType@FUNCTIONAL_ORG'/>"><a href="javascript:;" style="text-decoration:underline;">0</a></span>个<br/>
+	乡镇职能工作站<span id="townFucDepartmentNum" value="<s:property value='@com.tianque.domain.property.OrganizationLevel@TOWN'/>-<s:property value='@com.tianque.domain.property.OrganizationType@FUNCTIONAL_ORG'/>"><a href="javascript:;" style="text-decoration:underline;">0</a></span>个<br/>
+	</div>
+</div>
+<input type="hidden" id="provinceNumHid"/>
+<input type="hidden" id="cityNumHid"/>
+<input type="hidden" id="districtNumHid"/>
+<input type="hidden" id="townNumHid"/>
+<input type="hidden" id="villageNumHid">
+<input type="hidden" id="gridNumHid">
+<input type="hidden" id="provinceFucDepartmentNumHid">
+<input type="hidden" id="cityFucDepartmentNumHid">
+<input type="hidden" id="districtFucDepartmentNumHid">
+<input type="hidden" id="townFucDepartmentNumHid">
+<input type="hidden" id="cacheId" value="<s:property value='#parameters.cacheId[0]'/>" >
+<input type="hidden" id="viewObjectId" value="<s:property value='#parameters.viewObjectId[0]'/>" >
+</form>
+<div id="selectedOrgNamesDetail"></div>
+</div>
+<script type="text/javascript">
+	function getprovienceOrgId(){
+			$.ajax({
+				url:"${path}/sysadmin/orgManage/getOrgProvinceByOrgId.action",
+				async:false,
+				success:function(data){
+					rootId = eval(data);
+				}
+			});
+		return rootId;
+	}
+	var checkboxValues= new Array();//选中的checkbox的值数组
+	var ignoreOrgIds = new Array();//忽略的orgIds的数组
+	var selectedOrgIdAry = new Array();//选择了那些orgId
+	var editIgnores = new Array();//修改的时候从后台查到的有那些id
+	var selectedOrgIds = "";
+	var data;//from表单体积的数据
+	var tree = $("#evaluate_tree_navigation").initTree({
+		url:'/sysadmin/orgManage/firstLoadExtTreeDataWithCheckedBox.action',
+		nodeUrl:'/sysadmin/orgManage/ajaxOrgsForExtTreeWithCheckedBox.action?directlySupervisor=true',
+		allOrg:false,
+		rootId:getprovienceOrgId(),
+		directlySupervisor:true
+	});
+	if($("#cacheId").val()){
+		var url = "${path}/viewObject/ajaxGetViewObjectFromCache.action?cacheId.id="+$("#cacheId").val();
+		ajaxGetView(url);
+	}else if($("#viewObjectId").val()){
+		var url = "${path}/viewObject/ajaxGetViewObjectFromDB.action?viewObjectVo.id="+$("#viewObjectId").val();
+		ajaxGetView(url);
+	}else{
+		//获取默认的各个层级的个数
+		$.ajax({
+			url : "${path}/viewObject/ajaxGetViewObjectDefNum.action",
+			success : function(data) {
+				setDefNum(data);
+			}
+		 });
+	}
+	
+	function ajaxGetView(url){
+		$.ajax({
+			cache:false,
+			url : url ,
+			success : function(data) {
+				setDefNum(data);
+				if(data.exclusiveIdStrs){
+					editIgnores = data.exclusiveIdStrs.split(",");
+					for(var i=0;i<editIgnores.length;i++){
+						if(editIgnores[i]){
+							editIgnores[editIgnores[i]]=editIgnores[i];
+						}
+					}
+				}
+				
+				if(data.selectedCheckBoxStrs){
+					var boxs=data.selectedCheckBoxStrs.split(",");
+					for(var i=0;i<boxs.length;i++){
+						if(boxs[i]){
+							checkedCheckBoxByValue(boxs[i]);
+						}
+					}
+				}
+				if(data.selectedIdStrs){
+					var ids = data.selectedIdStrs.split(",");
+					for(var i=0;i<ids.length;i++){
+						if(ids[i]){
+							selectedOrgIdAry[ids[i]]=ids[i];
+						}
+					}
+				}
+				if(data.selectedOrgLevelTypeMapList){
+					for(i=0;i<data.selectedOrgLevelTypeMapList.length;i++){
+						for(var key in data.selectedOrgLevelTypeMapList[i]){
+							if(!ignoreOrgIds[data.selectedOrgLevelTypeMapList[i][key]]){
+								ignoreOrgIds[data.selectedOrgLevelTypeMapList[i][key]]=new Array();
+							}
+							ignoreOrgIds[data.selectedOrgLevelTypeMapList[i][key]][key]=key;
+						}
+						
+					}
+					
+				}
+				
+				setSelectedNum(data);
+			}
+		 });
+	}
+	
+	function setSelectedNum(data){
+		$("#provinceNum").find("a").text(data.provinceNum==null ? 0 : data.provinceNum);
+		$("#cityNum").find("a").text(data.cityNum==null ? 0 : data.cityNum);
+		$("#districtNum").find("a").text(data.districtNum==null ? 0 : data.districtNum);
+		$("#townNum").find("a").text(data.townNum==null ? 0 : data.townNum);
+		$("#villageNum").find("a").text(data.villageNum==null ? 0 : data.villageNum);
+		$("#gridNum").find("a").text(data.gridNum==null ? 0 : data.gridNum);
+		$("#provinceFucDepartmentNum").find("a").text(data.provinceFucDepartmentNum==null ? 0 : data.provinceFucDepartmentNum);
+		$("#cityFucDepartmentNum").find("a").text(data.cityFucDepartmentNum==null ? 0 : data.cityFucDepartmentNum);
+		$("#districtFucDepartmentNum").find("a").text(data.districtFucDepartmentNum==null ? 0 : data.districtFucDepartmentNum);
+		$("#townFucDepartmentNum").find("a").text(data.townFucDepartmentNum==null ? 0 : data.townFucDepartmentNum);
+	}
+	
+	function setDefNum(data){
+		$("#provinceNumHid").val(data.defProvinceNum);
+		$("#cityNumHid").val(data.defCityNum);
+		$("#districtNumHid").val(data.defDistrictNum);
+		$("#townNumHid").val(data.defTownNum);
+		$("#villageNumHid").val(data.defVillageNum);
+		$("#gridNumHid").val(data.defGridNum);
+		$("#provinceFucDepartmentNumHid").val(data.defProvinceFucDepartmentNum);
+		$("#cityFucDepartmentNumHid").val(data.defCityFucDepartmentNum);
+		$("#districtFucDepartmentNumHid").val(data.defDistrictFucDepartmentNum);
+		$("#townFucDepartmentNumHid").val(data.defTownFucDepartmentNum);
+	}
+	
+	function sumitViewObject(){
+		$.ajax({
+			url : "${path}/viewObject/ajaxSaveViewObjectToCache.action",
+			data : getFormData(),
+			success : function(data) {
+				$("#"+'<s:property value="#parameters.eleId[0]"/>'+"CacheId").val(data.id);
+				$("#"+'<s:property value="#parameters.eleId[0]"/>'+"Text").val(getSelectedOrgNames());
+				$("#"+'<s:property value="#parameters.dailogName[0]"/>').dialog("close");
+			}
+		 });
+	}
+	
+	$("input",$(".selectingObjContent")).each(function(){
+		var id=$(this).attr("id");
+		$(this).change(function(){
+			if($(this).attr("type")=='radio'){
+				clearCheckedNmu();
+			}else{
+				if($(this).attr("checked")){
+					if(!$("#selectByLevel").attr("checked")){
+						$(this).parent().parent().parent().parent().children("label").children().click();
+					}
+					$("#"+$(this).attr("id")+"Num").find("a").text($("#"+$(this).attr("id")+"NumHid").val());
+				}else{
+					$("#"+$(this).attr("id")+"Num").find("a").text(0);
+				}
+			}
+			//全选的话，设置已选数量为系统默认的各个级别的数量
+			if($("#selectAll").attr("checked")){
+				setCheckedNumByDef();
+			}
+			//checkBox选中时
+			if($(this).attr("type")=="checkbox"){
+				var flag;
+				if($(this).attr("checked")){
+					//把当前选择的checkbox的value放到数组中
+					checkboxValues[$(this).val()]=$(this).val();
+					flag = true;
+				}else{
+					checkboxValues[$(this).val()]=null;
+					flag = false;
+				}
+					removeSelectedLevelIgnoreOrgIds($(this).val());
+					checkTreeNodeByBox($(this),flag);
+			}else{
+				tree.getRootNode().cascade(function(node){node.ui.toggleCheck(false);node.attributes.checked = false;})
+				if(id=="selectAll"){
+					if($(this).attr("checked")){
+						tree.getRootNode().cascade(function(node){node.ui.toggleCheck(true);node.attributes.checked = true;})
+						$("input[type='checkbox']:checked",$(".selectingObjContent")).removeAttr("checked");
+					}
+				}
+			}
+		})
+	});
+	
+	function checkTreeNodeByBox(obj,flag){
+		var level = obj.val().split("-")[0];
+		var type = obj.val().split("-")[1];
+		tree.getRootNode().cascade(function(node){if(level==node.attributes.orgLevelInternalId && type == node.attributes.orgTypeInternalId){node.ui.toggleCheck(flag);node.attributes.checked = flag;}})
+	}
+	function removeSelectedLevelIgnoreOrgIds(val){
+		if(ignoreOrgIds[val]){
+			ignoreOrgIds[val].length=0;
+		}
+	}
+
+ 
+	// 节点级联  
+	var countryInternalId = <s:property value='@com.tianque.domain.property.OrganizationLevel@COUNTRY'/>;
+	var provinceInternalId = <s:property value='@com.tianque.domain.property.OrganizationLevel@PROVINCE'/>;
+	var cityInternalId = <s:property value='@com.tianque.domain.property.OrganizationLevel@CITY'/>;
+	var districtInternalId = <s:property value='@com.tianque.domain.property.OrganizationLevel@DISTRICT'/>;
+	var townInternalId = <s:property value='@com.tianque.domain.property.OrganizationLevel@TOWN'/>;
+	var villageInternalId = <s:property value='@com.tianque.domain.property.OrganizationLevel@VILLAGE'/>;
+	var gridInternalId = <s:property value='@com.tianque.domain.property.OrganizationLevel@GRID'/>;
+	var funOrgTypeinternalId = <s:property value='@com.tianque.domain.property.OrganizationType@FUNCTIONAL_ORG'/>;
+	//当前用户
+	var currentUserOrgLevel =<s:property value="@com.tianque.core.util.ThreadVariable@getOrganization().getOrgLevel().getInternalId()"/>;
+	var currentUserOrgId =<s:property value="@com.tianque.core.util.ThreadVariable@getOrganization().getId()"/>;
+	var currentUserOrgType =<s:property value="@com.tianque.core.util.ThreadVariable@getOrganization().getOrgType().getInternalId()"/>;
+	var currentUserOrgInternalCode = '<s:property value="@com.tianque.core.util.ThreadVariable@getOrganization().getOrgInternalCode()"/>';
+	
+	function clearCheckedNmu(){
+		$("span",$("#selectedObj")).find("a").text("0");
+	}
+	
+	function setCheckedNumByDef(){
+		$("span",$("#selectedObj")).each(function(){
+			$(this).find("a").text($("#"+$(this).attr("id")+"Hid").val());
+		});
+	}
+	
+	function setCheckedNumByCheckedCheckBox(checkeds){
+		for(var i=0;i<checkeds.length;i++){
+			var obj = checkeds[i];
+			$("#"+obj.id+"Num").find("a").text($("#"+obj.id+"NumHid").val());
+		}
+	}
+	function checkedCheckBoxByValue(val){
+		$("input[type='checkbox']",$(".selectingObjContent")).each(function(){
+			if($(this).val()==val){
+				$(this).click();
+			}
+		});
+	}
+	
+	function showSelectedOrgNames(showLink){
+		$("#selectedOrgNamesDetail").createDialog({
+			width: 650,
+			height: 500,
+			title:'查看选择对象的详细',
+			url:PATH+'/viewObject/ajaxGetselectedOrgNames.action?showLink='+showLink,
+			postData : getFormData(),
+			buttons: {
+				"关闭" : function(){
+	        	$(this).dialog("close");
+   				}
+			}
+		});
+	}
+	
+$(document).ready(function(){
+	
+	$(".selectedObjContent").find("span").each(function(){
+		var showLine = ($(this).attr("value"));
+		$(this).find("a").click(function(){
+			showSelectedOrgNames(showLine);
+		});
+		
+	});	
+	
+    //双击的时候 前面的复选框不要选中 不然会出现负数
+	tree.on("dblclick" , function(node){
+		 node.ui.checkbox.checked =false;
+	});
+	
+	tree.on('expand',function(node){
+	 if (node.hasChildNodes()) {                 //是否有子节点
+	   		node.eachChild(function(child) { 
+		 	  checkedNodeByCheckedBox(child);
+		  	});
+	 }
+		
+	});
+	
+	var lastSelectedNode=false;
+	
+	function checkedNodeByCheckedBox(child){
+		if($("#selectAll").attr("checked")){
+			child.ui.toggleCheck(true);         
+           	child.attributes.checked = true; 
+           	return ;
+		}
+		var level = child.attributes.orgLevelInternalId;
+		var type = child.attributes.orgTypeInternalId;
+		if(checkboxValues[level+"-"+type] && !editIgnores[child.id]){
+		 	child.ui.toggleCheck(true);         
+           	child.attributes.checked = true; 
+		}if(selectedOrgIdAry[child.id]){
+			child.ui.toggleCheck(true);         
+           	child.attributes.checked = true; 
+		}
+		
+	}
+	
+	function afterChangNode(node){
+		$("#currentOrgId").val(node.id);
+		$("#org-tree-autocomplete").val(node.text);
+		
+		if(typeof(onMenuChanged) != 'undefined' ){
+			onMenuChanged.call(null,node,is_Grid());
+		}
+		if(checkedIsNeedClickWhenDataView() && !($(".hover").find("span").text() == "辖区信息")){ 
+			$(".click").removeClass("click").click();
+		}else {//调用 页面的 onOrgChanged 方法
+			if(typeof(onOrgChanged) != 'undefined'){
+				onOrgChanged.call(null,node.id,is_Grid());
+			}
+		}
+		
+		lastSelectedNode=node;
+	}
+	$.addClick(tree,afterChangNode);
+	<s:if test='null!=#parameters.selectedOrgId[0] && !"".equals(#parameters.selectedOrgId[0])'>
+	$.setTreeValue(<s:property value="#parameters.selectedOrgId[0]"/>,tree);
+	</s:if>
+
+	function stringFormatter(str){
+		if(str==undefined){
+			return "";
+		}
+		return str;
+	}
+	
+	$("#org-tree-autocomplete").autocomplete({
+		source: function(request, response) {
+			$.ajax({
+				url: PATH+"/sysadmin/orgManage/ajaxFindOrganizationsByOrgNameAndOrgType.action",
+				data:{"organization.orgName":function(){return request.term;}},
+				success: function(data) {
+					response($.map(data, function(item) {
+						return {
+							label: item.orgName+","+stringFormatter(item.contactWay),
+							value: item.orgName,
+							id: item.id
+						}
+					}))
+				},
+				error : function(){
+					$.messageBox({
+						message:"搜索失败，请重新登入！",
+						level:"error"
+					});
+				}
+			})
+		},
+			select: function(event, ui) {
+				$.ajax({
+					url:PATH+"/sysadmin/orgManage/ajaxSearchParentNodeIds.action?organization.id="+ui.item.id,
+					success:function(data){
+						$.searchChild(tree,data);
+					}
+				});
+			}
+		});
+
+
+		$("#refreshOrgTreeRefresh").click(function(){
+			/* $.selectRootNode(tree); */
+		    $("#org-tree-autocomplete").val("");
+		});
+		
+		$('#refreshOrgTreeRefresh li').hover(
+				function() { $(this).addClass('ui-state-hover'); },
+				function() { $(this).removeClass('ui-state-hover'); }
+		);
+	
+});
+	function is_ProvinceDep(node){
+		return node.attributes.orgLevelInternalId==provinceInternalId && node.attributes.orgTypeInternalId==funOrgTypeinternalId;
+	}
+	function is_CityDep(node){
+		return node.attributes.orgLevelInternalId==cityInternalId && node.attributes.orgTypeInternalId==funOrgTypeinternalId;
+	}
+	function is_DistrictDep(node){
+		return node.attributes.orgLevelInternalId==districtInternalId && node.attributes.orgTypeInternalId==funOrgTypeinternalId;
+	}
+	function is_TownDep(node){
+		return node.attributes.orgLevelInternalId==townInternalId && node.attributes.orgTypeInternalId==funOrgTypeinternalId;
+	}
+	function is_Grid(node){
+		return node.attributes.orgLevelInternalId == <s:property value="@com.tianque.domain.property.OrganizationLevel@GRID"/>;
+	}
+	function is_Village(node){
+		return node.attributes.orgLevelInternalId == <s:property value="@com.tianque.domain.property.OrganizationLevel@VILLAGE"/>;
+	}
+	function is_Town(node){
+		return node.attributes.orgLevelInternalId == <s:property value="@com.tianque.domain.property.OrganizationLevel@TOWN"/>;
+	}
+	function is_District(node){
+		return node.attributes.orgLevelInternalId == <s:property value="@com.tianque.domain.property.OrganizationLevel@DISTRICT"/>;
+	}
+	function is_City(node){
+		return node.attributes.orgLevelInternalId == <s:property value="@com.tianque.domain.property.OrganizationLevel@CITY"/>;
+	}
+	function is_Province(node){
+		return node.attributes.orgLevelInternalId == <s:property value="@com.tianque.domain.property.OrganizationLevel@PROVINCE"/>;
+	}
+	function isCountry(node){
+		return node.attributes.orgLevelInternalId == <s:property value="@com.tianque.domain.property.OrganizationLevel@COUNTRY"/>;
+	}
+
+	//记录上次点击的是 什么部门 用于判断是否需要 切换
+	var lastSelectOrgLevel = -1;
+	function checkedIsNeedClickWhenDataView(){
+		var bool = false;
+			var selectOrgLevel = $.getSelectedNode(tree).orgLevelInternalId;
+			if(lastSelectOrgLevel == -1){
+				lastSelectOrgLevel = selectOrgLevel;
+			}
+			
+			if(lastSelectOrgLevel < <s:property value="@com.tianque.domain.property.OrganizationLevel@DISTRICT"/> && isDistrictDownOrganization()
+					 || lastSelectOrgLevel >= <s:property value="@com.tianque.domain.property.OrganizationLevel@DISTRICT"/> && !isDistrictDownOrganization()
+					 ){
+				bool = false;
+			}else{
+				bool = true;
+			}
+
+			lastSelectOrgLevel = selectOrgLevel;
+		return bool;
+	}
+
+
+tree.on('checkchange',function(node){
+	if(node.attributes.checked){
+		process(node,"checked")
+	}else{
+		process(node,"remove")
+	}
+});
+function process(node ,option){
+	//如果左边的checkbox没有任何一个选中，那么点击树意味这一个个的node加入到选择的对象当中去
+	if($("input[type='checkbox']:checked",$(".selectingObjContent")).length==0){
+		if(option=="checked"){
+			selectedOrgIdAry[node.id]=node.id;
+			setSelectNumWhenNodecheckchange(node,"add");
+		}else{
+			selectedOrgIdAry[node.id]=null;
+			setSelectNumWhenNodecheckchange(node,"detract");
+		}
+		
+	}else{
+		if(option=="remove"){
+			if(!ignoreOrgIds[node.attributes.orgLevelInternalId+"-"+node.attributes.orgTypeInternalId]){
+				ignoreOrgIds[node.attributes.orgLevelInternalId+"-"+node.attributes.orgTypeInternalId]=new Array();
+			}
+			ignoreOrgIds[node.attributes.orgLevelInternalId+"-"+node.attributes.orgTypeInternalId][node.id]=node.id;
+			setSelectNumWhenNodecheckchange(node,"detract");
+		}else{
+			
+			if(ignoreOrgIds[node.attributes.orgLevelInternalId+"-"+node.attributes.orgTypeInternalId]){
+				ignoreOrgIds[node.attributes.orgLevelInternalId+"-"+node.attributes.orgTypeInternalId][node.id]=null;
+			}else{
+				selectedOrgIdAry[node.id]=node.id;
+			}
+			setSelectNumWhenNodecheckchange(node,"add");
+		}
+	}
+
+}
+
+function setSelectNumWhenNodecheckchange(node,option){
+	if(option=="add"){
+		$("#"+getViewNumEleIdByNode(node)).find("a").text(parseInt($("#"+getViewNumEleIdByNode(node)).find("a").text())+1);
+	}else{
+		$("#"+getViewNumEleIdByNode(node)).find("a").text(parseInt($("#"+getViewNumEleIdByNode(node)).find("a").text())-1);
+		
+	}
+}
+//通过选择的节点获取展示该层级选中数量的元素的id
+function getViewNumEleIdByNode(node){
+	var id;
+	if(is_Province(node)){
+		id = "provinceNum";
+	}
+	if(is_City(node)){
+		id = "cityNum";
+	}
+	if(is_District(node)){
+		id = "districtNum";
+	}
+	if(is_Town(node)){
+		id = "townNum";
+	}
+	if(is_Village(node)){
+		id = "villageNum";
+	}
+	if(is_Grid(node)){
+		id = "gridNum";
+	}
+	if(is_ProvinceDep(node)){
+		id = "provinceFucDepartmentNum";
+	}
+	if(is_CityDep(node)){
+		id = "cityFucDepartmentNum";
+	}
+	if(is_DistrictDep(node)){
+		id = "districtFucDepartmentNum";
+	}
+	if(is_TownDep(node)){
+		id = "townFucDepartmentNum";
+	}
+	return id;
+}
+
+function getArrayByNode(node){
+	var orgs = new Array();
+	if(is_Province(node)){
+		orgs = provinces;
+	}
+	if(is_City(node)){
+		orgs = citys;
+	}
+	if(is_District(node)){
+		orgs = districts;
+	}
+	if(is_Town(node)){
+		orgs = towns;
+	}
+	if(is_Village(node)){
+		orgs = villages;
+	}
+	if(is_Grid(node)){
+		orgs = grids;
+	}
+	if(is_ProvinceDep(node)){
+		orgs = provinceDeps;
+	}
+	if(is_CityDep(node)){
+		orgs = cityDeps;
+	}
+	if(is_DistrictDep(node)){
+		orgs = districtDeps;
+	}
+	if(is_TownDep(node)){
+		orgs = townDeps;
+	}
+	return orgs;
+}
+
+function removeObject(orgs,value){
+	for(var i = 0;i<orgs.length;i++){
+		if(orgs[i]==value){
+			orgs.splice(i, 1);
+		 return ;
+		}
+	}
+}
+
+function getFormData(){
+	if($("input[type='checkbox']:checked",$(".selectingObjContent")).length==1){
+		data={};
+		data["viewObjectVo.selectedCheckBoxStrs"] = $("input[type='checkbox']:checked",$(".selectingObjContent")).val();
+	}else{
+		data=$("input[type='checkbox']:checked",$(".selectingObjContent")).serializeObject();
+		var checkBox = data["viewObjectVo.selectedCheckBoxs"]
+		if(checkBox){
+			var str = "";
+			for(i=0;i<checkBox.length;i++){
+				str += checkBox[i]+",";
+			}
+			data["viewObjectVo.selectedCheckBoxStrs"] = str;
+		}
+	}
+		
+	for(var id in selectedOrgIdAry ){
+		if(isDigit(id) && isDigit(selectedOrgIdAry[id]) ){
+			selectedOrgIds += selectedOrgIdAry[id]+",";	
+		}
+			
+	}
+	data["viewObjectVo.selectedIdStrs"]=selectedOrgIds;
+	
+	
+	var ignores="";
+	scan_array(ignoreOrgIds);
+	function scan_array(ignoreOrgIds) {
+		for(var key in ignoreOrgIds) {
+			if(isDigit(key) && isDigit(ignoreOrgIds[key]) ){
+				ignores += ignoreOrgIds[key]+",";	
+			}else if(isDigit(key)){
+				scan_array(ignoreOrgIds[key]);
+			}
+		}
+		
+	}
+	data["viewObjectVo.exclusiveIdStrs"]=ignores;
+	sumitSelectNum();
+	sumitDefNum();
+	data["viewObjectVo.selectedRadio"]=$("input[name='viewObjectVo.selectedRadio']:checked").val();
+	data["viewObjectVo.id"]=$("#viewObjectId").val();
+	
+	
+	return data;
+}
+function sumitSelectNum(){
+	data["viewObjectVo.provinceNum"]=$("#provinceNum").find("a").text();
+	data["viewObjectVo.cityNum"]=$("#cityNum").find("a").text();
+	data["viewObjectVo.districtNum"]=$("#districtNum").find("a").text();
+	data["viewObjectVo.townNum"]=$("#townNum").find("a").text();
+	data["viewObjectVo.villageNum"]=$("#villageNum").find("a").text();
+	data["viewObjectVo.gridNum"]=$("#gridNum").find("a").text();
+	data["viewObjectVo.provinceFucDepartmentNum"]=$("#provinceFucDepartmentNum").find("a").text();
+	data["viewObjectVo.cityFucDepartmentNum"]=$("#cityFucDepartmentNum").find("a").text();
+	data["viewObjectVo.districtFucDepartmentNum"]=$("#districtFucDepartmentNum").find("a").text();
+	data["viewObjectVo.townFucDepartmentNum"]=$("#townFucDepartmentNum").find("a").text();
+	
+}
+
+
+
+function sumitDefNum(){
+	data["viewObjectVo.defProvinceNum"]=$("#provinceNumHid").val();
+	data["viewObjectVo.defCityNum"]=$("#cityNumHid").val();
+	data["viewObjectVo.defDistrictNum"]=$("#districtNumHid").val();
+	data["viewObjectVo.defTownNum"]=$("#townNumHid").val();
+	data["viewObjectVo.defVillageNum"]=$("#villageNumHid").val();
+	data["viewObjectVo.defGridNum"]=$("#gridNumHid").val();
+	data["viewObjectVo.defProvinceFucDepartmentNum"]=$("#provinceFucDepartmentNumHid").val();
+	data["viewObjectVo.defCityFucDepartmentNum"]=$("#cityFucDepartmentNumHid").val();
+	data["viewObjectVo.defDistrictFucDepartmentNum"]=$("#districtFucDepartmentNumHid").val();
+	data["viewObjectVo.defTownFucDepartmentNum"]=$("#townFucDepartmentNumHid").val();
+}
+
+function getSelectedOrgNames(){
+	var selectedStr="";
+	if($("#provinceNum").find("a").text()!=0){
+		selectedStr+="省级"+$("#provinceNum").find("a").text()+"个";
+	}if($("#cityNum").find("a").text()!=0){
+		selectedStr+=",市级"+$("#cityNum").find("a").text()+"个";
+	}if($("#districtNum").find("a").text()!=0){
+		selectedStr+=",县区级"+$("#districtNum").find("a").text()+"个";
+	}if($("#townNum").find("a").text()!=0){
+		selectedStr+=",乡镇"+$("#townNum").find("a").text()+"个";
+	}
+	if($("#villageNum").find("a").text()!=0){
+		selectedStr+=",乡村"+$("#villageNum").find("a").text()+"个";
+	}
+	if($("#gridNum").find("a").text()!=0){
+		selectedStr+=",网格"+$("#gridNum").find("a").text()+"个";
+	}
+	if($("#provinceFucDepartmentNum").find("a").text()!=0){
+		selectedStr+=",省级职能部门"+$("#provinceFucDepartmentNum").find("a").text()+"个";
+	}
+	if($("#cityFucDepartmentNum").find("a").text()!=0){
+		selectedStr+=",市级职能部门"+$("#cityFucDepartmentNum").find("a").text()+"个";
+	}
+	if($("#districtFucDepartmentNum").find("a").text()!=0){
+		selectedStr+=",县区级职能部门"+$("#districtFucDepartmentNum").find("a").text()+"个";
+	}
+	if($("#townFucDepartmentNum").find("a").text()!=0){
+		selectedStr+=",乡镇职能工作站"+$("#townFucDepartmentNum").find("a").text()+"个";
+	}
+	if(selectedStr.indexOf(",")==0){
+		selectedStr = selectedStr.substr(1,selectedStr.length-1);
+	}
+	return selectedStr;
+}
+
+
+
+function isDigit(str){ 
+	var reg = /^\d+[\-]*\d*$/; 
+	return reg.test(str); 
+} 
+
+</script>

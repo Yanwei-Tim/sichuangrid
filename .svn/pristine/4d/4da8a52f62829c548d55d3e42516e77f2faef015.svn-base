@@ -1,0 +1,65 @@
+alter table redcuffteammember add(
+subTeamType number(10),
+isCertification number(1),
+wechatAuthenticationDate Date,
+wechatNo varchar2(60),
+latitudeX varchar2(30),
+longitudeY varchar2(30),
+precision varchar2(30),
+bindingTime Date);
+-- 因为类别修改，将原来已有的类别全部设为第一大类的第一小类别
+update redcuffteammember set TeamType=(select a.id from propertydicts a,propertydomains b where a.propertydomainid=b.id and b.domainname='红袖套队伍类型' and a.displayname='第一类'),subTeamType=(select a.id from propertydicts a,propertydomains b where a.propertydomainid=b.id and b.domainname='红袖套队伍类别' and a.displayname='综治巡逻队员');
+
+delete from propertydicts d where d.propertydomainid = (select id from propertydomains s where s.domainname='红袖套队伍类型');
+
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextval, (select id from propertydomains p where domainname='红袖套队伍类型'), 1, 1, '第一类', 'dyl', 'diyilei', 'admin', '', sysdate, null);
+
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextval, (select id from propertydomains p where domainname='红袖套队伍类型'), 2, 2, '第二类', 'del', 'dierlei', 'admin', '', sysdate, null);
+
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextval, (select id from propertydomains p where domainname='红袖套队伍类型'), 3, 3, '第三类', 'dsl', 'disanlei', 'admin', '', sysdate, null);
+
+
+insert into propertydomains(id,domainname)
+  values(s_propertydomains.NEXTVAL,'红袖套队伍类别');
+  
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextval, (select id from propertydomains p where domainname='红袖套队伍类别'), 1, 1, '综治巡逻队员', 'zzxldy', 'zongzhixunluoduiyuan', 'admin', '', sysdate, null);
+
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextval, (select id from propertydomains p where domainname='红袖套队伍类别'), 1, 2, '网格员', 'wgy', 'wanggeyuan', 'admin', '', sysdate, null);
+
+
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextval, (select id from propertydomains p where domainname='红袖套队伍类别'), 2, 3, '单位保安', 'dwba', 'danweibaoan', 'admin', '', sysdate, null);
+
+
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextval, (select id from propertydomains p where domainname='红袖套队伍类别'), 2, 4, '院落门卫', 'ylmw', 'yuanluomenwei', 'admin', '', sysdate, null);
+
+
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextval, (select id from propertydomains p where domainname='红袖套队伍类别'), 2, 5, '城管队员', 'cgdy', 'chengguanduiyuan', 'admin', '', sysdate, null);
+
+
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextval, (select id from propertydomains p where domainname='红袖套队伍类别'), 3, 6, '公益性工作者', 'gyxgzz', 'gongyixinggongzuozhe', 'admin', '', sysdate, null);
+
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextval, (select id from propertydomains p where domainname='红袖套队伍类别'), 3, 7, '机关干部', 'jggb', 'jiguanganbu', 'admin', '', sysdate, null);
+
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextval, (select id from propertydomains p where domainname='红袖套队伍类别'), 3, 8, '环卫工人', 'hwgr', 'huanweigongren', 'admin', '', sysdate, null);
+
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextval, (select id from propertydomains p where domainname='红袖套队伍类别'), 3, 9, '民兵预备役', 'mbyby', 'minbingyubeiyi', 'admin', '', sysdate, null);
+
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextval, (select id from propertydomains p where domainname='红袖套队伍类别'), 3, 10, '平安志愿者', 'pazyz', 'pinganzhiyuanzhe', 'admin', '', sysdate, null);
+
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextval, (select id from propertydomains p where domainname='红袖套队伍类别'), 3, 11, '交通劝导员', 'jtqdy', 'jiaotongquandaoyuan', 'admin', '', sysdate, null);
+
+commit; 

@@ -1,0 +1,357 @@
+package com.tianque.dao.impl;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.core.cache.service.CacheService;
+import com.tianque.dao.WorkCalendarDao;
+import com.tianque.domain.WorkCalendar;
+
+@Repository("workCalendarDao")
+@SuppressWarnings("unchecked")
+public class WorkCalendarDaoImpl extends AbstractBaseDao implements
+		WorkCalendarDao {
+
+	@Autowired
+	private CacheService cacheService;
+
+	@Override
+	public boolean addCalendar(WorkCalendar workCalendar) {
+		boolean flg = false;
+		Calendar canCalendar = Calendar.getInstance();
+		canCalendar.set(workCalendar.getYear().intValue(), Calendar.JANUARY, 1);
+		int i = 1;
+		while (workCalendar.getYear().intValue() == canCalendar
+				.get(Calendar.YEAR)) {
+			canCalendar.set(Calendar.DAY_OF_YEAR, i);
+			workCalendar.setMonth((long) canCalendar.get(Calendar.MONTH) + 1);
+			workCalendar.setDay((long) canCalendar.get(Calendar.DAY_OF_MONTH));
+			workCalendar.setHoliday((long) canCalendar
+					.get(Calendar.DAY_OF_WEEK));
+			workCalendar.setDayofyear((long) canCalendar
+					.get(Calendar.DAY_OF_YEAR));
+			workCalendar.setActualDate(null);
+			getSqlMapClientTemplate().insert("workCalendar.addWorkClaendars",
+					workCalendar);
+			if (canCalendar.get(Calendar.MONTH) == 11
+					&& canCalendar.get(Calendar.DAY_OF_MONTH) == 31) {
+				flg = true;
+				break;
+			}
+			i++;
+			workCalendar.setActualDate(null);
+		}
+		if (workCalendar.getCalendarType() == 1) {
+			cacheService.remove("findFeatureOrgs" + workCalendar.getYear());
+		}
+		return flg;
+	}
+
+	@Override
+	public List<List<WorkCalendar>> findCalendar(Long year, int calendarType,
+			Long orgId) {
+		List<List<WorkCalendar>> worksList = new ArrayList<List<WorkCalendar>>();
+		if (calendarType == 0) {
+			if (cacheService.get("WorkCalendarList_" + year) != null) {
+				worksList = (List<List<WorkCalendar>>) cacheService
+						.get("WorkCalendarList_" + year);
+				return worksList;
+			}
+		} else {
+			if (cacheService.get("WorkCalendarList_" + year + calendarType
+					+ orgId) != null) {
+				worksList = (List<List<WorkCalendar>>) cacheService
+						.get("WorkCalendarList_" + year + calendarType + orgId);
+				return worksList;
+			}
+		}
+		List<WorkCalendar> workList = new ArrayList<WorkCalendar>();
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("year", year);
+		map.put("calendarType", calendarType);
+		map.put("orgId", orgId);
+		List<WorkCalendar> list = getSqlMapClientTemplate().queryForList(
+				"workCalendar.findWorkClaendars", map);
+		if (list == null || list.isEmpty()) {
+			worksList.add(workList);
+			return worksList;
+		}
+		for (int j = 1; j <= 12; j++) {
+			workList = new ArrayList<WorkCalendar>();
+			for (int i = 0; i < list.size(); i++) {
+				if (j == list.get(i).getMonth().intValue()) {
+					workList.add(list.get(i));
+				}
+			}
+			worksList.add(workList);
+		}
+		if (calendarType == 0) {
+			cacheService.set("WorkCalendarList_" + year, worksList);
+		} else {
+			cacheService.set("WorkCalendarList_" + year + calendarType + orgId,
+					worksList);
+		}
+		return worksList;
+	}
+
+	@Override
+	public boolean updateCalendarIsWeek(String[] idCount, Long year,
+			int calendarType, Long orgId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		boolean flg = false;
+		if (idCount != null && idCount.length > 0) {
+			for (int i = 0; i < idCount.length; i++) {
+				String[] monthandday = idCount[i].split("-");
+				map.put("year", year);
+				map.put("month", monthandday[0]);
+				map.put("day", monthandday[1]);
+				map.put("calendarType", calendarType);
+				map.put("orgId", orgId);
+				getSqlMapClientTemplate().update(
+						"workCalendar.updateWorkClaendarsIsWeek", map);
+				flg = true;
+			}
+		}
+		if (calendarType == 0) {
+			cacheService.remove("WorkCalendarList_" + year);
+		} else {
+			cacheService.remove("WorkCalendarList_" + +year + calendarType
+					+ orgId);
+		}
+		return flg;
+	}
+
+	@Override
+	public boolean updateCalendarIsWork(String[] idCount, Long year,
+			int calendarType, Long orgId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		boolean flg = false;
+		if (idCount != null && idCount.length > 0) {
+			for (int i = 0; i < idCount.length; i++) {
+				String[] monthandday = idCount[i].split("-");
+				map.put("year", year);
+				map.put("month", monthandday[0]);
+				map.put("day", monthandday[1]);
+				map.put("calendarType", calendarType);
+				map.put("orgId", orgId);
+				getSqlMapClientTemplate().update(
+						"workCalendar.updateWorkClaendarsIsWork", map);
+				flg = true;
+			}
+		}
+		if (calendarType == 0) {
+			cacheService.remove("WorkCalendarList_" + year);
+		} else {
+			cacheService.remove("WorkCalendarList_" + +year + calendarType
+					+ orgId);
+		}
+		return flg;
+	}
+
+	@Override
+	public void deleteCalendar(WorkCalendar workCalendar) {
+		getSqlMapClientTemplate().insert("workCalendar.deleteWorkClaendar",
+				workCalendar);
+		if (workCalendar.getCalendarType() == 1) {
+			cacheService.remove("findFeatureOrgs" + workCalendar.getYear());
+			cacheService.remove("WorkCalendarList_" + workCalendar.getYear()
+					+ workCalendar.getCalendarType() + workCalendar.getOrgId());
+		} else {
+			cacheService.remove("WorkCalendarList_" + workCalendar.getYear());
+		}
+	}
+
+	@Override
+	public Set<Long> getWorkCalendarByYear(Long year) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("year", year);
+		List<Long> list = (List<Long>) getSqlMapClientTemplate().queryForList(
+				"workCalendar.getWorkClaendarsByYear", map);
+		Set<Long> set = new HashSet<Long>(list);
+		return set;
+	}
+
+	@Override
+	public Set<Long> getWorkCalendarByYear(Long year, int calendarType,
+			Long orgId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("year", year);
+		map.put("calendarType", calendarType);
+		map.put("orgId", orgId);
+		List<Long> list = (List<Long>) getSqlMapClientTemplate().queryForList(
+				"workCalendar.getWorkClaendarsByYear", map);
+		Set<Long> set = new HashSet<Long>(list);
+		return set;
+	}
+
+	@Override
+	public String getPreviousDate(String time, int days) {
+		Map<String, Integer> map = new HashMap<String, Integer>();
+		String[] dateTime = time.split("-");
+		map.put("year", Integer.parseInt(dateTime[0]));
+		map.put("month", Integer.parseInt(dateTime[1]));
+		map.put("day", Integer.parseInt(dateTime[2]));
+		List<WorkCalendar> list = (List<WorkCalendar>) getSqlMapClientTemplate()
+				.queryForList("workCalendar.getPreviousDate", map);
+		if (list.size() > 0) {
+			int dateValue = list.size() - (days);
+			WorkCalendar workCalendar = list.get(dateValue);
+			return workCalendar.getYear() + "-" + workCalendar.getMonth() + "-"
+					+ workCalendar.getDay();
+		}
+		return null;
+	}
+
+	@Override
+	public String getFutureDate(String dateTime, int days) {
+		Map<String, Integer> map = new HashMap<String, Integer>();
+		String[] time = dateTime.split("-");
+		map.put("year", Integer.parseInt(time[0]));
+		map.put("month", Integer.parseInt(time[1]));
+		map.put("day", Integer.parseInt(time[2]));
+		List<WorkCalendar> list = (List<WorkCalendar>) getSqlMapClientTemplate()
+				.queryForList("workCalendar.getFutureDate", map);
+		if (list.size() > 0) {
+			WorkCalendar workCalendar = list.get(days);
+			return workCalendar.getYear() + "-" + workCalendar.getMonth() + "-"
+					+ workCalendar.getDay();
+		}
+		return null;
+	}
+
+	@Override
+	public String getFutureDateByCityOrgId(String dateTime, int days,
+			Long cityOrgId) {
+		Map<String, Integer> map = new HashMap<String, Integer>();
+		String[] time = dateTime.split("-");
+		map.put("year", Integer.parseInt(time[0]));
+		map.put("month", Integer.parseInt(time[1]));
+		map.put("day", Integer.parseInt(time[2]));
+		map.put("orgId", Integer.valueOf(cityOrgId + ""));
+		List<WorkCalendar> list = (List<WorkCalendar>) getSqlMapClientTemplate()
+				.queryForList("workCalendar.getFutureDateByCityOrgId", map);
+		if (list.size() > 0) {
+			WorkCalendar workCalendar = list.get(days);
+			return workCalendar.getYear() + "-" + workCalendar.getMonth() + "-"
+					+ workCalendar.getDay();
+		}
+		return null;
+	}
+
+	@Override
+	public WorkCalendar getWorkCalendarByDateString(String dateStr) {
+		return (WorkCalendar) getSqlMapClientTemplate().queryForObject(
+				"workCalendar.getWorkCalendarByDateString", dateStr);
+	}
+
+	@Override
+	public Integer getWorkDaysFromStartTimeToEndTime(Date startTime,
+			Date endTime) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("startTime", startTime);
+		map.put("endTime", endTime);
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"workCalendar.getWorkDaysFromStartTimeToEndTime", map);
+	}
+
+	@Override
+	public Integer getWorkDaysFromStartTimeToEndTimeByFeature(Date startTime,
+			Date endTime, Long orgId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("startTime", startTime);
+		map.put("endTime", endTime);
+		map.put("orgId", orgId);
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"workCalendar.getWorkDaysFromStartTimeToEndTimeByFeature", map);
+	}
+
+	@Override
+	public List<String> getWorkDaysInfoFromStartTimeToEndTime(Date startTime,
+			Date endTime) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("startTime", startTime);
+		map.put("endTime", endTime);
+		return (List<String>) getSqlMapClientTemplate().queryForList(
+				"workCalendar.getWorkDaysInfoFromStartTimeToEndTime", map);
+	}
+
+	@Override
+	public List<String> getWorkDaysInfoFromStartTimeToEndTimeByFeature(
+			Date startTime, Date endTime, Long orgId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("startTime", startTime);
+		map.put("endTime", endTime);
+		map.put("orgId", orgId);
+		return (List<String>) getSqlMapClientTemplate().queryForList(
+				"workCalendar.getWorkDaysInfoFromStartTimeToEndTimeByFeature",
+				map);
+	}
+
+	@Override
+	public boolean updateWorkTime(String[] date, WorkCalendar workCalendar) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		boolean flg = false;
+		if (date != null && date.length > 0) {
+			for (int i = 0; i < date.length; i++) {
+				String[] monthandday = date[i].split("-");
+				map.put("startWorkTimeAM", workCalendar.getStartWorkTimeAM());
+				map.put("endWorkTimeAM", workCalendar.getEndWorkTimeAM());
+				map.put("startWorkTimePM", workCalendar.getStartWorkTimePM());
+				map.put("endWorkTimePM", workCalendar.getEndWorkTimePM());
+				map.put("year", workCalendar.getYear());
+				map.put("calendarType", workCalendar.getCalendarType());
+				map.put("orgId", workCalendar.getOrgId());
+				map.put("month", monthandday[0]);
+				map.put("day", monthandday[1]);
+				getSqlMapClientTemplate().update("workCalendar.updateWorkTime",
+						map);
+				flg = true;
+			}
+		}
+		if (workCalendar.getCalendarType() == 0) {
+			cacheService.remove("WorkCalendarList_" + workCalendar.getYear());
+		} else {
+			cacheService.remove("WorkCalendarList_" + +workCalendar.getYear()
+					+ workCalendar.getCalendarType() + workCalendar.getOrgId());
+		}
+		return flg;
+	}
+
+	@Override
+	public List<WorkCalendar> findCurrentWeek(Date startTime, Date endTime) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("startTime", startTime);
+		map.put("endTime", endTime);
+		List<WorkCalendar> list = (List<WorkCalendar>) getSqlMapClientTemplate()
+				.queryForList("workCalendar.findCurrentWeek", map);
+		return list;
+	}
+
+	@Override
+	public List<WorkCalendar> findCurrentWeekByFeature(Date startTime,
+			Date endTime, Long orgId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("startTime", startTime);
+		map.put("endTime", endTime);
+		map.put("orgId", orgId);
+		List<WorkCalendar> list = (List<WorkCalendar>) getSqlMapClientTemplate()
+				.queryForList("workCalendar.findCurrentWeekByFeature", map);
+		return list;
+	}
+
+	@Override
+	public List<Long> findFeatureOrgIds(WorkCalendar workcalendar) {
+		return getSqlMapClientTemplate().queryForList(
+				"workCalendar.findFeatureOrgIds", workcalendar);
+	}
+}

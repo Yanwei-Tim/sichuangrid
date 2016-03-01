@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchConstructionUnit">
+	<select id="countConstructionUnits" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from constructionUnits where orgInternalCode like
+		'$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="projectName">
+				<isNotEmpty property="projectName" prepend=" and ">
+					projectName like '$projectName$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="projectAddress">
+				<isNotEmpty property="projectAddress" prepend=" and ">
+					projectAddress like	'$projectAddress$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="developmentUnit">
+				<isNotNull property="developmentUnit" prepend=" and ">
+					developmentUnit like '$developmentUnit$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="developmentContactPerson">
+				<isNotEmpty property="developmentContactPerson" prepend=" and ">
+					developmentContactPerson like '$developmentContactPerson$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="developmentContactPersonPhone">
+				<isNotEmpty property="developmentContactPersonPhone" prepend=" and ">
+					developmentContactPersonPhone = #developmentContactPersonPhone#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="contractor">
+				<isNotNull property="contractor" prepend=" and ">
+					contractor like '$contractor$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="contractorContactPerson">
+				<isNotEmpty property="contractorContactPerson" prepend=" and ">
+					contractorContactPerson like '$contractorContactPerson$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="contractorContactPersonPhone">
+				<isNotEmpty property="contractorContactPersonPhone" prepend=" and ">
+					contractorContactPersonPhone = #contractorContactPersonPhone#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			
+			<isPropertyAvailable property="laborer">
+				<isNotNull property="laborer" prepend=" and ">
+					laborer like '$laborer$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="laborerContactPerson">
+				<isNotEmpty property="laborerContactPerson" prepend=" and ">
+					laborerContactPerson like '$laborerContactPerson$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="laborerContactPersonPhone">
+				<isNotEmpty property="laborerContactPersonPhone" prepend=" and ">
+					laborerContactPersonPhone = #laborerContactPersonPhone#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis# 
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="searchConstructionUnits" parameterClass="java.util.Map"
+		resultMap="constructionUnit.constructionUnitResult">
+		<include refid="common.sql_select" />
+		from constructionUnits where orgInternalCode like '$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="projectName">
+				<isNotEmpty property="projectName" prepend=" and ">
+					projectName like '$projectName$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="projectAddress">
+				<isNotEmpty property="projectAddress" prepend=" and ">
+					projectAddress like	'$projectAddress$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="developmentUnit">
+				<isNotNull property="developmentUnit" prepend=" and ">
+					developmentUnit like '$developmentUnit$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="developmentContactPerson">
+				<isNotEmpty property="developmentContactPerson" prepend=" and ">
+					developmentContactPerson like '$developmentContactPerson$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="developmentContactPersonPhone">
+				<isNotEmpty property="developmentContactPersonPhone" prepend=" and ">
+					developmentContactPersonPhone = #developmentContactPersonPhone#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="contractor">
+				<isNotNull property="contractor" prepend=" and ">
+					contractor like '$contractor$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="contractorContactPerson">
+				<isNotEmpty property="contractorContactPerson" prepend=" and ">
+					contractorContactPerson like '$contractorContactPerson$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="contractorContactPersonPhone">
+				<isNotEmpty property="contractorContactPersonPhone" prepend=" and ">
+					contractorContactPersonPhone = #contractorContactPersonPhone#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			
+			<isPropertyAvailable property="laborer">
+				<isNotNull property="laborer" prepend=" and ">
+					laborer like '$laborer$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="laborerContactPerson">
+				<isNotEmpty property="laborerContactPerson" prepend=" and ">
+					laborerContactPerson like '$laborerContactPerson$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="laborerContactPersonPhone">
+				<isNotEmpty property="laborerContactPersonPhone" prepend=" and ">
+					laborerContactPersonPhone = #laborerContactPersonPhone#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis# 
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findConstructionUnitsNameAndPinyinAndOrgInternalCode" parameterClass="java.util.Map" resultMap="constructionUnit.constructionUnitResult">
+		select * from constructionUnits where (projectName like '$projectName$%' or fullPinyin like '$projectName$%' or simplePinyin like '$projectName$%' ) and orgInternalCode like '$orgInternalCode$%' order by id
+	</select>
+
+</sqlMap>

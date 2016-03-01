@@ -1,0 +1,44 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<jsp:include page="/includes/baseInclude.jsp" />
+
+<div id="nav" class="ui-corner-all">
+		<select name="queryYear" id="pyear" onchange="" style="float:left;">
+        </select>
+        <label style="float:left;padding:0 10px;line-height:25px;">年</label>
+        <select style="float:left;"  id="" onchange="">
+        	<option value="0">上半年</option>
+        	<option value="1">下半年</option>
+        </select>
+        <label style="float:left;padding:0 10px;line-height:25px;">月</label>
+		<a id="csearch" href="javascript:void(0)"><span>查询</span></a>
+</div> 
+<div id="importantPlacePie" class="SigmaReport" style="height:400px;width:100%;"></div>
+<script type="text/javascript">
+$(document).ready(function() {
+	$.ajax({
+		async: false,
+		url: "${path }/stat/currentTime/getCurrentTimeForYearToSpecial.action",
+		success:function(responseData){
+			for(var i = 0;i<responseData.length;i++){
+				$("#pyear").append("<option value='"+responseData[i]+"'>"+responseData[i]+"</option>"); 
+			}
+		}
+	});
+	$("#isNowYear").val($("#pyear").val());
+	onOrgChanged();
+	$("#search").click(function(){
+		onOrgChanged();
+	});
+	$.gridboxHeight();
+});
+
+function onOrgChanged(){
+	$("#importantPlacePie").pieChart({
+		url:"${path}/baseInfo/comprehensiveInfomationManage/comprehensiveInfomationPie.action?orgId=1",
+		moduleName:document.title
+	});
+	enableOrDisableColumn(1);
+}
+
+</script>

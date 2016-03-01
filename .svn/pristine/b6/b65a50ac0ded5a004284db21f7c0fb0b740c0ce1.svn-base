@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="populationType">
+	<typeAlias alias="populationType" type="com.tianque.domain.PopulationTypeBean" />
+
+	<resultMap id="populationTypeResult" class="populationType">
+		<result column="id" property="id" />
+		<result column="actualId" property="actualId" />
+		<result column="actualType" property="actualType" />
+		<result column="populationId" property="populationId" />
+		<result column="populationType" property="populationType" />
+	</resultMap>
+	
+	<resultMap id="populationTypeWithActualIdAndActualType" class="populationType">
+		<result column="actualId" property="actualId" />
+		<result column="actualType" property="actualType" />
+	</resultMap>
+
+	<insert id="addPopulationType" parameterClass="populationType">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_populationTypes.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into populationTypes
+		(id,actualId,actualType,populationId,populationType) 
+		values
+		(#id#,#actualId#,#actualType#,#populationId#,#populationType#)
+	</insert>
+
+	<update id="updatePopulationType" parameterClass="populationType">
+		update populationTypes set
+				actualId=#actualId#,
+				actualType=#actualType#,
+				populationId=#populationId#,
+				populationType=#populationType#
+			where id=#id#
+	</update>
+
+	<delete id="deletePopulationTypeByActualIdAndType" parameterClass="java.util.Map">
+		delete from populationTypes
+		where actualId=#actualId# and actualType=#actualType#
+	</delete>
+	
+	<delete id="deletePopulationTypeByPopulationIdAndType" parameterClass="java.util.Map">
+		delete from populationTypes
+		where populationId=#populationId# and populationType=#populationType#
+	</delete>
+
+	<select id="getPopulationTypeByActualIdAndType" parameterClass="java.util.Map"
+		resultMap="populationTypeResult">
+		select * from populationTypes
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="actualId">
+				<isNotNull prepend="and" property="actualId">
+					actualId=#actualId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="actualType">
+				<isNotNull prepend="and" property="actualType">
+					actualType=#actualType#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="getPopulationTypeByPopulationIdAndType" parameterClass="java.util.Map"
+		resultMap="populationTypeResult">
+		select * from populationTypes where populationId=#populationId# and populationType=#populationType#
+	</select>
+	
+	<delete id="deletePopulationTypeByActualIdAndTypeAndPopulationType" parameterClass="java.util.Map">
+		delete from populationTypes
+		where actualId=#actualId# and actualType=#actualType# and populationType=#populationType#
+	</delete>
+	
+	<select id="getActualPopulationTypeBeanByOrgIdAndIdCardNo" parameterClass="java.util.Map" resultMap="populationTypeWithActualIdAndActualType">
+		select f.id as actualId,'floatingPopulation' as actualType from floatingpopulations f  where f.orgId=#orgId# and f.baseInfoId=#baseInfoId# and f.LOGOUT!=1
+		union 
+		select h.id as actualId,'householdStaff' as actualType from   householdstaffs_$shardCode$ h  where h.orgId=#orgId# and h.baseInfoId=#baseInfoId# and h.LOGOUT!=1
+	</select>
+	
+</sqlMap>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="serviceMemberVo">
+	<typeAlias alias="ServiceMemberVo" type="com.tianque.plugin.serviceTeam.router.vo.ServiceMemberVo"/>
+	<resultMap class="ServiceMemberVo" id="ServiceMemberVo_result">
+		<result property="id" column="id"/>
+		<result property="memberId" column="memberId"/>
+		<result property="memberName" column="memberName"/>
+		<result property="teamMember" column="teamMember"/>
+		<result property="gender.id" column="gender"/>
+		<result property="position.id" column="position"/>
+		<result property="teamName" column="teamName"/>
+		<result property="mobile" column="mobile"/>
+		<result property="onDuty" column="onDuty" />
+		<result property="relation" column="relation" />
+		<result property="teamId" column="teamId" />
+		<result property="homePhone" column="homePhone" />
+		<result property="remark" column="remark" />
+		<result property="idCardNo" column="idCardNo" />
+		<result property="idCardNo" column="idCardNo" />
+	</resultMap>
+	
+	
+	<sql id="where_sql">
+	(
+	<include refid="getBaseServiceMember"/>
+	)member
+	<dynamic>
+	where 1=1 
+	<isNotEmpty prepend="and" property="onDuty">
+		member.onDuty=#onDuty#
+	</isNotEmpty>
+	<isNotEmpty prepend="and" property="teamMember">
+		member.teamMember=#teamMember#
+	</isNotEmpty>
+	
+	</dynamic>
+</sql>
+
+<sql id="getBaseServiceMember">
+	select 
+	   g.id as id,
+	   s.idcardno as idCardNo,
+	   s.guardername as memberName,
+       s.gender as gender,
+       null as position,
+       s.relation as relation,
+       '' as teamName,
+       null as teamId,
+       s.mobile,
+       s.phone as homePhone,
+       s.remark as remark,
+       1 as onduty,
+       0 as teamMember,
+       s.id as memberId
+   from serviceteamguarders s, Serviceguardershasobject g
+   where s.id = g.guardersid
+   <isPropertyAvailable property="objectTypeList">
+		<isNotNull property="objectTypeList">
+			and g.objecttype in
+		   	<iterate property="objectTypeList" conjunction="," open="(" close=")">
+				#objectTypeList[]#
+			</iterate>
+		</isNotNull>
+	</isPropertyAvailable>
+   
+   and g.objectid = #objectId#
+
+union
+
+select 
+	   g.id as id,
+	   null as idCardNo,
+	   m.name as memberName,
+       m.gender as gender,
+       m.position as position,
+       '' as relation,
+       m.teamName,
+       m.teamId,
+       m.mobile,
+       m.homePhone as homePhone,
+       m.remark as remark,
+       g.onduty,
+       1 as teamMember,
+       m.memberId as memberId
+       
+  from servicememberhasobject g,
+       
+       (select t.name as teamName, d.id as memberId, d.*, b.*
+          from serviceteammemberdetails d,
+               serviceteammemberbase    b,
+               serviceteams             t
+         where d.baseid(+) = b.id
+           and d.teamid = t.id) m
+ where g.memberid = m.memberId
+    <isPropertyAvailable property="objectTypeList">
+		<isNotNull property="objectTypeList">
+			and g.objecttype in
+		   	<iterate property="objectTypeList" conjunction="," open="(" close=")">
+				#objectTypeList[]#
+			</iterate>
+		</isNotNull>
+	</isPropertyAvailable>
+   and g.objectid = #objectId#
+</sql>
+	
+<select id="findServiceMembersByServiceMemberVo" parameterClass="java.util.Map" resultMap="ServiceMemberVo_result">
+	select * from <include refid="where_sql"/>
+	<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+</select>	
+<select id="countFindServiceMembersByServiceMemberVo" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	select count(*) from <include refid="where_sql"/>
+
+</select>	
+
+</sqlMap>

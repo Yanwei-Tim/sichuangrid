@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchKeyAreasOfInvestigationInfo">
+<typeAlias alias="KeyAreasOfInvestigationInfo" type="com.tianque.domain.KeyAreasOfInvestigationInfo" />
+<resultMap id="keyAreasOfInvestigationInfoResult" class="KeyAreasOfInvestigationInfo">
+		<result property="id" column="id"/>
+		<result property="dailyDirectory.id" column="directoryId"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="investigationOrg.id" column="investigationOrgId"/>
+		<result property="fromKeyAreasOfInvestigationInfo.id" column="fromId"/>
+		<result property="areaName" column="areaName"/>
+		<result property="mainProblem" column="mainProblem"/>
+		<result property="policiesAndMeasures" column="policiesAndMeasures"/>
+		<result property="remark" column="remark"/>
+		<result property="status" column="status"/>
+		<result property="subOrgid" column="subOrgid"/>
+		<result property="investigationDate" column="investigationDate"/>
+		<result property="reportedDate" column="reportedDate"/>
+	</resultMap>
+
+
+
+<sql id="sql_where">
+		from keyareasofinvestigationinfos where 1=1
+		<dynamic>
+			<isPropertyAvailable property="orgId">
+				<isNotEmpty property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="dailyDirectoryId">
+				<isNotNull property="dailyDirectoryId" prepend=" and ">
+					directoryid=#dailyDirectoryId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endDate">
+				<isNotNull property="endDate" prepend=" and ">
+					investigationdate <![CDATA[<=]]>
+					#endDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startDate">
+				<isNotNull property="startDate" prepend=" and ">
+					investigationdate <![CDATA[>=]]>
+					#startDate#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="searchKeyAreasOfInvestigationInfoByDate" parameterClass="java.util.Map"
+		resultMap="keyAreasOfInvestigationInfoResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countSearchKeyAreasOf" parameterClass="map" resultClass="int">
+		<include refid="common.sql_count" />
+		<include refid="sql_where"/>
+	</select>
+</sqlMap>

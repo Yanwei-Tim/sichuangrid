@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchAidspopulations">
+	<typeAlias alias="SearchAidspopulationsVo" type="com.tianque.aidsPopulations.domain.vo.SearchAidspopulationsVo" />
+	<typeAlias alias="Aidspopulations" type="com.tianque.aidsPopulations.domain.Aidspopulations"/>
+	<resultMap id="aidspopulationsResult" class="Aidspopulations" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResult">
+		<result property="infectway.id" column="INFECTWAY"/>
+		<result property="violationsofthelaw.id" column="VIOLATIONSOFTHELAW"/>
+		<result property="crimetype.id" column="CRIMETYPE"/>
+		<result property="receivedlevel.id" column="RECEIVEDLEVEL"/>
+		<result property="helpcircumstances" column="HELPCIRCUMSTANCES"/>
+		<result property="addressno" column="ADDRESSNO"/>
+		<result property="receivedorganization" column="RECEIVEDORGANIZATION"/>
+	</resultMap>
+	<resultMap id="aidspopulationsResultForList" class="Aidspopulations" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+		<result property="infectway.id" column="INFECTWAY"/>
+		<result property="violationsofthelaw.id" column="VIOLATIONSOFTHELAW"/>
+		<result property="crimetype.id" column="CRIMETYPE"/>
+		<result property="receivedlevel.id" column="RECEIVEDLEVEL"/>
+		<result property="helpcircumstances" column="HELPCIRCUMSTANCES"/>
+		<result property="addressno" column="ADDRESSNO"/>
+		<result property="receivedorganization" column="RECEIVEDORGANIZATION"/>
+	</resultMap>
+	
+	<sql id="fields">
+		uni.id,uni.baseinfoid,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.attentionextent,uni.infectWay,uni.violationsofthelaw,uni.crimeType,
+   		uni.receivedOrganization,uni.receivedLevel,uni.helpcircumstances,uni.createUser,uni.updateUser,uni.createDate,uni.updateDate,uni.isEmphasis,
+   		uni.isEmphasisReason,uni.isEmphasisDate,uni.sourcesState,uni.attentionExtent,uni.addressno
+	</sql>
+	
+	<sql id="sql_where">
+		from aidspopulations uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgInternalCode like '$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="fastSearchKeyWords">
+			<isNotNull property="fastSearchKeyWords" prepend=" and ">
+				(idCardNo like  #fastSearchKeyWords#||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%')
+			</isNotNull>
+		</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend=" and ">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					idCardNo like  #idCardNo#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>		
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty property="mobileNumber" prepend=" and ">
+					mobileNumber like #mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthday">
+				<isNotNull property="birthday" prepend=" and ">
+					birthday <![CDATA[>=]]>
+					#birthday#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endBirthday">
+				<isNotNull property="endBirthday" prepend=" and ">
+					birthday <![CDATA[<=]]>
+					#endBirthday#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="province">
+				<isNotEmpty property="province" prepend=" and ">
+					province like #province#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="city">
+				<isNotEmpty property="city" prepend=" and ">
+					city like #city#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="district">
+				<isNotEmpty property="district" prepend=" and ">
+					district like #district#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workUnit">
+				<isNotEmpty property="workUnit" prepend=" and ">
+					workUnit like '%$workUnit$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativePlaceAddress">
+				<isNotEmpty property="nativePlaceAddress" prepend=" and ">
+					nativePlaceAddress like '$nativePlaceAddress$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentAddress">
+				<isNotEmpty property="currentAddress" prepend=" and ">
+					currentAddress like '$currentAddress$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isDeath" >
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="1">
+						isDeath = #isDeath#
+					</isEqual>
+					<isEqual property="isDeath" compareValue="0">
+						(isDeath = #isDeath# or isDeath is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="gender">
+				<isNotNull property="gender" prepend=" and ">
+					gender=#gender#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="career">
+				<isNotNull property="career" prepend=" and ">
+					career=#career#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="infectway">
+				<isNotNull prepend="and" property="infectway">
+						INFECTWAY = #infectway#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="violationsofthelaw">
+				<isNotNull prepend="and" property="violationsofthelaw">
+					VIOLATIONSOFTHELAW = #violationsofthelaw#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="crimetype">
+				<isNotNull prepend="and" property="crimetype">
+					CRIMETYPE = #crimetype#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="receivedlevel">
+				<isNotNull prepend="and" property="receivedlevel">
+					RECEIVEDLEVEL = #receivedlevel#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="attentionextent">
+				<isNotNull prepend="and" property="attentionextent">
+					ATTENTIONEXTENT = #attentionextent#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="helpcircumstances">
+				<isNotNull prepend="and" property="helpcircumstances">
+					HELPCIRCUMSTANCES = #helpcircumstances#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="receivedorganization">
+				<isNotEmpty prepend="and" property="receivedorganization">
+					RECEIVEDORGANIZATION like '%$receivedorganization$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isNotNull property="schooling.id" prepend=" and ">
+				schooling = #schooling.id#
+			</isNotNull>
+			<include refid="attentionPopulationBaseInfo.serviceTeamInfoForSearch"/>
+		</dynamic>
+	</sql>
+
+	<select id="searchAidspopulations" parameterClass="SearchAidspopulationsVo"  resultMap="aidspopulationsResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countAidspopulations" parameterClass="SearchAidspopulationsVo" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="findAidspopulationsByNameAndPinyinAndOrgInternalCode" parameterClass="java.util.Map" resultMap="aidspopulationsResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+			from aidspopulations uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+			where (name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%' ) 
+				and uni.orgInternalCode like '$orgInternalCode$%' order by uni.id
+	</select>
+
+
+	<select id="getCount" parameterClass="java.lang.String" resultClass="java.lang.Long">
+		select count(id) from aidspopulations uni where uni.orgInternalCode like #orgInternalCode#||'%' and uni.isEmphasis =0
+	</select>	
+</sqlMap>
+

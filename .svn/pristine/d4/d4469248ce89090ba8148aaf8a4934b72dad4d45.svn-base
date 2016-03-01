@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="partyMemberInfoManage" extends="default" namespace="/baseinfo/partyMemberInfoManage">
+		<default-class-ref class="partyMemberInfoController"></default-class-ref>
+
+		<action name="dispatchOperate" method="dispatch">
+			<result name="success">
+				/baseinfo/partyConstruction/currentParty/partyMemberInfoDig.jsp
+			</result>
+			<result name="search">
+				/baseinfo/partyConstruction/currentParty/searchPartyMemberInfoDlg.jsp
+			</result>
+			<result name="print">
+				/baseinfo/partyConstruction/currentParty/maintainPartyMemberInfoPrintDlg.jsp
+			</result>
+			<result name="view">
+				/baseinfo/partyConstruction/currentParty/partyMemberInfoViewDlg.jsp
+			</result>
+			<result name="list">
+				/baseinfo/partyConstruction/currentParty/partyConstruction.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="partyMemberInfoList" method="findPartyMemberInfosByOrgInternalCode">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="searchPartyMemberInfo" method="searchPartyMemberInfo">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<!-- check cardid is exist -->
+		<action name="hasDuplicatePartyMemberInfoPopulation" method="hasDuplicatePartyMemberInfoPopulation">
+			<result name="success" type="json">
+				<param name="root">hasDuplicatePartyMemberInfoPopulation</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="dispatchPartyMemberInfoOrg" method="getPartyMemberInfoOrg">
+			<result name="success">
+				/baseinfo/partyConstruction/currentParty/partyMemberInfoOrg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="maintainPartyMemberBaseInfo" method="maintainPartyMemberBaseInfo">
+			<result name="addcache" type="json">
+                <param name="root">cacheId</param>
+				<param name="ignoreHierarchy">false</param>
+            </result>
+            <result name="success" type="json">
+                <param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+            </result>
+            <result name="error" type="json">
+                <param name="root">errorMessage</param>
+            </result>
+		</action>
+
+		<action name="addPartyMemberInfo" method="addPartyMemberInfo">
+			<result name="success" type="json">
+				<param name="root">population</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="viewCommonPopulation" method="viewPartyMemberInfo">
+			<result name="success">
+				/baseinfo/commonPopulation/viewCommonPopulation.jsp
+			</result>
+		</action>
+
+		<action name="viewPartyMemberInfo" method="viewPartyMemberInfo">
+			<result name="success">
+				/baseinfo/partyConstruction/currentParty/partyMemberInfoView.jsp
+			</result>
+		</action>
+
+		<action name="deletePartyMemberInfo" method="deletePartyMemberInfo">
+			<result name="success"  type="json">
+				<param name="root">noRelatePersonIds</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="hasRelatePersons" method="hasRelatePersons">
+			<result name="success" type="json">
+				<param name="root">bol</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="emphasisePartyMemberInfo" method="emphasisePartyMemberInfo">
+			<result name="success" type="json">
+				<param name="root">partyMemberInfo</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="downloadPartyMemberInfo" method="downloadPartyMemberInfo">
+			<result name="success" type="stream">
+                <param name="contentType">application/vnd.ms-excel;charset=ISO8859-1</param>
+                <param name="inputName">inputStream</param>
+                <param name="contentDisposition">attachment;filename="${downloadFileName}"</param>
+                <param name="bufferSize">4096</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="downloadPartyMemberInfoAll" method="downloadPartyMemberInfoAll">
+		</action>
+
+		<action name="findPartyOrgInfoByOrgId" method="findPartyOrgInfoByOrgId">
+			<result name="success" type="json">
+				<param name="root">partyOrgId</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

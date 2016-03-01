@@ -1,0 +1,224 @@
+package com.tianque.plugin.taskList.controller;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.apache.struts2.json.annotations.JSON;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.util.FileUtil;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.plugin.taskList.domain.BaseTaskVisit;
+import com.tianque.plugin.taskList.domain.FloatingPopulationTask;
+import com.tianque.plugin.taskList.domain.HiddenDangerTask;
+import com.tianque.plugin.taskList.domain.Receipt;
+import com.tianque.plugin.taskList.domain.TaskListAttachFile;
+import com.tianque.plugin.taskList.service.TaskListAttachFileService;
+import com.tianque.plugin.taskList.service.TaskListCommonService;
+
+@Scope("request")
+@Namespace("/plugin/taskListManage/common")
+@Controller("taskListCommonController")
+public class TaskListCommonController extends BaseAction {
+	@Autowired
+	private TaskListCommonService taskListCommonService;
+	@Autowired
+	private TaskListAttachFileService taskListAttachFileService;
+	/** 当前系统时间  **/
+	private Date nowDate;
+	/** 签收的基本信息  **/
+	private Receipt receipt;
+	private Long orgId;
+	private List<BaseTaskVisit> allList;
+	private List<FloatingPopulationTask> floatingPopulationTaskList;
+	private List<HiddenDangerTask> hiddenDangerList;
+	private String signType;
+	/** 附件id **/
+	private Long attachFileId;
+
+	@Action(value = "getNowDate", results = {
+			@Result(name = "success", type = "json", params = { "root", "nowDate" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String getSystemNowDate() throws Exception {
+		nowDate = CalendarUtil.now();
+		return SUCCESS;
+	}
+
+	@Action(value = "signRecord", results = {
+			@Result(name = "success", type = "json", params = { "root", "true" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String signRecord() throws Exception {
+		taskListCommonService.updateReceiptStatus(receipt, signType);
+		return SUCCESS;
+	}
+
+	/**
+	 * 任务清单报表数据
+	 * 
+	 */
+	@Action(value = "getVisitList", results = {
+			@Result(name = "success", type = "json", params = { "root", "allList" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String getVisitList() throws Exception {
+		if (orgId == null) {
+			this.errorMessage = "部门编号错误!";
+			return ERROR;
+		}
+		allList = taskListCommonService.getAllKindTask(orgId);
+		return SUCCESS;
+	}
+
+	/**
+	 * 流动人口报表数据
+	 * 
+	 */
+	@Action(value = "getFloatingPopulationVisitList", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"floatingPopulationTaskList" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String getFloatingPopulationVisitList() throws Exception {
+		if (orgId == null) {
+			this.errorMessage = "部门编号错误!";
+			return ERROR;
+		}
+		floatingPopulationTaskList = taskListCommonService.getFloatingPopulationTaskList(orgId);
+		return SUCCESS;
+	}
+
+	/**
+	 * 发现治安隐患报表数据
+	 * 
+	 */
+	@Action(value = "getHiddenDangerVisitList", results = {
+			@Result(name = "success", type = "json", params = { "root", "hiddenDangerList" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String getHiddenDangerVisitList() throws Exception {
+		if (orgId == null) {
+			this.errorMessage = "部门编号错误!";
+			return ERROR;
+		}
+		hiddenDangerList = taskListCommonService.getHiddenDangerVisitList(orgId);
+		return SUCCESS;
+	}
+
+	/**
+	 * 附件下载
+	 * @return
+	 * @throws Exception
+	 */
+	@Action(value = "downLoadAttachFile")
+	public String downLoadActualFile() throws Exception {
+		if (attachFileId == null) {
+			throw new BusinessValidationException("参数为空");
+		}
+		TaskListAttachFile attachFile = taskListAttachFileService
+				.getTaskListAttachFileById(attachFileId);
+		if (attachFile == null) {
+			throw new BusinessValidationException("任务清单附件不存在");
+		}
+		try {
+			inputStream = new java.io.FileInputStream(FileUtil.getWebRoot() + File.separator
+					+ attachFile.getPhysicsFullFileName());
+			downloadFileName = new String(attachFile.getFileName().getBytes("gbk"), "ISO8859-1");
+		} catch (FileNotFoundException e) {
+			throw new ServiceValidationException("附件文件不存在", e);
+		} catch (UnsupportedEncodingException uee) {
+			throw new ServiceValidationException("文件编码格式不正确", uee);
+		}
+		return STREAM_SUCCESS;
+	}
+
+	/**
+	 * 特殊人群统计报表列表信息
+	 * 
+	 */
+	@Action(value = "getSpecialGroupSumAndVisitList", results = {
+			@Result(name = "success", type = "json", params = { "root", "allList" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String getSpecialGroupSumAndVisitList() throws Exception {
+		if (orgId == null) {
+			this.errorMessage = "部门编号错误!";
+			return ERROR;
+		}
+		allList = taskListCommonService.getSpecialGroupSumAndVisitList(orgId);
+		return SUCCESS;
+	}
+
+	public void setNowDate(Date nowDate) {
+		this.nowDate = nowDate;
+	}
+
+	@JSON(format = "yyyy-MM-dd HH:mm:ss")
+	public Date getNowDate() {
+		return nowDate;
+	}
+
+	public Receipt getReceipt() {
+		return receipt;
+	}
+
+	public void setReceipt(Receipt receipt) {
+		this.receipt = receipt;
+	}
+
+	public List<HiddenDangerTask> getHiddenDangerList() {
+		return hiddenDangerList;
+	}
+
+	public void setHiddenDangerList(List<HiddenDangerTask> hiddenDangerList) {
+		this.hiddenDangerList = hiddenDangerList;
+	}
+
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+	public List<BaseTaskVisit> getAllList() {
+		return allList;
+	}
+
+	public void setAllList(List<BaseTaskVisit> allList) {
+		this.allList = allList;
+	}
+
+	public List<FloatingPopulationTask> getFloatingPopulationTaskList() {
+		return floatingPopulationTaskList;
+	}
+
+	public void setFloatingPopulationTaskList(
+			List<FloatingPopulationTask> floatingPopulationTaskList) {
+		this.floatingPopulationTaskList = floatingPopulationTaskList;
+	}
+
+	public String getSignType() {
+		return signType;
+	}
+
+	public void setSignType(String signType) {
+		this.signType = signType;
+	}
+
+	public Long getAttachFileId() {
+		return attachFileId;
+	}
+
+	public void setAttachFileId(Long attachFileId) {
+		this.attachFileId = attachFileId;
+	}
+
+}

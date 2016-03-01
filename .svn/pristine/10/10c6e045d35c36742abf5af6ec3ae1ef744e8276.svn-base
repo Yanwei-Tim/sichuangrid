@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="otherFacilities">
+	<typeAlias alias="otherFacilities" type="com.tianque.baseInfo.otherFacilities.domain.OtherFacilities" />
+
+	<resultMap id="otherFacilitiesResult" class="otherFacilities">
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="objNum" property="objNum" />
+		<result column="objName" property="objName" />
+		<result column="street" property="street" />
+		<result column="community" property="community" />	
+		<result column="deptCode" property="deptCode" />
+		<result column="deptName" property="deptName" />
+		<result column="ownershipUnitCode" property="ownershipUnitCode" />
+		<result column="ownershipUnitName" property="ownershipUnitName" />
+		<result column="maintenanceUnitCode" property="maintenanceUnitCode" />
+		<result column="maintenanceUnitName" property="maintenanceUnitName" />
+		<result column="state" property="state.id" />
+		<result column="startDate" property="startDate" />
+		<result column="changeDate" property="changeDate" />
+		<result column="dateSource" property="dateSource" />
+		<result column="researchOwnership" property="researchOwnership"/>
+		<result column="verifyOwnership" property="verifyOwnership"/>
+		<result column="caseMaterialOwnership" property="caseMaterialOwnership"/>
+		<result column="otherSourceOwnership" property="otherSourceOwnership"/>
+		<result column="objPosition" property="objPosition"/>
+		<result column="remark" property="remark"/>
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+	</resultMap>
+
+	<insert id="addOtherFacilities" parameterClass="otherFacilities">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_otherFacilities.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into otherFacilities
+		(
+		id,orgId,orgInternalCode,objNum,objName,street, community,deptCode,deptName,ownershipUnitCode,
+		ownershipUnitName,maintenanceUnitCode ,maintenanceUnitName ,state ,startDate ,changeDate ,dateSource,
+		researchOwnership,verifyOwnership,caseMaterialOwnership,otherSourceOwnership,objPosition,remark,
+		createDate,	createUser,updateDate,updateUser
+		)
+		values
+		(
+		 #id#,#organization.id#,#orgInternalCode#,#objNum#,#objName#,#street#,#community#,#deptCode#,
+		 #deptName#,#ownershipUnitCode#,#ownershipUnitName#,#maintenanceUnitCode# ,#maintenanceUnitName# ,#state.id#,
+		 #startDate# ,#changeDate# ,#dateSource#,#researchOwnership#,#verifyOwnership#,#caseMaterialOwnership#,
+		 #otherSourceOwnership#,#objPosition#,#remark#,
+		 #createDate#,#createUser#,#updateDate#,#updateUser#
+		)
+	</insert>
+	
+	<select id="getOtherFacilitiesById" parameterClass="java.lang.Long" resultMap="otherFacilitiesResult">
+		<![CDATA[SELECT * FROM otherFacilities where id = #value#]]>
+	</select>
+	<select id="findOtherFacilitiesByOrgId" parameterClass="map" resultMap="otherFacilitiesResult">
+		<![CDATA[SELECT * FROM otherFacilities where orgId = #orgId# ]]>
+	</select>
+	
+	<delete id="deleteOtherFacilitiesbyId" parameterClass="java.lang.Long">
+		delete from otherFacilities where id = #value#
+	</delete>
+	<sql id="sql_where">
+		from otherFacilities
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+<select id="countOtherFacilities" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+<select id="findOtherFacilities" parameterClass="java.util.Map" resultMap="otherFacilitiesResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+<update id="updateOtherFacilities" parameterClass="otherFacilities">
+		update otherFacilities set   
+		 <dynamic>
+			 orgId=#organization.id#,
+			 orgInternalCode=#orgInternalCode#,
+		     objNum=#objNum#,
+		     objName=#objName#,
+		     deptCode=#deptCode#,
+		     deptName=#deptName#
+            <isPropertyAvailable prepend="," property="orgInternalCode">
+            	street=#street#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="orgInternalCode">
+            	community=#community#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="ownershipUnitCode">
+            	ownershipUnitCode=#ownershipUnitCode#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="ownershipUnitName">
+            	ownershipUnitName=#ownershipUnitName#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="maintenanceUnitCode">
+            	maintenanceUnitCode=#maintenanceUnitCode#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="maintenanceUnitName">
+            	maintenanceUnitName=#maintenanceUnitName#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="state">
+            	state=#state.id#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="startDate">
+            	startDate=#startDate#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="changeDate">
+            	changeDate=#changeDate#
+            </isPropertyAvailable>
+             <isPropertyAvailable prepend="," property="dateSource">
+            	dateSource=#dateSource#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="researchOwnership">
+            	researchOwnership=#researchOwnership#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="verifyOwnership">
+            	verifyOwnership=#verifyOwnership#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="caseMaterialOwnership">
+            	caseMaterialOwnership=#caseMaterialOwnership#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="otherSourceOwnership">
+            	otherSourceOwnership=#otherSourceOwnership#
+            </isPropertyAvailable> 
+             <isPropertyAvailable prepend="," property="objPosition">
+            	objPosition=#objPosition#
+            </isPropertyAvailable>  
+            <isPropertyAvailable prepend="," property="objPosition">
+            	remark=#remark#
+            </isPropertyAvailable>          
+           <isPropertyAvailable prepend="," property="updateUser">
+            	updateUser=#updateUser#
+            </isPropertyAvailable>
+            <isPropertyAvailable prepend="," property="updateDate">
+            	updateDate=#updateDate#
+            </isPropertyAvailable>
+			where id = #id#
+         </dynamic>
+	</update>
+	
+	<select id="getOtherFacilitiesByObjNum" parameterClass="java.util.Map"
+		resultMap="otherFacilitiesResult">
+		select * from otherFacilities where orgId=#orgId# and objNum=#objNum#
+	</select>
+</sqlMap>

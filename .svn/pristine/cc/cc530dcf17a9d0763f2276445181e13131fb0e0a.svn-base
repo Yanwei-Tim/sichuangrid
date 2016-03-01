@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="censusRegisterFamily">
+	<typeAlias alias="CensusRegisterFamily" type="com.tianque.domain.CensusRegisterFamily"/>
+	
+	<resultMap id="censusRegisterFamilys" class="CensusRegisterFamily">
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="accountNumber" property="accountNumber" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="householdName" property="householdName" />
+		<result column="homePhone" property="homePhone" />
+		<result column="province" property="province" />
+		<result column="city" property="city" />
+		<result column="district" property="district" />
+		<result column="mobileNumber" property="mobileNumber" />
+		<result column="telePhone" property="telePhone" />
+		<result column="currentaddress" property="currentAddress"/>
+	</resultMap>
+	
+	<resultMap id="censusRegisterFamily" extends="censusRegisterFamilys" class="CensusRegisterFamily">
+		<!-- <result column="id" property="houseMarchList" select="censusRegisterFamily.getHouseMarch"/> -->
+	</resultMap>
+	
+	<insert id="addCensusRegisterFamily" parameterClass="CensusRegisterFamily">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_CENSUSREGISTERFAMILYS.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO CENSUSREGISTERFAMILYS 
+		(ID,ORGID,ACCOUNTNUMBER,idCardNo,HOUSEHOLDNAME,HOMEPHONE,PROVINCE,CITY,DISTRICT,createDate,
+		createUser,mobileNumber,telePhone,currentaddress,orginternalcode,updateDate)
+		VALUES(#id#,#organization.id#,#accountNumber#,#idCardNo#,#householdName#,
+		#homePhone#,#province#,#city#,#district#,#createDate#,#createUser#,#mobileNumber#,#telePhone#,#currentAddress#,#orgInternalCode#,#updateDate#)
+	</insert>
+	
+	<select id="findCensusRegisterFamilyById" parameterClass="java.lang.Long" resultMap="censusRegisterFamily">
+		select * from CENSUSREGISTERFAMILYS where id=#value#
+	</select>
+	
+	<select id="findCensusRegisterFamilyByAccountNumberAndOrgId" parameterClass="java.util.Map" resultMap="censusRegisterFamily">
+		select * from CENSUSREGISTERFAMILYS where ACCOUNTNUMBER=#accountNumber# and ORGID=#orgId#
+	</select>
+	
+	<select id="findCensusRegisterFamilyByCardNoAndOrgId" parameterClass="java.util.Map" resultMap="censusRegisterFamily">
+		select * from CENSUSREGISTERFAMILYS where ORGID=#orgId#
+			and (
+				<iterate property="idCardNoList" conjunction="or">
+					upper(idCardNo) like upper(#idCardNoList[]#)
+				</iterate>
+			)
+	</select>
+	
+	<select id="findCensusRegisterFamilyByIdCardNoAndOrgId" parameterClass="java.util.Map" resultMap="censusRegisterFamily">
+		select * from CENSUSREGISTERFAMILYS where ORGID=#orgId#
+			and idCardNo like #idCardNo# || '%'
+	</select>	
+	
+	<update id="updateCensusRegisterFamily" parameterClass="censusRegisterFamily">
+		update CENSUSREGISTERFAMILYS set
+            id=#id#,
+            idCardNo=#idCardNo#,
+            accountNumber=#accountNumber#,
+            householdName=#householdName#,
+            homePhone=#homePhone#,
+            province=#province#,
+            city=#city#,
+            district=#district#,
+            updateDate=#updateDate#,
+            updateUser=#updateUser#,
+            mobileNumber=#mobileNumber#,
+            telePhone=#telePhone#,
+            currentaddress=#currentAddress#,
+            orginternalcode =#orgInternalCode#     
+         where id=#id#
+     </update>
+	
+	
+	<update id="updateCensusRegisterFamilyIdcardById" parameterClass="censusRegisterFamily">
+		update CENSUSREGISTERFAMILYS set
+			<dynamic>
+				id=#id#
+	            <isNotEmpty property="idCardNo" prepend=",">
+	             	idCardNo=#idCardNo#
+	            </isNotEmpty>
+	            <isNotEmpty property="province" prepend=",">
+	            	province=#province#
+	            </isNotEmpty>
+	            <isNotEmpty property="city" prepend=",">
+	            	city=#city#
+	            </isNotEmpty>
+	            <isNotEmpty property="district" prepend=",">
+	            	district=#district#
+	            </isNotEmpty>
+            </dynamic> 
+         where id=#id#
+     </update>
+	<sql id="sql_where">
+		from CENSUSREGISTERFAMILYS
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="countCensusRegisterFamily" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="findCensusRegisterFamily" parameterClass="java.util.Map" resultMap="censusRegisterFamily">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+	</select>
+	
+	<delete id="deleteCensusRegisterFamilyById" parameterClass="java.lang.Long">
+		delete CENSUSREGISTERFAMILYS where id=#value#
+	</delete>
+	
+	<!-- 方法没有显式调用,dao改用 getHouseMarchTypeIds查询后填充-->
+	<!-- <select id="getHouseMarch" resultMap="propertyDictResult">
+		<![CDATA[select p.* from familyhonors  fh
+		left join propertyDicts p on p.id=fh.propertydictid where fh.familyid=#value#]]>
+	</select> -->
+	
+	<select id="getHouseMarchTypeIds"  parameterClass="java.lang.Long" resultClass="java.lang.Long">
+	   <![CDATA[ 
+	     select f.propertydictid from familyhonors f where f.familyid = #value#
+	   ]]>
+	</select>
+	
+	<delete id="deleteFamilyHouseTypeByFamilyId" parameterClass="java.lang.Long" >
+	  <![CDATA[ 
+	  delete from familyhonors where familyid = #value#
+	   ]]>
+	</delete>
+	
+	<insert id="addFamilyHouseType" parameterClass="java.util.Map" >
+	   insert into familyhonors (propertydictid,familyid) values(#propertydictid#,#familyid#)
+	</insert>
+	
+</sqlMap>

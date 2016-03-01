@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="myVisitRecord">
+	<typeAlias alias="myVisitRecord" type="com.tianque.workBench.myVisitRecord.domain.MyVisitRecord"/>
+	<resultMap id="myVisitRecordResult" class="myVisitRecord">
+		<result property="type" column="typeName"/>
+		<result property="amount" column="personNumber"/>
+	</resultMap>
+	
+	<resultMap id="myVisitRecordForEachResult" class="myVisitRecord">
+		<result property="typeName" column="typeName" select="propertyDict.getPropertyDictById"/>
+		<result property="amount" column="personNumber"/>
+		<result property="recordCount" column="recordCount" />
+	</resultMap>
+	
+	<select id="countEachAttentionPopulation" parameterClass="java.util.Map" resultMap="myVisitRecordResult">
+		<iterate conjunction="union" property="tables" removeFirstPrepend="true">
+			select count(*) as personNumber,'$tables[]$' as typeName 
+			from $tables[]$ where orgInternalCode like '$orgInternalCode$%' and isEmphasis = #isEmphasis# 
+		</iterate>
+	</select>
+	
+	<sql id="findElderPersonRecord">
+		from elderlyPeople_$shardCode$ where peopleType in 
+			(<iterate property="dictIds" conjunction=",">
+					#dictIds[]#
+			</iterate>)
+			and orgInternalCode like '$orgInternalCode$%' and isEmphasis = #isEmphasis# 
+	</sql>
+	
+	<select id="countEachElderlyPeopleVisitRecordByType" parameterClass="java.util.Map" resultMap="myVisitRecordForEachResult">
+		select b.* ,nvl(r.recordCount,0) recordCount from (
+			 select e.peopleType typeName,nvl(e.num,0) personNumber from 
+                 (select count(id) num,peopleType from elderlyPeople_$shardCode$ where orginternalcode like '$orgInternalCode$%'  group by peopleType ) e 
+                 where e.peopleType in     
+                 (<iterate property="dictIds" conjunction=",">
+					#dictIds[]#
+				</iterate>)
+		) b left join (select peopletype as typeName,count(*) as recordCount 
+		<include refid="findElderPersonRecord"/>
+  		and id not in (select objectid from servicerecordrelyobject where  objecttype ='elderlyPeople')
+   		group by peopletype) r on r.typeName=b.typeName
+	</select>
+	
+	<sql id="findOptimalObject">
+		from optimalobjects where optimalcardtype in 
+			(<iterate property="dictIds" conjunction=",">
+					#dictIds[]#
+			</iterate>)
+			and orgInternalCode like '$orgInternalCode$%' and isEmphasis = #isEmphasis# 
+	</sql>
+	
+	<select id="countEachOptimalObjectVisitRecordByType" parameterClass="java.util.Map" resultMap="myVisitRecordForEachResult">
+		select b.* ,nvl(r.recordCount,0) recordCount from (
+			select e.optimalcardtype typeName,nvl(e.num,0) personNumber from 
+                 (select count(id) num,optimalcardtype from optimalobjects  where orginternalcode like '$orgInternalCode$%' group by optimalcardtype ) e 
+                 where e.optimalcardtype in     
+                 (<iterate property="dictIds" conjunction=",">
+					#dictIds[]#
+				</iterate>)
+		) b left join (select optimalcardtype as typeName,count(*) as recordCount 
+		<include refid="findOptimalObject"/>
+  		and id not in (select objectid from servicerecordrelyobject where  objecttype ='optimalObject')
+   		group by optimalcardtype) r on r.typeName=b.typeName
+	</select>
+	
+	<sql id="findAidNeedPopulation">
+		from aidNeedPopulation where aidreason in 
+			 (<iterate property="dictIds" conjunction=",">
+					#dictIds[]#
+			 </iterate>)
+			and orgInternalCode like '$orgInternalCode$%' and isEmphasis = #isEmphasis# 
+	</sql>
+	
+	<select id="countEachAidNeedPopulationVisitRecordByType" parameterClass="java.util.Map" resultMap="myVisitRecordForEachResult">
+		select b.* ,nvl(r.recordCount,0) recordCount from (
+			select e.aidreason typeName,nvl(e.num,0) personNumber from 
+                 (select count(id) num,aidreason from aidNeedPopulation where orginternalcode like '$orgInternalCode$%' group by aidreason ) e 
+                 where e.aidreason in     
+                 (<iterate property="dictIds" conjunction=",">
+					#dictIds[]#
+				</iterate>)
+		) b  left join (select aidreason as typeName,count(*) as recordCount 
+		<include refid="findAidNeedPopulation"/>
+  		and id not in (select objectid from servicerecordrelyobject where  objecttype ='aidNeedPopulation')
+   		group by aidreason) r on r.typeName=b.typeName
+	</select>
+	
+	<sql id="findUnemployedPeople">
+		from unemployedpeople where unemploymentreason in 
+			 (<iterate property="dictIds" conjunction=",">
+					#dictIds[]#
+			 </iterate>)
+			and orgInternalCode like '$orgInternalCode$%' and isEmphasis = #isEmphasis# 
+	</sql>
+	
+	<select id="countEachUnemployedPeopleVisitRecordByType" parameterClass="java.util.Map" resultMap="myVisitRecordForEachResult">
+		select b.* ,nvl(r.recordCount,0) recordCount from (
+			select e.unemploymentreason typeName,nvl(e.num,0) personNumber from
+                 (select count(id) num,unemploymentreason from unemployedpeople  where orginternalcode like '$orgInternalCode$%' group by unemploymentreason ) e 
+                 where e.unemploymentreason in     
+                 (<iterate property="dictIds" conjunction=",">
+					#dictIds[]#
+				</iterate>)
+		) b  left join (select unemploymentreason as typeName,count(*) as recordCount 
+		<include refid="findUnemployedPeople"/>
+  		and id not in (select objectid from servicerecordrelyobject where  objecttype ='unemployedPeople')
+   		group by unemploymentreason) r on r.typeName=b.typeName
+	</select>
+	
+	<sql id="findHandicapped">
+		from handicappeds where disabilitytype in 
+			(<iterate property="dictIds" conjunction=",">
+					#dictIds[]#
+			</iterate>)
+			and orgInternalCode like '$orgInternalCode$%' and isEmphasis = #isEmphasis# 
+	</sql>
+	<select id="countEachHandicappedVisitRecordByType" parameterClass="java.util.Map" resultMap="myVisitRecordForEachResult">
+		select b.* ,nvl(r.recordCount,0) recordCount from (
+			select e.disabilitytype typeName,nvl(e.num,0) personNumber from 
+                 (select count(id) num,disabilitytype from handicappeds where orginternalcode like '$orgInternalCode$%' group by disabilitytype ) e 
+                where e.disabilitytype in     
+                (<iterate property="dictIds" conjunction=",">
+					#dictIds[]#
+				</iterate>)
+		) b  left join (select disabilitytype as typeName,count(*) as recordCount 
+		<include refid="findHandicapped"/>
+  		and id not in (select objectid from servicerecordrelyobject where  objecttype ='handicapped')
+   		group by disabilitytype) r on r.typeName=b.typeName
+	</select>
+	
+</sqlMap>

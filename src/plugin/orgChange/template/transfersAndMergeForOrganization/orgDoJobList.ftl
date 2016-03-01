@@ -1,0 +1,323 @@
+<#assign pop=JspTaglibs["/WEB-INF/taglib/pop-taglib.tld"]>
+<#assign s=JspTaglibs["/WEB-INF/taglib/struts-tags.tld"]>
+<@s.include value="/includes/baseInclude.jsp"/>
+<style type="text/css">
+.loadmask {z-index: 9999;position: absolute;top:0;left:0;-moz-opacity: 0.5;opacity: .50;filter: alpha(opacity=50);background-color: #CCC;width: 100%;height: 100%;zoom: 1;}
+.loadmask-msg {z-index: 20001;position: absolute;top: 0;left: 0;background:#fff;}
+.masked {overflow: hidden !important;}
+.masked-relative {position: relative !important;}
+.masked-hidden {visibility: hidden !important;}
+#buttons{width:300px;height:100px;background:#fff;}
+#loadprogressbar {position:relative;}
+#loadprogressbar .ui-button{width:80px;height:25px;}
+#loadprogressbar .ui-dialog-buttonset{position:absolute;bottom:20px;right:15px;}
+#loadprogressbar {width:700px; height:400px; text-align:center;}
+#messageShow {margin-top: 30px;}
+#progressDiv {margin-top:90px;width: 650;background: #F5F5F5;margin-left: 24px;}
+#msgtext {width: 650px;height: 220;} 
+#progress {margin-top: 100px;margin-bottom: 25;width: 645;} 
+#progress {background: white; height: 20px; padding: 2px; border: 1px solid green; margin: 2px;width: 650px;} 
+#progress {background: green; height: 16px; text-align: center; padding: 1px; margin: 1px;
+                display: block; color: yellow; font-weight: bold; font-size: 14px;width:0%;} 
+
+</style>
+<div class="content">
+			<div class="ui-corner-all" id="nav">
+				<!--<a id="excuteForMerge" href="javascript:;"><span>执行</span></a>-->
+				<a id="deleteForMerge" href="javascript:;"><span>删除</span></a>
+				<a id="excuteForMergeAllSelect" href="javascript:;"><span>一键执行</span></a>
+			</div>
+		<div style="width:100%">
+			<table id="orgDoJobList">
+			</table>
+			<div id="orgDoJobListPager">
+			</div>
+		</div>
+</div>
+<script type="text/javascript" >
+var intarcalId;
+var changeId;
+var completeModules;
+var progressNow;
+var currentModule;
+$(function(){
+	$("#orgDoJobList").jqGridFunction({
+		datatype: "local",
+	   	colNames:['id','操作','处理状态','源部门编号','源部门名称','操作类型','目标部门名称'],
+	   	colModel:[
+	   		{name:'id',index:'id',hidden:true,sortable:false},
+	   		{name:'operation',index:'operation',label:"操作",sortable:false,formatter:operateFormatter_ModuleTable,width:"40px",align:"center"},
+	   		{name:'isDeal',index:"isDeal",label:"处理状态",sortable:false,formatter:operateFormatter_IsDeal,width:"30px",align:"center"},
+	   		{name:'sourceOrgId',index:'sourceOrgId',width:"40px",align:"center",sortable:false},
+	   		{name:'sourceOrgName',index:'sourceOrgName',sortable:false},
+	   		{name:'operateType',index:'operateType',label:"操作类型",sortable:false,formatter:operateFormatter_OperateType,width:"30px",align:"center"},
+	   		{name:'targetOrgName',index:'targetOrgName',sortable:false}
+	   	],
+	   	multiselect:true,
+	    shrinkToFit:true,
+	    showColModelButton:false,
+	    onSelectRow:function(){setHouseInfoOperateButton();}
+	});
+		$("#orgDoJobList").setGridParam({
+			url:'${path}/orgchange/orgChangeInfoManage/findNoDealInfoList.action',
+			datatype: "json",
+			page:1
+		});
+		
+		$("#orgDoJobList").setPostData({});
+		$("#orgDoJobList").trigger("reloadGrid");	
+		
+		
+	//操作
+	function operateFormatter_ModuleTable(el,options,rowData){
+		return "<a href='javascript:' onclick='doJobNow("+rowData.id+")'><span>执行</span></a> | <a href='javascript:;' onclick='deleteJob("+rowData.id+")'><span>删除</span></a>";
+	}
+	//操作类型
+	function operateFormatter_OperateType(el,options,rowData){
+		var operateType = rowData.operateType;
+		if(operateType==1 || operateType =='1'){
+			return "迁移到";
+		}else{
+			return "合并到";
+		}
+	}
+	//处理状态
+	function operateFormatter_IsDeal(el,options,rowData){
+		var isDeal = rowData.isDeal;
+		if(isDeal==1 || isDeal=='1'){
+			return "已处理";
+		}else if(isDeal==2 ||isDeal=='2'){
+			return "处理中";
+		}else{
+			return "未处理";
+		}
+	}
+	
+	/**一键执行*/
+	$("#excuteForMergeAllSelect").click(function(){
+		excuteForMergeAllSelect();
+	});
+	
+});	
+
+function setHouseInfoOperateButton(){
+		var selectedCounts = getActualjqGridMultiSelectCount("orgDoJobList");
+		var count = $("#orgDoJobList").jqGrid("getGridParam","records");
+		if(selectedCounts == count && count > 0){
+			jqGridMultiSelectState("orgDoJobList", true);
+		}else{
+			jqGridMultiSelectState("orgDoJobList", false);
+		}
+	}
+
+//单个执行job
+function doJobNow(id){
+	if(id==null){
+		$.messageBox({level:'warn',message:'没有选中任何记录！'});
+		return ;
+	}
+	doJobFunc(id);
+}
+$("#excuteForMerge").click(function(){
+	var rowIds = $("#orgDoJobList").jqGrid("getGridParam", "selarrrow");
+	if(rowIds.length ==0){
+		$.messageBox({level:"warn",message:"请选择一条记录，再执行JOB！"});
+		return;
+	}
+	doJobFunc(rowIds);
+});
+function doJobFunc(ids){
+	changeId = ids;
+				var str = "<div id='loadprogressbar' class='ui-widget-border'><div id='title' style='margin-left:30px;margin-top:20px;margin-bottom:-70px;margin-right:30px;font-weight:bold'>组织机构迁移合并</div>";
+				str += "<div class='clear'></div>";
+				str += "<div id='progressDiv'><span id='progress'>0%</span></div>";
+				str += "<div id='messageShow'><textarea id='msgtext'></textarea></div>";
+				str += "<div class='ui-dialog-buttonset'><button id='cancel' type='button' class='ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only'>关闭</button></div>";
+				str += "</div> ";
+				$("body").mask(str);
+				
+				intarcalId = setInterval(getProgressBarById,5000);
+				$('#cancel').bind('click', function () {
+			    	clearInterval(intarcalId);
+			    	$('body').unmask();
+					$("#orgDoJobList").trigger("reloadGrid");
+			    });
+	$.ajax({
+			url:"${path}/orgchange/orgChangeInfoManage/executeJob.action",
+			type:"post",
+			data:{
+				"changeId":ids+""
+			},
+			success:function(data){
+			}
+	    });
+}
+
+//批量删除
+$("#deleteForMerge").click(function(){
+	var rowIds = $("#orgDoJobList").jqGrid("getGridParam", "selarrrow");
+	if(rowIds.length ==0){
+		$.messageBox({level:"warn",message:"请选择一条或多条记录，再进行删除！"});
+		return;
+	}
+	deleteFun(rowIds);
+});
+
+function getProgressBarById(){
+	 $.ajax({
+		url: '${path}/orgchange/orgChangeInfoManage/getProgressInfoByChangeId.action',
+		type: 'post',
+		dataType:'json',
+		data:{
+			"changeId":changeId
+		},
+		success:function(data){
+			if(data == null){
+                clearInterval(intarcalId);
+	   	 	}
+			 progressNow = data.progress;
+			 var title = "组织机构迁移合并耗时" + data.delayTime + "毫秒，执行" + data.currentModule + "模块"
+			 if(data.isException == 1){
+				 $("#progress").css("background", "red"); 
+				 $("#progress").css("border", "1px solid red"); 
+				 title += "<font color='red'>失败</font>"
+			 }
+			 $("#title").html(title);
+			 $("#msgtext").html(data.completeModuleString);
+			 $("#progress").css("width", String(progressNow) + "%"); 
+			  $("#progress").html(String(progressNow) + "%"); 
+			 $('#cancel').bind('click', function () {
+			    	clearInterval(intarcalId);
+			    	$('body').unmask();
+					$("#orgDoJobList").trigger("reloadGrid");
+			    });
+			    if(progressNow==100 || data.isException==1){
+			     clearInterval(intarcalId);
+			    }
+		}
+		});
+}
+
+//删除
+function deleteJob(id){
+	if(id==null){
+		$.messageBox({level:'warn',message:'没有选中任何记录！'});
+		return ;
+	}
+	deleteFun(id);
+}
+
+function deleteFun(ids){
+$.confirm({
+		title:"确认删除",
+		message:"确定要删除吗?一经删除，该信息无法恢复，确认删除？",
+		okFunc: function(){
+			$.ajax({
+				url:"${path}/orgchange/orgChangeInfoManage/deleteOrgChangeInfo.action",
+				type:"post",
+				data:{
+					"changeId":ids+""
+				},
+				success:function(data){
+						$("#orgDoJobList").trigger("reloadGrid");
+				   	    $.messageBox({message:"已经成功删除该迁移合并信息!"});
+			    }
+		    });
+	   }
+ 	});
+}
+//一键执行里面的单个执行调用
+function doJobById(){
+	changeId = rowIds[index];
+	 	if(index==0){
+				var str = "<div id='loadprogressbar' class='ui-widget-border'><div id='title' style='margin-left:30px;margin-top:20px;margin-bottom:-70px;margin-right:30px;font-weight:bold'>组织机构迁移合并</div>";
+				str += "<div class='clear'></div>";
+				str += "<div id='progressDiv'><span id='progress'>0%</span></div>";
+				str += "<div id='messageShow'><textarea id='msgtext'></textarea></div>";
+				str += "<div class='ui-dialog-buttonset'><button id='cancel' type='button' class='ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only'>关闭</button></div>";
+				str += "</div> ";
+				$("body").mask(str);
+				$('#cancel').bind('click', function () {
+			    	clearInterval(intarcalId);
+			    	$('body').unmask();
+					$("#orgDoJobList").trigger("reloadGrid");
+			    });
+	 	}
+	 	var changeRow="";
+	 	if(index!=0){changeRow="\n\n\n"}
+				var rowData = $('#orgDoJobList').jqGrid('getRowData',rowIds[index]);
+				taskStr=taskStr+changeRow+"任务"+(index+1)+"："+rowData.sourceOrgName+"===="+rowData.operateType+"===="+rowData.targetOrgName+"开始执行\n";
+				$("#msgtext").html(taskStr);
+				intarcalId = setInterval(getProgressMessageById,5000);
+	$.ajax({
+			url:"${path}/orgchange/orgChangeInfoManage/executeJob.action",
+			type:"post",
+			data:{
+				"changeId":rowIds[index]+""
+			},
+			success:function(data){
+			}
+	    });
+}
+var index=0;
+var rowIds;
+var taskStr="";
+function excuteForMergeAllSelect(){
+	rowIds = $("#orgDoJobList").jqGrid("getGridParam", "selarrrow");
+	if(rowIds.length ==0){
+		$.messageBox({level:"warn",message:"请选择一条记录，再执行JOB！"});
+		return;
+	}
+	$.confirm({
+		title:"执行变更",
+		message:"变更一经执行，无法恢复，确定执行选择的变更任务吗？",
+		okFunc: function() {
+			doJobById();
+		}
+	});
+}
+function getProgressMessageById(){
+	 $.ajax({
+		url: '${path}/orgchange/orgChangeInfoManage/getProgressInfoByChangeId.action',
+		type: 'post',
+		dataType:'json',
+		data:{
+			"changeId":changeId
+		},
+		success:function(data){
+			if(data == null){
+               clearInterval(intarcalId);
+	   	 	}
+			 progressNow = data.progress;
+			 var title = "组织机构迁移合并耗时" + data.delayTime + "毫秒，执行" + data.currentModule + "模块"
+			 if(data.isException == 1){
+				 $("#progress").css("background", "red"); 
+				 $("#progress").css("border", "1px solid red"); 
+				 title += "<font color='red'>失败</font>"
+			 }
+			 $("#title").html(title);
+			 $("#msgtext").html(taskStr+data.completeModuleString);
+			 $("#progress").css("width", String(progressNow) + "%"); 
+			  $("#progress").html(String(progressNow) + "%"); 
+			 if(progressNow==100 || data.isException==1){
+// 				 alert(data.delayTime);alert(data.currentModule);
+			     clearInterval(intarcalId);
+			     var result="执行结果：";
+			     if(data.isException==1){
+			    	 result=result+"组织机构迁移合并耗时" + data.delayTime + "毫秒，执行" + data.currentModule + "模块失败"+"执行到"+String(progressNow)+"%";
+			     }else{
+			    	 result=result+"任务执行成功！"
+			     }
+			     result=result+"\n";
+			     taskStr=$("#msgtext").val()+result;
+			     $("#msgtext").html(taskStr);
+				 index++;
+				 //执行下一个任务
+				 if(index<rowIds.length){
+					 doJobById();
+				 }
+			 }
+		}
+		});
+}
+</script>

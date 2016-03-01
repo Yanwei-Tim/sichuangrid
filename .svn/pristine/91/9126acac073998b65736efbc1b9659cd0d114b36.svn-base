@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="organizationConstruction">
+	<typeAlias alias="OrganizationConstruction" type="com.tianque.newVillage.domain.OrganizationConstruction" />
+
+	<resultMap id="orgConstructionResult" class="OrganizationConstruction" >
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgInternalCode" />
+		<result property="newVillageBasic.id" column="basicInfoID" />
+		
+		<result column="isPositionBuilding" property="isPositionBuilding" />
+		<result column="threeSatisfaction" property="threeSatisfaction" />
+		<result column="surveySatisfaction" property="surveySatisfaction" />
+		
+		<result column="partyMembers" property="partyMembers" />
+		
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+	</resultMap>
+
+	<insert id="addOrgConstruction" parameterClass="OrganizationConstruction">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_ORGANIZATIONCONSTRUCTION.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		INSERT INTO OrganizationConstruction (ID, ORGID, ORGINTERNALCODE, BASICINFOID,isPositionBuilding,threeSatisfaction,surveySatisfaction,partyMembers,createDate,createUser)VALUES(
+		#id#,#organization.id#,#organization.orgInternalCode#,#newVillageBasic.id#,#isPositionBuilding#,#threeSatisfaction#,#surveySatisfaction#,#partyMembers#,#createDate#,#createUser#)	
+	</insert>
+	<update id="updateOrgConstruction" parameterClass="OrganizationConstruction">
+		UPDATE ORGANIZATIONCONSTRUCTION SET UPDATEDATE = #updateDate#
+		<isNotNull prepend="," property="updateUser">
+			updateUser = #updateUser#,
+		</isNotNull>
+			isPositionBuilding=#isPositionBuilding#,
+			threeSatisfaction=#threeSatisfaction#,
+			partyMembers=#partyMembers#,
+			surveySatisfaction=#surveySatisfaction#
+		WHERE ID=#id#
+	</update>
+	
+	<delete id="deleteOrgConstruction">
+		delete from  ORGANIZATIONCONSTRUCTION where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		</iterate>
+	</delete>
+	<select id="getOrgConstruction" parameterClass="java.lang.Long" resultMap="orgConstructionResult">
+		<![CDATA[SELECT * FROM ORGANIZATIONCONSTRUCTION WHERE ID = #value#]]>
+	</select>
+	
+	<select id="getOrgConstructionByBasicId" parameterClass="java.util.Map" resultMap="orgConstructionResult">
+		select * from ORGANIZATIONCONSTRUCTION where BASICINFOID=#basicId#
+	</select>
+		
+</sqlMap>

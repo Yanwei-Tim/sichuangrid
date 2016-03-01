@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="optionalObj">
+	<typeAlias alias="optionalObj" type="com.tianque.working.domain.OptionalObj" />
+	<typeAlias
+		type="org.springframework.orm.ibatis.support.ClobStringTypeHandler"
+		alias="ClobStringTypeHandler" />
+	<resultMap id="optionalObjResult" class="optionalObj">
+		<result column="id" property="id" />
+		<result column="documentId" property="documentId" />
+		<result column="optionalOrgIds" property="optionalOrgIds" />
+		<result column="postObj" property="postObj" />
+	</resultMap>
+	
+	<insert id="addOptionalObj" parameterClass="optionalObj">
+	     <selectKey resultClass="java.lang.Long" keyProperty="id">
+	          <![CDATA[SELECT S_optionalObjs.NEXTVAL as id from dual ]]>
+	     </selectKey>
+	     insert into optionalObjs(id,documentId,optionalOrgIds,postObj)
+	     values(#id#,#documentId#,#optionalOrgIds#,#postObj#)
+	</insert>
+	
+	<update id="updateOptionalObjForOrgIds" parameterClass="java.util.Map">
+	     update optionalObjs set optionalOrgIds=#optionalOrgIds# where documentId=#documentId# and postObj=#postObj#
+	</update>
+	
+	<select id="findOptionalObjByDocumentIdandPostObj" parameterClass="java.util.Map" resultMap="optionalObjResult">
+	     select * from optionalObjs where documentId=#documentId# and postObj=#postObj#
+	</select>
+
+
+</sqlMap>

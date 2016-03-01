@@ -1,0 +1,834 @@
+package com.tianque.plugin.account.controller;
+
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.account.api.ThreeRecordsComprehensiveDubboService;
+import com.tianque.controller.ControllerHelper;
+import com.tianque.core.base.SearchBaseAction;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.vo.GridPage;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.datatransfer.ExcelExportHelper;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.property.OrganizationLevel;
+import com.tianque.domain.property.OrganizationType;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.excel.definition.SpecialGroupsContextYinchuan;
+import com.tianque.plugin.account.constants.LedgerConstants;
+import com.tianque.plugin.account.constants.ThreeRecordsIssueConstants;
+import com.tianque.plugin.account.constants.ThreeRecordsIssueViewType;
+import com.tianque.plugin.account.util.DialogMode;
+import com.tianque.plugin.account.util.ThreeRecordsIssueOperationUtil;
+import com.tianque.plugin.account.vo.LedgerPoorPeopleVo;
+import com.tianque.plugin.account.vo.LedgerSteadyWorkVo;
+import com.tianque.plugin.account.vo.SearchComprehensiveVo;
+import com.tianque.plugin.account.vo.ThreeRecordsIssueViewObject;
+import com.tianque.plugin.account.vo.ThreeRecordsViewObject;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.userAuth.api.PropertyDictDubboService;
+
+@Scope("request")
+@Namespace("/threeRecords/peopleaspirationComprehensive")
+@Controller("peopleaspirationComprehensiveController")
+public class PeopleaspirationComprehensiveController extends SearchBaseAction {
+	
+	private Long orgId;
+	private String orgIds;
+	private Integer sourceTypeInternalId;
+	private Integer viewProcess;// 是否是查询大屏滚动的数据
+	private Long functionalOrgType;// 职能部门类型
+	private SearchComprehensiveVo searchVo;
+	private Long sourceType; // 台账来源
+	@Autowired
+	private ThreeRecordsComprehensiveDubboService comprehensiveDubboService;
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private PropertyDictDubboService propertyDictDubboService;
+	private List<Organization> childOrg;
+	private String tr;
+	private boolean pageOnly;// 是否导出当前页
+	
+	public List<ThreeRecordsViewObject> getNeedExportDatas(int page){
+		List<Long> orgIds = orgIds();
+		PageInfo<ThreeRecordsViewObject> pageInfo = null;
+		if(searchVo.getLedgerType() == LedgerConstants.POORPEOPLE){
+			if(pageOnly){
+				pageInfo = comprehensiveDubboService.exportPoorPeopleCreateAndDone(searchVo, orgIds, page, rows);
+			}else{
+				pageInfo = comprehensiveDubboService.exportPoorPeopleCreateAndDone(searchVo, orgIds, 1, Integer.MAX_VALUE);
+			}
+		}else if(searchVo.getLedgerType() == LedgerConstants.STEADYWORK){
+			if(pageOnly){
+				pageInfo = comprehensiveDubboService.exportSteadyWorkCreateAndDone(searchVo, orgIds, page, rows);
+			}else{
+				pageInfo = comprehensiveDubboService.exportSteadyWorkCreateAndDone(searchVo, orgIds, 1, Integer.MAX_VALUE);
+			}
+		}else{
+			if(pageOnly){
+				pageInfo = comprehensiveDubboService.exportCreateAndDone(searchVo, orgIds, page, rows);
+			}else{
+				pageInfo = comprehensiveDubboService.exportCreateAndDone(searchVo, orgIds, 1, Integer.MAX_VALUE);
+			}
+		}
+		return ControllerHelper.processAllOrgRelativeName(pageInfo, organizationDubboService, new String[] { "organization" }, null).getResult();
+	}
+	
+	public String downloadLedgerPeopleBase() throws Exception {
+			List<ThreeRecordsViewObject> records = getNeedExportDatas(page);
+			String[][] content = SpecialGroupsContextYinchuan.getWaterViewObject();;
+			String title = "中江县三本台账工作民生信息基本情况表（水利类）"; 
+			if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_TRAFFIC){
+				title = "中江县三本台账工作民生信息基本情况表（交通类）";
+				content = SpecialGroupsContextYinchuan.getTrafficViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_AGRICULTURE){
+				title = "中江县三本台账工作民生信息基本情况表（农业类）";
+				content = SpecialGroupsContextYinchuan.getAgricultureViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_EDUCATION){
+				title = "中江县三本台账工作民生信息基本情况表（教育类）";
+				content = SpecialGroupsContextYinchuan.getEducationViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_ENERGY){
+				title = "中江县三本台账工作民生信息基本情况表（能源类）";
+				content = SpecialGroupsContextYinchuan.getEnergyViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_ENVIRONMENT){
+				title = "中江县三本台账工作民生信息基本情况表（环境保护类）";
+				content = SpecialGroupsContextYinchuan.getEnvironmentViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_LABOR){
+				title = "中江县三本台账工作民生信息基本情况表（劳动和社会保障类）";
+				content = SpecialGroupsContextYinchuan.getLaborViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_MEDICAL){
+				title = "中江县三本台账工作民生信息基本情况表（医疗卫生类）";
+				content = SpecialGroupsContextYinchuan.getMedicalViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_OTHER){
+				title = "中江县三本台账工作民生信息基本情况表（其他类）";
+				content = SpecialGroupsContextYinchuan.getOtherViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_SCIENCE){
+				title = "中江县三本台账工作民生信息基本情况表（科技文本类）";
+				content = SpecialGroupsContextYinchuan.getScienceViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_TOWN){
+				title = "中江县三本台账工作民生信息基本情况表（城乡规划建设管理类）";
+				content = SpecialGroupsContextYinchuan.getTownViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.POORPEOPLE){
+				title = "中江县三本台账工作困难群众信息基本情况表";
+				content = SpecialGroupsContextYinchuan.getPoorpeopleViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.STEADYWORK){
+				title = "中江县三本台账工作稳定信息基本情况表";
+				content = SpecialGroupsContextYinchuan.getSteadyWorkViewObject();
+			}
+			inputStream = ExcelExportHelper.exportDateToExcel(content, records);
+			downloadFileName = new String(title.getBytes("gbk"), "ISO8859-1") + ".xls";
+		return STREAM_SUCCESS;
+	}
+	
+	public void downloadLedgerPeopleBaseAll() throws Exception {
+		if (!pageOnly) {
+			pageOnly = true;
+			List<Long> orgIds = orgIds();
+			String title = "中江县三本台账工作民生信息基本情况表";
+			Integer count = null; 
+			if(searchVo.getLedgerType() == LedgerConstants.POORPEOPLE){
+				count = comprehensiveDubboService.countPoorPeopleCreateAndDone(searchVo, orgIds, 1, Integer.MAX_VALUE);
+			}else if(searchVo.getLedgerType() == LedgerConstants.STEADYWORK){
+				count = comprehensiveDubboService.countSteadyWorkCreateAndDone(searchVo, orgIds, 1, Integer.MAX_VALUE);
+			}else{
+				count = comprehensiveDubboService.countfindJurisdictionsCreateAndDone(searchVo, orgIds, 1, Integer.MAX_VALUE);
+			}
+			
+			String[][] content = SpecialGroupsContextYinchuan.getWaterViewObject();//默认水利
+			if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_TRAFFIC){
+				content = SpecialGroupsContextYinchuan.getTrafficViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_ENERGY){
+				content = SpecialGroupsContextYinchuan.getEnergyViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_EDUCATION){
+				content = SpecialGroupsContextYinchuan.getEducationViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_SCIENCE){
+				content = SpecialGroupsContextYinchuan.getScienceViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_MEDICAL){
+				content = SpecialGroupsContextYinchuan.getMedicalViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_LABOR){
+				content = SpecialGroupsContextYinchuan.getLaborViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_ENVIRONMENT){
+				content = SpecialGroupsContextYinchuan.getEnvironmentViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_TOWN){
+				content = SpecialGroupsContextYinchuan.getTownViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_AGRICULTURE){
+				content = SpecialGroupsContextYinchuan.getAgricultureViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_OTHER){
+				content = SpecialGroupsContextYinchuan.getOtherViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.POORPEOPLE){
+				title = "中江县三本台账工作困难群众信息基本情况表";
+				content = SpecialGroupsContextYinchuan.getPoorpeopleViewObject();
+			}else if(searchVo.getLedgerType() == LedgerConstants.STEADYWORK){
+				title = "中江县三本台账工作稳定信息基本情况表";
+				content = SpecialGroupsContextYinchuan.getSteadyWorkViewObject();
+			}
+			exportDataAll(count, content, title);
+		}
+	}
+	
+	@Action(value = "moreSelect", results = { @Result(name = "search", location = "/account/query/moreOrgSelect.jsp") })
+	public String dispatch() throws Exception {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		Organization org = organizationDubboService.getSimpleOrgById(orgId);
+		if (propertyDictDubboService.getPropertyDictById(org.getOrgType().getId()).getInternalId() == OrganizationType.FUNCTIONAL_ORG
+						&& (org.getDepartmentNo().endsWith(ThreeRecordsIssueConstants.COUNTY_LEDGER)
+						|| org.getDepartmentNo().endsWith(ThreeRecordsIssueConstants.COUNTY_COMMITTEE) 
+						|| org.getDepartmentNo().endsWith(ThreeRecordsIssueConstants.COUNTY_JOINT))) {
+			
+			childOrg = organizationDubboService.findOrganizationsByParentId(org.getParentOrg().getId());
+		}else{
+			childOrg = organizationDubboService.findOrganizationsByParentId(orgId);
+		}
+		if (DialogMode.SEARCH_MODE.equalsIgnoreCase(mode)) {
+			return DialogMode.SEARCH_MODE;
+		}
+		return SUCCESS;
+	}
+	
+	@Action(value = "countIssueForView", results = { 
+			@Result(name = "traffic", location = "/account/query/statistical/trafficStatistical.jsp"),
+			@Result(name = "water", location = "/account/query/statistical/waterStatistical.jsp"),
+			@Result(name = "education", location = "/account/query/statistical/educationStatistical.jsp"),
+			@Result(name = "medical", location = "/account/query/statistical/medicalStatistical.jsp"),
+			@Result(name = "agriculture", location = "/account/query/statistical/agricultureStatistical.jsp"),
+			@Result(name = "energy", location = "/account/query/statistical/energyStatistical.jsp"),
+			@Result(name = "labor", location = "/account/query/statistical/laborStatistical.jsp"),
+			@Result(name = "environment", location = "/account/query/statistical/environmentStatistical.jsp"),
+			@Result(name = "town", location = "/account/query/statistical/townStatistical.jsp"),
+			@Result(name = "science", location = "/account/query/statistical/scienceStatistical.jsp"),
+			@Result(name = "other", location = "/account/query/statistical/otherStatistical.jsp"),
+			@Result(name = "poorPeople", location = "/account/query/statistical/poorPeopleStatistical.jsp"),
+			@Result(name = "steadyWork", location = "/account/query/statistical/steadyWorkStatistical.jsp")})
+	public String countIssueForView(){
+		Organization org = organizationDubboService.getSimpleOrgById(orgId);
+		int orgLevel = propertyDictDubboService.getPropertyDictById(org.getOrgLevel().getId()).getInternalId();
+		long functionType = propertyDictDubboService.findPropertyDictByDomainNameAndDictDisplayName(OrganizationType.ORG_TYPE_KEY, OrganizationType.FUNCTION_KEY).getId();
+		if(orgLevel != OrganizationLevel.DISTRICT || org.getOrgType().getId() == functionType){
+			errorMessage = "请选择县级或则多选乡镇进行报表统计！";
+			return ERROR;
+		}else{
+			childOrg = organizationDubboService.findOrganizationsByParentId(orgId);
+		}
+		if (DialogMode.TRAFFIC_S.equalsIgnoreCase(mode)) {
+			tr = getDetailTr(82, childOrg).toString();
+			return DialogMode.TRAFFIC_S;
+		}else if(DialogMode.WATER_S.equalsIgnoreCase(mode)){
+			tr = getDetailTr(82, childOrg).toString();
+			return DialogMode.WATER_S;
+		}else if(DialogMode.EDUCATION_S.equalsIgnoreCase(mode)){
+			tr = getDetailTr(93, childOrg);
+			return DialogMode.EDUCATION_S;
+		}else if(DialogMode.MEDICAL_S.equalsIgnoreCase(mode)){
+			tr = getDetailTr(49, childOrg);
+			return DialogMode.MEDICAL_S;
+		}else if(DialogMode.AGRICULTURE_S.equalsIgnoreCase(mode)){
+			tr = getDetailTr(61, childOrg);
+			return DialogMode.AGRICULTURE_S;
+		}else if(DialogMode.ENERGY_S.equalsIgnoreCase(mode)){
+			tr = getDetailTr(67, childOrg);
+			return DialogMode.ENERGY_S;
+		}else if(DialogMode.LABOR_S.equalsIgnoreCase(mode)){
+			tr = getDetailTr(29, childOrg);
+			return DialogMode.LABOR_S;
+		}else if(DialogMode.ENVIRONMENT_S.equalsIgnoreCase(mode)){
+			tr = getDetailTr(52, childOrg);
+			return DialogMode.ENVIRONMENT_S;
+		}else if(DialogMode.TOWN_S.equalsIgnoreCase(mode)){
+			tr = getDetailTr(74, childOrg);
+			return DialogMode.TOWN_S;
+		}else if(DialogMode.SCIENCE_S.equalsIgnoreCase(mode)){
+			tr = getDetailTr(67, childOrg);
+			return DialogMode.SCIENCE_S;
+		}else if(DialogMode.OTHER_S.equalsIgnoreCase(mode)){
+			tr = getDetailTr(23, childOrg);
+			return DialogMode.OTHER_S;
+		}else if(DialogMode.POORPEOPLE_S.equalsIgnoreCase(mode)){
+			tr = getDetailTr(53, childOrg);
+			return DialogMode.POORPEOPLE_S;
+		}else if(DialogMode.STEADYWORK_S.equalsIgnoreCase(mode)){
+			tr = getDetailTr(124, childOrg);
+			return DialogMode.STEADYWORK_S;
+		}
+		return SUCCESS;
+	}
+	
+	private String getDetailTr(int num, List<Organization> childOrg){
+		StringBuffer sb = new StringBuffer();
+		List<Map<Integer, BigDecimal>> aList = new ArrayList<Map<Integer,BigDecimal>>();
+		if(StringUtil.isStringAvaliable(orgIds)){
+			String[] orgs = orgIds.split(",");
+			for(int j = 0; j < orgs.length; j++){
+				Organization o = organizationDubboService.getSimpleOrgById(Long.valueOf(orgs[j].trim()));//要求实时查询，在soa一起处理可能dubbo超时
+				sb.append("<tr><td>" + o.getOrgName() + "</td>");
+				Map<Integer, BigDecimal> resultMap;
+				if(searchVo.getLedgerType() == LedgerConstants.POORPEOPLE){
+					resultMap = comprehensiveDubboService.getPoorPeopleDetail(searchVo, o);
+				}else if(searchVo.getLedgerType() == LedgerConstants.STEADYWORK){
+					resultMap = comprehensiveDubboService.getSteadyWorkDetail(searchVo, o);
+				}else{
+					resultMap = comprehensiveDubboService.getPeopleDetail(searchVo, o);
+				}
+				aList.add(resultMap);
+				for(int i = 1; i <= num; i++){
+					sb.append("<td style='text-align: center;'>"+resultMap.get(i)+"</td>");
+				}
+				sb.append("</tr>");
+			}
+		}else{
+			for(Organization o : childOrg){
+				sb.append("<tr><td>" + o.getOrgName() + "</td>");
+				Map<Integer, BigDecimal> resultMap;
+				if(searchVo.getLedgerType() == LedgerConstants.POORPEOPLE){
+					resultMap = comprehensiveDubboService.getPoorPeopleDetail(searchVo, o);
+				}else if(searchVo.getLedgerType() == LedgerConstants.STEADYWORK){
+					resultMap = comprehensiveDubboService.getSteadyWorkDetail(searchVo, o);
+				}else{
+					resultMap = comprehensiveDubboService.getPeopleDetail(searchVo, o);
+				}
+				aList.add(resultMap);
+				for(int i = 1; i <= num; i++){
+					sb.append("<td style='text-align: center;'>"+resultMap.get(i)+"</td>");
+				}
+				sb.append("</tr>");
+			}
+		}
+		Map<Integer, Double> m = new HashMap<Integer, Double>();//计算合计
+		for(int i = 1; i <= num; i++){
+			m.put(i, 0.0);
+		}
+		for(int i = 0; i < aList.size(); i++){
+			for(int j = 1; j <= num; j++){
+				m.put(j, m.get(j) + aList.get(i).get(j).doubleValue());
+			}
+		}
+		StringBuffer s = new StringBuffer();
+		s.append("<tr><td>合计</td>");
+		for(int i = 1; i <= num; i++){
+			s.append("<td style='text-align: center;'>"+m.get(i)+"</td>");
+		}
+		s.append("</tr>");
+		s.append(sb.toString());
+		return s.toString();
+	}
+	
+	
+	@Action(value = "findSteadyWorkIssueForView", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String findSteadyWorkIssueForView() throws Exception {
+		List<Long> orgIds = orgIds();
+		// 根据不同类型调用不同的service
+		if (ThreeRecordsIssueViewType.NEED.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsSteadyWorkNeedDo(orgIds);
+		} else if (ThreeRecordsIssueViewType.DONE.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsSteadyWorkDone(orgIds);
+		} else if (ThreeRecordsIssueViewType.PERIOD.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsSteadyWorkPeriodDone(orgIds);
+		} else if (ThreeRecordsIssueViewType.COMPLETED.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsSteadyWorkSubStanceDone(orgIds);
+		} else if (ThreeRecordsIssueViewType.FEEDBACK.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsSteadyWorkFeedBack(orgIds);
+		} else if (ThreeRecordsIssueViewType.ASSIGN.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsSteadyWorkAssgin(orgIds);
+		} else if (ThreeRecordsIssueViewType.SUBMIT.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsSteadyWorkSubmit(orgIds);
+		} else if (ThreeRecordsIssueViewType.SUPPORT.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsSteadyWorkSupportDo(orgIds);
+		} else if (ThreeRecordsIssueViewType.NOTICE.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsSteadyWorkNoticeDo(orgIds);
+		} else if (ThreeRecordsIssueViewType.CREATE_DONE.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsSteadyWorkCreateAndDone(orgIds);
+		} else {
+			errorMessage = "未知的操作类型";
+			return ERROR;
+		}
+	}
+	
+	
+	private String findJurisdictionsSteadyWorkNeedDo(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerSteadyWorkVo> issues = comprehensiveDubboService.findJurisdictionsSteadyWorkNeedDo(searchVo, orgIds, page, rows, functionalOrgType, viewProcess);
+		gridPage = new GridPage(dealSteadyWorkIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsSteadyWorkDone(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerSteadyWorkVo> issues = comprehensiveDubboService.findJurisdictionsSteadyWorkDone(searchVo, orgIds, page, rows, functionalOrgType, viewProcess);
+		gridPage = new GridPage(dealSteadyWorkIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsSteadyWorkPeriodDone(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerSteadyWorkVo> issues = comprehensiveDubboService.findJurisdictionsSteadyWorkPeriodDone(searchVo, orgIds, page, rows, functionalOrgType, viewProcess);
+		gridPage = new GridPage(dealSteadyWorkIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsSteadyWorkSubStanceDone(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerSteadyWorkVo> issues = comprehensiveDubboService.findJurisdictionsSteadyWorkSubStanceDone(searchVo, orgIds, page, rows, functionalOrgType, viewProcess);
+		gridPage = new GridPage(dealSteadyWorkIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsSteadyWorkFeedBack(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerSteadyWorkVo> issues = comprehensiveDubboService.findJurisdictionsSteadyWorkFeedBack(searchVo, orgIds, page, rows, functionalOrgType, viewProcess);
+		gridPage = new GridPage(dealSteadyWorkIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsSteadyWorkAssgin(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerSteadyWorkVo> issues = comprehensiveDubboService.findJurisdictionsSteadyWorkAssgin(searchVo, orgIds, page, rows, functionalOrgType, viewProcess);
+		gridPage = new GridPage(dealSteadyWorkIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsSteadyWorkSubmit(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerSteadyWorkVo> issues = comprehensiveDubboService.findJurisdictionsSteadyWorkSubmit(searchVo, orgIds, page, rows, functionalOrgType, viewProcess);
+		gridPage = new GridPage(dealSteadyWorkIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsSteadyWorkSupportDo(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerSteadyWorkVo> issues = comprehensiveDubboService.findJurisdictionsSteadyWorkSupportDo(searchVo, orgIds, page, rows, functionalOrgType, viewProcess);
+		gridPage = new GridPage(dealSteadyWorkIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsSteadyWorkNoticeDo(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerSteadyWorkVo> issues = comprehensiveDubboService.findJurisdictionsSteadyWorkNoticeDo(searchVo, orgIds, page, rows, functionalOrgType, viewProcess);
+		gridPage = new GridPage(dealSteadyWorkIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsSteadyWorkCreateAndDone(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerSteadyWorkVo> issues = comprehensiveDubboService.findJurisdictionsSteadyWorkCreateAndDone(searchVo, orgIds, page, rows, functionalOrgType, viewProcess);
+		gridPage = new GridPage(dealSteadyWorkIssues(issues));
+		return SUCCESS;
+	}
+	
+
+	@Action(value = "findPoorIssueForView", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String findPoorIssueForView() throws Exception {
+		if (sourceType == null && sourceTypeInternalId != null) {
+			List<PropertyDict> sourceTypes = propertyDictDubboService
+					.findPropertyDictByDomainNameAndInternalId(
+							PropertyTypes.SOURCE_KIND, sourceTypeInternalId);
+			if (sourceTypes != null && sourceTypes.size() > 0
+					&& sourceTypes.get(0) != null) {
+				sourceType = sourceTypes.get(0).getId();
+			}
+		}
+		List<Long> orgIds = orgIds();
+		// 根据不同类型调用不同的service
+		if (ThreeRecordsIssueViewType.NEED.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsPoorNeedDo(orgIds);
+		} else if (ThreeRecordsIssueViewType.DONE.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsPoorDone(orgIds);
+		} else if (ThreeRecordsIssueViewType.PERIOD.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsPoorPeriodDone(orgIds);
+		} else if (ThreeRecordsIssueViewType.COMPLETED.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsPoorSubStanceDone(orgIds);
+		} else if (ThreeRecordsIssueViewType.FEEDBACK.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsPoorFeedBack(orgIds);
+		} else if (ThreeRecordsIssueViewType.ASSIGN.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsPoorAssgin(orgIds);
+		} else if (ThreeRecordsIssueViewType.SUBMIT.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsPoorSubmit(orgIds);
+		} else if (ThreeRecordsIssueViewType.SUPPORT.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsPoorSupportDo(orgIds);
+		} else if (ThreeRecordsIssueViewType.NOTICE.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsPoorNoticeDo(orgIds);
+		} else if (ThreeRecordsIssueViewType.CREATE_DONE.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsPoorCreateAndDone(orgIds);
+		} else {
+			errorMessage = "未知的操作类型";
+			return ERROR;
+		}
+	}
+	
+	private String findJurisdictionsPoorNeedDo(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerPoorPeopleVo> issues = comprehensiveDubboService.findJurisdictionsPoorNeedDo(searchVo, orgIds, page, rows, functionalOrgType, viewProcess, sourceType);
+		gridPage = new GridPage(dealPoorPeopleIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsPoorDone(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerPoorPeopleVo> issues = comprehensiveDubboService.findJurisdictionsPoorDone(searchVo, orgIds, page, rows, functionalOrgType, viewProcess, sourceType);
+		gridPage = new GridPage(dealPoorPeopleIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsPoorPeriodDone(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerPoorPeopleVo> issues = comprehensiveDubboService.findJurisdictionsPoorPeriodDone(searchVo, orgIds, page, rows, functionalOrgType, viewProcess, sourceType);
+		gridPage = new GridPage(dealPoorPeopleIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsPoorSubStanceDone(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerPoorPeopleVo> issues = comprehensiveDubboService.findJurisdictionsPoorSubStanceDone(searchVo, orgIds, page, rows, functionalOrgType, viewProcess, sourceType);
+		gridPage = new GridPage(dealPoorPeopleIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsPoorFeedBack(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerPoorPeopleVo> issues = comprehensiveDubboService.findJurisdictionsPoorFeedBack(searchVo, orgIds, page, rows, functionalOrgType, viewProcess, sourceType);
+		gridPage = new GridPage(dealPoorPeopleIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsPoorAssgin(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerPoorPeopleVo> issues = comprehensiveDubboService.findJurisdictionsPoorAssgin(searchVo, orgIds, page, rows, functionalOrgType, viewProcess, sourceType);
+		gridPage = new GridPage(dealPoorPeopleIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsPoorSubmit(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerPoorPeopleVo> issues = comprehensiveDubboService.findJurisdictionsPoorSubmit(searchVo, orgIds, page, rows, functionalOrgType, viewProcess, sourceType);
+		gridPage = new GridPage(dealPoorPeopleIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsPoorSupportDo(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerPoorPeopleVo> issues = comprehensiveDubboService.findJurisdictionsPoorSupportDo(searchVo, orgIds, page, rows, functionalOrgType, viewProcess, sourceType);
+		gridPage = new GridPage(dealPoorPeopleIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsPoorNoticeDo(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerPoorPeopleVo> issues = comprehensiveDubboService.findJurisdictionsPoorNoticeDo(searchVo, orgIds, page, rows, functionalOrgType, viewProcess, sourceType);
+		gridPage = new GridPage(dealPoorPeopleIssues(issues));
+		return SUCCESS;
+	}
+	private String findJurisdictionsPoorCreateAndDone(List<Long> orgIds){
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<LedgerPoorPeopleVo> issues = comprehensiveDubboService.findJurisdictionsPoorCreateAndDone(searchVo, orgIds, page, rows, functionalOrgType, viewProcess, sourceType);
+		gridPage = new GridPage(dealPoorPeopleIssues(issues));
+		return SUCCESS;
+	}
+	
+	@Action(value = "findIssueForView", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"gridPage", "ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage", "ignoreHierarchy", "false" }) })
+	public String findIssueForView() throws Exception {
+		List<Long> orgIds = orgIds();
+		// 根据不同类型调用不同的service
+		if (ThreeRecordsIssueViewType.NEED.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsNeedDo(orgIds);
+		} else if (ThreeRecordsIssueViewType.DONE.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsDone(orgIds);
+		} else if (ThreeRecordsIssueViewType.PERIOD.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsPeriodDone(orgIds);
+		} else if (ThreeRecordsIssueViewType.COMPLETED.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsSubStanceDone(orgIds);
+		} else if (ThreeRecordsIssueViewType.FEEDBACK.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsFeedBack(orgIds);
+		} else if (ThreeRecordsIssueViewType.ASSIGN.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsAssgin(orgIds);
+		} else if (ThreeRecordsIssueViewType.SUBMIT.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsSubmit(orgIds);
+		} else if (ThreeRecordsIssueViewType.SUPPORT.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsSupportDo(orgIds);
+		} else if (ThreeRecordsIssueViewType.NOTICE.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsNoticeDo(orgIds);
+		} else if (ThreeRecordsIssueViewType.CREATE_DONE.equalsIgnoreCase(searchVo.getDoneType())) {
+			return findJurisdictionsCreateAndDone(orgIds);
+		} else {
+			errorMessage = "未知的操作类型";
+			return ERROR;
+		}
+	}
+	
+	private String findJurisdictionsNeedDo(List<Long> orgIds) {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<ThreeRecordsIssueViewObject> issues = comprehensiveDubboService.findJurisdictionsNeedDo(searchVo, orgIds, page, rows);
+		gridPage = new GridPage(dealPeopleIssues(issues));
+		return SUCCESS;
+	}
+
+	private String findJurisdictionsDone(List<Long> orgIds) {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<ThreeRecordsIssueViewObject> issues = comprehensiveDubboService.findJurisdictionsDone(searchVo, orgIds, page, rows);
+		gridPage = new GridPage(dealPeopleIssues(issues));
+		return SUCCESS;
+	}
+
+	private String findJurisdictionsPeriodDone(List<Long> orgIds) {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<ThreeRecordsIssueViewObject> issues = comprehensiveDubboService.findJurisdictionsPeriodDone(searchVo, orgIds, page, rows);
+		gridPage = new GridPage(dealPeopleIssues(issues));
+		return SUCCESS;
+	}
+
+	private String findJurisdictionsSubStanceDone(List<Long> orgIds) {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<ThreeRecordsIssueViewObject> issues = comprehensiveDubboService.findJurisdictionsSubStanceDone(searchVo, orgIds, page, rows);
+		gridPage = new GridPage(dealPeopleIssues(issues));
+		return SUCCESS;
+	}
+
+	private String findJurisdictionsFeedBack(List<Long> orgIds) {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<ThreeRecordsIssueViewObject> issues = comprehensiveDubboService.findJurisdictionsFeedBack(searchVo, orgIds, page, rows);
+		gridPage = new GridPage(dealPeopleIssues(issues));
+		return SUCCESS;
+	}
+
+	private String findJurisdictionsAssgin(List<Long> orgIds) {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<ThreeRecordsIssueViewObject> issues = comprehensiveDubboService.findJurisdictionsAssgin(searchVo, orgIds, page, rows);
+		gridPage = new GridPage(dealPeopleIssues(issues));
+		return SUCCESS;
+	}
+
+	private String findJurisdictionsSubmit(List<Long> orgIds) {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<ThreeRecordsIssueViewObject> issues = comprehensiveDubboService.findJurisdictionsSubmit(searchVo, orgIds, page, rows);
+		gridPage = new GridPage(dealPeopleIssues(issues));
+		return SUCCESS;
+	}
+
+	private String findJurisdictionsSupportDo(List<Long> orgIds) {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<ThreeRecordsIssueViewObject> issues = comprehensiveDubboService.findJurisdictionsSupportDo(searchVo, orgIds, page, rows);
+		gridPage = new GridPage(dealPeopleIssues(issues));
+		return SUCCESS;
+	}
+
+	private String findJurisdictionsNoticeDo(List<Long> orgIds) {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<ThreeRecordsIssueViewObject> issues = comprehensiveDubboService.findJurisdictionsNoticeDo(searchVo, orgIds, page, rows);
+		gridPage = new GridPage(dealPeopleIssues(issues));
+		return SUCCESS;
+	}
+	
+	private String findJurisdictionsCreateAndDone(List<Long> orgIds) {
+		if (!legalKeyIdParam()) {
+			errorMessage = "参数无效!";
+			return ERROR;
+		}
+		PageInfo<ThreeRecordsIssueViewObject> issues = comprehensiveDubboService.findJurisdictionsCreateAndDone(searchVo, orgIds, page, rows);
+		gridPage = new GridPage(dealPeopleIssues(issues));
+		return SUCCESS;
+	}
+	
+	private PageInfo<ThreeRecordsIssueViewObject> dealPeopleIssues(PageInfo<ThreeRecordsIssueViewObject> issues){
+		String[] params = ThreeRecordsIssueOperationUtil.getViewprocessParams(viewProcess);
+		return ControllerHelper.processAllOrgRelativeName(issues,organizationDubboService, params, null);
+	}
+	
+	private PageInfo<LedgerPoorPeopleVo> dealPoorPeopleIssues(PageInfo<LedgerPoorPeopleVo> issues){
+		String[] params = ThreeRecordsIssueOperationUtil.getViewprocessParams(viewProcess);
+		return ControllerHelper.processAllOrgRelativeName(issues,organizationDubboService, params, null);
+	}
+	
+	private PageInfo<LedgerSteadyWorkVo> dealSteadyWorkIssues(PageInfo<LedgerSteadyWorkVo> issues){
+		String[] params = ThreeRecordsIssueOperationUtil.getViewprocessParams(viewProcess);
+		return ControllerHelper.processAllOrgRelativeName(issues,organizationDubboService, params, null);
+	}
+	
+	private List<Long> orgIds(){
+		List<Long> ids = new ArrayList<Long>();
+		if(StringUtil.isStringAvaliable(orgIds)){
+			String[] orgs = orgIds.split(",");
+			for(int i = 0; i < orgs.length; i++){
+				ids.add(Long.valueOf(orgs[i].trim()));
+			}
+		}else{
+			ids.add(orgId);
+		}
+		return ids;
+	}
+
+	private boolean legalKeyIdParam() {
+		return null != orgId;
+	}
+
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+	public SearchComprehensiveVo getSearchVo() {
+		return searchVo;
+	}
+
+	public void setSearchVo(SearchComprehensiveVo searchVo) {
+		this.searchVo = searchVo;
+	}
+
+	public Integer getViewProcess() {
+		return viewProcess;
+	}
+
+	public void setViewProcess(Integer viewProcess) {
+		this.viewProcess = viewProcess;
+	}
+
+	public Long getSourceType() {
+		return sourceType;
+	}
+
+	public void setSourceType(Long sourceType) {
+		this.sourceType = sourceType;
+	}
+
+	public Long getFunctionalOrgType() {
+		return functionalOrgType;
+	}
+
+	public void setFunctionalOrgType(Long functionalOrgType) {
+		this.functionalOrgType = functionalOrgType;
+	}
+
+	public Integer getSourceTypeInternalId() {
+		return sourceTypeInternalId;
+	}
+
+	public void setSourceTypeInternalId(Integer sourceTypeInternalId) {
+		this.sourceTypeInternalId = sourceTypeInternalId;
+	}
+	public List<Organization> getChildOrg() {
+		return childOrg;
+	}
+	public void setChildOrg(List<Organization> childOrg) {
+		this.childOrg = childOrg;
+	}
+	public String getOrgIds() {
+		return orgIds;
+	}
+	public void setOrgIds(String orgIds) {
+		this.orgIds = orgIds;
+	}
+
+	public String getTr() {
+		return tr;
+	}
+
+	public void setTr(String tr) {
+		this.tr = tr;
+	}
+
+	public boolean isPageOnly() {
+		return pageOnly;
+	}
+
+	public void setPageOnly(boolean pageOnly) {
+		this.pageOnly = pageOnly;
+	}
+	
+}

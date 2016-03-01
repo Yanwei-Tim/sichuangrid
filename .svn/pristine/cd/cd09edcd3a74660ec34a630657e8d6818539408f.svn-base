@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="platformMessagesAttachFile">
+	<typeAlias alias="platformMessagesAttachFile" type="com.tianque.platformMessage.domain.PlatformMessageAttachFile" />
+	
+	<resultMap id="platformMessagesAttachFileResult" class="platformMessagesAttachFile">
+		<result property="id" column="id" />
+		<result property="pmId" column="pmId" />
+		<result property="user.id" column="userId" />
+		<result property="attachType" column="attachType" />
+		<result property="fileActualUrl" column="fileActualUrl" />
+		<result property="fileName" column="fileName" />
+		<result property="fileSize" column="fileSize" />
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+	</resultMap>
+
+	<insert id="addPlatformMessagesAttachFile" parameterClass="platformMessagesAttachFile">
+	<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_platformMessagesAttachFiles.NEXTVAL AS ID FROM DUAL ]]>
+	</selectKey>
+	INSERT INTO
+		 platformMessagesAttachFiles 
+		 (id,pmId,userId,attachType,fileActualUrl,fileName,fileSize,createDate,createUser)
+	VALUES
+		 (#id#,#pmId#,#user.id#,#attachType#,#fileActualUrl#,#fileName#,#fileSize#,#createDate#,#createUser#)
+	</insert>
+	
+	<select id="getPlatformMessagesAttachFileById" parameterClass="java.lang.Long" 
+			resultMap="platformMessagesAttachFileResult">
+	<![CDATA[select * from platformMessagesAttachFiles where id=#id#]]>
+	</select>
+	
+	<select id="getPlatformMessageAttachFileByIdAndType" parameterClass="java.util.Map" 
+		resultMap="platformMessagesAttachFileResult">
+	<![CDATA[select * from platformMessagesAttachFiles where pmId=#pmId# and attachType=#attachType#]]>
+	</select>
+	
+	<delete id="deletePlatformMessagesAttachFileById" parameterClass="java.lang.Long" >
+		delete from platformMessagesAttachFiles where id = #id#
+	</delete>
+	
+	<delete id="deletePlatformMessageAttachFileByIdAndType" parameterClass="java.util.Map">
+	<![CDATA[delete platformMessagesAttachFiles where pmId=#pmId# and attachType=#attachType#]]>
+	</delete>
+	
+</sqlMap>

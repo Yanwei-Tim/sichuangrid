@@ -1,0 +1,784 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib"%>
+<%@ include file="/includes/baseInclude.jsp"%>
+<div class="container container_24" id="securityOfImportPrint">
+<style>
+	table.tb {
+		font-size:14px;
+	}
+	table.tb td {
+		border:1px solid gray;
+		padding-left:3px;
+		padding-right:3px;
+		line-height:24px;
+	}
+	table.tb td.head{
+		text-align:center;
+		font-weight:bold;
+		font-size:15px;
+	}
+	table.tb td.bottom{
+		border:0px;
+	}
+	table.tb td.order{
+		text-align:center;
+		height:26px;
+	}
+	table.tb td.label{
+		text-align:left;
+		font-size:15px;
+	}
+	.tableCtt{
+		height:380px;
+		overflow-y:auto;
+	}
+tr
+	{mso-height-source:auto;
+	mso-ruby-visibility:none;}
+col
+	{mso-width-source:auto;
+	mso-ruby-visibility:none;}
+br
+	{mso-data-placement:same-cell;}
+.font0
+	{color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:swiss;
+	mso-font-charset:134;}
+.font1
+	{color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:modern;
+	mso-font-charset:134;}
+.font2
+	{color:#000000;
+	font-size:16.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:modern;
+	mso-font-charset:134;}
+.font3
+	{color:#FF0000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:underline;
+	text-underline-style:single;
+	font-family:"宋体";
+	mso-generic-font-family:modern;
+	mso-font-charset:134;}
+.font4
+	{color:#FF0000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"宋体";
+	mso-generic-font-family:modern;
+	mso-font-charset:134;}
+.font5
+	{color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:underline;
+	text-underline-style:single;
+	font-family:"宋体";
+	mso-generic-font-family:modern;
+	mso-font-charset:134;}
+.style0
+	{mso-number-format:"General";
+	text-align:general;
+	vertical-align:middle;
+	white-space:nowrap;
+	mso-rotate:0;
+	mso-pattern:auto;
+	mso-background-source:auto;
+	color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-generic-font-family:swiss;
+	mso-font-charset:134;
+	border:none;
+	mso-protection:locked visible;
+	mso-style-name:"Normal";
+	mso-style-id:0;}
+.style16
+	{mso-number-format:"_ * \#\,\#\#0\.00_ \;_ * \\-\#\,\#\#0\.00_ \;_ * \0022-\0022??_ \;_ \@_ ";
+	mso-style-name:"Comma";
+	mso-style-id:3;}
+.style17
+	{mso-number-format:"_ \0022\00A5\0022* \#\,\#\#0\.00_ \;_ \0022\00A5\0022* \\-\#\,\#\#0\.00_ \;_ \0022\00A5\0022* \0022-\0022??_ \;_ \@_ ";
+	mso-style-name:"Currency";
+	mso-style-id:4;}
+.style18
+	{mso-number-format:"_ * \#\,\#\#0_ \;_ * \\-\#\,\#\#0_ \;_ * \0022-\0022_ \;_ \@_ ";
+	mso-style-name:"Comma[0]";
+	mso-style-id:6;}
+.style19
+	{mso-number-format:"0%";
+	mso-style-name:"Percent";
+	mso-style-id:5;}
+.style20
+	{mso-number-format:"_ \0022\00A5\0022* \#\,\#\#0_ \;_ \0022\00A5\0022* \\-\#\,\#\#0_ \;_ \0022\00A5\0022* \0022-\0022_ \;_ \@_ ";
+	mso-style-name:"Currency[0]";
+	mso-style-id:7;}
+td
+	{mso-style-parent:style0;
+	padding-top:1px;
+	padding-right:1px;
+	padding-left:1px;
+	mso-ignore:padding;
+	mso-number-format:"General";
+	text-align:general;
+	vertical-align:bottom;
+	white-space:nowrap;
+	mso-rotate:0;
+	mso-pattern:auto;
+	mso-background-source:auto;
+	color:#000000;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:宋体;
+	mso-generic-font-family:swiss;
+	mso-font-charset:134;
+	border:none;
+	mso-protection:locked visible;
+	word-wrap:break-word;}
+.xl22
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;}
+.xl23
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	layout-flow:vertical;}
+.xl24
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	mso-generic-font-family:modern;}
+.xl25
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	layout-flow:vertical;
+	border:1px solid #000000;}
+.xl26
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	border:1px solid #000000;}
+.xl27
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	border-left:1px solid #000000;
+	border-top:1px solid #000000;}
+.xl28
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	border-top:1px solid #000000;
+	border-right:1px solid #000000;}
+.xl29
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	border-top:1px solid #000000;
+	border-right:1px solid #000000;
+	border-bottom:1px solid #000000;}
+.xl30
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	border-left:1px solid #000000;
+	border-top:1px solid #000000;
+	border-right:1px solid #000000;}
+.xl31
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	border-left:1px solid #000000;
+	border-bottom:1px solid #000000;}
+.xl32
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	border-right:1px solid #000000;
+	border-bottom:1px solid #000000;}
+.xl33
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	border-left:1px solid #000000;
+	border-right:1px solid #000000;
+	border-bottom:1px solid #000000;}
+.xl34
+	{mso-style-parent:style0;
+	vertical-align:middle;
+	white-space:normal;
+	border:1px solid #000000;}
+.xl35
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	border-left:1px solid #000000;
+	border-top:1px solid #000000;}
+.xl36
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	border-top:1px solid #000000;
+	border-right:1px solid #000000;}
+.xl37
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	border-left:1px solid #000000;
+	border-bottom:1px solid #000000;}
+.xl38
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	border-right:1px solid #000000;
+	border-bottom:1px solid #000000;}
+.xl39
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	border-left:1px solid #000000;
+	border-top:1px solid #000000;
+	border-bottom:1px solid #000000;}
+.xl40
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	border-left:1px solid #000000;
+	border-right:1px solid #000000;}
+.xl41
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	border-top:1px solid #000000;}
+.xl42
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	border-top:1px solid #000000;
+	border-bottom:1px solid #000000;}
+.xl43
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	layout-flow:vertical;
+	border-left:1px solid #000000;
+	border-top:1px solid #000000;}
+.xl44
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	layout-flow:vertical;
+	border-top:1px solid #000000;
+	border-right:1px solid #000000;}
+.xl45
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	layout-flow:vertical;
+	border-left:1px solid #000000;
+	border-bottom:1px solid #000000;}
+.xl46
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	layout-flow:vertical;
+	border-right:1px solid #000000;
+	border-bottom:1px solid #000000;}
+.xl47
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	layout-flow:vertical;
+	border-left:1px solid #000000;
+	border-top:1px solid #000000;
+	border-bottom:1px solid #000000;}
+.xl48
+	{mso-style-parent:style0;
+	text-align:center;
+	vertical-align:middle;
+	white-space:normal;
+	layout-flow:vertical;
+	border-top:1px solid #000000;
+	border-right:1px solid #000000;
+	border-bottom:1px solid #000000;}
+.xl49
+	{mso-style-parent:style0;
+	vertical-align:middle;
+	white-space:normal;
+	layout-flow:vertical;
+	border-left:1px solid #000000;
+	border-right:1px solid #000000;
+	border-bottom:1px solid #000000;}
+</style>
+<center>
+	<table class="tb" cellpadding=0 cellspacing=0 
+		style="table-layout: fixed; border-collapse: collapse;">
+	 	<s:if test='"add".equals(mode)'>
+		<tr>
+			<td colspan=4 height=44 id="reportName" style='text-align:center;border:0px;height:33.0pt;font-size:25px; font-weight:bold;'>${dailyYear.yearDate}年<span id="selectedMonth" style='text-align:center;border:0px;height:33.0pt;font-size:25px; font-weight:bold;'></span>${organization.orgName}“排查整治、强基促稳”专项活动月报表</td>
+		</tr>
+		</s:if>
+		<s:else>
+		<tr>
+			<td colspan=4 height=44 id="reportName" style='text-align:center;border:0px;height:33.0pt;font-size:25px; font-weight:bold;'>${investigationRemediation.name}</td>
+		</tr>
+		</s:else>
+	 	<tr>
+	 		<td colspan=2 style='text-align:center;height:32.25pt;border:0px;' id="areacode">
+		  		填报单位（盖章）：<s:if test='"add".equals(mode)'>${organization.orgName}</s:if><s:else>${investigationRemediation.organization.orgName}</s:else>
+		  	</td>
+			<td colspan=2 class=head style="border:0px; text-align:center;margin-right:20px;">填报月份：
+				<select id="reportTime" <s:if test='!"add".equals(mode)'>disabled="disabled"</s:if>>
+					<s:iterator value="dateMap" id="date" >
+					    <s:property value="#date"/>
+						<option value='<s:property value="key"/>'><s:property value="value"/></option>
+					</s:iterator>
+				</select>
+			</td>
+	 	</tr>
+	 </table>
+	 <div class="tableCtt">
+	
+	<table width="855" border="0" cellpadding="0" cellspacing="0" style='width:641.25pt;border-collapse:collapse;table-layout:fixed;'>
+	   <tr height="38" style='height:28.50pt;mso-height-source:userset;mso-height-alt:570;'>
+	    <td class="xl25" height="92" colspan="2" rowspan="2" style='height:69.00pt;border-right:1px solid #000000;border-bottom:1px solid #000000;'>排查数</td>
+	    <td class="xl26">单位总数</td>
+	    <td name="investigationSum" class="xl25 toDataJosn inputClick" colspan="2" style='border-right:1px solid windowtext;border-bottom:1px solid windowtext;'>${investigationRemediation.investigationSum }</td>
+	    <td class="xl26">其中村（社区）</td>
+	    <td name="investigationVillage" class="xl25 toDataJosn inputClick" colspan="2" style='border-right:1px solid windowtext;border-bottom:1px solid windowtext;'>${investigationRemediation.investigationVillage }</td>
+	    <td class="xl26">企业</td>
+	    <td name="investigationEnterprise" class="xl25 toDataJosn inputClick" colspan="2" style='border-right:1px solid windowtext;border-bottom:1px solid windowtext;'>${investigationRemediation.investigationEnterprise }</td>
+	    <td class="xl26">单位</td>
+	    <td name="investigationUnit" class="xl25 toDataJosn inputClick" colspan="4" style='border-right:1px solid windowtext;border-bottom:1px solid windowtext;'>${investigationRemediation.investigationUnit }</td>
+	   </tr>
+	   <tr height="54" style='height:40.50pt;'>
+	    <td class="xl26">参与人数</td>
+	    <td name="investigationParticipant" class="xl25 toDataJosn inputClick" colspan="2" style='border-right:1px solid windowtext;border-bottom:1px solid windowtext;'>${investigationRemediation.investigationParticipant }</td>
+	    <td class="xl26">其中机关干部</td>
+	    <td name="investigationLeader" class="xl25 toDataJosn inputClick" colspan="2" style='border-right:1px solid windowtext;border-bottom:1px solid windowtext;'>${investigationRemediation.investigationLeader }</td>
+	    <td class="xl26">单位职工</td>
+	    <td name="investigationStaff" class="xl25 toDataJosn inputClick" colspan="2" style='border-right:1px solid windowtext;border-bottom:1px solid windowtext;'>${investigationRemediation.investigationStaff }</td>
+	    <td class="xl26">普通群众</td>
+	    <td name="investigationMasses" class="xl25 toDataJosn inputClick" colspan="4" style='border-right:1px solid windowtext;border-bottom:1px solid windowtext;'>${investigationRemediation.investigationMasses }</td>
+	   </tr>
+	   <tr height="44" style='height:33.00pt;mso-height-source:userset;mso-height-alt:660;'>
+	    <td class="xl27" height="86" colspan="2" rowspan="2" style='height:64.50pt;border-right:1px solid #000000;border-bottom:1px solid #000000;'>矛盾纠纷</td>
+	    <td class="xl29" rowspan="3" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>土地山林矿山水利海事渔事等权属纠纷</td>
+	    <td class="xl30" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>排查数</td>
+	    <td class="xl26" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>化解数</td>
+	    <td class="xl26" rowspan="3" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>“三改一拆”纠纷（征地、拆迁、安置）</td>
+	    <td class="xl30" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>排查数</td>
+	    <td class="xl26" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>化解数</td>
+	    <td class="xl26" rowspan="3" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>执法司法纠纷</td>
+	    <td class="xl30" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>排查数</td>
+	    <td class="xl30" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>化解数</td>
+	    <td class="xl26" rowspan="3" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>劳资经济活动纠纷</td>
+	    <td class="xl25" colspan="2" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>排查数</td>
+	    <td class="xl43" colspan="2" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>化解数</td>
+	   </tr>
+	   <tr height="42" style='height:31.50pt;mso-height-source:userset;mso-height-alt:630;'/>
+	   <tr height="44" style='height:33.00pt;mso-height-source:userset;mso-height-alt:660;'>
+	    <td class="xl33" height="118" rowspan="2" style='height:88.50pt;border-right:1px solid #000000;border-bottom:1px solid #000000;'>排查数</td>
+	    <td class="xl33" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>化解成功数</td>
+	    <td name="disputeBelongSum" class="xl25 toDataJosn inputClick">${investigationRemediation.disputeBelongSum }</td>
+	    <td name="disputeBelongSuccess" class="xl25 toDataJosn inputClick">${investigationRemediation.disputeBelongSuccess }</td>
+	    <td name="disputeLandSum" class="xl25 toDataJosn inputClick">${investigationRemediation.disputeLandSum }</td>
+	    <td name="disputeLandSuccess" class="xl25 toDataJosn inputClick">${investigationRemediation.disputeLandSuccess }</td>
+	    <td name="disputeLawSum" class="xl25 toDataJosn inputClick">${investigationRemediation.disputeLawSum }</td>
+	    <td name="disputeLawSuccess" class="xl25 toDataJosn inputClick">${investigationRemediation.disputeLawSuccess }</td>
+	    <td name="disputeEconomySum" class="xl25 toDataJosn inputClick" colspan="2">${investigationRemediation.disputeEconomySum }</td>
+	    <td name="disputeEconomySuccess" class="xl25 toDataJosn inputClick" colspan="2">${investigationRemediation.disputeEconomySuccess }</td>
+	   </tr>
+	   <tr height="74" style='height:55.50pt;mso-height-source:userset;mso-height-alt:1110;'>
+	    <td class="xl30" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>环境污染生态破坏纠纷</td>
+	    <td class="xl26">排查数</td>
+	    <td class="xl26">化解数</td>
+	    <td class="xl30" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>村（社）务管理纠纷</td>
+	    <td class="xl26">排查数</td>
+	    <td class="xl26">化解数</td>
+	    <td class="xl30" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>教育卫生纠纷</td>
+	    <td class="xl26">排查数</td>
+	    <td class="xl26">化解数</td>
+	    <td class="xl30" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>婚姻家庭邻里纠纷</td>
+	    <td class="xl25" colspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>排查数</td>
+	    <td class="xl47" colspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>化解数</td>
+	   </tr>
+	   <tr height="42" style='height:31.50pt;mso-height-source:userset;mso-height-alt:630;'>
+	    <td name="disputeSum" class="xl25 toDataJosn inputClick">${investigationRemediation.disputeSum }</td>
+	    <td name="disputeSucces" class="xl25 toDataJosn inputClick">${investigationRemediation.disputeSucces }</td>
+	    <td name="disputeEnvironmentSum" class="xl25 toDataJosn inputClick">${investigationRemediation.disputeEnvironmentSum }</td>
+	    <td name="disputeEnvironmentSuccess" class="xl25 toDataJosn inputClick">${investigationRemediation.disputeEnvironmentSuccess }</td>
+	    <td name="disputeDissensionSum" class="xl25 toDataJosn inputClick">${investigationRemediation.disputeDissensionSum }</td>
+	    <td name="disputeDissensionSuccess" class="xl25 toDataJosn inputClick">${investigationRemediation.disputeDissensionSuccess }</td>
+	    <td name="disputeEducationSum" class="xl25 toDataJosn inputClick">${investigationRemediation.disputeEducationSum }</td>
+	    <td name="disputeEducationSuccess" class="xl25 toDataJosn inputClick">${investigationRemediation.disputeEducationSuccess }</td>
+	    <td name="disputeMarriageSum" class="xl25 toDataJosn inputClick" colspan="2">${investigationRemediation.disputeMarriageSum }</td>
+	    <td name="disputeMarriageSuccess" class="xl25 toDataJosn inputClick" colspan="2">${investigationRemediation.disputeMarriageSuccess }</td>
+	   </tr>
+	   <tr height="70.80" style='height:53.10pt;mso-height-source:userset;mso-height-alt:1062;'>
+	    <td class="xl35" height="123.80" colspan="2" rowspan="2" style='height:92.85pt;border-right:1px solid #000000;border-bottom:1px solid #000000;'>安全隐患</td>
+	    <td class="xl30" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>治安安全隐患</td>
+	    <td class="xl33">排查数</td>
+	    <td class="xl33">消除数</td>
+	    <td class="xl30" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>交通安全隐患</td>
+	    <td class="xl33">排查数</td>
+	    <td class="xl33">消除数</td>
+	    <td class="xl30" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>安全生产隐患</td>
+	    <td class="xl33">排查数</td>
+	    <td class="xl33">消除数</td>
+	    <td class="xl30" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>线路管理隐患</td>
+	    <td class="xl25" colspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>排查数</td>
+	    <td class="xl47" colspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>消除数</td>
+	   </tr>
+	   <tr height="53" style='height:39.75pt;mso-height-source:userset;mso-height-alt:795;'>
+	    <td name="securityPoliceSum" class="xl25 toDataJosn inputClick">${investigationRemediation.securityPoliceSum }</td>
+	    <td name="securityPoliceEliminate" class="xl25 toDataJosn inputClick">${investigationRemediation.securityPoliceEliminate }</td>
+	    <td name="securityTrafficSum" class="xl25 toDataJosn inputClick">${investigationRemediation.securityTrafficSum }</td>
+	    <td name="securityTrafficEliminate" class="xl25 toDataJosn inputClick">${investigationRemediation.securityTrafficEliminate }</td>
+	    <td name="securityProduceSum" class="xl25 toDataJosn inputClick">${investigationRemediation.securityProduceSum }</td>
+	    <td name="securityProduceEliminate" class="xl25 toDataJosn inputClick">${investigationRemediation.securityProduceEliminate }</td>
+	    <td name="securityRouteSum" class="xl25 toDataJosn inputClick" colspan="2">${investigationRemediation.securityRouteSum }</td>
+	    <td name="securityRouteEliminate" class="xl25 toDataJosn inputClick" colspan="2">${investigationRemediation.securityRouteEliminate }</td>
+	   </tr>
+	   <tr height="66" style='height:49.50pt;mso-height-source:userset;mso-height-alt:990;'>
+	    <td class="xl26" height="66" style='height:49.50pt;'>排查数</td>
+	    <td class="xl26">消除数</td>
+	    <td class="xl26" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>食药安全隐患</td>
+	    <td class="xl33">排查数</td>
+	    <td class="xl33">消除数</td>
+	    <td class="xl26" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>消防安全隐患</td>
+	    <td class="xl33">排查数</td>
+	    <td class="xl33">消除数</td>
+	    <td class="xl26" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>经济安全隐患</td>
+	    <td class="xl33">排查数</td>
+	    <td class="xl33">消除数</td>
+	    <td class="xl26" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>其他安全隐患</td>
+	    <td class="xl25" colspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>排查数</td>
+	    <td class="xl47" colspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>消除数</td>
+	   </tr>
+	   <tr height="54" style='height:40.50pt;mso-height-source:userset;mso-height-alt:810;'>
+	    <td name="securitySum" class="xl25 toDataJosn inputClick">${investigationRemediation.securitySum }</td>
+	    <td name="securityEliminate" class="xl25 toDataJosn inputClick">${investigationRemediation.securityEliminate }</td>
+	    <td name="securityGrocerySum" class="xl25 toDataJosn inputClick">${investigationRemediation.securityGrocerySum }</td>
+	    <td name="securityGroceryEliminate" class="xl25 toDataJosn inputClick">${investigationRemediation.securityGroceryEliminate }</td>
+	    <td name="securityFireSum" class="xl25 toDataJosn inputClick">${investigationRemediation.securityFireSum }</td>
+	    <td name="securityFireEliminate" class="xl25 toDataJosn inputClick">${investigationRemediation.securityFireEliminate }</td>
+	    <td name="securityEconomySum" class="xl25 toDataJosn inputClick">${investigationRemediation.securityEconomySum }</td>
+	    <td name="securityEconomyEliminate" class="xl25 toDataJosn inputClick">${investigationRemediation.securityEconomyEliminate }</td>
+	    <td name="securityOtherSum" class="xl25 toDataJosn inputClick" colspan="2">${investigationRemediation.securityOtherSum }</td>
+	    <td name="securityOtherEliminate" class="xl25 toDataJosn inputClick" colspan="2">${investigationRemediation.securityOtherEliminate }</td>
+	   </tr>
+	   <tr height="45" style='height:33.75pt;mso-height-source:userset;mso-height-alt:675;'>
+	    <td class="xl26" height="45" colspan="2" style='height:33.75pt;border-right:1px solid #000000;border-bottom:1px solid #000000;'>基层基础</td>
+	    <td class="xl39" rowspan="4" style='border-right:none;border-bottom:1px solid #000000;'>未按要求配备乡镇街道综治办专职副主任数</td>
+	    <td class="xl30" rowspan="3" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>排查数</td>
+	    <td class="xl30" rowspan="3" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>解决数</td>
+	    <td class="xl29" rowspan="4" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>乡镇街道社会服务管理中心运行机制未整合数</td>
+	    <td class="xl30" rowspan="3" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>排查数</td>
+	    <td class="xl30" rowspan="3" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>解决数</td>
+	    <td class="xl26" rowspan="4" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>未建立或未正常运行村（企业）服务管理站（室）数</td>
+	    <td class="xl30" rowspan="3" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>排查数</td>
+	    <td class="xl30" rowspan="3" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>解决数</td>
+	    <td class="xl26" rowspan="4" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>网格划分、管理人员配备不符合要求数</td>
+	    <td class="xl26" rowspan="3" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>排查数</td>
+	    <td class="xl26" rowspan="3" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>解决数</td>
+	    <td class="xl35" colspan="2" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>村（社区）未正常使用综治信息系统数</td>
+	   </tr>
+	   <tr height="73" style='height:54.75pt;mso-height-source:userset;mso-height-alt:1095;'>
+	    <td class="xl30" height="146" rowspan="2" style='height:109.50pt;border-right:1px solid #000000;border-bottom:1px solid #000000;'>排查数</td>
+	    <td class="xl30" rowspan="2" style='border-right:1px solid #000000;border-bottom:1px solid #000000;'>解决数</td>
+	   </tr>
+	   <tr height="73" style='height:54.75pt;mso-height-source:userset;mso-height-alt:1095;'>
+	    <td class="xl37">排查数</td>
+	    <td class="xl26">解决数</td>
+	   </tr>
+	   <tr height="48" style='height:36.00pt;mso-height-source:userset;mso-height-alt:720;'>
+	    <td name="basicSum" class="xl25 toDataJosn inputClick">${investigationRemediation.basicSum }</td>
+	    <td name="basicSolving" class="xl25 toDataJosn inputClick">${investigationRemediation.basicSolving }</td>
+	    <td name="basicDirectorSum" class="xl25 toDataJosn inputClick">${investigationRemediation.basicDirectorSum }</td>
+	    <td name="basicDirectorSolving" class="xl25 toDataJosn inputClick">${investigationRemediation.basicDirectorSolving }</td>
+	    <td name="basicIntegrateSum" class="xl25 toDataJosn inputClick">${investigationRemediation.basicIntegrateSum }</td>
+	    <td name="basicIntegrateSolving" class="xl25 toDataJosn inputClick">${investigationRemediation.basicIntegrateSolving }</td>
+	    <td name="basicCreationSum" class="xl25 toDataJosn inputClick">${investigationRemediation.basicCreationSum }</td>
+	    <td name="basicCreationSolving" class="xl25 toDataJosn inputClick">${investigationRemediation.basicCreationSolving }</td>
+	    <td name="basicAllocatingSum" class="xl25 toDataJosn inputClick">${investigationRemediation.basicAllocatingSum }</td>
+	    <td name="basicAllocatingSolving" class="xl25 toDataJosn inputClick">${investigationRemediation.basicAllocatingSolving }</td>
+	    <td name="basicComprehensiveSum" class="xl25 toDataJosn inputClick">${investigationRemediation.basicComprehensiveSum }</td>
+	    <td name="basicComprehensiveSolving" class="xl25 toDataJosn inputClick">${investigationRemediation.basicComprehensiveSolving }</td>
+	   </tr>
+	   <tr height="41.33" style='height:31.00pt;mso-height-source:userset;mso-height-alt:620;'>
+	    <td class="xl26" height="77.33" colspan="2" rowspan="2" style='height:58.00pt;border-right:1px solid #000000;border-bottom:1px solid #000000;'>流动人口和特殊人群管理</td>
+	    <td class="xl26">流动人口数</td>
+	    <td name="specialtrampResident" class="xl25 toDataJosn inputClick" colspan="2" style='border-right:1px solid windowtext;border-bottom:1px solid windowtext;'>${investigationRemediation.specialtrampResident }</td>
+	    <td class="xl26">刑释解教人数</td>
+	    <td name="specialPositiveInfo" class="xl25 toDataJosn inputClick" colspan="2" style='border-right:1px solid windowtext;border-bottom:1px solid windowtext;'>${investigationRemediation.specialPositiveInfo }</td>
+	    <td class="xl26">重点上访人数</td>
+	    <td name="specialSuperiorVisit" class="xl25 toDataJosn inputClick" colspan="2" style='border-right:1px solid windowtext;border-bottom:1px solid windowtext;'>${investigationRemediation.specialSuperiorVisit }</td>
+	    <td class="xl26">闲散青少年数</td>
+	    <td name="specialIdleYouth" class="xl25 toDataJosn inputClick" colspan="4" style='border-right:1px solid windowtext;border-bottom:1px solid windowtext;'>${investigationRemediation.specialIdleYouth }</td>
+	   </tr>
+	   <tr height="36" style='height:27.00pt;'>
+	    <td class="xl26">重症精神病人数</td>
+	    <td name="specialMentalPatient" class="xl25 toDataJosn inputClick" colspan="2" style='border-right:1px solid windowtext;border-bottom:1px solid windowtext;'>${investigationRemediation.specialMentalPatient }</td>
+	    <td class="xl26">社区矫正人数</td>
+	    <td name="specialRectify" class="xl25 toDataJosn inputClick" colspan="2" style='border-right:1px solid windowtext;border-bottom:1px solid windowtext;'>${investigationRemediation.specialRectify }</td>
+	    <td class="xl26">吸毒人数</td>
+	    <td name="specialDruggy" class="xl25 toDataJosn inputClick" colspan="2" style='border-right:1px solid windowtext;border-bottom:1px solid windowtext;'>${investigationRemediation.specialDruggy }</td>
+	    <td class="xl26">其他特殊人员</td>
+	    <td name="specialOther" class="xl25 toDataJosn inputClick" colspan="4" style='border-right:1px solid windowtext;border-bottom:1px solid windowtext;'>${investigationRemediation.specialOther }</td>
+	   </tr>
+	   <tr height="18" style='height:13.50pt;;mso-height-source:userset;'>
+	    <td class="xl25" colspan="2" height="18" style='height:13.50pt;'>备注：</td>
+	    <td class="xl25" colspan="14" style='text-align:left;'>各栏均为开展专项活动以来的累计数</td>
+	   </tr>
+	</table>
+	
+	</div>
+	<div>
+		<div  class=bottom style="float: left;" id="checkUserContainer">填报人：
+			<input class=bottom name="" id="checkUser" <s:if test='"view".equals(mode)'>readonly</s:if>
+				maxlength="10" type="text" style="border-width: 0;BORDER-BOTTOM:black 1px solid;" 
+				value="${investigationRemediation.dealPerson}" /> (注意:该项上报时填写)
+		</div>
+		<div class=bottom style="float: right;">审核人：<input
+			name="" id="createTabUser" <s:if test='"view".equals(mode)'>readonly</s:if>
+			value="${investigationRemediation.lister}" style="border-width: 0;BORDER-BOTTOM:black 1px solid;" type="text" />
+		</div>
+	</div>
+<input id="investigationRemediationid" value="${investigationRemediation.id}" type="hidden"/>
+<input id="orgLevle" value="${orgLevle}" type="hidden"/>
+</center>
+</div>
+<script type="text/javascript">
+var reportJudge=0;
+var reportJudgeBoolean;
+var selectLength = $("#reportTime").find("option").length;
+if(new Date().getFullYear() == '${dailyYear.name}'){
+	for(var i = ${reportTime}+1; i<=selectLength; i++){
+		$("#reportTime option[value = '"+i+"']").remove();
+	}
+}
+function inputOnFocus(selfDoc){
+	$(document).unbind("keypress");
+	$(document).keypress(function(e) {
+		if (e.which =='13'){
+			if(selfDoc.closest("td").nextAll(".inputClick")[0]){
+				selfDoc.closest("td").nextAll(".inputClick").eq(0).click();
+			}else{
+				selfDoc.closest("tr").nextAll('tr:has(".inputClick")').eq(0).find(".inputClick:first").click();
+			}
+		}
+	});
+}
+
+function inputBlur(selfDoc){
+	var selfDocValue=selfDoc.val();
+	var tdDoc = selfDoc.parent();
+	tdDoc.html(selfDocValue!=''?selfDocValue:0);
+	tdDoc.removeClass("inputOut");
+}
+
+function inputKeyDown(selfDoc){
+
+}
+
+function inputKeyOut(selfDoc){
+	$(selfDoc).val($(selfDoc).val().replace(/[^0-9]/g,''));
+}
+
+var allJson="";
+function getParticularData(){
+	var json="";
+	var alltd=$(".toDataJosn");
+	var name;
+	var value;
+	$.each(alltd,function(i){
+		name=$(alltd[i]).attr("name");
+		value=$(alltd[i]).text();
+		value = value.replace('---', '0');
+		allJson=allJson+"investigationRemediation."+name+"="+value+"&";
+	});
+}
+function getOtherData(){
+	<s:if test='"edit".equals(mode)'>
+		allJson=allJson+"investigationRemediation.id="+$("#investigationRemediationid").val()+"&";
+	</s:if>
+	allJson=allJson+"investigationRemediation.name="+encodeURIComponent(encodeURIComponent($("#reportName").text()))+"&";
+	allJson=allJson+"investigationRemediation.lister="+encodeURIComponent(encodeURIComponent($("#createTabUser").val()))+"&";
+	allJson=allJson+"investigationRemediation.dealPerson="+encodeURIComponent(encodeURIComponent($("#checkUser").val()))+"&";
+	allJson=allJson+"investigationRemediation.reportTime="+$('#reportTime').val()+"&";
+}
+
+function submitData(){
+	allJson="";
+	if($("#createTabUser").val()==""){
+		$.messageBox({message:"请填写审核人!",level:"error"});
+		$("#createTabUser").focus();
+		return ;
+	}
+	if(reportJudge==1){
+		$.messageBox({message:$("#reportTime").find("option:selected").text()+"报表已添加!",level:"error"});
+		return ;
+	}
+	if(reportJudge==2){
+		$.messageBox({message:$("#reportTime").find("option:selected").text()+"子辖区没有全部上报!",level:"error"});
+		return;
+	}
+	getOtherData();
+	getParticularData();
+    
+	var submitUrl;
+	<s:if test='"add".equals(mode)'>
+	submitUrl="${path}/workingRecord/investigationRemediationManage/addInvestigationRemediation.action";
+	allJson = "dailyDirectory.id="+${dailyDirectory.id}+"&dailyYear.id="+$("#dailyYear").val()+"&"+allJson;
+	</s:if>
+	<s:if test='"edit".equals(mode)'>
+	submitUrl="${path}/workingRecord/investigationRemediationManage/updateInvestigationRemediation.action";
+	</s:if>
+	$.ajax({
+		url: submitUrl,
+		type:'post',
+		data:allJson,
+		success:function(responseData){
+			if(responseData==null){
+				<s:if test='"add".equals(mode)'>
+					$.messageBox({message:"保存报表信息失败!",level:"error"});
+				</s:if>
+				<s:if test='"edit".equals(mode)'>
+					$.messageBox({message:"修改报表信息失败!",level:"error"});
+				</s:if>
+			}else{
+				<s:if test='"add".equals(mode)'>
+					$.messageBox({message:"保存报表信息成功!"});
+					$("#dailyLogList").addRowData(responseData.id,responseData,"first");
+				</s:if>
+				<s:if test='"edit".equals(mode)'>
+					$.messageBox({message:"修改报表信息成功!"});
+					$("#dailyLogList").setRowData(responseData.id,responseData);
+				</s:if>
+				$("#dailyLogMaintanceDialog").dialog("close");
+				$("#dailyLogList").setSelection(responseData.id);
+				$("#dailyLogList").trigger("reloadGrid");
+			}
+		}
+	});
+}
+function paddingTdData(data){
+	var toDataJosnTds=$(".toDataJosn");
+	$.each(toDataJosnTds,function(i){
+		if(data==null){
+			$(toDataJosnTds[i]).text(0);
+		}else{
+			$(toDataJosnTds[i]).text(data[$(toDataJosnTds[i]).attr("name")]);
+		}
+	});
+}
+<s:if test='!"view".equals(mode)'>
+function onSelectChanged(){
+	$("#selectedMonth").text($("#reportTime").find("option:selected").text());
+	$.ajax({
+		url:"${path}/workingRecord/investigationRemediationManage/getInvestigationRemediationByReportTime.action?dailyDirectory.id="+${dailyDirectory.id}+"&reportTime="+$("#reportTime").val(),
+		success:function(data){
+			paddingTdData(data);
+			reportJudge=0;
+			<s:if test='"add".equals(mode)'>
+				if(data!=null && data.id!=null){
+					reportJudge=1;
+					$.messageBox({message:$("#reportTime").find("option:selected").text()+"信息已添加!",level:"error"});
+				}else if(data==null){
+					reportJudge=2;
+					$.messageBox({message:$("#reportTime").find("option:selected").text()+"子辖区没有全部上报!",level:"error"});
+				}
+				$("#checkUser").val("");
+				$("#createTabUser").val("");
+			</s:if>
+		}
+	});
+}
+</s:if>
+
+$(document).ready(function(){
+	<s:if test='"add".equals(mode)'>
+		$("#reportTime").val(${reportTime});
+		onSelectChanged();
+	</s:if>
+	<s:else>
+		$("#reportTime").val(${investigationRemediation.reportTime});
+	</s:else>
+	
+	<s:if test='!"view".equals(mode)'>
+	$("#reportTime").change(onSelectChanged);
+	$(".inputClick").click(function(){
+		var self = $(this);
+		var allInputClick = $(".inputClick");
+		if(!self.hasClass("inputOut")){
+			self.addClass("inputOut");
+			var value=self.text();
+			self.html("");
+			var inputDataReport=$("<input onblur='inputBlur($(this))' onkeydown='inputKeyDown($(this))' onkeyup='inputKeyOut($(this))' onfocus='inputOnFocus($(this))' title='只能输入非负整数!' style='width:70%' name='' class='reportDataInput' maxLength='12' />");
+			self.append(inputDataReport);
+			inputDataReport.focus().val(value!=0?value:'');
+		}
+	});
+	</s:if>
+	$(".inputClick").focusin(function(){
+		$(this).addClass("selected");
+	}).focusout(function(){
+		$(this).removeClass("selected");
+	})
+});
+</script>

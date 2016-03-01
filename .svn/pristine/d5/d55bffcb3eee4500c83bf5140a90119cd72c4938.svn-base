@@ -1,0 +1,880 @@
+package com.tianque.baseInfo.rectificativePerson.service;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.actualHouse.domain.HouseInfo;
+import com.tianque.baseInfo.actualHouse.service.ActualHouseService;
+import com.tianque.baseInfo.base.domain.ActualPopulation;
+import com.tianque.baseInfo.base.domain.Countrymen;
+import com.tianque.baseInfo.base.domain.LogoutDetail;
+import com.tianque.baseInfo.base.helper.CardNoHelper;
+import com.tianque.baseInfo.base.service.BaseInfoPopulationTemplateImpl;
+import com.tianque.baseInfo.base.service.PopulationRelationService;
+import com.tianque.baseInfo.earlyWarning.domain.EarlyWarning;
+import com.tianque.baseInfo.earlyWarning.service.EarlyWarningService;
+import com.tianque.baseInfo.positiveInfo.service.PositiveInfoService;
+import com.tianque.baseInfo.rectificativePerson.dao.RectificativePersonDao;
+import com.tianque.baseInfo.rectificativePerson.domain.RectificativePerson;
+import com.tianque.cache.PageInfoCacheThreadLocal;
+import com.tianque.cache.UpdateType;
+import com.tianque.core.cache.constant.MemCacheConstant;
+import com.tianque.core.datatransfer.ExcelImportHelper;
+import com.tianque.core.datatransfer.dataconvert.ValidateHelper;
+import com.tianque.core.systemLog.util.OperatorType;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.Chinese2pinyin;
+import com.tianque.core.util.EarlyWarningName;
+import com.tianque.core.util.NewBaseInfoTables;
+import com.tianque.core.util.ObjectToJSON;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.service.HousePopulationMaintanceService;
+import com.tianque.service.IssueTypeService;
+import com.tianque.service.PopulationProccessorService;
+import com.tianque.service.helper.ManagePopulationByHouseHelper;
+import com.tianque.service.util.PopulationCatalog;
+import com.tianque.service.util.PopulationType;
+import com.tianque.service.vo.IsEmphasis;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.util.Arrays;
+import com.tianque.util.DateFormat;
+import com.tianque.util.IdCardUtil;
+import com.tianque.util.PluginServiceHelpUtil;
+import com.tianque.validate.AbstractCountrymenValidator;
+
+@Transactional
+@Service("rectificativePersonService")
+public class RectificativePersonServiceImpl extends
+		BaseInfoPopulationTemplateImpl implements RectificativePersonService,
+		PopulationProccessorService {
+	private static final String CACHE_ADDRECTIFICATIVEPERSON_VALUE = "CACHE_ADDRECTIFICATIVEPERSON";
+	private static final String CACHE_ADDRECTIFICATIVEPERSONBASEINFO_VALUE = "CACHE_ADDRECTIFICATIVEPERSONBASEINFO";
+
+	@Autowired
+	private RectificativePersonDao rectificativePersonDao;
+	@Autowired
+	@Qualifier("rectificativePersonValidator")
+	private AbstractCountrymenValidator<RectificativePerson> rectificativeValidator;
+
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+	@Autowired
+	private IssueTypeService issueTypeService;
+	@Autowired
+	private PropertyDictService propertyDictService;
+	@Autowired
+	private ActualHouseService actualHouseService;
+	@Autowired
+	private ManagePopulationByHouseHelper managePopulationByHouseHelper;
+	@Autowired
+	private HousePopulationMaintanceService housePopulationMaintanceService;
+	@Autowired
+	private PopulationRelationService populationRelationService;
+	@Autowired
+	private PositiveInfoService positiveInfoService;
+	@Autowired
+	private EarlyWarningService earlyWarningService;
+	@Autowired
+	protected ValidateHelper validateHelper;
+
+	// @Autowired
+	// private CacheService cacheService;
+
+	@Resource(name = "rectificativePersonDao")
+	public void setBaseInfoPopulationBaseDao(
+			RectificativePersonDao rectificativePersonDao) {
+		super.setBaseInfoPopulationBaseDao(rectificativePersonDao);
+	}
+
+	public RectificativePerson getRectificativePersonByIdCardNo(
+			String idCardNo, Long orgId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return null;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		List<String> list = new ArrayList<String>();
+		list.add(idCardNo);
+		if (idCardNo.length() == 18) {
+			list.add(IdCardUtil.idCardNo18to15(idCardNo));
+		} else if (idCardNo.length() == 15) {
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+		}
+		return rectificativePersonDao.getByIdCard(list, orgId);
+	}
+
+	@Override
+	public RectificativePerson addRectificativePerson(
+			RectificativePerson rectificativePerson) {
+		try {
+			if (!ExcelImportHelper.isImport.get()) {
+				ValidateResult idleValidator = rectificativeValidator
+						.validate(rectificativePerson);
+				if (idleValidator.hasError()) {
+					throw new BusinessValidationException(
+							idleValidator.getErrorMessages());
+				} else if (hasDuplicateRectificativePerson(rectificativePerson
+						.getOrganization().getId(),
+						rectificativePerson.getIdCardNo(),
+						rectificativePerson.getId())) {
+					throw new BusinessValidationException("该网格下已存在相同身份证号码");
+				}
+			}
+			if (checkDataExitInCache(rectificativePerson,
+					MemCacheConstant.CACHE_ADDRECTIFICATIVEPERSON,
+					CACHE_ADDRECTIFICATIVEPERSON_VALUE)) {
+				return rectificativePerson;
+			}
+			return add(rectificativePerson);
+		} catch (Exception e) {
+			logger.error("", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增社区矫正人员信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(rectificativePerson,
+					MemCacheConstant.CACHE_ADDRECTIFICATIVEPERSON);
+		}
+	}
+
+	private RectificativePerson add(RectificativePerson rectificativePerson) {
+		rectificativePerson.setIdCardNo(rectificativePerson.getIdCardNo()
+				.toUpperCase());
+		autoFillOrganizationInternalCode(rectificativePerson);
+		autoFillChinesePinyin(rectificativePerson);
+		autoFillBirthday(rectificativePerson);
+		autoIsDeath(rectificativePerson);
+		contructCurrentAddress(rectificativePerson);
+		try {
+			Countrymen temp = populationRelationService.businessOption(
+					rectificativePerson,
+					rectificativePerson.getActualPopulationType());
+			rectificativePerson.setBaseInfoId(temp.getBaseInfoId());
+			rectificativePerson.setAddressInfoId(temp.getAddressInfoId());
+			rectificativePerson.setSourcesState(null);
+			rectificativePerson = rectificativePersonDao
+					.add(rectificativePerson);
+			populationRelationService.addPopulationRelation(temp.getId(),
+					rectificativePerson.getActualPopulationType(),
+					rectificativePerson.getId(),
+					BaseInfoTables.RECTIFICATIVEPERSON_KEY);
+			rectificativePerson.setHouseId(temp.getHouseId());
+			rebuildHouseAddress(rectificativePerson);
+			
+			if (IsEmphasis.Emphasis.equals(rectificativePerson.getIsEmphasis())) {
+				// 缓存计数器
+				PageInfoCacheThreadLocal.increment(
+						MemCacheConstant.getCachePageKey(RectificativePerson.class
+								.getSimpleName()), rectificativePerson, 1);
+			}
+			return rectificativePerson;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类RectificativePersonServiceImp的addRectificativePerson方法出现异常，原因：",
+					"新增信息出现错误", e);
+		}
+	}
+
+	/**
+	 * 如果人口的房屋信息（CurrentAddress）不为空，并且房屋id不存在，新增一个房屋，并且建立关联关系, 如果房屋id不为空直接建立关联关系
+	 * 如果房屋信息为空,并且有房屋id不为空，则删除人房关系
+	 * 
+	 * @param householdStaff
+	 */
+	private void rebuildHouseAddress(RectificativePerson householdStaff) {
+
+		if (householdStaff.getIsHaveHouse() != null
+				&& householdStaff.getIsHaveHouse()
+				&& householdStaff.getCurrentAddress() != null) {
+
+			if (null == householdStaff.getHouseId()
+					|| householdStaff.getHouseId().equals(01L)) {
+				// 新增一个实有房屋,并且建立人房关系
+				HouseInfo houseInfo = new HouseInfo();
+				houseInfo.setAddress(householdStaff.getCurrentAddress());
+				houseInfo.setAddressType(propertyDictService
+						.findPropertyDictByDomainNameAndDictDisplayName(
+								PropertyTypes.CURRENT_ADDRESS_TYPE, "其他"));
+				houseInfo.setOrganization(householdStaff.getOrganization());
+				houseInfo
+						.setHouseOperateSource(NewBaseInfoTables.RECTIFICATIVEPERSON_KEY);
+				houseInfo = actualHouseService.addHouseInfo(houseInfo);
+
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.RECTIFICATIVE, householdStaff,
+						houseInfo.getId());
+			} else if (householdStaff.getHouseId() != null) {
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.RECTIFICATIVE, householdStaff,
+						householdStaff.getHouseId());
+			}
+		} else {
+			housePopulationMaintanceService.releaseHouse(
+					PopulationCatalog.RECTIFICATIVE, householdStaff.getId(),
+					householdStaff.getHouseId());
+		}
+	}
+
+	@Override
+	public RectificativePerson updateRectificativePerson(
+			RectificativePerson rectificativePerson) {
+		rectificativePerson.setIdCardNo(rectificativePerson.getIdCardNo()
+				.toUpperCase());
+		ValidateResult idleValidator = rectificativeValidator
+				.validate(rectificativePerson);
+		if (idleValidator.hasError()) {
+			throw new BusinessValidationException(
+					idleValidator.getErrorMessages());
+		} else if (hasDuplicateRectificativePerson(rectificativePerson
+				.getOrganization().getId(), rectificativePerson.getIdCardNo(),
+				rectificativePerson.getId())) {
+			throw new BusinessValidationException("该网格下已存在相同身份证号码");
+		}
+		autoFillOrganizationInternalCode(rectificativePerson);
+		autoFillChinesePinyin(rectificativePerson);
+		autoFillBirthday(rectificativePerson);
+		if (rectificativePerson.isDeath()) {
+			rectificativePerson.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+			rectificativePerson
+					.setLogoutDetail(buildLogoutDetail(rectificativePerson
+							.isDeath()));
+		}
+		try {
+			Countrymen temp = populationRelationService.businessOption(
+					rectificativePerson,
+					rectificativePerson.getActualPopulationType());
+			rectificativePerson.setBaseInfoId(temp.getBaseInfoId());
+			rectificativePerson.setAddressInfoId(temp.getAddressInfoId());
+			rectificativePerson = rectificativePersonDao
+					.update(rectificativePerson);
+			return rectificativePerson;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类RectificativePersonServiceImp的updateRectificativePerson方法出现异常，原因：",
+					"修改信息出现错误", e);
+		}
+	}
+
+	@Override
+	public RectificativePerson getRectificativePersonById(Long id) {
+		if (id == null)
+			throw new BusinessValidationException("id没有获得");
+		return rectificativePersonDao.get(id);
+	}
+
+	@Override
+	public PageInfo<RectificativePerson> findRectificativePersonsForPageByOrgInternalCode(
+			Long orgId, int pageNum, int pageSize, String sortField,
+			String order, Long isEmphasis) {
+		if (orgId == null) {
+			return constructEmptyPageInfo();
+		} else {
+			Organization org = organizationDubboService.getSimpleOrgById(orgId);
+			if (org == null) {
+				return constructEmptyPageInfo();
+			} else {
+				Map<String, Object> query = new HashMap<String, Object>();
+				query.put("orgInternalCode", org.getOrgInternalCode());
+				query.put("isEmphasis", isEmphasis);
+				PageInfo<RectificativePerson> positiveInfoPageInfos = rectificativePersonDao
+						.findPagerUsingCacheBySearchVo(
+								orgId,
+								query,
+								pageNum,
+								pageSize,
+								"RectificativePersonDefaultList",
+								MemCacheConstant
+										.getCachePageKey(RectificativePerson.class));
+				fitCountrymen(positiveInfoPageInfos);
+				fitServiceMemberHasObject(
+						BaseInfoTables.RECTIFICATIVEPERSON_KEY,
+						positiveInfoPageInfos);
+				return positiveInfoPageInfos;
+			}
+		}
+	}
+
+	@Override
+	public boolean hasDuplicateRectificativePerson(Long orgId, String idCardNo,
+			Long exceptedId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return false;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		// String idCardNo15 = "";
+		// String idCardNo18 = "";
+		// if (idCardNo.length() == 15) {
+		// idCardNo15 = idCardNo;
+		// idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		// } else if (idCardNo.length() == 18) {
+		// idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+		// idCardNo18 = idCardNo;
+		// }
+		Countrymen countrymen = baseInfoService.getBaseInfoByIdCardNo(idCardNo);
+		if (countrymen == null) {
+			return false;
+		}
+		Long exsited = rectificativePersonDao.getIdByBaseinfoIdAndOrgId(
+				countrymen.getId(), orgId);
+		return exceptedId == null ? exsited != null
+				: (exsited != null && !exceptedId.equals(exsited));
+	}
+
+	private PageInfo<RectificativePerson> constructEmptyPageInfo() {
+		PageInfo<RectificativePerson> result = new PageInfo<RectificativePerson>();
+		result.setResult(new ArrayList<RectificativePerson>());
+		return result;
+	}
+
+	private void autoFillOrganizationInternalCode(
+			RectificativePerson rectificativePerson) {
+		Organization org = organizationDubboService
+				.getSimpleOrgById(rectificativePerson.getOrganization().getId());
+		if (org == null) {
+			throw new BusinessValidationException("找不到指定的网格");
+		}
+		rectificativePerson.setOrgInternalCode(org.getOrgInternalCode());
+	}
+
+	private void autoFillChinesePinyin(RectificativePerson rectificativePerson) {
+		Map<String, String> pinyin = Chinese2pinyin
+				.changeChinese2Pinyin(rectificativePerson.getName());
+		rectificativePerson.setFullPinyin((String) pinyin.get("fullPinyin"));
+		rectificativePerson
+				.setSimplePinyin((String) pinyin.get("simplePinyin"));
+	}
+
+	private void autoFillBirthday(RectificativePerson rectificativePerson) {
+		if (StringUtil.isStringAvaliable(rectificativePerson.getIdCardNo())) {
+			rectificativePerson.setBirthday(IdCardUtil
+					.parseBirthday(rectificativePerson.getIdCardNo()));
+		}
+	}
+
+	private void autoIsDeath(RectificativePerson rectificativePerson) {
+		if (rectificativePerson.isDeath()) {
+			rectificativePerson.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+		} else {
+			rectificativePerson.setIsEmphasis(IsEmphasis.Emphasis);
+		}
+	}
+
+	@Override
+	public RectificativePerson updateRectificativePersonByName(String name,
+			Long orgId, RectificativePerson domain) {
+		try {
+			RectificativePerson older = this.getRectificativePersonByName(name,
+					orgId);
+			domain.setId(older.getId());
+			domain.setCreateDate(older.getCreateDate());
+			domain.setCreateUser(older.getCreateUser());
+			return updateRectificativePerson(domain);
+		} catch (Exception e) {
+			logger.error("", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("修改信息出现错误");
+			} else {
+				return null;
+			}
+		}
+	}
+
+	@Override
+	public void updateEmphasiseById(Long id, Long isEmphasis) {
+		LogoutDetail logoutDetail = new LogoutDetail();
+		logoutDetail.setLogout(isEmphasis);
+		updateLogOutByPopulationTypeAndId(logoutDetail,
+				BaseInfoTables.RECTIFICATIVEPERSON_KEY, id);
+	}
+
+	private RectificativePerson getRectificativePersonByName(String idCardNo,
+			Long orgId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return null;
+		}
+		List<String> list = new ArrayList<String>();
+		list.add(idCardNo);
+		if (idCardNo.length() == 18) {
+			list.add(IdCardUtil.idCardNo18to15(idCardNo));
+		} else if (idCardNo.length() == 15) {
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+		}
+		return rectificativePersonDao.getByIdCard(list, orgId);
+	}
+
+	private void deleteRectificativePerson(Long id) {
+		RectificativePerson domain = getRectificativePersonById(id);
+
+		if (null != domain) {
+			log(WARN, RECTIFICATIVE_PERSON, ThreadVariable.getSession()
+					.getUserName() + "删除社区矫正人员" + domain.getName(),
+					OperatorType.DELETE, ObjectToJSON.convertJSON(domain));
+			domain.setCreateDate(new Date());
+			domain.setPopulationTypeBean(getPopulationRelationService()
+					.getBusinessPopulationTypeBean(id,
+							PopulationType.RECTIFICATIVE_POPULATION));
+			getRecoverDatasService().deleteActualPopulation(domain);
+			populationRelationService.businessDeletePopulationRelation(id,
+					PopulationType.RECTIFICATIVE_POPULATION);
+
+			rectificativePersonDao.delete(id);
+			try {
+				PluginServiceHelpUtil.doService("routerService",
+						"deleteServiceTeamHasObjectsAndServiceMemberHasObject",
+						new Class[] { String.class, Long.class },
+						PopulationType.RECTIFICATIVE_POPULATION, id);
+				/** 删除时对关联的事件和服务记录进行orgId和idCardNo赋值 */
+				PluginServiceHelpUtil.doService("routerService",
+						"setOrgIdAndCardNoOrName", new Class[] { Long.class,
+								String.class, String.class, Long.class },
+						domain.getOrganization().getId(), domain.getIdCardNo(),
+						PopulationType.RECTIFICATIVE_POPULATION, id);
+				issueTypeService.setOrgIdAndCardNoOrNameForPerson(domain
+						.getOrganization().getId(), domain.getIdCardNo(),
+						"rectify", id);
+				if (IsEmphasis.Emphasis.equals(domain.getIsEmphasis())) {
+					// 缓存计数器
+					PageInfoCacheThreadLocal.decrease(MemCacheConstant
+							.getCachePageKey(RectificativePerson.class
+									.getSimpleName()), domain, 1);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	@Override
+	public RectificativePerson updateRectificativePersonBaseInfo(
+			RectificativePerson rectificativePerson) {
+		rectificativePerson.setIdCardNo(rectificativePerson.getIdCardNo()
+				.toUpperCase());
+		if (hasDuplicateRectificativePerson(rectificativePerson
+				.getOrganization().getId(), rectificativePerson.getIdCardNo(),
+				rectificativePerson.getId())) {
+			throw new BusinessValidationException("该网格下已存在相同身份证号码");
+		}
+		if (rectificativePerson.isDeath()) {
+			rectificativePerson
+					.setLogoutDetail(buildLogoutDetail(rectificativePerson
+							.isDeath()));
+			// 缓存计数器
+			PageInfoCacheThreadLocal.decrease(
+					MemCacheConstant.getCachePageKey(RectificativePerson.class
+							.getSimpleName()), rectificativePerson, 1);
+		}
+		autoFillOrganizationInternalCode(rectificativePerson);
+		autoFillChinesePinyin(rectificativePerson);
+		autoFillBirthday(rectificativePerson);
+		contructCurrentAddress(rectificativePerson);
+		// proccessHouseBind(rectificativePerson);
+		Countrymen temp = populationRelationService.businessOption(
+				rectificativePerson,
+				rectificativePerson.getActualPopulationType());
+		rectificativePerson.setHouseId(temp.getHouseId());
+		rebuildHouseAddress(rectificativePerson);
+		rectificativePersonDao.updateTableUpdateDateById(rectificativePerson
+				.getId());
+		return rectificativePerson;
+	}
+
+	private LogoutDetail buildLogoutDetail(Boolean death) {
+		LogoutDetail result = new LogoutDetail();
+		if (death) {
+			result.setLogoutDate(new Date());
+			result.setLogoutReason(LogoutDetail.LOGOUT_REASON_FOR_DEATH);
+			result.setLogout(IsEmphasis.IsNotEmphasis);
+		} else if (!death) {
+			result.setLogout(IsEmphasis.Emphasis);
+		}
+
+		return result;
+	}
+
+	@Override
+	public RectificativePerson updateRectificativePersonBusiness(
+			RectificativePerson rectificativePerson) {
+		try {
+			if (rectificativePerson.getRectifyEndDate() != null) {
+				EarlyWarning earlyWarning = earlyWarningService
+						.getEarlyWarningByName(EarlyWarningName.RECTIFYENDDATEREMIND);
+				Long remindTime = earlyWarning.getRemindTime();
+				if (validateHelper.endDateIsSameorBigForStartDate(
+						rectificativePerson.getRectifyEndDate(),
+						DateFormat.parseDate(
+								DateFormat.getAddDay("date",
+										remindTime.intValue()), "yyyy-MM-dd"))) {
+					rectificativePerson.setIsRemind(0L);
+				}
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException("查询社区矫正日期是否超期时出错：",
+					"修改信息出现错误", e);
+		}
+		rectificativePerson = rectificativePersonDao
+				.updateBusiness(rectificativePerson);
+		PageInfoCacheThreadLocal.update(
+				MemCacheConstant.getCachePageKey(RectificativePerson.class),
+				rectificativePerson, UpdateType.BUSINESS);
+		return rectificativePerson;
+	}
+
+	@Override
+	public Long proccessPopulationSpecializedInfo(
+			ActualPopulation actualPopulation, String[] populationType,
+			Map<String, Object> population) {
+		actualPopulation
+				.setAttentionPopulationType(NewBaseInfoTables.RECTIFICATIVEPERSON_KEY);
+		Long orgId = Long
+				.valueOf(((String[]) population.get("organization.id"))[0]);
+		String idCardNo = ((String[]) population.get("idCardNo"))[0];
+		RectificativePerson rectificativePerson = rectificativePersonDao
+				.getByOrgIdAndIdCardNo(orgId, idCardNo);
+		if (!com.tianque.util.Arrays.hasObjectInArray(populationType,
+				PopulationType.RECTIFICATIVE_POPULATION)) {
+			if (null != rectificativePerson) {
+				rectificativePerson.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+				this.updateEmphasiseById(rectificativePerson.getId(),
+						IsEmphasis.IsNotEmphasis);
+			}
+		} else {
+			if (null == rectificativePerson) {
+				rectificativePerson = new RectificativePerson();
+				copyProperty(actualPopulation, population, rectificativePerson);
+				addRectificativePerson(rectificativePerson);
+			} else {
+				Long id = rectificativePerson.getId();
+				copyProperty(actualPopulation, population, rectificativePerson);
+				rectificativePerson.setId(id);
+				rectificativePerson.setIsEmphasis(IsEmphasis.Emphasis);
+				updateRectificativePersonBusiness(rectificativePerson);
+				this.updateEmphasiseById(rectificativePerson.getId(),
+						IsEmphasis.Emphasis);
+			}
+		}
+		return rectificativePerson == null
+				|| rectificativePerson.getIsEmphasis() == IsEmphasis.IsNotEmphasis
+						.longValue() ? null : rectificativePerson.getId();
+	}
+
+	private void copyProperty(ActualPopulation actualPopulation,
+			Map<String, Object> population,
+			RectificativePerson rectificativePerson) {
+		copyProperties(rectificativePerson, actualPopulation);
+		rectificativePerson.setExecuteType(Arrays.getPropertyDictFromArray(
+				population, "executeType.id"));
+		rectificativePerson.setPenaltyTerm(Arrays.getStringValueFromArray(
+				population, "penaltyTerm"));
+		rectificativePerson.setRectifyStartDate(Arrays.getDateValueFromArray(
+				population, "rectifyStartDate"));
+		rectificativePerson.setRectifyEndDate(Arrays.getDateValueFromArray(
+				population, "rectifyEndDate"));
+		rectificativePerson.setRecentSituation(Arrays.getStringValueFromArray(
+				population, "recentSituation"));
+		rectificativePerson.setActualPopulationType(Arrays
+				.getStringValueFromArray(population, "actualPopulationType"));
+		rectificativePerson.setAttentionExtent(Arrays.getPropertyDictFromArray(
+				population, "attentionExtent.id"));
+		rectificativePerson.setAccusation(Arrays.getStringValueFromArray(
+				population, "accusation"));
+		rectificativePerson
+				.setAttentionPopulationType(BaseInfoTables.RECTIFICATIVEPERSON_KEY);
+	}
+
+	@Override
+	public Map<String, Map<String, Object>> getPopulationSpecializedInfoByOrgIdAndIdCardNo(
+			Long orgId, String idCardNo) {
+		RectificativePerson rectificativePerson = rectificativePersonDao
+				.getByOrgIdAndIdCardNo(orgId, idCardNo);
+		if (null == rectificativePerson) {
+			return null;
+		}
+		Map<String, Object> rectificativePersonMap = new HashMap<String, Object>();
+		rectificativePersonMap.put("id", rectificativePerson.getId());
+		rectificativePersonMap.put("isEmphasis",
+				rectificativePerson.getIsEmphasis());
+		rectificativePersonMap.put("executeType",
+				rectificativePerson.getExecuteType());
+		rectificativePersonMap.put("penaltyTerm",
+				rectificativePerson.getPenaltyTerm());
+		rectificativePersonMap.put("rectifyStartDate",
+				rectificativePerson.getRectifyStartDate());
+		rectificativePersonMap.put("rectifyEndDate",
+				rectificativePerson.getRectifyEndDate());
+		rectificativePersonMap.put("recentSituation",
+				rectificativePerson.getRecentSituation());
+		rectificativePersonMap.put("attentionExtent",
+				rectificativePerson.getAttentionExtent());
+		rectificativePersonMap.put("accusation",
+				rectificativePerson.getAccusation());
+		Map<String, Map<String, Object>> map = new HashMap<String, Map<String, Object>>();
+		map.put(PopulationType.RECTIFICATIVE_POPULATION, rectificativePersonMap);
+		return map;
+	}
+
+	@Override
+	public void updatePopulationBaseInfo(ActualPopulation actualPopulation) {
+		RectificativePerson rectificativePerson = rectificativePersonDao
+				.getByOrgIdAndIdCardNo(actualPopulation.getOrganization()
+						.getId(), actualPopulation.getIdCardNo());
+		if (null == rectificativePerson) {
+			return;
+		}
+		Long id = rectificativePerson.getId();
+		copyProperties(rectificativePerson, actualPopulation);
+		rectificativePerson.setId(id);
+		updateRectificativePerson(rectificativePerson);
+	}
+
+	@Override
+	public void deletePopulationByPopulationId(Long populationId) {
+		if (null != populationId) {
+			this.deleteRectificativePerson(populationId);
+			this.deletePopulationTypeByPopulationIdAndType(populationId,
+					PopulationType.RECTIFICATIVE_POPULATION);
+		}
+	}
+
+	@Override
+	public void deleteRectificativePersonByIds(Long[] ids) {
+		if (ids == null || ids.length == 0) {
+			throw new BusinessValidationException("id没有获得");
+		}
+		for (int i = 0; i < ids.length; i++) {
+			deleteRectificativePerson(ids[i]);
+		}
+	}
+
+	@Override
+	public List<RectificativePerson> updateDeathByIds(Long[] populationIds,
+			Boolean death) {
+		List<RectificativePerson> list = new ArrayList<RectificativePerson>();
+		for (int i = 0; i < populationIds.length; i++) {
+			RectificativePerson population = this
+					.getRectificativePersonById(populationIds[i]);
+			updateLogOutByPopulationTypeAndId(
+					LogoutDetail.buildLogoutDetail(death),
+					BaseInfoTables.RECTIFICATIVEPERSON_KEY, population.getId());
+			baseInfoService.updateDeathStateById(population.getBaseInfoId(),
+					death, population.getIdCardNo(), population
+							.getOrganization().getId(), population
+							.getOrgInternalCode(),
+					NewBaseInfoTables.RECTIFICATIVEPERSON_KEY);
+			list.add(population);
+			// 缓存计数器
+			PageInfoCacheThreadLocal.increment(
+					MemCacheConstant.getCachePageKey(RectificativePerson.class
+							.getSimpleName()), population, 1);
+		}
+		return list;
+	}
+
+	@Override
+	public RectificativePerson findRectificativePersonByIdCardNoAndOrgId(
+			String idCardNo, Long orgId) {
+		return getRectificativePersonByName(idCardNo, orgId);
+	}
+
+	@Override
+	public List<RectificativePerson> findRectificativePersonByRectifyDate() {
+		return rectificativePersonDao.findRectificativePersonByRectifyDate();
+	}
+
+	@Override
+	public RectificativePerson hasDuplicateRectificativePerson(Long orgId,
+			String idCardNo) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return null;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		List<String> list = new ArrayList<String>();
+		list.add(idCardNo);
+		if (idCardNo.length() == 18) {
+			list.add(IdCardUtil.idCardNo18to15(idCardNo));
+		} else if (idCardNo.length() == 15) {
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+		}
+		return rectificativePersonDao.getByIdCard(list, orgId);
+	}
+
+	@Override
+	public RectificativePerson addRectificativePersonBaseInfo(
+			RectificativePerson rectificativePerson) {
+		ValidateResult idleValidator = rectificativeValidator
+				.validateBaseInfo(rectificativePerson);
+		if (idleValidator.hasError()) {
+			throw new BusinessValidationException(
+					idleValidator.getErrorMessages());
+		} else if (hasDuplicateRectificativePerson(rectificativePerson
+				.getOrganization().getId(), rectificativePerson.getIdCardNo(),
+				rectificativePerson.getId())) {
+			throw new BusinessValidationException("该网格下已存在相同身份证号码");
+		}
+		if (positiveInfoService.hasDuplicatePosiviteInfosForRectificative(
+				rectificativePerson.getOrganization().getId(),
+				rectificativePerson.getIdCardNo())) {
+			throw new BusinessValidationException("该人员已存在于刑事解教人员中");
+		}
+		try {
+			if (checkDataExitInCache(rectificativePerson,
+					MemCacheConstant.CACHE_ADDRECTIFICATIVEPERSONBASEINFO,
+					CACHE_ADDRECTIFICATIVEPERSONBASEINFO_VALUE)) {
+				return rectificativePerson;
+			}
+			return add(rectificativePerson);
+		} catch (Exception e) {
+			logger.error("", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增社区矫正人员信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(rectificativePerson,
+					MemCacheConstant.CACHE_ADDRECTIFICATIVEPERSONBASEINFO);
+		}
+	}
+
+	// fateson add move function start
+	@Override
+	public void moveTempByIds(String[] peoperIds, Long targetOrgId) {
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(targetOrgId);
+
+		for (String id : peoperIds) {
+			Long peoperId = Long.parseLong(id);
+			if (!StringUtils.isEmpty(id)) {
+				// get peoper
+				RectificativePerson people = getRectificativePersonById(peoperId);
+				if (people == null) {
+					continue;
+				}
+				Long currentOrgid = people.getOrganization().getId();
+				people.setOrganization(organization);
+				// String orgCode = people.getOrgInternalCode();
+				String orgCode = people.getOrganization().getOrgInternalCode();
+				String idCardNo = people.getIdCardNo();
+				// 验证目标组织机构是否存在这个人
+				boolean result = hasDuplicateRectificativePerson(targetOrgId,
+						idCardNo, peoperId);
+				if (result) {
+					// 把存在的旧数据成为修改现在现在要移动的新数据
+					if (currentOrgid.longValue() != targetOrgId.longValue()) {
+						updateMovePersonByIdCardNo(idCardNo, targetOrgId,
+								people);
+						// 删掉要移动的数据 删除掉不在同一个网格
+						deleteRectificativePerson(peoperId);
+					}
+
+				} else {
+					// 转移网格数据
+					rectificativePersonDao.updateData(id, targetOrgId, orgCode,
+							people);
+				}
+				people.setCreateDate(null);
+			}
+
+		}
+
+	}
+
+	@Override
+	public boolean hasDuplicateRectificativePersonForPositiveInfo(Long orgId,
+			String idCardNo, Long exceptedId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return false;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		RectificativePerson rectificativePerson = getRectificativePersonByIdCardNo(
+				idCardNo, orgId);
+		if (null == rectificativePerson
+				|| 1L == rectificativePerson.getIsEmphasis()) {
+			return false;
+		}
+		Long exsited = rectificativePerson.getId();
+		return exceptedId == null ? exsited != null
+				: (exsited != null && !exceptedId.equals(exsited));
+	}
+
+	@Override
+	public RectificativePerson findRectificativePersonByIdCardNoAndOrgIdAndEmphasis(
+			String idCardNo, Long orgId) {
+		RectificativePerson rectificativePerson = null;
+		try {
+			rectificativePerson = getRectificativePersonByName(idCardNo, orgId);
+		} catch (Exception e) {
+			throw new ServiceValidationException("获取社区矫正人员信息失败", e);
+		}
+		if (rectificativePerson == null) {
+			return null;
+		}
+		return IsEmphasis.IsNotEmphasis.equals(rectificativePerson
+				.getIsEmphasis()) ? null : rectificativePerson;
+	}
+
+	public void updateMovePersonByIdCardNo(String idcard, Long targetorgId,
+			RectificativePerson people) {
+		List<String> cardnos = CardNoHelper.createIdCardNo(idcard);
+		// 获取
+		RectificativePerson older = rectificativePersonDao.getByIdCard(cardnos,
+				targetorgId);
+		people.setId(older.getId());
+		people.setCreateDate(older.getCreateDate());
+		people.setCreateUser(older.getCreateUser());
+		rectificativePersonDao.update(people);
+	}
+
+	// fateson add move end
+
+	@Override
+	public List<RectificativePerson> remindByRectifyDate() {
+		EarlyWarning earlyWarning = earlyWarningService
+				.getEarlyWarningByName(EarlyWarningName.RECTIFYENDDATEREMIND);
+		if (earlyWarning == null) {
+			throw new BusinessValidationException("获取社区矫正到期时间出错");
+		}
+		try {
+			Long remindTime = earlyWarning.getRemindTime();
+			List<RectificativePerson> list = rectificativePersonDao
+					.findRectificativePersonByIsRemind(remindTime);
+			return list;
+		} catch (Exception e) {
+			throw new ServiceValidationException("在流动人口获取到期的人口时出错", e);
+		}
+	}
+
+	@Override
+	public RectificativePerson updateIsRemindByid(Long id) {
+		return rectificativePersonDao.updateIsRemindByid(id);
+	}
+
+	@Override
+	public void deleteBusinessPopulationDuplicate(Long id) {
+		this.deleteRectificativePerson(id);
+
+	}
+
+}

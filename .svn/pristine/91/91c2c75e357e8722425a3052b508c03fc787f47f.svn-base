@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="IssueDataColumnVo">
+	<typeAlias alias="IssueDataColumnVo" type="com.tianque.issueAbutmentJoint.domain.IssueDataColumnVo"/>
+	
+	<resultMap class="IssueDataColumnVo" id="issueDataColumnVoSimpleResult">
+		<result property="year" column="year"/>
+		<result property="month" column="month"/>
+		<result property="org.id" column="orgId"/>
+		<result property="org.orgInternalCode" column="orgCode"/>
+		<result property="issueType.id" column="issueTypeId"/>
+		<result property="issueType.propertyDomain.id" column="issuetypedomainId"/>
+		<result property="issueSum" column="issueSum"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+	</resultMap>
+	<resultMap class="IssueDataColumnVo" extends="issueDataColumnVoSimpleResult" id="issueDataColumnVoResult">
+		<result property="id" column="id"/>
+	</resultMap>
+	
+	<resultMap class="IssueDataColumnVo" id="issueDataColumnVoToIssueHandleStatsResult">
+		<result property="org.id" column="orgId"/>
+		<result property="org.orgInternalCode" column="orgCode"/>
+		<result property="issueSum" column="issueSum"/>
+	</resultMap>
+	
+	<select id="getIssueDataColumnVoByYearAndMonthAndIssueTypeAndOrgId" parameterClass="java.util.Map" resultMap="issueDataColumnVoResult">
+		select * from issueanalysis i where 
+			i.year=#year# and i.month=#month# and i.orgId=#orgId# and i.issueTypeId=#issueTypeId# and i.issuetypedomainId=#issuetypedomainId#
+	</select>
+	<update id="updateIssueDataColumnVoById" parameterClass="java.util.Map">
+		update issueanalysis i set i.issueSum=#issueSum# where id=#id#  
+	</update>
+	<insert id="addIssueDataColumnVo" parameterClass="IssueDataColumnVo">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_IssueAnalysis.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into IssueAnalysis
+		  (id,
+		   year,
+		   month,
+		   orgid,
+		   orgCode,
+		   issueTypeId,
+		   issueTypeDomainId,
+		   issueSum,
+		   createuser,
+		   createdate ) values(
+		   #id#,
+		   #year#,
+		   #month#,
+		   #org.id#,
+		   #org.orgInternalCode#,
+		   #issueType.id#,
+		   #issueType.propertyDomain.id#,
+		   #issueSum#,
+		   #createUser#,
+		   #createDate# )
+	</insert>
+	
+	<select id="queryIssueDataColumnVoToIssuejointForList" resultMap="issueDataColumnVoSimpleResult" parameterClass="java.util.Map">
+		select
+		 #year# year,
+		 #month# month,
+		 #orgId# orgId,
+		 #orgCode# orgCode,
+		 issueTypeId,
+		 issuetypedomainId,
+		 count(issueTypeId) issueSum,
+		 'admin' createUser,
+		 #sysDate# createDate
+		  from (select issuejointtype        issuetypedomainId,
+		               issuejointtypesub     issueTypeId
+		          from issuejoints
+		         where createorginternalcode like #orgCode# ||'%' and CREATEDATE between #beforeMonthLastDay# and #nextMonthFirstDay#
+		        )
+		 group by issueTypeId, issuetypedomainId
+	</select>
+	
+	
+	<select id="getIssueDataColumnVoToIssueHandleStatsToCTJD" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(1) from issuejoints where createorginternalcode like #orgCode# ||'%' and impdate between #startDate# and #endDate#
+	</select>
+</sqlMap>

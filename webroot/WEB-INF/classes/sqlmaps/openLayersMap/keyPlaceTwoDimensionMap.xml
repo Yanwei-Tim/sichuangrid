@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="keyPlaceTwoDimensionMap">
+	<typeAlias alias="keyPlaceInfoVo" type="com.tianque.openLayersMap.domian.vo.KeyPlaceInfoVo" />
+	
+	<resultMap id="keyPlaceTwoDimensionMapResult" class="keyPlaceInfoVo">
+		<result column="id" property="id" />
+		<result column="type" property="type" />
+		<result column="name" property="name" />
+		<result column="address" property="address" />
+		<result column="centerLon" property="lon" />
+		<result column="centerLat" property="lat" />
+		<result column="centerLon2" property="lon2" />
+		<result column="centerLat2" property="lat2" />
+		<result column="buildDataId" property="buildDataId" />
+		<result column="orgid" property="organization.id"  />
+	</resultMap>
+	
+	<resultMap id="keyPlaceTwoDimensionMapResultHasOrgCode" extends="keyPlaceTwoDimensionMapResult" class="keyPlaceInfoVo">
+		<result column="orgInternalCode" property="orgInternalCode" />
+	</resultMap>
+	
+	<resultMap id="keyPlaceTwoDimensionMapPeripheryResult" extends="keyPlaceTwoDimensionMapResult" class="keyPlaceInfoVo">
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="distance" property="distance" />
+	</resultMap>
+	
+	<resultMap class="java.util.HashMap" id="key_value">
+		<result property="key" column="type"/>
+		<result property="value" column="num"/>
+	</resultMap>
+	
+	<resultMap class="keyPlaceInfoVo" id="keyPlaceResult" extends="keyPlaceTwoDimensionMapResult" >
+		<result column="typeName" property="typeName"/>
+	</resultMap>
+	
+	<resultMap id="keyPlaceCommonShowResult" class="keyPlaceInfoVo">
+		<result column="id" property="id" />
+		<result column="typeName" property="typeName" />
+		<result column="name" property="name" />
+		<result column="address" property="address" />
+	</resultMap>
+	
+	<sql id="sql_screenCoordinateVo">
+		<dynamic>
+			<isPropertyAvailable property="searchInfoVo">
+				<isEqual property="searchInfoVo.gisType" compareValue="3D">
+					<isNotEmpty  property="screenCoordinateVo.minLon">
+						<![CDATA[ centerlon>#screenCoordinateVo.minLon# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+						<![CDATA[ centerlon<#screenCoordinateVo.maxLon# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+						<![CDATA[ centerlat>#screenCoordinateVo.minLat# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+						<![CDATA[ centerlat<#screenCoordinateVo.maxLat# ]]>
+					</isNotEmpty>
+				</isEqual>
+				<isNotEqual property="searchInfoVo.gisType" compareValue="3D">
+					<isNotEmpty  property="screenCoordinateVo.minLon">
+						<![CDATA[ centerlon2>#screenCoordinateVo.minLon# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+						<![CDATA[ centerlon2<#screenCoordinateVo.maxLon# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+						<![CDATA[ centerlat2>#screenCoordinateVo.minLat# ]]>
+					</isNotEmpty>
+					<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+						<![CDATA[ centerlat2<#screenCoordinateVo.maxLat# ]]>
+					</isNotEmpty>
+				</isNotEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<sql id="sql_where">
+		from keyplaces where emphasis=0
+		<dynamic>
+			<isNotNull prepend=" and "  property="orgInternalCode">
+				orgInternalCode like '$orgInternalCode$%'
+			</isNotNull>
+			<isNotEmpty prepend=" and " property="typeName">
+				type=#typeName#
+			</isNotEmpty>
+			<isNotEmpty property="screenCoordinateVo.minLon">
+				and (
+					<include refid="sql_screenCoordinateVo"/>
+					<isEqual property="isBound" compareValue="false">
+						or (centerLon is null and centerLat is null)
+					</isEqual>
+				) 
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_where2">
+		from keyplaces
+		<dynamic prepend="WHERE">
+			emphasis=0
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="searchValue">
+				<isNotEmpty property="searchValue" prepend=" and ">
+					(name like '$searchValue$%' or address like '$searchValue$%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			and (
+				<include refid="sql_screenCoordinateVo"/>
+				or (centerLon is null and centerLat is null)
+			) 
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_where3">
+		from keyplaces k,gistypemanages g 
+		where k.type=g.key and g.checked=1 and k.emphasis=0
+		<dynamic>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					k.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="searchValue">
+				<isNotEmpty property="searchValue" prepend=" and ">
+					(k.name like '$searchValue$%' or k.address like '$searchValue$%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="typeList">
+				<isNotNull property="typeList" prepend=" and ">
+					 <iterate  property="typeList" open="(" close=")" conjunction="or">
+					 	k.type=#typeList[]#
+					 </iterate>
+				</isNotNull>
+			</isPropertyAvailable>
+			and (
+				<include refid="sql_screenCoordinateVo"/>
+				or (k.centerLon is null and k.centerLat is null)
+			) 
+		</dynamic>
+	</sql>
+	
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndTypeName" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0) 
+		<include refid="sql_where"/>
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndTypeName" parameterClass="java.util.Map" resultMap="keyPlaceTwoDimensionMapResult">
+		<include refid="common.sql_page_start"/>
+			select *
+			<include refid="sql_where"/>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndTypeName" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) 
+		<include refid="sql_where"/>
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndTypeName" parameterClass="java.util.Map" resultMap="keyPlaceTwoDimensionMapResult">
+		<include refid="common.sql_page_start"/>
+			select *
+			<include refid="sql_where"/>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countTwoDimensionMapInfoByOrgInternalCodeAndSearchValue" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) from keyplaces where orginternalcode like '$orgInternalCode$%' and emphasis=0
+			and (centerLon is not null and centerLat is not null)
+			<isNotEmpty prepend="and" property="searchValue">
+				(name like '$searchValue$%' or address like '$searchValue$%')
+			</isNotEmpty>
+	</select>
+	
+	<select id="countTwoDimensionMapInfoByOrgInternalCodeAndSearchValueAndCheck" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) from keyplaces k,gistypemanages g where k.orginternalcode like '$orgInternalCode$%' and k.type=g.key and g.checked=1 and k.emphasis=0
+			and (k.centerLon is not null and k.centerLat is not null)
+			<isPropertyAvailable property="typeList">
+				<isNotNull property="typeList" prepend=" and ">
+					 <iterate  property="typeList" open="(" close=")" conjunction="or">
+					 	k.type=#typeList[]#
+					 </iterate>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isNotEmpty prepend="and" property="searchValue">
+				(k.name like '$searchValue$%' or k.address like '$searchValue$%')
+			</isNotEmpty>
+	</select>
+	
+	
+	<!--乡镇以下查询	-->
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValue" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0)
+			<include refid="sql_where2"/>
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValue" parameterClass="java.util.Map" resultMap="keyPlaceTwoDimensionMapResult">
+		select *
+		<include refid="sql_where2"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValueAndCheck" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0)
+			<include refid="sql_where3"/>
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValueAndCheck" parameterClass="java.util.Map" resultMap="keyPlaceResult">
+		<include refid="common.sql_page_start"/>
+			select k.*,g.name typeName
+			<include refid="sql_where3"/>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countTwoDimensionMapInfoByOrgInternalCodeAndScreenCoordinateVoAndTypeName" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) from keyplaces where orginternalcode like '$orgInternalCode$%' and emphasis=0
+			and (centerLon is not null and centerLat is not null)
+			<isNotEmpty prepend="and" property="typeName">
+				type=#typeName# 
+			</isNotEmpty>
+	</select>
+	
+	<update id="updateTwoDimensionMap" parameterClass="java.util.Map">
+		update keyplaces set 
+		<dynamic>
+			id=#id#
+			<isPropertyAvailable property="lon" prepend=",">
+				centerLon=#lon#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="lat" prepend=",">
+				centerLat=#lat#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="lon2" prepend=",">
+				centerLon2=#lon2#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="lat2" prepend=",">
+				centerLat2=#lat2#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="buildDataId" prepend=",">
+				buildDataId=#buildDataId#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="buildingId" prepend=",">
+				buildingId=#buildingId#
+			</isPropertyAvailable>
+			where id=#id#
+			<isPropertyAvailable property="type">
+				<isNotEqual property="type" compareValue="NULL">
+					<isNotNull prepend="and" property="type" >
+						type = #type#
+					</isNotNull>
+				</isNotEqual>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="allType">
+				<isNotEqual property="allType" compareValue="NULL">
+					<isNotNull prepend="and" property="allType" >
+						type in
+						<iterate open="(" close=")" property="allType" conjunction=",">
+							#allType[]#
+						</iterate>
+					</isNotNull>
+				</isNotEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</update>
+	
+	<sql id="periphery_sql_where2">
+		from (
+			select d.* 
+			<isNotNull property="circumInfoVo">
+				<isNotNull property="circumInfoVo.lon">
+					<isNotNull property="circumInfoVo.lat">
+						<isNotNull property="circumInfoVo.range" prepend=" , ">
+							<isEqual property="circumInfoVo.gisType" compareValue="3D">
+								round(sqrt(power(((#circumInfoVo.lon# - centerLon) * #PI# * #R#
+								* COS(((#circumInfoVo.lat# + centerLat) / 2) * #PI# / 180) / 180),2)
+								+ power(((#circumInfoVo.lat# - centerLat) *#PI# * #R# / 180),2)),2) 
+							</isEqual>
+							<isNotEqual property="circumInfoVo.gisType" compareValue="3D">
+								round(sqrt(power(((#circumInfoVo.lon# - centerLon2) * #PI# * #R#
+								* COS(((#circumInfoVo.lat# + centerLat2) / 2) * #PI# / 180) / 180),2)
+								+ power(((#circumInfoVo.lat# - centerLat2) *#PI# * #R# / 180),2)),2) 
+							</isNotEqual>
+							distance
+						</isNotNull>
+					</isNotNull>
+				</isNotNull>
+			</isNotNull>
+			from keyplaces d	
+			where d.emphasis=0
+			<dynamic>
+				<isPropertyAvailable property="circumInfoVo">
+					<isNotNull property="circumInfoVo.elements" prepend=" and ">
+						d.type in ($circumInfoVo.elements$)
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="circumInfoVo">
+					<isNotNull property="circumInfoVo.queryStr" prepend="and">
+						(name like '$circumInfoVo.queryStr$%' or address like '$circumInfoVo.queryStr$%')
+					</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		) t 
+		where 1=1
+		<dynamic>
+			<isNotNull property="circumInfoVo">
+				<isNotNull property="circumInfoVo.range" prepend="and ">
+			 		t.distance &lt; #circumInfoVo.range#
+			 	</isNotNull>
+			</isNotNull>
+		</dynamic>
+	</sql>
+	
+	<select id="countTwoDimensionMapCircumInfoByElementsAndRangeAndCenterLonLat" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select  count(*)
+		<include refid="periphery_sql_where2" />
+	</select>
+	
+	<select id="findTwoDimensionMapCircumInfoByElementsAndRangeAndCenterLonLat" parameterClass="java.util.Map" resultMap="keyPlaceTwoDimensionMapPeripheryResult">
+		<include refid="common.sql_page_start"/>
+			select  *
+			<include refid="periphery_sql_where2" />
+			<isNotNull property="centerLon">
+				<isNotNull property="centerLat">	
+					<isNotNull property="range" prepend=" order by ">
+					 	 distance 
+					</isNotNull>
+				</isNotNull>
+			</isNotNull>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countTwoDimensionMapInfoByOrgInternalCodeAndTypeName"  resultClass="java.lang.Integer" parameterClass="java.util.Map">
+		select count(0) from keyplaces where orginternalcode like '$orgInternalCode$%'  and emphasis=0
+		<isNotNull property="typeName" prepend="and">
+			type=#typeName#
+		</isNotNull>
+	</select>
+	
+	<select id="countUnBoundKeyPlaceByOrgInternalCodeAndType"  resultClass="Integer" parameterClass="java.util.Map">
+		select count(0) from keyplaces k where (k.centerLon is null and k.centerLat is null) and k.orginternalcode like #orgInternalCode#||'%' and k.emphasis=0
+		<isNotNull property="type" prepend="and">
+			k.type=#type#
+		</isNotNull>
+		<isNotNull property="queryStr" prepend="and">
+			(k.name like #searchValue#||'%' or k.address like #searchValue#||'%' or k.fullpinyin like #searchValue#||'%' or k.simplepinyin like #searchValue#||'%')
+		</isNotNull>
+	</select>
+	
+	<select id="findUnBoundKeyPlaceByOrgInternalCodeAndType"  resultMap="keyPlaceCommonShowResult" parameterClass="java.util.Map">
+		<include refid="common.sql_page_start"/>
+			select id id,(select g.name from gistypemanages g where g.key=#type#) typeName,k.name name,k.address address,k.orgid from keyplaces k where (k.centerLon is null and k.centerLat is null)  and k.orginternalcode like #orgInternalCode#||'%'
+			and k.emphasis=0 
+			<dynamic>
+				<isNotNull property="type" prepend="and">
+					k.type=#type#
+				</isNotNull>
+				<isNotNull property="searchValue" prepend="and">
+					(k.name like #searchValue#||'%' or k.address like #searchValue#||'%' or k.fullpinyin like #searchValue#||'%' or k.simplepinyin like #searchValue#||'%')
+				</isNotNull>
+				<isPropertyAvailable property="sortField" prepend="order by">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	
+	<select id="getViewPopupInfoByIdAndType" parameterClass="java.util.Map" resultMap="keyPlaceTwoDimensionMapResultHasOrgCode">
+		select *  from keyplaces  where id=#id# and type=#type#
+	</select>
+	
+	
+	
+	<select id="countKeyPlacesByCenterLonLat" parameterClass="java.util.Map" resultMap="key_value">
+		select count(*) as num, type from keyplaces where   
+		<isEqual property="gisType" compareValue="3D">
+			centerLon = #centerLon# and centerLat=#centerLat#
+		</isEqual>
+		<isNotEqual property="gisType" compareValue="3D">
+			centerLon2 = #centerLon# and centerLat2=#centerLat#
+		</isNotEqual>
+		and emphasis=0
+		group by type 
+	</select>
+	
+	<select id="countBoundKeyPlaceByOrgInternalCodeAndTypeName" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) from keyplaces where orginternalcode like '$orgInternalCode$%'
+			and (centerLon is not null and centerLat is not null) and buildDataId=#buildDataId# and emphasis=0
+			<isNotEmpty prepend="and" property="typeName">
+				type=#typeName# 
+			</isNotEmpty>
+	</select>
+	
+	<select id="findBoundKeyPlaceByOrgInternalCodeAndTypeName" parameterClass="java.util.Map" resultMap="keyPlaceTwoDimensionMapResult">
+		<include refid="common.sql_page_start"/>
+			select *  from keyplaces  where orginternalcode like '$orgInternalCode$%'
+				and (centerLon is not null and centerLat is not null) and buildDataId=#buildDataId# and emphasis=0
+				<dynamic>
+					<isNotNull prepend="and" property="typeName">
+						type=#typeName# 
+					</isNotNull>
+					<isPropertyAvailable property="sortField" prepend="order by">
+						<isNotNull property="sortField">$sortField$</isNotNull>
+						<isNotNull property="order">$order$</isNotNull>
+					</isPropertyAvailable>
+				</dynamic>
+		 <include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countKeyPlacesByHourseId" parameterClass="java.util.Map" resultMap="key_value">
+		select count(*) as num, type from keyplaces where   
+		builddataid = #hourseId# and emphasis=0
+		group by type 
+	</select>
+	
+	
+</sqlMap>

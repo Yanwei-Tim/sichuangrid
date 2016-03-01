@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="AccountLoginDetails">
+	<typeAlias alias="accountLoginDetails" type="com.tianque.domain.AccountLoginDetails" />
+	<resultMap class="accountLoginDetails" id="accountLoginDetailsResult">
+		<result property="id" column="ID"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="organization.orgName" column="orgName"/>
+		<result property="organization.orgInternalCode" column="orgCode"/>
+		<result property="userName" column="userName"/>
+		<result property="name" column="name"/>
+		<result property="currentWorkDay" column="currentWorkDay"/>
+		<result property="loginDay" column="loginDay"/>
+		<result property="lastLoginTime" column="lastLoginTime"/>
+	</resultMap>
+	
+	<sql id="sql_where">
+		<isEqual property="searchType" compareValue="0" prepend="and">
+			<!--本级-->
+			orgId = #orgId#
+		</isEqual>
+		<isEqual property="searchType" compareValue="1" prepend="and">
+			<!--直属下辖-->
+			<isNotNull property="childOrgIds">
+				<iterate property="childOrgIds" open="orgId in (" close=")" conjunction=",">
+					#childOrgIds[]#
+				</iterate>
+			</isNotNull>
+			<isNull property="childOrgIds">
+				    orgCode like #orgCode#||'%' and orgId != #orgId#
+			</isNull>
+		</isEqual>
+		<isEqual property="searchType" compareValue="2" prepend="and">
+			<!--全部-->
+			orgCode like #orgCode#||'%'
+		</isEqual>
+	</sql>
+	
+	<!--生成报表-->
+	<insert id="addAccountDetails" parameterClass="java.util.Map">
+		insert into userLoginStatistics_$year$_$month$ (id,orgId,orgCode,orgName,userName,name,currentWorkDay,loginDay,lastLoginTime)
+		select s_userLoginStatistics.NEXTVAL,orgId,orgCode,orgName,userName,name,#currentWorkDay#,loginDay,lastLoginTime from
+		(
+			select d.orgId orgId,d.orgCode orgCode,d.orgName orgName,d.userName userName,d.name name,d.lastLoginTime lastLoginTime,nvl(s.countLogin,0) loginDay from (
+			select o.id orgId,o.orginternalcode orgCode,o.orgname orgName,
+			       u.username userName,u.name name,u.id userId ,u.lastLoginTime lastLoginTime
+			from organizations o left join
+			(select * from users where state=2 and activationtime>=#startTime#
+			 and activationtime <![CDATA[ < ]]> #endTime#) u
+			 on o.id=u.organizationid) d
+			 left join 
+			 (select userid,count(userid) countLogin from usersign u where u.createdate>=#startTime#
+			 and u.createdate <![CDATA[ < ]]> #endTime# group by userid
+			 ) s
+			 on d.userid = s.userid
+		)
+		
+		
+	</insert>
+	
+	<!--修改拥有特色日历地区的工作天数-->
+	<update id="updateHasFeatureDay" parameterClass="java.util.Map">
+		update userLoginStatistics_$year$_$month$ set currentWorkDay = #featureDay# where orgCode like #orgCode# || '%'
+	</update>
+	
+	<!--分页查询计算返回条数-->
+	<select id="queryAccountDetailsForPageResultCount" parameterClass="java.util.Map" resultClass="int">
+		select count(1) from userLoginStatistics_$year$_$month$ where 1=1
+		<include refid="sql_where"/>
+	</select>
+	
+	<!--分页查询-->
+	<select id="queryAccountDetailsForPageResult" parameterClass="java.util.Map" resultMap="accountLoginDetailsResult">
+		select * from userLoginStatistics_$year$_$month$ where 1=1
+		<include refid="sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<!--清空历史数据-->
+	<delete id="deleteAccountDetails" parameterClass="java.util.Map" >
+		delete from userLoginStatistics_$year$_$month$
+	</delete>
+</sqlMap>

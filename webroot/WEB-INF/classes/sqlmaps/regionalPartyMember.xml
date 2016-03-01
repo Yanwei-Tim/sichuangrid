@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<!-- 区域党委成员 -->	
+<!--当前所有属性(方便查看)
+
+	SELECT 	
+		ID as id ,
+		ORGID as orgId ,
+		ORGINTERNALCODE as orgInternalCode ,
+		NAME as name ,
+		GENDER as gender ,
+		PARTYORGDUTY as partyOrgDuty ,
+		UNIT as unit ,
+		UNITDUTY as unitDuty ,
+		MOBILENUMBER as mobileNumber,
+		TELEPHONE as telephone,  
+		CREATEUSER as createUser ,
+		CREATEDATE as createDate ,
+		UPDATEUSER as updateUser ,
+		UPDATEDATE as updateDate 
+	FROM regionalPartyMembers	
+ -->	
+<sqlMap namespace="regionalPartyMember">
+	<typeAlias alias="RegionalPartyMember" type="com.tianque.partyBuilding.organizations.domain.RegionalPartyMember" />
+	<typeAlias alias="RegionalPartyMemberVo" type="com.tianque.partyBuilding.organizations.domain.vo.RegionalPartyMemberVo" />
+	<resultMap class="RegionalPartyMember" id="regionalPartyMemberResult">
+		<result property="id" column="ID"/>
+		<result property="organization.id" column="ORGID"/>
+		<result property="organization.orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="name" column="NAME"/>
+		<result property="gender.id" column="GENDER"/>
+		<result property="partyOrgDuty.id" column="PARTYORGDUTY"/>
+		<result property="unitDuty" column="UNITDUTY"/>
+		<result property="unit" column="UNIT"/>
+		<result property="mobileNumber" column="MOBILENUMBER"/>
+		<result property="telephone" column="TELEPHONE"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+	</resultMap>
+	<!-- 新增区域党委成员 -->
+	<insert id="addRegionalPartyMember">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_regionalPartyMembers.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into regionalPartyMembers (ID,ORGID,ORGINTERNALCODE,NAME,GENDER,PARTYORGDUTY,UNIT,UNITDUTY,MOBILENUMBER,TELEPHONE,CREATEUSER,UPDATEUSER,CREATEDATE,UPDATEDATE) 
+		values(#id#,#organization.id#,#organization.orgInternalCode#,#name#,#gender.id#,#partyOrgDuty.id#,#unit#,#unitDuty#,#mobileNumber#,#telephone#,#createUser#,#updateUser#,#createDate#, #updateDate#)	
+	</insert>
+	<!-- 修改区域党委成员 -->
+	<update id="updateRegionalPartyMember" parameterClass="RegionalPartyMember">
+		update regionalPartyMembers set id=#id#
+			
+			<isNotNull  property="organization" prepend=",">
+				ORGID=#organization.id#
+			</isNotNull>
+			<isNotNull  property="organization" prepend=",">
+				ORGINTERNALCODE=#organization.orgInternalCode#
+			</isNotNull>
+			<isNotEmpty  property="name" prepend=",">
+				name=#name#
+			</isNotEmpty>
+			<isNotNull  property="gender" prepend=",">
+				gender=#gender.id#
+			</isNotNull>
+			<isNotNull  property="partyOrgDuty" prepend=",">
+				partyOrgDuty=#partyOrgDuty.id#
+			</isNotNull>
+			<isNotEmpty  property="unit" prepend=",">
+				unit=#unit#
+			</isNotEmpty>
+			<isNotEmpty  property="unitDuty" prepend=",">
+				unitDuty=#unitDuty#
+			</isNotEmpty>
+			<isNotEmpty  property="mobileNumber" prepend=",">
+				mobileNumber=#mobileNumber#
+			</isNotEmpty>
+			<isNotEmpty  property="telephone" prepend=",">
+				telephone=#telephone#
+			</isNotEmpty>
+			<isNotEmpty  property="updateUser" prepend=",">
+				updateUser=#updateUser#
+			</isNotEmpty>
+			<isNotEmpty  property="updateDate" prepend=",">
+				updateDate=#updateDate#
+			</isNotEmpty>
+		where id=#id#
+	</update>
+	<!-- 根据id查询区域党委成员 -->
+	<select id="getRegionalPartyMemberById" parameterClass="long" resultMap="regionalPartyMemberResult">
+		select 
+			ID,
+			ORGID,
+			ORGINTERNALCODE,
+			NAME,
+			GENDER,
+			PARTYORGDUTY,
+			UNIT,
+			UNITDUTY,
+			MOBILENUMBER,
+			TELEPHONE,
+			CREATEUSER,
+			UPDATEUSER,
+			CREATEDATE,
+			UPDATEDATE from REGIONALPARTYMEMBERS rpm  where rpm.id=#value#
+	</select>
+	<!-- 删除区域党委成员 -->
+	<delete id="deleteRegionalPartyMemberById">
+		<![CDATA[ delete from REGIONALPARTYMEMBERS where id=#value#]]>
+	</delete>
+	<!-- where条件 -->
+	<sql id="search_sql_where">
+	  from regionalPartyMembers rpm 
+	  <dynamic prepend="WHERE">
+ 			<isPropertyAvailable property="organization">
+				<isNotNull property="organization.id" prepend="and">
+						rpm.orgId = #organization.id#
+				</isNotNull>
+			</isPropertyAvailable>
+ 			<isPropertyAvailable property="organization">
+				<isNotNull property="organization.orgInternalCode" prepend="and">
+						rpm.orgInternalCode like  #organization.orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend="and">
+						rpm.name like #name#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable> 
+			<isPropertyAvailable property="gender">
+				<isNotNull property="gender.id" prepend="and">
+						rpm.gender = #gender.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="partyOrgDuty">
+				<isNotNull property="partyOrgDuty.id" prepend="and">
+						rpm.partyOrgDuty = #partyOrgDuty.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="unit">
+				<isNotEmpty property="unit" prepend="and">
+						rpm.unit like #unit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable> 
+			<isPropertyAvailable property="unitDuty">
+				<isNotEmpty property="unitDuty" prepend="and">
+						rpm.unitDuty like #unitDuty#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable> 
+			<isPropertyAvailable property="telephone">
+				<isNotEmpty property="telephone" prepend="and">
+						rpm.telephone like #telephone#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable> 
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty property="mobileNumber" prepend="and">
+						rpm.mobileNumber like #mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable> 
+		</dynamic>
+	</sql>
+	<!-- 根据条件统计区域党委成员 -->
+	<select id="countRegionalPartyMember" parameterClass="RegionalPartyMemberVo" resultClass="java.lang.Integer">
+		select count(*)
+		<include refid="search_sql_where" />
+	</select>
+	<!-- 根据条件查询符合条件区域党委成员 -->
+	<select id="findAllRegionalPartyMember" parameterClass="RegionalPartyMemberVo" resultMap="regionalPartyMemberResult">
+		select 
+		ID,
+		ORGID,
+		ORGINTERNALCODE,
+		NAME,
+		GENDER,
+		PARTYORGDUTY,
+		UNIT,
+		UNITDUTY,
+		MOBILENUMBER,
+		TELEPHONE,
+		CREATEUSER,
+		UPDATEUSER,
+		CREATEDATE,
+		UPDATEDATE
+		<include refid="search_sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<!-- 为领导视图提供统计的 根据orgInternalCode的值和 internalId的值的不同得到乡镇的统计和社区的统计-->
+  	<select id="countRegionalPartyMemberByOrgIdOrOrgInternalCode"  parameterClass="java.util.Map"  resultClass="java.lang.Integer">
+  		select count(*) from regionalPartyMembers  rpm where 1=1
+		<iterate prepend="and" property="orgIdsList" conjunction="or" open="(" close=")">
+			rpm.orgId in ($orgIdsList[]$)
+		</iterate>
+  	</select>
+</sqlMap>

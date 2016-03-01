@@ -1,0 +1,741 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="issueTwoDimensionMap">
+	<typeAlias alias="issueInfoVo" type="com.tianque.openLayersMap.domian.vo.IssueInfoVo" />
+	<resultMap id="issueTwoDimensionMapResult" class="issueInfoVo">
+		<result property="serialNumber" column="serialNumber"/>
+		<result property="subject" column="subject"/>
+		<result property="issueId" column="issueId"/>
+		<result property="lon" column="centerLon"/>
+		<result property="lat" column="centerLat"/>
+		<result property="lon2" column="centerLon2"/>
+		<result property="lat2" column="centerLat2"/>
+	</resultMap>
+	
+	<resultMap id="issueTypeResult" class="issueInfoVo">
+		<result property="issueType" column="issueTypeName" />
+	</resultMap>
+	
+	<resultMap id="issueTwoDimensionMapResultByIssueId" extends="issueTwoDimensionMapResult" class="issueInfoVo">
+		<result property="organization.id" column="occurorg"/>
+		<result property="occurLocation" column="occurLocation" />
+		<result property="status" column="status" />	
+	</resultMap>
+	
+	<resultMap id="issueTwoDimensionMapResultByOrgId" extends="issueTwoDimensionMapResultByIssueId" class="issueInfoVo">
+		<result property="issueLogId" column="issueLogId" ></result>
+	</resultMap>
+	
+	<resultMap id="issueTwoDimensionMapResultAndTypeByOrgId" extends="issueTwoDimensionMapResultByOrgId" class="issueInfoVo">
+		<result property="type" column="type" />
+	</resultMap>
+	
+	<sql id="sql_screenCoordinateVo">
+		<isNotNull property="searchInfoVo">
+			<isEqual property="searchInfoVo.gisType" compareValue="3D">
+				<isNotEmpty  property="screenCoordinateVo.minLon">
+					<![CDATA[ iu.centerlon>#screenCoordinateVo.minLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+					<![CDATA[ iu.centerlon<#screenCoordinateVo.maxLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+					<![CDATA[ iu.centerlat>#screenCoordinateVo.minLat# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+					<![CDATA[ iu.centerlat<#screenCoordinateVo.maxLat# ]]>
+				</isNotEmpty>
+			</isEqual>
+			<isNotEqual  property="searchInfoVo.gisType"  compareValue="3D">
+				<isNotEmpty  property="screenCoordinateVo.minLon">
+					<![CDATA[ iu.centerlon2>#screenCoordinateVo.minLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLon">
+					<![CDATA[ iu.centerlon2<#screenCoordinateVo.maxLon# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.minLat">
+					<![CDATA[ iu.centerlat2>#screenCoordinateVo.minLat# ]]>
+				</isNotEmpty>
+				<isNotEmpty prepend="and" property="screenCoordinateVo.maxLat">
+					<![CDATA[ iu.centerlat2<#screenCoordinateVo.maxLat# ]]>
+				</isNotEmpty>
+			</isNotEqual>
+		</isNotNull>
+	</sql>
+	
+	<sql id="selectIssueViewResultFieldIssueNew">
+		select iu.id as issueId,iu.serialnumber,iu.subject,iu.occurorg,iu.occurlocation,iu.centerLon,iu.centerLat  ,iu.centerlon2,iu.centerlat2,step.id as issueLogId,step.lastdealdate as dealtime,iu.status
+	</sql>
+	
+	<sql id="sql_where">
+		( 
+			<include refid="sql_screenCoordinateVo"/>
+			<isNotEmpty prepend="or" property="screenCoordinateVo.maxLon">
+				(iu.centerLon is null and iu.centerLat is null) 
+			</isNotEmpty>
+		)
+	</sql>
+	
+	<sql id="selectIssueViewResultFieldNew">
+		select centerlon,centerlat  ,iu.centerlon2,iu.centerlat2,iu.id as issueId,iu.serialnumber,iu.occurlocation,iu.subject,iu.occurorg,step.id as issueLogId,step.lastdealdate as dealtime,iu.status
+	</sql>
+	
+	<sql id="selectIssueDoneViewResultField">
+		select centerlon,centerlat  ,iu.centerlon2,iu.centerlat2,iu.id as issueId,iu.serialnumber,iu.occurlocation,iu.subject,iu.occurorg,
+		step.id as issueLogId,step.lastdealdate as dealtime,iu.status
+		
+	</sql>
+	
+	<!--乡镇一下图层列表	-->
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVo" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) from issues iu,issuesteps step where 
+			step.target = #orgId# and step.id= iu.currentstep and step.statecode <![CDATA[ < ]]>#dealState#
+			and iu.id=step.issue and iu.historic <![CDATA[ = ]]> 0 and
+			<include refid="sql_where"/>
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVo" parameterClass="java.util.Map"  resultMap="issueTwoDimensionMapResultByOrgId">
+		<include refid="selectIssueViewResultFieldIssueNew"/>
+		 from issues iu,issuesteps step where 
+		step.target = #orgId# and step.id= iu.currentstep and step.statecode <![CDATA[ < ]]>#dealState#
+		 and iu.id=step.issue and iu.historic <![CDATA[ = ]]> 0 and
+		  <include refid="sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countMyDoTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVo" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+         select count(*) from issues iu where iu.id in(
+      			select issue as id
+          			from issuesteps
+         			where id in (select max(id)
+                        				from issuesteps
+                      						 where  target = #orgId#
+                         					 and stateCode <![CDATA[ >= ]]> #dealState#
+                      						 group by issue)
+           				and id not in (select max(id)
+                            			from issuesteps
+                           				where  target = #orgId#
+                             			and stateCode <![CDATA[ < ]]> #dealState#
+                           				group by issue)
+                           and <include refid="sql_where"/>
+                            )
+	</select>
+	
+	<select id="findMyDoTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVo" parameterClass="java.util.Map"  resultMap="issueTwoDimensionMapResultByOrgId">
+		<include refid="selectIssueViewResultFieldIssueNew"/>
+		 from issues iu
+          left join issuesteps step on (step.id=iu.currentstep)
+         where iu.id in (select issue
+                        from issuesteps
+                       where target = #orgId#
+                         and stateCode <![CDATA[ >= ]]> #dealState#)
+           and iu.id not in (select issue
+                            from issuesteps
+                           where target = #orgId#
+                             and stateCode <![CDATA[ < ]]> #dealState#)                   
+            and
+         <include refid="sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countMyFinishTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVo" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) from issues iu,issuesteps step where 
+		iu.createorginternalcode = #orgInternalCode#  and step.statecode <![CDATA[ >= ]]>#dealState#
+			and iu.id=step.issue and iu.historic <![CDATA[ = ]]> 0 and
+			<include refid="sql_where"/>
+	</select>
+	
+	<select id="findMyFinishTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVo" parameterClass="java.util.Map"  resultMap="issueTwoDimensionMapResultByOrgId">
+		<include refid="selectIssueViewResultFieldIssueNew"/>
+		 from issues iu,issuesteps step where 
+		iu.createorginternalcode = #orgInternalCode# and step.statecode <![CDATA[ >= ]]>#dealState#
+		 and iu.id=step.issue and iu.historic <![CDATA[ = ]]> 0 and
+		  <include refid="sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	
+	<select id="countMyJurisdictionsNeedDoTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVo" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) from issues iu,issuesteps step where 
+			step.targetinternalcode like #orgInternalCode#||'%' and step.id= iu.currentstep and step.statecode <![CDATA[ < ]]>#dealState#
+			and iu.id=step.issue and iu.historic <![CDATA[ = ]]> 0 and
+			<include refid="sql_where"/>
+	</select>
+	
+	<select id="findMyJurisdictionsNeedDoTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVo" parameterClass="java.util.Map"  resultMap="issueTwoDimensionMapResultByOrgId">
+		<include refid="selectIssueViewResultFieldIssueNew"/>
+		 from issues iu,issuesteps step where 
+		step.targetinternalcode like #orgInternalCode#||'%' and step.id= iu.currentstep and step.statecode <![CDATA[ < ]]>#dealState#
+		 and iu.id=step.issue and iu.historic <![CDATA[ = ]]> 0 and
+		  <include refid="sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countMyJurisdictionsDoTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVo" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) from issues iu,issuesteps step where 
+		   iu.createorginternalcode like #orgInternalCode#||'%' and step.statecode <![CDATA[ >= ]]>#dealState#
+			and iu.id=step.issue and iu.historic <![CDATA[ = ]]> 0 and
+			<include refid="sql_where"/>
+	</select>
+	
+	<select id="findMyJurisdictionsDoTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVo" parameterClass="java.util.Map"  resultMap="issueTwoDimensionMapResultByOrgId">
+		<include refid="selectIssueViewResultFieldIssueNew"/>
+		 from issues iu,issuesteps step where 
+		iu.createorginternalcode like #orgInternalCode#||'%' and step.statecode <![CDATA[ >= ]]>#dealState#
+		 and iu.id=step.issue and iu.historic <![CDATA[ = ]]> 0 and
+		  <include refid="sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="loadIssueHasTypes" resultMap="issueTypeResult" parameterClass="Long">
+		 select type.issuetypename from issues iu left join issueTypes type on type.id=iu.issuetypeid
+		where iu.id=#id#
+	</select>
+	
+	<!--乡镇一下搜索列表	-->
+	<select id="countTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValue" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) 
+		from issues iu,issuesteps step where (
+				<include refid="sql_screenCoordinateVo"/>
+				or (iu.centerLon is null and iu.centerLat is null)
+			)  
+			and iu.id=step.issue and step.targetinternalcode='$orgInternalCode$'
+						and iu.historic <![CDATA[ = ]]> 0
+			<isPropertyAvailable property="searchValue">
+			<isNotEmpty property="searchValue" prepend=" and ">
+				(iu.subject like '$searchValue$%' or iu.serialNumber like '$searchValue$%')
+			</isNotEmpty>
+		</isPropertyAvailable>		  
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValue" parameterClass="map" resultMap="issueTwoDimensionMapResultAndTypeByOrgId">
+		<include refid="common.sql_page_start"/>
+			select iu.id as issueId,iu.serialnumber,iu.subject,iu.occurlocation,iu.occurorg,iu.centerLon  ,iu.centerlon2,iu.centerlat2,iu.centerLat,step.id as issueLogId,step.lastdealdate as dealtime,iu.status, 'personForThing' as type
+			from issues iu,issuesteps step where (
+					<include refid="sql_screenCoordinateVo"/>
+					or (iu.centerLon is null and iu.centerLat is null)
+				)  
+				and iu.id=step.issue and step.targetinternalcode='$orgInternalCode$'
+							and iu.historic <![CDATA[ = ]]> 0
+							and step.statecode<![CDATA[ < ]]>500
+			<isPropertyAvailable property="searchValue">
+				<isNotEmpty property="searchValue" prepend=" and ">
+					(iu.subject like '$searchValue$%' or iu.serialNumber like '$searchValue$%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			union
+			select iu.id as issueId,iu.serialnumber,iu.subject,iu.occurlocation,iu.occurorg,iu.centerLon  ,iu.centerlon2,iu.centerlat2,iu.centerLat,step.id as issueLogId,step.lastdealdate as dealtime,iu.status,'personAlreadyThing' as type 
+			from issues iu,issuesteps step where (
+					<include refid="sql_screenCoordinateVo"/>
+					or (iu.centerLon is null and iu.centerLat is null)
+				)  
+				and iu.id=step.issue and step.targetinternalcode='$orgInternalCode$'
+							and iu.historic <![CDATA[ = ]]> 0
+							and step.statecode<![CDATA[ >= ]]>500
+			<isPropertyAvailable property="searchValue">
+				<isNotEmpty property="searchValue" prepend=" and ">
+					(iu.subject like '$searchValue$%' or iu.serialNumber like '$searchValue$%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			union
+			select iu.id as issueId,iu.serialnumber,iu.subject,iu.occurlocation,iu.occurorg,iu.centerLon,iu.centerLat ,iu.centerlon2,iu.centerlat2,step.id as issueLogId,step.lastdealdate as dealtime,iu.status, 'goneThrough' as  type
+			from issues iu,issuesteps step where (
+					<include refid="sql_screenCoordinateVo"/>
+					or (iu.centerLon is null and iu.centerLat is null)
+				)   
+				and iu.id=step.issue and iu.createorginternalcode='$orgInternalCode$'
+							and iu.historic <![CDATA[ = ]]> 0
+							and step.statecode<![CDATA[ >= ]]>1000
+			<isPropertyAvailable property="searchValue">
+				<isNotEmpty property="searchValue" prepend=" and ">
+					(iu.subject like '$searchValue$%' or iu.serialNumber like '$searchValue$%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<!--乡镇一下搜索列表	下辖-->
+	<select id="countMyJurisdictionsTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValue" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select(select count(*) 
+		from issues iu,issuesteps step where (
+				<include refid="sql_screenCoordinateVo"/>
+				or (iu.centerLon is null and iu.centerLat is null)
+			)   
+			and iu.id=step.issue and step.targetinternalcode like '$orgInternalCode$%'
+						and iu.historic <![CDATA[ = ]]> 0
+						and step.statecode<![CDATA[ < ]]>500
+		<isPropertyAvailable property="searchValue">
+			<isNotEmpty property="searchValue" prepend=" and ">
+				(iu.subject like '$searchValue$%' or iu.serialNumber like '$searchValue$%')
+			</isNotEmpty>
+		</isPropertyAvailable>	
+		)+(
+		select count(*) 
+		from issues iu,issuesteps step where (
+				<include refid="sql_screenCoordinateVo"/>
+				or (iu.centerLon is null and iu.centerLat is null)
+			)   
+			and iu.id=step.issue and iu.createorginternalcode like '$orgInternalCode$%'
+						and iu.historic <![CDATA[ = ]]> 0
+						and step.statecode<![CDATA[ >= ]]>1000
+		<isPropertyAvailable property="searchValue">
+			<isNotEmpty property="searchValue" prepend=" and ">
+				(iu.subject like '$searchValue$%' or iu.serialNumber like '$searchValue$%')
+			</isNotEmpty>
+		</isPropertyAvailable>
+		 )as sum from dual
+	</select>
+	
+	<select id="findMyJurisdictionsTwoDimensionMapPageInfoByOrgInternalCodeAndScreenCoordinateVoAndSearchValue" parameterClass="map" resultMap="issueTwoDimensionMapResultAndTypeByOrgId">
+		<include refid="common.sql_page_start"/>
+			select iu.id as issueId,iu.serialnumber,iu.subject,iu.occurlocation,iu.occurorg,iu.centerLon,iu.centerLat ,iu.centerlon2,iu.centerlat2,step.id as issueLogId,step.lastdealdate as dealtime,iu.status,'forThing' as type
+			from issues iu,issuesteps step where (
+					<include refid="sql_screenCoordinateVo"/>
+					or (iu.centerLon is null and iu.centerLat is null)
+				)  
+				and iu.id=step.issue and step.targetinternalcode like '$orgInternalCode$%'
+							and iu.historic <![CDATA[ = ]]> 0
+							and step.statecode<![CDATA[ < ]]>500
+			<isPropertyAvailable property="searchValue">
+				<isNotEmpty property="searchValue" prepend=" and ">
+					(iu.subject like '$searchValue$%' or iu.serialNumber like '$searchValue$%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			union
+			select iu.id as issueId,iu.serialnumber,iu.subject,iu.occurlocation,iu.occurorg,iu.centerLon,iu.centerLat ,iu.centerlon2,iu.centerlat2,step.id as issueLogId,step.lastdealdate as dealtime,iu.status,'alreadyThing' as type
+			from issues iu,issuesteps step where (
+					<include refid="sql_screenCoordinateVo"/>
+					or (iu.centerLon is null and iu.centerLat is null)
+				)   
+				and iu.id=step.issue and iu.createorginternalcode like '$orgInternalCode$%'
+							and iu.historic <![CDATA[ = ]]> 0
+							and step.statecode<![CDATA[ >= ]]>1000
+			<isPropertyAvailable property="searchValue">
+				<isNotEmpty property="searchValue" prepend=" and ">
+					(iu.subject like '$searchValue$%' or iu.serialNumber like '$searchValue$%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countMyNendDoBoundedTwoDimensionMapInfoByOrgInternalCode" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0) from issues iu,issuesteps step where 
+			step.targetinternalcode = '$orgInternalCode$' and step.id= iu.currentstep and step.statecode <![CDATA[ < ]]>500
+			and iu.id=step.issue and iu.historic <![CDATA[ = ]]> 0 and (centerLon is not null and centerLat is not null) 
+	</select>
+	
+	<select id="countMyDoBoundedTwoDimensionMapInfoByOrgInternalCode" parameterClass="java.util.Map" resultClass="Integer">
+		 select count(*)
+          from issues iu
+          left join issuesteps step on (step.id=iu.currentstep)
+         where iu.id in (select issue
+                        from issuesteps
+                       where targetinternalcode = '$orgInternalCode$'
+                         and stateCode <![CDATA[ >= ]]> 500)
+           and iu.id not in (select issue
+                            from issuesteps
+                           where targetinternalcode = '$orgInternalCode$'
+                             and stateCode <![CDATA[ < ]]> 500)                   
+           and	 (centerLon is not null and centerLat is not null)
+	</select>
+	
+	<select id="countMyFinishBoundedTwoDimensionMapInfoByOrgInternalCode" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(0) from issues iu,issuesteps step where 
+		iu.createorginternalcode = '$orgInternalCode$'  and step.statecode <![CDATA[ >= ]]>1000
+			and iu.id=step.issue and iu.historic <![CDATA[ = ]]> 0 and (centerLon is not null and centerLat is not null)
+	</select>
+	
+	<select id="countMyJurisdictionsNeedDoBoundedTwoDimensionMapInfoByOrgInternalCode" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0) from issues iu,issuesteps step where 
+			 iu.createorginternalcode like '$orgInternalCode$%' and step.id= iu.currentstep and step.statecode <![CDATA[ < ]]>500
+			and iu.id=step.issue and iu.historic <![CDATA[ = ]]> 0 and (centerLon is not null and centerLat is not null) 
+	</select>
+			
+	<select id="countMyJurisdictionsFinishBoundedTwoDimensionMapInfoByOrgInternalCode" parameterClass="java.util.Map" resultClass="Integer">
+		select count(0) from issues iu,issuesteps step where 
+			 iu.createorginternalcode like '$orgInternalCode$%'   and step.statecode <![CDATA[ >= ]]>1000
+			and iu.id=step.issue and iu.historic <![CDATA[ = ]]> 0 and (centerLon is not null and centerLat is not null) 
+	</select>		
+	
+	<select id="countBoundedTwoDimensionMapInfoByOrgInternalCodeAndSearchValue" parameterClass="java.util.Map" resultClass="Integer">
+		select(select count(*) 
+		from issues iu,issuesteps step where (centerLon is not null and centerLat is not null)  
+			and iu.id=step.issue and step.targetinternalcode like '$orgInternalCode$%'
+						and iu.historic <![CDATA[ = ]]> 0
+						and step.statecode<![CDATA[ < ]]>500
+		<isPropertyAvailable property="searchValue">
+			<isNotEmpty property="searchValue" prepend=" and ">
+				(iu.subject like '$searchValue$%' or iu.serialNumber like '$searchValue$%')
+			</isNotEmpty>
+		</isPropertyAvailable>	
+		)+(
+		select count(*) 
+		from issues iu,issuesteps step where (centerLon is not null and centerLat is not null) 
+			and iu.id=step.issue and iu.createorginternalcode like '$orgInternalCode$%'
+						and iu.historic <![CDATA[ = ]]> 0
+						and step.statecode<![CDATA[ >= ]]>1000
+		<isPropertyAvailable property="searchValue">
+			<isNotEmpty property="searchValue" prepend=" and ">
+				(iu.subject like '$searchValue$%' or iu.serialNumber like '$searchValue$%')
+			</isNotEmpty>
+		</isPropertyAvailable>
+		 )as sum from dual
+	</select>
+	
+	<update id="updateTwoDimensionMap" parameterClass="issueInfoVo">
+	 <![CDATA[ 	
+		update issues set 
+			   centerLon=#lon#,
+			   centerLat=#lat#,
+			   centerLon2=#lon2#,
+			   centerLat2=#lat2#
+	     where id=#issueId#
+	  ]]>
+	</update>
+	
+	<select id="countTwoDimensionMapPageInfoByOrgIdAndTypeName" parameterClass="java.util.Map" resultClass="Integer">
+		<![CDATA[ select count(*) from issues iu, issuesteps step where
+		iu.id=step.issue and step.target=#targeOrgId# and step.stateCode<#dealState# and iu.historic = 0
+		]]>
+		<!-- 排除了待阅读，若业务改动可以直接加上     and step.id=iu.currentstep -->
+	</select>
+	
+	<select id="findTwoDimensionMapPageInfoByOrgIdAndTypeName" parameterClass="java.util.Map" resultMap="issueTwoDimensionMapResultByOrgId">
+		<include refid="common.sql_page_start"/>
+			<include refid="selectIssueViewResultFieldNew"/>
+			<![CDATA[
+			 from issues iu,issuesteps step where 
+			 iu.id=step.issue and step.target=#targeOrgId# and step.stateCode<#dealState# and iu.historic = 0 
+			]]>
+			<!-- 排除了待阅读，若业务改动可以直接加上     and step.id=iu.currentstep -->
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countMyDoneTwoDimensionMapPageInfoByOrgIdAndDealStateList" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(*) from (
+			select issue from issuesteps where id in(select max(id) from issuesteps where target=#targeOrgId# 
+			]]>
+			<iterate prepend="and" property="dealStateList" conjunction="and"> 
+					stateCode <![CDATA[>=]]> #dealStateList[]#
+			</iterate>
+			<![CDATA[ group by issue)and id not in(select max(id) from issuesteps where target=#targeOrgId#
+			]]>
+			<iterate prepend="and" property="dealStateList" conjunction="and"> 
+					stateCode <![CDATA[<]]> #dealStateList[]#
+			</iterate>
+		<![CDATA[	group by issue)
+			group by issue
+			)
+		]]>
+	</select>
+	
+	<select id="countMyDoneHistoryTwoDimensionMapPageInfoByOrgIdAndDealStateList" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(*) from (
+			select issue from issuesteps_History where id in(select max(id) from issuesteps_History where target=#targeOrgId# 
+			]]>
+			<iterate prepend="and" property="dealStateList" conjunction="and"> 
+					stateCode <![CDATA[>=]]> #dealStateList[]#
+			</iterate>
+			<![CDATA[ group by issue)and id not in(select max(id) from issuesteps_History where target=#targeOrgId#
+			]]>
+			<iterate prepend="and" property="dealStateList" conjunction="and"> 
+					stateCode <![CDATA[<]]> #dealStateList[]#
+			</iterate>
+		<![CDATA[	group by issue)
+			group by issue
+			)
+		]]>
+	</select>
+	
+	
+	<select id="findMyDoneTwoDimensionMapPageInfoByOrgIdAndDealStateList" parameterClass="java.util.Map" resultMap="issueTwoDimensionMapResultByOrgId">
+		<include refid="common.sql_page_start"/>
+			<include refid="selectIssueDoneViewResultField"/>
+			<![CDATA[
+			 from issues iu left join issuesteps step on step.id=iu.currentstep
+			 where iu.id in (select issue from issuesteps where id in(select max(id) from issuesteps where target=#targeOrgId# 
+			 ]]>
+			 <iterate prepend="and" property="dealStateList" conjunction="and"> 
+						stateCode <![CDATA[>=]]> #dealStateList[]#
+				</iterate>
+				<![CDATA[group by issue)and id not in(select max(id) from issuesteps where target=#targeOrgId# ]]>
+				<iterate prepend="and" property="dealStateList" conjunction="and"> 
+						stateCode <![CDATA[<]]> #dealStateList[]#
+				</iterate>
+			<![CDATA[	group by issue)
+				group by issue
+				)
+			]]>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="findMyDoneHistoryTwoDimensionMapPageInfoByOrgIdAndDealStateList" parameterClass="java.util.Map" resultMap="issueTwoDimensionMapResultByOrgId">
+		<include refid="common.sql_page_start"/>
+			<include refid="selectIssueDoneViewResultField"/>
+			<![CDATA[
+			 from issues_History iu left join issuesteps_History step on step.id=iu.currentstep
+			 where iu.id in (select issue from issuesteps_History where id in(select max(id) from issuesteps_History where target=#targeOrgId# 
+			 ]]>
+			 <iterate prepend="and" property="dealStateList" conjunction="and"> 
+						stateCode <![CDATA[>=]]> #dealStateList[]#
+				</iterate>
+				<![CDATA[group by issue)and id not in(select max(id) from issuesteps_History where target=#targeOrgId# ]]>
+				<iterate prepend="and" property="dealStateList" conjunction="and"> 
+						stateCode <![CDATA[<]]> #dealStateList[]#
+				</iterate>
+			<![CDATA[	group by issue)
+				group by issue
+				)
+			]]>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countMyJurisdictionsNeedDoTwoDimensionMapPageInfoByOrgIdAndDealState" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from (
+			select iu.id from issuesteps isteps,issues iu where iu.id=isteps.issue and isteps.targetinternalcode like #targeOrgInternalCode#||'__%' and isteps.targetinternalcode!=#targeOrgInternalCode# and isteps.stateCode<#dealState# 
+			and iu.historic = 0 group by iu.id
+			)
+		]]>
+	</select>
+	
+	<select id="findMyJurisdictionsNeedDoTwoDimensionMapPageInfoByOrgIdAndDealState" parameterClass="java.util.Map" resultMap="issueTwoDimensionMapResultByOrgId">
+		<include refid="common.sql_page_start"/>
+			<include refid="selectIssueViewResultFieldNew"/>
+			<![CDATA[
+			 from issues iu left join issuesteps step on step.id= iu.currentstep
+			 where iu.id in (
+				select i.id from issuesteps isteps,issues i where i.id=isteps.issue and isteps.targetinternalcode like #orgInternalCode#||'%'  and isteps.targetinternalcode!=#orgInternalCode#  and isteps.stateCode<#dealState# 
+				and i.historic = 0 group by i.id
+				)
+			]]>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="countMyJurisdictionsDoneTwoDimensionMapPageInfoByOrgIdAndDealState" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from (
+			select iu.id from issuesteps isteps,issues iu where iu.id=isteps.issue and iu.createorginternalcode like #orgInternalCode#||'__%' and isteps.stateCode>=#dealState# 
+			and iu.historic = 0 group by iu.id
+			)
+		]]>
+	</select>
+	
+	<select id="countMyJurisdictionsHistoryDoneTwoDimensionMapPageInfoByOrgIdAndDealState" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from (
+			select iu.id from issuesteps_History isteps,issues_History iu where iu.id=isteps.issue and iu.createorginternalcode like #orgInternalCode#||'__%' and isteps.stateCode>=#dealState# 
+			and iu.historic = 0 group by iu.id
+			)
+		]]>
+	</select>
+	
+	<select id="countMyJurisdictionsDoneHistoryTwoDimensionMapPageInfoByOrgIdAndDealState" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from (
+			select iu.id from issuesteps_History isteps,issues_History iu where iu.id=isteps.issue and iu.createorginternalcode like #orgInternalCode#||'__%' and isteps.stateCode>=#dealState# 
+			and iu.historic = 0 group by iu.id
+			)
+		]]>
+	</select>
+	
+	<select id="countMyFinishTwoDimensionMapPageInfoByOrgIdAndDealState" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from (
+			select iu.id from issuesteps isteps,issues iu where iu.id=isteps.issue and iu.createorginternalcode = #orgInternalCode# and isteps.stateCode>=#dealState# 
+			and iu.historic = 0 group by iu.id
+			)
+		]]>
+	</select>
+	
+	<select id="countMyFinishHistoryTwoDimensionMapPageInfoByOrgIdAndDealState" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from (
+			select iu.id from issuesteps_History isteps,issues_History iu where iu.id=isteps.issue and iu.createorginternalcode = #orgInternalCode# and isteps.stateCode>=#dealState# 
+			and iu.historic = 0 group by iu.id
+			)
+		]]>
+	</select>
+	
+	<select id="countMyDoneTwoDimensionMapPageInfoByOrgIdAndDealState" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from (
+			select iu.id from issuesteps isteps,issues iu where iu.id=isteps.issue and iu.createorginternalcode = #orgInternalCode#  and isteps.stateCode>=#dealState# 
+			and iu.historic = 0 group by iu.id
+			)
+		]]>
+	</select>
+	
+	<select id="countMyDoneHistoryTwoDimensionMapPageInfoByOrgIdAndDealState" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[
+		select count(*) from (
+			select iu.id from issuesteps_History isteps,issues_History iu where iu.id=isteps.issue and iu.createorginternalcode = #orgInternalCode#  and isteps.stateCode>=#dealState# 
+			and iu.historic = 0 group by iu.id
+			)
+		]]>
+	</select>
+	
+	<select id="findMyJurisdictionsDoneTwoDimensionMapPageInfoByOrgIdAndDealState" parameterClass="java.util.Map" resultMap="issueTwoDimensionMapResultByOrgId">
+		<include refid="common.sql_page_start"/>
+			<include refid="selectIssueViewResultFieldNew"/>
+			<![CDATA[
+			 from issues iu ,issuesteps step where iu.id=step.issue
+                   and iu.createorginternalcode like  #targeOrgInternalCode#||'__%'  
+                   and step.stateCode >= #dealState#  and iu.historic = 0
+                 order by iu.centerlon asc
+			]]>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	
+	<select id="findMyJurisdictionsHistoryDoneTwoDimensionMapPageInfoByOrgIdAndDealState" parameterClass="java.util.Map" resultMap="issueTwoDimensionMapResultByOrgId">
+		<include refid="common.sql_page_start"/>
+			<include refid="selectIssueViewResultFieldNew"/>
+			<![CDATA[
+			 from issues_History iu ,issuesteps_History step where iu.id=step.issue
+                   and iu.createorginternalcode like  #targeOrgInternalCode#||'__%'  
+                   and step.stateCode >= #dealState#  and iu.historic = 0
+                 order by iu.centerlon asc
+			]]>
+		<include refid="common.sql_page_end"/>
+	</select>
+	<select id="findMyFinishTwoDimensionMapPageInfoByOrgIdAndDealState" parameterClass="java.util.Map" resultMap="issueTwoDimensionMapResultByOrgId">
+		<include refid="common.sql_page_start"/>
+			<include refid="selectIssueViewResultFieldNew"/>
+		<![CDATA[
+			 from issues iu , issuesteps step where iu.id=step.issue and iu.createorginternalcode = #targeOrgInternalCode#
+				and step.stateCode>=#dealState# 
+				and iu.historic = 0
+			]]>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="findMyFinishHistoryTwoDimensionMapPageInfoByOrgIdAndDealState" parameterClass="java.util.Map" resultMap="issueTwoDimensionMapResultByOrgId">
+		<include refid="common.sql_page_start"/>
+			<include refid="selectIssueViewResultFieldNew"/>
+		<![CDATA[
+			 from issues_History iu , issuesteps_History step where iu.id=step.issue and iu.createorginternalcode = #targeOrgInternalCode#
+				and step.stateCode>=#dealState# 
+				and iu.historic = 0
+			]]>
+			<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+		<include refid="common.sql_page_end"/>
+	</select>
+	
+	<select id="findIssueInfoVosByOrgCodeAndMaxAndMinLonLatArrys" parameterClass="java.util.Map"  resultMap="issueTwoDimensionMapResult">
+		select iu.centerlon,iu.centerlat ,iu.centerlon2,iu.centerlat2,iu.id as issueId,iu.serialnumber,iu.subject
+		 from issues iu,issuesteps step where 
+		 iu.occurOrgInternalCode like '$occurOrgInternalCode$%' and step.stateCode<![CDATA[<]]>500  
+		 and iu.id=step.issue and iu.historic = 0 and step.id= iu.currentstep 
+		 and (
+				<include refid="sql_screenCoordinateVo"/>
+			)  
+	</select>
+	
+	<select id="countTwoDimensionMapInfoSumByOrgInternalCode" parameterClass="java.lang.String" resultClass="Integer">
+		select count(*) from issues where occurOrgInternalCode like '$occurOrgInternalCode$%'
+	</select>
+	
+	<!-- 个人待办、下辖待办-->
+	<select id="getViewPopupInfoById" parameterClass="Long" resultMap="issueTwoDimensionMapResultByIssueId">
+		select iu.id as issueId,iu.serialnumber,iu.occurlocation,iu.subject,iu.occurorg,iu.centerLon,iu.centerLat ,iu.centerlon2,iu.centerlat2,iu.status
+		 from issues iu where iu.id=#id# 
+	</select>
+	
+	<!-- 已办-->
+	<select id="getAlreadyViewPopupInfoById" parameterClass="Long" resultMap="issueTwoDimensionMapResultByIssueId">
+		select iu.id as issueId,iu.serialnumber,iu.occurlocation,iu.subject,iu.occurorg,iu.centerLon,iu.centerLat ,iu.centerlon2,iu.centerlat2,iu.status
+		 from issues iu where iu.id=#id#
+	</select>
+	
+	<!-- 已办解-->
+	<select id="getAlreadyThingViewPopupInfoById" parameterClass="Long" resultMap="issueTwoDimensionMapResultByIssueId">
+		select iu.id as issueId,iu.serialnumber,iu.occurlocation,iu.subject,iu.occurorg,iu.centerLon,iu.centerLat ,iu.centerlon2,iu.centerlat2,iu.status
+		 from issues iu where iu.id=#id#
+	</select>
+	
+</sqlMap>

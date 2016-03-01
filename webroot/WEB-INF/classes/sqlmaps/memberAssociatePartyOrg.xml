@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!-- 
+  id
+  orgId
+  orgInternalCode
+  memberId
+  partyOrgType
+  logOut
+  partyOrg
+  createDate
+  createUser
+  updateDate
+  updateUser
+ -->
+<sqlMap namespace="memberAssociatePartyOrg">
+	<typeAlias alias="MemberAssociatePartyOrg" type="com.tianque.partyBuilding.members.domain.MemberAssociatePartyOrg" />
+	
+	<resultMap class="MemberAssociatePartyOrg" id="memberAssociatePartyOrgResult">
+		<result property="id" column="id"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="member.id" column="memberId"/>
+		<result property="partyOrgType" column="partyOrgType"/>
+		<result property="logOut" column="logOut"/>
+		<result property="partyOrg" column="partyOrg"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="updateUser" column="updateUser"/>
+	</resultMap>
+	
+	<insert id="addMemberAssociatePartyOrg" parameterClass="MemberAssociatePartyOrg">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_member_associate_partyorg.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into member_associate_partyorg 
+		(
+			id,orgId,orgInternalCode,memberId,partyOrgType,logOut,partyOrg,createDate,createUser
+		) 
+		values
+		(
+			#id#,#organization.id#,#orgInternalCode#,#member.id#,#partyOrgType#,#logOut#,#partyOrg#,#createDate#,#createUser#
+		)
+	</insert>
+	
+	<update id="updateMemberAssociatePartyOrg" parameterClass="MemberAssociatePartyOrg">
+		update member_associate_partyorg set
+		memberId       =#member.id#,
+		partyOrgType   =#partyOrgType#,
+		logOut         =#logOut#,
+		partyOrg       =#partyOrg#,
+		updateDate     =#updateDate#,
+		updateUser     =#updateUser# 
+		where memberId=#member.id# and partyOrgType=#partyOrgType# and orgId=#organization.id#
+	</update>
+	
+	<select id="getMemberAssociatePartyOrg" parameterClass="map" resultMap="memberAssociatePartyOrgResult">
+		select *
+		  from member_associate_partyorg mp
+		 where mp.orgid = #orgId#
+		   and mp.partyorgtype = #partyOrgType#
+		   and mp.memberid = #memberId#
+		   and (mp.logout = 0 or mp.logout is null)
+	</select>
+	
+	<delete id="deleteMemberAssociatePartyOrgByMemberIds" parameterClass="map">
+		delete from member_associate_partyorg mp where mp.partyOrgType=#partyOrgType# and mp.orgId=#orgId#
+		<dynamic>
+			<isNotNull property="ids">
+				and mp.memberid in
+				<iterate property="ids" conjunction="," open="(" close=")">
+					#ids[]#
+				</iterate>
+			</isNotNull>
+		</dynamic>
+	</delete>
+	
+	<select id="isExistMemberInPartyOrg" parameterClass="map" resultClass="integer">
+		select count(mp.id)
+		  from member_associate_partyorg mp
+		 where (mp.logout = 0 or mp.logout is null)
+		   and mp.memberid = (select id from party_members where idcardno = #idCardNo#)
+		   <isNotNull property="orgId" prepend="and">
+		   		mp.orgid = #orgId#
+		   </isNotNull>
+		   <isNotNull property="memberTypes" prepend="and">
+		   		mp.partyorgtype in 
+			   <iterate property="memberTypes" conjunction="," open="(" close=")">
+			   		#memberTypes[]#
+			   </iterate>
+		   </isNotNull>
+	</select>
+	
+	<select id="getMemberNumByPartyOrgTypeAndOrgIdOrOrgCode" parameterClass="map" resultClass="java.lang.Integer">
+		select count(0) from member_associate_partyorg where PARTYORGTYPE=#partyOrgType# and (LOGOUT=0 or LOGOUT is null)
+		<iterate prepend=" and "  property="orgIdsList" conjunction="or" open="(" close=")">
+			orgId in ($orgIdsList[]$)
+		</iterate>
+	</select>
+	
+	<select id="countByPartyOrgTypeAndPartyOrgAndOrgId" parameterClass="map" resultClass="java.lang.Integer">
+		select count(0) from member_associate_partyorg where (LOGOUT=0 or LOGOUT is null)
+		<dynamic>
+			<isNotNull property="partyOrgType" prepend=" and ">
+				PARTYORGTYPE=#partyOrgType#
+			</isNotNull>
+			<isNotNull property="orgId" prepend=" and ">
+				orgId=#orgId#
+			</isNotNull>
+			<isNotNull property="partyOrg" prepend=" and ">
+				partyOrg = #partyOrg#
+			</isNotNull>
+		</dynamic>
+	</select>
+	
+	<!--根据partyOrgType和老的partyOrg修改partyOrg为新的partyOrg（）组织名称-->
+	<update id="updatePartyorgByPartyOrgTypeAndPartyOrg" parameterClass="map">
+		update member_associate_partyorg set
+		partyOrgType   =#partyOrgType#,
+		partyOrg       =#newPartyOrg#
+		where partyOrgType=#partyOrgType# and partyOrg=#oldPartyOrg#
+	</update>
+</sqlMap>

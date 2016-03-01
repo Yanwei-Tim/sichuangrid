@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="MessageDAO">
+	<typeAlias alias="Message" type="com.tianque.tenHouseholdsJoint.domain.Message" />
+
+	<!-- <resultMap id="receiveMsgInfoResult" class="Message">
+		<result property="id" column="id" />
+		<result property="text" column="text" />
+		<result property="requestIdentifier" column="requestIdentifier" />
+		<result property="sendAddress" column="sendAddress" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap> -->
+	
+	<insert id="addMessage" parameterClass="Message">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_message.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO Message
+		(id,text,requestIdentifier,sendAddress,createUser,createDate)
+		VALUES(#id#,#text#,#requestIdentifier#,#sendAddress#,#createUser#,#createDate#)
+	</insert>
+	
+	<delete id="deleteFamilyInfo" parameterClass="java.lang.Long">
+		delete from message where id=#value#
+	</delete>
+	
+
+</sqlMap>

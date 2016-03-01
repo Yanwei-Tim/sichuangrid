@@ -1,0 +1,189 @@
+TQ.publicNoticeMainList = function (dfop){
+	
+	$(document).ready(function(){
+		$("#publicNoticeList").jqGridFunction({
+		    url:PATH+"/sysadmin/publicNoticeManage/publicNoticeList.action?publicNoticeLevel="+$("#publicNoticeLevel").val(),
+			height: $(".ui-layout-center").height()-$("#thisCrumbs").outerHeight()-$(".ui-tabs-nav").outerHeight()-100,
+			datatype: "json",
+			colModel: [
+				{name:"id", index:"id",hidden:true,frozen:true,sortable:false,key:true},
+				{name:"encryptId",index:"encryptId",sortable:false,hidedlg:true,frozen:true,hidden:true},
+				{name:"publicNoticeTitle", index:"publicNoticeTitle",label:"标题",sortable:true,width:266},
+				{name:"noticeFiles", formatter: formatterAttachFile, label:'附件', width:100,sortable:false, align: 'center'},
+				{name:"noticeEditor",index:"noticeEditor",label:"编辑者",sortable:true,width:100},
+				{name:"editorDate",index:"editorDate",label:"编辑时间",sortable:true,align:'center',width:100},
+				{name:"isoverdate",index:"isoverdate",label:"是否已过显示有限期",width:150,sortable:true,align:'center'},
+				{name:"organization.orgName",index:"organization.orgName",label:"所属区域",width:340,sortable:false}
+			],
+		  	multiselect:true,
+			showColModelButton:false,
+			loadComplete: function(){showDailyLogAttachFile();},
+			ondblClickRow: viewDialog
+		});
+
+		$("#add").click(function(){
+			$("#publicNoticeDialog").createDialog({
+				width:650,
+				height:550,
+				title:'新增通知通报',
+				url:PATH+'/sysadmin/publicNoticeManage/dispatch.action?mode=add',
+				buttons:{
+					"保存并继续":function(event){
+						 if(!validateNull()){
+	                         $.messageBox({message:"请输入内容！",level:"error"});
+	                         return false;
+	                     }
+	             	    if(!validateLength()){
+	                         $.messageBox({message:"内容最多允许输入500个字符！",level:"error"});
+	                 	    return false;
+	             	    }
+					 $("#publicNoticeForm").submit();
+					 $("#isSubmit").val("false");
+					},
+					"保存并关闭":function(){
+						if(!validateNull()){
+	                        $.messageBox({message:"请输入内容！",level:"error"});
+	                        return false;
+	                    }
+	            	    if(!validateLength()){
+	                        $.messageBox({message:"内容最多允许输入500个字符！",level:"error"});
+	                	    return false;
+	            	    }
+						$("#isSubmit").val("true");
+					    $("#publicNoticeForm").submit();
+					}
+				}
+			});
+		});
+		
+		$("#update").click(function(){
+			if($("#publicNoticeLevel").val()==1){
+				$.messageBox({level:"warn",message:"不能对下辖通知通告进行修改操作！"});
+				return;
+			}
+			var selectedId=getSelectedId();
+			if(selectedId==undefined||selectedId.length==0){
+				$.messageBox({level:"warn",message:"请先选择一条记录，再进行操作！"});
+				return;
+			}
+			if(selectedId.length>1){
+				$.messageBox({level:"warn",message:"只能选择一条记录进行操作！"});
+				return;
+			}
+			updateOperator(selectedId)
+		});
+		
+
+		$("#refreshOrgTree1").click(function(){
+			$("#searchtxt").attr("value","请输入标题关键字条件");
+		});
+
+		$("#delete").click(function(){
+			if($("#publicNoticeLevel").val()==1){
+				$.messageBox({level:"warn",message:"不能对下辖通知通告进行删除操作！"});
+				return;
+			}
+			var selectedIds = $("#publicNoticeList").jqGrid("getGridParam", "selarrrow");
+			if(selectedIds==null || selectedIds==""){
+				$.messageBox({level:'warn',message:"请选择一条或多条数据进行删除！"});
+		 		return;
+			}
+			deleteOperator(selectedIds);
+		});
+		
+		function search(){
+			$("#publicNoticeList").setGridParam({
+				url:PATH+"/sysadmin/publicNoticeManage/fastSearch.action",
+				datatype:"json",
+				page:1
+			});
+			if($("#searchtxt").val() =="请输入标题关键字条件"){
+				$("#publicNoticeList").setPostData({
+					"publicNoticeVo.publicNoticeLevel":$("#publicNoticeLevel").val()
+				});
+			}else{
+				$("#publicNoticeList").setPostData({
+					"publicNoticeVo.publicNoticeLevel":$("#publicNoticeLevel").val(),
+					"publicNoticeVo.editorTitle":$("#searchtxt").val()
+				});
+			}
+
+			$("#publicNoticeList").trigger("reloadGrid");
+		}
+
+		//检索。。。。。。
+		$("#searchByConditionButton").click(function(){
+			search();
+		});
+		function searchPublicNotice(){
+			$("#publicNoticeList").setGridParam({
+	            url:PATH+"/sysadmin/publicNoticeManage/searchPublicNotice.action",
+				datatype: "json",
+				page:1,
+				mtype:"post"
+			});
+			var data=$("#searchPublicNotice").serializeArray();
+			var dataJson={};
+			for(i=0;i<data.length;i++){
+				 if (dataJson[data[i].name]) {
+			      dataJson[data[i].name]=dataJson[data[i].name]+","+data[i].value;
+				} else {dataJson[data[i].name] = data[i].value;
+				}
+			}
+			$("#publicNoticeList").setPostData($.extend({"publicNoticeVo.isInValidity":$("#isInValidity").val()},dataJson));
+		    $("#publicNoticeList").trigger("reloadGrid");
+		}
+
+		$("#search").click(function(event){
+			$("#publicNoticeDialog").createDialog({
+				width:650,
+				height:240,
+				title:'通知通报查询-请输入查询条件',
+				url:PATH+'/sysadmin/publicNoticeManage/dispatch.action?mode=search',
+				buttons: {
+					"查询" : function(event){
+						searchPublicNotice();
+						$(this).dialog("close");
+					},
+					"关闭" : function(){
+						$(this).dialog("close");
+					}
+				}
+			});
+		});
+		$("#view").click(function(){
+			var selectedId = getSelectedId();
+			if(selectedId==undefined||selectedId.length==0){
+				$.messageBox({level:"warn",message:"请先选择一条记录，再进行操作！"});
+				return;
+			}
+			if(selectedId.length>1){
+				$.messageBox({level:"warn",message:"只能选择一条记录进行操作！"});
+				return;
+			}
+			viewDialog(selectedId);
+		});
+
+		 function getSelectedId(){
+			var selectedIds='';
+			var selectedIds = $("#publicNoticeList").jqGrid("getGridParam", "selarrrow");
+			return selectedIds;
+		}
+		 function getSelectedIdLast(){
+			var selectedId;
+			var selectedIds = $("#floatingPopulationList").jqGrid("getGridParam", "selarrrow");
+			for(var i=0;i<selectedIds.length;i++){
+				selectedId = selectedIds[i];
+			}
+			return selectedId;
+		}
+		$("#refresh").click(function(){
+			$("#searchtxt").attr("value","请输入标题关键字条件");
+			onOrgChanged();
+		});
+		 $("#publicNoticeLevel").change(function(){
+		   $("#searchtxt").attr("value","请输入标题关键字条件");
+		   onOrgChanged();
+	   });
+	 });
+}

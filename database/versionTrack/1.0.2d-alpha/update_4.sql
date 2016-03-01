@@ -1,0 +1,1 @@
+alter table DM_rectificativePersons_Temp add ACCUSATION VARCHAR2(150); 

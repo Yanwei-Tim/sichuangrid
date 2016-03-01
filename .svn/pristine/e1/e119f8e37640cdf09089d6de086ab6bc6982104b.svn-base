@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="usedInfoData">
+	<typeAlias alias="UsedInfoData" type="com.tianque.usedInfoOptmize.domain.UsedInfoData"/>
+	<resultMap class="UsedInfoData" id="usedInfoDataResult">
+		<result property="id" column="id"/>
+		<result property="org.id" column="orgId"/>
+		<result property="parentOrgId" column="parentOrgId"/>
+		<result property="org.orgInternalCode" column="orgInternalCode"/>
+		<result property="activeSum" column="activeSum"/>
+		<result property="accountSum" column="accountSum"/>
+		<result property="specialCrowdCount" column="specialCrowdCount"/>
+		<result property="createDate" column="createDate"/>
+		<result property="createUser" column="createUser"/>
+	</resultMap>
+	<insert id="createUsedInfoMonthData"  parameterClass="java.util.Map">
+		insert into usedinfomonth(id,orgId,parentOrgId,orgInternalCode,activeSum,accountSum,specialCrowdCount,CREATEDATE,createuser)
+		select S_usedinfomonth.Nextval,
+			  org.id,
+			  org.parentId,
+			  org.orgInternalCode,
+			  (select count(t.userid)
+	              from (select userid as userid, orginternalcode as orginternalcode
+	                      from usersign us
+	                    where us.createdate between #startDate# and #endDate# 
+	                     group by userid, orginternalcode
+	                    having count(userid) >= 20) t
+	             where t.orginternalcode like org.orginternalcode || '%'),
+	            (select count(1) from users u where u.orginternalcode like org.orginternalcode || '%' and u.state=2 and <![CDATA[u.activationtime < #endDate#]]>),
+	            (select count(1) specialCrowdCount from serviceRecordRelyObject s left join servicerecords r
+       				on s.recordid= r.id 
+       				where s.objecttype in('positiveInfo','rectificativePerson','mentalPatient','druggy','idleYouth') 
+      					and r.createdate between #startDate# and #endDate# and r.orgcode like org.orginternalcode || '%'
+       			),
+	            #createDate#,
+	            #createUser#
+	    from organizations org  
+	    where org.orgtype=#orgTypeId#
+	</insert>
+	<insert id="createUsedInfoWeekData" parameterClass="java.util.Map">
+		insert into usedinfoweek (id,orgId,parentOrgId,orgInternalCode,activeSum,accountSum,specialCrowdCount,CREATEDATE,createuser)
+		select S_usedinfoweek.Nextval,
+			  org.id,
+			  org.parentId,
+			  org.orgInternalCode,
+			  (select count(t.userid)
+	              from (select userid as userid, orginternalcode as orginternalcode
+	                      from usersign us
+	                    where us.createdate between #startDate# and #endDate# 
+	                     group by userid, orginternalcode
+	                    having count(userid) >= 5) t
+	             where t.orginternalcode like org.orginternalcode || '%'),
+	            (select count(1) from users u where u.orginternalcode like org.orginternalcode || '%' and u.state=2 ),
+	            (select count(1) specialCrowdCount from serviceRecordRelyObject s left join servicerecords r
+       				on s.recordid= r.id 
+       				where s.objecttype in('positiveInfo','rectificativePerson','mentalPatient','druggy','idleYouth') 
+      					and r.createdate between #startDate# and #endDate# and r.orgcode like org.orginternalcode || '%'
+       			),
+	            #createDate#,
+	            #createUser#
+	    from organizations org  
+	    where org.orgtype=#orgTypeId#
+	</insert>
+	
+	<delete id="deleteUsedInfoWeekData">
+		delete usedinfoweek
+	</delete>
+	
+	<delete id="deleteUsedInfoMonthData">
+		delete usedinfomonth
+	</delete>
+	
+	<select id="findUsedInfoWeekDataByParentOrgId" parameterClass="java.lang.Long" resultMap="usedInfoDataResult">
+		select * from usedinfoweek u where u.parentOrgId=#value#
+	</select>
+	<select id="findUsedInfoMonthDataByParentOrgId" parameterClass="java.lang.Long" resultMap="usedInfoDataResult">
+		select * from usedinfomonth u where u.parentOrgId=#value#
+	</select>
+</sqlMap>

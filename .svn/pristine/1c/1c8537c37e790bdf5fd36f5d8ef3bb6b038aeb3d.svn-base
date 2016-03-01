@@ -1,0 +1,29 @@
+package com.tianque.account.job;
+
+
+import java.io.Serializable;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.tianque.account.api.ThreeRecordsJobDubboService;
+import com.tianque.job.JobHelper;
+
+@Component("threeRecordsLastYearTurnJob")
+public class ThreeRecordsLastYearTurnJob implements Serializable {
+	private static Logger logger = LoggerFactory.getLogger(ThreeRecordsLastYearTurnJob.class);
+//	@Autowired
+	private ThreeRecordsJobDubboService jobDubboService;
+	
+	public void lastYearTurn(){
+		logger.error("三本台账上年接转job开始执行");
+		try {
+			JobHelper.createMockAdminSession();
+			jobDubboService.lastYearTurn();
+		} catch (Exception e) {
+			logger.error("三本台账上年接转job执行错误：", e);
+		}
+	}
+}

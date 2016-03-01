@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchOverseaPersonnel">
+<typeAlias alias="overseaPersonnelVo" type="com.tianque.domain.vo.SearchOverseaPersonnelVo"/>
+	<sql id="sql_where">
+		from overseaPersonnel where orgInternalCode like #orgInternalCode#||'%'
+		<dynamic>
+		<isPropertyAvailable property="chineseName" >
+				<isNotEmpty property="chineseName" prepend=" and ">
+					(name  like #chineseName#||'%' or fullPinyin like #chineseName#||'%' or simplePinyin like #chineseName#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="gender" >
+				<isNotEmpty property="gender" prepend=" and ">
+					gender = #gender#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="certificateNo" >
+				<isNotEmpty property="certificateNo" prepend=" and ">
+					upper(certificateNo) like upper(#certificateNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="englishName" >
+				<isNotEmpty property="englishName" prepend=" and ">
+					englishName  like #englishName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+				<isPropertyAvailable property="inflowReason" >
+				<isNotEmpty property="inflowReason" prepend=" and ">
+					inflowReason  like '%'||#inflowReason#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		
+			<isPropertyAvailable property="birthdayStart" >
+				<isNotEmpty property="birthdayStart" prepend=" and ">
+					<![CDATA[ birthday >= #birthdayStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthdayEnd" >
+				<isNotEmpty property="birthdayEnd" prepend=" and ">
+				<![CDATA[ birthday <= #birthdayEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="arrivalTimeStart" >
+				<isNotEmpty property="arrivalTimeStart" prepend=" and ">
+					<![CDATA[ arrivalTime >= #arrivalTimeStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="arrivalTimeEnd" >
+				<isNotEmpty property="arrivalTimeEnd" prepend=" and ">
+				<![CDATA[ arrivalTime <= #arrivalTimeEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="leaveTimeStart" >
+				<isNotEmpty property="leaveTimeStart" prepend=" and ">
+					<![CDATA[ leaveTime >= #leaveTimeStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="leaveTimeEnd" >
+				<isNotEmpty property="leaveTimeEnd" prepend=" and ">
+				<![CDATA[ leaveTime <= #leaveTimeEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+				<isPropertyAvailable property="certificateStrartDay" >
+				<isNotEmpty property="certificateStrartDay" prepend=" and ">
+					<![CDATA[ certificateStrartDay >= #certificateStrartDay# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="certificateEndDay" >
+				<isNotEmpty property="certificateEndDay" prepend=" and ">
+				<![CDATA[ certificateEndDay <= #certificateEndDay# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentAddress" >
+				<isNotEmpty property="currentAddress" prepend=" and ">
+					currentAddress  like '%'||#currentAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber" >
+				<isNotEmpty property="mobileNumber" prepend=" and ">
+					mobileNumber  like #mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nationality" >
+				<isNotEmpty property="nationality" prepend=" and ">
+					nationality  like  '%'||#nationality#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="certificateTypeId" >
+				<isNotEmpty property="certificateTypeId" prepend=" and ">
+					certificateType = #certificateTypeId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="professionId" >
+				<isNotEmpty property="professionId" prepend=" and ">
+					profession = #professionId#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="workUnit" >
+				<isNotEmpty property="workUnit" prepend=" and ">
+					workUnit  like '%'||#workUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>		
+			<isPropertyAvailable property="telephone">
+			<isNotEmpty property="telephone" prepend=" and ">
+				telephone  like #telephone#||'%'
+			</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="logOut">
+				<isNotNull property="logOut" prepend=" and ">
+					<isEqual property="logOut" compareValue="1">
+						logOut = #logOut#
+					</isEqual>
+					<isEqual property="logOut" compareValue="0">
+						(logOut = #logOut# or logOut is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotEmpty property="fastSearchKeyWords" prepend=" and ">
+					<![CDATA[ (upper(certificateNo) like  upper(#fastSearchKeyWords#)||'%' or englishName like #fastSearchKeyWords#||'%'  or name like #fastSearchKeyWords#||'%' )  ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_fastSearch_where">
+		from overseaPersonnel where orgInternalCode like #orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotEmpty property="fastSearchKeyWords" prepend=" and ">
+					<![CDATA[ (upper(certificateNo) like  upper(#fastSearchKeyWords#)||'%' or englishName like #fastSearchKeyWords#||'%'  or name like #fastSearchKeyWords#||'%' )  ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="certificateNo" >
+				<isNotEmpty property="certificateNo" prepend=" and ">
+					upper(certificateNo) like upper(#certificateNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="logOut" >
+				<isNotNull property="logOut" prepend=" and ">
+					<isEqual property="logOut" compareValue="1">
+						logOut = #logOut#
+					</isEqual>
+					<isEqual property="logOut" compareValue="0">
+						(logOut = #logOut# or logOut is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>	
+			<isPropertyAvailable property="englishName" >
+				<isNotEmpty property="englishName" prepend=" and ">
+					(englishName  like #englishName#||'%' or name like #englishName#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>	
+		</dynamic>
+	</sql>
+	
+	<select id="countFastSearchOverseaPersonnel" parameterClass="map" resultClass="int">
+		select count(*)
+		<include refid="sql_fastSearch_where" />
+	</select>
+	
+	<select id="countSearchOverseaPersonnel" parameterClass="overseaPersonnelVo" resultClass="int">
+		select count(*)
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="fastSearchOverseaPersonnel" parameterClass="map" resultMap="overseaPersonnel.overseaPersonnelResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_fastSearch_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="searchOverseaPersonnel" parameterClass="overseaPersonnelVo" resultMap="overseaPersonnel.overseaPersonnelResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findOverseaPersonnelNameAndPinyinAndOrgInternalCode" parameterClass="java.util.Map" resultMap="overseaPersonnel.overseaPersonnelResult">
+		select * from overseaPersonnel where (name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%' ) and orgInternalCode like #orgInternalCode#||'%' order by id
+	</select>
+
+</sqlMap>

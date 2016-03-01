@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="socialRelationManage" extends="default" namespace="/baseinfo/socialRelationManage">
+		<default-class-ref class="socialRelationController"></default-class-ref>
+
+		<action name="dispatchOperate" method="dispatch">
+			<result name="success">
+				/baseinfo/trampResident/socialrelation/maintainSocialRelationDlg.jsp
+			</result>					
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="socialRelationList" method="findSocialRelationForPageByTrampResidentId">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="addSocialRelation" method="addSocialRelation">
+			<result name="success" type="json">
+				<param name="root">socialRelation</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="updateSocialRelation" method="updateSocialRelation">
+			<result name="success" type="json">
+				<param name="root">socialRelation</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="deleteSocialRelation" method="deleteSocialRelation">
+			<result name="success" type="json">
+				<param name="root">bol</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="hasDuplicateSocialRelation" method="hasDuplicateSocialRelation">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>			
+		</action>
+		
+		<action name="getSocialRelationById" method="getSocialRelationById">
+			<result name="success">
+				/baseinfo/trampResident/socialrelation/socialRelationAccordingContext.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

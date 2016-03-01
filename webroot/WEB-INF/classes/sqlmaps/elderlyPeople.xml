@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="elderlyPeople">
+	<!-- 注释说明 -->
+	<typeAlias alias="ElderlyPeople" type="com.tianque.baseInfo.elderlyPeople.domain.ElderlyPeople" />
+	<typeAlias alias="SearchElderlyPeopleVo" type="com.tianque.domain.vo.SearchElderlyPeopleVo" />
+	<typeAlias alias="condition" type="com.tianque.domain.vo.SearchElderlyPeopleVo" />
+	<resultMap class="ElderlyPeople" id="elderlyPeopleSimpleResult" extends="attentionPopulationBaseInfo.attentionPopulationSimpleResultForList">
+		<result property="elderPeopleId" column="elderPeopleId" />
+		<result property="peopleType.id" column="peopleType" />
+		<result property="currentStatus.id" column="currentStatus" />
+		<result property="liveStatus.id" column="liveStatus" />
+		<result property="spouseStatus.id" column="spouseStatus" />
+		<result property="incomeSource.id" column="incomeSource" />
+		<result property="enterWorkDate" column="enterWorkDate" />
+		<result property="retireDate" column="retireDate" />
+		<result property="retireUnitAndDuty" column="retireUnitAndDuty" />
+		<result property="zhiwu" column="zhiwu" />
+		<result property="pension" column="pension" />
+	</resultMap>
+
+	<resultMap class="ElderlyPeople" id="elderlyPeopleResult"  extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResult">
+		<result property="elderPeopleId" column="elderPeopleId" />
+		<result property="peopleType.id" column="peopleType" />
+		<result property="currentStatus.id" column="currentStatus" />
+		<result property="liveStatus.id" column="liveStatus" />
+		<result property="spouseStatus.id" column="spouseStatus" />
+		<result property="incomeSource.id" column="incomeSource" />
+		<result property="enterWorkDate" column="enterWorkDate" />
+		<result property="retireDate" column="retireDate" />
+		<result property="retireUnitAndDuty" column="retireUnitAndDuty" />
+		<result property="zhiwu" column="zhiwu" />
+		<result property="pension" column="pension" />
+	</resultMap>
+	<!-- 这两个resultMap内容一致，继承关系不一样 -->
+	<resultMap class="ElderlyPeople" id="elderlyPeopleResultForList"  extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+		<result property="elderPeopleId" column="elderPeopleId" />
+		<result property="peopleType.id" column="peopleType" />
+		<result property="currentStatus.id" column="currentStatus" />
+		<result property="liveStatus.id" column="liveStatus" />
+		<result property="spouseStatus.id" column="spouseStatus" />
+		<result property="incomeSource.id" column="incomeSource" />
+		<result property="enterWorkDate" column="enterWorkDate" />
+		<result property="retireDate" column="retireDate" />
+		<result property="retireUnitAndDuty" column="retireUnitAndDuty" />
+		<result property="zhiwu" column="zhiwu" />
+		<result property="pension" column="pension" />
+	</resultMap>
+	
+	<sql id="fields">
+		uni.id,uni.baseInfoId,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.createDate,uni.createUser,uni.updateUser,uni.updateDate,
+		enterWorkDate,retireDate,pension,liveStatus,peopleType,spouseStatus,currentStatus,incomeSource,retireUnitAndDuty,
+		zhiwu,elderPeopleId,isEmphasis,isEmphasisReason,isEmphasisDate,sourcesState,attentionExtent
+	</sql>
+	
+	<select id="getId" resultClass="java.lang.Long">
+		<![CDATA[SELECT s_elderlyPeople.NEXTVAL as id from dual ]]>
+	</select>
+	
+	<insert id="addElderlyPeople" parameterClass="ElderlyPeople">
+		insert into elderlyPeople_$shardCode$ (
+		<include refid="populationBaseInfo.addBaseInfoFields"/>,
+		enterWorkDate,retireDate,pension,liveStatus,peopleType,spouseStatus,currentStatus,incomeSource,retireUnitAndDuty,
+		zhiwu,elderPeopleId,isEmphasis,sourcesState,attentionExtent)
+		values (
+		<include refid="populationBaseInfo.addBaseInfoData"/>,
+		#enterWorkDate#,#retireDate#,#pension#,#liveStatus.id#,#peopleType.id#,#spouseStatus.id#,#currentStatus.id#,#incomeSource.id#,#retireUnitAndDuty#,
+		#zhiwu#,#elderPeopleId#,#isEmphasis#,#sourcesState#,#attentionExtent.id#)
+	</insert>
+	
+	<select id="getElderlyPeopleById" parameterClass="java.util.Map" resultMap="elderlyPeopleResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		FROM elderlyPeople_$shardCode$ uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.id = #id#
+	</select>
+
+	<select id="countElderlyPeople" parameterClass="ElderlyPeople" resultClass="java.lang.Integer">
+		select count(uni.id) from elderlyPeople_$shardCode$ uni left join baseinfo b on uni.baseinfoid=b.id
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode"  prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+					isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+					isEmphasis = #isEmphasis#
+				</isEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findElderlyPeople" parameterClass="ElderlyPeople" resultMap="elderlyPeopleSimpleResult">
+       select <include refid="fields"/>,'$attentionPopulationType$' as populationType
+       FROM elderlyPeople_$shardCode$ uni 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode" prepend=" and ">
+				<isNotNull property="orgInternalCode">
+				uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+				  		isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+				</isEqual>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+
+	<select id="countElderlyPeoplesBySearchVo" parameterClass="SearchElderlyPeopleVo" resultClass="java.lang.Integer">
+		select count(uni.id) from elderlyPeople_$shardCode$ uni left join baseinfo b on uni.baseinfoid=b.id
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode"  prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+					isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+					isEmphasis = #isEmphasis#
+				</isEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findElderlyPeoplesBySearchVo" parameterClass="SearchElderlyPeopleVo" resultMap="elderlyPeopleSimpleResult">
+       select <include refid="fields"/>,'$attentionPopulationType$' as populationType
+       FROM elderlyPeople_$shardCode$ uni 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode" prepend=" and ">
+				<isNotNull property="orgInternalCode">
+				uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+				  		isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+				</isEqual>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<sql id="updateBusinessSql">
+			<include refid="populationBaseInfo.updateBaseInfoSql"/>,
+	        elderPeopleId= #elderPeopleId#
+			,peopleType = #peopleType.id#
+		    ,currentStatus = #currentStatus.id#
+			,liveStatus = #liveStatus.id#
+			,spouseStatus = #spouseStatus.id#
+			,incomeSource = #incomeSource.id#
+            ,enterWorkDate = #enterWorkDate#
+			,retireDate = #retireDate#
+			,pension = #pension#
+			,retireUnitAndDuty = #retireUnitAndDuty#
+			,zhiwu= #zhiwu#
+			,attentionExtent=#attentionExtent.id#
+	</sql>
+
+	<update id="updateElderlyPeople" parameterClass="ElderlyPeople">
+		update elderlyPeople_$shardCode$ set
+			<isNotEmpty property="isEmphasis">
+				isEmphasis = #isEmphasis#,
+			</isNotEmpty>
+			<include refid="updateBusinessSql"/>
+			where id=#id#
+	</update>
+
+	<delete id="deleteElderlyPeopleById" parameterClass="java.util.Map">
+		delete from elderlyPeople_$shardCode$ where id = #id#
+	</delete>
+	
+	<select id="getByOrgIdAndIdCardNo" parameterClass="map" resultMap="elderlyPeopleResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		from elderlyPeople_$shardCode$ uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgId = #orgId# and upper(idCardNo)=upper(#idCardNo#)
+	</select>
+
+	<select id="getElderlyPeopleByIdCardNoAndOrganizationId" parameterClass="java.util.Map" resultMap="elderlyPeopleResult">
+		SELECT <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		FROM elderlyPeople_$shardCode$ uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where upper(idCardNo) = upper(#idCardNo#) 
+		and uni.orgId = #organizationId#
+	</select>
+
+	<sql id="search_sql_where">
+		from elderlyPeople_$shardCode$ uni left join baseinfo b on uni.baseinfoid=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty prepend=" and " property="idCardNo">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty prepend=" and " property="name">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="gender">
+				<isNotEmpty prepend=" and " property="gender">
+					gender = #gender#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthdayStart" >
+				<isNotEmpty prepend=" and " property="birthdayStart">
+				<![CDATA[ birthday >= #birthdayStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthdayEnd">
+				<isNotEmpty prepend=" and " property="birthdayEnd">
+				<![CDATA[ birthday <= #birthdayEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="elderPeopleId">
+				<isNotEmpty prepend=" and " property="elderPeopleId">
+					elderPeopleId like '%'||#elderPeopleId#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="peopleType">
+				<isNotEmpty prepend=" and " property="peopleType">
+					peopleType = #peopleType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentStatus">
+				<isNotEmpty prepend=" and " property="currentStatus">
+					currentStatus = #currentStatus#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="liveStatus">
+				<isNotEmpty prepend=" and " property="liveStatus">
+					liveStatus= #liveStatus#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="spouseStatus">
+				<isNotEmpty prepend=" and " property="spouseStatus">
+					spouseStatus= #spouseStatus#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="incomeSource">
+				<isNotEmpty prepend=" and " property="incomeSource">
+					incomeSource= #incomeSource#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="telephone">
+				<isNotEmpty prepend=" and " property="telephone">
+					telephone like '%'||#telephone#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty prepend=" and " property="mobileNumber">
+					mobileNumber like '%'||#mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="enterWorkDateStart" >
+				<isNotEmpty prepend=" and " property="enterWorkDateStart">
+				<![CDATA[ enterWorkDate >= #enterWorkDateStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="enterWorkDateEnd">
+				<isNotEmpty prepend=" and " property="enterWorkDateEnd">
+				<![CDATA[ enterWorkDate <= #enterWorkDateEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="retireDateStart" >
+				<isNotEmpty prepend=" and " property="retireDateStart">
+				<![CDATA[ retireDate >= #retireDateStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="retireDateEnd">
+				<isNotEmpty prepend=" and " property="retireDateEnd">
+				<![CDATA[ retireDate <= #retireDateEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="minPension" >
+				<isNotEmpty prepend=" and " property="minPension">
+				<![CDATA[ pension >= #minPension# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maxPension">
+				<isNotEmpty prepend=" and " property="maxPension">
+				<![CDATA[ pension <= #maxPension# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="retireUnitAndDuty">
+				<isNotEmpty prepend=" and " property="retireUnitAndDuty">
+					retireUnitAndDuty like '%'||#retireUnitAndDuty#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="zhiwu">
+				<isNotEmpty prepend=" and " property="zhiwu">
+					zhiwu like '%'||#zhiwu#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nation">
+				<isNotEmpty prepend=" and " property="nation">
+					nation= #nation#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="politicalBackground">
+				<isNotEmpty prepend=" and " property="politicalBackground">
+					politicalBackground= #politicalBackground#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maritalState">
+				<isNotEmpty prepend=" and " property="maritalState">
+					maritalState= #maritalState#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="career">
+				<isNotEmpty prepend=" and " property="career">
+					career = #career#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workUnit">
+				<isNotEmpty prepend=" and " property="workUnit">
+					workUnit like '%'||#workUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="minStature" >
+				<isNotEmpty prepend=" and " property="minStature">
+				<![CDATA[ stature >= #minStature# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maxStature">
+				<isNotEmpty prepend=" and " property="maxStature">
+				<![CDATA[ stature <= #maxStature# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="faith">
+				<isNotEmpty prepend=" and " property="faith">
+					faith = #faith#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="email">
+				<isNotEmpty prepend=" and " property="email">
+					email like '%'||#email#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="schooling">
+				<isNotEmpty prepend=" and " property="schooling">
+					schooling = #schooling#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="bloodType">
+				<isNotEmpty prepend=" and " property="bloodType">
+					bloodType = #bloodType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="province">
+				<isNotEmpty prepend=" and " property="province">
+					province = #province#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="city">
+				<isNotEmpty prepend=" and " property="city">
+					city = #city#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="district">
+				<isNotEmpty prepend=" and " property="district">
+					district = #district#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativePlaceAddress">
+				<isNotEmpty prepend=" and " property="nativePlaceAddress">
+					nativePlaceAddress like '%'||#nativePlaceAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentAddress">
+				<isNotEmpty prepend=" and " property="currentAddress">
+					currentAddress like '%'||#currentAddress#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isDeath">
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="true">
+						isDeath = #isDeath#
+					</isEqual>
+					<isEqual property="isDeath" compareValue="false">
+						(isDeath = #isDeath# or isDeath is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis" prepend=" and ">
+				<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+				</isEqual>
+				<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis#
+				</isEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="countSearchElderlyPeople" parameterClass="condition" resultClass="int">
+		select count(uni.id) <include refid="search_sql_where" />
+	</select>
+	<select id="searchElderlyPeople" parameterClass="condition" resultMap="elderlyPeopleResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>
+		<include refid="search_sql_where" />
+		<dynamic prepend=" order by ">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+				</isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<update id="updateBusiness" parameterClass="ElderlyPeople">
+		update elderlyPeople_$shardCode$ set
+		<isNotEmpty property="isEmphasis">
+			isEmphasis = #isEmphasis#,
+		</isNotEmpty>
+		<include refid="updateBusinessSql"/>
+		where id=#id#
+	</update>
+
+	<update id="updateEmphasiseById" parameterClass="java.util.Map">
+		update elderlyPeople_$shardCode$ set
+			isEmphasis = #isEmphasis#
+			where id=#id#
+	</update>
+
+	<!-- 以下sql已经过时，如要启用，请先修改 -->
+	<update id="updateBaseInfo" parameterClass="ElderlyPeople">
+		update elderlyPeople_$shardCode$ set
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>
+		,isEmphasis = #isEmphasis#
+		where id=#id#
+	</update>
+	
+	<update id="updateDeathAndLogoutStateById" parameterClass="java.util.Map">
+		update elderlyPeople_$shardCode$ set
+		isEmphasis = #isEmphasis#,
+		isDeath = #isDeath#
+		where id=#id#
+	</update>
+
+	<update id="updateElderlyPeopleByIdCardNoFromBasePersonnel" parameterClass="ElderlyPeople">
+		update elderlyPeople_$shardCode$ set
+		<dynamic>
+			idCardNo = #idCardNo#
+			<isNotEmpty property="name" prepend=",">
+				name = #name#
+			</isNotEmpty>
+			<isNotEmpty property="fullPinyin" prepend=",">
+				fullPinyin = #fullPinyin#
+			</isNotEmpty>
+			<isNotEmpty property="simplePinyin" prepend=",">
+				simplePinyin = #simplePinyin#
+			</isNotEmpty>
+			<isNotNull property="gender">
+				<isNotNull property="gender.id" prepend=",">
+					gender = #gender.id#
+				</isNotNull>
+			</isNotNull>
+			where idCardNo = #idCardNo#
+		</dynamic>
+	</update>
+
+	<select id="getIdByBaseinfoIdAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		SELECT id from elderlyPeople_$shardCode$  
+		where baseinfoid=#baseInfoId# and orgId=#orgId#
+	</select>
+</sqlMap>
+
+

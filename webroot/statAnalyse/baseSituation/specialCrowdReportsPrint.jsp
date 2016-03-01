@@ -1,0 +1,273 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<%@page import="com.tianque.plugin.analysisNew.util.AnalyseUtilNew"%>
+<jsp:include page="/includes/baseInclude.jsp" />
+<div id="zongkuangPrint" style="overflow: auto;height:100%;width:100%">
+<style type="text/css">
+        .printTable_title{position:relative;margin:0 5px;background: #E7EDF5;
+              border-top: 1px solid #ccc;border-left:1px solid #ccc;
+              border-right: 1px solid #ccc;font-size: 12px;height: 23px;line-height: 28px;
+              padding-top: 2px;font-weight:bold;color: #333;text-align:center;
+              font-size:16px;width:940px !important;border-bottom:1px solid #ccc;}
+		.SigmaReportPrint table{
+			width:940px;  
+			border-collapse:collapse;
+			overflow: hidden;
+		}
+		.SigmaReportPrint td{
+			font-weight:normal;
+			color:#333;
+		}
+		.SigmaReportPrint .head{
+		    width:595px;
+			margin:0 5px;
+			border-left:1px solid #ccc;
+		}
+		
+		.SigmaReportPrint .body{
+			margin:0 5px;
+			border-left:1px solid #ccc;
+		}
+		
+		.SigmaReportPrint .body tr.selected{
+			background-color:#CCE4F9;
+		}
+		.SigmaReportPrint .body tr.disabled{
+			background:#F0EDED;
+			color:#CECECE;
+		}
+		
+		.SigmaReportPrint .body tr.hover{
+			background-color:rgb(255,255,151);
+		}
+		
+		.SigmaReportPrint .scroll{
+		}
+		
+		.SigmaReportPrint .body td{
+			border-right:1px solid #ccc;
+			border-bottom:1px solid #ccc;
+			font-size:12px;
+			height:20px;
+			padding:0px;
+			text-align:center;
+			color:#333;
+		}
+		
+		.SigmaReportPrint .body input{
+			font-size:12px;
+			border:0px solid red;
+		}
+		.SigmaReportPrint  input{
+			font-size:12px;
+			border:0px solid red;
+		}
+		
+		.SigmaReportPrint .body div.focused{
+			background-color:rgb(255,250,255);
+		}
+		
+		.SigmaReportPrint .body div{
+			white-space:nowrap;
+			padding:3px;
+			display:block;
+			text-align:center;
+		}
+		.SigmaReportPrint .body div.checked{
+			width:16px;
+			height:16px;
+			border:1px solid red;
+			background-image:url(right.gif);
+			background-repeat:no-repeat;
+		}
+		
+		.SigmaReportPrint .head td{
+			background:#e7edf5;
+			border-right:1px solid #ccc;
+			border-bottom:1px solid #ccc;
+			font-size:12px;
+			height:28px;
+			line-height:28px;(
+			overflow:hidden;
+			padding-top:2px;
+		}
+		
+		
+		.SigmaReportPrint .head div.title{
+			padding-top:2px;
+			float:left;
+			height:18px;
+			overflow:hidden;
+			white-space:nowrap;
+		}
+	</style>
+<div id="gridbox12" class="SigmaReportPrint">
+</div>
+</div>
+<script type="text/javascript">
+<%-- if(<%=AnalyseUtilNew.IS_NEWANALYSE_JOB%>){
+	var basesituationstatementsort_url = "${path}/baseInfo/baseSituationStatementNew/basesituationStatementSort.action?orgId=";
+}else{ --%>
+	var basesituationstatementsort_url = "${path}/baseInfo/baseSituationStatement/basesituationStatementSort.action?orgId=";
+//}
+var baseSituationStatement = null;
+var orgName;
+function getBaseSituationStatement(){
+	$.ajax({
+		url:basesituationstatementsort_url+getCurrentOrgId()+"&year="+$("#year").val()+"&month="+$("#month").val()+"&statisticsType="+$("#type").val()+"&sortName="+sortName+"&sort="+sortColumn,
+		success:function(data){
+			if(data == null ){
+				$.messageBox({
+					message: data,
+					level: "error"
+				});
+				return;
+			}
+			baseSituationStatement.bindData(data);
+		}
+	})
+}
+
+
+$(document).ready(function(){
+	var context = {};
+	var columns = null;
+	if($("#currentOrgId").attr("orglevelinternalid") >= "<s:property value='@com.tianque.domain.property.OrganizationLevel@DISTRICT'/>"){
+		if($("#currentOrgId").attr("orglevelinternalid") == "<s:property value='@com.tianque.domain.property.OrganizationLevel@DISTRICT'/>"){
+			columns = getColumnHasFunc();
+		}else{
+			columns = getColumnHaveCounty();
+		}
+	}else{
+		columns = getColumnNoCounty();
+	}
+	baseSituationStatement = new SigmaReport("gridbox12",context,columns, "SigmaReportPrint","printTable_title");
+	
+	$("#title_gridbox12").children().remove();
+	$("#title_gridbox12").html("网格化服务管理工作情况通报表（二）");
+	
+	getBaseSituationStatement();
+})
+
+function getColumnNoCounty(){
+	var columns = [		
+					{name:"organization.orgName",caption:"地区",width:80,mode:"string"}, 
+// 						{name:"general",caption:"流动人口",width:120,mode:"string",children:[
+// 	                           {name:"floatingPersionCount",caption:"截止到上月总数量",width:70,mode:"string"},
+// 	                           {name:"currentFloatingPersionCount",caption:"本月变量",width:50,mode:"string"}
+// 	                     ]},
+						{name:"general",caption:"刑释人员",width:120,mode:"string",children:[
+						     {name:"positivePersionCount",caption:"截止到上月总数量",width:70,mode:"string"},
+						     {name:"currentPositivePersionCount",caption:"本月变量",width:50,mode:"string"}
+						]},
+						{name:"general",caption:"矫正人员",width:120,mode:"string",children:[
+							{name:"rectificativePersonCount",caption:"截止到上月总数量",width:70,mode:"string"},
+							{name:"currentRectificativePersonCount",caption:"本月变量",width:50,mode:"string"}                                                                              
+						]},
+						{name:"general",caption:"严重精神障碍患者",width:120,mode:"string",children:[
+							{name:"mentalPatientPersionCount",caption:"截止到上月总数量",width:70,mode:"string"},
+							{name:"currentMentalPatientPersionCount",caption:"本月变量",width:50,mode:"string"}                                                                              
+						]},
+						{name:"general",caption:"吸毒人员",width:120,mode:"string",children:[
+							{name:"druggyPersionCount",caption:"截止到上月总数量",width:70,mode:"string"},
+							{name:"currentDruggyPersionCount",caption:"本月变量",width:50,mode:"string"}                                                                       
+						]},
+						{name:"general",caption:"重点青少年",width:120,mode:"string",children:[
+							{name:"idleYouthCount",caption:"截止到上月总数量",width:70,mode:"string"},
+							{name:"currentIdleYouthCount",caption:"本月变量",width:50,mode:"string"}                                                                    
+						]},
+						{name:"specialCrowdCount",caption:"特殊人群本月服务走访量",width:70,mode:"string"},
+// 						15.6.9新增加的数据列，由覆盖率报表迁移过来
+						{name:"agencyOfOpinionCount",caption:"本月社情民意收集数量",width:40,mode:"string",format:"#"},
+						{name:"issueDealCount",caption:"本月事件处理总量",width:40,mode:"string",format:"#"}
+// 						{name:"general",caption:"群防群治组织人数",width:120,mode:"string",children:[
+// 						    {name:"preventionCount",caption:"截止到上月总数量",width:70,mode:"string"},
+// 						    {name:"currentPreventionCount",caption:"本月净变量",width:50,mode:"string"}                                                                    
+// 						]}
+		   		];
+	return columns;
+}
+function getColumnHaveCounty(){
+	var columns = [		
+					{name:"organization.orgName",caption:"地区",width:80,mode:"string"}, 
+					{name:"countyCount",caption:"区县数量",width:60,mode:"string"}, 
+					{name:"functionDepartmentCount",caption:"职能部门加入情况",width:60,mode:"string"}, 
+// 						{name:"general",caption:"流动人口",width:120,mode:"string",children:[
+// 	                           {name:"floatingPersionCount",caption:"截止到上月总数量",width:70,mode:"string"},
+// 	                           {name:"currentFloatingPersionCount",caption:"本月变量",width:50,mode:"string"}
+// 	                     ]},
+						{name:"general",caption:"刑释人员",width:120,mode:"string",children:[
+						     {name:"positivePersionCount",caption:"截止到上月总数量",width:70,mode:"string"},
+						     {name:"currentPositivePersionCount",caption:"本月变量",width:50,mode:"string"}
+						]},
+						{name:"general",caption:"矫正人员",width:120,mode:"string",children:[
+							{name:"rectificativePersonCount",caption:"截止到上月总数量",width:70,mode:"string"},
+							{name:"currentRectificativePersonCount",caption:"本月变量",width:50,mode:"string"}                                                                              
+						]},
+						{name:"general",caption:"严重精神障碍患者",width:120,mode:"string",children:[
+							{name:"mentalPatientPersionCount",caption:"截止到上月总数量",width:70,mode:"string"},
+							{name:"currentMentalPatientPersionCount",caption:"本月变量",width:50,mode:"string"}                                                                              
+						]},
+						{name:"general",caption:"吸毒人员",width:120,mode:"string",children:[
+							{name:"druggyPersionCount",caption:"截止到上月总数量",width:70,mode:"string"},
+							{name:"currentDruggyPersionCount",caption:"本月变量",width:50,mode:"string"}                                                                       
+						]},
+						{name:"general",caption:"重点青少年",width:120,mode:"string",children:[
+							{name:"idleYouthCount",caption:"截止到上月总数量",width:70,mode:"string"},
+							{name:"currentIdleYouthCount",caption:"本月变量",width:50,mode:"string"}                                                                    
+						]},
+						{name:"specialCrowdCount",caption:"特殊人群本月服务走访量",width:70,mode:"string"},
+// 						15.6.9新增加的数据列，由覆盖率报表迁移过来
+						{name:"agencyOfOpinionCount",caption:"本月社情民意收集数量",width:40,mode:"string",format:"#"},
+						{name:"issueDealCount",caption:"本月事件处理总量",width:40,mode:"string",format:"#"}
+// 						{name:"general",caption:"群防群治组织人数",width:120,mode:"string",children:[
+// 						    {name:"preventionCount",caption:"截止到上月总数量",width:70,mode:"string"},
+// 						    {name:"currentPreventionCount",caption:"本月净变量",width:50,mode:"string"}                                                                    
+// 						]}
+		   		];
+	return columns;
+}
+
+function getColumnHasFunc(){
+	var columns = [		
+					{name:"organization.orgName",caption:"地区",width:80,mode:"string"}, 
+					{name:"functionDepartmentCount",caption:"职能部门加入情况",width:60,mode:"string"}, 
+// 						{name:"general",caption:"流动人口",width:120,mode:"string",children:[
+// 	                           {name:"floatingPersionCount",caption:"截止到上月总数量",width:70,mode:"string"},
+// 	                           {name:"currentFloatingPersionCount",caption:"本月变量",width:50,mode:"string"}
+// 	                     ]},
+						{name:"general",caption:"刑释人员",width:120,mode:"string",children:[
+						     {name:"positivePersionCount",caption:"截止到上月总数量",width:70,mode:"string"},
+						     {name:"currentPositivePersionCount",caption:"本月变量",width:50,mode:"string"}
+						]},
+						{name:"general",caption:"矫正人员",width:120,mode:"string",children:[
+							{name:"rectificativePersonCount",caption:"截止到上月总数量",width:70,mode:"string"},
+							{name:"currentRectificativePersonCount",caption:"本月变量",width:50,mode:"string"}                                                                              
+						]},
+						{name:"general",caption:"严重精神障碍患者",width:120,mode:"string",children:[
+							{name:"mentalPatientPersionCount",caption:"截止到上月总数量",width:70,mode:"string"},
+							{name:"currentMentalPatientPersionCount",caption:"本月变量",width:50,mode:"string"}                                                                              
+						]},
+						{name:"general",caption:"吸毒人员",width:120,mode:"string",children:[
+							{name:"druggyPersionCount",caption:"截止到上月总数量",width:70,mode:"string"},
+							{name:"currentDruggyPersionCount",caption:"本月变量",width:50,mode:"string"}                                                                       
+						]},
+						{name:"general",caption:"重点青少年",width:120,mode:"string",children:[
+							{name:"idleYouthCount",caption:"截止到上月总数量",width:70,mode:"string"},
+							{name:"currentIdleYouthCount",caption:"本月变量",width:50,mode:"string"}                                                                    
+						]},
+						{name:"specialCrowdCount",caption:"特殊人群本月服务走访量",width:70,mode:"string"},
+// 						15.6.9新增加的数据列，由覆盖率报表迁移过来
+						{name:"agencyOfOpinionCount",caption:"本月社情民意收集数量",width:40,mode:"string",format:"#"},
+						{name:"issueDealCount",caption:"本月事件处理总量",width:40,mode:"string",format:"#"}
+// 						{name:"general",caption:"群防群治组织人数",width:120,mode:"string",children:[
+// 						    {name:"preventionCount",caption:"截止到上月总数量",width:70,mode:"string"},
+// 						    {name:"currentPreventionCount",caption:"本月净变量",width:50,mode:"string"}                                                                    
+// 						]}
+		   		];
+	return columns;
+}
+</script>
+
+

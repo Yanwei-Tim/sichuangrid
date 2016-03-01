@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="newVillageLeaderTeam">
+	<!-- 注释说明 四支队伍表-->
+	<typeAlias alias="newVillageLeaderTeam" type="com.tianque.newVillage.domain.NewVillageLeaderTeam" />
+	
+    <!--四支队伍表-->
+	<resultMap id="newVillageLeaderTeamRsult" class="newVillageLeaderTeam">
+	    <result property="id" column="id" />
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgCode" />
+		<result property="name" column="name" />
+		<result property="gender" column="gender" />
+		<result property="duty" column="duty" />
+		<result property="introduction" column="introduction" />
+		<result property="imageUrl" column="imageUrl" />
+		<result property="sort" column="sort" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="age" column="age" />
+		<result property="educationDegree.id" column="educationDegree" />
+		<result property="contactWay" column="contactWay" />
+	</resultMap>
+
+	<insert id="addNewvillageleaderteams" parameterClass="newVillageLeaderTeam">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_newvillageleaderteams.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into newvillageleaderteams
+		(id,orgId,orgCode,name,gender,duty,introduction,imageUrl,sort,createUser,createDate,updateDate,age,educationDegree,contactWay)
+		values
+		(#id#,#organization.id#,#organization.orgInternalCode#,#name#,#gender#,#duty#,#introduction#,#imageUrl#,#sort#,#createUser#,
+		#createDate#,#updateDate#,#age#,#educationDegree.id#,#contactWay#)
+	</insert>
+	
+	<update id="updateNewvillageleaderteams" parameterClass="newVillageLeaderTeam">
+		update newvillageleaderteams set
+		name=#name#,
+		gender=#gender#,
+		duty=#duty#,
+		introduction=#introduction#,
+		age=#age#,
+		educationDegree=#educationDegree.id#,
+		contactWay=#contactWay#
+		<isNotEmpty property="imageUrl">
+		,imageUrl = #imageUrl#	
+		</isNotEmpty>
+		where id=#id#
+	</update>
+	
+	<update id="updateNewvillageleaderteamsImgUrl" parameterClass="newVillageLeaderTeam">
+		update newvillageleaderteams set
+		imageUrl = #imageUrl#
+		where id=#id#
+	</update>
+	
+	<select id="getNewvillageleaderteamsOrgId" parameterClass="java.lang.Long" resultMap="newVillageLeaderTeamRsult">
+		select * from newvillageleaderteams where orgId=#orgId#
+	</select>
+	
+	<select id="getNewvillageleaderteamsById" parameterClass="java.lang.Long" resultMap="newVillageLeaderTeamRsult">
+		select * from newvillageleaderteams where id=#id#
+	</select>
+	
+	<delete id="deleteNewVillageLeaderTeamById" parameterClass="java.lang.Long" >
+		delete from  newvillageleaderteams where id=#id#
+	</delete>
+
+</sqlMap>

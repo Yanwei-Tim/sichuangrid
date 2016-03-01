@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="baseInfo">
+	<typeAlias alias="Countrymen" type="com.tianque.baseInfo.base.domain.Countrymen"/>
+	<typeAlias alias="DuplicatePeople" type="com.tianque.baseInfo.base.domain.DuplicatePeople"/>
+	<resultMap id="populationBaseInfoResult" class="Countrymen">
+		<result column="id" property="id"  nullValue="0"/>
+		<result column="gender" property="gender.id" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="name" property="name" />
+		<result column="usedName" property="usedName"/>
+		<result column="fullPinyin" property="fullPinyin" />
+		<result column="simplePinyin" property="simplePinyin" />
+		<result column="telephone" property="telephone" />
+		<result column="mobileNumber" property="mobileNumber" />
+		<result column="province" property="province" />
+		<result column="city" property="city" />
+		<result column="district" property="district" />
+		<result column="nativePoliceStation" property="nativePoliceStation"/>
+		<result column="nativePlaceAddress" property="nativePlaceAddress" />
+		<result column="birthday" property="birthday" />
+		<result column="workUnit" property="workUnit" />
+		<result column="createDate" property="createDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+		<result column="isDeath" property="isDeath" nullValue="false"/>
+		<result column="nation" property="nation.id" />
+		<result column="politicalBackground" property="politicalBackground.id" />
+		<result column="schooling" property="schooling.id" />
+		<result column="career" property="career.id" />
+		<result column="maritalState" property="maritalState.id" />
+		<result column="bloodType" property="bloodType.id" />
+		<result column="faith" property="faith.id" />
+		<result column="stature" property="stature" />
+		<result column="imgUrl" property="imgUrl" />
+		<result column="email" property="email" />
+	</resultMap>
+	<!-- 所有的重复的数据 -->
+	<resultMap class="DuplicatePeople" id="duplicatePeopleAllResult">
+		<result property="id" column="id"/>
+		<result property="baseInfoId" column="baseInfoId"/>
+		<result property="idCardNo" column="idCardNo"/>
+		<result property="tableName" column="tableName"/>
+		<result property="populationType" column="populationType"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+	<resultMap class="DuplicatePeople" id="duplicatePeopleResult">
+		<result property="idCardNo" column="idCardNo"/>
+		<result property="total" column="total"/>
+	</resultMap>
+	<sql id="baseInfoFields">
+		career,isDeath,politicalBackground,nativePoliceStation
+		,maritalState,usedName,nation,faith,schooling,bloodType,nativePlaceAddress
+		,province,city,district,name,idCardNo,birthday,email,gender
+		,fullPinyin,simplePinyin,mobileNumber,telephone,stature,workUnit,imgUrl
+	</sql>
+	<insert id="addBaseInfo" parameterClass="Countrymen">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_baseInfo.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into baseinfo (
+			id,createDate,createUser,updateUser,updateDate,career,isDeath,politicalBackground
+			,maritalState,usedName,nation,faith,schooling,bloodType,nativePlaceAddress,nativePoliceStation
+			,province,city,district,name,idCardNo,birthday,email,gender
+			,fullPinyin,simplePinyin,mobileNumber,telephone,stature,workUnit,imgUrl
+		) values (
+			#id#,#createDate#,#createUser#,#updateUser#,#updateDate#,#career.id#,#isDeath#,#politicalBackground.id#
+			,#maritalState.id#,#usedName#,#nation.id#,#faith.id#,#schooling.id#,#bloodType.id#,#nativePlaceAddress#,#nativePoliceStation#
+			,#province#,#city#,#district#,#name#,#idCardNo#,#birthday#,#email#,#gender.id#
+			,#fullPinyin#,#simplePinyin#,#mobileNumber#,#telephone#,#stature#,#workUnit#,#imgUrl#
+		)
+	</insert>
+	<update id="updateBaseInfo" parameterClass="Countrymen">
+	     update baseinfo set 
+	          	 updateUser = #updateUser#
+			 	,updateDate = #updateDate#
+			    ,career = #career.id#
+				,politicalBackground = #politicalBackground.id#
+				,maritalState = #maritalState.id#
+				,usedName = #usedName#
+	    		,nation = #nation.id#
+				,faith = #faith.id#
+				,schooling= #schooling.id#
+				,bloodType = #bloodType.id#
+				,nativePlaceAddress = #nativePlaceAddress#
+				,nativePoliceStation = #nativePoliceStation#
+				,province = #province#
+				,city = #city#
+				,district = #district#
+				,name = #name#
+	    		,idCardNo = #idCardNo#
+				,birthday = #birthday#
+				,email = #email#
+	    		,gender = #gender.id#
+				,fullPinyin = #fullPinyin#
+				,simplePinyin = #simplePinyin#
+				,mobileNumber = #mobileNumber#
+				,telephone=#telephone#
+				,stature = #stature#
+				,workUnit = #workUnit#
+				,imgUrl = #imgUrl#
+				<isNotEmpty property="isDeath">
+				,isDeath=#isDeath# 
+				</isNotEmpty>
+		where id = #baseInfoId#
+	</update>
+	
+	<select id="getBaseInfoById" parameterClass="java.lang.Long" resultMap="populationBaseInfoResult">
+	    select * from baseinfo where id=#value#
+	</select>
+	<select id="getBaseInfoByIdForList" parameterClass="java.util.List" resultMap="populationBaseInfoResult">
+		select * from baseinfo
+		<dynamic prepend=" WHERE ">
+			<isNotEmpty >
+				ID IN
+				<iterate conjunction="," open="(" close=")">#value[]#</iterate>
+			</isNotEmpty>
+			<isEmpty >ID = 0</isEmpty>
+		</dynamic>
+	</select>
+	
+    <delete id="deleteBaseInfo" parameterClass="java.lang.Long">
+    	delete from baseinfo where id=#value#
+    </delete>
+    
+    
+    <update id="updateBaseInfoHouseState" parameterClass="Countrymen">
+		update baseinfo set 
+			isHaveHouse = #isHaveHouse#
+			,noHouseReason = #noHouseReason#
+			,currentAddress = #currentAddress#
+		where id=#baseInfoId#
+	</update>
+	
+	<update id="cancelDeath" parameterClass="map">
+		update baseinfo set isDeath=#death# where id=#id#
+	</update>
+	
+	<select id="existBaseInfo" parameterClass="map" resultMap="populationBaseInfoResult">
+	   select * from baseinfo where idCardNo=#idCardNo#
+	</select>
+	
+	<select id="getBaseInfoByIdCardNo" parameterClass="map" resultMap="populationBaseInfoResult">
+	   select * from baseinfo where idCardno = #idCardNo# 
+	</select>
+	
+	<select id="selectBaseInfoByIdcardno" parameterClass="map" resultMap="populationBaseInfoResult">
+		select id,name, fullpinyin, simplepinyin, usedname, idcardno, telephone, mobilenumber, birthday, gender, workunit, imgurl, email, isdeath, nation, politicalbackground, schooling, career, maritalstate, bloodtype, faith, stature, province, city, district, nativeplaceaddress, nativepolicestation, createuser, updateuser, createdate, updatedate from baseinfo where idcardno = #idcardno# order by updateDate desc
+	</select>
+	<update id="updateBaseInfoIdCardNo" parameterClass="java.util.Map">
+		update baseinfo set
+		<dynamic>
+			<isNotEmpty property="countrymen.idCardNo">
+				idCardNo=#countrymen.idCardNo#
+			</isNotEmpty>
+			<isNotEmpty property="countrymen.district" prepend=",">
+					province=#countrymen.province#,
+					city=#countrymen.city#,
+					district=#countrymen.district#
+			</isNotEmpty>
+			<isNotNull property="countrymen.birthday" prepend=",">
+				birthday=#countrymen.birthday#
+			</isNotNull>
+			<isNotNull property="countrymen.gender" >
+				<isNotNull property="countrymen.gender.id" prepend=",">
+					gender=#countrymen.gender.id#
+				</isNotNull>
+			</isNotNull>
+			<isNotNull property="countrymen.updateDate" prepend=",">
+				updateDate=#countrymen.updateDate#
+			</isNotNull>
+			<isNotNull property="countrymen.updateUser" prepend=",">
+				updateUser=#countrymen.updateUser#
+			</isNotNull>
+		</dynamic>
+		where idCardNo=#idCardNo#
+	</update>
+	<select id="getUniquenessDuplicatePeople" resultMap="duplicatePeopleResult">
+		select idcardno,total
+  			from (select rownum row_num, t1.*
+          		from (select idcardno, count(idcardno) as total
+                  	from baseinfo
+                	 	group by idcardno
+                		having count(idcardno) > 1) t1
+         		where rownum = 1)
+	</select>
+	
+	<select id="getDuplicatePeoplesByIdcardno" resultMap="duplicatePeopleAllResult" parameterClass="java.util.Map">
+		<![CDATA[
+			select id,
+			id as baseInfoId,
+			idCardNo,
+			'baseInfo' as tableName,
+			'baseInfo' as populationType,
+			createDate,
+			updateDate 
+			from baseInfo where idCardNo=#idCardNo#
+		]]> 
+	</select>
+	
+	<select id="getAllBaseInfoDuplicatePeople" resultMap="duplicatePeopleAllResult">
+		<![CDATA[
+				select b.id,
+				       b.id as baseInfoId,
+				       b.idCardNo,
+				       'baseInfo' as tableName,
+				       'baseInfo' as populationType,
+				      b.createDate,
+				       b.updateDate
+				  from baseinfo b
+				 where b.idcardno in
+				 (select idcardno
+				          from baseinfo bi
+				         group by idcardno
+				        having count(idcardno) >= 2)
+     	]]> 
+	</select>
+</sqlMap>

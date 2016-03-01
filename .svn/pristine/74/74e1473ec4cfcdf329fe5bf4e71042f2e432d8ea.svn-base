@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+
+<sqlMap namespace="aidspopulations">	
+	
+	<typeAlias alias="Aidspopulations" type="com.tianque.aidsPopulations.domain.Aidspopulations"/>
+	<typeAlias alias="SearchAidspopulationsVo" type="com.tianque.aidsPopulations.domain.vo.SearchAidspopulationsVo" />
+	
+	<resultMap id="aidspopulationsResult" class="Aidspopulations" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResult">
+		<result property="infectway.id" column="INFECTWAY"/>
+		<result property="violationsofthelaw.id" column="VIOLATIONSOFTHELAW"/>
+		<result property="crimetype.id" column="CRIMETYPE"/>
+		<result property="receivedlevel.id" column="RECEIVEDLEVEL"/>
+		<result property="helpcircumstances" column="HELPCIRCUMSTANCES"/>
+		<result property="addressno" column="ADDRESSNO"/>
+		<result property="receivedorganization" column="RECEIVEDORGANIZATION"/>
+		<result property="nativePoliceStation" column="nativePoliceStation"/>
+	</resultMap>
+	<!-- 这两个resultMap内容一致，继承关系不一样 -->
+	<resultMap id="aidspopulationsResultForList" class="Aidspopulations" extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForList">
+		<result property="infectway.id" column="INFECTWAY"/>
+		<result property="violationsofthelaw.id" column="VIOLATIONSOFTHELAW"/>
+		<result property="crimetype.id" column="CRIMETYPE"/>
+		<result property="receivedlevel.id" column="RECEIVEDLEVEL"/>
+		<result property="helpcircumstances" column="HELPCIRCUMSTANCES"/>
+		<result property="addressno" column="ADDRESSNO"/>
+		<result property="receivedorganization" column="RECEIVEDORGANIZATION"/>
+		<result property="nativePoliceStation" column="nativePoliceStation"/>
+	</resultMap>
+	
+	<sql id="updateBusinessSql">
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>,
+		infectway = #infectway.id#.
+		,violationsofthelaw = #violationsofthelaw.id#.
+		,crimetype = #crimetype.id#.
+		,receivedlevel = #receivedlevel.id#.
+		,helpcircumstances = #helpcircumstances#
+		,receivedorganization = #receivedorganization#.
+		,attentionExtent=#attentionExtent.id#
+	</sql>
+	
+	<sql id="fields">
+		uni.id,uni.baseinfoid,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.attentionextent,uni.infectWay,uni.violationsofthelaw,uni.crimeType,
+   		uni.receivedOrganization,uni.receivedLevel,uni.helpcircumstances,uni.createUser,uni.updateUser,uni.createDate,uni.updateDate,uni.isEmphasis,
+   		uni.isEmphasisReason,uni.isEmphasisDate,uni.sourcesState,uni.attentionExtent,uni.addressno
+	</sql>
+
+	<select id="getAidspopulationsById" parameterClass="java.lang.Long" resultMap="aidspopulationsResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from AIDSPOPULATIONS uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/>
+		where uni.id=#value#
+	</select>
+	
+	<insert id="addAidspopulations" parameterClass="Aidspopulations">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_AIDSPOPULATIONS.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into AIDSPOPULATIONS
+		(	<include refid="populationBaseInfo.addBaseInfoFields"/>
+			,infectway,violationsofthelaw,crimetype,receivedlevel
+			,helpcircumstances,receivedorganization,attentionExtent,sourcesState,isEmphasis
+		)
+		values
+		(
+			<include refid="populationBaseInfo.addBaseInfoData"/>
+			,#infectway.id#,#violationsofthelaw.id#,#crimetype.id#,#receivedlevel.id#
+			,#helpcircumstances#,#receivedorganization#,#attentionExtent.id#,#sourcesState#,#isEmphasis#
+		)
+	</insert>
+	
+	<update id="updateAidspopulations" parameterClass="Aidspopulations">
+		update AIDSPOPULATIONS set 
+		<isNotEmpty property="isEmphasis">
+			isEmphasis = #isEmphasis#,
+		</isNotEmpty>
+		<include refid="updateBusinessSql"/>
+		<isNotNull prepend="," property="sourcesState">
+			sourcesState=#sourcesState#
+		</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteAidspopulationsById" parameterClass="java.lang.Long">	
+		delete  from AIDSPOPULATIONS where id = #value#	
+	</delete>
+	
+	<sql id="findAidspopulationssBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>			
+		</dynamic>
+	</sql>
+	<select id="findAidspopulationssBySearchVo" parameterClass="SearchAidspopulationsVo" resultMap="aidspopulationsResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> ,'$attentionPopulationType$' as populationType
+		from AIDSPOPULATIONS uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/>
+		<include refid="findAidspopulationssBySearchVo_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countAidspopulationssBySearchVo" parameterClass="SearchAidspopulationsVo" resultClass="java.lang.Integer">
+		select count(*) from AIDSPOPULATIONS uni
+		<include refid="findAidspopulationssBySearchVo_sql_where" />
+	</select>
+
+	<select id="getByIdCard" parameterClass="java.util.Map"
+		resultMap="aidspopulationsResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from AIDSPOPULATIONS uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgId=#orgId# 
+		and
+		<iterate property="idCardNoList" open="("  close=")"  conjunction="or">
+		    idCardNo like
+		    #idCardNoList[]#
+		</iterate>
+	</select>
+	
+	<select id="getByOrgIdAndIdCardNo" parameterClass="java.util.Map" resultMap="aidspopulationsResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		FROM AIDSPOPULATIONS uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where idCardno = #idCardNo# and uni.orgId=#orgId#
+	</select>
+	
+	<update id="updateBaseInfo" parameterClass="Aidspopulations">
+		update AIDSPOPULATIONS set
+		<include refid="populationBaseInfo.updateBaseInfoSql"/>
+		<include refid="populationBaseInfo.updateBussLogoutDetail"/>
+		where id = #id#
+	</update>
+	
+	<update id="updateBusiness" parameterClass="Aidspopulations">
+		update AIDSPOPULATIONS set
+		<include refid="updateBusinessSql"/>
+		where id = #id#
+	</update>
+	
+	<update id="updateDeathAndLogoutStateById" parameterClass="map">
+		update AIDSPOPULATIONS set
+		<isNotEmpty property="death">
+			isdeath = #death#
+		</isNotEmpty>
+		<include refid="populationBaseInfo.updateBussLogoutDetail"/>
+		where id=#id#
+	</update>
+	<select id="getIdByBaseinfoIdAndOrgId" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		SELECT id from AIDSPOPULATIONS  
+		where baseinfoid=#baseInfoId# and orgId=#orgId#
+	</select>
+	
+	<resultMap id="AidspopulationsResultForDefaultList" class="Aidspopulations" 
+		extends="attentionPopulationBaseInfo.attentionPopulationBaseInfoResultForDefaultList">
+		<result property="infectway.id" column="INFECTWAY"/>
+		<result property="violationsofthelaw.id" column="VIOLATIONSOFTHELAW"/>
+		<result property="crimetype.id" column="CRIMETYPE"/>
+		<result property="receivedlevel.id" column="RECEIVEDLEVEL"/>
+		<result property="helpcircumstances" column="HELPCIRCUMSTANCES"/>
+		<result property="addressno" column="ADDRESSNO"/>
+		<result property="receivedorganization" column="RECEIVEDORGANIZATION"/>
+	</resultMap>
+	<sql id="default_sql_where">
+	  from AIDSPOPULATIONS uni 
+	  <dynamic prepend="where">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findAidspopulationsDefaultList" resultMap="AidspopulationsResultForDefaultList" parameterClass="map">
+	  select <include refid="fields"/>
+	  <include refid="default_sql_where" />
+	  ORDER BY ID DESC
+	</select>
+	
+	<select id="countAidspopulationsDefaultList" resultClass="java.lang.Integer" parameterClass="map">
+		<![CDATA[select count(uni.id)]]>
+		<include refid="default_sql_where" />
+	</select>
+</sqlMap>

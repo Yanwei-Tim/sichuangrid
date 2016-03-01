@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="partyOrgInfo">
+	<typeAlias alias="partyOrgInfo" type="com.tianque.domain.PartyOrgInfo" />
+	<typeAlias alias="searchPartyOrgInfoVo" type="com.tianque.domain.vo.SearchPartyOrgInfoVo" />
+
+	<resultMap id="partyOrgInfoResult" class="partyOrgInfo">
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="organization.orgInternalCode" />
+		<result column="partyBranchName" property="partyBranchName" />
+		<result column="partyBranchSecretary" property="partyBranchSecretary" />
+		<result column="idCardNo" property="idCardNo" />
+		<result column="mobileNumber" property="mobileNumber" />
+		<result column="telephone" property="telephone" />
+		<result column="partyNumbers" property="partyNumbers" />
+		<result column="partyBranchAddr" property="partyBranchAddr" />
+		<result column="remark" property="remark" />
+		<result column="establishedDate" property="establishedDate" />
+		<result column="createDate" property="createDate" />
+		<result column="updateDate" property="updateDate" />
+		<result column="updateUser" property="updateUser" />
+		<result column="createUser" property="createUser" />
+	</resultMap>
+
+	<insert id="addPartyOrgInfo" parameterClass="partyOrgInfo">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_partyOrgInfos.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into partyOrgInfos
+		(id,orgId,partyBranchName,partyBranchSecretary,
+		idCardNo,mobileNumber,telephone,partyNumbers,
+		partyBranchAddr,orgInternalCode,remark,establishedDate,createDate,createUser)
+		values
+		(#id#,#organization.id#,#partyBranchName#,#partyBranchSecretary#,
+		#idCardNo#,#mobileNumber#,#telephone#,#partyNumbers#,
+		#partyBranchAddr#,#organization.orgInternalCode#,#remark#,#establishedDate#,#createDate#,#createUser#
+		)
+	</insert>
+
+	<update id="updatePartyOrgInfo" parameterClass="partyOrgInfo">
+		update partyOrgInfos set
+				orgId=#organization.id#,
+				partyBranchName=#partyBranchName#,
+				partyBranchSecretary=#partyBranchSecretary#,
+				idCardNo=#idCardNo#,
+				mobileNumber=#mobileNumber#,
+				telephone=#telephone#,
+				partyNumbers=#partyNumbers#,
+				partyBranchAddr=#partyBranchAddr#,
+				orgInternalCode=#organization.orgInternalCode#,
+				remark=#remark#,
+				establishedDate=#establishedDate#,
+				updateDate=#updateDate#,
+				updateUser=#updateUser#
+			where id=#id#
+	</update>
+
+	<delete id="deletePartyOrgInfoById" parameterClass="java.lang.Long">
+		delete from partyOrgInfos
+		where id=#value#
+	</delete>
+
+	<select id="getPartyOrgInfoById" parameterClass="java.lang.Long"
+		resultMap="partyOrgInfoResult">
+		select * from partyOrgInfos where id=#value#
+	</select>
+
+	<select id="getPartyOrgInfoByName" parameterClass="java.util.Map"
+		resultMap="partyOrgInfoResult">
+		select * from partyOrgInfos where orgId=#orgId# and partyBranchName=#partyBranchName#
+	</select>
+
+	<select id="getPartyOrgInfoByidAndOrgId" parameterClass="java.util.Map"
+		resultMap="partyOrgInfoResult">
+		select * from partyOrgInfos where orgId=#orgId#
+		<isPropertyAvailable property="id">
+			<isNotNull prepend=" and " property="id">
+				id!=id
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+
+	<sql id="sql_where">
+		from partyOrgInfos
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<sql id="search_sql_where">
+		from partyOrgInfos
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+						(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or partyBranchName like #fastSearchKeyWords#||'%')
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty prepend=" and " property="idCardNo">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="partyBranchName">
+				<isNotEmpty prepend=" and " property="partyBranchName">
+					partyBranchName like #partyBranchName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="partyBranchSecretary">
+				<isNotEmpty prepend=" and " property="partyBranchSecretary">
+					partyBranchSecretary like #partyBranchSecretary#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="establishedDate" >
+				<isNotEmpty prepend=" and " property="establishedDate">
+					<![CDATA[ establishedDate >= #establishedDate# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endEstablishedDate">
+				<isNotEmpty prepend=" and " property="endEstablishedDate">
+					<![CDATA[ establishedDate <= #endEstablishedDate# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="partyNumbers" >
+				<isNotNull prepend=" and " property="partyNumbers">
+					<![CDATA[ partyNumbers >= #partyNumbers# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endPartyNumbers">
+				<isNotNull prepend=" and " property="endPartyNumbers">
+					<![CDATA[ partyNumbers <= #endPartyNumbers# ]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="partyBranchAddr">
+				<isNotEmpty prepend=" and " property="partyBranchAddr">
+					partyBranchAddr like #partyBranchAddr#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="countSearchPartyOrgInfo" parameterClass="searchPartyOrgInfoVo" resultClass="int">
+		select count(*)
+		<include refid="search_sql_where" />
+	</select>
+
+	<select id="searchPartyOrgInfo" parameterClass="searchPartyOrgInfoVo" resultMap="partyOrgInfoResult">
+		select *
+		<include refid="search_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countPartyOrgInfos" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="findPartyOrgInfos" parameterClass="java.util.Map"
+		resultMap="partyOrgInfoResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>

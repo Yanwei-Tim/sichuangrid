@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="mentalPatientTemp">
+    <typeAlias alias="MentalPatientTemp" type="com.tianque.plugin.dataManage.population.mentalPatientTemp.domain.MentalPatientTemp" />
+    <typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+   
+    <resultMap id="mentalPatientTempResultForBase" class="MentalPatientTemp" extends="attentionPopulationTempBaseInfo.attentionPopulationBaseInfoResult">
+		<result property="psychosisName" column="psychosisName" />
+		<result property="dangerLevel.id" column="dangerLevel" />
+		<result property="isTreat" column="isTreat" />
+		<result property="cureDepartment" column="cureDepartment" />
+		<result property="businessRemark" column="businessRemark" />
+		<result property="guardian" column="guardian" />
+		<result property="guardianMobileNumber" column="guardianMobileNumber" />
+		<result property="guardianTelephone" column="guardianTelephone" />
+		<result property="isUndergoTreatment" column="isUndergo_Treatment"/>
+		<result property="psychosisType.id" column="psychosisType"/>
+		<result property="diseaseTime" column="diseaseTime"/>
+		<result property="recoveryTime" column="recoveryTime"/>
+		<result property="treatmentState.id" column="treatmentState"/>
+	</resultMap>
+    <resultMap id="mentalPatientTempResultForList" class="MentalPatientTemp" extends="mentalPatientTemp.mentalPatientTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+		<result property="isUndergoTreatment" column="isUndergo_Treatment"/>
+	</resultMap>
+    <sql id="updateBusinessSql">
+		isEmphasis = #isEmphasis#
+		, psychosisName = #psychosisName#
+		, psychosisType = #psychosisType.id#
+		, dangerLevel = #dangerLevel.id#
+		, isTreat = #isTreat#
+		, cureDepartment = #cureDepartment#
+		, businessRemark = #businessRemark#
+		, guardian = #guardian#
+		, guardianMobileNumber = #guardianMobileNumber#
+		, guardianTelephone = #guardianTelephone#
+		, isUndergo_Treatment = #isUndergoTreatment#
+		, diseaseTime=#diseaseTime#
+		, recoveryTime=#recoveryTime#
+		, treatmentState=#treatmentState.id#
+	</sql>
+	<sql id="claim_sql_where">
+		from DM_mentalPatients_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	
+	<select id="findTempPageList" resultMap="mentalPatientTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countTempList" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	
+	<insert id="addMentalPatientTemp" parameterClass="MentalPatientTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_mentalPatients_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_mentalPatients_Temp
+		(
+			<include refid="populationTempBaseInfo.addBaseInfoFields"/>
+			,<include refid="dataManage.addDataManage"/>
+			, psychosisName, psychosisType, dangerLevel, isTreat, cureDepartment, businessRemark, guardian, guardianMobileNumber, guardianTelephone,actualPopulationType,isUndergo_Treatment,diseaseTime,recoveryTime,treatmentState
+		)
+		values
+		(
+			<include refid="populationTempBaseInfo.addBaseInfoData"/>
+			,<include refid="dataManage.addValueDataManage"/>
+			, #psychosisName#, #psychosisType.id#, #dangerLevel.id#, #isTreat#, #cureDepartment#, #businessRemark#, #guardian#, #guardianMobileNumber#, #guardianTelephone#,#actualPopulationType#,#isUndergoTreatment#,#diseaseTime#,#recoveryTime#,#treatmentState.id#
+		)
+    </insert>
+    <select id="getMentalPatientTempById" parameterClass="Long"
+		resultMap="mentalPatientTempResultForList">
+	  <![CDATA[
+	  	select * from DM_mentalPatients_Temp where id = #value#
+	  ]]>
+	</select>
+	<delete id="deleteMentalPatientTempById" parameterClass="Long">
+	   delete DM_mentalPatients_Temp where id = #value#
+	</delete>
+	<select id="findMentalPatientTempsByIdcardAndOrgInternalCode" resultMap="mentalPatientTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_mentalPatients_Temp where  1=1 and 
+			(orgInternalCode like #orgInternalCode#||'%' or 
+						#orgInternalCode# like orgInternalCode||'%')
+				and(
+				<iterate property="idCardNo" conjunction="or">
+						upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+	</select>
+	<update id="updateMentalPatientTempInIdByIdCardAndIdList"  parameterClass="java.util.Map">
+		update DM_mentalPatients_Temp set inid = #id# where idcardno = #idCardNo# and
+			(orgInternalCode like #orgInternalCode#||'%' or 
+						#orgInternalCode# like orgInternalCode||'%') and
+		 (claimstate = 1 or claimstate is null or 
+			<iterate property="idList" conjunction="or">
+						id = #idList[]#
+			</iterate>
+		 )
+	</update>
+	<update id="updateMentalPatientTempInIdById"  parameterClass="java.util.Map">
+		update DM_mentalPatients_Temp set InId = #inid# where id=#id#
+	</update>
+	<update id="updateMentalPatientTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_mentalPatients_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	<select id="getMentalPatientTempByInId" parameterClass="Long"
+		resultMap="mentalPatientTempResultForList">
+	  <![CDATA[
+	  	select * from DM_mentalPatients_Temp where inid = #value#
+	  ]]>
+	</select>
+	<update id="updateMentalPatientTemp" parameterClass="MentalPatientTemp">
+		update DM_mentalPatients_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="mentalPatientTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<update id="updateRepeatState" parameterClass="MentalPatientTemp">
+		update DM_mentalPatients_Temp d set repeatState = 0
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_mentalPatients_Temp t group by t.idCardNo having count(*)>1) 
+	</update>
+	<update id="updateRepeatStateForDelete" parameterClass="MentalPatientTemp">
+		update DM_mentalPatients_Temp d set repeatState = 1
+		where  d.idCardNo in 
+		(select t.idCardNo from DM_mentalPatients_Temp t group by t.idCardNo having count(*)=1) 
+	</update>
+	
+	<update id="updateMentalPatientTempByOrgId" parameterClass="java.util.Map">
+		update DM_mentalPatients_Temp set repeatState=#repeatState#  where id=#id#
+	</update>
+	<select id="findMentalPatientTempsByIdcardAndImportOrgId" resultMap="mentalPatientTempResultForList"
+		parameterClass="java.util.Map">
+		select * from DM_mentalPatients_Temp where  1=1
+		<dynamic>
+			<isPropertyAvailable property="claimDetail.importDepartmentId">
+				<isNotNull property="claimDetail.importDepartmentId" prepend=" and ">
+					importDepartmentId=#importDepartmentId#
+				</isNotNull>
+			</isPropertyAvailable>
+				and(
+				<iterate property="idCardNo" conjunction="or">
+						upper(idCardNo) like upper(#idCardNo[]#)
+				</iterate>
+				)
+		</dynamic>
+	</select>
+	<!-- 新写内容 -->
+	<select id="countFindTemps" parameterClass="searchVo"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(id)]]>
+		<include refid="claim_sql_where" />
+	</select>
+	<select id="findTemps" resultMap="mentalPatientTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<update id="updateMentalPatientTempBase" parameterClass="MentalPatientTemp">
+		update DM_mentalPatients_Temp set
+		<include refid="populationTempBaseInfo.updateBaseInfoSql"/>
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	<update id="updateMentalPatientTempBusiness" parameterClass="MentalPatientTemp">
+		update DM_mentalPatients_Temp set
+		<include refid="mentalPatientTemp.updateBusinessSql" />
+		<include refid="dataManage.updateDataManage"/>
+		where id=#id#
+	</update>
+	
+	
+</sqlMap>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="villageProfile" extends="default"
+		namespace="/baseinfo/villageProfile">
+		<default-class-ref class="villageProfileController"></default-class-ref>
+		<action name="getVillageProfileAndOrgById"
+			method="getVillageProfileAndOrgById">
+			<result name="complete" type="json">
+				<param name="root">villageProfile</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="zoomin">
+				/baseinfo/villageProfile/maintainPhotos.jsp
+			</result>
+			<result name="editBaseVillageProfile">
+				/baseinfo/villageProfile/maintainBaseVillageProfileDlg.jsp
+			</result>
+			<result name="editNatureGeography">
+				/baseinfo/villageProfile/maintainNatureGeographyDlg.jsp
+			</result>
+			<result name="editEconomyGeography">
+				/baseinfo/villageProfile/maintainEconomyGeographyDlg.jsp
+			</result>
+			<result name="editCommunityGeography">
+				/baseinfo/villageProfile/maintainCommunityGeographyDlg.jsp
+			</result>
+			<result name="editItemEngineering">
+				/baseinfo/villageProfile/maintainItemEngineeringDlg.jsp
+			</result>
+			<result name="editIntroduction">
+				/baseinfo/villageProfile/maintainIntroduction.jsp
+			</result>
+			<result name="editBaseGridProfile">
+				/baseinfo/villageProfile/maintainBaseGridProfileDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="getIntroductionAndOrgById"
+			method="getVillageProfileAndOrgById">
+			<result name="upGrids" type="json">
+				<param name="root">villageProfile</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="deletePhotosAndOrgById"
+			method="deletePhotosAndOrgById">
+			<result name="success" type="json">
+				<param name="root">villageProfile</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="updateOrAddVillageProfile" method="updateOrAddVillageProfile">
+			<result name="success" type="json">
+				<param name="root">villageProfile</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">errorMessage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+	    <action name="updateOrSaveVillageProfileImgUrl" method="updateOrSaveVillageProfileImgUrl">
+	    	<result name="error" type="json">
+	    		<param name="root">true</param>
+	    	</result>
+		</action>
+		
+		<action name="getVillageProfileByFullPinYin" method="getVillageProfileByFullPinYin">
+			<result type="json">
+				<param name="root">villageProfile</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+	</package>
+</struts>

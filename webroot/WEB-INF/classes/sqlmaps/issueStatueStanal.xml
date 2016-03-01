@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="issueStatueStanal">
+	<typeAlias alias="IssueStatueStanal" type="com.tianque.domain.IssueStatueStanal" />
+
+	<resultMap id="issueStatueStanalResult" class="IssueStatueStanal">
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="orgInternalCode" />
+		<result column="overTimeNotDone" property="overTimeNotDone" />
+		<result column="overTimeDone" property="overTimeDone" />
+		<result column="normalNotDone" property="normalNotDone" />
+		<result column="normalDone" property="normalDone" />
+		<result column="year" property="year" />
+		<result column="month" property="month" />
+		<result column="issueStatDate" property="issueStatDate" />
+	</resultMap>
+	
+	<resultMap id="issueStatueStanalResults" class="IssueStatueStanal">
+		<result column="overTimeNotDone" property="overTimeNotDone" />
+		<result column="overTimeDone" property="overTimeDone" />
+		<result column="normalNotDone" property="normalNotDone" />
+		<result column="normalDone" property="normalDone" />
+	</resultMap>
+
+	<insert id="addIssueStatueStanal" parameterClass="IssueStatueStanal">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_IssueStatueStanals.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into IssueStatueStanals
+		(id,orgId,orgInternalCode,overTimeNotDone,overTimeDone,normalNotDone,
+		normalDone,year,month,issueStatDate)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#overTimeNotDone#,
+		#overTimeDone#,#normalNotDone#,#normalDone#,#year#,#month#,#issueStatDate#)
+	</insert>
+
+	<update id="updateIssueStatueStanal" parameterClass="IssueStatueStanal">
+		update IssueStatueStanals set
+		<dynamic>year=#year#
+			<isNotNull prepend="," property="overTimeNotDone">
+				overTimeNotDone=#overTimeNotDone#
+			</isNotNull>
+			<isNotNull prepend="," property="overTimeDone">
+				overTimeDone=#overTimeDone#
+			</isNotNull>
+			<isNotNull prepend="," property="normalNotDone">
+				normalNotDone=#normalNotDone#
+			</isNotNull>
+			<isNotNull prepend="," property="normalDone">
+				normalDone=#normalDone#
+			</isNotNull>
+			where orgId=#organization.id# and year=#year# and month=#month#
+		</dynamic>
+	</update>
+
+	<select id="getIssueStatueStanal" parameterClass="IssueStatueStanal"
+		resultMap="issueStatueStanalResult">
+		select * from IssueStatueStanals where
+		orgId=#organization.id# and year=#year# and month=#month#
+	</select>
+	
+	<select id="getIssueStatueStanalById" parameterClass="java.lang.Long"
+		resultMap="issueStatueStanalResult">
+		select * from IssueStatueStanals where id=#id#
+	</select>
+
+	<select id="countExsistedIssueStatueStanal" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from IssueStatueStanals where
+		orgId=#orgId# and
+		year=#year# and month=#month#
+	</select>
+	
+	<delete id="deleteIssueStatueStanal" parameterClass="java.util.Map">
+		delete from
+		IssueStatueStanals where 
+		orgInternalCode like #orgInternalCode#'%' and year=#year# and month=#month#
+	</delete>
+	
+	<select id="getIssueStatueStanalStatCount" parameterClass="java.util.Map"
+		resultMap="issueStatueStanalResults">
+		select sum(overTimeNotDone) as overTimeNotDone,sum(overTimeDone) as overTimeDone,
+		sum(normalNotDone) as normalNotDone,sum(normalDone) as normalDone
+		from IssueStatueStanals where orgId = $orgId$
+		<isPropertyAvailable property="startDate">
+			<isNotNull property="startDate" prepend=" and ">
+				ISSUESTATDATE <![CDATA[>=]]>
+				#startDate#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="endDate">
+			<isNotNull property="endDate" prepend=" and ">
+				ISSUESTATDATE <![CDATA[<]]>
+				#endDate#
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	<select id="getIssueStatueStanalStatCountByYearAndMonth" parameterClass="java.util.Map" resultMap="issueStatueStanalResults">
+	     select sum(overTimeNotDone) as overTimeNotDone,sum(overTimeDone) as overTimeDone,
+        sum(normalNotDone) as normalNotDone,sum(normalDone) as normalDone
+        from IssueStatueStanals where orgId = #orgId#
+        <isPropertyAvailable property="year">
+            <isNotNull property="year" prepend=" and ">
+                year <![CDATA[=]]>
+                #year#
+            </isNotNull>
+        </isPropertyAvailable>
+        <isPropertyAvailable property="month">
+            <isNotNull property="month" prepend=" and ">
+                month <![CDATA[=]]>
+                #month#
+            </isNotNull>
+        </isPropertyAvailable>
+	</select>
+</sqlMap>

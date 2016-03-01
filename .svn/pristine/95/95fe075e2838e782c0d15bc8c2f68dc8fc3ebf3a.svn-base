@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<sqlMap namespace="smsSendObject">	
+	
+	<typeAlias alias="SmsSendObject" type="com.tianque.sms.domain.SmsSendObject"/>
+	
+	<resultMap id="smsSendObjectResult" class="SmsSendObject" >
+		<result property="id" column="id"/>
+		<result property="name" column="name"/>
+		<result property="description" column="description"/>
+		<result property="enable" column="enable"/>
+		<result property="createUser" column="createUser"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+
+	<resultMap id="allSmsSendObjectResult" class="SmsSendObject" extends="smsSendObjectResult">
+		<result property="template" column="template"/>
+	</resultMap>
+	
+	<select id="getSmsSendObjectById" parameterClass="java.lang.Long" resultMap="allSmsSendObjectResult">
+		select * from smsSendObject where id=#value#
+	</select>
+	
+	<insert id="addSmsSendObject" parameterClass="SmsSendObject">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_smsSendObject.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into smsSendObject (id , name , description, template, createDate, createUser) 
+		values(#id#, #name#, #description#, #template#, #createDate#, #createUser#)	
+	</insert>
+	
+	<update id="updateSmsSendObject" parameterClass="SmsSendObject">
+		update smsSendObject set id = #id# , enable = #enable#
+				<isNotNull prepend="," property="name">
+					name = #name#
+				</isNotNull>
+				<isNotNull prepend="," property="description">
+					description = #description#
+				</isNotNull>
+				<isNotNull prepend="," property="template">
+					template = #template#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					updateDate = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					updateUser = #updateUser#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<select id="findSmsSendObjectsBySearchVo" parameterClass="SmsSendObject" resultMap="smsSendObjectResult">
+		select * from smsSendObject where 1=1 
+		<isPropertyAvailable property="name">
+			<isNotEmpty property="name" prepend="and">
+				name like #name#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countSmsSendObjectsBySearchVo" parameterClass="SmsSendObject" resultClass="java.lang.Integer">
+		select count(0) from smsSendObject where 1=1
+		<isPropertyAvailable property="name">
+			<isNotEmpty property="name" prepend="and">
+				name like #name#||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+	</select>
+	
+	<select id="findSimpleSmsSendObjects" resultMap="smsSendObjectResult">
+		select * from smsSendObject where enable <![CDATA[>]]> 0 
+	</select>
+	
+	<delete id="deleteSmsSendObjectById" parameterClass="java.lang.Long" >
+		delete from smsSendObject where id = #value#
+	</delete>
+	
+</sqlMap>

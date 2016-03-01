@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="smsReceivedBox" extends="default" namespace="/interaction/sms/inbox">
+		<default-class-ref class="smsReceivedBoxController"></default-class-ref>
+		<action name="findSmsReceivedBoxByOwnerId" method="findSmsReceivedBoxByOwnerId">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="getSmsReceivedBoxById" method="getSmsReceivedBoxById">
+			<result  name="success">
+				/interaction/sms/inbox/maintainSmsReceivedViewDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="dispatchProcessPage" method="dispatchProcessPage">
+			<result  name="success">
+				/interaction/sms/inbox/maintainSmsReceivedDlg.jsp
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="processSmsReceived" method="processSmsReceived">
+			<result name="success" type="json">
+				<param name="root">smsReceivedBox</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="deleteSmsReceivedBoxById" method="deleteSmsReceivedBoxById">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="isTreated" method="isTreated">
+			<result type="json">
+				<param name="root">bol</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+	</package>
+</struts>

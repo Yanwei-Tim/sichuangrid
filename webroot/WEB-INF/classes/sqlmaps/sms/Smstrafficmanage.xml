@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">	
+	
+<!--当前所有属性(方便查看)：	
+	SELECT 	
+		ID as id ,
+		CREATEDATE as createDate ,
+		UPDATEDATE as updateDate ,
+		TRAFFIC as traffic ,
+		ORGID as orgId ,
+		ORGINTERNALCODE as orgInternalCode ,
+		CREATEUSER as createUser ,
+		UPDATEUSER as updateUser 
+	FROM SMSTRAFFICMANAGE	
+ -->	
+<sqlMap namespace="smstrafficmanage">	
+	
+	<typeAlias alias="Smstrafficmanage" type="com.tianque.sms.domain.Smstrafficmanage"/>
+	<typeAlias alias="SearchSmstrafficmanageVo" type="com.tianque.sms.domain.vo.SearchSmstrafficmanageVo" />
+	
+	<resultMap id="smstrafficmanageResult" class="Smstrafficmanage">
+		<result property="id" column="ID"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="telecomTraffic" column="TELECOMTRAFFIC"/>
+		<result property="mobileTraffic" column="MOBILETRAFFIC"/>
+		<result property="chinaUnicomTraffic" column="CHINAUNICOMTRAFFIC"/>
+		<result property="smallUnicom" column="SMALLUNICOM"/>
+		<result property="orgId" column="ORGID"/>
+		<result property="orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+	</resultMap>
+	
+	<resultMap id="trafficOrgNameResult"  class="Smstrafficmanage">
+		<result property="id" column="ID"/>
+		<result property="orgName" column="ORGNAME"/>
+		<result property="orgId" column="ORGID"/>
+		<result property="telecomTraffic" column="TELECOMTRAFFIC"/>
+		<result property="mobileTraffic" column="MOBILETRAFFIC"/>
+		<result property="chinaUnicomTraffic" column="CHINAUNICOMTRAFFIC"/>
+		<result property="smallUnicom" column="SMALLUNICOM"/>
+	</resultMap>
+	
+	<resultMap id="countOrgTrafficResult"  class="Smstrafficmanage">
+		<result property="id" column="ID"/>
+		<result property="orgName" column="orgName"/>
+		<result property="hasTelecomTraffic" column="HASTELECOMTRAFFIC"/>
+		<result property="hasMobileTraffic" column="HASMOBILETRAFFIC"/>
+		<result property="hasChinaUnicomTraffic" column="HASCHINAUNICOMTRAFFIC"/>
+		<result property="telecomTraffic" column="TELECOMTRAFFIC"/>
+		<result property="mobileTraffic" column="MOBILETRAFFIC"/>
+		<result property="chinaUnicomTraffic" column="CHINAUNICOMTRAFFIC"/>
+	</resultMap>
+	
+
+
+	<select id="getSmstrafficmanageById" parameterClass="java.lang.Long" resultMap="smstrafficmanageResult">
+		select * from SMSTRAFFICMANAGE where id=#value#
+	</select>
+	
+	<insert id="addSmstrafficmanage" parameterClass="Smstrafficmanage">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_SMSTRAFFICMANAGE.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into SMSTRAFFICMANAGE (ID , CREATEDATE , UPDATEDATE , TELECOMTRAFFIC , MOBILETRAFFIC , CHINAUNICOMTRAFFIC , SMALLUNICOM , ORGID , ORGINTERNALCODE , CREATEUSER , UPDATEUSER ) 
+		values(#id#, #createDate#, #updateDate#, #telecomTraffic#, #mobileTraffic#, #chinaUnicomTraffic#, #smallUnicom#, #orgId#, #orgInternalCode#, #createUser#, #updateUser#)	
+	</insert>
+	
+	<update id="updateSmstrafficmanage" parameterClass="Smstrafficmanage">
+		update SMSTRAFFICMANAGE set id = #id# 
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="telecomTraffic">
+					TELECOMTRAFFIC = #telecomTraffic#
+				</isNotNull>
+				<isNotNull prepend="," property="mobileTraffic">
+					MOBILETRAFFIC = #mobileTraffic#
+				</isNotNull>
+				<isNotNull prepend="," property="chinaUnicomTraffic">
+					CHINAUNICOMTRAFFIC = #chinaUnicomTraffic#
+				</isNotNull>
+				<isNotNull prepend="," property="smallUnicom">
+					SMALLUNICOM = #smallUnicom#
+				</isNotNull>
+				<isNotNull prepend="," property="orgId">
+					ORGID = #orgId#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+		where id = #id#
+	</update>
+	
+	<delete id="deleteSmstrafficmanageById" parameterClass="java.lang.Long">	
+		delete  from SMSTRAFFICMANAGE where id = #value#	
+	</delete>
+	
+	<sql id="findSmstrafficmanagesBySearchVo_sql_where">
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					s.orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgName">
+				<isNotEmpty prepend="and" property="orgName">
+					o.orgName = #orgName#
+				</isNotEmpty>
+			</isPropertyAvailable>				
+		</dynamic>
+	</sql>
+<!-- 	<select id="findSmstrafficmanagesBySearchVo" parameterClass="SearchSmstrafficmanageVo" resultMap="trafficOrgNameResult"> -->
+<!-- 		select s.id,o.orgName,o.id as ORGID  from ORGANIZATIONS o left  join SMSTRAFFICMANAGE s on o.id=s.orgid where s.traffic is not null -->
+<!-- 		<include refid="findSmstrafficmanagesBySearchVo_sql_where" /> -->
+<!-- 		<dynamic prepend="order by"> -->
+<!-- 			<isPropertyAvailable property="sortField"> -->
+<!-- 				<isNotNull property="sortField">o.$sortField$</isNotNull> -->
+<!-- 				<isNotNull property="order">$order$</isNotNull> -->
+<!-- 			</isPropertyAvailable> -->
+<!-- 		</dynamic> -->
+<!-- 	</select> -->
+<!-- 	<select id="countSmstrafficmanagesBySearchVo" parameterClass="SearchSmstrafficmanageVo" resultClass="java.lang.Integer"> -->
+<!-- 		select count(0) from ORGANIZATIONS o left  join SMSTRAFFICMANAGE s on o.id=s.orgid where s.traffic is not null  -->
+<!-- 		<include refid="findSmstrafficmanagesBySearchVo_sql_where" /> -->
+<!-- 	</select> -->
+	
+	<select id="findSmstrafficmanagesByOrgId" parameterClass="java.lang.String" resultMap="trafficOrgNameResult" >
+		select  s.smallUnicom,s.chinaUnicomTraffic,s.mobiletraffic, s.telecomtraffic,s.id,s.orgid as orgName,s.orgid as ORGID 
+		from SMSTRAFFICMANAGE s 
+		where s.orgid in (#value#) order by s.orgid asc
+	</select>
+	
+	<select id="getSmstrafficmanagesByOrgId" parameterClass="Long" resultMap="smstrafficmanageResult" >
+		select * from SMSTRAFFICMANAGE where orgId=#orgId#
+	</select>
+	
+	<select id="getNowSmstrafficmanagesByOrgId"  parameterClass="Long" resultMap="trafficOrgNameResult" >
+		select s.smallUnicom,s.chinaUnicomTraffic,s.mobiletraffic, s.telecomtraffic,s.id,s.orgid as orgName,s.orgid as ORGID from SMSTRAFFICMANAGE s where s.orgid = #orgId#
+	</select>
+	
+	<select id="findOrgTraffic" parameterClass="java.lang.String"  resultMap="countOrgTrafficResult">
+		select ch.orgid as id,ch.orgid as orgname,ch.telecomtraffic , ch.mobiletraffic , ch.chinaunicomtraffic ,
+			(select count(*) from smsuplink sk where  sk.senderorgid=ch.orgid   and  sk.mobileType=4 <![CDATA[ and sk.sendtime>=to_date( SYSDATE ) and sk.sendtime< to_date(SYSDATE + 1)  ]]> ) as hasTelecomTraffic,
+		    (select count(*) from smsuplink sk  where  sk.senderorgid=ch.orgid and  sk.mobiletype=1 <![CDATA[ and sk.sendtime>=to_date( SYSDATE ) and sk.sendtime< to_date(SYSDATE + 1)  ]]> ) as hasMobileTraffic,
+		    (select count(*) from smsuplink sk  where  sk.senderorgid=ch.orgid and  sk.mobiletype=2 <![CDATA[ and sk.sendtime>=to_date( SYSDATE ) and sk.sendtime< to_date(SYSDATE + 1)  ]]> ) as hasChinaUnicomTraffic
+	    from  smsTrafficManage ch  
+	    where ch.orgid = #orgIds# order by ch.orgid asc
+	</select>
+	
+	<select id="findParentOrgTraffic" parameterClass="java.util.Map"  resultMap="countOrgTrafficResult">
+		select ch.orgid as id,ch.orgid as orgname,ch.telecomtraffic , ch.mobiletraffic , ch.chinaunicomtraffic,
+			(select count(*) from smsuplink sk where  sk.senderorgid=ch.orgid   and  sk.mobileType=4 <![CDATA[ and sk.sendtime>=#startDate# and sk.sendtime< #endDate#  ]]> ) as hasTelecomTraffic,
+		    (select count(*) from smsuplink sk  where  sk.senderorgid=ch.orgid and  sk.mobiletype=1  <![CDATA[ and sk.sendtime>=#startDate# and sk.sendtime< #endDate#  ]]> ) as hasMobileTraffic,
+		    (select count(*) from smsuplink sk  where  sk.senderorgid=ch.orgid and  sk.mobiletype=2 <![CDATA[ and sk.sendtime>=#startDate# and sk.sendtime< #endDate#  ]]> ) as hasChinaUnicomTraffic
+	    from smsTrafficManage ch  
+	    where ch.orgid in ($orgIds$) order by ch.orgid asc
+	</select>
+	
+</sqlMap>

@@ -1,0 +1,128 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" import="java.util.*,com.tianque.plugin.account.domain.LedgerFeedBack,com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew"%>
+<%@ taglib prefix="s" uri="/struts-tags"%>
+<%@ taglib prefix="pop" uri="/PopGrid-taglib"%>
+<%@ include file="/includes/baseInclude.jsp"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+
+    	<table width="96%" border="0" cellpadding="0" cellspacing="0">
+       		<tr>
+	          	<td class="tdhl" colspan="6" align="left">编号： ${peopleAspirations.serialNumber}</td>
+       		</tr>
+        	<tr>
+	          	<td colspan="6" style="text-align: center;font-Size:20px;font-family:'黑体';height:20px;width:15%;	font-weight:700;">
+	          	  中江县民生信息登记卡(
+	          	 		 <s:if test="peopleAspirations.ledgerType==11">水利信息</s:if>
+	          			<s:elseif test="peopleAspirations.ledgerType==12">交通信息</s:elseif>
+	          			<s:if test="peopleAspirations.ledgerType==13">教育信息</s:if>
+	          			<s:if test="peopleAspirations.ledgerType==14">医疗卫生信息</s:if>
+	          			<s:if test="peopleAspirations.ledgerType==15">农业信息</s:if>
+	          			<s:if test="peopleAspirations.ledgerType==16">能源信息</s:if>
+	          			<s:if test="peopleAspirations.ledgerType==17">劳动和社会保障信息</s:if>
+	          			<s:if test="peopleAspirations.ledgerType==18">环境保护信息</s:if>
+	          			<s:if test="peopleAspirations.ledgerType==19">城乡规划建设管理信息</s:if>
+	          			<s:if test="peopleAspirations.ledgerType==110">科技文本信息</s:if>
+	          			<s:if test="peopleAspirations.ledgerType==111">其它信息</s:if>
+	          			)
+	          	  <br><br>
+	          	</td>
+        	</tr>
+        	<tr>
+        		<td width="100%" colspan="6" id="_createType" style="text-align:left;"><b>建卡类型：</b>
+        		<pop:PropertyDictMultiCheckbox name="createType"
+					column="2" readOnly="true"
+					domainName="@com.tianque.plugin.account.property.PropertyTypes@LEDGER_PEOPLEASPIRATION_CREATE_TABLE_TYPE"/>
+        		</td>
+        	</tr>
+        	<tr><td width="100%" colspan="6" align="center"> <br></td></tr>
+
+        	<tr>
+        		<td width="12%" class="tdhr"><b>登记单位：</b></td>
+	          	<td width="18%">${peopleAspirations.bookingUnit }</td>
+	          	<td width="12%" class="tdhr"><b>登记人：</b></td>
+	          	<td width="20%">${peopleAspirations.registrant }</td>
+	          	<td width="10%" class="tdhr"><b>登记时间：</b></td>
+	          	<td width="21%"><s:date name="peopleAspirations.occurDate" format="yyyy-MM-dd" /></td>
+        	</tr>
+        	<tr>
+	          	<td width="100%" colspan="6" align="center"><hr/></td>
+        	</tr>
+        </table>
+        <table width="96%" border="0" cellpadding="10" cellspacing="0" style="margin:0 0 0 0;text-align:center;border-collapse:collapse;width:96%;" class="tablelist">
+        	
+        	<tr class="tr1">
+        		<td id="_appealHumanType" style="text-align: center;font-Size:16px font-family:'黑体';height:20px;width:12%;font-weight:750;" width="12%" rowspan=4>
+        		<pop:PropertyDictMultiCheckbox name="appealHumanType"
+					column="1" readOnly="true"
+					domainName="@com.tianque.plugin.account.property.PropertyTypes@LEDGER_APPEAL_HUMAN_TYPE"/>	
+        		</td>
+        		
+        		<td width="8%" style="text-align: left;font-Size:16px font-family:'黑体';height:20px;width:8%;font-weight:750;white-space: nowrap;" >姓名</td>
+	            <td width="10%" style="text-align: left;font-Size:10px; height:20px;width:10%;white-space: nowrap;">${peopleAspirations.name}</td>
+	            <td width="8%"  style="text-align: left;font-Size:16px font-family:'黑体';height:20px;width:8%;font-weight:750;white-space: nowrap;">性别</td>
+	            <td id="_gender" width="20%" style="text-align: left;font-Size:10px; height:20px;width:20%;white-space: nowrap;" >
+	            <pop:PropertyDictMultiCheckbox name="gender"
+					column="3" readOnly="true"
+					domainName="@com.tianque.plugin.account.property.PropertyTypes@GENDER"/>	
+	            </td>
+	            <td width="8%" style="text-align:left;font-Size:16px font-family:'黑体';height:20px;width:8%;font-weight:750;white-space: nowrap;" >出生年月</td>
+	            <td width="10%" style="text-align:left;font-Size:10px; height:20px;width:10%;white-space: nowrap;"><s:date name="peopleAspirations.birthDay" format="yyyy-MM-dd" /></td>
+	            <td width="8%" style="text-align:left;font-Size:16px font-family:'黑体';height:20px;width:8%;font-weight:750;white-space: nowrap;" >联系电话</td>
+	            <td width="10%" style="text-align:left;font-Size:10px; height:20px;width:10%;white-space: nowrap;">${peopleAspirations.mobileNumber}</td>
+        	</tr>
+        	
+        	<tr class="tr1">
+        		<td width="8%" style="text-align: left;font-Size:16px font-family:'黑体';height:20px;width:8%;font-weight:750;white-space: nowrap;" >常住地址</td>
+	            <td  style="text-align: left;font-Size:10px; height:20px;" colspan="7">${peopleAspirations.permanentAddress}</td>
+        	</tr>
+        	<tr class="tr1">
+        		<td width="8%" style="text-align: left;font-Size:16px font-family:'黑体';height:20px;width:24%;font-weight:750;" colspan=3>是否党员：是
+        		<input type="checkbox" name="isPartyMember" value="1" <s:if test="peopleAspirations.isPartyMember">checked</s:if> disabled/>
+        		否
+        		<input type="checkbox" name="isPartyMember" value="0" <s:if test="!peopleAspirations.isPartyMember">checked</s:if> disabled/>
+        		</td>
+        		<td width="8%" style="text-align: left;font-Size:16px font-family:'黑体';height:20px;width:8%;font-weight:750;white-space: nowrap;" >身份证号码</td>
+	            <td  style="text-align: left;font-Size:10px; height:20px;" colspan="2">${peopleAspirations.idCardNo}</td>
+	            <td width="8%" style="text-align: left;font-Size:16px font-family:'黑体';height:20px;width:8%;font-weight:750;white-space: nowrap;" >反映群体人数</td>
+	            <td  style="text-align: left;font-Size:10px; height:20px;" >${peopleAspirations.responseGroupNo}</td>
+
+        	</tr>
+        	
+        	<tr class="tr1">
+        		<td width="8%" style="text-align: left;font-Size:16px font-family:'黑体';height:20px;width:8%;font-weight:750;white-space: nowrap;" >职业或身份</td>
+	            
+	            <td id="_position" style="text-align: left;font-Size:10px; height:20px;" colspan="7">
+	            <pop:PropertyDictMultiCheckbox name="position"
+					column="9" readOnly="true"
+					domainName="@com.tianque.plugin.account.property.PropertyTypes@POSITION_OR_STATUS"/>
+	            </td>
+        	</tr>
+        	
+        	<tr class="tr1" height="40">
+        		<td height="40" style="text-align: center;font-Size:16px font-family:'黑体';height:20px;width:8%;font-weight:750;" width="12%" >
+        		主要愿望或诉求（描述简洁，文字控制在20字以内）
+        		</td>
+        		<td colspan="8" style="text-align:left;font-Size:10px; height:20px;width:15%;word-break:break-all;word-wrap:break-word">
+	            	${peopleAspirations.appealContent}
+	            	
+	            	<p align="right" valign="bottom" style="margin-right:160px;margin-top:20px;"> 反映人签名：</p>
+	            </td>
+        	</tr>
+   			
+   			<tr class="tr1" >
+        		<td style="text-align: center;font-Size:16px font-family:'黑体';height:20px;width:12%;font-weight:750;" width="12%" >
+        		服务联系人
+        		</td>
+        		
+	            <td width="10%" style="text-align: left;font-Size:10px; height:20px;width:10%;white-space: nowrap;" colspan="2">${peopleAspirations.serverContractor}</td>
+	            <td width="8%"  style="text-align: left;font-Size:16px font-family:'黑体';height:20px;width:8%;font-weight:750;white-space: nowrap;">单位及职务</td>
+	            <td  width="20%" style="text-align: left;font-Size:10px; height:20px;width:20%;white-space: nowrap;" colspan="2">
+	            ${peopleAspirations.serverJob}
+	            </td>
+	            <td width="8%" style="text-align:left;font-Size:16px font-family:'黑体';height:20px;width:8%;font-weight:750;white-space: nowrap;" >联系电话</td>
+	            <td width="10%" style="text-align:left;font-Size:10px; height:20px;width:10%;white-space: nowrap;" colspan="2">${peopleAspirations.serverTelephone}</td>
+        	</tr>
+   
+    </table>
+ <div style="page-break-after: always;"></div> 

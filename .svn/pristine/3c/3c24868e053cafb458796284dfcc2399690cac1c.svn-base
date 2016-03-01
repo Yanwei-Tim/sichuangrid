@@ -1,0 +1,152 @@
+-----两新组织模块调整增量脚本
+ 
+update permissions set parentid=(select id from permissions where ename='gridManageSystem'),indexid=3 where 
+ename='newSocietyOrganizationsManagement'; 
+ 
+update permissions set parentid=(select id from permissions where ename='gridManageSystem'),indexid=4,cname='非公有制经济组织' where 
+ename='newEconomicOrganizationsManagement'; 
+ 
+update permissions set moduleName='非公有制经济组织' where parentid=(select id from permissions where ename='newEconomicOrganizationsManagement');
+ 
+delete from rolehaspermissions r where r.permissionid = (select id from permissions where ename='twoNewOrganizationManagement') ;
+delete  from permissions where ename='twoNewOrganizationManagement';
+ 
+commit;
+ 
+--------事件类型增量脚本
+ 
+ 
+delete  from issuetypes where domainid=(select id from issuetypedomains where domainname='民生服务');
+ 
+insert into issuetypedomains (ID, MODULE, SYSTEMSENSITIVE, PERSONALIZED, DOMAINNAME)
+values (s_issueTypeDomains.NEXTVAL, 'si_chuan', 0, 0, '矛盾化解');
+ 
+insert into issuetypedomains (ID, MODULE, SYSTEMSENSITIVE, PERSONALIZED, DOMAINNAME)
+values (s_issueTypeDomains.NEXTVAL, 'si_chuan', 0, 0, '治安防控');
+ 
+insert into issuetypedomains (ID, MODULE, SYSTEMSENSITIVE, PERSONALIZED, DOMAINNAME)
+values (s_issueTypeDomains.NEXTVAL, 'si_chuan', 0, 0, '特殊人群服务管理报告');
+ 
+insert into issuetypedomains (ID, MODULE, SYSTEMSENSITIVE, PERSONALIZED, DOMAINNAME)
+values (s_issueTypeDomains.NEXTVAL, 'si_chuan', 0, 0, '社情民意收集');
+ 
+insert into issuetypedomains (ID, MODULE, SYSTEMSENSITIVE, PERSONALIZED, DOMAINNAME)
+values (s_issueTypeDomains.NEXTVAL, 'si_chuan', 0, 0, '政策法规宣传');
+ 
+insert into issuetypedomains (ID, MODULE, SYSTEMSENSITIVE, PERSONALIZED, DOMAINNAME)
+values (s_issueTypeDomains.NEXTVAL, 'si_chuan', 0, 0, '突发事件报告');
+ 
+insert into issuetypedomains (ID, MODULE, SYSTEMSENSITIVE, PERSONALIZED, DOMAINNAME)
+values (s_issueTypeDomains.NEXTVAL, 'si_chuan', 0, 0, '其它');
+ 
+commit;
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='民生服务'), 1, 0, 1, 1, '教育服务', '教育服务', 'jyfw', 'jiaoyufuwu', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='民生服务'), 2, 0, 1, 2, '社保服务', '社保服务', 'sbfw', 'shebaofuwu', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='民生服务'), 3, 0, 1, 3, '就业服务', '就业服务', 'jyfw', 'jiuyefuwu', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='民生服务'), 4, 0, 1, 4, '医疗服务', '医疗服务', 'ylfw', 'yiliaofuwu', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='民生服务'), 5, 0, 1, 5, '住房服务', '住房服务', 'zffw', 'zhufangfuwu', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='民生服务'), 6, 0, 1, 6, '交通服务', '交通服务', 'jtfw', 'jiaotongfuwu', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='民生服务'), 7, 0, 1, 7, '证件办理', '证件办理', 'zjbl', 'zhengjianbanli', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='民生服务'), 8, 0, 1, 8, '企业服务', '企业服务', 'qyfw', 'qiyefuwu', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='民生服务'), 9, 0, 1, 9, '资质服务', '资质服务', 'zzfw', 'zizhifuwu', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='民生服务'), 10, 0, 1, 10, '经营纳税', '经营纳税', 'jyns', 'jingyingnashui', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='民生服务'), 11, 0, 1, 11, '婚育收养', '婚育收养', 'hysy', 'hunyushouyang', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='民生服务'), 12, 0, 1, 12, '公共事业', '公共事业', 'ggsy', 'gonggongshiye', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='矛盾化解'), 1, 0, 1, 1, '进入大调解信息系统', '进入大调解信息系统', 'jrddjxxxt', 'jinrudadiaojiexinxix', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='矛盾化解'), 2, 0, 1, 2, '信访问题处理', '信访问题处理', 'xfwtcl', 'xinfangwentichuli', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='矛盾化解'), 3, 0, 1, 3, '不稳定因素报告', '不稳定因素报告', 'bwdysbg', 'buwendingyinsubaogao', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='治安防范'), 1, 0, 1, 1, '物防设施', '物防设施', 'wfss', 'wufangsheshi', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='治安防范'), 2, 0, 1, 2, '技防设施', '技防设施', 'jfss', 'jifangsheshi', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='治安防范'), 3, 0, 1, 3, '刑事治安案件发生情况', '刑事治安案件发生情况', 'xszaajfsqk', 'xingshizhiananjianfa', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='治安防范'), 4, 0, 1, 4, '治安隐患或线索', '治安隐患或线索', 'zayhhxs', 'zhianyinhuanhuoxians', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='治安防范'), 5, 0, 1, 5, '守楼护院', '守楼护院', 'slhy', 'shoulouhuyuan', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='特殊人群服务管理报告'), 1, 0, 1, 1, '精神病人是否落实', '精神病人是否落实', 'jsbrsfls', 'jingshenbingrenshifo', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='特殊人群服务管理报告'), 2, 0, 1, 2, '社区帮教落实', '社区帮教落实', 'sqbjls', 'shequbangjiaoluoshi', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='特殊人群服务管理报告'), 3, 0, 1, 3, '刑释', '刑释', 'xs', 'xingshi', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='特殊人群服务管理报告'), 4, 0, 1, 4, '吸毒人员', '吸毒人员', 'xdry', 'xidurenyuan', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='特殊人群服务管理报告'), 5, 0, 1, 5, '重点青少年', '重点青少年', 'zdqsn', 'zhongdianqingshaonia', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='社情民意收集'), 1, 0, 1, 1, '社情民意收集', '社情民意收集', 'sqmysj', 'sheqingminyishouji', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='政策法律宣传'), 1, 0, 1, 1, '咨询、宣传', '咨询、宣传', 'zxxc', 'zixunxuanchuan', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='突发事件报告'), 1, 0, 1, 1, '突发事件', '突发事件', 'tfsj', 'tufashijian', '', 'admin', sysdate);
+ 
+insert into issuetypes (ID, ORGID, DOMAINID, INTERNALID, PERSONALIZED, ENABLED, INDEXID, ISSUETYPENAME, CONTENT, SIMPLEPINYIN, FULLPINYIN, ORGINTERNALCODE, CREATEUSER, CREATEDATE)
+values (s_issuetypes.NEXTVAL, null, (select id from issuetypedomains where domainname='其它' and module='si_chuan'), 1, 0, 1, 1, '其它', '其它', 'qt', 'qita', '', 'admin', sysdate);
+commit;
+
+insert into propertydomains (ID, DOMAINNAME, SYSTEMSENSITIVE, SYSTEMRESTRICT)
+values (s_propertydomains.nextVal, '项目名称', 1, '[{"displayName":"企业投资建设项目","identify":0},{"displayName":"外商投资项目核准","identify":1}
+                                                      ,{"displayName":"固定资产投资项目","identify":2},{"displayName":"设立民办学校审批","identify":3}]');
+
+--新增数据字典sql模板
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextVal, (select id from propertydomains where domainname='项目名称'), 0, 1, '企业投资建设项目', 'qytz', 'qiyetouzi', 
+       'admin', '', sysdate, null);
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextVal, (select id from propertydomains where domainname='项目名称'), 1, 2, '外商投资项目核准', 'wstz', 'waishangtouzi', 
+       'admin', '', sysdate, null);
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextVal, (select id from propertydomains where domainname='项目名称'), 2, 3, '固定资产投资项目', 'gdzc', 'gudingzichan', 
+       'admin', '', sysdate, null);
+insert into propertydicts (ID, PROPERTYDOMAINID, INTERNALID, DISPLAYSEQ, DISPLAYNAME, SIMPLEPINYIN, FULLPINYIN, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE)
+values (s_propertydicts.nextVal, (select id from propertydomains where domainname='项目名称'), 3, 4, '设立民办学校审批', 'slmb', 'sheliminban', 
+       'admin', '', sysdate, null);
+commit;
+
+alter table issuesteps add assign number(10);
+alter table issuesteps add submit number(10);

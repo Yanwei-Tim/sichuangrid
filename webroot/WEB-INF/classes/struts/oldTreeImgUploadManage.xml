@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="oldTreeImage" extends="default"
+		namespace="/baseinfo/oldTreeManage">
+		<default-class-ref class="oldTreeImageController"></default-class-ref>
+		<action name="uploadImage" method="uploadImage">
+		 	<interceptor-ref name ="fileUploadStack" />
+		 	<result name="success" type="json">
+		 		<param name="root">imageUrl</param>
+		 	</result>
+		 	<result name="error" type="json">
+		 		<param name="root">error</param>
+		 	</result>
+		 	
+		 	
+		</action>
+		<action name="showImage" method="showImage">
+		 	
+		</action>
+		
+	</package>
+</struts>

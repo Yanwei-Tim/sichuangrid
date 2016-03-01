@@ -1,0 +1,28 @@
+<#assign pop=JspTaglibs["/WEB-INF/taglib/pop-taglib.tld"]>
+<#assign s=JspTaglibs["/WEB-INF/taglib/struts-tags.tld"]>
+<@s.include value="/includes/baseInclude.jsp"/>
+<div id="dialog-form" class="container container_24">
+        <div class="grid_5 lable-right">
+	     	<label class="form-lbl">appID：</label>
+	  	</div>
+	  	<div class="grid_19">
+	    	<input type="text" id="tencentUser_appId" name="tencentUser.appId"  maxlength="100"  class="form-txt" />
+	  	</div>
+	  	<div class='clearLine'>&nbsp;</div> 
+	  	
+	  	<div class="grid_5 lable-right">
+	  		<label class="form-lbl">appsecret：</label> 
+	  	</div>
+	    <div class="grid_19">
+			<input type="text"  id="tencentUser_appSecret"  name="tencentUser.appSecret"  class="form-txt" maxlength="100" />
+	   </div>
+	   <div class='clearLine'>&nbsp;</div>
+	   
+	  	<div class="grid_5 lable-right">
+	  		<label class="form-lbl">微信昵称：</label> 
+	  	</div>
+	    <div class="grid_19">
+			<input type="text"  id="tencentUser_name"  name="tencentUser.name"  class="form-txt" maxlength="100" />
+	   </div>
+	   <div class='clearLine'>&nbsp;</div>
+</div>

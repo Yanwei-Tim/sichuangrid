@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="locationBaseInfo">
+	<typeAlias alias="LocationBaseInfo" type="com.tianque.domain.LocationBaseInfo"/>
+	
+	<resultMap id="locationBaseInfoResult" class="LocationBaseInfo" extends="baseDomain.baseDomainResult">
+		<result property="isEmphasis" column="isEmphasis"/>
+	</resultMap>
+	<resultMap  id="locationBaseInfoResultForList" class="LocationBaseInfo" extends="locationBaseInfo.locationBaseInfoResult" >
+		<result property="locationType" column="locationType"  nullValue="" />
+		<result property="hasServiceTeamMember" column="{id=id,locationType=locationType}" select="locationBaseInfo.hasServiceTeamMemberQuery" />
+		<result property="lastRecordTime" column="{id=id,locationType=locationType}" select="locationBaseInfo.hasServiceTeamRecordQuery"/>
+	</resultMap>
+	
+	<select id="hasServiceTeamMemberQuery"  resultClass="java.lang.Long" > 
+		select count(*)  from serviceMemberHasObject where objectType = #locationType# and objectId=#id# and onDuty=1
+	</select>
+	
+	<select id="hasServiceTeamRecordQuery" resultClass="java.util.Date">
+		select max(OCCURDATE) from servicerecords 
+		where id in (select recordId from serviceRecordRelyObject 
+								where objectType=#locationType# and objectId=#id#)
+	</select>
+	
+</sqlMap>

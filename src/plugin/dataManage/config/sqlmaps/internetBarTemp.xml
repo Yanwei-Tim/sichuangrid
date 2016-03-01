@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="internetBarTemp">
+	<typeAlias alias="InternetBarTemp" type="com.tianque.plugin.dataManage.location.internetBarTemp.domain.InternetBarTemp" />
+	 <typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+	
+	<resultMap id="internetBarTempResultForBase" class="InternetBarTemp" extends="locationTempBaseDomain.placeCommonTempResultForBase">
+		<result property="mobile" column="mobile" />
+		<result property="stationPolice" column="stationPolice" />
+		<result property="barCode" column="barCode" />
+		<result property="operationArea" column="operationArea" />
+		<result property="tempNetCardNum" column="tempNetCardNum" />
+		<result property="totalComputerNum" column="totalComputerNum" />
+		<result property="netAccessProviders" column="netAccessProviders" />
+		<result property="internetAccessType" column="internetAccessType" />
+		<result property="useIP" column="useIP" />
+		<result property="netCultureLicenceNo" column="netCultureLicenceNo" />
+		<result property="netSecurityAuditNo" column="netSecurityAuditNo" />
+		<result property="fireAuditDocumentNo" column="fireAuditDocumentNo" />
+	</resultMap>
+    <resultMap id="internetBarTempResultForList" class="InternetBarTemp" extends="internetBarTemp.internetBarTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<sql id="claim_sql_where">
+		from DM_internetBar_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	<sql id="updateBusinessSql">
+	
+		mobile = #mobile#
+		,stationPolice = #stationPolice#
+		,barCode = #barCode#
+		,operationArea = #operationArea#
+		,tempNetCardNum = #tempNetCardNum#
+		,totalComputerNum = #totalComputerNum#
+		,netAccessProviders = #netAccessProviders#
+		,internetAccessType = #internetAccessType#
+		,useIP=#useIP#
+		,netCultureLicenceNo=#netCultureLicenceNo#
+		,netSecurityAuditNo=#netSecurityAuditNo#
+		,fireAuditDocumentNo=#fireAuditDocumentNo#
+		,attentionExtent=#attentionExtent.id#
+	</sql>
+	
+	<select id="getInternetBarTempById" parameterClass="long" resultMap="internetBarTempResultForList">
+		select * from DM_internetBar_Temp where id=#value#
+	</select>
+	<insert id="addInternetBarTemp" parameterClass="InternetBarTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_internetBar_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_internetBar_Temp
+		(id,orgId,orgInternalCode,Name,manager,mobile,Address,stationPolice,barCode,operationArea,tempNetCardNum,
+		 totalComputerNum,netAccessProviders,internetAccessType,useIP,netCultureLicenceNo,netSecurityAuditNo,
+		 fireAuditDocumentNo,attentionExtent,remark,createDate,createUser,
+		<include refid="dataManage.addDataManage"/>
+		)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#name#,#manager#,#mobile#,#address#,#stationPolice#,#barCode#,#operationArea#,#tempNetCardNum#,
+		 #totalComputerNum#,#netAccessProviders#,#internetAccessType#,#useIP#,#netCultureLicenceNo#,#netSecurityAuditNo#,
+		 #fireAuditDocumentNo#,#attentionExtent.id#,#remark#,#createDate#,#createUser#,
+		<include refid="dataManage.addValueDataManage"/>
+		)
+    </insert>
+    
+    <select id="findTemps" resultMap="internetBarTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countFindTemps" resultClass="java.lang.Integer"
+		parameterClass="searchVo">
+			select count(id)  <include refid="claim_sql_where" />
+		</select>
+	
+	<update id="updateInternetBarTempInIdById"  parameterClass="java.util.Map">
+		update DM_internetBar_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<update id="updateInternetBarTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_internetBar_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+	
+	<update id="updateInternetBarTemp" parameterClass="InternetBarTemp">
+		update DM_internetBar_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="internetBarTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<!-- 修改场所信息 -->
+	<update id="updateInternetBarTempInfo" parameterClass="InternetBarTemp">
+		update DM_internetBar_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="internetBarTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	
+	<sql id="sql_where">
+		from DM_internetBar_Temp
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="name">
+				<isNotNull property="name" prepend=" and ">
+					name = #name#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="districtOrgId">
+				<isNotNull property="districtOrgId" prepend=" and ">
+					districtOrgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<delete id="deleteInternetBarTempById" parameterClass="Long">
+	   delete DM_internetBar_Temp where id = #value#
+	</delete>
+	<!-- 通过orgid和name来查询场所
+	<select id="getInternetBarByTemp" parameterClass="internetBarTempResultForList" resultMap="internetBarTempResultForList">
+		select *
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	 -->
+</sqlMap>

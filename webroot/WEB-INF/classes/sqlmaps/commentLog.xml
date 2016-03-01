@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="commentLog">
+	<typeAlias alias="CommentLog" type="com.tianque.peopleLog.domain.CommentLog"/>
+	<typeAlias alias="PeopleLog" type="com.tianque.peopleLog.domain.PeopleLog"/>
+
+	<resultMap class="CommentLog" id="commentLogResult">
+		<result property="id" column="id"/>
+		<result property="logId" column="logId"/>
+		<result property="userId" column="userId"/>
+		<result property="commentUser" column="commentUser"/>
+		<result property="comments" column="comments"/>
+		<result property="commentTime" column="commentTime"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>
+		<result property="peopleLog" column="logId" select="peopleLog.getPeopleLogById"/>
+	</resultMap>
+
+	<select id="getCommentLog" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		select  p.title peopleLogTitle,p.orginternalcode orginternalcode,p.logtype peopleLogType,c.id id,c.commentTime commentTime,c.comments comments,c.userid userid,c.logid logid
+			from commentLog c inner join Peoplelog p on c.logid=p.id
+			where c.userId = #userId#
+			<isPropertyAvailable property="sortField" prepend="order by">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="sord">$sord$</isNotNull>
+			</isPropertyAvailable>
+	</select>
+
+	<select id="getCommentLogByLogId" parameterClass="java.lang.Long" resultMap="commentLogResult">
+		select * from commentLog where logId=#value#
+	</select>
+
+
+	<select id="countCommentLog" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from commentLog c inner join Peoplelog p on c.logid=p.id
+			where c.userId = #userId#
+	</select>
+
+	<select id="getCommentLogById" parameterClass="java.lang.Long" resultMap="commentLogResult">
+	<![CDATA[select * from commentLog where id=#value#]]>
+	</select>
+
+	<delete id="deleteCommentLog" parameterClass="java.lang.Long">
+		delete from commentLog where id=#value#
+	</delete>
+	<delete id="deleteCommentLogByLogId" parameterClass="java.lang.Long">
+		delete from commentLog where logId=#value#
+	</delete>
+
+	<update id="updateCommentLog" parameterClass="CommentLog">
+		update commentLog set
+			logId=#logId#,
+			userId=#userId#,
+			commentUser=#commentUser#,
+			comments=#comments#,
+			commentTime=#commentTime#,
+			updateUser=#updateUser#,
+			updateDate=#updateDate#,
+		where id=#id#
+	</update>
+
+	<insert id="saveComment" parameterClass="CommentLog">
+	<selectKey keyProperty="id" resultClass="java.lang.Long">
+	<![CDATA[SELECT s_commentLog.NEXTVAL AS ID FROM DUAL]]>
+	</selectKey>
+	insert into commentLog(id,logId,userId,commentUser,comments,commentTime,createUser,createDate,updateUser,updateDate)
+	values(#id#,#logId#,#userId#,#commentUser#,#comments#,#commentTime#,#createUser#,#createDate#,#updateUser#,#updateDate#)
+
+	</insert>
+
+</sqlMap>

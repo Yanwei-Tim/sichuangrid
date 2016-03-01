@@ -1,0 +1,80 @@
+package com.tianque.usedInfoOptmize.dao.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.dao.AbstractBaseDao;
+import com.tianque.usedInfoOptmize.dao.UsedInfoDataDao;
+import com.tianque.usedInfoOptmize.domain.UsedInfoData;
+
+/**
+ * @Description:信息系统使用情况报表dao
+ * @author zhangyouwei@hztianque.com
+ * @date: 2015-7-1 下午03:43:33
+ */
+@Repository("usedInfoDataDao")
+public class UsedInfoDataDaoImpl extends AbstractBaseDao implements
+		UsedInfoDataDao {
+
+	@Override
+	public void createUsedInfoMonthData(Date startDate, Date endDate,
+			Long orgTypeId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("startDate", startDate);
+		map.put("endDate", endDate);
+		map.put("orgTypeId", orgTypeId);
+		map.put("createDate", new Date());
+		map.put("createUser", ThreadVariable.getSession().getUserName());
+		getSqlMapClientTemplate().insert(
+				"usedInfoData.createUsedInfoMonthData", map);
+	}
+
+	@Override
+	public void createUsedInfoWeekData(Date startDate, Date endDate,
+			Long orgTypeId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("startDate", startDate);
+		map.put("endDate", endDate);
+		map.put("orgTypeId", orgTypeId);
+		map.put("createDate", new Date());
+		map.put("createUser", ThreadVariable.getSession().getUserName());
+		getSqlMapClientTemplate().insert("usedInfoData.createUsedInfoWeekData",
+				map);
+	}
+
+	/**
+	 * 删除月数据
+	 */
+	@Override
+	public void deleteUsedInfoMonthData() {
+		getSqlMapClientTemplate()
+				.delete("usedInfoData.deleteUsedInfoMonthData");
+	}
+
+	/**
+	 * 删除周数据
+	 */
+	@Override
+	public void deleteUsedInfoWeekData() {
+		getSqlMapClientTemplate().delete("usedInfoData.deleteUsedInfoWeekData");
+	}
+
+	@Override
+	public List<UsedInfoData> findUsedInfoWeekDataByParentOrgId(Long parentOrgId) {
+		return getSqlMapClientTemplate().queryForList(
+				"usedInfoData.findUsedInfoWeekDataByParentOrgId", parentOrgId);
+	}
+
+	@Override
+	public List<UsedInfoData> findUsedInfoMonthDataByParentOrgId(
+			Long parentOrgId) {
+		return getSqlMapClientTemplate().queryForList(
+				"usedInfoData.findUsedInfoMonthDataByParentOrgId", parentOrgId);
+	}
+
+}

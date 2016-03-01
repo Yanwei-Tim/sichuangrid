@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="workingSituation">
+
+	<typeAlias alias="WorkingSituation" type="com.tianque.plugin.taskList.domain.WorkingSituation" />
+	<!-- <typeAlias alias="HiddenDangerVo"
+		type="com.tianque.plugin.taskList.domain.HiddenDangerVo" /> -->
+
+
+	<resultMap id="workingSituationResult" class="WorkingSituation">
+		<result property="id" column="id" />
+		<result property="organization.id" column="orgid" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="occurrenceDate" column="occurrenceDate" />
+		<result property="workcontent.id" column="workcontent" />
+		<result property="remark" column="remark" />
+		<result property="ishandle" column="ishandle" />
+		<result property="signUserName" column="signUserName" />
+	    <result property="cellName" column="cellName" />
+	    <result property="policeName" column="policeName" />
+	    <result property="telephone" column="telephone" />
+	    <result property="advice" column="advice" />
+	    <result property="signDate" column="signDate" />
+		<result property="createUser" column="createuser" />
+		<result property="updateUser" column="updateuser" />
+		<result property="createDate" column="createdate" />
+		<result property="updateDate" column="updatedate" />
+	</resultMap>
+
+
+	<insert id="addWorkingSituation" parameterClass="WorkingSituation">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_WORKINGSITUATION.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into WorkingSituation
+		(
+		id,orgid,orgInternalCode,occurrenceDate,workcontent,remark,signUserName,cellName,telephone,createuser,updateuser,createdate,updatedate,policeName
+		)
+		values
+		(
+		#id#,#organization.id#,#orgInternalCode#,#occurrenceDate#,#workcontent.id#,#remark#,#signUserName#,#cellName#,#telephone#,#createUser#,#updateUser#,#createDate#,#updateDate#,#policeName#
+		)
+	</insert>
+	
+	<delete id="deleteWorkingSituationByIds" parameterClass="java.util.Map">
+		delete from WorkingSituation where id in
+    	<iterate conjunction="," open="(" close=")" property="ids">
+            #ids[]#
+        </iterate>
+	</delete>
+
+
+	<select id="getWorkingSituationById" resultMap="workingSituationResult"
+		parameterClass="java.lang.Long">
+		select 	id,orgid,orgInternalCode,occurrenceDate,workcontent,ishandle,remark,signUserName,cellName,telephone,advice,signDate,createuser,updateuser,createdate,updatedate,policeName from WorkingSituation where id = #value#
+
+	</select>
+
+	<update id="updateWorkingSituation" parameterClass="WorkingSituation">
+
+		update WorkingSituation set
+		<dynamic>
+			id=#id#
+			
+			<isNotNull prepend="," property="organization.id">
+				ORGID = #organization.id#
+				</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+
+			<isPropertyAvailable property="occurrenceDate">
+				<isNotNull property="occurrenceDate" prepend=",">
+					occurrenceDate=#occurrenceDate#
+				</isNotNull>
+			</isPropertyAvailable>
+
+			
+
+			<isPropertyAvailable property="workcontent">
+				<isNotNull property="workcontent" prepend=",">
+					workcontent=#workcontent.id#
+				</isNotNull>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="remark">
+				<isNotNull property="remark" prepend=",">
+					remark=#remark#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="policeName">
+				<isNotNull property="policeName" prepend=",">
+					policeName=#policeName#
+				</isNotNull>
+			</isPropertyAvailable>
+			where id=#id#
+		</dynamic>
+	</update>
+	
+	<sql id="search_sql_where">
+		 where 1 = 1
+		 <dynamic>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+				policeName like #fastSearchKeyWords#||'%' 
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			
+			<isPropertyAvailable property="organization">
+				<isNotEmpty property="organization" prepend=" and ">
+					orgid=#organization.id#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			
+			<isPropertyAvailable property="occurrenceDateStart">
+				<isNotEmpty property="occurrenceDateStart" prepend=" and ">
+					<![CDATA[ occurrenceDate >= #occurrenceDateStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="occurrenceDateEnd">
+				<isNotEmpty property="occurrenceDateEnd" prepend=" and ">
+					<![CDATA[ occurrenceDate <= #occurrenceDateEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="workcontent">
+				<isNotEmpty property="workcontent" prepend=" and ">
+					workcontent=#workcontent#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="remark">
+				<isNotEmpty property="remark" prepend=" and ">
+					remark=#remark#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="policeName">
+				<isNotEmpty property="policeName" prepend=" and ">
+					policeName=#policeName#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="signDateStart">
+				<isNotEmpty property="signDateStart" prepend=" and ">
+					<![CDATA[ signDate >= #signDateStart# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="signDateEnd">
+				<isNotEmpty property="signDateEnd" prepend=" and ">
+					<![CDATA[ signDate <= #signDateEnd# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="cellName">
+				<isNotEmpty property="cellName" prepend=" and ">
+					cellName like #cellName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="signUserName">
+				<isNotEmpty property="signUserName" prepend=" and ">
+					signUserName like #signUserName#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="ishandle">
+				<isNotEmpty property="ishandle" prepend=" and ">
+					ishandle=#ishandle#
+				</isNotEmpty>
+			</isPropertyAvailable>
+		
+		</dynamic>
+	</sql>
+
+
+	<select id="countWorkingSituationByVo" parameterClass="map" resultClass="java.lang.Integer">
+		select count(h.id) from WorkingSituation h
+		<include refid="search_sql_where" />
+		<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	
+	<select id="searchWorkingSituation" parameterClass="map" resultMap="workingSituationResult">
+	select id,orgid,orgInternalCode,occurrenceDate,workcontent,ishandle,remark,createuser,updateuser,createdate,updatedate,signUserName,cellName,telephone,advice,signDate,policeName
+		from WorkingSituation h
+		<include refid="search_sql_where" />
+		<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotNull>
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<update id="updateWorkingSituationSignDetail" parameterClass="WorkingSituation">
+
+		update WorkingSituation set 
+		<dynamic>
+			id=#id#
+			<isPropertyAvailable property="advice">
+				<isNotNull property="advice" prepend=",">
+					advice=#advice#
+				</isNotNull>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="signDate">
+				<isNotNull property="signDate" prepend=",">
+					signDate=#signDate#
+				</isNotNull>
+			</isPropertyAvailable>
+	
+			<isPropertyAvailable property="signUserName">
+				<isNotNull property="signUserName" prepend=",">
+					signUserName=#signUserName#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="ishandle">
+				<isNotNull property="ishandle" prepend=",">
+					ishandle=#ishandle#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="updateUser">
+				<isNotNull property="updateUser" prepend=",">
+					updateUser=#updateUser#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="updateDate">
+				<isNotNull property="updateDate" prepend=",">
+					updateDate=#updateDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			where id=#id#
+		</dynamic>
+	</update>
+	
+   <select id="countworkingSituationAndGridTaskByVo" parameterClass="map" resultClass="java.lang.Integer">
+    select count(b.id) from gridConfigTask a,workingsituation b
+    <include refid="search_sql_where" />
+    and a.orgInternalCode like b.orgInternalCode
+   </select>
+ 
+    <select id="countworkingSituationAndGridTaskOtherByVo" parameterClass="map" resultClass="java.lang.Integer">
+    select count(b.id) from gridConfigTask a,workingsituation b
+    <include refid="search_sql_where" />
+    and a.orgInternalCode = b.orgInternalCode and a.orgInternalCode = #orgInternalCode#
+    </select>
+ 
+    <select id="searchworkingSituationAndGridTask" parameterClass="map" resultMap="workingSituationResult">
+    select b.* from gridConfigTask a,workingsituation b
+    <include refid="search_sql_where" />
+    and a.orgInternalCode like b.orgInternalCode
+    </select>
+ 
+    <select id="searchworkingSituationAndGridTaskOther" parameterClass="map" resultMap="workingSituationResult">
+    select b.* from gridConfigTask a,workingsituation b
+    <include refid="search_sql_where" />
+    and a.orgInternalCode = b.orgInternalCode and a.orgInternalCode = #orgInternalCode#
+    </select>
+
+</sqlMap>

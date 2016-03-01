@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="floorperson">
+	<typeAlias alias="Floorperson" type="com.tianque.domain.Floorperson" />
+	<parameterMap id="floorpersonParams" class="Floorperson">
+		<parameter property="id" />
+		<parameter property="floorpersonsTime" />
+		<parameter property="address" />
+		<parameter property="events" />
+		<parameter property="placeId" />
+		<parameter property="placeType" />
+		<parameter property="createUser" />
+		<parameter property="createDate" />
+		<parameter property="updateUser" />
+		<parameter property="updateDate" />
+		<parameter property="personInChargeName" />
+		<parameter property="placeName" />
+		<parameter property="placeTypeName" />
+	</parameterMap>
+
+	<resultMap id="floorpersonResult" class="Floorperson">
+		<result property="id" column="id" />
+		<result property="floorpersonsTime" column="floorpersonsTime" />
+		<result property="address" column="address" />
+		<result property="events" column="events" />
+		<result property="placeId" column="placeId" />
+		<result property="placeType" column="placeType" />
+		<result property="personInChargeName" column="personInChargeName" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="placeName" column="placeName" />
+		<result property="placeTypeName" column="placeTypeName" />
+	</resultMap>
+		<insert id="addFloorperson" parameterClass="Floorperson">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_floorpersons.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO floorpersons
+		(id,floorpersonsTime,address,events,placeId,placeType,personInChargeName,createUser,createDate,updateUser,updateDate,placeName,placeTypeName)
+		values
+		(#id#,#floorpersonsTime#,#address#,#events#,#placeId#,#placeType#,#personInChargeName#,#createUser#,#createDate#,#updateUser#,#updateDate#,#placeName#,#placeTypeName#)
+	</insert>
+
+	<update id="updateFloorperson" parameterClass="Floorperson">
+		update floorpersons set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="floorpersonsTime">
+				floorpersonsTime=#floorpersonsTime#
+			</isNotNull>
+			<isNotNull prepend="," property="address">
+				address=#address#
+			</isNotNull>
+			<isNotNull prepend="," property="events">
+				events=#events#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="personInChargeName">
+				personInChargeName=#personInChargeName#
+			</isNotNull>
+		</dynamic>
+		where id=#id#
+	</update>
+
+	<select id="findFloorperson" resultMap="floorpersonResult"
+		parameterClass="java.util.Map">
+		<![CDATA[select * from  floorpersons where placeId=#placeId# and placeType=#placeType#]]>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+
+	<select id="countFloorperson" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(*) from  floorpersons where placeId=#placeId# and placeType=#placeType#]]>
+	</select>
+
+
+	<select id="getFloorpersonById" parameterClass="long"
+		resultMap="floorpersonResult">
+		<![CDATA[select * from  floorpersons where id=#placeId#]]>
+	</select>
+
+	<delete id="deleteFloorperson" parameterClass="map">
+		delete from floorpersons where placeId=#placeId# and placeType=#placeType#
+	</delete>
+
+	<delete id="deleteFloorpersonById" parameterClass="long">
+		delete from floorpersons where id=#id#
+	</delete>
+</sqlMap>

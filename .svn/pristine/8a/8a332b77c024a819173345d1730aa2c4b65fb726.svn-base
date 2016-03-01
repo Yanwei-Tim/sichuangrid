@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	
+	<package name="issueNewMobileManage" namespace="/mobile/issueMobileManage" extends="default">
+		<default-class-ref class="issueMobileAdapter"></default-class-ref>
+		
+		<action name="getIssueActionForMobile" method="getIssueAction">
+			<result name="success" type="json">
+				<param name="root">jsonMap</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+		
+		<action name="searchDoneIssues" method="searchDoneIssues">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+		
+		<action name="dealIssue" method="dealIssue">
+			<result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+	    
+		<action name="issueEvaluate" method="issueEvaluate">
+			<result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+		
+		<action name="dispatchDeal" method="dispatchDeal">
+		    <result name="success" type="json">
+				<param name="root">jsonMap</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+		    <result name="simpleDeal" type="json">
+				<param name="root">jsonMap</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+		
+		<action name="prepareExistedEnabledIssueType" method="prepareExistedEnabledIssueType">
+		    <result name="success" type="json">
+				<param name="root">mobileIssueTypeList</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+		<action name="prepareExistedEnabledIssueTypeNew" method="prepareExistedEnabledIssueTypeNew">
+		    <result name="success" type="json">
+				<param name="root">issueTypesVoList</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+		<action name="findIssueBigTypes" method="findIssueBigTypes">
+		    <result name="success" type="json">
+				<param name="root">issueBigTypes</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+		
+		<action name="findPopulationsByCardNoAndNameAndOrgId" method="findPopulationsByCardNoAndNameAndOrgId">
+		    <result name="success" type="json">
+				<param name="root">countrymenList</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+		
+		<action name="findPlaceList" method="findPlaceList">
+		    <result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+		
+		<action name="addIssue" method="addIssue">
+		    <result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+		    </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action>
+		
+		<action name="viewIssueDetail" method="viewIssueDetail">
+			<result name="success" type="json">
+		    	<param name="root">jsonMap</param>
+				<param name="ignoreHierarchy">false</param>
+				<param name="excludeNullProperties">true</param>
+			</result>
+			<result name="error" type="json">
+		    	<param name="root">jsonMap</param>
+			</result>
+	    </action>
+		
+	     <action name="findNeedDoIssueList" method="findNeedDoIssueList">
+		    <result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+	    
+	    <action name="findCompletedIssues" method="findCompletedIssues">
+		    <result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+	    
+	    <action name="findMyJurisdictionsNeedDo" method="findMyJurisdictionsNeedDo">
+		    <result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+	    <action name="findJurisdictionsDoneIssues" method="findJurisdictionsDoneIssues">
+		    <result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+	     <action name="findJurisdictionsCompletedIssues" method="findJurisdictionsCompletedIssues">
+		    <result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action>
+	    
+	   	<action name="doIssueAction" method="dealIssue">
+			<result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+		    </result>
+	    </action> 
+	    
+	   	<action name="findIssueIfExist" method="findIssueIfExist">
+			<result name="success" type="json">
+				<param name="root">true</param>
+		    </result>
+			<result name="noexist" type="json">
+				<param name="root">false</param>
+		    </result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	    
+	   	<action name="findIssueStepByIssueId" method="findIssueStepByIssueId">
+			<result name="success" type="json">
+				<param name="root">fourTeams</param>
+		    </result>
+			<result name="noexist" type="json">
+				<param name="root">false</param>
+		    </result>
+			<result name="mobile_error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	  
+	   	<action name="findVerificationIssue" method="findVerificationIssue">
+			  <result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+		     </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	    
+	   	<action name="searchIssueByIssueVo" method="searchIssueByIssueVo">
+			  <result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+		     </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	  
+	   	<action name="findCheckGradeIssue" method="findCheckGradeIssue">
+			  <result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+		     </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	    
+	   	<action name="updateIssueById" method="updateIssueById">
+			  <result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+		     </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	    
+	    <action name="findIssueSkiprule" method="findIssueSkiprule">
+			  <result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+		     </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	    
+	    <action name="findIssueSkipruleByStepId" method="findIssueSkipruleByStepId">
+			  <result name="success" type="json">
+				<param name="root">issueSkiprule</param>
+				<param name="ignoreHierarchy">false</param>
+		     </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	    
+	    <action name="findCompletedIssueNew" method="findCompletedIssueNew">
+			  <result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+		     </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	    
+	    <action name="verificationIssueById" method="verificationIssueById">
+			  <result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+		     </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	    
+	    <action name="findVerificationCanDoList" method="findVerificationCanDoList">
+			  <result name="success" type="json">
+				<param name="root">jsonMap</param>
+				<param name="ignoreHierarchy">false</param>
+		     </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	    
+	    <action name="dealIssueByVerificationType" method="dealIssueByVerificationType">
+			  <result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+		     </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	    
+	   <action name="publicltyCassForMobile" method="publicltyCassForMobile">
+			  <result name="success" type="json">
+				<param name="root">true</param>
+				<param name="ignoreHierarchy">false</param>
+		     </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	    
+	    <action name="findIssueForViewListForMobile" method="findIssueForViewListForMobile">
+			  <result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+		     </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+
+	    <action name="findJurisdictionsAuditDelayCountForMobile" method="findJurisdictionsAuditDelayCountForMobile">
+			  <result name="success" type="json">
+				<param name="root">auditDelayCount</param>
+				<param name="ignoreHierarchy">false</param>
+		     </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	    <action name="findOverseerIssueCountForMobile" method="findOverseerIssueCountForMobile">
+			  <result name="success" type="json">
+				<param name="root">overseerIssueCount</param>
+				<param name="ignoreHierarchy">false</param>
+		     </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	    <action name="findJurisdictionsNeedDoCountForMobile" method="findJurisdictionsNeedDoCountForMobile">
+			  <result name="success" type="json">
+				<param name="root">needDoCount</param>
+				<param name="ignoreHierarchy">false</param>
+		     </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	    <action name="findOverseerIssueListForMobile" method="findOverseerIssueListForMobile">
+			  <result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+		     </result>
+		     <result name="error" type="json">
+				<param name="root">errorMessage</param>
+		    </result>
+	    </action> 
+	</package>
+</struts>

@@ -1,0 +1,367 @@
+package com.tianque.sysadmin.controller;
+
+import java.lang.reflect.Method;
+import java.util.Calendar;
+
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.base.service.AddressInfoService;
+import com.tianque.baseInfo.buildDatas.service.BuilddataStatService;
+import com.tianque.core.base.BaseAction;
+import com.tianque.core.cache.service.CacheService;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.NewBaseInfoTables;
+import com.tianque.core.util.SpringBeanUtil;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.vo.GridPage;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.issue.service.IssueExtractionService;
+import com.tianque.issueLeaderViewCache.job.IssueCacheJob;
+import com.tianque.leaderAnalysis.service.IssueAnalysisToMobileService;
+import com.tianque.plugin.analysisNew.service.BaseinfoStatisticNewService;
+import com.tianque.plugin.analysisNew.service.LeaderViewNewService;
+import com.tianque.plugin.analysisNew.util.AnalyseUtilNew;
+import com.tianque.plugin.analyzing.service.BaseinfoStatisticService;
+import com.tianque.plugin.analyzing.service.CompanyPlaceLeaderViewService;
+import com.tianque.plugin.analyzing.service.LeaderViewService;
+import com.tianque.plugin.analyzing.service.OrgLoginStanalsService;
+import com.tianque.plugin.analyzing.service.UsedInfoEverDayCountOptmizeHelper;
+import com.tianque.sysadmin.domain.JobMonitor;
+import com.tianque.sysadmin.service.JobMonitorService;
+import com.tianque.sysadmin.vo.PacketStatisticsVo;
+import com.tianque.usedInfoOptmize.service.UsedInfoDataService;
+
+@Namespace("/sysadmin/jobMonitor")
+@Controller("jobMonitorController")
+@Scope("prototype")
+public class JobMonitorController extends BaseAction {
+	@Autowired
+	private JobMonitorService jobMonitorService;
+	@Autowired
+	private LeaderViewService leaderViewService;
+	@Autowired
+	private AddressInfoService addressInfoService;
+	@Autowired
+	private CompanyPlaceLeaderViewService companyPlaceLeaderViewService;
+	@Autowired
+	private IssueAnalysisToMobileService issueAnalysisToMobileService;
+	@Autowired
+	private IssueExtractionService extractionService;
+	@Autowired
+	private CacheService cacheService;
+	@Autowired
+	private UsedInfoEverDayCountOptmizeHelper usedInfoEverDayCountOptmizeHelper;
+	@Autowired
+	BaseinfoStatisticService baseinfoStatisticService;
+	@Autowired
+	private LeaderViewNewService leaderViewNewService;
+	@Autowired
+	private BaseinfoStatisticNewService baseinfoStatisticNewService;
+	private Long grade;
+	private String jobType;
+	private String singleJobType;
+	private String cacheKey;
+	private String cacheNamespace;
+	private int year;
+	private int month;
+
+	private PacketStatisticsVo packetStatisticsVo;
+	@Autowired
+	private IssueCacheJob issueCacheJob;
+	@Autowired
+	private BuilddataStatService builddataStatService;
+	@Autowired
+	private OrgLoginStanalsService orgLoginStanalsService;
+	@Autowired
+	private UsedInfoDataService usedInfoDataService;
+
+	private Long maxId;
+	private String tableName;
+
+	@Action(value = "findJobMonitor", results = { @Result(name = "success", type = "json", params = {
+			"root", "gridPage", "ignoreHierarchy", "false" }) })
+	@Transactional
+	public String findJobMonitor() throws Exception {
+		PageInfo<JobMonitor> pageInfo = jobMonitorService.findJobMonitor(page,
+				rows, sidx, sord, grade);
+		gridPage = new GridPage(pageInfo);
+		return SUCCESS;
+	}
+
+	/**
+	 * 研判分析历史表数据清洗
+	 * 
+	 * @throws Exception
+	 */
+	@Action(value = "packetStatistics", results = { @Result(name = "success", type = "json", params = {
+			"root", "true", "ignoreHierarchy", "false" }) })
+	public String packetStatistics() throws Exception {
+		Long id = jobMonitorService.addJobMonitor("清洗类型："
+				+ packetStatisticsVo.getTypeName());
+		long startTime = System.currentTimeMillis();
+		Object object = SpringBeanUtil
+				.getBeanFromSpringByBeanName("packetStatisticsService");
+		Method method = object.getClass()
+				.getMethod("packetStatisticsByTableAndGroupType",
+						PacketStatisticsVo.class);
+		method.invoke(object, new Object[] { packetStatisticsVo });
+		jobMonitorService.updateJobMonitor(id,
+				"花了" + (System.currentTimeMillis() - startTime) + "手动清洗"
+						+ packetStatisticsVo.getTypeName(), true);
+		return SUCCESS;
+
+	}
+
+	/**
+	 * 楼宇等生产历史数据
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	@Action(value = "manualBuilddataCompletion", results = { @Result(name = "success", type = "json", params = {
+			"root", "true", "ignoreHierarchy", "false" }) })
+	public String manualBuilddataCompletion() throws Exception {
+		if (packetStatisticsVo == null
+				|| !StringUtil.isStringAvaliable(packetStatisticsVo
+						.getTypeName())) {
+			errorMessage = "类型错误";
+			return ERROR;
+		}
+		Long id = jobMonitorService.addJobMonitor("补全类型："
+				+ packetStatisticsVo.getTypeName());
+		long startTime = System.currentTimeMillis();
+		if (BaseInfoTables.BUILDDATA_KEY.equals(packetStatisticsVo
+				.getTypeName())) {
+			builddataStatService.manualBuilddataCompletion(packetStatisticsVo);
+		} else if ("all_youth_population".equals(packetStatisticsVo
+				.getTypeName())) {
+			baseinfoStatisticService
+					.manualAllYouthPopulationCompletion(packetStatisticsVo);
+		} else if ("orgLoginStanals".equals(packetStatisticsVo.getTypeName())) {
+			orgLoginStanalsService
+					.addMonthOrgLoginStanalssJobForDispatch(packetStatisticsVo);
+		}
+		jobMonitorService.updateJobMonitor(id,
+				"花了" + (System.currentTimeMillis() - startTime) + "手动补全"
+						+ packetStatisticsVo.getTypeName(), true);
+		return SUCCESS;
+
+	}
+
+	@Action(value = "complentionIssueForMobile", results = { @Result(name = "success", type = "json", params = {
+			"root", "true", "ignoreHierarchy", "false" }) })
+	public String complentionIssueForMobile() throws Exception {
+		if (year == Calendar.getInstance().get(Calendar.YEAR)
+				&& month > (Calendar.getInstance().get(Calendar.MONTH) + 1)) {
+			throw new BusinessValidationException("年份或月份错误！");
+		}
+		Long id = jobMonitorService.addJobMonitor("生成类型：" + jobType);
+		long startTime = System.currentTimeMillis();
+		issueAnalysisToMobileService.createIssueAnalysisToMobileDataByTime(
+				year, month);
+		jobMonitorService.updateJobMonitor(id,
+				"花了" + (System.currentTimeMillis() - startTime) + "手动生成"
+						+ jobType, true);
+		return SUCCESS;
+
+	}
+
+	@Action(value = "manualJobContent")
+	public void manualJobContent() throws Exception {
+		Long id = jobMonitorService.addJobMonitor(this.getClass().getName()
+				+ "  类型：" + jobType);
+		long startTime = System.currentTimeMillis();
+		if (NewBaseInfoTables.PEOPLE_KEY.equals(jobType)) {
+			leaderViewService.statisticsPopulationAddCountByOrgIdForJob();
+		} else if (NewBaseInfoTables.HOUSE_KEY.equals(jobType)) {
+			leaderViewService.statisticsHouseInfoAddCountByOrgIdForJob();
+		} else if (NewBaseInfoTables.ATTENTIONPEOPLE_KEY.equals(jobType)) {
+			leaderViewService
+					.statisticsAttentionPopulationAddCountByOrgIdForJob();
+		} else if (NewBaseInfoTables.COMPANYPLACE_COMPLEMENT_KEY
+				.equals(jobType)) {
+			/** 执行单位场所实时job */
+			companyPlaceLeaderViewService
+					.companyPlaceLeaderViewStatisticsforAdd();
+		} else if (NewBaseInfoTables.YONTH_COMPLEMENT_KEY.equals(jobType)) {
+			/** 执行青少年实时job */
+			leaderViewService.statisticsYouthsAddCountByOrgIdForJob();
+		} else if (BaseInfoTables.HISTORY_ISSUE_KEY.equals(jobType)) {
+			extractionService.exectueExtractionIssue();
+		} else if ("usedInfoDayData".equals(jobType)) {
+			usedInfoEverDayCountOptmizeHelper.executeDataByModelForUsedInfo();
+		} else if ("usedInfoWeekData".equals(jobType)) {
+			usedInfoDataService.createUsedInfoWeekData();
+		} else if ("usedInfoMonthData".equals(jobType)) {
+			usedInfoDataService.createUsedInfoMonthData();
+		}else if(NewBaseInfoTables.ALL_ATTENTIONPEOPLE_KEY.equals(jobType)){
+			leaderViewNewService.getAllAttenPopMothData(year, month);
+		}
+		jobMonitorService.updateJobMonitor(id,
+				"花了" + (System.currentTimeMillis() - startTime) + "手动执行"
+						+ jobType + "的job", true);
+	}
+
+	@Action(value = "manualSummaryJobContent")
+	public void manualSummaryJobContent() throws Exception {
+		Long id = jobMonitorService.addJobMonitor(this.getClass().getName()
+				+ "  类型：" + jobType);
+		long startTime = System.currentTimeMillis();
+		if (AnalyseUtilNew.IS_NEWANALYSE_JOB) {
+			leaderViewNewService.createLeaderViewSummaryDataByType(jobType);
+		} else {
+			leaderViewService.createLeaderViewSummaryDataByType(jobType);
+		}
+		jobMonitorService.updateJobMonitor(id,
+				"花了" + (System.currentTimeMillis() - startTime) + "手动执行"
+						+ jobType + "的job", true);
+	}
+
+	@Action(value = "issueCacheJob")
+	public void issueCacheJob() {
+		try {
+			issueCacheJob.execute(null);
+		} catch (Exception e) {
+		}
+	}
+
+	@Action(value = "manualJobSingleContent")
+	public void manualJobSingleContent() throws Exception {
+		Long id = jobMonitorService.addJobMonitor(this.getClass().getName()
+				+ "  类型：" + singleJobType);
+		long startTime = System.currentTimeMillis();
+		leaderViewService
+				.statisticsPopulationSingleContentForJob(singleJobType);
+		jobMonitorService.updateJobMonitor(id,
+				"花了" + (System.currentTimeMillis() - startTime) + "手动执行"
+						+ singleJobType + "的job", true);
+	}
+
+	@Action(value = "updateAddressJob")
+	public void updateAddressJob() throws Exception {
+		Long id = jobMonitorService.addJobMonitor(this.getClass().getName()
+				+ "清洗地址信息tableName=" + tableName);
+		long startTime = System.currentTimeMillis();
+		// int[] nums = addressInfoService.updateAddressOrg(maxId);
+		// jobMonitorService.updateJobMonitor(id,
+		// "花了" + (System.currentTimeMillis() - startTime) + "，清洗"
+		// + nums[0] + "条记录，无效数据" + nums[1] + "条", true);
+		addressInfoService.updateAddressOrg(tableName);
+		jobMonitorService.updateJobMonitor(id,
+				"花了" + (System.currentTimeMillis() - startTime), true);
+	}
+
+	@Action(value = "cleanCacheByKey", results = { @Result(name = "success", type = "json", params = {
+			"root", "true", "ignoreHierarchy", "false" }) })
+	public String cleanCacheByKey() throws Exception {
+		if (!StringUtil.isStringAvaliable(cacheKey)) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		if (!StringUtil.isStringAvaliable(cacheNamespace)
+				&& StringUtil.isStringAvaliable(cacheKey)) {
+			cacheService.remove(cacheNamespace, cacheKey);
+		} else if (StringUtil.isStringAvaliable(cacheKey)) {
+			cacheService.remove(cacheKey);
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "cleanCacheByNamespace", results = { @Result(name = "success", type = "json", params = {
+			"root", "true", "ignoreHierarchy", "false" }) })
+	public String cleanCacheByNamespace() throws Exception {
+		if (!StringUtil.isStringAvaliable(cacheNamespace)) {
+			errorMessage = "参数错误";
+			return ERROR;
+		}
+		cacheService.invalidateNamespaceCache(cacheNamespace);
+		return SUCCESS;
+	}
+
+	public Long getGrade() {
+		return grade;
+	}
+
+	public void setGrade(Long grade) {
+		this.grade = grade;
+	}
+
+	public String getJobType() {
+		return jobType;
+	}
+
+	public void setJobType(String jobType) {
+		this.jobType = jobType;
+	}
+
+	public String getCacheKey() {
+		return cacheKey;
+	}
+
+	public void setCacheKey(String cacheKey) {
+		this.cacheKey = cacheKey;
+	}
+
+	public String getCacheNamespace() {
+		return cacheNamespace;
+	}
+
+	public void setCacheNamespace(String cacheNamespace) {
+		this.cacheNamespace = cacheNamespace;
+	}
+
+	public PacketStatisticsVo getPacketStatisticsVo() {
+		return packetStatisticsVo;
+	}
+
+	public void setPacketStatisticsVo(PacketStatisticsVo packetStatisticsVo) {
+		this.packetStatisticsVo = packetStatisticsVo;
+	}
+
+	public String getSingleJobType() {
+		return singleJobType;
+	}
+
+	public void setSingleJobType(String singleJobType) {
+		this.singleJobType = singleJobType;
+	}
+
+	public Long getMaxId() {
+		return maxId;
+	}
+
+	public void setMaxId(Long maxId) {
+		this.maxId = maxId;
+	}
+
+	public String getTableName() {
+		return tableName;
+	}
+
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
+	}
+
+	public int getYear() {
+		return year;
+	}
+
+	public void setYear(int year) {
+		this.year = year;
+	}
+
+	public int getMonth() {
+		return month;
+	}
+
+	public void setMonth(int month) {
+		this.month = month;
+	}
+}

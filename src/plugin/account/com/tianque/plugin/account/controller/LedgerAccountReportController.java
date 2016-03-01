@@ -1,0 +1,225 @@
+package com.tianque.plugin.account.controller;
+
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Namespace;
+import org.apache.struts2.convention.annotation.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.tianque.account.api.LedgerAccountReportDubboService;
+import com.tianque.controller.annotation.PermissionFilter;
+import com.tianque.core.base.BaseAction;
+import com.tianque.plugin.account.constants.LedgerReportFunctionalDepartments;
+import com.tianque.plugin.account.domain.AccountReport;
+import com.tianque.plugin.account.vo.LedgerCurrentYearCollectByMonthReportStatisticalVo;
+import com.tianque.plugin.account.vo.LedgerCurrentYearCollectDoneRateReportStatisticalVo;
+import com.tianque.plugin.account.vo.LedgerMonthReportStatisticalVo;
+import com.tianque.plugin.account.vo.ThreeRecordsReportStatisticalVo;
+import com.tianque.userAuth.api.PermissionDubboService;
+
+/**
+ * 台账报表-控制器
+ * 
+ * @author N73
+ */
+@Controller("ledgerAccountReportController")
+@Namespace("/threeRecordsIssue/ledgerAccountReportManage")
+@Scope("request")
+public class LedgerAccountReportController extends BaseAction {
+
+	private AccountReport accountReport;
+
+	private List<ThreeRecordsReportStatisticalVo> threeRecordsReportStatisticalVos;
+	private List<LedgerMonthReportStatisticalVo> ledgerMonthReportStatisticalVos;
+	private List<LedgerCurrentYearCollectByMonthReportStatisticalVo> yearCollectByMonthStatisticalVos;
+	private List<LedgerCurrentYearCollectDoneRateReportStatisticalVo> yearCollectDoneRateStatisticalVos;
+
+	private String issueTypes;// 首页统计待办数查询类型
+	private Long orgId;
+	private Object resultObject;
+	@Autowired
+	private PermissionDubboService permissionDubboService;
+	@Autowired
+	private LedgerAccountReportDubboService ledgerAccountReportDubboService;
+
+	@Action(value = "findAccountReportBySearchVo", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"threeRecordsReportStatisticalVos", "ignoreHierarchy",
+					"false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	@PermissionFilter(ename = "ledgerReportWorkMonth")
+	public String findAccountReportBySearchVo() throws Exception {
+		threeRecordsReportStatisticalVos = ledgerAccountReportDubboService
+				.findAccountReportBySearchVo(accountReport);
+		return SUCCESS;
+	}
+
+	@Action(value = "findHomePageAccountReportVo", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"threeRecordsReportStatisticalVos", "ignoreHierarchy",
+					"false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findHomePageAccountReportVo() throws Exception {
+		threeRecordsReportStatisticalVos = ledgerAccountReportDubboService
+				.findHomePageAccountReportVo(accountReport);
+		if (threeRecordsReportStatisticalVos == null) {
+			errorMessage = "报表统计错误！";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+	
+	@Action(value = "findLedgerMonthCollectReportVo", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"ledgerMonthReportStatisticalVos", "ignoreHierarchy",
+					"false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findLedgerMonthCollectReportVo() throws Exception {
+		ledgerMonthReportStatisticalVos = ledgerAccountReportDubboService
+				.findMonthCollectDoneReportVo(accountReport);
+		if (ledgerMonthReportStatisticalVos == null) {
+			errorMessage = "报表统计错误！";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+	
+	@Action(value = "findYearCollectByMonthReportVo", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"yearCollectByMonthStatisticalVos", "ignoreHierarchy",
+					"false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findYearCollectByMonthReportVo() throws Exception {
+		yearCollectByMonthStatisticalVos = ledgerAccountReportDubboService
+				.getYearCollectByMonth(accountReport);
+		if (yearCollectByMonthStatisticalVos == null) {
+			errorMessage = "报表统计错误！";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+	
+	@Action(value = "findYearCollectDoneRateReportVo", results = {
+			@Result(name = "success", type = "json", params = { "root",
+					"yearCollectDoneRateStatisticalVos", "ignoreHierarchy",
+					"false" }),
+			@Result(name = "error", type = "json", params = { "root",
+					"errorMessage" }) })
+	public String findYearCollectDoneRateReportVo() throws Exception {
+		yearCollectDoneRateStatisticalVos = ledgerAccountReportDubboService
+				.getYearCollectDoneRate(accountReport);
+		if (yearCollectDoneRateStatisticalVos == null) {
+			errorMessage = "报表统计错误！";
+			return ERROR;
+		}
+		return SUCCESS;
+	}
+
+	@Action(value = "queryHomePageNeedDoCount", results = {
+			@Result(name = "success", type = "json", params = { "root", "resultObject",
+					"ignoreHierarchy", "false" }),
+			@Result(name = "error", type = "json", params = { "root", "errorMessage" }) })
+	public String queryHomePageNeedDoCount() throws Exception {
+		if (StringUtils.isBlank(issueTypes)) {
+			errorMessage = "报表类型参数错误！";
+			return ERROR;
+		}
+		if (orgId == null) {
+			errorMessage = "组织参数错误！";
+			return ERROR;
+		}
+		resultObject = ledgerAccountReportDubboService.queryHomePageNeedDoCount(issueTypes, orgId);
+		return SUCCESS;
+	}
+	@Action(value = "dispatchOperateReport", results = {
+			@Result(name = "villageReport", location = "/account/report/threeRecordsReportVillageMonth.jsp"),
+			@Result(name = "townReport", location = "/account/report/threeRecordsReportTownMonth.jsp"),
+			@Result(name = "countyReport", location = "/account/report/threeRecordsReportCountyMonth.jsp"),
+			@Result(name = "countyDepartmentReport", location = "/account/report/threeRecordsReportCountyDepartmentMonth.jsp") })
+	public String dispatchOperate() throws Exception {
+		String modeType = ledgerAccountReportDubboService
+				.judgeReportType(accountReport);
+		if (LedgerReportFunctionalDepartments.NO_RESULTS_TYPE.equals(modeType)) {
+			errorMessage = "参数错误，未知的类型！";
+			return ERROR;
+		}
+		return modeType;
+	}
+
+	public AccountReport getAccountReport() {
+		return accountReport;
+	}
+
+	public void setAccountReport(AccountReport accountReport) {
+		this.accountReport = accountReport;
+	}
+
+	public List<ThreeRecordsReportStatisticalVo> getThreeRecordsReportStatisticalVos() {
+		return threeRecordsReportStatisticalVos;
+	}
+
+	public void setThreeRecordsReportStatisticalVos(
+			List<ThreeRecordsReportStatisticalVo> threeRecordsReportStatisticalVos) {
+		this.threeRecordsReportStatisticalVos = threeRecordsReportStatisticalVos;
+	}
+
+	public List<LedgerMonthReportStatisticalVo> getLedgerMonthReportStatisticalVos() {
+		return ledgerMonthReportStatisticalVos;
+	}
+
+	public void setLedgerMonthReportStatisticalVos(
+			List<LedgerMonthReportStatisticalVo> ledgerMonthReportStatisticalVos) {
+		this.ledgerMonthReportStatisticalVos = ledgerMonthReportStatisticalVos;
+	}
+
+	public List<LedgerCurrentYearCollectByMonthReportStatisticalVo> getYearCollectByMonthStatisticalVos() {
+		return yearCollectByMonthStatisticalVos;
+	}
+
+	public void setYearCollectByMonthStatisticalVos(
+			List<LedgerCurrentYearCollectByMonthReportStatisticalVo> yearCollectByMonthStatisticalVos) {
+		this.yearCollectByMonthStatisticalVos = yearCollectByMonthStatisticalVos;
+	}
+
+	public List<LedgerCurrentYearCollectDoneRateReportStatisticalVo> getYearCollectDoneRateStatisticalVos() {
+		return yearCollectDoneRateStatisticalVos;
+	}
+
+	public void setYearCollectDoneRateStatisticalVos(
+			List<LedgerCurrentYearCollectDoneRateReportStatisticalVo> yearCollectDoneRateStatisticalVos) {
+		this.yearCollectDoneRateStatisticalVos = yearCollectDoneRateStatisticalVos;
+	}
+
+	public String getIssueTypes() {
+		return issueTypes;
+	}
+
+	public void setIssueTypes(String issueTypes) {
+		this.issueTypes = issueTypes;
+	}
+
+	public Object getResultObject() {
+		return resultObject;
+	}
+
+	public void setResultObject(Object resultObject) {
+		this.resultObject = resultObject;
+	}
+
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+}

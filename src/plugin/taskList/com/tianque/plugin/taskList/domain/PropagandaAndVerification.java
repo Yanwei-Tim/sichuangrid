@@ -1,0 +1,218 @@
+package com.tianque.plugin.taskList.domain;
+
+import java.util.Date;
+
+import org.apache.struts2.json.annotations.JSON;
+
+import com.tianque.core.base.BaseDomain;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+
+/**
+ * 宣传核查实体类
+ * 
+ * @author GAOHU
+ *
+ */
+public class PropagandaAndVerification extends BaseDomain {
+
+	/**
+	 * 时间
+	 */
+	private Date occurrenceDate;
+
+	/**
+	 * 地点
+	 */
+	private String address;
+
+	/**
+	 * 姓名
+	 */
+	private String name;
+
+	/**
+	 * 宣传
+	 */
+	private Long propaganda;
+
+	/**
+	 * 核查上报
+	 */
+	private Long verificationReport;
+
+	
+	/**
+	 * 组织机构
+	 */
+	private Organization organization;
+
+	private String orgInternalCode;
+	/**
+	 * 是否签收
+	 */
+	private Long ishandle;
+
+	/**
+	 * 签收时间
+	 */
+	private Date signDate;
+
+	/**
+	 * 签收用户
+	 */
+	private String signUserName;
+	/**
+	 * 签收意见
+	 */
+	private String advice;
+	/**
+	 * 网格员名
+	 */
+	private String cellName;
+	/**
+	 * 网格员电话
+	 */
+	private String telephone;
+	private String remark;
+	/**
+	 * 身份证号码
+	 */
+	private String idCard;
+	/**
+	 * 电话号码
+	 */
+	private String phone;
+
+	@JSON(format = "yyyy-MM-dd HH:mm:ss")
+	public Date getOccurrenceDate() {
+		return occurrenceDate;
+	}
+
+	public void setOccurrenceDate(Date occurrenceDate) {
+		this.occurrenceDate = occurrenceDate;
+	}
+
+	public String getAddress() {
+		return address;
+	}
+
+	public void setAddress(String address) {
+		this.address = address;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Long getPropaganda() {
+		return propaganda;
+	}
+
+	public void setPropaganda(Long propaganda) {
+		this.propaganda = propaganda;
+	}
+
+	public Long getVerificationReport() {
+		return verificationReport;
+	}
+
+	public void setVerificationReport(Long verificationReport) {
+		this.verificationReport = verificationReport;
+	}
+
+
+	public Organization getOrganization() {
+		return organization;
+	}
+
+	public void setOrganization(Organization organization) {
+		this.organization = organization;
+	}
+
+	public String getOrgInternalCode() {
+		return orgInternalCode;
+	}
+
+	public void setOrgInternalCode(String orgInternalCode) {
+		this.orgInternalCode = orgInternalCode;
+	}
+
+	public Long getIshandle() {
+		return ishandle;
+	}
+
+	public void setIshandle(Long ishandle) {
+		this.ishandle = ishandle;
+	}
+
+	public String getAdvice() {
+		return advice;
+	}
+
+	public void setAdvice(String advice) {
+		this.advice = advice;
+	}
+
+	@JSON(format = "yyyy-MM-dd HH:mm:ss")
+	public Date getSignDate() {
+		return signDate;
+	}
+
+	public void setSignDate(Date signDate) {
+		this.signDate = signDate;
+	}
+
+	public String getSignUserName() {
+		return signUserName;
+	}
+
+	public void setSignUserName(String signUserName) {
+		this.signUserName = signUserName;
+	}
+
+	public String getCellName() {
+		return cellName;
+	}
+
+	public void setCellName(String cellName) {
+		this.cellName = cellName;
+	}
+
+	public String getTelephone() {
+		return telephone;
+	}
+
+	public void setTelephone(String telephone) {
+		this.telephone = telephone;
+	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+
+	public String getIdCard() {
+		return idCard;
+	}
+
+	public void setIdCard(String idCard) {
+		this.idCard = idCard;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+}

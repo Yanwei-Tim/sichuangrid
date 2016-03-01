@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchDruggy">
+	<typeAlias alias="SearchDruggyVo" type="com.tianque.domain.vo.SearchDruggyVo"/>
+	<sql id="sql_where">
+		from druggys uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					uni.orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+		<isPropertyAvailable property="fastSearchKeyWords">
+			<isNotNull property="fastSearchKeyWords" prepend=" and ">
+				(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+			</isNotNull>
+		</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend=" and ">
+					(name like #name#||'%' or fullPinyin like #name#||'%' or simplePinyin like #name#||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="idCardNo">
+				<isNotEmpty property="idCardNo" prepend=" and ">
+				upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>		
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty property="mobileNumber" prepend=" and ">
+					mobileNumber like #mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="detoxicateCase">
+				<isNotNull property="detoxicateCase.id" prepend=" and ">
+					detoxicateCase=#detoxicateCase.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="drugType">
+				<isNotEmpty property="drugType" prepend=" and ">
+					drugType like #drugType#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="controlActuality">
+				<isNotEmpty property="controlActuality" prepend=" and ">
+					controlActuality like #controlActuality#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="ferretOutDate">
+				<isNotNull property="ferretOutDate" prepend=" and ">
+					ferretOutDate <![CDATA[>=]]>
+					#ferretOutDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endFerretOutDate">
+				<isNotNull property="endFerretOutDate" prepend=" and ">
+					ferretOutDate <![CDATA[<=]]>
+					#endFerretOutDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="drugfristDate">
+				<isNotNull property="drugfristDate" prepend=" and ">
+					drugfristDate <![CDATA[>=]]>
+					#drugfristDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endDrugfristDate">
+				<isNotNull property="endDrugfristDate" prepend=" and ">
+					drugfristDate <![CDATA[<=]]>
+					#endDrugfristDate#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="birthday">
+				<isNotNull property="birthday" prepend=" and ">
+					birthday <![CDATA[>=]]>
+					#birthday#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endBirthday">
+				<isNotNull property="endBirthday" prepend=" and ">
+					birthday <![CDATA[<=]]>
+					#endBirthday#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="province">
+				<isNotEmpty property="province" prepend=" and ">
+					province like #province#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="city">
+				<isNotEmpty property="city" prepend=" and ">
+					city like #city#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="district">
+				<isNotEmpty property="district" prepend=" and ">
+					district like #district#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workUnit">
+				<isNotEmpty property="workUnit" prepend=" and ">
+					workUnit like #workUnit#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="nativePlaceAddress">
+				<isNotEmpty property="nativePlaceAddress" prepend=" and ">
+					nativePlaceAddress like '$nativePlaceAddress$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="currentAddress">
+				<isNotEmpty property="currentAddress" prepend=" and ">
+					currentAddress like '$currentAddress$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis# 
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isDeath" >
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="1">
+						isDeath = #isDeath#
+					</isEqual>
+					<isEqual property="isDeath" compareValue="0">
+						(isDeath = #isDeath# or isDeath is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="drugReason">
+				<isNotNull property="drugReason.id" prepend=" and ">
+					drugReason=#drugReason.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="drugSource">
+				<isNotNull property="drugSource.id" prepend=" and ">
+					drugSource=#drugSource.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="gender">
+				<isNotNull property="gender.id" prepend=" and ">
+					gender=#gender.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="detoxicateCondition">
+				<isNotNull property="detoxicateCondition.id" prepend=" and ">
+					detoxicateCondition=#detoxicateCondition.id#
+				</isNotNull>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="career">
+				<isNotNull property="career.id" prepend=" and ">
+					career=#career.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isNotNull property="schooling.id" prepend=" and ">
+				schooling = #schooling.id#
+			</isNotNull>
+			<include refid="attentionPopulationBaseInfo.serviceTeamInfoForSearch"/>
+		</dynamic>
+	</sql>
+	
+	<sql id="fields">
+	    uni.id,uni.baseinfoid,uni.addressInfoId,uni.orgId,uni.orgInternalCode,uni.drugReason,uni.drugSource,uni.detoxicateCase,
+	    uni.detoxicateCondition,uni.isAdanon,uni.controlActuality,uni.drugType,uni.ferretOutDate,uni.drugfristDate,uni.isUndergo_Treatment,
+	    uni.isEmphasis,uni.isEmphasisReason,uni.isEmphasisDate,uni.createUser,uni.updateUser,uni.createDate,uni.updateDate,
+	    uni.sourcesState,uni.attentionExtent
+	</sql>
+
+	<select id="searchDruggys" parameterClass="SearchDruggyVo"  resultMap="druggy.druggyResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$attentionPopulationType$' as populationType
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">uni.$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countDruggys" parameterClass="SearchDruggyVo" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="findDruggysByNameAndPinyinAndOrgInternalCode" parameterClass="java.util.Map" resultMap="druggy.druggyResult">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/> 
+		from druggys uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where (name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%' ) and uni.orgInternalCode like #orgInternalCode#||'%' order by id
+	</select>
+
+	<select id="getDetoxiCateCaseCount" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(uni.id) count,uni.detoxicatecase case
+       		from druggys uni left join baseinfo b on uni.baseInfoId=b.id
+            	where uni.orgInternalCode like #orgInternalCode#||'%'
+                  and uni.detoxicatecase=#type# and uni.isEmphasis =0 group by uni.detoxicatecase
+	</select>
+
+	<select id="getHelpedCount" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(uni.id) from druggys uni left join baseinfo b on uni.baseInfoId=b.id
+       		where uni.id in(select distinct h.personid
+             	from helppersonnels h where h.persontype='druggy') 
+            and uni.orgInternalCode like #orgInternalCode#||'%' 
+            and uni.detoxicatecase=#type# and  uni.isEmphasis =0
+	</select>
+
+	<select id="getCount" parameterClass="java.lang.String" resultClass="java.lang.Long">
+		select count(uni.id) from druggys uni left join baseinfo b on uni.baseInfoId=b.id 
+		where uni.orgInternalCode like #orgInternalCode#||'%' and uni.isEmphasis =0
+	</select>
+
+	<select id="getNotHelpedCount" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(id) from druggys uni 
+       		where uni.id not in(select distinct h.personid
+             	from helppersonnels h where h.persontype='druggy') 
+            and orgInternalCode like #orgInternalCode#||'%' 
+            and uni.detoxicatecase=#type# and uni.isEmphasis =0
+	</select>
+	
+	
+	<select id="getNotHelpedCountNullType" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(uni.id) from druggys uni left join baseinfo b on uni.baseInfoId=b.id
+       		where uni.id not in(select distinct h.personid
+             	from helppersonnels h where h.persontype='druggy') and uni.orgInternalCode like #orgInternalCode#||'%' and uni.detoxicatecase=#type# and uni.isEmphasis =0 
+	</select>
+	
+	<select id="getHelpedCountNullType" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(uni.id) 
+			from druggys uni left join baseinfo b on uni.baseInfoId=b.id
+       		where uni.id not in(select distinct h.personid from helppersonnels h where h.persontype='druggy') 
+	       		and uni.orgInternalCode like #orgInternalCode#||'%' 
+	       		and uni.detoxicatecase is null 
+	       		and uni.isEmphasis =0 
+	</select>
+	<select id="countFastSearchDurggy" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*)
+			from druggys uni left join baseinfo b on uni.baseInfoId=b.id 
+			where uni.orgInternalCode like #orgInternalCode#||'%'
+			<isPropertyAvailable property="name">
+					<isNotNull property="name">
+						<isNotEmpty property="name" prepend=" and ">
+							(name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%')
+						</isNotEmpty>
+					</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="idCardNo" >
+					<isNotEmpty property="idCardNo" prepend=" and ">
+						upper(idCardNo) like upper(#idCardNo#)||'%'
+					</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+					<isNotNull property="isEmphasis" prepend=" and ">
+						<isEqual property="isEmphasis" compareValue="1">
+							isEmphasis = #isEmphasis#
+						</isEqual>
+						<isEqual property="isEmphasis" compareValue="0">
+							isEmphasis = #isEmphasis# 
+						</isEqual>
+					</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fastSearchKeyWords">
+				<isNotNull property="fastSearchKeyWords" prepend=" and ">
+					(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+				</isNotNull>
+			</isPropertyAvailable>
+	</select>
+	<select id="searchFastDruggy" parameterClass="java.util.Map" resultMap="druggy.druggyResultForList">
+		select <include refid="fields"/>,<include refid="baseInfo.baseInfoFields"/>,<include refid="addressInfo.addressInfoFields"/>,'$populationType$' as populationType
+		from druggys uni left join baseinfo b on uni.baseInfoId=b.id <include refid="addressInfo.joinAddressInfo"/> 
+		where uni.orgInternalCode like #orgInternalCode#||'%'
+		<isPropertyAvailable property="fastSearchKeyWords">
+			<isNotNull property="fastSearchKeyWords" prepend=" and ">
+				(upper(idCardNo) like  upper(#fastSearchKeyWords#)||'%' or name like #fastSearchKeyWords#||'%' or fullPinyin like #fastSearchKeyWords#||'%' or simplePinyin like #fastSearchKeyWords#||'%' )
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend=" and ">
+					(name like '$name$%' or fullPinyin like '$name$%' or simplePinyin like '$name$%')
+				</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="idCardNo" >
+				<isNotEmpty property="idCardNo" prepend=" and ">
+					upper(idCardNo) like upper(#idCardNo#)||'%'
+				</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="1">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="0">
+						isEmphasis = #isEmphasis# 
+					</isEqual>
+				</isNotNull>
+		</isPropertyAvailable>
+			<isPropertyAvailable property="isDeath" >
+				<isNotNull property="isDeath" prepend=" and ">
+					<isEqual property="isDeath" compareValue="1">
+						isDeath = #isDeath#
+					</isEqual>
+					<isEqual property="isDeath" compareValue="0">
+						(isDeath = #isDeath# or isDeath is null)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">uni.$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+</sqlMap>
+

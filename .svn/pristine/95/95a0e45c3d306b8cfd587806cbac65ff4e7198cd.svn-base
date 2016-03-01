@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="fan">
+	<typeAlias alias="Fan" type="com.tianque.plugin.weChat.domain.user.Fan"/>
+	<resultMap id="fanResult" class="Fan">
+		<result property="fanId" column="FAN_ID"/>
+		<result property="openId" column="OPEN_ID"/>
+		<result property="name" column="NAME"/>
+		<result property="groupId" column="GROUP_ID"/>
+	</resultMap>
+	
+	
+	<insert id="saveFan" parameterClass="Fan">
+		<selectKey resultClass="java.lang.Long" keyProperty="fanId">
+			<![CDATA[
+				SELECT s_fan.NEXTVAL AS fanId FROM DUAL
+			]]>
+		</selectKey>
+		insert into fan
+		(FAN_ID,OPEN_ID,NAME,GROUP_ID)
+		values
+		(#fanId#,#openId#,#name#,#groupId#)
+	</insert>
+	
+	<select id="getFanByOpenId" parameterClass="java.lang.String" resultMap="fanResult">
+		select * from fan where open_id=#value#
+	</select>
+	
+	<delete id="deleteFanByOpenId" parameterClass="java.lang.String">
+		delete from fan where open_id=#value#
+	</delete>
+</sqlMap>

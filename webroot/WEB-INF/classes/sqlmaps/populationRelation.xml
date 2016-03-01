@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="populationRelation">
+<insert id="addPopulationRelation" parameterClass="map">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_populationTypes.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into populationTypes
+		(id,actualId,actualType,populationId,populationType) 
+		values
+		(#id#,#actualId#,#actualType#,#populationId#,#populationType#)
+	</insert>
+	
+	<delete id="businessDeletePopulationRelation" parameterClass="map">
+		delete from populationTypes  where populationId=#populationId# and upper(populationType)=upper(#populationType#)
+	</delete>
+	
+	<delete id="actualDeletePopulationRelation" parameterClass="map">
+		delete from populationTypes  where actualId=#actualId# and actualType=#actualType#
+	</delete>
+</sqlMap>

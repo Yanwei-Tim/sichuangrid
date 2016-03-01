@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="smsSendResult">
+	<typeAlias alias="SmsSendResult" type="com.tianque.plugin.weChat.domain.sms.SmsSendResult"/>
+	<resultMap id="smsSendResultResult" class="SmsSendResult">
+		<result property="id" column="id"/>
+		<result property="groupId" column="groupId"/>
+		<result property="smsSendId" column="smsSendId"/>
+		<result property="mobile" column="mobile"/>
+		<result property="state" column="state"/>
+		
+	    <result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+	
+	<insert id="saveSmsSendResult" parameterClass="SmsSendResult">
+<!-- 		<selectKey resultClass="java.lang.Long" keyProperty="id"> -->
+<!-- 			<![CDATA[SELECT s_SMS_send_result.NEXTVAL AS id FROM DUAL]]> -->
+<!-- 		</selectKey> -->
+		insert into sms_Send_Result
+		(id,groupId,smsSendId,mobile,state,createUser,updateUser,createDate,updateDate)
+		values
+		(s_SMS_send_result.NEXTVAL,#groupId#,#smsSendId#,#mobile#,#state#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	<update id="updateSmsSendResult" parameterClass="SmsSendResult">
+		update sms_Send_Result set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="state">
+				state=#state#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+		</dynamic>
+		WHERE 	id=#id#
+	</update>
+	
+	<select id="getById" parameterClass="long" resultMap="smsSendResultResult">
+		select *
+	    from sms_Send_Result 
+		 where id=#id#
+	</select>
+	
+	
+	<select id="findSmsSendResult" parameterClass="java.util.Map" resultMap="smsSendResultResult">
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_start" />
+			</isNotNull>
+		</isPropertyAvailable>
+		select * from sms_Send_Result 
+		<dynamic prepend=" where ">
+			<isNotEmpty prepend="and" property="smsSendResult.groupId">
+				groupId=#smsSendResult.groupId#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="smsSendResult.smsSendId">
+				smsSendId=#smsSendResult.smsSendId#
+			</isNotEmpty>
+		</dynamic>
+		<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$</isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+		</dynamic>
+		<isPropertyAvailable property="pageFrom">
+			<isNotNull property="pageFrom">
+				<include refid="common.sql_select_page_end" />
+			</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	
+	<select id="countFindSmsSendResult" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(1) from sms_Send_Result 
+		<dynamic prepend=" where ">
+			<isNotEmpty prepend="and" property="groupId">
+				groupId=#groupId#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="smsSendId">
+				smsSendId=#smsSendId#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+</sqlMap>

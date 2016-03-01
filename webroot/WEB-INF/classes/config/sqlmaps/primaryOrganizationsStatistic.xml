@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="primaryOrganizationsStatistics">
+	<typeAlias alias="statisticSearchVo" type="com.tianque.plugin.analyzing.domain.StatisticSearchVo" />
+	<typeAlias alias="searchPrimaryOrganizationDataColumnVo" type="com.tianque.plugin.analyzing.domain.SearchPrimaryOrganizationDataColumnVo"/>
+  
+	  <resultMap id="PrimaryOrganizationResult" class="searchPrimaryOrganizationDataColumnVo" >
+	    <result property="teamClazz" column="teamClass"/>
+	    <result property="orgInternalCode" column="ORGINTERNALCODE" />
+	    <result property="teamNum" column="teamNum"/>
+	    <result property="memberNum" column="memberNum"/>
+	  </resultMap>
+	  
+	
+	<sql id="selectFieldMap">
+		<dynamic prepend=",">
+			<isNotEmpty property="countFieldMap" prepend=",">
+				nvl(sum(countValue),0) as countValue
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+
+
+	<sql id="decodeFieldMap">
+		<dynamic prepend=",">
+			<isNotEmpty property="countFieldMap">
+				sum(case when
+				$countFieldMap.keyName$=#countFieldMap.expectValue# then 1 else 0
+				end) as countValue
+			</isNotEmpty>
+		</dynamic>
+	</sql>
+	
+	<select id="findPrimaryOrganizationDataColumnByDate" parameterClass="java.util.Map"  resultMap="PrimaryOrganizationResult">
+  	select sum(p.objectsum) as teamNum,primaryorgtype as teamclass,p.orginternalcode, sum(nvl(p.memberNum,0)) as memberNum from primaryorganizations_$year$_$month$ p
+  	where  p.orginternalcode like #orginternalcode# || '%'
+  	group by p.orginternalcode,p.primaryorgtype
+  </select>
+	
+	<select id="findPrimaryOrganizationDataColumnByDateTwo" parameterClass="java.util.Map"  resultMap="PrimaryOrganizationResult">
+	  	select sum(p.objectsum) as teamNum,primaryorgtype as teamclass,b.orginternalcode, sum(nvl(p.memberNum,0)) as memberNum from primaryorganizations_$year$_$month$ p,
+	  	(select o.orginternalcode from organizations  o where  o.parentid = #orgId#) b 
+	  	where  p.orginternalcode like b.orginternalcode || '%'
+	  	group by b.orginternalcode,p.primaryorgtype
+  	</select>
+  	
+    <select id="findPrimaryOrganizationDataColumnByOgrinternalCode" parameterClass="java.util.Map"  resultMap="PrimaryOrganizationResult">
+	  	select sum(p.objectsum) as teamNum,primaryorgtype as teamclass,p.orginternalcode, sum(nvl(p.memberNum,0)) as memberNum from primaryorganizations_$year$_$month$ p
+	  	where  p.orginternalcode = #ogrinternalCode#
+	  	group by p.orginternalcode,p.primaryorgtype
+  	</select>
+	
+	
+	<select id="getStatisticList" parameterClass="statisticSearchVo"
+		resultClass="java.util.HashMap" remapResults="true">
+
+		select max(mo.orgname) orgName,max(mo.id) orgId,p.displayname typeName
+		,nvl(sum(co.dc),0) sumNum
+		<include refid="selectFieldMap" />
+		from organizations mo
+		left join propertydicts p on p.id=p.id
+		left join
+		(select d.orginternalcode, p.id, max(p.displayname)
+		rs,count(d.id) dc
+		<include refid="decodeFieldMap" />
+		from
+		$table$ d right join propertydicts p on d.$propertyField$=p.id
+		where 
+		p.propertydomainid=#PropertyDomainId#
+		
+		and d.createDate>=#startDate# and d.createDate  <![CDATA[<]]> #endDate#
+		group by
+		d.orginternalcode, p.id
+		)co on
+		co.orginternalcode like
+		mo.orginternalcode||'%' and co.id=p.id
+		where
+		mo.parentid=#orgId# and
+		mo.orgType = #orgType#
+	
+		and
+		p.propertydomainid=#PropertyDomainId#
+		
+		group by mo.id,p.displayname
+		,mo.seq,p.displayseq
+		order by
+		mo.seq,p.displayseq
+
+	</select>
+	
+	<select id="getNewSocietyStatisticList" parameterClass="statisticSearchVo"
+		resultClass="java.util.HashMap" remapResults="true">
+
+		select max(mo.orgname) orgName,max(mo.id) orgId,p.displayname typeName
+		,nvl(sum(co.dc),0) sumNum
+		<include refid="selectFieldMap" />
+		from organizations mo
+		left join propertydicts p on p.id=p.id
+		left join
+		(select d.orginternalcode, p.id, max(p.displayname)
+		rs,count(d.id) dc
+		<include refid="decodeFieldMap" />
+		from
+		$table$ d right join propertydicts p on $propertyField$=p.id
+		where
+		p.propertydomainid=#propertyDomainId#
+		and d.createDate>=#startDate# and d.createDate  <![CDATA[<]]> #endDate#
+		group by
+		d.orginternalcode, p.id
+		)co on
+		co.orginternalcode like
+		mo.orginternalcode||'%' and co.id=p.id
+		where
+		mo.parentid=#orgId# and
+		mo.orgtype=#orgType#
+		and
+		p.propertydomainid=#propertyDomainId#
+		group by mo.id,p.displayname
+		,mo.seq,p.displayseq
+		order by
+		mo.seq,p.displayseq
+
+	</select>
+	
+	<select id="getPrimaryOrgCountByMonth" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select sum(monthcreate) from primaryorganizations_$year$_$month$ where 1=1
+		<dynamic>
+			<isNotEmpty property="typeId" prepend="and">
+				primaryorgtype = #typeId#
+			</isNotEmpty>
+			<isNotEmpty property="orgInternalCode" prepend="and">
+				orgInternalCode like #orgInternalCode#||'%'
+			</isNotEmpty>
+			<isNotEmpty property="year" prepend="and">
+				year = #year#
+			</isNotEmpty>
+			<isNotEmpty property="month" prepend="and">
+				month = #month#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="getPrimaryOrganizationsListFromHistory" parameterClass="statisticSearchVo"
+		resultClass="java.util.HashMap">
+		select max(mo.orgname)
+		orgName,max(mo.id) orgId,p.displayname typeName
+		,nvl(sum(co.sumN),0)
+		sumNum,nvl(sum(total),0) countValue
+		from organizations mo
+		left join
+		propertydicts p on p.id=p.id
+		left join (select sum(d.monthcreate) sumN
+		,p.id,d.orginternalcode ,sum(d.total) total
+		from
+		primaryorganizations_$year$_$month$ d right join propertydicts p on
+		d.primaryorgtype = p.id where
+		d.year=#year#
+		and d.month=#month# and
+		p.propertydomainid=#propertyDomainId#
+		group by
+		p.id ,d.orginternalcode 
+		)co on co.orginternalcode like
+		mo.orginternalcode||'%' and co.id=p.id
+
+		where mo.parentid =#orgId# and 
+		mo.orgtype=#orgType#
+		and
+		p.propertydomainid=#propertyDomainId#
+		group by mo.id,p.displayname ,mo.seq,p.displayseq
+		order by mo.seq,p.displayseq
+	</select>
+	
+	<delete id="deletePrimaryStatType" parameterClass="java.util.Map">
+	   delete from primaryOrganizations_$year$_$month$ where  year=#year#  and month=#month# 
+	</delete>
+	
+	<!--统计组织机构的数据 wangchao-->
+	<insert id="addPrimaryOrganizationsStat" parameterClass="java.util.HashMap">
+	insert into primaryOrganizations_$populationStatType.year$_$populationStatType.month$(id,typeName,total,startDate,endDate,year,month,primaryOrgType,orgInternalCode,percentage,sum,objectsum,monthcreate,memberNum,createDate,createUser)
+    select S_PRIMARYORGANIZATIONSTYPE.NEXTVAL ,#populationStatType.typeName#,
+    total,
+   #populationStatType.startDate#,#populationStatType.endDate#,#populationStatType.year#,
+   #populationStatType.month#,teamClass,
+    orginternalcode,
+    #populationStatType.percentage#,#populationStatType.sum#,
+    objectsum,
+  monthcreate,
+  nvl(memberNum,0) memberNum,
+    #populationStatType.createDate#,#populationStatType.createUser#  from 
+    (select nvl(objectsum,0) objectsum,nvl(monthcreate,0) monthcreate,nvl(total,0) total,o.orginternalcode,o.teamClass,mm.memberNum from 
+      
+      (select count(id) objectsum,orginternalcode,teamClass 
+         from  $tableName$ d where createDate <![CDATA[<]]> #populationStatType.endDate# 
+         group by orginternalcode,teamClass) o left join 
+         
+         (select count(id) monthcreate,orginternalcode,teamclass   from  $tableName$ where createDate>=#populationStatType.startDate#  
+         	and createDate <![CDATA[<]]> #populationStatType.endDate# 
+        group by orginternalcode,teamclass) m on o.orginternalcode=m.orginternalcode and m.teamclass=o.teamclass
+      left join 
+         (select count(id) total,orginternalcode,teamclass from $tableName$ 
+          group by orginternalcode,teamclass ) t on o.orginternalcode=t.orginternalcode and t.teamclass=o.teamclass
+          
+          left join
+             (    
+             select o1.orginternalcode orginternalcode, o2.teamClass teamClass, nvl(o2.num1, 0) memberNum
+             from ORGANIZATIONS o1
+             left join (select o.orginternalcode, pps.teamClass, count(1) as num1
+               from primaryorganizations pps
+               JOIN ORGANIZATIONS O
+                 ON PPS.ORGINTERNALCODE = O.ORGINTERNALCODE 
+               join primarymembersorgtype pt
+                 on pt.primaryorgid = pps.id
+               join primarymembers p
+                 on p.id = pt.primarymembersid
+              where 
+                 p.createDate <![CDATA[<]]> #populationStatType.endDate# 
+              group by o.orginternalcode, pps.teamClass) o2
+                 on o1.orginternalcode = o2.orginternalcode
+                 order by o1.seq
+             )mm on mm.orginternalcode = o.orginternalcode and mm.teamclass = o.teamClass
+   )
+	</insert>	
+	
+	<!--将社会组织表和非公有制经济组织表的数据分类插入到历史表中-->
+	<insert id="addNewSocietyOrganizationsStat" parameterClass="java.util.HashMap">
+		insert into  primaryOrganizations_$populationStatType.year$_$populationStatType.month$   (id,typeName,total,startDate,endDate,year,month,primaryOrgType,orgInternalCode,percentage,sum,objectsum,monthcreate,createDate,createUser)
+		select S_PRIMARYORGANIZATIONSTYPE.NEXTVAL ,#populationStatType.typeName#,
+		total,
+		#populationStatType.startDate#,#populationStatType.endDate#,#populationStatType.year#,
+		#populationStatType.month#,
+		<isNotEmpty property="tableName">
+			<isEqual property="tableName" compareValue="newSocietyOrganizations">
+				(select id as teamClass from propertydicts pp where pp.displayname='社会组织'),
+			</isEqual>
+			<isEqual property="tableName" compareValue="newEconomicOrganizations">
+				(select id as teamClass from propertydicts pp where pp.displayname='非公有制经济组织'),
+			</isEqual>
+		</isNotEmpty>
+		orginternalcode,
+		#populationStatType.percentage#,#populationStatType.sum#,
+		objectsum,
+		monthcreate,
+		#populationStatType.createDate#,#populationStatType.createUser# from 
+		(select nvl(objectsum,0) objectsum,nvl(monthcreate,0) monthcreate,nvl(total,0) total,o.orginternalcode from 
+		(select count(id) objectsum,orginternalcode 
+         from  $tableName$ d where createDate <![CDATA[<]]> #populationStatType.endDate# 
+         group by orginternalcode) o left join 
+		   	
+		    (select count(id) monthcreate,orginternalcode   from  $tableName$ where createDate>=#populationStatType.startDate# and createDate <![CDATA[<]]> #populationStatType.endDate# 
+        group by orginternalcode) m on o.orginternalcode=m.orginternalcode
+			left join 
+		   (select count(id) total,orginternalcode from $tableName$ 
+          group by orginternalcode ) t on o.orginternalcode=t.orginternalcode 
+		) 
+		
+		
+	</insert>
+	
+	 <!--<select id="getPrimaryOrganizarionMember" parameterClass="java.util.Map"  resultClass="PrimaryOrganizationMemberResult">
+  	select count(*) from primarymembers where id in (
+      select id from primarymembersorgtype pt where pt.primaryorgid in(
+         select id from primaryorganizations pps where pps.orginternalcode =#orgInternalCode#
+          and pps.createDate >=#startDate#
+           and pps.createDate <![CDATA[<]]>#endDate# and teamClass =#teamClass# 
+           )   
+     )
+     select o1.orginternalcode orgInternalCode, o2.teamClass teamClazz, nvl(o2.num1, 0) memberNum
+  	 from ORGANIZATIONS o1
+     left join (
+               select o.orginternalcode, pps.teamClass, count(1) as num1
+               from primaryorganizations pps
+               JOIN ORGANIZATIONS O
+                 ON PPS.ORGINTERNALCODE LIKE O.ORGINTERNALCODE || '%'
+               join primarymembersorgtype pt
+                 on pt.primaryorgid = pps.id
+               join primarymembers p
+                 on p.id = pt.id
+              where O.parentid = #orgId#
+                and pps.createDate >=#startDate#
+                and pps.createDate  <![CDATA[<]]>#endDate#
+              group by o.orginternalcode, pps.teamClass) o2
+                 on o1.orginternalcode = o2.orginternalcode
+    where o1.parentid = #orgId#
+    order by o1.seq 
+  </select>-->
+</sqlMap>

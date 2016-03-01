@@ -1,0 +1,1022 @@
+package com.tianque.baseInfo.positiveInfo.service;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.baseInfo.actualHouse.domain.HouseInfo;
+import com.tianque.baseInfo.actualHouse.service.ActualHouseService;
+import com.tianque.baseInfo.base.domain.ActualPopulation;
+import com.tianque.baseInfo.base.domain.Countrymen;
+import com.tianque.baseInfo.base.domain.LogoutDetail;
+import com.tianque.baseInfo.base.helper.CardNoHelper;
+import com.tianque.baseInfo.base.service.BaseInfoPopulationTemplateImpl;
+import com.tianque.baseInfo.base.service.PopulationRelationService;
+import com.tianque.baseInfo.positiveInfo.dao.PositiveInfoDao;
+import com.tianque.baseInfo.positiveInfo.domain.PositiveInfo;
+import com.tianque.baseInfo.rectificativePerson.domain.RectificativePerson;
+import com.tianque.baseInfo.rectificativePerson.service.RectificativePersonService;
+import com.tianque.cache.PageInfoCacheThreadLocal;
+import com.tianque.cache.UpdateType;
+import com.tianque.core.cache.constant.MemCacheConstant;
+import com.tianque.core.datatransfer.ExcelImportHelper;
+import com.tianque.core.systemLog.util.OperatorType;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.Chinese2pinyin;
+import com.tianque.core.util.NewBaseInfoTables;
+import com.tianque.core.util.ObjectToJSON;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.validate.DomainValidator;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.openLayersMap.util.EmphasisType;
+import com.tianque.service.HousePopulationMaintanceService;
+import com.tianque.service.IssueTypeService;
+import com.tianque.service.PopulationProccessorService;
+import com.tianque.service.helper.ManagePopulationByHouseHelper;
+import com.tianque.service.util.PopulationCatalog;
+import com.tianque.service.util.PopulationType;
+import com.tianque.service.vo.IsEmphasis;
+import com.tianque.sysadmin.service.OrganizationDubboService;
+import com.tianque.systemOperateLog.service.SystemOperateLogService;
+import com.tianque.systemOperateLog.util.SystemOperateType;
+import com.tianque.sysadmin.service.PropertyDictService;
+import com.tianque.userAuth.api.PermissionDubboService;
+import com.tianque.util.Arrays;
+import com.tianque.util.IdCardUtil;
+import com.tianque.util.PluginServiceHelpUtil;
+import com.tianque.util.PropertyUtil;
+import com.tianque.validate.AbstractCountrymenValidator;
+
+@Service("positiveInfoService")
+@Transactional
+public class PositiveInfoServiceImpl extends BaseInfoPopulationTemplateImpl
+		implements PositiveInfoService, PopulationProccessorService {
+
+	private static final String CACHE_ADDPOSITIVEINFO_VALUE = "CACHE_ADDPOSITIVEINFO";
+	private static final String CACHE_ADDPOSITIVEINFOBASEINFO_VALUE = "CACHE_ADDPOSITIVEINFOBASEINFO";
+	@Autowired
+	private PositiveInfoDao positiveInfoDao;
+
+	@Autowired
+	private OrganizationDubboService organizationDubboService;
+
+	@Qualifier("positiveInfoValidator")
+	@Autowired
+	private AbstractCountrymenValidator<PositiveInfo> attentionPopulationValidator;
+
+	@Qualifier("positiveInfoValidator")
+	@Autowired
+	private DomainValidator<PositiveInfo> domainValidator;
+
+	@Autowired
+	private RectificativePersonService rectificativePersonService;
+	@Autowired
+	private IssueTypeService issueTypeService;
+	@Autowired
+	private PropertyDictService propertyDictService;
+	@Autowired
+	private ActualHouseService actualHouseService;
+	@Autowired
+	private ManagePopulationByHouseHelper managePopulationByHouseHelper;
+	@Autowired
+	private HousePopulationMaintanceService housePopulationMaintanceService;
+	@Autowired
+	private PopulationRelationService populationRelationService;
+	@Autowired
+	private SystemOperateLogService systemOperateLogService;
+	@Autowired
+	private PermissionDubboService permissionDubboService;
+
+	// @Autowired
+	// private CacheService cacheService;
+
+	@Resource(name = "positiveInfoDao")
+	public void setBaseInfoPopulationBaseDao(PositiveInfoDao positiveInfoDao) {
+		super.setBaseInfoPopulationBaseDao(positiveInfoDao);
+	}
+
+	@Override
+	public PositiveInfo addPositiveInfo(PositiveInfo positiveInfo) {
+		try {
+			if (!ExcelImportHelper.isImport.get()) {
+				ValidateResult idleValidator = domainValidator
+						.validate(positiveInfo);
+				if (idleValidator.hasError()) {
+					throw new BusinessValidationException(
+							idleValidator.getErrorMessages());
+				} else if (hasDuplicatePosiviteInfos(positiveInfo
+						.getOrganization().getId(), positiveInfo.getIdCardNo(),
+						positiveInfo.getId())) {
+					throw new BusinessValidationException("该网格下已存在相同身份证号码");
+				}
+			}
+			if (checkDataExitInCache(positiveInfo,
+					MemCacheConstant.CACHE_ADDPOSITIVEINFO,
+					CACHE_ADDPOSITIVEINFO_VALUE)) {
+				return positiveInfo;
+			}
+			return add(positiveInfo);
+		} catch (Exception e) {
+			logger.error("", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(positiveInfo,
+					MemCacheConstant.CACHE_ADDPOSITIVEINFO);
+		}
+	}
+
+	private PositiveInfo add(PositiveInfo positiveInfo) {
+		positiveInfo.setIdCardNo(positiveInfo.getIdCardNo().toUpperCase());
+		autoFillOrganizationInternalCode(positiveInfo);
+		setChinesePinyin(positiveInfo);
+		autoFillBirthday(positiveInfo);
+		autoIsDeath(positiveInfo);
+		contructCurrentAddress(positiveInfo);
+		try {
+			Countrymen temp = populationRelationService.businessOption(
+					positiveInfo, positiveInfo.getActualPopulationType());
+			positiveInfo.setBaseInfoId(temp.getBaseInfoId());
+			positiveInfo.setAddressInfoId(temp.getAddressInfoId());
+			positiveInfo.setSourcesState(null);
+			positiveInfo = positiveInfoDao.add(positiveInfo);
+			populationRelationService.addPopulationRelation(temp.getId(),
+					positiveInfo.getActualPopulationType(),
+					positiveInfo.getId(), BaseInfoTables.POSITIVEINFO_KEY);
+			logoutRectificativePerson(positiveInfo.getId());
+			positiveInfo.setHouseId(temp.getHouseId());
+			// this.proccessHouseBind(positiveInfo);
+			rebuildHouseAddress(positiveInfo);
+			
+			if (IsEmphasis.Emphasis.equals(positiveInfo.getIsEmphasis())) {					// 缓存计数器
+				// 缓存计数器	
+				PageInfoCacheThreadLocal.increment(MemCacheConstant
+							.getCachePageKey(PositiveInfo.class.getSimpleName()),
+							positiveInfo, 1);
+			}
+			return positiveInfo;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类PositiveInfoServiceImpl的addPositiveInfo方法出现异常，原因：",
+					"新增信息出现错误", e);
+		}
+	}
+
+	/**
+	 * 如果人口的房屋信息（CurrentAddress）不为空，并且房屋id不存在，新增一个房屋，并且建立关联关系, 如果房屋id不为空直接建立关联关系
+	 * 如果房屋信息为空,并且有房屋id不为空，则删除人房关系
+	 * 
+	 * @param householdStaff
+	 */
+	private void rebuildHouseAddress(PositiveInfo householdStaff) {
+
+		if (householdStaff.getIsHaveHouse() != null
+				&& householdStaff.getIsHaveHouse()
+				&& householdStaff.getCurrentAddress() != null) {
+
+			if (null == householdStaff.getHouseId()
+					|| householdStaff.getHouseId().equals(01L)) {
+				// 新增一个实有房屋,并且建立人房关系
+				HouseInfo houseInfo = new HouseInfo();
+				houseInfo.setAddress(householdStaff.getCurrentAddress());
+				houseInfo.setAddressType(propertyDictService
+						.findPropertyDictByDomainNameAndDictDisplayName(
+								PropertyTypes.CURRENT_ADDRESS_TYPE, "其他"));
+				houseInfo.setOrganization(householdStaff.getOrganization());
+				houseInfo
+						.setHouseOperateSource(NewBaseInfoTables.POSITIVEINFO_KEY);
+				houseInfo = actualHouseService.addHouseInfo(houseInfo);
+
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.POSITIVE, householdStaff,
+						houseInfo.getId());
+			} else if (householdStaff.getHouseId() != null) {
+				managePopulationByHouseHelper.reBindHouseIfNecc(
+						PopulationCatalog.POSITIVE, householdStaff,
+						householdStaff.getHouseId());
+			}
+		} else {
+			housePopulationMaintanceService.releaseHouse(
+					PopulationCatalog.POSITIVE, householdStaff.getId(),
+					householdStaff.getHouseId());
+		}
+	}
+
+	@Override
+	public PositiveInfo updatePositiveInfoBaseInfo(PositiveInfo positiveInfo) {
+		positiveInfo.setIdCardNo(positiveInfo.getIdCardNo().toUpperCase());
+		ValidateResult idleValidator = attentionPopulationValidator
+				.validateBaseInfo(positiveInfo);
+		if (idleValidator.hasError()) {
+			throw new BusinessValidationException(
+					idleValidator.getErrorMessages());
+		} else if (hasDuplicatePosiviteInfos(positiveInfo.getOrganization()
+				.getId(), positiveInfo.getIdCardNo(), positiveInfo.getId())) {
+			throw new BusinessValidationException("该网格下已存在相同身份证号码");
+		}
+		autoFillOrganizationInternalCode(positiveInfo);
+		setChinesePinyin(positiveInfo);
+		positiveInfo.setIdCardNo(positiveInfo.getIdCardNo().toUpperCase());
+		autoFillBirthday(positiveInfo);
+		if (positiveInfo.isDeath()) {
+			positiveInfo.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+			positiveInfo.setLogoutDetail(buildLogoutDetail(positiveInfo
+					.isDeath()));
+			// 缓存计数器
+			PageInfoCacheThreadLocal.decrease(MemCacheConstant
+					.getCachePageKey(PositiveInfo.class.getSimpleName()),
+					positiveInfo, 1);
+		}
+		contructCurrentAddress(positiveInfo);
+		// fateson add 这样设置 proccessHouseBind(positiveInfo) 不会报错
+		if (positiveInfo.getAttentionPopulationType() != null) {
+			if ("toPositiveInfo".equals(positiveInfo
+					.getAttentionPopulationType())) {
+				positiveInfo
+						.setAttentionPopulationType(BaseInfoTables.POSITIVEINFO_KEY);
+			}
+		}
+		// this.proccessHouseBind(positiveInfo);
+
+		try {
+			Countrymen temp = populationRelationService.businessOption(
+					positiveInfo, positiveInfo.getActualPopulationType());
+			logoutRectificativePerson(positiveInfo.getId());
+			positiveInfo.setHouseId(temp.getHouseId());
+			rebuildHouseAddress(positiveInfo);
+			positiveInfoDao.updateTableUpdateDateById(positiveInfo.getId());
+			return positiveInfo;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类PositiveInfoServiceImpl的updatePosiviteInfoBaseInfo方法出现异常，原因：",
+					"修改信息出现错误", e);
+		}
+	}
+
+	/**
+	 * 社区矫正转刑释解教后注销社区矫正数据
+	 * 
+	 * @param id
+	 */
+	private void logoutRectificativePerson(Long id) {
+		PositiveInfo positiveInfo = getPositiveInfoById(id);
+		RectificativePerson rectificativePerson = rectificativePersonService
+				.findRectificativePersonByIdCardNoAndOrgId(positiveInfo
+						.getIdCardNo(), positiveInfo.getOrganization().getId());
+		if (rectificativePerson != null
+				&& rectificativePerson.getId() != null
+				&& IsEmphasis.Emphasis.equals(rectificativePerson
+						.getIsEmphasis())) {
+			// Long[] ids = new Long[1];
+			// ids[0] = rectificativePerson.getId();
+			// rectificativePersonService.deleteRectificativePersonByIds(ids);
+			rectificativePersonService.updateEmphasiseById(
+					rectificativePerson.getId(), IsEmphasis.IsNotEmphasis);
+		}
+	}
+
+	private LogoutDetail buildLogoutDetail(Boolean death) {
+		LogoutDetail result = new LogoutDetail();
+		if (death) {
+			result.setLogoutDate(new Date());
+			result.setLogoutReason(LogoutDetail.LOGOUT_REASON_FOR_DEATH);
+			result.setLogout(IsEmphasis.IsNotEmphasis);
+		} else if (!death) {
+			result.setLogout(IsEmphasis.Emphasis);
+		}
+
+		return result;
+	}
+
+	private boolean deletePosiviteInfosById(Long id) {
+		if (id == null) {
+			throw new BusinessValidationException("没有指定删除刑释人员");
+		}
+		PositiveInfo domain = getPositiveInfoById(id);
+		log(WARN, POSIVITEINFO, ThreadVariable.getSession().getUserName()
+				+ "删除刑释人员" + domain.getName(), OperatorType.DELETE,
+				ObjectToJSON.convertJSON(domain));
+
+		domain.setPopulationTypeBean(getPopulationRelationService()
+				.getBusinessPopulationTypeBean(id, PopulationType.POSITIVE_INFO));
+		getRecoverDatasService().deleteActualPopulation(domain);
+		populationRelationService.businessDeletePopulationRelation(id,
+				PopulationType.POSITIVE_INFO);
+
+		positiveInfoDao.delete(id);
+		try {
+			PluginServiceHelpUtil.doService("routerService",
+					"deleteServiceTeamHasObjectsAndServiceMemberHasObject",
+					new Class[] { String.class, Long.class },
+					PopulationType.POSITIVE_INFO, id);
+			/** 删除时对关联的事件和服务记录进行orgId和idCardNo赋值 */
+			PluginServiceHelpUtil.doService("routerService",
+					"setOrgIdAndCardNoOrName", new Class[] { Long.class,
+							String.class, String.class, Long.class }, domain
+							.getOrganization().getId(), domain.getIdCardNo(),
+					PopulationType.POSITIVE_INFO, id);
+			issueTypeService.setOrgIdAndCardNoOrNameForPerson(domain
+					.getOrganization().getId(), domain.getIdCardNo(),
+					PopulationType.POSITIVE_INFO, id);
+			if (IsEmphasis.Emphasis.equals(domain.getIsEmphasis())) {
+				// 缓存计数器
+				PageInfoCacheThreadLocal.decrease(MemCacheConstant
+						.getCachePageKey(PositiveInfo.class.getSimpleName()),
+						domain, 1);
+			}
+		} catch (Exception e) {
+			logger.error("", e);
+		} finally {
+			this.deletePopulationTypeByPopulationIdAndType(id,
+					PopulationType.POSITIVE_INFO);
+		}
+		return true;
+	}
+
+	@Override
+	public PositiveInfo getPositiveInfoById(Long id) {
+		return positiveInfoDao.get(id);
+	}
+
+	@Override
+	public PageInfo<PositiveInfo> findPositiveInfoForPage(
+			PositiveInfo positiveInfo, int pageNum, int pageSize,
+			String sortField, String order, Long isEmphasis) {
+		return positiveInfoDao.findPosiviteInfosForPage(positiveInfo, pageNum,
+				pageSize, sortField, order, isEmphasis);
+	}
+
+	@Override
+	public boolean hasDuplicatePosiviteInfos(Long orgId, String idCardNo,
+			Long exceptedId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return false;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		// String idCardNo15 = "";
+		// String idCardNo18 = "";
+		// if (idCardNo.length() == 15) {
+		// idCardNo15 = idCardNo;
+		// idCardNo18 = IdCardUtil.idCardNo15to18(idCardNo, "19");
+		// } else if (idCardNo.length() == 18) {
+		// idCardNo15 = IdCardUtil.idCardNo18to15(idCardNo);
+		// idCardNo18 = idCardNo;
+		// }
+		Countrymen countrymen = baseInfoService.getBaseInfoByIdCardNo(idCardNo);
+		if (countrymen == null) {
+			return false;
+		}
+		Long exsited = positiveInfoDao.getIdByBaseinfoIdAndOrgId(
+				countrymen.getId(), orgId);
+		boolean flag = exceptedId == null ? exsited != null
+				: (exsited != null && !exceptedId.equals(exsited));
+		return flag;
+	}
+
+	@Override
+	public PositiveInfo hasDuplicatePositiveInfo(Long orgId, String idCardNo) {
+		if (idCardNo == null || idCardNo.equals(""))
+			return null;
+		idCardNo = idCardNo.toUpperCase();
+		List<String> list = new ArrayList<String>();
+		list.add(idCardNo);
+		if (idCardNo.length() == 18) {
+			list.add(IdCardUtil.idCardNo18to15(idCardNo));
+		} else if (idCardNo.length() == 15) {
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+		}
+		return positiveInfoDao.getByIdCard(list, orgId);
+	}
+
+	private void autoFillOrganizationInternalCode(PositiveInfo positiveInfo) {
+		Organization org = organizationDubboService
+				.getSimpleOrgById(positiveInfo.getOrganization().getId());
+		if (org == null) {
+			throw new BusinessValidationException("找不到指定的网格");
+		}
+		positiveInfo.setOrgInternalCode(org.getOrgInternalCode());
+	}
+
+	private void setChinesePinyin(PositiveInfo positiveInfo) {
+		Map<String, String> pinyin = Chinese2pinyin
+				.changeChinese2Pinyin(positiveInfo.getName());
+		positiveInfo.setFullPinyin((String) pinyin.get("fullPinyin"));
+		positiveInfo.setSimplePinyin((String) pinyin.get("simplePinyin"));
+	}
+
+	private void autoFillBirthday(PositiveInfo positiveInfo) {
+		if (StringUtil.isStringAvaliable(positiveInfo.getIdCardNo())) {
+			positiveInfo.setBirthday(IdCardUtil.parseBirthday(positiveInfo
+					.getIdCardNo()));
+		}
+	}
+
+	private void autoIsDeath(PositiveInfo positiveInfo) {
+		if (positiveInfo.isDeath()) {
+			positiveInfo.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+		} else {
+			positiveInfo.setIsEmphasis(IsEmphasis.Emphasis);
+		}
+	}
+
+	@Override
+	public PositiveInfo updatePositiveInfoByName(String name, Long orgId,
+			PositiveInfo domain) {
+		try {
+			PositiveInfo older = this.getPosiviteInfosByIdCard(orgId, name);
+			domain.setId(older.getId());
+			domain.setCreateDate(older.getCreateDate());
+			domain.setCreateUser(older.getCreateUser());
+			return updatePositiveInfo(domain);
+		} catch (Exception e) {
+			logger.error("", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("修改信息出现错误");
+			} else {
+				return null;
+			}
+		}
+	}
+
+	private PositiveInfo getPosiviteInfosByIdCard(Long orgId, String idCardNo) {
+		if (idCardNo == null || idCardNo.equals(""))
+			return null;
+		idCardNo = idCardNo.toUpperCase();
+		List<String> list = new ArrayList<String>();
+		list.add(idCardNo);
+		if (idCardNo.length() == 18) {
+			list.add(IdCardUtil.idCardNo18to15(idCardNo));
+		} else if (idCardNo.length() == 15) {
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+		}
+		return positiveInfoDao.getByIdCard(list, orgId);
+	}
+
+	@Override
+	public void deletePositiveInfoByIds(Long[] personIds) {
+		if (personIds == null) {
+			throw new BusinessValidationException("id没有获得");
+		}
+		for (Long id : personIds) {
+			PositiveInfo p = positiveInfoDao.get(id);
+			p.setCreateDate(new Date());
+			deletePosiviteInfos(id);
+		}
+	}
+
+	private void deletePosiviteInfos(Long id) {
+		PositiveInfo domain = getPositiveInfoById(id);
+		if (null != domain) {
+			/*
+			 * try { log(WARN, POSIVITEINFO, ThreadVariable.getSession()
+			 * .getUserName() + "删除刑释人员" + domain.getName(),
+			 * OperatorType.DELETE, ObjectToJSON.convertJSON(domain)); } catch
+			 * (JSONException e) { logger.error("异常信息", e); }
+			 */
+			deletePosiviteInfosById(id);
+		}
+	}
+
+	@Override
+	public Map<String, Map<String, Object>> getPopulationSpecializedInfoByOrgIdAndIdCardNo(
+			Long orgId, String idCardNo) {
+		PositiveInfo positiveInfo = positiveInfoDao.getByOrgIdAndIdCardNo(
+				orgId, idCardNo);
+		if (null == positiveInfo) {
+			return null;
+		}
+		Map<String, Object> positiveInfoMap = new HashMap<String, Object>();
+		positiveInfoMap.put("id", positiveInfo.getId());
+		positiveInfoMap.put("isEmphasis", positiveInfo.getIsEmphasis());
+		positiveInfoMap.put("positiveInfoType",
+				positiveInfo.getPositiveInfoType());
+		positiveInfoMap.put("caseReason", positiveInfo.getCaseReason());
+		positiveInfoMap.put("imprisonmentDate",
+				positiveInfo.getImprisonmentDate());
+		positiveInfoMap.put("laborEduAddress",
+				positiveInfo.getLaborEduAddress());
+		positiveInfoMap.put("releaseOrBackDate",
+				positiveInfo.getReleaseOrBackDate());
+		positiveInfoMap.put("isRepeat", positiveInfo.getIsRepeat());
+		positiveInfoMap.put("criminalBehavior",
+				positiveInfo.getCriminalBehavior());
+		positiveInfoMap.put("agoProfession", positiveInfo.getAgoProfession());
+		positiveInfoMap.put("isCrime", positiveInfo.getIsCrime());
+		positiveInfoMap.put("resettlementDate",
+				positiveInfo.getResettlementDate());
+		positiveInfoMap.put("crimeDate", positiveInfo.getCrimeDate());
+		positiveInfoMap.put("noResettlementReason",
+				positiveInfo.getNoResettlementReason());
+		positiveInfoMap.put("remark", positiveInfo.getRemark());
+		positiveInfoMap.put("attentionExtent",
+				positiveInfo.getAttentionExtent());
+		Map<String, Map<String, Object>> map = new HashMap<String, Map<String, Object>>();
+		map.put(PopulationType.POSITIVE_INFO, positiveInfoMap);
+		return map;
+	}
+
+	@Override
+	public Long proccessPopulationSpecializedInfo(
+			ActualPopulation actualPopulation, String[] populationType,
+			Map<String, Object> population) {
+		actualPopulation
+				.setAttentionPopulationType(NewBaseInfoTables.POSITIVEINFO_KEY);
+		Long orgId = Long
+				.valueOf(((String[]) population.get("organization.id"))[0]);
+		String idCardNo = ((String[]) population.get("idCardNo"))[0];
+		PositiveInfo positiveInfo = positiveInfoDao.getByOrgIdAndIdCardNo(
+				orgId, idCardNo);
+		if (!com.tianque.util.Arrays.hasObjectInArray(populationType,
+				PopulationType.POSITIVE_INFO)) {
+			if (null != positiveInfo) {
+				positiveInfo.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+				this.updateEmphasiseById(positiveInfo.getId(),
+						IsEmphasis.IsNotEmphasis);
+			}
+		} else {
+			if (null == positiveInfo) {
+				positiveInfo = new PositiveInfo();
+				copyProperty(actualPopulation, population, positiveInfo);
+				addPositiveInfo(positiveInfo);
+			} else {
+				Long id = positiveInfo.getId();
+				copyProperty(actualPopulation, population, positiveInfo);
+				positiveInfo.setId(id);
+				positiveInfo.setIsEmphasis(IsEmphasis.Emphasis);
+				updatePositiveInfoBusiness(positiveInfo);
+				this.updateEmphasiseById(positiveInfo.getId(),
+						IsEmphasis.Emphasis);
+			}
+		}
+		return positiveInfo == null
+				|| positiveInfo.getIsEmphasis() == IsEmphasis.IsNotEmphasis
+						.longValue() ? null : positiveInfo.getId();
+	}
+
+	private void copyProperty(ActualPopulation actualPopulation,
+			Map<String, Object> population, PositiveInfo positiveInfo) {
+		copyProperties(positiveInfo, actualPopulation);
+
+		positiveInfo.setPositiveInfoType(Arrays.getPropertyDictFromArray(
+				population, "positiveInfoType.id"));
+
+		positiveInfo.setCaseReason(Arrays.getStringValueFromArray(population,
+				"caseReason"));
+		positiveInfo.setImprisonmentDate(Arrays.getStringValueFromArray(
+				population, "imprisonmentDate"));
+		positiveInfo.setLaborEduAddress(Arrays.getStringValueFromArray(
+				population, "laborEduAddress"));
+		positiveInfo.setReleaseOrBackDate(Arrays.getDateValueFromArray(
+				population, "releaseOrBackDate"));
+		positiveInfo.setIsRepeat(Arrays.getBooleanValueFromArray(population,
+				"isRepeat"));
+		positiveInfo.setCriminalBehavior(Arrays.getStringValueFromArray(
+				population, "criminalBehavior"));
+
+		positiveInfo.setAgoProfession(Arrays.getPropertyDictFromArray(
+				population, "agoProfession.id"));
+
+		positiveInfo.setIsCrime(Arrays.getBooleanValueFromArray(population,
+				"isCrime"));
+		positiveInfo.setResettlementDate(Arrays.getDateValueFromArray(
+				population, "resettlementDate"));
+		positiveInfo.setCrimeDate(Arrays.getDateValueFromArray(population,
+				"crimeDate"));
+		positiveInfo.setNoResettlementReason(Arrays.getStringValueFromArray(
+				population, "noResettlementReason"));
+		positiveInfo.setRemark(Arrays.getStringValueFromArray(population,
+				"remark"));
+
+		positiveInfo
+				.setAttentionPopulationType(BaseInfoTables.POSITIVEINFO_KEY);
+		positiveInfo.setAttentionExtent(Arrays.getPropertyDictFromArray(
+				population, "attentionExtent.id"));
+	}
+
+	@Override
+	public void updatePopulationBaseInfo(ActualPopulation actualPopulation) {
+		PositiveInfo positiveInfo = positiveInfoDao.getByOrgIdAndIdCardNo(
+				actualPopulation.getOrganization().getId(),
+				actualPopulation.getIdCardNo());
+		if (null == positiveInfo) {
+			return;
+		}
+		Long id = positiveInfo.getId();
+		copyProperties(positiveInfo, actualPopulation);
+		positiveInfo.setId(id);
+		updatePositiveInfoBaseInfo(positiveInfo);
+
+	}
+
+	@Override
+	public void deletePopulationByPopulationId(Long populationId) {
+		if (null != populationId) {
+			this.deletePosiviteInfos(populationId);
+			this.deletePopulationTypeByPopulationIdAndType(populationId,
+					PopulationType.POSITIVE_INFO);
+		}
+	}
+
+	@Override
+	public PositiveInfo updatePositiveInfoBusiness(PositiveInfo positiveInfo) {
+		positiveInfo = positiveInfoDao.updateBusiness(positiveInfo);
+		PageInfoCacheThreadLocal.update(
+				MemCacheConstant.getCachePageKey(PositiveInfo.class),
+				positiveInfo, UpdateType.BUSINESS);
+		return positiveInfo;
+	}
+
+	private void updateEmphasiseById(Long id, Long isEmphasis) {
+		LogoutDetail logoutDetail = new LogoutDetail();
+		logoutDetail.setLogout(isEmphasis);
+		updateLogOutByPopulationTypeAndId(logoutDetail,
+				BaseInfoTables.POSITIVEINFO_KEY, id);
+	}
+
+	@Override
+	public List<PositiveInfo> updateEmphasiseByIds(Long[] populationIds,
+			Long isEmphasis) {
+		try {
+			List<PositiveInfo> list = new ArrayList<PositiveInfo>();
+			for (int i = 0; i < populationIds.length; i++) {
+				updateEmphasiseById(populationIds[i], isEmphasis);
+				list.add(getPositiveInfoById(populationIds[i]));
+			}
+			return list;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类PositiveInfoServiceImpl的updateEmphasiseByIds方法出现异常，原因：",
+					"修改刑释人员关注状态出现错误", e);
+		}
+	}
+
+	@Override
+	public PositiveInfo findPositiveInfoByIdCardNoAndOrgId(String idCardNo,
+			Long orgId) {
+		return getPosiviteInfosByIdCard(orgId, idCardNo);
+	}
+
+	@Override
+	public List<PositiveInfo> changeDeathByIds(Long[] populationIds,
+			Boolean death) {
+		List<PositiveInfo> list = new ArrayList<PositiveInfo>();
+		for (int i = 0; i < populationIds.length; i++) {
+			PositiveInfo population = this
+					.getPositiveInfoById(populationIds[i]);
+			updateLogOutByPopulationTypeAndId(
+					LogoutDetail.buildLogoutDetail(death),
+					BaseInfoTables.POSITIVEINFO_KEY, population.getId());
+			baseInfoService.updateDeathStateById(population.getBaseInfoId(),
+					death, population.getIdCardNo(), population
+							.getOrganization().getId(), population
+							.getOrgInternalCode(),
+					NewBaseInfoTables.POSITIVEINFO_KEY);
+			list.add(population);
+			// 缓存计数器
+			PageInfoCacheThreadLocal.increment(MemCacheConstant
+					.getCachePageKey(PositiveInfo.class.getSimpleName()),
+					population, 1);
+		}
+		return list;
+	}
+
+	@Override
+	public List<PositiveInfo> findPositiveInfoByDate(String positiveType,
+			long time) {
+		Long positiveTypeId = propertyDictService
+				.getPropertyDictByDomainName(positiveType).getId();
+		return positiveInfoDao.findPositiveInfoByDate(positiveTypeId, time);
+	}
+
+	@Override
+	public PositiveInfo getPositiveInfoByIdCardNo(String idCardNo, Long orgId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return null;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		List<String> list = new ArrayList<String>();
+		list.add(idCardNo);
+		if (idCardNo.length() == 18) {
+			list.add(IdCardUtil.idCardNo18to15(idCardNo));
+		} else if (idCardNo.length() == 15) {
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "19"));
+			list.add(IdCardUtil.idCardNo15to18(idCardNo, "20"));
+		}
+		return positiveInfoDao.getByIdCard(list, orgId);
+	}
+
+	@Override
+	public PositiveInfo updatePositiveInfo(PositiveInfo positiveInfo) {
+		if (!ExcelImportHelper.isImport.get()) {
+			positiveInfoValidator(positiveInfo);
+		}
+		try {
+			autoFilled(positiveInfo);
+			if (positiveInfo.isDeath()) {
+				positiveInfo.setIsEmphasis(IsEmphasis.IsNotEmphasis);
+			}
+			rebuildHouseAddress(positiveInfo);
+			// proccessHouseBind(positiveInfo);
+			updatePositiveInfoBaseInfo(positiveInfo);
+			updatePositiveInfoBusiness(positiveInfo);
+			return positiveInfo;
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类PositiveInfoServiceImpl的updatePosiviteInfo方法出现异常，原因：",
+					"获取刑释人员信息出现错误", e);
+		}
+	}
+
+	private void autoFilled(PositiveInfo positiveInfo) {
+		positiveInfo.setIdCardNo(positiveInfo.getIdCardNo().toUpperCase());
+		autoFillOrganizationInternalCode(positiveInfo);
+		autoFillChinesePinyin(positiveInfo);
+		autoFillBirthday(positiveInfo);
+	}
+
+	private void autoFillChinesePinyin(PositiveInfo positiveInfo) {
+		Map<String, String> pinyin = Chinese2pinyin
+				.changeChinese2Pinyin(positiveInfo.getName());
+		positiveInfo.setSimplePinyin(pinyin.get("simplePinyin"));
+		positiveInfo.setFullPinyin(pinyin.get("fullPinyin"));
+	}
+
+	private void positiveInfoValidator(PositiveInfo positiveInfo) {
+		ValidateResult baseDataValidator = attentionPopulationValidator
+				.validate(positiveInfo);
+		if (baseDataValidator.hasError()) {
+			throw new BusinessValidationException(
+					baseDataValidator.getErrorMessages());
+		}
+	}
+
+	@Override
+	public PositiveInfo addPositiveInfoBaseInfo(PositiveInfo population) {
+		if (!ExcelImportHelper.isImport.get()) {
+			attentionPopulationValidator.validateBaseInfo(population);
+		}
+		try {
+			if (checkDataExitInCache(population,
+					MemCacheConstant.CACHE_ADDPOSITIVEINFOBASEINFO,
+					CACHE_ADDPOSITIVEINFOBASEINFO_VALUE)) {
+				return population;
+			}
+			return add(population);
+		} catch (Exception e) {
+			logger.error("", e);
+			if (!ExcelImportHelper.isImport.get()) {
+				throw new BusinessValidationException("新增信息出现错误");
+			} else {
+				return null;
+			}
+		} finally {
+			cleanDataInCache(population,
+					MemCacheConstant.CACHE_ADDPOSITIVEINFOBASEINFO);
+		}
+	}
+
+	@Override
+	public PositiveInfo fromRectificativePerson(Long id) {
+		RectificativePerson rectificativePerson = rectificativePersonService
+				.getRectificativePersonById(id);
+		PositiveInfo population = new PositiveInfo();
+		try {
+			PropertyUtil.copyPropertiesWithRecursion(Countrymen.class,
+					population, rectificativePerson);
+		} catch (Exception e) {
+			throw new ServiceValidationException("社区矫正转刑释解教失败", e);
+		}
+
+		return population;
+	}
+
+	@Override
+	public void moveTempByIds(String[] peoperIds, Long targetOrgId) {
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(targetOrgId);
+
+		for (String id : peoperIds) {
+			Long peoperId = Long.parseLong(id);
+			if (!StringUtils.isEmpty(id)) {
+				// get peoper
+				PositiveInfo people = getPositiveInfoById(peoperId);
+				if (people == null) {
+					continue;
+				}
+				Long currentOrgid = people.getOrganization().getId();
+				people.setOrganization(organization);
+				// String orgCode = people.getOrgInternalCode();
+				String orgCode = people.getOrganization().getOrgInternalCode();
+				String idCardNo = people.getIdCardNo();
+				// 验证目标组织机构是否存在这个人
+				boolean result = hasDuplicatePosiviteInfos(targetOrgId,
+						idCardNo, peoperId);
+				if (result) {
+					// 把存在的旧数据成为修改现在现在要移动的新数据
+					if (currentOrgid.longValue() != targetOrgId.longValue()) {
+						updateMovePersonByIdCardNo(idCardNo, targetOrgId,
+								people);
+						// 删掉要移动的数据 删除掉不在同一个网格
+						deletePosiviteInfos(peoperId);
+					}
+
+				} else {
+					// 转移网格数据
+					positiveInfoDao
+							.updateData(id, targetOrgId, orgCode, people);
+				}
+				people.setCreateDate(null);
+			}
+
+		}
+
+	}
+
+	public void updateMovePersonByIdCardNo(String idcard, Long targetorgId,
+			PositiveInfo people) {
+		List<String> cardnos = CardNoHelper.createIdCardNo(idcard);
+		// 获取
+		PositiveInfo older = positiveInfoDao.getByIdCard(cardnos, targetorgId);
+		people.setId(older.getId());
+		people.setCreateDate(older.getCreateDate());
+		people.setCreateUser(older.getCreateUser());
+		positiveInfoDao.update(people);
+	}
+
+	private PageInfo<PositiveInfo> constructEmptyPageInfo() {
+		PageInfo<PositiveInfo> result = new PageInfo<PositiveInfo>();
+		result.setResult(new ArrayList<PositiveInfo>());
+		return result;
+	}
+
+	@Override
+	public PageInfo<PositiveInfo> findPositiveInfosForPageByOrgInternalCode(
+			Long orgId, Integer pageNum, Integer pageSize, String sortField,
+			String order, Long isEmphasis) {
+		if (orgId == null) {
+			return constructEmptyPageInfo();
+		} else {
+			Organization org = organizationDubboService.getSimpleOrgById(orgId);
+			if (org == null) {
+				return constructEmptyPageInfo();
+			} else {
+				Map<String, Object> query = new HashMap<String, Object>();
+				query.put("orgInternalCode", org.getOrgInternalCode());
+				query.put("isEmphasis", isEmphasis);
+				PageInfo<PositiveInfo> positiveInfoPageInfos = positiveInfoDao
+						.findPagerUsingCacheBySearchVo(orgId, query, pageNum,
+								pageSize, "PositiveInfoDefaultList",
+								MemCacheConstant
+										.getCachePageKey(PositiveInfo.class));
+				fitCountrymen(positiveInfoPageInfos);
+				fitServiceMemberHasObject(BaseInfoTables.POSITIVEINFO_KEY,
+						positiveInfoPageInfos);
+				//隐藏身份证中间4位
+				positiveInfoPageInfos=hiddenIdCard(positiveInfoPageInfos);
+				return positiveInfoPageInfos;
+			}
+		}
+	}
+	
+	//隐藏身份证中间4位
+	private PageInfo<PositiveInfo> hiddenIdCard(PageInfo<PositiveInfo> pageInfo){
+				//判断权限，有权限不隐藏
+				if(permissionDubboService.
+						isUserHasPermission(ThreadVariable.getUser().getId(), "isPositiveInfoManagementNotHidCard")){
+					return pageInfo;
+				}
+				List<PositiveInfo> list = pageInfo.getResult();
+				int index=0;
+				for (PositiveInfo verification:list) {
+					verification.setIdCardNo(IdCardUtil.hiddenIdCard(verification.getIdCardNo()));
+					list.set(index, verification);
+					index++;
+				}
+				pageInfo.setResult(list);
+				return pageInfo;
+		}
+
+
+	@Override
+	public boolean hasDuplicatePosiviteInfosForRectificative(Long orgId,
+			String idCardNo, Long exceptedId) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return false;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		PositiveInfo positiveInfo = getPositiveInfoByIdCardNo(idCardNo, orgId);
+		if (positiveInfo == null || positiveInfo.getIsEmphasis() == 1L) {
+			return false;
+		}
+		Long exsited = positiveInfo.getId();
+		boolean flag = exceptedId == null ? exsited != null
+				: (exsited != null && !exceptedId.equals(exsited));
+		return flag;
+	}
+
+	@Override
+	public boolean hasDuplicatePosiviteInfosForRectificative(Long orgId,
+			String idCardNo) {
+		if (idCardNo == null || "".equals(idCardNo.trim()) || orgId == null) {
+			return false;
+		}
+		idCardNo = idCardNo.toUpperCase();
+		PositiveInfo positiveInfo = getPositiveInfoByIdCardNo(idCardNo, orgId);
+		if (positiveInfo == null) {
+			return false;
+		}
+		return !Long.valueOf(1L).equals(positiveInfo.getIsEmphasis());
+	}
+
+	@Override
+	public PositiveInfo findPositiveInfoByIdCardNoAndOrgIdAndEmphasis(
+			String idCardNo, Long orgId) {
+		PositiveInfo positiveInfo = null;
+		try {
+			positiveInfo = getPosiviteInfosByIdCard(orgId, idCardNo);
+		} catch (Exception e) {
+			throw new ServiceValidationException("获取刑释人员失败", e);
+		}
+		if (positiveInfo == null) {
+			return null;
+		}
+		return 1L == positiveInfo.getIsEmphasis() ? null : positiveInfo;
+	}
+
+	public PositiveInfo rectificativeToPositiveInfo(PositiveInfo population) {
+		try {
+			systemOperateLogService.addSystemOperateLog(
+					NewBaseInfoTables.POSITIVEINFO_KEY,
+					population.getIdCardNo(), population.getOrganization(),
+					population.getOrgInternalCode(),
+					NewBaseInfoTables.RECTIFICATIVEPERSON_KEY,
+					SystemOperateType.TOPOSITIVEINFO, null, null);
+			RectificativePerson rectificativePerson = rectificativePersonService
+					.findRectificativePersonByIdCardNoAndOrgIdAndEmphasis(
+							population.getIdCardNo(), population
+									.getOrganization().getId());
+			LogoutDetail logoutDetail = new LogoutDetail();
+			if (rectificativePerson != null
+					&& rectificativePerson.getId() != null) {
+				logoutDetail.setLogout(EmphasisType.isNotEmphasis);
+				logoutDetail.setLogoutDate(new Date());
+				logoutDetail.setLogoutReason("转移为刑释人员，自动注销社区矫正人员");
+				updateLogOutDetailByPopulationTypeAndIds(logoutDetail,
+						BaseInfoTables.RECTIFICATIVEPERSON_KEY,
+						new Long[] { rectificativePerson.getId() });
+			}
+			PositiveInfo positiveInfo = null;
+			if (null != population && population.getOrganization() != null) {
+				positiveInfo = findPositiveInfoByIdCardNoAndOrgId(
+						population.getIdCardNo(), population.getOrganization()
+								.getId());
+			}
+			population
+					.setAttentionPopulationType(BaseInfoTables.POSITIVEINFO_KEY);
+			if (positiveInfo != null) {
+				population.setId(positiveInfo.getId());
+				population.setBaseInfoId(positiveInfo.getBaseInfoId());
+				population.setAddressInfoId(positiveInfo.getAddressInfoId());
+				population = updatePositiveInfoBaseInfo(population);
+			} else {
+				population = addPositiveInfoBaseInfo(population);
+				logoutDetail = new LogoutDetail();
+				logoutDetail.setLogout(EmphasisType.Emphasis);
+				updateLogOutDetailByPopulationTypeAndIds(logoutDetail,
+						BaseInfoTables.POSITIVEINFO_KEY,
+						new Long[] { population.getId() });
+			}
+			return population;
+		} catch (Exception e) {
+			throw new ServiceValidationException("转为刑释人员失败", e);
+		}
+	}
+
+	@Override
+	public void deleteBusinessPopulationDuplicate(Long id) {
+		deletePosiviteInfosById(id);
+
+	}
+
+}

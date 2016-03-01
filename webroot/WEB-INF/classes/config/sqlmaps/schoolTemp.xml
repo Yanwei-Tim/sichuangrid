@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="schoolTemp">
+	<typeAlias alias="SchoolTemp" type="com.tianque.plugin.dataManage.location.schoolTemp.domain.SchoolTemp" />
+	<typeAlias alias="searchVo" type="com.tianque.plugin.dataManage.base.vo.SearchVo" />
+	
+	<resultMap id="schoolTempResultForBase" class="SchoolTemp" extends="locationTempBaseDomain.placeCommonTempResultForBase">
+		<result property="kind.id" column="kind"/>
+		<result property="type.id" column="type"/>
+		<result property="vicePresident" column="vicePresident"/>
+		<result property="telephone" column="telephone"/>
+		<result property="mobileNumber" column="mobileNumber"/>
+		<result property="webSite" column="webSite"/>
+		<result property="atSchoolHeadcount" column="atSchoolHeadcount"/>
+		<result property="englishName" column="englishName"/>
+		<result property="fax" column="fax"/>
+		<result property="email" column="email"/>
+	</resultMap>
+    <resultMap id="schoolTempResultForList" class="SchoolTemp" extends="schoolTemp.schoolTempResultForBase">
+		<result property="claimDetail" resultMap="dataManage.dataManageResultMap"/>
+	</resultMap>
+	
+	<sql id="claim_sql_where">
+		from DM_schools_Temp where 1=1
+		<include refid="dataManage.searchVoDataManage"/>
+	</sql>
+	<sql id="updateBusinessSql">
+		kind = #kind.id#
+		,type = #type.id#
+		,vicePresident = #vicePresident#
+		,telephone = #telephone#
+		,mobileNumber = #mobileNumber#
+		,webSite = #webSite#
+		,atSchoolHeadcount = #atSchoolHeadcount#
+		,englishName = #englishName#
+		,fax=#fax#
+		,email=#email#
+		,attentionExtent=#attentionExtent.id#
+	</sql>
+	<insert id="addSchoolTemp" parameterClass="SchoolTemp">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_DM_schools_Temp.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into DM_schools_Temp
+		(id,orgid,orgInternalCode,name,manager,kind,address,type,vicePresident,telephone,mobileNumber,
+		webSite,atSchoolHeadcount,englishName,fax,email,attentionExtent,remark,createDate,createUser,
+		<include refid="dataManage.addDataManage"/>
+		)
+		values
+		(#id#,#organization.id#,#orgInternalCode#,#name#,#manager#,#kind.id#,#address#,#type.id#,#vicePresident#,#telephone#,#mobileNumber#,
+		#webSite#,#atSchoolHeadcount#,#englishName#,#fax#,#email#,#attentionExtent.id#,#remark#,#createDate#,#createUser#,
+		<include refid="dataManage.addValueDataManage"/>
+		)
+    </insert>
+	
+	<select id="findTempPageList" resultMap="schoolTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	 <update id="updateSchoolTempInIdById"  parameterClass="java.util.Map">
+		update DM_schools_Temp set InId = #claimDetail.inid# where id=#id#
+	</update>
+	<update id="updateSchoolTempClaimDetail"  parameterClass="java.util.Map">
+		update DM_schools_Temp set <include refid="dataManage.updateClaimDetail"/>
+	</update>
+
+	<update id="updateSchoolTemp" parameterClass="SchoolTemp">
+		update DM_schools_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="schoolTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	
+	<select id="findTemps" resultMap="schoolTempResultForList"
+		parameterClass="searchVo">
+		<![CDATA[select * ]]>
+		<include refid="claim_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countFindTemps" resultClass="java.lang.Integer"
+		parameterClass="searchVo">
+			select count(id)  <include refid="claim_sql_where" />
+	</select>
+	<select id="getSchoolTempById" parameterClass="long" resultMap="schoolTempResultForList">
+		select * from DM_schools_Temp where id=#value#
+	</select>
+	<!-- 修改场所信息 -->
+	<update id="updateSchoolTempInfo" parameterClass="SchoolTemp">
+		update DM_schools_Temp set
+		<include refid="locationTempBaseDomain.updateLocationTempBaseInfo"/>
+		<include refid="dataManage.updateDataManage"/>
+		,
+		<include refid="schoolTemp.updateBusinessSql"/>
+		where id=#id#
+	</update>
+	<delete id="deleteSchoolTempById" parameterClass="Long">
+	   delete DM_schools_Temp where id = #value#
+	</delete>
+</sqlMap>

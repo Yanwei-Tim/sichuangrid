@@ -1,0 +1,109 @@
+package com.tianque.plugin.taskList.daoImpl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.dao.AbstractBaseDao;
+import com.tianque.plugin.taskList.constants.Constants;
+import com.tianque.plugin.taskList.dao.TermerRecordDao;
+import com.tianque.plugin.taskList.domain.TermerRecord;
+import com.tianque.plugin.taskList.domain.TermerRecordVo;
+
+@Repository("termerRecordDao")
+public class TermerRecordDaoImpl extends AbstractBaseDao implements TermerRecordDao {
+
+	@Override
+	public TermerRecord addTermerRecord(TermerRecord termerRecord) {
+		Long id = (Long) getSqlMapClientTemplate().insert("termerRecord.addTermerRecord",
+				termerRecord);
+		return getTermerRecordById(id);
+	}
+
+	@Override
+	public TermerRecord getTermerRecordById(Long id) {
+		return (TermerRecord) getSqlMapClientTemplate().queryForObject(
+				"termerRecord.getTermerRecordById", id);
+	}
+
+	@Override
+	public PageInfo<TermerRecord> findTermerRecords(TermerRecordVo termerRecordVo, Integer pageNum,
+			Integer pageSize, String sidx, String sord) {
+		Map<String, Object> map = creatTermerRecordMap(termerRecordVo, sidx, sord);
+		map.put("modulekey", Constants.REPLY_TERMERRECORD_KEY);
+		Integer countNum = (Integer) getSqlMapClientTemplate().queryForObject(
+				"termerRecord.countFindTermerRecords", map);
+		List<TermerRecord> list = new ArrayList<TermerRecord>();
+		if (pageNum == null || pageSize == null) {
+			list = getSqlMapClientTemplate().queryForList("termerRecord.findTermerRecords", map);
+			return new PageInfo<TermerRecord>(1, countNum, countNum, list);
+		} else {
+			list = getSqlMapClientTemplate().queryForList("termerRecord.findTermerRecords", map,
+					(pageNum - 1) * pageSize, pageSize);
+			return new PageInfo<TermerRecord>(pageNum, pageSize, countNum, list);
+		}
+	}
+
+	@Override
+	public Integer countTermerRecords(TermerRecord termerRecord) {
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"termerRecord.countFindTermerRecords", termerRecord);
+	}
+
+	@Override
+	public TermerRecord updateTermerRecord(TermerRecord termerRecord) {
+		getSqlMapClientTemplate().update("termerRecord.updateTermerRecord", termerRecord);
+		return getTermerRecordById(termerRecord.getId());
+	}
+
+	@Override
+	public Integer deleteTermerRecords(List<Long> ids) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("ids", ids);
+		return getSqlMapClientTemplate().delete("termerRecord.deleteTermerRecord", map);
+	}
+
+	private Map<String, Object> creatTermerRecordMap(TermerRecordVo termerRecordVo, String sidx,
+			String sord) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("orgCode", termerRecordVo.getOrganization().getOrgInternalCode());
+		map.put("address", termerRecordVo.getAddress());
+		map.put("name", termerRecordVo.getName());
+		map.put("fastSearchCondition", termerRecordVo.getFastSearchCondition());
+		map.put("signMemberName", termerRecordVo.getSignMemberName());
+		map.put("hasReplay", termerRecordVo.getHasReplay());
+		map.put("hasException", termerRecordVo.getHasException());
+		map.put("mode", termerRecordVo.getMode());
+		map.put("status", termerRecordVo.getStatus());
+		map.put("funOrgId", termerRecordVo.getFunOrgId());
+		map.put("helpPeople", termerRecordVo.getHelpPeople());
+		map.put("idCard", termerRecordVo.getIdCard());
+		map.put("phone", termerRecordVo.getPhone());
+		map.put("termerId", termerRecordVo.getTermerId());
+		if (termerRecordVo.getRecordEndDate() != null) {
+			map.put("recordEndDate",
+					CalendarUtil.getLastDaySecoend(termerRecordVo.getRecordEndDate()));
+		}
+		map.put("recordStartDate", termerRecordVo.getRecordStartDate());
+		map.put("signStartDate", termerRecordVo.getSignStartDate());
+		if (termerRecordVo.getSignEndDate() != null) {
+			map.put("signEndDate", CalendarUtil.getLastDaySecoend(termerRecordVo.getSignEndDate()));
+		}
+		map.put("sortField", sidx);
+		map.put("order", sord);
+		return map;
+	}
+
+	@Override
+	public List<TermerRecord> findTermerRecordsByName(TermerRecordVo termerRecordVo) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("orgCode", termerRecordVo.getOrganization().getOrgInternalCode());
+		map.put("name", termerRecordVo.getName());
+		return getSqlMapClientTemplate().queryForList("termerRecord.findTermerRecordsByName", map);
+	}
+}

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+    
+<struts>
+	<package name="searchTargeUser" extends="default"
+		namespace="/issue/issueManage/searchTargeOrg">
+		<default-class-ref class="searchTargeOrgController" />
+
+		<action name="searchTargeOrgForAutoComplete" method="searchTargeOrgForAutoComplete">
+			<result name="success" type="json">
+				<param name="root">autoCompleteDatas</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="searchSendBackTargeOrg" method="searchSendBackTargeOrg">
+			<result name="success" type="json">
+				<param name="root">targeOrg</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="searchForwardTargeOrg" method="searchForwardTargeOrg">
+			<result name="success" type="json">
+				<param name="root">targeOrg</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+				<action name="selectTargeOrg" method="selectTargeOrg">
+			<result name="success" >
+				/issue/issueManage/targeOrgSelector.jsp?issueDealType=$("issueDealType")
+			</result>
+		</action>
+		<action name="searchTargeOrgsForSelector" method="searchTargeOrgsForSelector">
+			<result name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="excludeProperties">
+				    page,total,records
+			  	</param>
+			</result>
+		</action>
+	</package>
+</struts>

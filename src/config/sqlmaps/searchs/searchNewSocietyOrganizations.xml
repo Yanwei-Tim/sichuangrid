@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="searchNewSocietyOrganizations">
+	<typeAlias alias="SearchNewSocietyOrganizationsVo" type="com.tianque.baseInfo.newSocietyOrganizations.domain.SearchNewSocietyOrganizationsVo" />
+
+	<sql id="sql_fastSearch">
+		<isPropertyAvailable property="unitName">
+				<isNotNull property="unitName">
+					<isNotEmpty property="unitName" prepend=" and ">
+						(name like '%'||#unitName#||'%' or fullPinyin like '%'||#unitName#||'%' or simplePinyin like '%'||#unitName#||'%')
+					</isNotEmpty>
+				</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="isEmphasis">
+		<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="true">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="false">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+		</isPropertyAvailable>
+	</sql>
+	<select id="countFastSearchNewSocietyOrganizations" parameterClass="SearchNewSocietyOrganizationsVo" resultClass="int">
+		<!-- orgInternalCode = #orgInternalCode#  新社会组织每个层级只能看到当前层级的数据 -->
+		select count(*)
+		from newSocietyOrganizations where orgInternalCode like #orgInternalCode#||'%'
+		<include refid="sql_fastSearch"/>
+	</select>
+
+	<select id="fastSearchNewSocietyOrganizations" parameterClass="SearchNewSocietyOrganizationsVo" resultMap="newSocietyOrganizations.newSocietyOrganizationsResultForList">
+		<!-- orgInternalCode = #orgInternalCode#  新社会组织每个层级只能看到当前层级的数据 -->
+		select newSocietyOrganizations.*,'$objectType$' as locationType 
+		from newSocietyOrganizations 
+		where orgInternalCode like #orgInternalCode#||'%'
+		<include refid="sql_fastSearch"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<sql id="sql_where">
+		from newSocietyOrganizations where 1=1
+		<dynamic>
+			<!-- orgInternalCode = #orgInternalCode#  新社会组织每个层级只能看到当前层级的数据 -->
+			<isPropertyAvailable property="subType">
+				<isNotNull property="subType" prepend=" and ">
+					subType = #subType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="unitName" >
+				<isNotEmpty property="unitName" prepend=" and ">
+					<![CDATA[name like '%'||#unitName#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="legalPerson" >
+				<isNotEmpty property="legalPerson" prepend=" and ">
+					<![CDATA[legalPerson like '%'||#legalPerson#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="typeId" >
+				<isNotEmpty property="typeId" prepend=" and ">
+					<![CDATA[type like '%'||#typeId#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="address" >
+				<isNotEmpty property="address" prepend=" and ">
+					<![CDATA[address like '%'||#address#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="legalPersonMobileNumber" >
+				<isNotEmpty property="legalPersonMobileNumber" prepend=" and ">
+					<![CDATA[legalPersonMobileNumber like '%'||#legalPersonMobileNumber#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="legalPersonTelephone" >
+				<isNotEmpty property="legalPersonTelephone" prepend=" and ">
+					<![CDATA[legalPersonTelephone like '%'||#legalPersonTelephone#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+					<isEqual property="isEmphasis" compareValue="true">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+					<isEqual property="isEmphasis" compareValue="false">
+						isEmphasis = #isEmphasis#
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+
+			<isPropertyAvailable property="chargeUnit" >
+				<isNotEmpty property="chargeUnit" prepend=" and ">
+					<![CDATA[chargeUnit like '%'||#chargeUnit#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="registrationNumber" >
+				<isNotEmpty property="registrationNumber" prepend=" and ">
+					<![CDATA[registrationNumber like '%'||#registrationNumber#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startValidityStartDate" >
+				<isNotEmpty property="startValidityStartDate" prepend=" and ">
+					<![CDATA[validityStartDate >= #startValidityStartDate#]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endValidityStartDate" >
+				<isNotEmpty property="endValidityStartDate" prepend=" and ">
+					<![CDATA[validityStartDate <= trunc(#endValidityStartDate#+1)]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startValidityEndDate" >
+				<isNotEmpty property="startValidityEndDate" prepend=" and ">
+					<![CDATA[validityEndDate >= #startValidityEndDate#]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endValidityEndDate" >
+				<isNotEmpty property="endValidityEndDate" prepend=" and ">
+					<![CDATA[validityEndDate <= trunc(#endValidityEndDate#+1)]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="minArea" >
+				<isNotEmpty property="minArea" prepend=" and ">
+					<![CDATA[area >= #minArea#]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maxArea" >
+				<isNotEmpty property="maxArea" prepend=" and ">
+					<![CDATA[area <= #maxArea#]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="minPersonNum" >
+				<isNotEmpty property="minPersonNum" prepend=" and ">
+					<![CDATA[personNum >= #minPersonNum#]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maxPersonNum" >
+				<isNotEmpty property="maxPersonNum" prepend=" and ">
+					<![CDATA[personNum <= #maxPersonNum#]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="minPartyNum" >
+				<isNotEmpty property="minPartyNum" prepend=" and ">
+					<![CDATA[partyNum >= #minPartyNum#]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="maxPartyNum" >
+				<isNotEmpty property="maxPartyNum" prepend=" and ">
+					<![CDATA[partyNum <= #maxPartyNum#]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+		<isPropertyAvailable property="hasServiceTeamMember">
+		<isNotNull property="hasServiceTeamMember" prepend=" and ">
+			<isEqual property="hasServiceTeamMember" compareValue="0">
+				id in (select objectId from serviceMemberHasObject where objectType=#objectType#  )
+			</isEqual>	
+			<isEqual property="hasServiceTeamMember" compareValue="1">
+				id not in (select objectId from serviceMemberHasObject where objectType=#objectType#  )
+			</isEqual>
+		</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="hasServiceRecord">
+		<isNotNull property="hasServiceRecord" prepend=" and ">
+			<isEqual property="hasServiceRecord" compareValue="0">
+				id in (select objectId from serviceRecordRelyObject where objectType=#objectType#  )
+			</isEqual>	
+			<isEqual property="hasServiceRecord" compareValue="1">
+				id not in (select objectId from serviceRecordRelyObject where objectType=#objectType#  )
+			</isEqual>
+		</isNotNull>
+		</isPropertyAvailable>
+			<isPropertyAvailable property="mainResponsibilities" >
+				<isNotEmpty property="mainResponsibilities" prepend=" and ">
+					<![CDATA[mainResponsibilities like '%'||#mainResponsibilities#||'%']]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<select id="countSearchNewSocietyOrganizations" parameterClass="SearchNewSocietyOrganizationsVo" resultClass="int">
+		<include refid="common.sql_count" />
+		<include refid="sql_where"/>
+	</select>
+
+	<select id="searchNewSocietyOrganizations" parameterClass="SearchNewSocietyOrganizationsVo" resultMap="newSocietyOrganizations.newSocietyOrganizationsResultForList">
+		select newSocietyOrganizations.*,'$objectType$' as locationType 
+		<include refid="sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+</sqlMap>

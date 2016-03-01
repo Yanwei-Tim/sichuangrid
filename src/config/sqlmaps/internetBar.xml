@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="internetBar">
+	<typeAlias alias="InternetBar" type="com.tianque.baseInfo.internetBar.domain.InternetBar" />
+
+	<resultMap id="internetBarResult" class="InternetBar" extends="locationBaseInfo.locationBaseInfoResult">
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgInternalCode" />
+		<result property="placeName" column="placeName" />
+		<result property="placeAddress" column="placeAddress" />
+		<result property="placeId" column="placeId"/>
+		<result property="manager" column="manager" />
+		<result property="mobile" column="mobile" />
+		<result property="netCultureLicenceNo" column="netCultureLicenceNo" />
+		<result property="netAccessProviders" column="netAccessProviders" />
+		<result property="internetAccessType" column="internetAccessType" />
+		<result property="netSecurityAuditNo" column="netSecurityAuditNo" />
+		<result property="tempNetCardNum" column="tempNetCardNum" />
+		<result property="totalComputerNum" column="totalComputerNum" />
+		<result property="fireAuditDocumentNo" column="fireAuditDocumentNo" />
+		<result property="barCode" column="barCode" />
+		<result property="useIP" column="useIP" />
+		<result column="imgUrl" property="imgUrl" />
+		<result property="stationPolice" column="stationPolice" />
+		<result property="operationArea" column="operationArea" />
+		<result property="remark" column="remark"/> 
+		<result property="logOutReason" column="logOutReason"/>
+		<result property="logOutTime" column="logOutTime"/>
+		<result property="gisInfo.buildingId" column="buildingId" />
+        <result property="gisInfo.centerX" column="centerX" />
+        <result property="gisInfo.centerY" column="centerY" />
+        <result column="attentionExtent" property="attentionExtent.id"/>
+	</resultMap>
+	<!-- 为列表显示准备的返回值 -->
+	<resultMap id="internetBarResultForList" class="InternetBar" extends="locationBaseInfo.locationBaseInfoResultForList">
+		<result property="organization.id" column="orgId" />
+		<result property="organization.orgInternalCode" column="orgInternalCode" />
+		<result property="placeName" column="placeName" />
+		<result property="placeAddress" column="placeAddress" />
+		<result property="placeId" column="placeId"/>
+		<result property="manager" column="manager" />
+		<result property="mobile" column="mobile" />
+		<result property="netCultureLicenceNo" column="netCultureLicenceNo" />
+		<result property="netAccessProviders" column="netAccessProviders" />
+		<result property="internetAccessType" column="internetAccessType" />
+		<result property="netSecurityAuditNo" column="netSecurityAuditNo" />
+		<result property="tempNetCardNum" column="tempNetCardNum" />
+		<result property="totalComputerNum" column="totalComputerNum" />
+		<result property="fireAuditDocumentNo" column="fireAuditDocumentNo" />
+		<result property="barCode" column="barCode" />
+		<result property="useIP" column="useIP" />
+		<result column="imgUrl" property="imgUrl" />
+		<result property="stationPolice" column="stationPolice" />
+		<result property="operationArea" column="operationArea" />
+		<result property="remark" column="remark"/> 
+		<result property="logOutReason" column="logOutReason"/>
+		<result property="logOutTime" column="logOutTime"/>
+		<result property="gisInfo.buildingId" column="buildingId" />
+        <result property="gisInfo.centerX" column="centerX" />
+        <result property="gisInfo.centerY" column="centerY" />
+        <result column="attentionExtent" property="attentionExtent.id"/>
+		<result property="sourcesState" column="sourcesState"/>
+	</resultMap>
+
+	<insert id="addInternetBar" parameterClass="InternetBar">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_internetBar.NEXTVAL as id from dual]]>
+		</selectKey>
+		insert into internetBar (
+		id,orgId,orgInternalCode,placeName,placeId,placeAddress,manager,mobile,netCultureLicenceNo,netAccessProviders,internetAccessType,
+		netSecurityAuditNo,tempNetCardNum,totalComputerNum,fireAuditDocumentNo,barCode,operationArea,useIP,stationPolice,imgUrl,
+		logOutReason,logOutTime,remark,fullPinyin,simplePinyin,attentionExtent,
+		createUser,updateUser,createDate,updateDate,buildingId,centerX,centerY,sourcesState
+		)values(
+		#id#,#organization.id#,#organization.orgInternalCode#,#placeName#,#placeId#,#placeAddress#,#manager#,#mobile#,#netCultureLicenceNo#,#netAccessProviders#,#internetAccessType#,
+		#netSecurityAuditNo#,#tempNetCardNum#,#totalComputerNum#,#fireAuditDocumentNo#,#barCode#,#operationArea#,#useIP#,#stationPolice#,#imgUrl#,
+		#logOutReason#,#logOutTime#,#remark#,#fullPinyin#,#simplePinyin#,#attentionExtent.id#,
+		#createUser#,#updateUser#,#createDate#,#updateDate#,#gisInfo.buildingId#,#gisInfo.centerX#,#gisInfo.centerY#,#sourcesState#
+		)
+	
+	</insert>
+	<update id="updateInternetBar" parameterClass="InternetBar">
+		update internetBar set
+			placeName=#placeName#,
+			placeId=#placeId#,
+			placeAddress=#placeAddress#,
+			manager=#manager#,
+			mobile=#mobile#,
+			netCultureLicenceNo=#netCultureLicenceNo#,
+			netAccessProviders=#netAccessProviders#,
+			internetAccessType=#internetAccessType#,
+		    netSecurityAuditNo=#netSecurityAuditNo#,
+		    tempNetCardNum=#tempNetCardNum#,
+		    totalComputerNum=#totalComputerNum#,
+		    fireAuditDocumentNo=#fireAuditDocumentNo#,
+		    barCode=#barCode#,
+		    operationArea=#operationArea#,
+		    useIP=#useIP#,
+		    stationPolice=#stationPolice#,
+		    imgUrl=#imgUrl#,
+		    logOutReason=#logOutReason#,
+		    logOutTime=#logOutTime#,
+		    remark=#remark#,
+		    fullPinyin=#fullPinyin#,
+		    simplePinyin=#simplePinyin#,
+		    updateUser=#updateUser#,
+		    updateDate=#updateDate#,
+		    buildingId = #gisInfo.buildingId#,
+			centerX = #gisInfo.centerX#,
+			centerY = #gisInfo.centerY#,
+			attentionExtent = #attentionExtent.id#
+		where id=#id#
+	</update>
+	<update id="updateEmphasiseById" parameterClass="map">
+		update internetBar set
+			isEmphasis=#isEmphasis#,
+			logOutReason=#logOutReason#,
+			updateUser=#updateUser#,
+		    updateDate=#updateDate#,
+			logOutTime=#logOutTime#
+		where id=#id#	
+	</update>
+	<sql id="sql_where">
+		from internetBar
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like '$orgInternalCode$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="placeName">
+				<isNotNull property="placeName" prepend=" and ">
+					placeName = #placeName#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId = #orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isEmphasis">
+				<isNotNull property="isEmphasis" prepend=" and ">
+						isEmphasis = #isEmphasis#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<delete id="deleteInternetBarById" parameterClass="java.lang.Long">
+		delete from internetBar  where id=#id#
+	</delete>
+	<select id="getInternetBarById" parameterClass="java.lang.Long" resultMap="internetBarResult">
+		<![CDATA[select * from internetBar where id= #value#]]>
+	</select>
+	
+	<select id="countInternetBar" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*)
+		<include refid="sql_where" />
+	</select>
+	<select id="findInternetBar" parameterClass="java.util.Map" resultMap="internetBarResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+		<select id="getInternetBarByMap" parameterClass="java.util.Map" resultMap="internetBarResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+</sqlMap>

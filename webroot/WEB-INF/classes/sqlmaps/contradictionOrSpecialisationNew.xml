@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="contradictionOrSpecialisationNew">
+	<typeAlias alias="IssueNew" type="com.tianque.issue.domain.IssueNew" />
+        
+    <sql id="contradictionsOrSpecialisation_where">
+       <![CDATA[
+       from issues  where 
+            id in (select issueid from issuehastypes t where t.issuetypeid in (select id from issuetypes it where domainid=(select id from issuetypedomains where domainname=#issueTypeDomainName#)))
+       ]]>
+            <isPropertyAvailable property="organizationId">
+                <isNotNull property="organizationId" prepend=" and ">
+                    occurOrg=#organizationId#
+                </isNotNull>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="sourceOrganizationId">
+                <isNotNull property="sourceOrganizationId" prepend=" and ">
+                    occurOrg=#organizationId#
+                </isNotNull>
+            </isPropertyAvailable>
+            <isPropertyAvailable property="sourceOrganizationInternalCode">
+                <isNotNull property="sourceOrganizationInternalCode"
+                    prepend=" and ">
+                    occurorginternalcode like
+                    #sourceOrganizationInternalCode#||'%'
+                </isNotNull>
+            </isPropertyAvailable>
+    </sql>
+    <resultMap id="fullIssueResult" class="IssueNew"
+        extends="issueNewResult.issueResult">
+    </resultMap>
+    <select id="findContradictionsOrSpecialisation"  parameterClass="map"
+        resultMap="fullIssueResult">
+        <include refid="common.sql_select" />
+        <include refid="contradictionsOrSpecialisation_where" />
+        <dynamic prepend="order by">
+            <isPropertyAvailable property="sortField">
+                <isNotNull property="sortField">$sortField$
+              </isNotNull>
+                <isNotNull property="order">$order$</isNotNull>
+            </isPropertyAvailable>
+        </dynamic>
+    </select>
+    <select id="countContradictionsOrSpecialisation" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+       <include refid="common.sql_count"/>
+       <include refid="contradictionsOrSpecialisation_where"/>
+    </select>
+</sqlMap>

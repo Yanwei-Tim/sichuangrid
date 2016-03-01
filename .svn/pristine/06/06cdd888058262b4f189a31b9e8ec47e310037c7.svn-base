@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="partyOrgActivity">
+	<typeAlias alias="partyOrgActivity" type="com.tianque.domain.PartyOrgActivity" />
+	<typeAlias alias="partyOrgActivityFile" type="com.tianque.domain.PartyOrgActivityFile" />
+	<typeAlias alias="PartyOrgInfos" type="com.tianque.domain.PartyOrgInfo" />
+	<typeAlias alias="searchPartyOrgActivityVo" type="com.tianque.domain.vo.SearchPartyOrgActivityVo" />
+	<typeAlias alias="ClobStringTypeHandler"
+		type="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+
+	<resultMap id="partyOrgActivityFileResult" class="partyOrgActivityFile">
+		<result column="id" property="id" />
+		<result column="orgActivityId" property="orgActivityId" />
+		<result column="fileActualUrl" property="fileActualUrl" />
+		<result column="fileName" property="fileName" />
+		<result column="fileSize" property="fileSize" />
+	</resultMap>
+
+	<resultMap id="partyOrgActivityResult" class="partyOrgActivity">
+		<result column="id" property="id" />
+		<result column="orgId" property="organization.id" />
+		<result column="orgInternalCode" property="organization.orgInternalCode" />
+		<result column="partyOrgId" property="partyOrgInfo" select="partyOrgActivity.getPartyOrgInfosById"/>
+		<result column="activityDate" property="activityDate" />
+		<result column="activityAddr" property="activityAddr" />
+		<result column="activitySubject" property="activitySubject" />
+		<result column="organizers" property="organizers" />
+		<result column="participants" property="participants" />
+		<result column="activeContent" property="activeContent" />
+		<result column="id" property="activityAttachFile" select="partyOrgActivity.getPartyOrgActivityFileByOrgActiveId"/>
+		<result column="createDate" property="createDate" />
+		<result column="updateDate" property="updateDate" />
+		<result column="createUser" property="createUser" />
+		<result column="updateUser" property="updateUser" />
+	</resultMap>
+
+	<select id="getPartyOrgInfosById" parameterClass="int"
+		resultClass="PartyOrgInfos">
+		<![CDATA[select s.id, s.partyBranchName from partyOrgInfos s where id=#value# ]]>
+	</select>
+
+	<select id="getPartyOrgActivityFileByOrgActiveId" parameterClass="int"
+		resultMap="partyOrgActivityFileResult">
+		<![CDATA[select * from partyOrgActivityFiles where orgActivityId=#value# ]]>
+	</select>
+
+	<select id="getPartyOrgActivityByPartyOrgId" parameterClass="java.lang.Long"
+		resultMap="partyOrgActivityResult">
+		select * from partyOrgActivitys where partyOrgId=#value#
+	</select>
+
+	<insert id="addPartyOrgActivity" parameterClass="partyOrgActivity">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_partyOrgActivitys.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into partyOrgActivitys
+		(id,orgId,partyOrgId,activityDate,activityAddr,
+		activitySubject,organizers,participants,
+		activeContent,orgInternalCode,createDate,createUser)
+		values
+		(#id#,#organization.id#,#partyOrgInfo.id#,#activityDate#,#activityAddr#,
+		#activitySubject#,#organizers#,#participants#,
+		#activeContent,handler=ClobStringTypeHandler#,#organization.orgInternalCode#,#createDate#,#createUser#
+		)
+	</insert>
+
+	<update id="updatePartyOrgActivity" parameterClass="partyOrgActivity">
+		update partyOrgActivitys set
+				orgId=#organization.id#,
+				partyOrgId=#partyOrgInfo.id#,
+				activityDate=#activityDate#,
+				activityAddr=#activityAddr#,
+				activitySubject=#activitySubject#,
+				organizers=#organizers#,
+				participants=#participants#,
+				activeContent=#activeContent,handler=ClobStringTypeHandler#,
+				orgInternalCode=#organization.orgInternalCode#,
+				updateDate=#updateDate#,
+				updateUser=#updateUser#
+			where id=#id#
+	</update>
+
+	<delete id="deletePartyOrgActivityById" parameterClass="java.lang.Long">
+		delete from partyOrgActivitys
+		where id=#value#
+	</delete>
+
+	<select id="getPartyOrgActivityById" parameterClass="java.lang.Long"
+		resultMap="partyOrgActivityResult">
+		select * from partyOrgActivitys where id=#value#
+	</select>
+
+	<sql id="sql_where">
+		from partyOrgActivitys
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="orgId">
+				<isNotNull property="orgId" prepend=" and ">
+					orgId=#orgId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<sql id="search_sql_where">
+		from partyOrgActivitys
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="organization">
+				<isNotNull property="organization" prepend=" and ">
+					orgId=#organization.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty property="orgInternalCode" prepend=" and ">
+					orgInternalCode like  #orgInternalCode#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="activityDate" >
+				<isNotEmpty prepend=" and " property="activityDate">
+					<![CDATA[ activityDate >= #activityDate# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endActivityDate">
+				<isNotEmpty prepend=" and " property="endActivityDate">
+					<![CDATA[ activityDate <= #endActivityDate# ]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="activitySubject">
+				<isNotEmpty property="activitySubject" prepend=" and ">
+					activitySubject like #activitySubject#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="activityAddr">
+				<isNotEmpty property="activityAddr" prepend=" and ">
+					activityAddr like #activityAddr#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="organizers">
+				<isNotEmpty property="organizers" prepend=" and ">
+					organizers like #organizers#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="participants">
+				<isNotEmpty property="participants" prepend=" and ">
+					participants like #participants#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="activeContent">
+				<isNotEmpty property="activeContent" prepend=" and ">
+					activeContent like #activeContent#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="findPartyOrgActivitys" parameterClass="java.util.Map"
+		resultMap="partyOrgActivityResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countPartyOrgActivitys" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<select id="countSearchPartyOrgActivity" parameterClass="searchPartyOrgActivityVo" resultClass="int">
+		select count(*)
+		<include refid="search_sql_where" />
+	</select>
+
+	<select id="searchPartyOrgActivity" parameterClass="searchPartyOrgActivityVo" resultMap="partyOrgActivityResult">
+		select *
+		<include refid="search_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotEmpty property="sortField">$sortField$
+			  </isNotEmpty>
+				<isNotEmpty property="order">$order$</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="getPartyOrgActivityByOrgIdAndactivitySubject" parameterClass="java.util.Map"
+		resultMap="partyOrgActivityResult">
+		select * from partyOrgActivitys where orgId=#orgId# and activitySubject like #activitySubject#||'%'
+	</select>
+</sqlMap>
