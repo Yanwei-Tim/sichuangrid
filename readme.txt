@@ -1,3 +1,5 @@
+社会服务管理综合平台
+
 系统环境说明：
 jdb1.6
 ActiveMQ 5.6.0 Release
